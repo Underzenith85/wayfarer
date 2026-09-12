@@ -75,7 +75,7 @@ They use the same bearer credentials and no-store response policy.
 | POST `/setups/{id}/generate` | Provider-backed proposal from the saved brief/party; registered only with provider configuration |
 
 `SetupCommand` operations: edit, invite, join, assign, ready, activate, pause,
-resume, complete, archive. Strict Pydantic models are in `engine/simulation/setup.py`.
+resume, complete, archive. Strict Pydantic models are in `engine/simulation/campaign/setup.py`.
 Host edits may save an invalid draft; readiness and activation enforce the
 scenario studio's compatibility/legality checks. New game creation uses a
 principal-plus-command deterministic identity. Browser write failures retain the

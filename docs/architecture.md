@@ -61,8 +61,8 @@ Nouns and verbs are kept apart at three levels.
   frozen, strict, closed to unknown fields and revalidated when nested. No other
   module subclasses `BaseModel` directly or restates that configuration. A state
   transition returns a new record; entities never mutate themselves.
-- **Aggregate modules hold entities and their invariants.** `engine/simulation/scenes.py`,
-  `party.py`, `noncombat.py`, `access.py`, `advancement.py`, `spell_bindings.py`,
+- **Aggregate modules hold entities and their invariants.** `engine/simulation/campaign/scenes.py`,
+  `campaign/party.py`, `noncombat.py`, `access.py`, `advancement.py`, `spell_bindings.py`,
   `ability_types.py` and `combat.py` each declare their records and a
   `validate_*` function that checks a checkpoint against those records. Pure
   rule tables that need no state (range penalties, rapid-fire bonuses) live in
@@ -106,9 +106,11 @@ recording and typed event streams remain the separate ADR 002 migration steps.
 
 ### Basic Set mechanic boundary (#415)
 
-`engine/simulation/mechanics/` owns the state-aware melee, ranged, unarmed, object,
-physical and spell adapters and their follow-up transitions. `engine/rules/combat_tables.py`
-and `engine/rules/unarmed_tables.py` own the shared numeric formulas, skill permissions
+The verb-tier modules of each domain subpackage own the state-aware melee, ranged,
+unarmed, object, physical and spell adapters and their follow-up transitions
+(`engine/simulation/combat/melee.py`, `combat/ranged.py`, `combat/unarmed.py`,
+`magic/spell_transitions.py`, `movement/physical.py` and their siblings).
+`engine/rules/tables/combat.py` and `engine/rules/tables/unarmed.py` own the shared numeric formulas, skill permissions
 and critical-miss rows. These modules import independently of orchestration and
 persistence; services supply a campaign-specific `RulesContext` at the boundary.
 
@@ -150,7 +152,7 @@ should land on these seams rather than invent new ones.
 - **Rule math belongs below orchestration (#94 catalog lane, #173, #176).**
   Tables and formulas with no state dependency go in `engine/rules/`; transitions on
   `PlayState` go in `engine/simulation/`. The shared combat adapters now live in
-  `engine/simulation/mechanics/` and receive explicit domain dependencies. Extend the
+  the verb tier of each domain subpackage and receive explicit domain dependencies. Extend the
   existing mechanic reducers rather than adding rule math to a service.
 
 ## Package and dependency workflow
@@ -414,3 +416,29 @@ and `snapshots` are optional periodic caches; reads, retries and history never t
 use a separate `PlayEventProjection`, split from the format-2 snapshot checkpoint.
 Narration is overlaid only for presentation and is never a rebuild input. See
 `docs/persistence.md` for the final table layout and retention conditions.
+
+### Domain subpackages inside the engine (#559)
+
+`engine/rules/` groups by what a rule *is*: `types/` for the pinned vocabularies,
+`tables/` for stateless formulas, `traits/`, `skills/`, `magic/`, `social/` and
+`supernatural/` for the construction data of each family. `engine/character/`
+keeps the compiler flat and gathers the per-family projections under `traits/`.
+
+`engine/simulation/` groups by domain: `equipment/`, `health/`, `traits/`,
+`skills/`, `combat/`, `magic/`, `social/`, `movement/` and `campaign/`, with
+`resources.py`, `hex_geometry.py`, `abilities.py`, `actions.py`, `events.py`,
+`rules_context.py` and `action_engine.py` staying flat because every domain uses
+them. The `mechanics/` package is gone: each adapter now sits beside the nouns it
+resolves, named for the transition it performs (`fright_transitions.py`,
+`spell_transitions.py`, `repair_transitions.py`) so a domain's contracts and its
+verbs never share a name.
+
+Eager dependencies between subpackages run `equipment` < `health` < `combat` <
+`magic` < `traits`, with `skills`, `social`, `movement` and `campaign` beside
+them; verbs may read nouns from any domain. Three placements follow the imports
+rather than the name: the Lite attack/defense resolver is `combat/lite_resolution.py`
+(it resolves an attack, unlike `health/injury.py`), `magic/held_missiles.py` is
+magic because it is about a caster holding a spell, and `movement/physical.py`
+dispatches travel. `disabled()` moved to `health/hit_locations.py` and now takes
+the resource state, so travel no longer reaches into combat to ask which limbs
+work.

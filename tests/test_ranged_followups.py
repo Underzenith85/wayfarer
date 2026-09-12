@@ -12,8 +12,8 @@ from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import Outcome, RecordedDice
-from wayfarer.engine.simulation.gurps_equipment import Damage
-from wayfarer.engine.simulation.ranged_critical import RangedCritical, save_ranged_critical
+from wayfarer.engine.simulation.combat.ranged_critical import RangedCritical, save_ranged_critical
+from wayfarer.engine.simulation.equipment.catalog import Damage
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
@@ -333,8 +333,8 @@ async def test_critical_parry_stores_context_without_melee_fallback(tmp_path: Pa
 async def test_one_eye_aim_removes_ranged_penalty_even_with_zero_acc(
     tmp_path: Path, aim_first: bool, target: int
 ) -> None:
-    from wayfarer.engine.rules.location_types import LastingInjury
-    from wayfarer.engine.simulation.mechanics.gurps_ranged import resolve
+    from wayfarer.engine.rules.types.location import LastingInjury
+    from wayfarer.engine.simulation.combat.ranged import resolve
 
     ranged = weapon(thrown=True).model_copy(update={"accuracy": 0})
     cid, play = await setup(

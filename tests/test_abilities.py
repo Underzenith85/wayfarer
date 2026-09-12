@@ -9,11 +9,11 @@ from dataclasses import replace
 import pytest
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.engine.rules.abilities import PROFILE, validate_binding
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.ranged_tables import range_penalty
-from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.rules.supernatural.abilities import PROFILE, validate_binding
+from wayfarer.engine.rules.tables.ranged import range_penalty
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.simulation.abilities import (
     AbilityContext,
     apply_ability,

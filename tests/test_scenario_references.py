@@ -7,8 +7,8 @@ import pytest
 from test_wave12 import ready, service
 from test_wave13 import finish, successor
 
-from wayfarer.engine.simulation.scenario_references import boundary, verify
-from wayfarer.engine.simulation.setup import SetupCommand
+from wayfarer.engine.simulation.campaign.scenario_references import boundary, verify
+from wayfarer.engine.simulation.campaign.setup import SetupCommand
 from wayfarer.errors import ValidationError
 
 

@@ -204,7 +204,7 @@ async def test_active_preview_is_read_only_authorized_and_rejects_client_costs(
 async def test_setup_preview_uses_exact_profile_and_host_authority(tmp_path: Path) -> None:
     from test_profiles import ALICE, EXTENDED, TOKENS, extended_graph, runtime
 
-    from wayfarer.engine.simulation.setup import CreateSetup, SetupCommand
+    from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
     from wayfarer.orchestration.setup import SetupService
 
     profiles = runtime(tmp_path)

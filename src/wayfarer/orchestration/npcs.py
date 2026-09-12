@@ -7,10 +7,10 @@ import json
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer import validation
-from wayfarer.engine.rules.mundane_traits.runtime import Audience
-from wayfarer.engine.rules.social_hooks import Reputation, Standing
+from wayfarer.engine.rules.social.social_hooks import Reputation, Standing
+from wayfarer.engine.rules.traits.mundane.runtime import Audience
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
-from wayfarer.engine.simulation.npcs import (
+from wayfarer.engine.simulation.campaign.npcs import (
     NPCDecision,
     NPCProgress,
     NPCSocialAction,
@@ -117,7 +117,7 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
         if choice is not None:
             try:
                 resources = state.resources
-                from wayfarer.engine.simulation.fright import blocked, requires_adjudication
+                from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
 
                 if blocked(resources, plan.actor_id) or requires_adjudication(
                     resources, plan.actor_id
@@ -275,13 +275,17 @@ def social_occurrence(
     trigger: NPCSocialTrigger,
     occurrence_id: str,
 ) -> PlayState:
-    from wayfarer.engine.rules.gurps_social import (
+    from wayfarer.engine.rules.social.gurps_social import (
         InfluenceConditions,
         ReactionModifier,
         influence_procedure,
     )
-    from wayfarer.engine.simulation.mechanics.gurps_melee import build
-    from wayfarer.engine.simulation.social import SocialCommand, SocialContext, SocialDisclosure
+    from wayfarer.engine.simulation.combat.melee import build
+    from wayfarer.engine.simulation.social.social import (
+        SocialCommand,
+        SocialContext,
+        SocialDisclosure,
+    )
     from wayfarer.orchestration.social import ResolvedInteraction, dispatch
 
     profile_id = play.engine.reviewer.compiler.statistics_profile
@@ -335,7 +339,7 @@ def social_occurrence(
     elif trigger.kind == "skill":
         # #345: the authored trigger names the procedure and the circumstances;
         # the initiator's approved level and the subject's Will come from builds.
-        from wayfarer.engine.rules.mundane_skills.social import require_procedure
+        from wayfarer.engine.rules.skills.mundane.social import require_procedure
 
         procedure = require_procedure(profile_id, trigger.skill_id)
         if not any(a.actor_id == actor_id for a in state.actors):

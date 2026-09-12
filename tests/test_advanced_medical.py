@@ -9,9 +9,9 @@ from test_gurps_recovery import PROFILE, seed
 from test_resources import engine
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.recovery_types import interrupt_tasks
-from wayfarer.engine.simulation.injury import Wound, apply_injury
-from wayfarer.engine.simulation.medical import (
+from wayfarer.engine.rules.types.recovery import interrupt_tasks
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,

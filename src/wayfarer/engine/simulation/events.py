@@ -16,15 +16,15 @@ from pydantic import Field, JsonValue, TypeAdapter
 
 from wayfarer import validation
 from wayfarer.engine.simulation.ability_types import AbilityEvent
-from wayfarer.engine.simulation.access import CampaignMember
 from wayfarer.engine.simulation.actions import ActionResult, PlayState
-from wayfarer.engine.simulation.combat import CombatResult
-from wayfarer.engine.simulation.fright import TimedFright
-from wayfarer.engine.simulation.hazards import HazardResult
-from wayfarer.engine.simulation.injury import InjuryResult
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.scenes import SceneEvent
+from wayfarer.engine.simulation.combat.combat import CombatResult
+from wayfarer.engine.simulation.health.fright import TimedFright
+from wayfarer.engine.simulation.health.hazards import HazardResult
+from wayfarer.engine.simulation.health.injury import InjuryResult
+from wayfarer.engine.simulation.magic.spells import SpellEvent
 from wayfarer.engine.simulation.resources import ResourceEvent
-from wayfarer.engine.simulation.scenes import SceneEvent
-from wayfarer.engine.simulation.spells import SpellEvent
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt, Record
 

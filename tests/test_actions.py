@@ -43,6 +43,7 @@ from wayfarer.engine.simulation.actions import (
     UseItem,
     Wait,
 )
+from wayfarer.engine.simulation.campaign.scenario import scenario
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
@@ -53,7 +54,6 @@ from wayfarer.engine.simulation.resources import (
     ResourceState,
     Scheduled,
 )
-from wayfarer.engine.simulation.scenario import scenario
 from wayfarer.engine.world import Connection, Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign

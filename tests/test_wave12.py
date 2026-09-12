@@ -9,8 +9,8 @@ from aiohttp.test_utils import TestClient, TestServer
 from test_scenes import configured
 from test_wave11 import graph_fixture
 
-from wayfarer.engine.simulation.setup import CreateSetup, SetupCommand
-from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
@@ -252,7 +252,7 @@ async def test_party_names_reach_every_seat_without_the_secret_graph(tmp_path: P
 def two_player_graph() -> ScenarioGraph:
     from test_actions import actor_setup
 
-    from wayfarer.engine.simulation.party import PartyRules
+    from wayfarer.engine.simulation.campaign.party import PartyRules
     from wayfarer.engine.simulation.resources import Owner
 
     graph = graph_fixture()

@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, replace
 
-from wayfarer.engine.simulation.access import CampaignMember, StreamEvent
 from wayfarer.engine.simulation.actions import ACTION_ADAPTER, PlayState
-from wayfarer.engine.simulation.combat import CombatRules, hex_template
+from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
+from wayfarer.engine.simulation.combat.combat import CombatRules, hex_template
 from wayfarer.engine.simulation.resources import wire_weight
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
@@ -46,7 +46,7 @@ class CampaignAccess:
     def _projection(
         state: PlayState, member: CampaignMember, rules: CombatRules | None = None
     ) -> dict[str, object]:
-        from wayfarer.engine.simulation.fright import projection as fright_projection
+        from wayfarer.engine.simulation.health.fright import projection as fright_projection
         from wayfarer.orchestration.tactical_view import legacy_encounter
 
         if member.role == "gm":
@@ -452,7 +452,7 @@ class CampaignAccess:
                 "migrate_encounter_basic",
             ):
                 combat = COMBAT_ADAPTER.validate_json(raw)
-                from wayfarer.engine.simulation.studio import ScenarioGraph
+                from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 
                 campaign = await self.play.store.read(cid)
                 graph = (

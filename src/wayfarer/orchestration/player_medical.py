@@ -14,10 +14,10 @@ from typing import Literal, cast
 
 from pydantic import Field
 
-from wayfarer.engine.rules.recovery_types import ProfileId
+from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
-from wayfarer.engine.simulation.injury import InjuryResult
-from wayfarer.engine.simulation.medical import (
+from wayfarer.engine.simulation.health.injury import InjuryResult
+from wayfarer.engine.simulation.health.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,

@@ -8,7 +8,7 @@ import pytest
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.rules.catalog import ImplementationStatus, RulesCatalog
-from wayfarer.engine.rules.mundane_skills import (
+from wayfarer.engine.rules.skills.mundane import (
     PROFILE,
     StructuralClass,
     audit_report,
@@ -23,8 +23,8 @@ from wayfarer.engine.rules.mundane_skills import (
     validate_inventory,
     validate_source_index,
 )
-from wayfarer.engine.rules.mundane_skills.schema import Exclusion, InventoryRow
-from wayfarer.engine.rules.skill_types import Difficulty
+from wayfarer.engine.rules.skills.mundane.schema import Exclusion, InventoryRow
+from wayfarer.engine.rules.types.skill import Difficulty
 from wayfarer.errors import ValidationError
 
 
@@ -180,7 +180,7 @@ def test_source_records_reject_ambiguous_metadata(changes: dict[str, object]) ->
 
 
 def test_candidate_audit_and_runtime_agree(monkeypatch: pytest.MonkeyPatch) -> None:
-    import wayfarer.engine.rules.mundane_skills as module
+    import wayfarer.engine.rules.skills.mundane as module
 
     entries = inventory()
     package = candidate_package()
@@ -210,7 +210,7 @@ def test_candidate_audit_and_runtime_agree(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 def test_default_reference_validation() -> None:
-    from wayfarer.engine.rules.skill_types import SkillDefault
+    from wayfarer.engine.rules.types.skill import SkillDefault
 
     entries = inventory()
     entry = entries[0]
@@ -437,7 +437,7 @@ def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None
 
 
 def test_exclusion_owner_drift_is_a_coverage_failure(monkeypatch: pytest.MonkeyPatch) -> None:
-    import wayfarer.engine.rules.mundane_skills as module
+    import wayfarer.engine.rules.skills.mundane as module
 
     rows = exclusions()
     monkeypatch.setattr(module, "exclusions", lambda: rows[1:])
@@ -690,7 +690,7 @@ def test_alias_and_owner_validation() -> None:
 def test_candidate_inventory_does_not_inherit_live_representative_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import wayfarer.engine.rules.gurps_skills as live
+    import wayfarer.engine.rules.skills.gurps_skills as live
 
     before = candidate_package().digest
     monkeypatch.setattr(live, "definitions", lambda _: ())
@@ -698,7 +698,7 @@ def test_candidate_inventory_does_not_inherit_live_representative_metadata(
 
 
 def test_invalid_acquisition_cycles_are_rejected_but_mutual_defaults_survive() -> None:
-    from wayfarer.engine.rules.skill_types import SkillPrerequisite, Technique
+    from wayfarer.engine.rules.types.skill import SkillPrerequisite, Technique
 
     entries = inventory()
     validate_inventory(entries)  # Source contains reciprocal weapon defaults.

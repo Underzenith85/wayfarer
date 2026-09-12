@@ -16,13 +16,13 @@ from test_mundane_traits import runtime_compiler
 from test_statistics import gurps_draft
 
 from wayfarer.engine.character.compiler import Purchase
-from wayfarer.engine.character.physical_traits import physical_traits
+from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import ImplementationStatus
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.physical_traits import PhysicalTraits, SurpriseState
-from wayfarer.engine.simulation.fatigue import FatigueCost, apply_fatigue
-from wayfarer.engine.simulation.injury import InjuryTurn, apply_injury
-from wayfarer.engine.simulation.medical import (
+from wayfarer.engine.rules.traits.physical import PhysicalTraits, SurpriseState
+from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
+from wayfarer.engine.simulation.health.injury import InjuryTurn, apply_injury
+from wayfarer.engine.simulation.health.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
@@ -254,8 +254,8 @@ async def test_approved_sense_check_is_private_authorized_and_retry_safe(tmp_pat
 async def test_combat_reflexes_boosts_every_active_defense(tmp_path: Path) -> None:
     from test_gurps_melee import setup
 
-    from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value
-    from wayfarer.engine.simulation.mechanics.unarmed import unarmed_defense
+    from wayfarer.engine.simulation.combat.melee import defense_value
+    from wayfarer.engine.simulation.combat.unarmed import unarmed_defense
 
     plain_id, plain = await setup(tmp_path / "plain", PROFILE, unarmed_fixture=True)
     trait_id, enhanced = await setup(
@@ -338,7 +338,7 @@ async def test_surprise_uses_leader_bonus_and_never_freezes_reflexes(tmp_path: P
 def test_acute_senses_do_not_cross_apply(sense: str, expected: int) -> None:
     from typing import cast
 
-    from wayfarer.engine.rules.physical_traits import Sense
+    from wayfarer.engine.rules.traits.physical import Sense
 
     traits = PhysicalTraits(
         acute_hearing=2, acute_taste_smell=3, acute_touch=4, acute_vision=5, night_vision=3
@@ -350,7 +350,7 @@ def test_rapid_healing_improves_crippling_duration_but_not_stun_recovery() -> No
     from test_hit_locations import human
     from test_hit_locations import wound as limb_wound
 
-    from wayfarer.engine.simulation.injury import ResolveCrippling
+    from wayfarer.engine.simulation.health.injury import ResolveCrippling
 
     state = human()
     hp = state.pools[0]

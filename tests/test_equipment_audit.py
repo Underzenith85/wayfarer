@@ -23,9 +23,9 @@ from wayfarer.certification.equipment_audit import (
     validate,
     validate_selection,
 )
-from wayfarer.engine.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
-from wayfarer.engine.simulation.gurps_equipment import LITE_EQUIPMENT
-from wayfarer.engine.simulation.hit_locations import wound_factor
+from wayfarer.engine.simulation.equipment.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
+from wayfarer.engine.simulation.equipment.catalog import LITE_EQUIPMENT
+from wayfarer.engine.simulation.health.hit_locations import wound_factor
 from wayfarer.errors import ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]

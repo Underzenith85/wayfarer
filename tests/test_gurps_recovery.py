@@ -5,17 +5,17 @@ from typing import Final
 import pytest
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.recovery_types import FatigueStatus
-from wayfarer.engine.simulation.fatigue import (
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.simulation.health.fatigue import (
     ContinueExertion,
     FatigueCost,
     apply_fatigue,
     exertion_cost,
     fatigue_value,
 )
-from wayfarer.engine.simulation.injury import Wound, apply_injury
-from wayfarer.engine.simulation.medical import (
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,

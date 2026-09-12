@@ -8,9 +8,9 @@ from test_spell_bindings import setup
 from test_spells import command, context, state
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat import GridPoint, Placement
-from wayfarer.engine.simulation.spell_backfires import backfires, refund_due
-from wayfarer.engine.simulation.spells import apply_spell, latest
+from wayfarer.engine.simulation.combat.combat import GridPoint, Placement
+from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
+from wayfarer.engine.simulation.magic.spells import apply_spell, latest
 from wayfarer.orchestration.combat import CombatService, StartEncounter
 from wayfarer.orchestration.spells import SpellService
 
@@ -128,9 +128,9 @@ def test_corrected_prerequisites_accept_one_purchased_point_without_changing_leg
 
     from wayfarer.engine.character.compiler import CharacterCompiler
     from wayfarer.engine.rules.catalog import RulesCatalog
-    from wayfarer.engine.rules.gurps_magic import definitions
-    from wayfarer.engine.rules.spell_catalog import projectile_definition
-    from wayfarer.engine.simulation.spells import PROFILE
+    from wayfarer.engine.rules.magic.gurps_magic import definitions
+    from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
+    from wayfarer.engine.simulation.magic.spells import PROFILE
 
     package = profile_package(PROFILE, *definitions(2), projectile_definition())
     base = profile_compiler(PROFILE, package=package)

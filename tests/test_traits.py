@@ -14,7 +14,7 @@ from test_statistics import BASIC, LITE, gurps_draft, profile_compiler
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.engine.rules.traits import (
+from wayfarer.engine.rules.traits.base import (
     TraitModifier,
     TraitOptions,
     TraitParameter,

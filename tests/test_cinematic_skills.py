@@ -16,18 +16,18 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.cinematic_skills import BINDINGS, PROFILE, package
-from wayfarer.engine.rules.recovery_types import FatigueStatus
-from wayfarer.engine.rules.skill_types import ControllingAttribute as A
-from wayfarer.engine.rules.skill_types import Difficulty as D
-from wayfarer.engine.rules.skill_types import SkillSpec
+from wayfarer.engine.rules.skills.cinematic import BINDINGS, PROFILE, package
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.simulation.cinematic_skills import (
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.rules.types.skill import ControllingAttribute as A
+from wayfarer.engine.rules.types.skill import Difficulty as D
+from wayfarer.engine.rules.types.skill import SkillSpec
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.skills.cinematic import (
     CinematicSkillCommand,
     apply_cinematic_skill,
     visible_history,
 )
-from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 

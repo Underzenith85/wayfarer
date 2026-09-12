@@ -9,6 +9,7 @@ from pathlib import Path
 import aiosqlite
 
 from wayfarer import validation
+from wayfarer.engine.simulation.campaign.scenario_document import ScenarioBoundary
 from wayfarer.engine.simulation.events import (
     EVENT_ADAPTER,
     EngineEvent,
@@ -18,7 +19,6 @@ from wayfarer.engine.simulation.events import (
     document,
     fold,
 )
-from wayfarer.engine.simulation.scenario_document import ScenarioBoundary
 from wayfarer.errors import ConflictError, NotFoundError, StorageError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.persistence import snapshots

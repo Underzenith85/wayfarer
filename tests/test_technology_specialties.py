@@ -19,8 +19,8 @@ import pytest
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
-from wayfarer.engine.rules.mundane_skills import PROFILE, inventory, source_index
-from wayfarer.engine.rules.mundane_skills.technology import (
+from wayfarer.engine.rules.skills.mundane import PROFILE, inventory, source_index
+from wayfarer.engine.rules.skills.mundane.technology import (
     ELECTRONICS_SPECIALTIES,
     MECHANIC_FAMILIES,
     OPEN_FAMILIES,

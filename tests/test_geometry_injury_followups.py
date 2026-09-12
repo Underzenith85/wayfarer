@@ -14,9 +14,10 @@ from test_hit_locations import human, wound
 from test_tactical import migration, setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.location_types import HitLocation, HumanLocation, InjuryTolerance
-from wayfarer.engine.simulation.combat_height import melee_height
-from wayfarer.engine.simulation.gurps_equipment import DamageType
+from wayfarer.engine.rules.types.location import HitLocation, HumanLocation, InjuryTolerance
+from wayfarer.engine.simulation.combat.combat_height import melee_height
+from wayfarer.engine.simulation.equipment.catalog import DamageType
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import (
     Cell,
     HexBattlefield,
@@ -26,7 +27,6 @@ from wayfarer.engine.simulation.hex_geometry import (
     in_reach,
     movement,
 )
-from wayfarer.engine.simulation.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
@@ -285,7 +285,7 @@ def test_targeted_near_miss_is_torso_only_for_published_locations(
     location: HitLocation, roll: tuple[int, ...], expected: bool
 ) -> None:
     from wayfarer.engine.rules.gurps_checks import success_roll
-    from wayfarer.engine.simulation.hit_locations import torso_near_miss
+    from wayfarer.engine.simulation.health.hit_locations import torso_near_miss
 
     target = sum(roll) - 1
     check = success_roll("gurps-basic-set-4e-2004", target, rng=RecordedDice(roll))
@@ -411,7 +411,7 @@ def test_b387_posture_costs_and_final_facing_use_exact_budget() -> None:
 
 
 def test_parrying_height_uses_own_weapon_reach() -> None:
-    from wayfarer.engine.simulation.combat_height import defense_height
+    from wayfarer.engine.simulation.combat.combat_height import defense_height
 
     assert defense_height(Fraction(0), Fraction(2), reach=1) == -3
     assert defense_height(Fraction(0), Fraction(2), reach=2) == -1

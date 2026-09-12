@@ -6,22 +6,22 @@ from decimal import Decimal
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.engine.character.attack_defense_traits import attack_defense_traits
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.engine.rules.attack_defense_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.engine.rules.attack_defense_traits import package as attack_defense_package
+from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.simulation.attack_defense_traits import (
+from wayfarer.engine.rules.traits.attack_defense import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.attack_defense import package as attack_defense_package
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.traits.attack_defense import (
     AttackChannel,
     TraitAttackCommand,
     apply_trait_attack,
     history,
 )
-from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 

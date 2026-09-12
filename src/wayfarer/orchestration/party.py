@@ -15,8 +15,7 @@ from wayfarer.engine.simulation.actions import (
     UseItem,
     Wait,
 )
-from wayfarer.engine.simulation.events import action_result
-from wayfarer.engine.simulation.party import (
+from wayfarer.engine.simulation.campaign.party import (
     ActivityReceipt,
     PendingEffect,
     QueuedActivity,
@@ -24,6 +23,7 @@ from wayfarer.engine.simulation.party import (
     group_for,
     migrate,
 )
+from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.resources import Advance, Transfer
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt, Id
@@ -301,7 +301,7 @@ class PartyService:
         groups = state.party.groups
         if command.kind not in ("pause_group", "resume_group") and group.paused:
             raise ConflictError("Subgroup is explicitly paused")
-        from wayfarer.engine.simulation.encounter_context import activity_for
+        from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 
         context = activity_for(state, command.actor_id)
         in_combat = context.group_encounter is not None

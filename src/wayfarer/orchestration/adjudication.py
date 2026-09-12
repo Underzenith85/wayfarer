@@ -19,7 +19,7 @@ from wayfarer.engine.simulation.actions import (
     PlayState,
     Social,
 )
-from wayfarer.engine.simulation.adjudication import Ruling, expire_rulings
+from wayfarer.engine.simulation.campaign.adjudication import Ruling, expire_rulings
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt, Id
@@ -206,7 +206,7 @@ class AdjudicationService:
         reframed = original.model_copy(
             update={"id": command.id, "expected_revision": state.revision, "approach": "diplomacy"}
         )
-        from wayfarer.engine.simulation.party import synchronous
+        from wayfarer.engine.simulation.campaign.party import synchronous
 
         synchronous(state, command.actor_id)
         updated, resolved_events = self.play.engine.resolve(

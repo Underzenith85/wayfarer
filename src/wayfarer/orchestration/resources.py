@@ -6,8 +6,13 @@ from pydantic import TypeAdapter
 
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.checks import RandomSource
+from wayfarer.engine.simulation.equipment.objects import ObjectCommand, apply_object
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield
-from wayfarer.engine.simulation.objects import ObjectCommand, apply_object
+from wayfarer.engine.simulation.movement.transport import (
+    TransportCommand,
+    apply_transport,
+    validate_transport,
+)
 from wayfarer.engine.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
@@ -15,11 +20,6 @@ from wayfarer.engine.simulation.resources import (
     ResourceEngine,
     ResourceState,
     Schedule,
-)
-from wayfarer.engine.simulation.transport import (
-    TransportCommand,
-    apply_transport,
-    validate_transport,
 )
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt

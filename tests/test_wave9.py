@@ -14,15 +14,25 @@ from test_gurps_melee import setup as melee_setup
 from test_reinforcements import escalation
 from test_scenes import configured
 
-from wayfarer.engine.simulation.access import CampaignMember
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import Inspect, Wait
-from wayfarer.engine.simulation.combat import AttackProfile, GridPoint, Placement, ProtectionProfile
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.objectives import (
+    Objective,
+    ObjectiveRules,
+    Predicate,
+    Reward,
+)
+from wayfarer.engine.simulation.campaign.party import CrossSceneEffect, PartyRules
+from wayfarer.engine.simulation.combat.combat import (
+    AttackProfile,
+    GridPoint,
+    Placement,
+    ProtectionProfile,
+)
 from wayfarer.engine.simulation.hex_geometry import Hex
-from wayfarer.engine.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
-from wayfarer.engine.simulation.objectives import Objective, ObjectiveRules, Predicate, Reward
-from wayfarer.engine.simulation.party import CrossSceneEffect, PartyRules
 from wayfarer.engine.simulation.resources import Item, Owner, Scheduled
+from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.errors import (
     AuthorizationError,
     ConflictError,
@@ -1076,7 +1086,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
 
 
 async def test_partial_success_abandonment_predicates_and_reward_rollback(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.objectives import evaluate
+    from wayfarer.engine.simulation.campaign.objectives import evaluate
 
     cid, play = await prepare(tmp_path)
     initial = play._load(await play.store.read(cid))

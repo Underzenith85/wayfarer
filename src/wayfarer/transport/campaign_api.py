@@ -17,7 +17,7 @@ from pydantic import Field
 from wayfarer.config import Settings
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY
-from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import AuthenticationError, AuthorizationError, ValidationError, WayfarerError
 from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
@@ -206,7 +206,7 @@ class GenerateDraftRequest(Record):
 
 async def generate_scenario_draft(request: web.Request) -> web.Response:
     from wayfarer.engine.simulation.actions import ActorSetup
-    from wayfarer.engine.simulation.studio import GenerationBrief
+    from wayfarer.engine.simulation.campaign.studio import GenerationBrief
     from wayfarer.orchestration.studio import ScenarioStudio
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
@@ -412,7 +412,7 @@ class ActivateScenarioRequest(Record):
 
 
 async def activate_scenario(request: web.Request) -> web.Response:
-    from wayfarer.engine.simulation.studio import ScenarioGraph
+    from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
     from wayfarer.orchestration.studio import ScenarioStudio
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
@@ -448,7 +448,7 @@ async def activate_scenario(request: web.Request) -> web.Response:
 
 
 async def validate_scenario(request: web.Request) -> web.Response:
-    from wayfarer.engine.simulation.studio import ScenarioGraph
+    from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
     from wayfarer.orchestration.studio import ScenarioStudio
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])

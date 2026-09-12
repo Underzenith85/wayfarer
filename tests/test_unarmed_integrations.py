@@ -248,7 +248,7 @@ async def test_grappled_ready_free_hand_dx_and_replay(
 async def test_partial_release_frees_only_selected_hand(tmp_path: Path) -> None:
     from test_unarmed import wait
 
-    from wayfarer.engine.simulation.mechanics.unarmed import free_hands
+    from wayfarer.engine.simulation.combat.unarmed import free_hands
 
     cid, play = await setup(tmp_path)
     await action(cid, play, "a", "grapple", hands=("left-hand", "right-hand"), enter=True)
@@ -269,9 +269,9 @@ async def test_partial_release_frees_only_selected_hand(tmp_path: Path) -> None:
 def test_crippled_arm_pain_reuses_injury_without_hp_or_duplicate_crippling(
     roll: tuple[int, ...], stunned: bool
 ) -> None:
-    from wayfarer.engine.rules.injury_types import InjuryStatus
-    from wayfarer.engine.rules.location_types import LastingInjury
-    from wayfarer.engine.simulation.injury import Wound, apply_injury
+    from wayfarer.engine.rules.types.injury import InjuryStatus
+    from wayfarer.engine.rules.types.location import LastingInjury
+    from wayfarer.engine.simulation.health.injury import Wound, apply_injury
     from wayfarer.engine.simulation.resources import Pool, ResourceState
 
     injury = LastingInjury(

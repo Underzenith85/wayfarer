@@ -15,12 +15,12 @@ from test_gurps_melee import setup
 
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.entangle_types import Entanglement, EntangleSpec
-from wayfarer.engine.rules.mundane_skills.ranged import definitions, require_mode
+from wayfarer.engine.rules.skills.mundane.ranged import definitions, require_mode
+from wayfarer.engine.rules.types.entangle import Entanglement, EntangleSpec
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat import Combatant, RangedSituation
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
-from wayfarer.engine.simulation.mechanics.gurps_melee import movement
+from wayfarer.engine.simulation.combat.combat import Combatant, RangedSituation
+from wayfarer.engine.simulation.combat.melee import movement
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 
@@ -77,13 +77,13 @@ async def land(cid: str, play: PlayService) -> None:
 
 
 def attack_penalty_of(state: PlayState, actor: str = "b") -> int:
-    from wayfarer.engine.simulation.entangle import attack_penalty
+    from wayfarer.engine.simulation.combat.entangle import attack_penalty
 
     return attack_penalty(participant(state, actor))
 
 
 def defense_penalty_of(state: PlayState, actor: str = "b") -> int:
-    from wayfarer.engine.simulation.entangle import defense_penalty
+    from wayfarer.engine.simulation.combat.entangle import defense_penalty
 
     return defense_penalty(participant(state, actor))
 
@@ -142,7 +142,7 @@ async def test_binding_penalises_the_victims_attacks_and_defenses(tmp_path: Path
     assert result.injury is not None
     assert result.injury.attack.effective_target == 13 - 4 - 2
     # b's own Dodge carries the binding's -3 through the shared defense service.
-    from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value
+    from wayfarer.engine.simulation.combat.melee import defense_value
 
     state = play._load(await play.store.read(cid))
     dodge, _ = defense_value(play.rules_context, state, participant(state), "dodge")
@@ -191,7 +191,7 @@ async def test_escape_requires_its_own_ready_and_an_actual_binding(tmp_path: Pat
 def test_catalog_rejects_a_binding_that_is_not_a_single_thrown_weapon() -> None:
     with pytest.raises(SchemaError, match="single thrown bindings"):
         entangling(thrown=False, ammunition_id="equipment:ammo")
-    from wayfarer.engine.simulation.gurps_equipment import (
+    from wayfarer.engine.simulation.equipment.catalog import (
         LITE_EQUIPMENT,
         EquipmentCatalog,
         EquipmentProfile,
@@ -232,7 +232,7 @@ def test_entangling_facts_belong_to_the_skills_that_bind(
 
 
 def test_bolas_and_net_are_dispatched_with_their_recorded_mechanics() -> None:
-    from wayfarer.engine.rules.mundane_skills import inventory
+    from wayfarer.engine.rules.skills.mundane import inventory
 
     entries = {e.id: e for e in inventory()}
     for identifier, page, difficulty in (

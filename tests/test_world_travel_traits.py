@@ -6,14 +6,14 @@ import pytest
 from test_statistics import gurps_draft, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.engine.character.world_travel_traits import world_travel_traits
+from wayfarer.engine.character.traits.world_travel import world_travel_traits
 from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.rules.world_travel_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.engine.rules.world_travel_traits import package as world_travel_package
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.world_travel import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.world_travel import package as world_travel_package
 from wayfarer.engine.simulation.resources import Pool, ResourceState
-from wayfarer.engine.simulation.world_travel_traits import (
+from wayfarer.engine.simulation.traits.world_travel import (
     TravelCommand,
     TravelRoute,
     apply_world_travel,

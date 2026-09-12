@@ -6,24 +6,25 @@ import pytest
 from test_statistics import gurps_draft, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.engine.character.psi_powers import PsiAllocation, PsiLoadout, psi_powers
-from wayfarer.engine.rules.attack_defense_traits import RUNTIME_HOOKS as ATTACK_HOOKS
-from wayfarer.engine.rules.attack_defense_traits import package as attack_package
+from wayfarer.engine.character.traits.psi_powers import PsiAllocation, PsiLoadout, psi_powers
 from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.mental_spirit_traits import RUNTIME_HOOKS as MENTAL_HOOKS
-from wayfarer.engine.rules.mental_spirit_traits import package as mental_package
-from wayfarer.engine.rules.psi_powers import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.engine.rules.psi_powers import package as psi_package
-from wayfarer.engine.rules.recovery_types import FatigueStatus
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.rules.world_travel_traits import RUNTIME_HOOKS as TRAVEL_HOOKS
-from wayfarer.engine.rules.world_travel_traits import package as travel_package
+from wayfarer.engine.rules.traits.attack_defense import RUNTIME_HOOKS as ATTACK_HOOKS
+from wayfarer.engine.rules.traits.attack_defense import package as attack_package
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mental_spirit import RUNTIME_HOOKS as MENTAL_HOOKS
+from wayfarer.engine.rules.traits.mental_spirit import package as mental_package
+from wayfarer.engine.rules.traits.psi_powers import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.psi_powers import package as psi_package
+from wayfarer.engine.rules.traits.world_travel import RUNTIME_HOOKS as TRAVEL_HOOKS
+from wayfarer.engine.rules.traits.world_travel import package as travel_package
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.abilities import AbilityContext, apply_ability
 from wayfarer.engine.simulation.ability_types import AbilityChannel, AbilityCommand, AbilitySpec
-from wayfarer.engine.simulation.psi_powers import (
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.traits.psi_powers import (
     PsiInterference,
     PsiInterferenceCommand,
     apply_ability_context,
@@ -31,7 +32,6 @@ from wayfarer.engine.simulation.psi_powers import (
     history,
     power_is_blocked,
 )
-from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.world import Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
 

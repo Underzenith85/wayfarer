@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_tactical import migration, setup
 
-from wayfarer.engine.simulation.combat import Encounter
+from wayfarer.engine.simulation.combat.combat import Encounter
 from wayfarer.engine.simulation.events import document
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
@@ -100,8 +100,8 @@ async def test_missing_template_fails_closed_and_geometry_is_pinned(tmp_path: Pa
 
 
 async def test_hex_template_scene_location_is_checked(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.encounter_context import bind_scene
-    from wayfarer.engine.simulation.scenes import Scene, SceneRules
+    from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
+    from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
 
     cid, play = await setup(tmp_path)
     encounter = play._load(await play.store.read(cid)).encounters[0]

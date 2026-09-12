@@ -25,6 +25,7 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
     reference,
 )
+from wayfarer.engine.simulation.campaign.scenario import scenario
 from wayfarer.engine.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
@@ -42,7 +43,6 @@ from wayfarer.engine.simulation.resources import (
     Transfer,
     Unequip,
 )
-from wayfarer.engine.simulation.scenario import scenario
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign

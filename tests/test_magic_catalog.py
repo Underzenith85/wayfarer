@@ -9,7 +9,7 @@ from test_statistics import gurps_draft
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
 from wayfarer.engine.rules.catalog import PackagePin, RulesCatalog
 from wayfarer.engine.rules.effects import Effect, Operation
-from wayfarer.engine.rules.gurps_magic import MAGERY, MAGERY_ZERO, PROFILE
+from wayfarer.engine.rules.magic.gurps_magic import MAGERY, MAGERY_ZERO, PROFILE
 from wayfarer.engine.rules.profiles import (
     DEFAULT_REGISTRY,
     GURPS_BASIC_PROFILE,

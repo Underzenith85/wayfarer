@@ -7,10 +7,10 @@ import pytest
 from test_spell_bindings import command, idle, setup, start_fight
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat import GridPoint
-from wayfarer.engine.simulation.injury import Wound, apply_injury
-from wayfarer.engine.simulation.maneuvers import WaitTrigger
-from wayfarer.engine.simulation.spells import latest
+from wayfarer.engine.simulation.combat.combat import GridPoint
+from wayfarer.engine.simulation.combat.maneuvers import WaitTrigger
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.magic.spells import latest
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
@@ -216,9 +216,9 @@ async def test_gm_backfire_retarget_is_atomic_authorized_and_replayable(
 ) -> None:
     import asyncio
 
-    from wayfarer.engine.simulation.spell_backfires import backfires
-    from wayfarer.engine.simulation.spell_bindings import BackfireAlternative
-    from wayfarer.engine.simulation.spell_effects import dazed
+    from wayfarer.engine.simulation.magic.backfires import backfires
+    from wayfarer.engine.simulation.magic.bindings import BackfireAlternative
+    from wayfarer.engine.simulation.magic.effects import dazed
     from wayfarer.errors import AuthorizationError, ConflictError
     from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
 
@@ -349,7 +349,7 @@ async def test_fireball_body_criticals_execute_damage(
 
 async def test_noncombat_mental_stun_recovers_at_next_second_with_iq(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.actions import Wait
-    from wayfarer.engine.simulation.spell_backfires import backfires
+    from wayfarer.engine.simulation.magic.backfires import backfires
 
     cid, play = await setup(tmp_path, execution_version=2)
     service = SpellService(play)
@@ -391,8 +391,8 @@ async def test_backfire_illusion_exposes_only_appearance(tmp_path: Path) -> None
 
 
 async def test_demon_result_adds_only_an_approved_reserve_combatant(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.spell_backfires import backfires
-    from wayfarer.engine.simulation.spell_bindings import BackfireAlternative
+    from wayfarer.engine.simulation.magic.backfires import backfires
+    from wayfarer.engine.simulation.magic.bindings import BackfireAlternative
     from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
 
     alternative = BackfireAlternative(

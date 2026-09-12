@@ -6,14 +6,14 @@ import pytest
 from test_statistics import gurps_draft, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.engine.character.sensory_traits import sensory_traits
+from wayfarer.engine.character.traits.sensory import sensory_traits
 from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.engine.rules.sensory_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.engine.rules.sensory_traits import package as sensory_package
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.sensory import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.sensory import package as sensory_package
 from wayfarer.engine.simulation.resources import ResourceState
-from wayfarer.engine.simulation.sensory_traits import (
+from wayfarer.engine.simulation.traits.sensory import (
     SensoryChannel,
     SensoryCommand,
     apply_sensory_use,

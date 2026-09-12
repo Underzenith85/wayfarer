@@ -5,11 +5,11 @@ from typing import Final
 import pytest
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.location_types import LastingInjury
-from wayfarer.engine.rules.recovery_types import FatigueStatus, ProfileId, interrupt_tasks
-from wayfarer.engine.simulation.hazards import HazardCommand, apply_hazard
-from wayfarer.engine.simulation.recovery_variants import (
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.location import LastingInjury
+from wayfarer.engine.rules.types.recovery import FatigueStatus, ProfileId, interrupt_tasks
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
+from wayfarer.engine.simulation.health.recovery_variants import (
     BeginRecoveryVariant,
     FinishRecoveryVariant,
     RecoveryVariantContext,

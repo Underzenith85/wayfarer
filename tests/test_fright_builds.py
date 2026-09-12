@@ -9,11 +9,11 @@ from test_social_dispatch import prepare
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.fright import FrightEffect
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.fright import TimedFright, effects, public_id, save
-from wayfarer.engine.simulation.mechanics.gurps_melee import build
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.combat.melee import build
+from wayfarer.engine.simulation.health.fright import TimedFright, effects, public_id, save
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess

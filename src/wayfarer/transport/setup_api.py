@@ -4,9 +4,9 @@ import json
 
 from aiohttp import web
 
-from wayfarer.engine.simulation.profiles import ProfileSelection
-from wayfarer.engine.simulation.setup import CreateSetup, SetupCommand
-from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.engine.simulation.campaign.profiles import ProfileSelection
+from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.profiles import ProfileMigrations
 from wayfarer.orchestration.setup import SetupService

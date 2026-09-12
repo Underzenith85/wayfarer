@@ -8,9 +8,9 @@ from test_social_dispatch import PROFILE, command, prepare
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.fright import apply_effect, blocked, effects, recover
+from wayfarer.engine.simulation.health.fright import apply_effect, blocked, effects, recover
 from wayfarer.engine.simulation.resources import Advance
-from wayfarer.engine.simulation.social import SocialCommand, SocialContext
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
@@ -145,7 +145,7 @@ async def test_trait_requirement_does_not_change_approved_build(tmp_path: Path) 
 async def test_recovery_command_receipt_replays_without_new_dice(tmp_path: Path) -> None:
     from test_social_dispatch import world
 
-    from wayfarer.engine.simulation.social import apply_social
+    from wayfarer.engine.simulation.social.social import apply_social
 
     cid, play = await prepare(tmp_path)
     initial = play._load(await play.store.read(cid)).resources

@@ -12,7 +12,7 @@ from wayfarer import validation
 from wayfarer.config import Settings
 from wayfarer.engine.character import builder
 from wayfarer.engine.rules import catalog
-from wayfarer.engine.simulation.scenario import scenario, validate_scenario
+from wayfarer.engine.simulation.campaign.scenario import scenario, validate_scenario
 from wayfarer.errors import ValidationError, WayfarerError
 from wayfarer.orchestration.llm import CHARACTER_SCHEMA, SCENARIO_SCHEMA, LLMClient
 from wayfarer.orchestration.service import GameService, public

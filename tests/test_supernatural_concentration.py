@@ -16,9 +16,9 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import CoverageStatus, capability, require_verified
 from wayfarer.engine.simulation.abilities import apply_ability, interrupt_concentration
 from wayfarer.engine.simulation.actions import Wait
-from wayfarer.engine.simulation.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.spells import active_spells, apply_spell
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
-from wayfarer.engine.simulation.spells import active_spells, apply_spell
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService
 from wayfarer.orchestration.play import PlayService

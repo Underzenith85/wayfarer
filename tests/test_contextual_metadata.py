@@ -13,19 +13,19 @@ import pytest
 
 from wayfarer.engine.character.skills import DefaultContext, SkillCompiler, SkillError
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.engine.rules.mundane_skills import (
+from wayfarer.engine.rules.skills.mundane import (
     CONTEXT_RESIDUALS,
     candidate_package,
     cross_package_prerequisites,
     inventory,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     ControllingAttribute as A,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     Difficulty as D,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     PrerequisiteGroup,
     PrerequisiteKind,
     SkillDefault,
@@ -281,7 +281,7 @@ def test_a_prerequisite_another_catalog_owns_resolves_there() -> None:
 def test_an_unowned_cross_package_prerequisite_is_a_coverage_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import wayfarer.engine.rules.mundane_skills as module
+    import wayfarer.engine.rules.skills.mundane as module
 
     monkeypatch.setattr(module, "CROSS_PACKAGE", frozenset({"skill:invented"}))
     with pytest.raises(ValidationError, match="Cross-package prerequisite is unowned"):

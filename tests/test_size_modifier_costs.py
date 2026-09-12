@@ -24,7 +24,7 @@ from wayfarer.engine.rules.gurps_characters import (
     size_modifier_definition,
 )
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, GURPS_SIZE_PROFILE, ProfileRegistry
-from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.advancement import _refreshed

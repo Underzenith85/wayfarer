@@ -8,21 +8,21 @@ from itertools import product
 
 from pydantic import Field
 
-from wayfarer.engine.simulation.access import CampaignMember
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat import BasicSpatialContext, Encounter, Maneuver
-from wayfarer.engine.simulation.gurps_equipment import MeleeMode, RangedMode
-from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, neighbor
-from wayfarer.engine.simulation.mechanics.gurps_melee import movement, prepare_attack
-from wayfarer.engine.simulation.mechanics.gurps_ranged import validate_command
-from wayfarer.engine.simulation.mechanics.tactical import prepare_defense
-from wayfarer.engine.simulation.mechanics.unarmed import (
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.combat.combat import BasicSpatialContext, Encounter, Maneuver
+from wayfarer.engine.simulation.combat.melee import movement, prepare_attack
+from wayfarer.engine.simulation.combat.ranged import validate_command
+from wayfarer.engine.simulation.combat.tactical import TacticalTrace, pose
+from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
+from wayfarer.engine.simulation.combat.unarmed import (
     guard_control,
     unarmed_defense,
     validate_action,
 )
-from wayfarer.engine.simulation.tactical import TacticalTrace, pose
-from wayfarer.engine.simulation.visibility import visible_actors as visible_actors
+from wayfarer.engine.simulation.combat.visibility import visible_actors as visible_actors
+from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
+from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, neighbor
 from wayfarer.errors import ValidationError, WayfarerError
 from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
@@ -120,8 +120,8 @@ def preview(
     """Pure validation only: no execute, dice, mutation, or provisional receipts."""
     engine = play.engine.combat
     assert engine is not None
-    from wayfarer.engine.rules.hazard_types import require_hazards_settled
-    from wayfarer.engine.rules.recovery_types import require_settled
+    from wayfarer.engine.rules.types.hazard import require_hazards_settled
+    from wayfarer.engine.rules.types.recovery import require_settled
     from wayfarer.orchestration.recovery import guard
 
     guard(state, command.actor_id, command.kind)
@@ -145,7 +145,7 @@ def preview(
     guard_control(encounter, command, state)
     if isinstance(command, ChooseDefense):
         if command.catch_thrown:
-            from wayfarer.engine.simulation.mechanics.thrown_items import validate_catch
+            from wayfarer.engine.simulation.combat.thrown.items import validate_catch
 
             validate_catch(play.rules_context, state, encounter, command)
         prepared = prepare_defense(play.rules_context, state, encounter, command)
@@ -159,7 +159,7 @@ def preview(
                 command.item_id,
             )
         else:
-            from wayfarer.engine.simulation.mechanics.gurps_melee import validate_defense_choices
+            from wayfarer.engine.simulation.combat.melee import validate_defense_choices
 
             if (
                 prepared.pending_defense is None
@@ -201,7 +201,7 @@ def preview(
         "move_and_attack",
         "feint",
     ):
-        from wayfarer.engine.simulation.mechanics.gurps_melee import mode
+        from wayfarer.engine.simulation.combat.melee import mode
 
         selected = mode(
             play.rules_context, state, command.actor_id, command.item_id, command.mode_id
@@ -247,7 +247,7 @@ def preview(
             shots=command.shots,
         )
     if command.maneuver == "aim":
-        from wayfarer.engine.simulation.mechanics.gurps_maneuvers import observe
+        from wayfarer.engine.simulation.combat.maneuver_transitions import observe
 
         observe(play.rules_context, state, result, command)
 
@@ -323,8 +323,8 @@ def choices(
             return ()
         allowed = pending.allowed if pending else unarmed.allowed if unarmed else ()
         if pending:
-            from wayfarer.engine.simulation.mechanics.gurps_melee import mode as weapon_mode
-            from wayfarer.engine.simulation.mechanics.unarmed import free_hands
+            from wayfarer.engine.simulation.combat.melee import mode as weapon_mode
+            from wayfarer.engine.simulation.combat.unarmed import free_hands
 
             incoming = (
                 weapon_mode(
@@ -424,8 +424,8 @@ def choices(
         rules = engine.rules.gurps_equipment
         assert rules is not None
         entries = {e.definition_id: e for e in rules.entries}
-        from wayfarer.engine.rules.object_types import residual_definition
-        from wayfarer.engine.simulation.mechanics.object_combat import effective_entry
+        from wayfarer.engine.rules.types.object import residual_definition
+        from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
         weapons = [
             (item, mode)
@@ -838,8 +838,8 @@ def basic_choices(
             )
 
         rules = engine.rules.gurps_equipment
-        from wayfarer.engine.rules.object_types import residual_definition
-        from wayfarer.engine.simulation.mechanics.object_combat import effective_entry
+        from wayfarer.engine.rules.types.object import residual_definition
+        from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
         entries = {entry.definition_id: entry for entry in rules.entries} if rules else {}
         weapons = (

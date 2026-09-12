@@ -8,12 +8,15 @@ from test_medical_service import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.environment import ambient_spec, poison_spec
-from wayfarer.engine.rules.hazard_types import HazardSchedule, HazardSpec
 from wayfarer.engine.rules.physical import contagion_modifier, falling_damage, falling_injury
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState, Wait
-from wayfarer.engine.simulation.condition_checks import check_modifiers, require_hazard_capacity
-from wayfarer.engine.simulation.hazards import HazardCommand, apply_hazard
-from wayfarer.engine.simulation.medical import (
+from wayfarer.engine.simulation.health.condition_checks import (
+    check_modifiers,
+    require_hazard_capacity,
+)
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
+from wayfarer.engine.simulation.health.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
@@ -312,8 +315,8 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
     from wayfarer.engine.character.power import CharacterProposal
     from wayfarer.engine.simulation.action_engine import ActionEngine
     from wayfarer.engine.simulation.actions import ActorSetup
+    from wayfarer.engine.simulation.campaign.scenes import Scene, SceneExit, SceneRules
     from wayfarer.engine.simulation.resources import Owner, ResourceState
-    from wayfarer.engine.simulation.scenes import Scene, SceneExit, SceneRules
     from wayfarer.orchestration.play import PlayService
 
     _, original, _ = await setup(tmp_path)
@@ -454,7 +457,7 @@ def test_temperature_tolerance_compiles_as_a_purchased_trait() -> None:
     from test_statistics import gurps_draft
 
     from wayfarer.engine.character.compiler import Purchase
-    from wayfarer.engine.character.physical_traits import physical_traits
+    from wayfarer.engine.character.traits.physical import physical_traits
 
     compiler = runtime_compiler()
     result = compiler.compile(
@@ -587,8 +590,8 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
     from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
     from wayfarer.engine.rules.catalog import RulesCatalog
-    from wayfarer.engine.rules.gurps_skills import definitions
-    from wayfarer.engine.rules.mundane_traits.runtime import SUPPORTED_HOOKS
+    from wayfarer.engine.rules.skills.gurps_skills import definitions
+    from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
     from wayfarer.engine.simulation.action_engine import ActionEngine
     from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
     from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
@@ -670,7 +673,7 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
 async def test_rigid_armor_fall_applies_blunt_trauma_through_inventory(tmp_path: Path) -> None:
     from test_gurps_melee import setup as melee_setup
 
-    from wayfarer.engine.simulation.gurps_equipment import LITE_SOURCE, Armor, EquipmentProfile
+    from wayfarer.engine.simulation.equipment.catalog import LITE_SOURCE, Armor, EquipmentProfile
     from wayfarer.engine.simulation.resources import Item
 
     armor = EquipmentProfile(

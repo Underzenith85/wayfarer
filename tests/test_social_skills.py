@@ -9,8 +9,8 @@ import pytest
 
 from wayfarer.engine.rules.checks import ModifierKind, RecordedDice
 from wayfarer.engine.rules.conformance import CAPABILITIES
-from wayfarer.engine.rules.mundane_skills import inventory
-from wayfarer.engine.rules.mundane_skills.social import (
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.social import (
     CONDITIONS,
     DISPATCH,
     PROCEDURES,
@@ -28,9 +28,9 @@ from wayfarer.engine.rules.mundane_skills.social import (
     supported,
     unsupported_scope,
 )
-from wayfarer.engine.simulation.npcs import NPCSocialTrigger
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialTrigger
 from wayfarer.engine.simulation.resources import ResourceState
-from wayfarer.engine.simulation.social import (
+from wayfarer.engine.simulation.social.social import (
     SocialCommand,
     SocialContext,
     SocialDisclosure,
@@ -253,7 +253,7 @@ def test_paired_and_unpaired_procedures_reject_the_wrong_second_party() -> None:
 
 
 def test_reaction_modifiers_reach_influence_procedures_only() -> None:
-    from wayfarer.engine.rules.gurps_social import ReactionModifier
+    from wayfarer.engine.rules.social.gurps_social import ReactionModifier
 
     modifiers = (ReactionModifier("status", 2, "trait:status"),)
     with pytest.raises(ValidationError, match="influence rolls only"):
@@ -364,8 +364,8 @@ def test_a_binding_cannot_disagree_with_the_recorded_inventory() -> None:
     """A procedure may not resolve a blocker the row never recorded, or restate its numbers."""
     from dataclasses import replace
 
-    import wayfarer.engine.rules.mundane_skills as module
-    from wayfarer.engine.rules.skill_types import SkillDefault
+    import wayfarer.engine.rules.skills.mundane as module
+    from wayfarer.engine.rules.types.skill import SkillDefault
 
     entry = procedure("skill:acting")
     for broken, message in (
@@ -540,7 +540,11 @@ async def test_an_authored_trigger_dispatches_a_procedure_from_an_approved_level
     from test_social_dispatch import prepare
 
     from wayfarer.engine.simulation.actions import Wait
-    from wayfarer.engine.simulation.npcs import NPCSocialAction, NPCSocialPlan, NPCSocialRules
+    from wayfarer.engine.simulation.campaign.npcs import (
+        NPCSocialAction,
+        NPCSocialPlan,
+        NPCSocialRules,
+    )
 
     rules = NPCSocialRules(
         id="parley",
@@ -590,8 +594,8 @@ def test_an_approved_voice_purchase_asserts_the_condition_and_nothing_else() -> 
     from test_mundane_trait_runtime import approved
 
     from wayfarer.engine.character.compiler import Purchase
-    from wayfarer.engine.character.social_traits import skill_conditions
-    from wayfarer.engine.rules.mundane_traits.runtime import Audience
+    from wayfarer.engine.character.traits.social import skill_conditions
+    from wayfarer.engine.rules.traits.mundane.runtime import Audience
 
     build, engine = approved(Purchase(definition_id="trait:voice"))
     assert skill_conditions(build, engine.definitions, "skill:diplomacy") == {"audible-voice-trait"}
@@ -626,7 +630,7 @@ def test_the_registry_rejects_an_incoherent_procedure(
     """The declared table is validated at import, not trusted because it is code."""
     from dataclasses import replace
 
-    from wayfarer.engine.rules.mundane_skills.social import _validate
+    from wayfarer.engine.rules.skills.mundane.social import _validate
 
     entry = procedure("skill:acting")
     with pytest.raises(ValidationError, match=message):
@@ -644,7 +648,7 @@ async def test_an_unopposed_procedure_collects_no_reaction_modifiers(tmp_path: P
     """B359 modifiers reach influence rolls; an unopposed roll must not take them."""
     from test_social_dispatch import prepare
 
-    from wayfarer.engine.rules.social_hooks import Standing
+    from wayfarer.engine.rules.social.social_hooks import Standing
     from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.orchestration.play import PlayService
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService

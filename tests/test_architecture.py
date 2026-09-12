@@ -22,7 +22,7 @@ REDUCER_MODULES = (
 
 class ArchitectureTests(unittest.TestCase):
     def test_encounters_reference_templates_without_embedding_maps(self) -> None:
-        from wayfarer.engine.simulation.combat import Encounter
+        from wayfarer.engine.simulation.combat.combat import Encounter
 
         self.assertNotIn("hex_battlefield", Encounter.model_fields)
         self.assertNotIn("HexBattlefield", Encounter.model_json_schema().get("$defs", {}))
@@ -43,8 +43,8 @@ class ArchitectureTests(unittest.TestCase):
             duplicates,
             {
                 "Provenance": [
-                    "engine/simulation/gurps_equipment.py",
-                    "engine/simulation/scenario_document.py",
+                    "engine/simulation/campaign/scenario_document.py",
+                    "engine/simulation/equipment/catalog.py",
                 ]
             },
         )

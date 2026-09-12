@@ -4,9 +4,9 @@ from pathlib import Path
 
 from test_encounter_context import load, setup
 
-from wayfarer.engine.simulation.combat import Encounter, GridPoint, Placement
-from wayfarer.engine.simulation.encounter_context import bind_scene
-from wayfarer.engine.simulation.party import Subgroup
+from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
+from wayfarer.engine.simulation.campaign.party import Subgroup
+from wayfarer.engine.simulation.combat.combat import Encounter, GridPoint, Placement
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn, _elapsed_combat_ticks
 from wayfarer.orchestration.play import PlayService
 

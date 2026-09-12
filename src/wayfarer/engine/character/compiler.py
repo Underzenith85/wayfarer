@@ -37,8 +37,8 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.engine.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.rules.traits import cost as trait_cost
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.base import cost as trait_cost
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -203,7 +203,7 @@ class CharacterCompiler:
                     )
                 if (STATISTICS_V2_HOOK in actual.hooks) != (revision == 2):
                     raise ValidationError("Pinned packages mix statistics revisions")
-        from wayfarer.engine.rules.gurps_magic import validate_definitions
+        from wayfarer.engine.rules.magic.gurps_magic import validate_definitions
 
         validate_definitions(statistics_profile, self.definitions)
         self.skills = (
@@ -384,7 +384,7 @@ class CharacterCompiler:
                         if any(
                             hook.startswith("movement-form:") for hook in metadata.runtime_hooks
                         ):
-                            from wayfarer.engine.rules.movement_forms import (
+                            from wayfarer.engine.rules.traits.movement_forms import (
                                 validate_purchase as validate_movement_form,
                             )
 
@@ -392,7 +392,7 @@ class CharacterCompiler:
                         elif any(
                             hook.startswith("physiology-trait:") for hook in metadata.runtime_hooks
                         ):
-                            from wayfarer.engine.rules.physiology_traits import (
+                            from wayfarer.engine.rules.traits.physiology import (
                                 validate_purchase as validate_physiology,
                             )
 
@@ -400,7 +400,7 @@ class CharacterCompiler:
                         elif any(
                             hook.startswith("sensory-trait:") for hook in metadata.runtime_hooks
                         ):
-                            from wayfarer.engine.rules.sensory_traits import (
+                            from wayfarer.engine.rules.traits.sensory import (
                                 validate_purchase as validate_sensory_trait,
                             )
 
@@ -409,7 +409,7 @@ class CharacterCompiler:
                             hook.startswith("mental-spirit-trait:")
                             for hook in metadata.runtime_hooks
                         ):
-                            from wayfarer.engine.rules.mental_spirit_traits import (
+                            from wayfarer.engine.rules.traits.mental_spirit import (
                                 validate_purchase as validate_mental_spirit_trait,
                             )
 
@@ -418,7 +418,7 @@ class CharacterCompiler:
                             hook.startswith("attack-defense-trait:")
                             for hook in metadata.runtime_hooks
                         ):
-                            from wayfarer.engine.rules.attack_defense_traits import (
+                            from wayfarer.engine.rules.traits.attack_defense import (
                                 validate_purchase as validate_attack_defense_trait,
                             )
 
@@ -427,7 +427,7 @@ class CharacterCompiler:
                             hook.startswith("world-travel-trait:")
                             for hook in metadata.runtime_hooks
                         ):
-                            from wayfarer.engine.rules.world_travel_traits import (
+                            from wayfarer.engine.rules.traits.world_travel import (
                                 validate_purchase as validate_world_travel_trait,
                             )
 
@@ -435,7 +435,7 @@ class CharacterCompiler:
                         elif any(
                             hook.startswith("mana-divine-trait:") for hook in metadata.runtime_hooks
                         ):
-                            from wayfarer.engine.rules.mana_divine_traits import (
+                            from wayfarer.engine.rules.traits.mana_divine import (
                                 validate_purchase as validate_mana_divine_trait,
                             )
 
@@ -443,7 +443,7 @@ class CharacterCompiler:
                         else:
                             cost = trait_cost(cost, amount, options, metadata)
                         if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
-                            from wayfarer.engine.rules.abilities import (
+                            from wayfarer.engine.rules.supernatural.abilities import (
                                 validate_purchase as validate_ability,
                             )
 
@@ -602,7 +602,7 @@ class CharacterCompiler:
             }
             skill_evaluator = EffectEvaluator(tuple(MechanicalTarget(k) for k in self.skills.specs))
 
-            from wayfarer.engine.rules.gurps_magic import PREREQUISITES, magery_level
+            from wayfarer.engine.rules.magic.gurps_magic import PREREQUISITES, magery_level
 
             magery = max(0, magery_level({p.definition_id: p.amount for p in draft.purchases}))
             mana_magery = selected_purchase.get("advantage:magery")

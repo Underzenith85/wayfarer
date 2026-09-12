@@ -13,7 +13,7 @@ from graphlib import CycleError, TopologicalSorter
 
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.conformance import profile, require_capabilities
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     BiographicalDefault,
     CampaignDefaultSelection,
     CampaignSkillSpecialty,

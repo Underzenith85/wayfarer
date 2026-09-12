@@ -22,8 +22,9 @@ from wayfarer.engine.character.technology import operator_from_build
 from wayfarer.engine.rules.checks import Modifier, ModifierKind, RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.effects import DerivedValue
-from wayfarer.engine.rules.mundane_skills import PROFILE, audit_report, inventory
-from wayfarer.engine.rules.mundane_skills.technology import (
+from wayfarer.engine.rules.profiles import GURPS_BASIC_PROFILE
+from wayfarer.engine.rules.skills.mundane import PROFILE, audit_report, inventory
+from wayfarer.engine.rules.skills.mundane.technology import (
     PROCEDURES,
     Operator,
     Situation,
@@ -32,7 +33,6 @@ from wayfarer.engine.rules.mundane_skills.technology import (
     replay,
     require_task,
 )
-from wayfarer.engine.rules.profiles import GURPS_BASIC_PROFILE
 from wayfarer.errors import ValidationError
 
 FIXTURE = Path("tests/fixtures/gurps/technology_skills.json")

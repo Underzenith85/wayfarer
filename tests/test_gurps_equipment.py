@@ -23,7 +23,7 @@ from wayfarer.engine.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
-from wayfarer.engine.simulation.gurps_equipment import (
+from wayfarer.engine.simulation.equipment.catalog import (
     LITE_EQUIPMENT,
     Armor,
     Damage,

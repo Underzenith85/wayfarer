@@ -5,17 +5,17 @@ from decimal import Decimal
 import pytest
 
 from wayfarer.engine.rules.checks import draw_dice, draw_index
-from wayfarer.engine.rules.combat_tables import (
+from wayfarer.engine.rules.physical import climbing_default
+from wayfarer.engine.rules.tables.combat import (
     minimum_strength_penalty,
     shield_cover_dr,
     shield_defense_bonus,
     strong_damage_bonus,
     weapon_target_penalty,
 )
-from wayfarer.engine.rules.physical import climbing_default
-from wayfarer.engine.rules.unarmed_tables import UNARMED_SKILLS, unarmed_critical_miss
-from wayfarer.engine.simulation.gurps_equipment import Armor
-from wayfarer.engine.simulation.hit_locations import armor_resistance, effective_dr
+from wayfarer.engine.rules.tables.unarmed import UNARMED_SKILLS, unarmed_critical_miss
+from wayfarer.engine.simulation.equipment.catalog import Armor
+from wayfarer.engine.simulation.health.hit_locations import armor_resistance, effective_dr
 from wayfarer.errors import ValidationError
 
 

@@ -23,27 +23,27 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.effects import Effect
-from wayfarer.engine.rules.firearm_types import FirearmFailure
-from wayfarer.engine.rules.hazard_types import (
+from wayfarer.engine.rules.types.firearm import FirearmFailure
+from wayfarer.engine.rules.types.hazard import (
     HazardSchedule,
     RecoveryRestriction,
     require_hazards_settled,
 )
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.object_types import (
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.object import (
     GroundPosition,
     ObjectCondition,
     ObjectProfile,
     ObjectResult,
 )
-from wayfarer.engine.rules.readiness_types import ProjectileProgress
-from wayfarer.engine.rules.recovery_types import (
+from wayfarer.engine.rules.types.readiness import ProjectileProgress
+from wayfarer.engine.rules.types.recovery import (
     FatigueStatus,
     RecoveryTask,
     require_settled,
     retire_tasks,
 )
-from wayfarer.engine.rules.transport_types import Transport
+from wayfarer.engine.rules.types.transport import Transport
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Count, Id, Record, Tick
@@ -353,7 +353,7 @@ class ResourceEngine:
         return engine
 
     def validate(self, state: ResourceState) -> None:
-        from wayfarer.engine.simulation.explosions import blasts
+        from wayfarer.engine.simulation.combat.explosions import blasts
 
         if any(not b.resolved and b.due < state.game_time for b in blasts(state)):
             raise ValidationError("Unresolved explosion deadline cannot be in the past")
@@ -424,7 +424,7 @@ class ResourceEngine:
                     and condition.last_stress_at > state.game_time
                 ):
                     raise ValidationError("Object stress time is in the future")
-                from wayfarer.engine.rules.object_types import residual_definition
+                from wayfarer.engine.rules.types.object import residual_definition
 
                 if (
                     condition.disabled
@@ -554,11 +554,11 @@ class ResourceEngine:
         if command.expected_revision != state.revision:
             raise ConflictError("Resource revision changed")
         if isinstance(command, Advance) and rng is not None:
-            from wayfarer.engine.simulation.fright import advance
+            from wayfarer.engine.simulation.health.fright import advance
 
             return advance(self, state, command, rng=rng)
         if not isinstance(command, Advance):
-            from wayfarer.engine.simulation.explosions import guard as blast_guard
+            from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 
             blast_guard(state)
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
@@ -573,7 +573,7 @@ class ResourceEngine:
                 raise ValidationError(
                     "Ground equipment requires authoritative retrieval at its location"
                 )
-            from wayfarer.engine.simulation.object_repairs import tasks
+            from wayfarer.engine.simulation.equipment.repairs import tasks
 
             if any(
                 t.status == "pending" and item.id in (t.item_id, t.tool_id) for t in tasks(state)
@@ -623,7 +623,7 @@ class ResourceEngine:
                         **{**item.model_dump(), "quantity": item.quantity - command.quantity}
                     )
             elif isinstance(command, Equip):
-                from wayfarer.engine.rules.object_types import residual_definition
+                from wayfarer.engine.rules.types.object import residual_definition
 
                 if (
                     item.condition is not None
@@ -680,11 +680,11 @@ class ResourceEngine:
                 raise ValidationError("Effect already has an expiration")
             updated = state.model_copy(update={"scheduled": state.scheduled + (entry,)})
         elif isinstance(command, Advance):
-            from wayfarer.engine.simulation.explosions import guard as blast_guard
+            from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 
             blast_guard(state, advance_to=command.to)
-            from wayfarer.engine.simulation.fright import effects as fright_effects
-            from wayfarer.engine.simulation.spell_backfires import backfires
+            from wayfarer.engine.simulation.health.fright import effects as fright_effects
+            from wayfarer.engine.simulation.magic.backfires import backfires
 
             if any(
                 i.active and i.due is not None and i.due < command.to for i in fright_effects(state)
@@ -784,7 +784,7 @@ class ResourceEngine:
                     ),
                 }
             )
-            from wayfarer.engine.simulation.medical import accrue_rest
+            from wayfarer.engine.simulation.health.medical import accrue_rest
 
             updated = updated.model_copy(
                 update={

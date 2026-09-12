@@ -23,11 +23,10 @@ from wayfarer.engine.rules.checks import (
     success_check,
 )
 from wayfarer.engine.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
-from wayfarer.engine.rules.hazard_types import require_hazards_settled
-from wayfarer.engine.rules.location_types import disabled_locations
+from wayfarer.engine.rules.types.hazard import require_hazards_settled
+from wayfarer.engine.rules.types.location import disabled_locations
 from wayfarer.engine.simulation.ability_types import AbilityRules
 from wayfarer.engine.simulation.ability_types import validate_channels as validate_ability_channels
-from wayfarer.engine.simulation.access import validate_members
 from wayfarer.engine.simulation.actions import (
     ACTION_ADAPTER,
     ActionResult,
@@ -43,33 +42,38 @@ from wayfarer.engine.simulation.actions import (
     UseItem,
     Wait,
 )
-from wayfarer.engine.simulation.adjudication import expire_rulings
-from wayfarer.engine.simulation.advancement import validate_ledgers
-from wayfarer.engine.simulation.combat import CombatEngine, CombatRules, validate_consequences
-from wayfarer.engine.simulation.condition_checks import definition_modifiers
+from wayfarer.engine.simulation.campaign.access import validate_members
+from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.advancement import validate_ledgers
+from wayfarer.engine.simulation.campaign.party import validate as validate_party
+from wayfarer.engine.simulation.campaign.party import validate_effects as validate_party_effects
+from wayfarer.engine.simulation.campaign.scenes import JournalEntry, SceneEvent
+from wayfarer.engine.simulation.campaign.scenes import validate_state as validate_scene_state
+from wayfarer.engine.simulation.combat.combat import (
+    CombatEngine,
+    CombatRules,
+    validate_consequences,
+)
 from wayfarer.engine.simulation.events import (
     ActionResolved,
     ActorAudience,
     EngineEvent,
     play_events,
 )
-from wayfarer.engine.simulation.noncombat import validate_state as validate_noncombat_state
-from wayfarer.engine.simulation.party import validate as validate_party
-from wayfarer.engine.simulation.party import validate_effects as validate_party_effects
+from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
+from wayfarer.engine.simulation.magic.bindings import SpellRules
+from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
 from wayfarer.engine.simulation.resources import Advance, Consume, ResourceEngine
-from wayfarer.engine.simulation.scenes import JournalEntry, SceneEvent
-from wayfarer.engine.simulation.scenes import validate_state as validate_scene_state
-from wayfarer.engine.simulation.spell_bindings import SpellRules
-from wayfarer.engine.simulation.spell_bindings import validate_channels as validate_spell_channels
+from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
 from wayfarer.engine.world import Entity, EntityKind
 from wayfarer.errors import ConflictError, ValidationError
 
 
 def _validate_spell_rules(reviewer: PowerReviewer, spells: SpellRules) -> None:
     """Spell channels bind to pinned training definitions of the compiled profile."""
-    from wayfarer.engine.rules.gurps_magic import validate_definitions
-    from wayfarer.engine.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
-    from wayfarer.engine.rules.spell_catalog import projectile_definition
+    from wayfarer.engine.rules.magic.gurps_magic import validate_definitions
+    from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
+    from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES as RANGED_PROCEDURES
 
     definitions = reviewer.compiler.definitions
     validate_definitions(reviewer.compiler.statistics_profile, definitions)
@@ -90,9 +94,9 @@ def _validate_spell_rules(reviewer: PowerReviewer, spells: SpellRules) -> None:
 
 def _validate_ability_rules(reviewer: PowerReviewer, abilities: AbilityRules) -> None:
     """Ability runtime metadata, cost and status must match the pinned catalog."""
-    from wayfarer.engine.rules.abilities import definition as ability_definition
-    from wayfarer.engine.rules.abilities import metadata, validate_binding
-    from wayfarer.engine.rules.traits import TraitOptions
+    from wayfarer.engine.rules.supernatural.abilities import definition as ability_definition
+    from wayfarer.engine.rules.supernatural.abilities import metadata, validate_binding
+    from wayfarer.engine.rules.traits.base import TraitOptions
 
     definitions = reviewer.compiler.definitions
     if reviewer.compiler.statistics_profile != abilities.profile_id:
@@ -337,9 +341,9 @@ class ActionEngine:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
-        from wayfarer.engine.simulation.encounter_context import validate_contexts
-        from wayfarer.engine.simulation.firearms import validate_failures
-        from wayfarer.engine.simulation.lifecycle import validate_lifecycle
+        from wayfarer.engine.simulation.campaign.encounter_context import validate_contexts
+        from wayfarer.engine.simulation.campaign.lifecycle import validate_lifecycle
+        from wayfarer.engine.simulation.combat.firearms import validate_failures
 
         validate_failures(state.resources, rules.combat.gurps_equipment if rules.combat else None)
         if rules.spells:
@@ -390,7 +394,7 @@ class ActionEngine:
 
     def _validate_actor_builds(self, state: PlayState) -> dict[str, int]:
         """Every play actor is a legal, approved build whose resources match; returns DX."""
-        from wayfarer.engine.character.physical_traits import physical_traits
+        from wayfarer.engine.character.traits.physical import physical_traits
 
         entities = {e.id: e for e in state.world.entities}
         actors = {a.actor_id: a for a in state.actors}
@@ -553,20 +557,20 @@ class ActionEngine:
             return result("rejected", "actor.unavailable")
         if command.expected_revision != state.revision:
             raise ConflictError("Play revision changed")
-        from wayfarer.engine.simulation.encounter_context import activity_for
+        from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 
         if activity_for(state, command.actor_id).encounter is not None:
             return result("rejected", "combat.command_required")
         if isinstance(command, Question) or command.hypothetical:
             return result("question", "action.no_effect")
-        from wayfarer.engine.simulation.fright import blocked, requires_adjudication
+        from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
 
         if not isinstance(command, Wait) and (
             blocked(state.resources, command.actor_id, kind=command.kind)
             or requires_adjudication(state.resources, command.actor_id)
         ):
             return result("rejected", "actor.fright")
-        from wayfarer.engine.simulation.spell_effects import dazed
+        from wayfarer.engine.simulation.magic.effects import dazed
 
         if not isinstance(command, Wait) and dazed(state.resources, command.actor_id):
             return result("rejected", "actor.dazed")
@@ -794,7 +798,7 @@ class ActionEngine:
         ruling_id: str | None = None,
         advance_time: bool = True,
     ) -> tuple[PlayState, ActionResult]:
-        from wayfarer.engine.simulation.object_repairs import tasks
+        from wayfarer.engine.simulation.equipment.repairs import tasks
 
         if not isinstance(command, (Wait, Question)) and any(
             t.status == "pending" and t.actor_id == command.actor_id for t in tasks(state.resources)
@@ -838,7 +842,7 @@ class ActionEngine:
             return state, feasible
         world, resources = state.world, state.resources
         if not isinstance(command, Wait):
-            from wayfarer.engine.rules.recovery_types import interrupt_tasks
+            from wayfarer.engine.rules.types.recovery import interrupt_tasks
             from wayfarer.engine.simulation.abilities import interrupt_concentration
 
             resources = interrupt_concentration(resources, command.actor_id, command.id)
@@ -908,7 +912,7 @@ class ActionEngine:
             derived, dependencies = self._target(state, actor.actor_id, build, rule)
             if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():
                 raise ValidationError("Check target must be a finite integer")
-            from wayfarer.engine.simulation.spell_effects import lighting_penalty
+            from wayfarer.engine.simulation.magic.effects import lighting_penalty
 
             darkness = lighting_penalty(state, rule.target_id, rule.darkness_penalty)
             trace = success_check(

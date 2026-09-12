@@ -8,8 +8,8 @@ from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.firearm_types import FirearmSpec
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.rules.types.firearm import FirearmSpec
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 
 

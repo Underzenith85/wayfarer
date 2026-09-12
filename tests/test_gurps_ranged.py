@@ -10,9 +10,9 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.ranged_tables import range_penalty, rapid_fire_bonus
-from wayfarer.engine.simulation.combat import RangedSituation
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.rules.tables.ranged import range_penalty, rapid_fire_bonus
+from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.engine.simulation.resources import Consume, Transfer
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
@@ -84,7 +84,7 @@ def test_b373_high_rate_of_fire_bonus_continues_by_doubling(shots: int, expected
 
 
 def test_tactical_v2_accepts_high_cyclic_burst_without_widening_v1() -> None:
-    from wayfarer.engine.simulation.combat_commands import TakeCombatTurn
+    from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
     from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1
 
     command = TakeCombatTurn(

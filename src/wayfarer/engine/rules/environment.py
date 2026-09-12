@@ -1,6 +1,6 @@
 """Explicit Basic Set environmental variants (B93, B430, B434, B439, B443)."""
 
-from wayfarer.engine.rules.hazard_types import HazardSpec
+from wayfarer.engine.rules.types.hazard import HazardSpec
 from wayfarer.errors import ValidationError
 
 

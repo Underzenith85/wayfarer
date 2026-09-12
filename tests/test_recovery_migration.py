@@ -7,7 +7,7 @@ import pytest
 from test_recovery_variants import PROFILE, lasting_state, mortal_state
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.medical import (
+from wayfarer.engine.simulation.health.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,

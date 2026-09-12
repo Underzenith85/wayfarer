@@ -8,7 +8,7 @@ from uuid import NAMESPACE_URL, uuid5
 from pydantic import Field
 
 from wayfarer.engine.simulation.actions import ActorSetup
-from wayfarer.engine.simulation.catalog import (
+from wayfarer.engine.simulation.campaign.scenario_catalog import (
     CatalogCommand,
     CatalogEntry,
     CatalogRevision,
@@ -18,15 +18,15 @@ from wayfarer.engine.simulation.catalog import (
     ScenarioGenerationJob,
     ScenarioGenerationRequest,
 )
-from wayfarer.engine.simulation.scenario_document import (
+from wayfarer.engine.simulation.campaign.scenario_document import (
     DraftRevision,
     InitialResources,
     Provenance,
     PublicBrief,
     ScenarioDocumentBase,
 )
-from wayfarer.engine.simulation.setup import CreateSetup
-from wayfarer.engine.simulation.studio import ScenarioGraph, StudioFinding
+from wayfarer.engine.simulation.campaign.setup import CreateSetup
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph, StudioFinding
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.orchestration.scenario_documents import (

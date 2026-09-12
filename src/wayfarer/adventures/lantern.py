@@ -20,17 +20,23 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, CheckRule
-from wayfarer.engine.simulation.combat import (
+from wayfarer.engine.simulation.campaign.npcs import NPCAction, NPCPlan, NPCRules
+from wayfarer.engine.simulation.campaign.objectives import (
+    Objective,
+    ObjectiveRules,
+    Predicate,
+    Reward,
+)
+from wayfarer.engine.simulation.campaign.party import PartyRules
+from wayfarer.engine.simulation.campaign.scenes import Discovery, Scene, SceneExit, SceneRules
+from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
+from wayfarer.engine.simulation.combat.combat import (
     AttackProfile,
     Battlefield,
     CombatConsequence,
     CombatRules,
 )
-from wayfarer.engine.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
-from wayfarer.engine.simulation.npcs import NPCAction, NPCPlan, NPCRules
-from wayfarer.engine.simulation.objectives import Objective, ObjectiveRules, Predicate, Reward
-from wayfarer.engine.simulation.party import PartyRules
-from wayfarer.engine.simulation.recovery import RecoveryOption, RecoveryRules, SetbackRule
+from wayfarer.engine.simulation.health.recovery import RecoveryOption, RecoveryRules, SetbackRule
 from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
     Item,
@@ -38,8 +44,7 @@ from wayfarer.engine.simulation.resources import (
     ResourceEngine,
     ResourceState,
 )
-from wayfarer.engine.simulation.scenes import Discovery, Scene, SceneExit, SceneRules
-from wayfarer.engine.simulation.studio import GenerationBrief, ScenarioGraph
+from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.engine.world import (
     Commitment,
     CommitmentKind,

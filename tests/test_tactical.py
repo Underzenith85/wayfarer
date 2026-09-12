@@ -17,9 +17,9 @@ from test_unarmed import setup as unarmed_setup
 from scripts.tactical_contracts import contract
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
-from wayfarer.engine.rules.object_types import ObjectProfile
-from wayfarer.engine.simulation.access import CampaignMember
-from wayfarer.engine.simulation.combat import CombatResult, GridPoint, RangedSituation
+from wayfarer.engine.rules.types.object import ObjectProfile
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.combat.combat import CombatResult, GridPoint, RangedSituation
 from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import Fact
@@ -459,7 +459,7 @@ async def test_facing_blocks_rear_attack_before_dice(tmp_path: Path) -> None:
 
 
 async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.mechanics.gurps_ranged import situation
+    from wayfarer.engine.simulation.combat.ranged import situation
 
     cid, play = await setup(tmp_path)
     encounter = play._load(await play.store.read(cid)).encounters[0]
@@ -496,8 +496,8 @@ async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_pa
 
 
 async def test_nonstanding_melee_and_unarmed_defense_use_level_difference(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.mechanics.unarmed import unarmed_defense
-    from wayfarer.engine.simulation.tactical import height_effect
+    from wayfarer.engine.simulation.combat.tactical import height_effect
+    from wayfarer.engine.simulation.combat.unarmed import unarmed_defense
 
     cid, play = await setup(tmp_path, unarmed=True)
     state = play._load(await play.store.read(cid))
@@ -538,7 +538,7 @@ async def test_nonstanding_melee_and_unarmed_defense_use_level_difference(tmp_pa
 
 
 async def test_hex_ranged_distance_accounts_for_elevation(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.mechanics.gurps_ranged import situation
+    from wayfarer.engine.simulation.combat.ranged import situation
 
     cid, play = await setup(tmp_path)
     state = play._load(await play.store.read(cid))

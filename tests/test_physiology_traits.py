@@ -6,20 +6,20 @@ import pytest
 from test_statistics import gurps_draft, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.engine.character.physiology_traits import physiology_traits
+from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.physiology_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.engine.rules.physiology_traits import package as physiology_package
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.simulation.physiology_traits import (
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.physiology import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.physiology import package as physiology_package
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.traits.physiology import (
     PhysiologyCommand,
     PhysiologyInterval,
     apply_physiology_interval,
     history,
 )
-from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
 

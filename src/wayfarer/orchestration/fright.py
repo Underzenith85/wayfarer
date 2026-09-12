@@ -2,8 +2,8 @@
 
 import json
 
-from wayfarer.engine.simulation.mechanics.fright import FrightDecision as FrightDecision
-from wayfarer.engine.simulation.mechanics.fright import apply_decision
+from wayfarer.engine.simulation.health.fright_transitions import FrightDecision as FrightDecision
+from wayfarer.engine.simulation.health.fright_transitions import apply_decision
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess

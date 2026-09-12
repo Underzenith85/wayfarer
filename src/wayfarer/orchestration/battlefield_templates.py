@@ -6,13 +6,13 @@ import hashlib
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.advancement import MigrationEntry
-from wayfarer.engine.simulation.combat import CombatRules
-from wayfarer.engine.simulation.combat_commands import MigrateEncounterHex
+from wayfarer.engine.simulation.campaign.advancement import MigrationEntry
+from wayfarer.engine.simulation.campaign.scenario_document import digest_json
+from wayfarer.engine.simulation.campaign.scenario_references import boundary
+from wayfarer.engine.simulation.campaign.social_policy import parse_graph
+from wayfarer.engine.simulation.combat.combat import CombatRules
+from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
-from wayfarer.engine.simulation.scenario_document import digest_json
-from wayfarer.engine.simulation.scenario_references import boundary
-from wayfarer.engine.simulation.social_policy import parse_graph
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign
 from wayfarer.orchestration.sessions import REGISTRY

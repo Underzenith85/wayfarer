@@ -11,16 +11,16 @@ from test_statistics import gurps_draft, profile_compiler, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.engine.rules.abilities import MODIFIERS, PROFILE, definition
 from wayfarer.engine.rules.catalog import RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.recovery_types import FatigueStatus, RecoveryTask
+from wayfarer.engine.rules.supernatural.abilities import MODIFIERS, PROFILE, definition
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus, RecoveryTask
 from wayfarer.engine.simulation.abilities import apply_ability, damage_resistance, effects
 from wayfarer.engine.simulation.ability_types import AbilityRules, AbilitySpec
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
-from wayfarer.engine.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
+from wayfarer.engine.simulation.combat.combat import Battlefield, CombatRules, GridPoint, Placement
 from wayfarer.engine.simulation.resources import Pool, ResourceEngine
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService
@@ -39,7 +39,7 @@ async def setup(
     hp: int = 10,
     injury: InjuryStatus | None = None,
 ) -> tuple[str, PlayService]:
-    from wayfarer.engine.rules.gurps_magic import definitions
+    from wayfarer.engine.rules.magic.gurps_magic import definitions
 
     package = profile_package(PROFILE, definition(ability), *(definitions() if magic else ()))
     catalog = RulesCatalog((package,))
@@ -442,8 +442,8 @@ async def test_portable_ability_binding_roundtrips_and_rejects_duplicate_source(
     from pydantic import ValidationError as SchemaError
     from test_wave12 import two_player_graph
 
-    from wayfarer.engine.simulation.scenario_document import PortableGraph
-    from wayfarer.engine.simulation.studio import ScenarioGraph
+    from wayfarer.engine.simulation.campaign.scenario_document import PortableGraph
+    from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 
     _, play = await setup(tmp_path, spec())
     binding = play.engine.rules.abilities

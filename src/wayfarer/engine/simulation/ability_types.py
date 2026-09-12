@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
-from wayfarer.engine.rules.ability_types import AbilitySpec as AbilitySpec
 from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec as AbilitySpec
 from wayfarer.engine.simulation.resources import Command
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record

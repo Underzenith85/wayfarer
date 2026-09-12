@@ -15,12 +15,12 @@ from test_gurps_melee import setup
 
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.firearm_types import FirearmSpec
-from wayfarer.engine.rules.mundane_skills import inventory
-from wayfarer.engine.rules.mundane_skills.ranged import PROCEDURES, definitions, require_mode
-from wayfarer.engine.rules.skill_types import DefaultConditionKind
-from wayfarer.engine.simulation.combat import RangedSituation
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES, definitions, require_mode
+from wayfarer.engine.rules.types.firearm import FirearmSpec
+from wayfarer.engine.rules.types.skill import DefaultConditionKind
+from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 

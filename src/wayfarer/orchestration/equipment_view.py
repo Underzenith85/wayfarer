@@ -3,13 +3,13 @@
 import hashlib
 from typing import Literal
 
-from wayfarer.engine.rules.object_types import GroundPosition, ObjectCondition
-from wayfarer.engine.rules.readiness_types import ProjectileProgress
+from wayfarer.engine.rules.types.object import GroundPosition, ObjectCondition
+from wayfarer.engine.rules.types.readiness import ProjectileProgress
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.mechanics.equipment_retrieval import RetrievalTask
-from wayfarer.engine.simulation.mechanics.equipment_retrieval import tasks as retrievals
-from wayfarer.engine.simulation.object_repairs import RepairTask
-from wayfarer.engine.simulation.object_repairs import tasks as repairs
+from wayfarer.engine.simulation.equipment.repairs import RepairTask
+from wayfarer.engine.simulation.equipment.repairs import tasks as repairs
+from wayfarer.engine.simulation.equipment.retrieval import RetrievalTask
+from wayfarer.engine.simulation.equipment.retrieval import tasks as retrievals
 from wayfarer.errors import WayfarerError
 from wayfarer.models import Record
 from wayfarer.orchestration.combat import (
@@ -89,7 +89,7 @@ class TacticalSnapshotV2(TacticalSnapshot):
 
 def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[EquipmentView, ...]:
     encounter = next((e for e in reversed(state.encounters) if actor_id in e.turn_order), None)
-    from wayfarer.engine.simulation.explosions import blasts
+    from wayfarer.engine.simulation.combat.explosions import blasts
 
     pending_blasts = tuple(b for b in blasts(state.resources) if not b.resolved)
     result: list[EquipmentView] = []
@@ -146,7 +146,7 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
 
                     guard(state, actor_id, kind)
                     if isinstance(command, RetrieveEquipment):
-                        from wayfarer.engine.simulation.mechanics.equipment_retrieval import (
+                        from wayfarer.engine.simulation.equipment.retrieval import (
                             retrieve,
                         )
 
@@ -162,7 +162,7 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                             task_id=command.task_id,
                         )
                     else:
-                        from wayfarer.engine.simulation.mechanics.object_repairs import repair
+                        from wayfarer.engine.simulation.equipment.repair_transitions import repair
 
                         repair(
                             play.rules_context,
@@ -207,8 +207,8 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
             )
         )
     if encounter is not None:
-        from wayfarer.engine.simulation.mechanics.thrown_items import record, recover
-        from wayfarer.engine.simulation.mechanics.unarmed import free_hands
+        from wayfarer.engine.simulation.combat.thrown.items import record, recover
+        from wayfarer.engine.simulation.combat.unarmed import free_hands
 
         for item in state.resources.expended_items:
             landing = record(state.resources, item.id)

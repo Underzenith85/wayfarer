@@ -22,7 +22,8 @@ from wayfarer.engine.character.templates import (
     representative_templates,
 )
 from wayfarer.engine.rules.catalog import ImplementationStatus, RulesCatalog, RulesPackage
-from wayfarer.engine.rules.mundane_traits import (
+from wayfarer.engine.rules.traits.base import TraitOptions, cost
+from wayfarer.engine.rules.traits.mundane import (
     PROFILE,
     Vocabulary,
     audit_report,
@@ -30,12 +31,11 @@ from wayfarer.engine.rules.mundane_traits import (
     inventory,
     validate_inventory,
 )
-from wayfarer.engine.rules.mundane_traits.runtime import (
+from wayfarer.engine.rules.traits.mundane.runtime import (
     APPEARANCE_BINDINGS,
     REPUTATION_BINDINGS,
     SUPPORTED_HOOKS,
 )
-from wayfarer.engine.rules.traits import TraitOptions, cost
 from wayfarer.errors import ValidationError
 
 

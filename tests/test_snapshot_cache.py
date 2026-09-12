@@ -118,7 +118,7 @@ async def test_narration_survives_cache_rebuild_without_becoming_state(
     service: GameService,
 ) -> None:
     from wayfarer.engine.character import builder
-    from wayfarer.engine.simulation.scenario import scenario
+    from wayfarer.engine.simulation.campaign.scenario import scenario
 
     # Use the legacy public service as well: its flavor used to mutate campaign rows.
     game = service
@@ -162,7 +162,7 @@ async def test_checkpoint_skips_covered_schemas_and_cache_failure_requires_them(
 
 async def test_legacy_narration_is_imported_before_replacing_cache(service: GameService) -> None:
     from wayfarer.engine.character import builder
-    from wayfarer.engine.simulation.scenario import scenario
+    from wayfarer.engine.simulation.campaign.scenario import scenario
 
     created = await service.create(builder.character(), scenario())
     cid = created["id"]

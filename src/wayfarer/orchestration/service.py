@@ -7,7 +7,7 @@ from wayfarer import validation
 from wayfarer.config import Settings
 from wayfarer.engine.character import builder
 from wayfarer.engine.rules import catalog
-from wayfarer.engine.simulation.scenario import validate_scenario
+from wayfarer.engine.simulation.campaign.scenario import validate_scenario
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, PublicCampaign
 from wayfarer.orchestration.llm import LLMClient

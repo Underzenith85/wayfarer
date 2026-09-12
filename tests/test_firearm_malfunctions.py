@@ -15,12 +15,12 @@ from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.firearm_types import FirearmSpec
-from wayfarer.engine.rules.mundane_skills.ranged import definitions
-from wayfarer.engine.simulation.basic_equipment import BASIC_EQUIPMENT
-from wayfarer.engine.simulation.firearms import MalfunctionRecord, save_malfunction
-from wayfarer.engine.simulation.gurps_equipment import Damage, EquipmentCatalog, RangedMode
-from wayfarer.engine.simulation.mechanics.firearms import ServiceRecord
+from wayfarer.engine.rules.skills.mundane.ranged import definitions
+from wayfarer.engine.rules.types.firearm import FirearmSpec
+from wayfarer.engine.simulation.combat.firearm_transitions import ServiceRecord
+from wayfarer.engine.simulation.combat.firearms import MalfunctionRecord, save_malfunction
+from wayfarer.engine.simulation.equipment.basic_equipment import BASIC_EQUIPMENT
+from wayfarer.engine.simulation.equipment.catalog import Damage, EquipmentCatalog, RangedMode
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
@@ -479,7 +479,7 @@ async def test_service_rejects_occupied_hands_before_dice(tmp_path: Path) -> Non
     # Defender owns a ready shield and sword; fail with the hand constraint before a roll.
     cid, play = await malfunction(tmp_path, (3, 3, 3))
     state = play._load(await play.store.read(cid))
-    from wayfarer.engine.simulation.mechanics.firearms import service
+    from wayfarer.engine.simulation.combat.firearm_transitions import service
 
     shield = next(i for i in state.resources.items if i.id == "shield-b").model_copy(
         update={"owner_id": "a"}

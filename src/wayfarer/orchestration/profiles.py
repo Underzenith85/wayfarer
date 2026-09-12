@@ -18,8 +18,8 @@ from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.profiles import ProfileRegistry, RegisteredProfile
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.advancement import BuildDiff, MigrationEntry
-from wayfarer.engine.simulation.profiles import (
+from wayfarer.engine.simulation.campaign.advancement import BuildDiff, MigrationEntry
+from wayfarer.engine.simulation.campaign.profiles import (
     Incompatibility,
     MigrateProfile,
     PackageView,
@@ -27,7 +27,7 @@ from wayfarer.engine.simulation.profiles import (
     ProfileSelection,
     ProfileView,
 )
-from wayfarer.engine.simulation.setup import Setup
+from wayfarer.engine.simulation.campaign.setup import Setup
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from wayfarer.models import Campaign
 from wayfarer.orchestration.advancement import (

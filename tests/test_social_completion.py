@@ -17,16 +17,17 @@ from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.checks import Modifier, RecordedDice
 from wayfarer.engine.rules.fright import FrightEffect
-from wayfarer.engine.rules.gurps_social import (
+from wayfarer.engine.rules.social.gurps_social import (
     InfluenceConditions,
     InfluenceSkill,
     fright_roll,
     influence_roll,
     self_control_roll,
 )
-from wayfarer.engine.rules.skill_types import ControllingAttribute, Difficulty, SkillSpec, Specialty
-from wayfarer.engine.rules.traits import TraitOptions, TraitRules
-from wayfarer.engine.simulation.fright import (
+from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
+from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec, Specialty
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialTrigger
+from wayfarer.engine.simulation.health.fright import (
     TimedFright,
     aftermath_penalty,
     apply_effect,
@@ -34,9 +35,8 @@ from wayfarer.engine.simulation.fright import (
     recover,
     save,
 )
-from wayfarer.engine.simulation.npcs import NPCSocialTrigger
 from wayfarer.engine.simulation.resources import ResourceState
-from wayfarer.engine.simulation.social import SocialCommand, SocialContext, apply_social
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, apply_social
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.npcs import social_occurrence
 

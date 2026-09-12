@@ -7,9 +7,9 @@ from test_gurps_maneuvers import turn
 from test_gurps_melee import attack, choice, setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.critical import CriticalMiss
-from wayfarer.engine.simulation.mechanics.critical_limbs import CriticalLimbResult
-from wayfarer.engine.simulation.mechanics.weapon_flight import FlightResult, resolve_flight
+from wayfarer.engine.simulation.combat.critical import CriticalMiss
+from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
+from wayfarer.engine.simulation.combat.thrown.flight import FlightResult, resolve_flight
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService

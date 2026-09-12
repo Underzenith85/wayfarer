@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.engine.simulation.combat import (
+from wayfarer.engine.simulation.combat.combat import (
     BasicSpatialContext,
     Combatant,
     CombatRules,

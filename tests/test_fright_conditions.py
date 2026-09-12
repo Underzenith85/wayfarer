@@ -10,12 +10,12 @@ from test_social_completion import with_aftermath
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.fright import FrightEffect
-from wayfarer.engine.simulation.combat import GridPoint
-from wayfarer.engine.simulation.condition_checks import check_modifiers
-from wayfarer.engine.simulation.fatigue import ContinueExertion, apply_fatigue
-from wayfarer.engine.simulation.fright import effects
-from wayfarer.engine.simulation.injury import Wound, apply_injury
-from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value
+from wayfarer.engine.simulation.combat.combat import GridPoint
+from wayfarer.engine.simulation.combat.melee import defense_value
+from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue
+from wayfarer.engine.simulation.health.fright import effects
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
@@ -189,7 +189,7 @@ async def test_aftermath_applies_once_to_injury_and_exertion_at_check_time(tmp_p
 def test_b365_move_and_attack_cap_is_after_condition_penalties(
     skill: int, penalty: int, expected: int
 ) -> None:
-    from wayfarer.engine.simulation.maneuvers import ManeuverState, attack_modifier
+    from wayfarer.engine.simulation.combat.maneuvers import ManeuverState, attack_modifier
 
     maneuver = ManeuverState(attack_bonus=-4, attack_cap=9)
     base = attack_modifier(maneuver, "target", skill, check_adjustment=penalty)

@@ -10,9 +10,9 @@ the opt-in spell adapter already pins.
 import pytest
 
 from wayfarer.engine.rules.catalog import ImplementationStatus
-from wayfarer.engine.rules.mundane_skills import inventory
-from wayfarer.engine.rules.mundane_skills.ranged import PROCEDURES, definitions, require_mode
-from wayfarer.engine.rules.spell_catalog import projectile_definition
+from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES, definitions, require_mode
 from wayfarer.errors import ValidationError
 
 BASIC = "gurps-basic-set-4e-2004"

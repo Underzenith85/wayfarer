@@ -12,17 +12,17 @@ from pydantic import ConfigDict, Field
 
 from wayfarer.certification.equipment_audit import rows as equipment_audit_rows
 from wayfarer.engine.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES
-from wayfarer.engine.rules.mundane_skills import inventory as skills
-from wayfarer.engine.rules.mundane_traits import inventory as traits
 from wayfarer.engine.rules.profiles import (
     GURPS_CAMPAIGNS_PACKAGE,
     GURPS_CHARACTERS_PACKAGE,
     GURPS_LITE_PACKAGE,
     GURPS_MAGIC_PACKAGE,
 )
+from wayfarer.engine.rules.skills.mundane import inventory as skills
 from wayfarer.engine.rules.supernatural import inventory as supernatural_inventory
-from wayfarer.engine.rules.vehicle_coverage import validate_coverage
-from wayfarer.engine.simulation.basic_equipment import (
+from wayfarer.engine.rules.traits.mundane import inventory as traits
+from wayfarer.engine.rules.types.vehicle_coverage import validate_coverage
+from wayfarer.engine.simulation.equipment.basic_equipment import (
     BASIC_EQUIPMENT,
     ULTRATECH_INDEX,
     VEHICLE_INDEX,

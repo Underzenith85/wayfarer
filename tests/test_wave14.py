@@ -11,7 +11,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from wayfarer.adventures.lantern import adventure
 from wayfarer.adventures.runtime import application
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.transport.campaign_api import ACCESS_KEY
 from wayfarer.transport.setup_api import SETUP_KEY
@@ -170,7 +170,7 @@ class Table:
         from wayfarer.engine.simulation.events import document
 
         folded = await store.stream_states(self.cid)
-        from wayfarer.engine.simulation.scenario_references import verify
+        from wayfarer.engine.simulation.campaign.scenario_references import verify
 
         for checkpoint, _ in folded:
             verify(checkpoint)

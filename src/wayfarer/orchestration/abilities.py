@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass, replace
 
-from wayfarer.engine.rules.abilities import fatigue_cost, validate_binding
-from wayfarer.engine.rules.ability_types import AbilitySpec
-from wayfarer.engine.rules.hazard_types import require_hazards_settled
-from wayfarer.engine.rules.recovery_types import interrupt_tasks
-from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.rules.supernatural.abilities import fatigue_cost, validate_binding
+from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.types.hazard import require_hazards_settled
+from wayfarer.engine.rules.types.recovery import interrupt_tasks
 from wayfarer.engine.simulation.abilities import (
     AbilityContext,
     apply_ability,
@@ -15,11 +15,11 @@ from wayfarer.engine.simulation.abilities import (
 )
 from wayfarer.engine.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat import Encounter
-from wayfarer.engine.simulation.concentration import require_idle_concentration
-from wayfarer.engine.simulation.maneuvers import ManeuverState
-from wayfarer.engine.simulation.mechanics.gurps_melee import injury_turn
-from wayfarer.engine.simulation.party import synchronous
+from wayfarer.engine.simulation.campaign.party import synchronous
+from wayfarer.engine.simulation.combat.combat import Encounter
+from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
+from wayfarer.engine.simulation.combat.melee import injury_turn
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
@@ -66,7 +66,7 @@ def _prepare_ability(
     values = {v.target: int(v.value) for v in build.sheet.values}
     channel = next((c for c in rules.channels if c.id == command.channel_id), None)
     if channel is not None and command.kind != "cancel":
-        from wayfarer.engine.rules.recovery_types import require_settled
+        from wayfarer.engine.rules.types.recovery import require_settled
 
         require_settled(
             state.resources.recovery_tasks,

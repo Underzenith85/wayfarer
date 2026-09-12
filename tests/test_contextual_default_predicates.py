@@ -17,8 +17,8 @@ from wayfarer.engine.character.skills import (
     materialize_open_specialty,
 )
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.engine.rules.mundane_skills import inventory
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.types.skill import (
     BiographicalDefault,
     CampaignDefaultSelection,
     CampaignSkillSpecialty,
@@ -29,13 +29,13 @@ from wayfarer.engine.rules.skill_types import (
     SkillSpec,
     VariableFamily,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     ControllingAttribute as A,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     DefaultConditionKind as C,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     Difficulty as D,
 )
 

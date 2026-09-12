@@ -4,11 +4,15 @@ from typing import Literal
 
 from pydantic import Field
 
-from wayfarer.engine.rules.location_types import Hand, HitLocation
-from wayfarer.engine.simulation.combat import Defense, Facing, GridPoint, Maneuver, Posture
+from wayfarer.engine.rules.types.location import Hand, HitLocation
+from wayfarer.engine.simulation.combat.combat import Defense, Facing, GridPoint, Maneuver, Posture
+from wayfarer.engine.simulation.combat.maneuvers import DefenseOption
+from wayfarer.engine.simulation.combat.unarmed_records import (
+    GrappleLocation,
+    UnarmedAction,
+    UnarmedSkill,
+)
 from wayfarer.engine.simulation.hex_geometry import Cell, Hex, Stairway, _omitted_default
-from wayfarer.engine.simulation.maneuvers import DefenseOption
-from wayfarer.engine.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.combat import CombatCommand, HexPlacement
 

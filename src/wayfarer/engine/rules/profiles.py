@@ -15,7 +15,7 @@ from dataclasses import asdict, dataclass, replace
 from types import MappingProxyType
 from typing import Final
 
-from wayfarer.engine.rules import conformance, gurps_characters, gurps_magic, gurps_skills
+from wayfarer.engine.rules import conformance, gurps_characters
 from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -35,8 +35,10 @@ from wayfarer.engine.rules.gurps_equipment_manifest import (
     EQUIPMENT_SKILL_IDS,
     SUPPORTED_EQUIPMENT_IDS,
 )
-from wayfarer.engine.rules.mundane_skills import ranged as ranged_skills
-from wayfarer.engine.rules.mundane_skills import social as social_skills
+from wayfarer.engine.rules.magic import gurps_magic
+from wayfarer.engine.rules.skills import gurps_skills
+from wayfarer.engine.rules.skills.mundane import ranged as ranged_skills
+from wayfarer.engine.rules.skills.mundane import social as social_skills
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesReference
 

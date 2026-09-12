@@ -8,8 +8,8 @@ from test_gurps_melee import setup
 from test_gurps_ranged import scene, weapon
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.mechanics.thrown_items import record
-from wayfarer.engine.simulation.mechanics.weapon_flight import position
+from wayfarer.engine.simulation.combat.thrown.flight import position
+from wayfarer.engine.simulation.combat.thrown.items import record
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, DeclareThrownLanding, TakeCombatTurn
 from wayfarer.orchestration.equipment_view import equipment_view
@@ -185,8 +185,8 @@ async def test_barehand_critical_failure_uses_unarmed_table(tmp_path: Path) -> N
 
 
 async def test_recovery_rejects_broken_items_and_hidden_observers(tmp_path: Path) -> None:
-    from wayfarer.engine.rules.object_types import ObjectCondition
-    from wayfarer.engine.simulation.mechanics.thrown_items import recover
+    from wayfarer.engine.rules.types.object import ObjectCondition
+    from wayfarer.engine.simulation.combat.thrown.items import recover
 
     cid, play = await setup(
         tmp_path,

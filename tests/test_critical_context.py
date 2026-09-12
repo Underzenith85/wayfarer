@@ -7,7 +7,7 @@ from pydantic import ValidationError as SchemaError
 from test_gurps_melee import attack, choice, setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.critical import CriticalMiss, load_critical, save_critical
+from wayfarer.engine.simulation.combat.critical import CriticalMiss, load_critical, save_critical
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService

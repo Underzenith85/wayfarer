@@ -6,10 +6,10 @@ import pytest
 from test_social_dispatch import prepare
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.access import CampaignMember
 from wayfarer.engine.simulation.actions import PlayState, Wait
-from wayfarer.engine.simulation.fright import effects, public_id
-from wayfarer.engine.simulation.social import SocialCommand, SocialContext
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.health.fright import effects, public_id
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService

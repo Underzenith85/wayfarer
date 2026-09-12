@@ -15,17 +15,17 @@ from test_gurps_melee import setup
 
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.mundane_skills import audit_report, inventory
-from wayfarer.engine.rules.mundane_skills.ranged import (
+from wayfarer.engine.rules.skills.mundane import audit_report, inventory
+from wayfarer.engine.rules.skills.mundane.ranged import (
     PROCEDURES,
     definitions,
     ranged_scope,
     require_mode,
 )
-from wayfarer.engine.rules.spray_types import SprayerSpec, Stream
+from wayfarer.engine.rules.types.spray import SprayerSpec, Stream
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat import Combatant, RangedSituation
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.simulation.combat.combat import Combatant, RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService

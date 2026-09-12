@@ -9,9 +9,9 @@ from dataclasses import dataclass, replace
 from decimal import Decimal
 
 from wayfarer.engine.character.statistics import encumbrance
-from wayfarer.engine.rules.hazard_types import HazardSchedule, HazardSpec
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.hazards import HazardCommand, HazardResult, apply_hazard
+from wayfarer.engine.simulation.health.hazards import HazardCommand, HazardResult, apply_hazard
 from wayfarer.engine.simulation.resources import decimal_weight
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
@@ -94,7 +94,7 @@ class HazardService:
                             raise ValidationError("Contact modifiers require a disease")
                         bonus = contagion_modifier(context.contacts)
                     if context.temperature_f is not None:
-                        from wayfarer.engine.character.physical_traits import physical_traits
+                        from wayfarer.engine.character.traits.physical import physical_traits
                         from wayfarer.engine.rules.environment import ambient_spec
 
                         levels = physical_traits(

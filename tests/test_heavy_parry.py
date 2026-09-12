@@ -8,9 +8,9 @@ import pytest
 from test_gurps_melee import attack, choice, setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.object_types import ObjectProfile
-from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value
-from wayfarer.engine.simulation.mechanics.heavy_parry import HeavyParryResult
+from wayfarer.engine.rules.types.object import ObjectProfile
+from wayfarer.engine.simulation.combat.melee import defense_value
+from wayfarer.engine.simulation.combat.melee_heavy_parry import HeavyParryResult
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
@@ -191,7 +191,7 @@ async def test_no_breakage_without_successful_contact(
 
 @pytest.mark.parametrize("weight,available", [(40000, True), (40001, False)])
 async def test_two_handed_basic_lift_limit(tmp_path: Path, weight: int, available: bool) -> None:
-    from wayfarer.engine.simulation.gurps_equipment import MeleeMode
+    from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 
     cid, play = await setup(
         tmp_path,

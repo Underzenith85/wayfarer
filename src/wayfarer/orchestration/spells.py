@@ -2,31 +2,31 @@
 
 import json
 
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellExecutionContext as SpellExecutionContext,
 )
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellResolver as SpellResolver,
 )
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     _recorded_spell_result as _recorded_spell_result,
 )
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     advance_cast_turn as advance_cast_turn,
 )
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     apparent_result as apparent_result,
 )
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     approved_context as approved_context,
 )
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     combat_guard as combat_guard,
 )
-from wayfarer.engine.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     reduce_spell as reduce_spell,
 )
-from wayfarer.engine.simulation.spells import (
+from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SpellCommand,
     SpellEvent,

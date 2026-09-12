@@ -10,7 +10,7 @@ from aiohttp.test_utils import TestClient, TestServer
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
 from wayfarer.engine.character.power import PowerPolicy, PowerReviewer
-from wayfarer.engine.rules import conformance, gurps_characters, gurps_skills
+from wayfarer.engine.rules import conformance, gurps_characters
 from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -35,12 +35,13 @@ from wayfarer.engine.rules.profiles import (
     ProfileRegistry,
     RegisteredProfile,
 )
+from wayfarer.engine.rules.skills import gurps_skills
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, CheckRule, PlayState
-from wayfarer.engine.simulation.profiles import MigrateProfile, ProfileSelection
+from wayfarer.engine.simulation.campaign.profiles import MigrateProfile, ProfileSelection
+from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.simulation.resources import EquipmentSpec, Item, ResourceEngine
-from wayfarer.engine.simulation.setup import CreateSetup, SetupCommand
-from wayfarer.engine.simulation.studio import ScenarioGraph
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
@@ -780,8 +781,8 @@ async def test_servers_without_a_registry_expose_no_profiles(tmp_path: Path) -> 
 
 
 def test_profile_contract_schema_drift() -> None:
-    from wayfarer.engine.simulation.advancement import MigrationEntry
-    from wayfarer.engine.simulation.profiles import ProfileMigrationPreview, ProfileView
+    from wayfarer.engine.simulation.campaign.advancement import MigrationEntry
+    from wayfarer.engine.simulation.campaign.profiles import ProfileMigrationPreview, ProfileView
 
     models = (
         ProfileSelection,

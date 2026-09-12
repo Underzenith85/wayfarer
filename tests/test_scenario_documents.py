@@ -11,8 +11,8 @@ from test_actions import campaign
 from test_scenes import configured
 from test_wave11 import graph_fixture
 
-from wayfarer.engine.simulation.access import CampaignMember
-from wayfarer.engine.simulation.scenario_document import (
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.scenario_document import (
     DraftRevision,
     PlayerScenarioExport,
     PublicBrief,

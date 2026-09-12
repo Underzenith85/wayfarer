@@ -10,11 +10,11 @@ from test_scenes import configured
 from test_wave9 import FakeProvider, prepare
 from test_wave11 import graph_fixture
 
-from wayfarer.engine.simulation.access import CampaignMember
-from wayfarer.engine.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
-from wayfarer.engine.simulation.objectives import Objective, ObjectiveRules, Predicate
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
+from wayfarer.engine.simulation.campaign.studio import ApproachSupport
 from wayfarer.engine.simulation.resources import Owner
-from wayfarer.engine.simulation.studio import ApproachSupport
+from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService

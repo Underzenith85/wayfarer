@@ -6,16 +6,18 @@ import pytest
 from test_statistics import gurps_draft, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.engine.character.mana_divine_traits import mana_divine_traits
+from wayfarer.engine.character.traits.mana_divine import mana_divine_traits
 from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.mana_divine_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.engine.rules.mana_divine_traits import package as mana_package
-from wayfarer.engine.rules.recovery_types import FatigueStatus
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.simulation.mana_divine_traits import (
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mana_divine import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.mana_divine import package as mana_package
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.simulation.magic.spells import SpellCommand, SpellContext, apply_spell, latest
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.traits.mana_divine import (
     ManaField,
     ManaFieldCommand,
     apply_mana_field,
@@ -23,8 +25,6 @@ from wayfarer.engine.simulation.mana_divine_traits import (
     effective_mana,
     history,
 )
-from wayfarer.engine.simulation.resources import Pool, ResourceState
-from wayfarer.engine.simulation.spells import SpellCommand, SpellContext, apply_spell, latest
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 

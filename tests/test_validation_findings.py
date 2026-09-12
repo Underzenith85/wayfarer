@@ -8,10 +8,10 @@ from test_authoring_boundaries import studio_at
 from test_wave11 import graph_fixture
 
 from wayfarer.engine.simulation.actions import CheckRule
-from wayfarer.engine.simulation.objectives import Objective, ObjectiveRules, Predicate
+from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
+from wayfarer.engine.simulation.campaign.scenes import Obstacle, Scene, SceneExit
+from wayfarer.engine.simulation.campaign.studio import ApproachSupport, ScenarioGraph, StudioFinding
 from wayfarer.engine.simulation.resources import Owner
-from wayfarer.engine.simulation.scenes import Obstacle, Scene, SceneExit
-from wayfarer.engine.simulation.studio import ApproachSupport, ScenarioGraph, StudioFinding
 from wayfarer.orchestration.studio import ScenarioStudio
 
 

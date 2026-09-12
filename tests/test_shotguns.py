@@ -8,8 +8,8 @@ from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.ranged_tables import multiple_projectile_attack
-from wayfarer.engine.simulation.gurps_equipment import (
+from wayfarer.engine.rules.tables.ranged import multiple_projectile_attack
+from wayfarer.engine.simulation.equipment.catalog import (
     LITE_SOURCE,
     Armor,
     Damage,

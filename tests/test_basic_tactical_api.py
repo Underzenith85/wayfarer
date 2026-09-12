@@ -10,7 +10,7 @@ from test_basic_combat import provenance, start_basic
 from test_encounter_context import setup
 from test_reinforcements import board, reinforcement_facts, setup_profiled_basic
 
-from wayfarer.engine.simulation.combat import VisibilitySpatialFact
+from wayfarer.engine.simulation.combat.combat import VisibilitySpatialFact
 from wayfarer.engine.simulation.hex_geometry import Hex, Pose
 from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess

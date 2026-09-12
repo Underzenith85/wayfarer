@@ -3,8 +3,7 @@
 import pytest
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.magic_protocols import (
+from wayfarer.engine.rules.magic.protocols import (
     AreaSelection,
     CeremonialContribution,
     CeremonialPlan,
@@ -20,15 +19,16 @@ from wayfarer.engine.rules.magic_protocols import (
     square_area,
     validate_tradition,
 )
-from wayfarer.engine.rules.recovery_types import FatigueStatus
-from wayfarer.engine.simulation.resources import Pool, ResourceState
-from wayfarer.engine.simulation.spells import (
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SpellCommand,
     SpellContext,
     apply_spell,
     latest,
 )
+from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ValidationError
 
 

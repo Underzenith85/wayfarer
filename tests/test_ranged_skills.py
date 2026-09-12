@@ -19,16 +19,16 @@ from test_statistics import BASIC, gurps_draft, profile_compiler
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.character.skills import SkillCompiler
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.mundane_skills import inventory
-from wayfarer.engine.rules.mundane_skills.ranged import (
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.ranged import (
     CONDITIONAL_DEFAULTS,
     PROCEDURES,
     definitions,
     require_capability,
     require_mode,
 )
-from wayfarer.engine.simulation.combat import RangedSituation
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 
@@ -324,7 +324,7 @@ def test_family_and_out_of_class_weapons_are_refused_before_dice() -> None:
 
 def test_authored_catalogs_fail_closed_before_a_campaign_exists() -> None:
     """The validator gate is the catalog itself, not a later manual ruling."""
-    from wayfarer.engine.simulation.gurps_equipment import (
+    from wayfarer.engine.simulation.equipment.catalog import (
         EquipmentCatalog,
         EquipmentProfile,
         Provenance,

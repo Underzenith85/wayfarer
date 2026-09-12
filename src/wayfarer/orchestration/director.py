@@ -13,7 +13,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.director import DirectorTurn
+from wayfarer.engine.simulation.campaign.director import DirectorTurn
 from wayfarer.errors import AuthorizationError, ConflictError, ProviderError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command

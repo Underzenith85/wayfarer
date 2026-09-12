@@ -11,13 +11,12 @@ from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.character.compiler import pool_limits
-from wayfarer.engine.character.physical_traits import physical_traits
 from wayfarer.engine.character.power import Approval
+from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.checks import RandomSource
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.recovery_types import FatigueStatus
-from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import (
     ACTION_ADAPTER,
@@ -27,11 +26,12 @@ from wayfarer.engine.simulation.actions import (
     PlayState,
     TypedAction,
 )
-from wayfarer.engine.simulation.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
-from wayfarer.engine.simulation.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.engine.world import World
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt, Record
@@ -93,7 +93,7 @@ class PlayService:
 
     def bind(self, campaign: Campaign, *, migration_target: bool = False) -> PlayService:
         """Bind a saved scenario without sharing mutable per-campaign runtime state."""
-        from wayfarer.engine.simulation.social_policy import parse_graph
+        from wayfarer.engine.simulation.campaign.social_policy import parse_graph
         from wayfarer.orchestration.sessions import REGISTRY
 
         encoded = campaign.get("scenario_graph_json")
@@ -101,7 +101,7 @@ class PlayService:
             override = campaign.get("combat_rules_json")
             if override is None:
                 return self
-            from wayfarer.engine.simulation.combat import CombatRules
+            from wayfarer.engine.simulation.combat.combat import CombatRules
 
             original = self.engine.rules.combat
             if original is None:
@@ -129,7 +129,7 @@ class PlayService:
             self.engine.resources.for_world(graph.world),
             graph.runtime_rules(),
         )
-        from wayfarer.engine.simulation.scenario_references import verify
+        from wayfarer.engine.simulation.campaign.scenario_references import verify
 
         if not migration_target and campaign.get("rules_ref") != reference(
             self.engine.resources.rules
@@ -163,7 +163,7 @@ class PlayService:
             raise ValidationError("Campaign rules do not match the play engine")
         if "resources_json" in campaign or "play_json" in campaign:
             raise ValidationError("Campaign already has an engine checkpoint")
-        from wayfarer.engine.rules.physical_traits import NO_PHYSICAL_TRAITS
+        from wayfarer.engine.rules.traits.physical import NO_PHYSICAL_TRAITS
 
         if any(
             p.injury is not None
@@ -306,7 +306,7 @@ class PlayService:
             fired_scene_triggers=fired_scene_triggers,
         ).model_copy(update={"scene_events": scene_events})
         if self.engine.rules.party is not None:
-            from wayfarer.engine.simulation.party import migrate
+            from wayfarer.engine.simulation.campaign.party import migrate
 
             state = migrate(state)
         from wayfarer.orchestration.npcs import initialize
@@ -330,7 +330,7 @@ class PlayService:
         return state
 
     def _load(self, campaign: Campaign) -> PlayState:
-        from wayfarer.engine.simulation.scenario_references import verify
+        from wayfarer.engine.simulation.campaign.scenario_references import verify
 
         if campaign.get("rules_ref") != reference(self.engine.resources.rules):
             raise ValidationError("Campaign rules do not match the play engine")
@@ -342,10 +342,10 @@ class PlayService:
         if state.campaign_id != campaign["id"] or state.revision != campaign["revision"]:
             raise ValidationError("Campaign and play checkpoint disagree")
         if self.engine.rules.party is not None:
-            from wayfarer.engine.simulation.party import migrate
+            from wayfarer.engine.simulation.campaign.party import migrate
 
             state = migrate(state)
-        from wayfarer.engine.simulation.encounter_context import migrate_unique
+        from wayfarer.engine.simulation.campaign.encounter_context import migrate_unique
 
         state = migrate_unique(state, self.engine.rules.scenes, self.engine.rules.combat)
         self.engine.validate(state)
@@ -363,11 +363,11 @@ class PlayService:
     def checkpoint(
         self, state: PlayState, *, before: PlayState | None = None, run_npcs: bool = True
     ) -> PlayState:
-        from wayfarer.engine.simulation.mechanics.spell_backfires import perceive, recover_stuns
-        from wayfarer.engine.simulation.mechanics.spell_effects import (
+        from wayfarer.engine.simulation.magic.area_fire import (
             checkpoint as spell_checkpoint,
         )
-        from wayfarer.engine.simulation.spell_backfires import refund_due
+        from wayfarer.engine.simulation.magic.backfire_transitions import perceive, recover_stuns
+        from wayfarer.engine.simulation.magic.backfires import refund_due
         from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
         from wayfarer.orchestration.objectives import checkpoint
 
@@ -375,8 +375,8 @@ class PlayService:
         for actor in state.actors:
             resources = refund_due(resources, actor.actor_id)
         state = state.model_copy(update={"resources": resources})
-        from wayfarer.engine.simulation.mechanics.held_missiles import checkpoint as held_checkpoint
-        from wayfarer.engine.simulation.mechanics.held_missiles import concentration_checkpoint
+        from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
+        from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
 
         if before is not None:
             state = concentration_checkpoint(self.rules_context, state, before)
@@ -440,7 +440,7 @@ class PlayService:
             return feasible
 
         def resolve(campaign: Campaign) -> CommandReceipt:
-            from wayfarer.engine.simulation.party import synchronous
+            from wayfarer.engine.simulation.campaign.party import synchronous
 
             if authorize is not None:
                 authorize(campaign)

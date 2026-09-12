@@ -12,7 +12,7 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
     RulesPackage,
 )
-from wayfarer.engine.rules.spell_colleges import PROFILE
+from wayfarer.engine.rules.magic.colleges import PROFILE
 
 
 def approved_spell(definition: RulesPackage, spell_id: str) -> ValidatedBuild:

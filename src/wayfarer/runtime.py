@@ -10,11 +10,11 @@ from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, Powe
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, PROTOTYPE_PROFILE, RegisteredProfile
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
-from wayfarer.engine.simulation.objectives import Objective, ObjectiveRules, Predicate
-from wayfarer.engine.simulation.party import PartyRules
+from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
+from wayfarer.engine.simulation.campaign.party import PartyRules
+from wayfarer.engine.simulation.campaign.scenes import Scene, SceneExit, SceneRules
+from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
 from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
-from wayfarer.engine.simulation.scenes import Scene, SceneExit, SceneRules
-from wayfarer.engine.simulation.studio import GenerationBrief, ScenarioGraph
 from wayfarer.engine.world import Connection, Entity, EntityKind, World
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.profiles import ProfileRuntime

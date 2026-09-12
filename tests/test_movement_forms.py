@@ -6,25 +6,25 @@ import pytest
 from test_statistics import gurps_draft, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.engine.character.movement_forms import movement_forms
+from wayfarer.engine.character.traits.movement_forms import movement_forms
 from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.engine.rules.movement_forms import (
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.movement_forms import (
     BINDINGS,
     PROFILE,
     RUNTIME_HOOKS,
 )
-from wayfarer.engine.rules.movement_forms import (
+from wayfarer.engine.rules.traits.movement_forms import (
     package as movement_package,
 )
-from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.simulation.movement_forms import (
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.traits.movement_forms import (
     MovementFormCommand,
     active_forms,
     apply_movement_form,
     visible_forms,
 )
-from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
 

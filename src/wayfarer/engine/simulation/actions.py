@@ -25,21 +25,26 @@ from wayfarer import validation
 from wayfarer.engine.character.power import Approval, CharacterProposal
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.effects import DerivedValue
-from wayfarer.engine.rules.location_types import Hand, HumanBody
+from wayfarer.engine.rules.types.location import Hand, HumanBody
 from wayfarer.engine.simulation.ability_types import AbilityRules
-from wayfarer.engine.simulation.access import CampaignMember
-from wayfarer.engine.simulation.adjudication import Ruling, RulingPolicy
-from wayfarer.engine.simulation.advancement import AdvancementEntry, MigrationEntry
-from wayfarer.engine.simulation.combat import CombatResult, CombatRules, Encounter
-from wayfarer.engine.simulation.director import AuthorDraft, DirectorTurn
-from wayfarer.engine.simulation.noncombat import NoncombatEncounter, NoncombatRules
-from wayfarer.engine.simulation.npcs import NPCRules, NPCState
-from wayfarer.engine.simulation.objectives import ObjectiveRules, ObjectiveState
-from wayfarer.engine.simulation.party import PartyRules, PartyState
-from wayfarer.engine.simulation.recovery import RecoveryRules, RecoveryState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.adjudication import Ruling, RulingPolicy
+from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry, MigrationEntry
+from wayfarer.engine.simulation.campaign.director import AuthorDraft, DirectorTurn
+from wayfarer.engine.simulation.campaign.npcs import NPCRules, NPCState
+from wayfarer.engine.simulation.campaign.objectives import ObjectiveRules, ObjectiveState
+from wayfarer.engine.simulation.campaign.party import PartyRules, PartyState
+from wayfarer.engine.simulation.campaign.scenes import (
+    ActorScene,
+    JournalEntry,
+    SceneEvent,
+    SceneRules,
+)
+from wayfarer.engine.simulation.combat.combat import CombatResult, CombatRules, Encounter
+from wayfarer.engine.simulation.health.recovery import RecoveryRules, RecoveryState
+from wayfarer.engine.simulation.magic.bindings import SpellRules
 from wayfarer.engine.simulation.resources import ResourceState
-from wayfarer.engine.simulation.scenes import ActorScene, JournalEntry, SceneEvent, SceneRules
-from wayfarer.engine.simulation.spell_bindings import SpellRules
+from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter, NoncombatRules
 from wayfarer.engine.world import World
 from wayfarer.models import Record
 

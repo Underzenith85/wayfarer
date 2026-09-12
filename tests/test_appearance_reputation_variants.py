@@ -5,18 +5,18 @@ from test_mundane_trait_runtime import approved
 from test_social_dispatch import world
 
 from wayfarer.engine.character.compiler import Purchase
-from wayfarer.engine.character.social_traits import bind_standing
+from wayfarer.engine.character.traits.social import bind_standing
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.mundane_traits import PROFILE, inventory
-from wayfarer.engine.rules.mundane_traits.runtime import Audience
-from wayfarer.engine.rules.social_hooks import (
+from wayfarer.engine.rules.social.social_hooks import (
     Reputation,
     Standing,
     reputation_cost,
     standing_modifiers,
 )
+from wayfarer.engine.rules.traits.mundane import PROFILE, inventory
+from wayfarer.engine.rules.traits.mundane.runtime import Audience
 from wayfarer.engine.simulation.resources import ResourceState
-from wayfarer.engine.simulation.social import SocialCommand, SocialContext, apply_social
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, apply_social
 
 
 @pytest.mark.parametrize(

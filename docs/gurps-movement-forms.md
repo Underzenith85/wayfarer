@@ -3,7 +3,7 @@
 Wayfarer exposes the Basic Set movement/form family through the optional
 `package:gurps-basic-movement-forms@1.0.0` package. Campaigns must permit the
 Characters source, enable supernatural purchases, and supply every runtime
-hook published by `wayfarer.engine.rules.movement_forms.RUNTIME_HOOKS`.
+hook published by `wayfarer.engine.rules.traits.movement_forms.RUNTIME_HOOKS`.
 
 The package keeps construction and execution inseparable:
 

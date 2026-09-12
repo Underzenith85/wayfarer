@@ -8,9 +8,9 @@ from dataclasses import dataclass, replace
 from typing import cast
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.rules.recovery_types import ProfileId
+from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.medical import (
+from wayfarer.engine.simulation.health.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,

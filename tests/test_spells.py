@@ -6,11 +6,10 @@ Selected Characters third-printing baseline; mechanics verification pending.
 import pytest
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.recovery_types import FatigueStatus
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.abilities import interrupt_concentration
-from wayfarer.engine.simulation.resources import Pool, ResourceState
-from wayfarer.engine.simulation.spells import (
+from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SpellCommand,
     SpellContext,
@@ -21,6 +20,7 @@ from wayfarer.engine.simulation.spells import (
     cost_reduction,
     latest,
 )
+from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
 

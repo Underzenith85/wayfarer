@@ -22,18 +22,18 @@ from wayfarer.engine.character.compiler import (
     ValidatedBuild,
 )
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.engine.character.social_traits import reaction_modifiers
+from wayfarer.engine.character.traits.social import reaction_modifiers
 from wayfarer.engine.rules.catalog import ImplementationStatus, RuleDefinition, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.gurps_social import ReactionModifier
-from wayfarer.engine.rules.mundane_traits import PROFILE
-from wayfarer.engine.rules.mundane_traits.runtime import Audience, Check
-from wayfarer.engine.rules.traits import TraitOptions
-from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.rules.social.gurps_social import ReactionModifier
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mundane import PROFILE
+from wayfarer.engine.rules.traits.mundane.runtime import Audience, Check
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
-from wayfarer.engine.simulation.social import SocialCommand, SocialContext, apply_social
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, apply_social
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService

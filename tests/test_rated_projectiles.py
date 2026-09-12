@@ -14,13 +14,13 @@ from test_gurps_melee import setup, spend_fp
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.gurps_equipment import (
+from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
+from wayfarer.engine.simulation.equipment.catalog import (
     Damage,
     EquipmentCatalog,
     RangedMode,
     RatedStrength,
 )
-from wayfarer.engine.simulation.mechanics.critical_limbs import CriticalLimbResult
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService

@@ -6,8 +6,8 @@ import json
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
-from wayfarer.engine.simulation.advancement import AdvancementEntry
-from wayfarer.engine.simulation.objectives import ObjectiveState, evaluate
+from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry
+from wayfarer.engine.simulation.campaign.objectives import ObjectiveState, evaluate
 from wayfarer.engine.simulation.resources import Transfer
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt

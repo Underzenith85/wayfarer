@@ -3,7 +3,7 @@
 import json
 
 from wayfarer import validation
-from wayfarer.engine.simulation.spells import SpellCommand
+from wayfarer.engine.simulation.magic.spells import SpellCommand
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.party import PartyCommand, PartyService

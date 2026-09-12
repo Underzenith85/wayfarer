@@ -3,8 +3,8 @@
 from dataclasses import replace
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.setup import Setup
-from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.engine.simulation.campaign.setup import Setup
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService

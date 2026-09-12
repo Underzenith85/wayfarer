@@ -11,8 +11,8 @@ from test_rated_projectiles import rated
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.readiness_types import ProjectileReadiness
-from wayfarer.engine.rules.skill_types import ControllingAttribute, Difficulty, SkillSpec, Specialty
+from wayfarer.engine.rules.types.readiness import ProjectileReadiness
+from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec, Specialty
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
@@ -203,7 +203,7 @@ async def test_fast_draw_untrained_rejects_without_mutation(tmp_path: Path) -> N
 
 @pytest.mark.parametrize("st,turns", [(10, 4), (12, 8), (13, 20), (14, 20)])
 async def test_crossbow_cocking_protocol(tmp_path: Path, st: int, turns: int) -> None:
-    from wayfarer.engine.simulation.gurps_equipment import LITE_SOURCE, EquipmentProfile
+    from wayfarer.engine.simulation.equipment.catalog import LITE_SOURCE, EquipmentProfile
     from wayfarer.engine.simulation.resources import Item
 
     aid = EquipmentProfile(
@@ -258,8 +258,8 @@ async def test_crossbow_missing_aid_rejects_before_dice(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("quantity", [1, 10])
 async def test_fast_draw_respects_shared_reservations(tmp_path: Path, quantity: int) -> None:
-    from wayfarer.engine.rules.readiness_types import ProjectileProgress
-    from wayfarer.engine.simulation.mechanics.gurps_ranged import reload_weapon
+    from wayfarer.engine.rules.types.readiness import ProjectileProgress
+    from wayfarer.engine.simulation.combat.ranged import reload_weapon
     from wayfarer.engine.simulation.resources import AmmunitionLoad, Item
 
     mode = rated().model_copy(

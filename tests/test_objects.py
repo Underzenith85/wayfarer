@@ -10,8 +10,8 @@ from hypothesis import strategies as st
 from test_resources import campaign, engine, seed
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.object_types import ObjectCondition, ObjectProfile
-from wayfarer.engine.simulation.objects import (
+from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
+from wayfarer.engine.simulation.equipment.objects import (
     DamageObject,
     StressObject,
     apply_object,

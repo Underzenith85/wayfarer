@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from wayfarer.adventures.lantern import adventure, engine
-from wayfarer.engine.simulation.scenario_document import (
+from wayfarer.engine.simulation.campaign.scenario_document import (
     DraftRevision,
     PlayerScenarioExport,
     Provenance,

@@ -2,11 +2,11 @@
 
 import json
 
-from wayfarer.engine.simulation.mechanics.spell_backfires import (
+from wayfarer.engine.simulation.magic.backfire_transitions import (
     ResolveSpellBackfire as ResolveSpellBackfire,
 )
-from wayfarer.engine.simulation.mechanics.spell_backfires import resolve
-from wayfarer.engine.simulation.spell_backfires import Backfire, backfires
+from wayfarer.engine.simulation.magic.backfire_transitions import resolve
+from wayfarer.engine.simulation.magic.backfires import Backfire, backfires
 from wayfarer.errors import AuthorizationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess

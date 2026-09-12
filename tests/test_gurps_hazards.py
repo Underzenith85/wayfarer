@@ -9,8 +9,6 @@ import pytest
 from test_medical_service import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.hazard_types import HazardSchedule, HazardSpec, RecoveryRestriction
-from wayfarer.engine.rules.location_types import LastingInjury
 from wayfarer.engine.rules.physical import (
     climbing,
     falling_damage,
@@ -18,9 +16,11 @@ from wayfarer.engine.rules.physical import (
     jump_distance,
     lift_limit,
 )
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec, RecoveryRestriction
+from wayfarer.engine.rules.types.location import LastingInjury
 from wayfarer.engine.simulation.actions import Wait
-from wayfarer.engine.simulation.hazards import HazardCommand, apply_hazard
-from wayfarer.engine.simulation.medical import BeginRecovery, FinishRecovery
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
+from wayfarer.engine.simulation.health.medical import BeginRecovery, FinishRecovery
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.hazards import HazardContext, HazardService
@@ -466,7 +466,7 @@ async def test_exhausted_drowning_checks_will_each_second_without_extra_water_da
 def test_due_hazard_does_not_deadlock_mortality_or_lifesaving_care() -> None:
     from test_advanced_medical import patient
 
-    from wayfarer.engine.simulation.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.health.medical import CareContext, apply_recovery
 
     state = patient(mortal=True)
     spec = HazardSpec(id="fire", scene_id="dock", kind="fire", resistible=False, reference="B433")

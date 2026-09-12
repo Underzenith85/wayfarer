@@ -13,8 +13,8 @@ from test_spell_bindings import start_fight
 from test_wave12 import ready, service
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat import GridPoint
-from wayfarer.engine.simulation.setup import SetupCommand
+from wayfarer.engine.simulation.campaign.setup import SetupCommand
+from wayfarer.engine.simulation.combat.combat import GridPoint
 from wayfarer.orchestration.combat import CombatContext, TakeCombatTurn, reduce_combat
 from wayfarer.orchestration.physical import (
     PhysicalCommand,

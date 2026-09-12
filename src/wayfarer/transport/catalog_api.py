@@ -6,13 +6,13 @@ from collections.abc import AsyncIterator
 from aiohttp import web
 from pydantic import Field
 
-from wayfarer.engine.simulation.catalog import (
+from wayfarer.engine.simulation.campaign.scenario_catalog import (
     CatalogCommand,
     InstantiateRevision,
     ScenarioGenerationJob,
     ScenarioGenerationRequest,
 )
-from wayfarer.engine.simulation.scenario_document import PublicBrief
+from wayfarer.engine.simulation.campaign.scenario_document import PublicBrief
 from wayfarer.errors import (
     ConflictError,
     ProviderError,

@@ -23,11 +23,11 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.explosion_types import ExplosionSpec
-from wayfarer.engine.rules.location_types import HumanBody
-from wayfarer.engine.rules.object_types import ObjectCondition, ObjectProfile
-from wayfarer.engine.rules.recovery_types import RecoveryTask
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.explosion import ExplosionSpec
+from wayfarer.engine.rules.types.location import HumanBody
+from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
+from wayfarer.engine.rules.types.recovery import RecoveryTask
+from wayfarer.engine.rules.types.skill import (
     ControllingAttribute,
     Difficulty,
     SkillDefault,
@@ -35,7 +35,9 @@ from wayfarer.engine.rules.skill_types import (
 )
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
-from wayfarer.engine.simulation.combat import (
+from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
+from wayfarer.engine.simulation.combat.combat import (
     Battlefield,
     CombatRules,
     Defense,
@@ -43,8 +45,8 @@ from wayfarer.engine.simulation.combat import (
     Placement,
     RangedSituation,
 )
-from wayfarer.engine.simulation.fatigue import FatigueCost, apply_fatigue
-from wayfarer.engine.simulation.gurps_equipment import (
+from wayfarer.engine.simulation.combat.melee import defense_value, movement
+from wayfarer.engine.simulation.equipment.catalog import (
     LITE_EQUIPMENT,
     LITE_SOURCE,
     Damage,
@@ -55,8 +57,8 @@ from wayfarer.engine.simulation.gurps_equipment import (
     RangedMode,
     Shield,
 )
+from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
-from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value, movement
 from wayfarer.engine.simulation.resources import (
     Item,
     Owner,
@@ -64,8 +66,6 @@ from wayfarer.engine.simulation.resources import (
     ResourceState,
     Scheduled,
 )
-from wayfarer.engine.simulation.scenes import Scene, SceneRules
-from wayfarer.engine.simulation.studio import ScenarioGraph
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
@@ -396,8 +396,8 @@ async def setup(
             for e in equipment.entries
         )
     )
-    from wayfarer.engine.rules.abilities import definition
-    from wayfarer.engine.rules.traits import TraitOptions
+    from wayfarer.engine.rules.supernatural.abilities import definition
+    from wayfarer.engine.rules.traits.base import TraitOptions
     from wayfarer.engine.simulation.ability_types import AbilityRules, AbilitySpec
 
     ability = AbilitySpec(
@@ -406,10 +406,10 @@ async def setup(
     package = profile_package(
         profile, *extras, *((definition(ability),) if ability_defense else ())
     )
-    from wayfarer.engine.rules.physical_traits import PHYSICAL_HOOKS
+    from wayfarer.engine.rules.traits.physical import PHYSICAL_HOOKS
 
     if physical_purchases:
-        from wayfarer.engine.rules.mundane_traits import candidate_package
+        from wayfarer.engine.rules.traits.mundane import candidate_package
 
         physical = candidate_package()
         package = replace(
@@ -418,7 +418,7 @@ async def setup(
             definitions=package.definitions + physical.definitions,
         )
     if critical_breakage is not None:
-        from wayfarer.engine.rules.object_types import ObjectProfile
+        from wayfarer.engine.rules.types.object import ObjectProfile
 
         equipment = equipment.model_copy(
             update={

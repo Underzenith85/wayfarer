@@ -12,8 +12,8 @@ from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
-from wayfarer.engine.simulation.ranged_critical import RangedCritical
+from wayfarer.engine.simulation.combat.ranged_critical import RangedCritical
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

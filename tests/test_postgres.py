@@ -12,7 +12,7 @@ from pydantic import SecretStr
 
 from wayfarer.config import Settings
 from wayfarer.engine.character import builder
-from wayfarer.engine.simulation.scenario import scenario
+from wayfarer.engine.simulation.campaign.scenario import scenario
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.orchestration.service import GameService

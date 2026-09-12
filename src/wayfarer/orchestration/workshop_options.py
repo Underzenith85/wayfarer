@@ -6,8 +6,8 @@ from wayfarer.engine.character.compiler import CharacterCompiler
 from wayfarer.engine.character.power import CharacterProposal, PowerReviewer
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, RegisteredProfile
-from wayfarer.engine.rules.skill_types import SkillSpec
-from wayfarer.engine.rules.traits import TraitRules
+from wayfarer.engine.rules.traits.base import TraitRules
+from wayfarer.engine.rules.types.skill import SkillSpec
 from wayfarer.models import Record
 
 

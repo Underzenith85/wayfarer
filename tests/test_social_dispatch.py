@@ -10,23 +10,23 @@ from test_actions import campaign
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.gurps_social import ReactionModifier, influence_roll
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY
-from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.rules.social.gurps_social import ReactionModifier, influence_roll
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
-from wayfarer.engine.simulation.npcs import NPCSocialRules
-from wayfarer.engine.simulation.party import PartyRules
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
+from wayfarer.engine.simulation.campaign.party import PartyRules
+from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
+from wayfarer.engine.simulation.campaign.social_policy import SocialActionRules
 from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
-from wayfarer.engine.simulation.scenes import Scene, SceneRules
-from wayfarer.engine.simulation.social import (
+from wayfarer.engine.simulation.social.social import (
     SocialCommand,
     SocialContext,
     SocialDisclosure,
     apply_interaction,
     apply_social,
 )
-from wayfarer.engine.simulation.social_policy import SocialActionRules
 from wayfarer.engine.world import Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess

@@ -3,16 +3,16 @@
 import pytest
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.gurps_social import (
+from wayfarer.engine.rules.social.gurps_social import (
     ReactionModifier,
     fright_roll,
     influence_roll,
     reaction_outcome,
     self_control_roll,
 )
-from wayfarer.engine.rules.traits import TraitOptions, TraitRules
+from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
 from wayfarer.engine.simulation.resources import ResourceState
-from wayfarer.engine.simulation.social import SocialCommand, SocialContext, apply_social
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, apply_social
 from wayfarer.engine.world import Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
 

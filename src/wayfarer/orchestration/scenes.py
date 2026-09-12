@@ -11,9 +11,9 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
-from wayfarer.engine.simulation.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, Scene, SceneEvent
 from wayfarer.engine.simulation.resources import Advance
-from wayfarer.engine.simulation.scenes import ActorScene, JournalEntry, Scene, SceneEvent
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
@@ -73,7 +73,7 @@ class SceneService:
                 authorize(campaign)
             state = self.play._load(campaign)
             if isinstance(command, TravelScene):
-                from wayfarer.engine.simulation.party import synchronous
+                from wayfarer.engine.simulation.campaign.party import synchronous
 
                 synchronous(state, command.actor_id)
             updated = self.play.checkpoint(self.reduce(state, command), before=state)
@@ -125,9 +125,9 @@ class SceneService:
         destination = scene
         event_kind: Literal["entered", "exited", "discovered", "observed"] = "observed"
         if isinstance(command, TravelScene):
-            from wayfarer.engine.simulation.mechanics.location_combat import disabled
+            from wayfarer.engine.simulation.health.hit_locations import disabled
 
-            if disabled(state, command.actor_id) & {
+            if disabled(state.resources, command.actor_id) & {
                 "left-leg",
                 "right-leg",
                 "left-foot",
@@ -251,7 +251,7 @@ class SceneService:
         events[-1] = result
         updated = updated.model_copy(update={"scene_events": tuple(events)})
         if updated.party.groups:
-            from wayfarer.engine.simulation.party import group_for
+            from wayfarer.engine.simulation.campaign.party import group_for
 
             group = group_for(state, command.actor_id)
             if isinstance(command, TravelScene) and len(group.actor_ids) != 1 and not group_travel:

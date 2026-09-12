@@ -4,14 +4,14 @@ import pytest
 from spell_college_support import approved_spell
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.spell_enchantment import BINDINGS, package
+from wayfarer.engine.rules.magic.enchantment import BINDINGS, package
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.simulation.resources import Item, ResourceState
-from wayfarer.engine.simulation.spell_colleges import (
+from wayfarer.engine.simulation.magic.colleges import (
     CollegeSpellCommand,
     apply_college_spell,
     visible_history,
 )
+from wayfarer.engine.simulation.resources import Item, ResourceState
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 

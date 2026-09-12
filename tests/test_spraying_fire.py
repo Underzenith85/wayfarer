@@ -7,9 +7,14 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat import GridPoint, Placement, RangedSituation, SprayTarget
-from wayfarer.engine.simulation.combat_commands import ChooseDefense, TakeCombatTurn
-from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.simulation.combat.combat import (
+    GridPoint,
+    Placement,
+    RangedSituation,
+    SprayTarget,
+)
+from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeCombatTurn
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService

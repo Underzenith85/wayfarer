@@ -13,14 +13,14 @@ from test_reinforcements import (
 )
 
 from wayfarer.engine.simulation.actions import PlayState, Wait
-from wayfarer.engine.simulation.combat import (
+from wayfarer.engine.simulation.combat.combat import (
     BasicSpatialContext,
     BasicSpatialFact,
     VisibilitySpatialFact,
 )
-from wayfarer.engine.simulation.combat_commands import BasicMove
+from wayfarer.engine.simulation.combat.commands import BasicMove
+from wayfarer.engine.simulation.combat.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.engine.simulation.hex_geometry import Hex
-from wayfarer.engine.simulation.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (

@@ -10,8 +10,8 @@ import pytest
 from test_unarmed import action, defend, setup, state_of, wait
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat import CombatResult
-from wayfarer.engine.simulation.maneuvers import WaitTrigger
+from wayfarer.engine.simulation.combat.combat import CombatResult
+from wayfarer.engine.simulation.combat.maneuvers import WaitTrigger
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import (
     CombatService,

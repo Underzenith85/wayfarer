@@ -14,8 +14,8 @@ from graphlib import CycleError, TopologicalSorter
 from types import MappingProxyType
 from typing import Final, Literal
 
-from wayfarer.engine.rules.skill_types import SkillSpec
-from wayfarer.engine.rules.traits import TraitRules, validate_metadata
+from wayfarer.engine.rules.traits.base import TraitRules, validate_metadata
+from wayfarer.engine.rules.types.skill import SkillSpec
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
 

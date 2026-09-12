@@ -12,11 +12,11 @@ from test_statistics import gurps_draft, profile_compiler, profile_package
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
 from wayfarer.engine.rules.catalog import RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.rules.recovery_types import FatigueStatus, ProfileId
-from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus, ProfileId
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.access import CampaignAccess

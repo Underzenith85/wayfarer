@@ -32,7 +32,6 @@ from wayfarer.engine.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.engine.rules.gurps_skills import definitions
 from wayfarer.engine.rules.profiles import (
     DEFAULT_REGISTRY,
     GURPS_BASIC_PROFILE,
@@ -41,10 +40,11 @@ from wayfarer.engine.rules.profiles import (
     GURPS_LITE_PROFILE_V2,
     RegisteredProfile,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.skills.gurps_skills import definitions
+from wayfarer.engine.rules.types.skill import (
     ControllingAttribute as A,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     DefaultCondition,
     DefaultConditionKind,
     SkillDefault,
@@ -53,7 +53,7 @@ from wayfarer.engine.rules.skill_types import (
     Specialty,
     Technique,
 )
-from wayfarer.engine.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     Difficulty as D,
 )
 from wayfarer.engine.simulation.events import action_result

@@ -3,11 +3,11 @@
 import hashlib
 from dataclasses import dataclass
 
-from wayfarer.engine.rules.abilities import PROFILE, fatigue_cost, validate_binding
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import Contestant, resistance_roll, success_roll
-from wayfarer.engine.rules.ranged_tables import range_penalty
-from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.rules.supernatural.abilities import PROFILE, fatigue_cost, validate_binding
+from wayfarer.engine.rules.tables.ranged import range_penalty
+from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.simulation.ability_types import (
     AbilityChannel,
     AbilityCommand,
@@ -17,8 +17,8 @@ from wayfarer.engine.simulation.ability_types import (
     AbilityOutcomeKind,
     AbilitySpec,
 )
-from wayfarer.engine.simulation.condition_checks import check_modifiers, retching_penalty
-from wayfarer.engine.simulation.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
@@ -85,7 +85,7 @@ def interrupt_concentration(
     resources: ResourceState, actor_id: str, command_id: str, *, distraction: bool = False
 ) -> ResourceState:
     """Other maneuvers abandon concentration; an active defense needs Will-3."""
-    from wayfarer.engine.simulation.spells import interrupt_spells
+    from wayfarer.engine.simulation.magic.spells import interrupt_spells
 
     resources = interrupt_spells(resources, actor_id, command_id, distraction=distraction)
     additions = []
@@ -184,7 +184,7 @@ def apply_ability(
     if resources.revision != command.expected_revision:
         raise ConflictError("Ability revision changed")
     if command.kind in ("activate", "analyze"):
-        from wayfarer.engine.simulation.concentration import require_idle_concentration
+        from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 
         require_idle_concentration(resources, command.actor_id)
     validate_binding(spec, context.level, context.options)
@@ -247,7 +247,7 @@ def apply_ability(
         return record(resources, command, event), world, result
     fp = next((p for p in resources.pools if p.id == f"fp:{command.actor_id}"), None)
     if command.kind != "cancel" and fp is not None and fp.fatigue is not None:
-        from wayfarer.engine.simulation.fatigue import ContinueExertion, apply_fatigue
+        from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue
 
         if fp.fatigue.collapsed or fp.fatigue.unconscious or fp.fatigue.heart_attack:
             result = AbilityOutcome(outcome="unavailable")
@@ -327,7 +327,7 @@ def apply_ability(
         fp = next((p for p in resources.pools if p.id == f"fp:{command.actor_id}"), None)
         if fp is None or fp.current < cost:
             raise ValidationError("Insufficient fatigue for ability")
-        from wayfarer.engine.simulation.fatigue import FatigueCost, apply_fatigue
+        from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 
         resources, _ = apply_fatigue(
             resources,

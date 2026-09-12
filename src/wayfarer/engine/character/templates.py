@@ -18,8 +18,8 @@ from wayfarer.engine.character.compiler import (
     Compilation,
     Purchase,
 )
-from wayfarer.engine.rules.mundane_traits import PROFILE
-from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mundane import PROFILE
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 

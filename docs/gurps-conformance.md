@@ -266,7 +266,7 @@ remaining advanced ranged and unarmed gaps are tracked by #173 and #176, while
 
 ## Typed equipment profiles (#101)
 
-`wayfarer.engine.simulation.gurps_equipment` defines strict, immutable, JSON-round-trippable
+`wayfarer.engine.simulation.equipment.catalog` defines strict, immutable, JSON-round-trippable
 weapon modes (melee/ranged discriminated union), thrust/swing/fixed d6 damage,
 skill references, minimum ST, hands, reach, parry properties, shields/block,
 armor locations/DR, price, TL and exact mass. Ranged modes carry Acc, ST-scaled
@@ -954,7 +954,7 @@ or whole profile is promoted to certified by these changes.
 
 ### Ground transport foundation (#120; not acceptance-complete)
 
-`engine/simulation/transport.py` adds opt-in persisted transport manifests to the existing
+`engine/simulation/movement/transport.py` adds opt-in persisted transport manifests to the existing
 resource checkpoint. Internal `ResourceService.execute_transport` uses the same
 commit-turn authority, receipt, CAS and retry boundary as object damage. Old
 checkpoints omit the empty field and do not acquire transports automatically.
@@ -985,7 +985,7 @@ blockers for #122. Nothing here certifies full vehicle or Basic Set coverage.
 
 ### Vehicle coverage audit (#358)
 
-`engine/rules/vehicle_coverage.py` audits the declared locomotion modes one at a time:
+`engine/rules/types/vehicle_coverage.py` audits the declared locomotion modes one at a time:
 what the adapter carries, which of control loss, collision, occupant injury and
 restart it resolves, and every residual with the live issue that owns it. #120
 closed after landing a ground slice and #207 closed after expanding the modes,

@@ -20,24 +20,24 @@ from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.engine.rules.conformance import CAPABILITIES, PROFILES
-from wayfarer.engine.rules.entangle_types import EntangleSpec
-from wayfarer.engine.rules.explosion_types import ExplosionSpec
-from wayfarer.engine.rules.firearm_types import FirearmSpec
 from wayfarer.engine.rules.gurps_equipment_manifest import (
     EQUIPMENT_SKILL_IDS,
     SUPPORTED_EQUIPMENT_IDS,
 )
-from wayfarer.engine.rules.launcher_types import LauncherSpec
-from wayfarer.engine.rules.mount_types import MountSpec
 from wayfarer.engine.rules.profiles import (
     GURPS_CAMPAIGNS_PACKAGE,
     GURPS_CHARACTERS_PACKAGE,
     GURPS_LITE_PACKAGE,
 )
-from wayfarer.engine.rules.readiness_types import ProjectileReadiness
-from wayfarer.engine.rules.spray_types import SprayerSpec
-from wayfarer.engine.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
-from wayfarer.engine.simulation.gurps_equipment import (
+from wayfarer.engine.rules.types.entangle import EntangleSpec
+from wayfarer.engine.rules.types.explosion import ExplosionSpec
+from wayfarer.engine.rules.types.firearm import FirearmSpec
+from wayfarer.engine.rules.types.launcher import LauncherSpec
+from wayfarer.engine.rules.types.mount import MountSpec
+from wayfarer.engine.rules.types.readiness import ProjectileReadiness
+from wayfarer.engine.rules.types.spray import SprayerSpec
+from wayfarer.engine.simulation.equipment.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
+from wayfarer.engine.simulation.equipment.catalog import (
     LITE_EQUIPMENT,
     Armor,
     Damage,

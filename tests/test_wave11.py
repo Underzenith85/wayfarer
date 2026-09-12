@@ -10,9 +10,9 @@ from test_scenes import configured
 from test_wave9 import FakeProvider, prepare
 
 from wayfarer.engine.character.power import CharacterProposal
-from wayfarer.engine.simulation.objectives import Objective, ObjectiveRules, Predicate
-from wayfarer.engine.simulation.scenes import Discovery
-from wayfarer.engine.simulation.studio import GenerationBrief, ScenarioGraph
+from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
+from wayfarer.engine.simulation.campaign.scenes import Discovery
+from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.director import DirectorService
@@ -199,7 +199,7 @@ async def test_scenario_validates_and_activates_idempotently(tmp_path: Path) -> 
     graph = graph_fixture()
     report = studio.validate(graph)
     assert report.valid, report
-    from wayfarer.engine.simulation.access import CampaignMember
+    from wayfarer.engine.simulation.campaign.access import CampaignMember
 
     initial = campaign(studio.engine(graph))
     members = (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),)
@@ -294,8 +294,8 @@ async def test_http_drafts_and_dashboard_are_private(tmp_path: Path) -> None:
 
 
 async def test_director_multiscene_noncombat_and_terminal_settlement(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
-    from wayfarer.engine.simulation.objectives import Reward
+    from wayfarer.engine.simulation.campaign.objectives import Reward
+    from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules
 
     goals = ObjectiveRules(
         id="goals",
@@ -354,7 +354,7 @@ async def test_director_combat_defense_survives_restart(tmp_path: Path) -> None:
     from test_actions import Dice, world
     from test_combat import combat_engine, resources, start
 
-    from wayfarer.engine.simulation.combat import GridPoint, Placement
+    from wayfarer.engine.simulation.combat.combat import GridPoint, Placement
     from wayfarer.orchestration.combat import CombatService
 
     engine = combat_engine()
@@ -449,7 +449,7 @@ async def test_explicit_question_cannot_be_interpreted_as_mutation(tmp_path: Pat
 
 @pytest.mark.parametrize("defect", ["missing-clue", "incompatible-party", "contradictory-ending"])
 def test_scenario_hard_playability_errors(tmp_path: Path, defect: str) -> None:
-    from wayfarer.engine.simulation.studio import ApproachSupport
+    from wayfarer.engine.simulation.campaign.studio import ApproachSupport
 
     engine, _ = configured()
     studio = ScenarioStudio(PlayService(AsyncSQLiteStore(tmp_path / "validate.sqlite", 10), engine))

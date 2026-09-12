@@ -16,17 +16,17 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.magic_craft_skills import BINDINGS, PROFILE, package
-from wayfarer.engine.rules.skill_types import ControllingAttribute as A
-from wayfarer.engine.rules.skill_types import Difficulty as D
-from wayfarer.engine.rules.skill_types import SkillSpec
+from wayfarer.engine.rules.skills.magic_craft import BINDINGS, PROFILE, package
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.simulation.magic_craft_skills import (
+from wayfarer.engine.rules.types.skill import ControllingAttribute as A
+from wayfarer.engine.rules.types.skill import Difficulty as D
+from wayfarer.engine.rules.types.skill import SkillSpec
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.skills.magic_craft import (
     MagicCraftCommand,
     apply_magic_craft,
     visible_history,
 )
-from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 

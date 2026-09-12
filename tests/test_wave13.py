@@ -10,9 +10,9 @@ from test_wave11 import graph_fixture
 from test_wave12 import ready, service
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.objectives import Objective, Predicate, Reward
-from wayfarer.engine.simulation.setup import SetupCommand
-from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.engine.simulation.campaign.objectives import Objective, Predicate, Reward
+from wayfarer.engine.simulation.campaign.setup import SetupCommand
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.world import Commitment, CommitmentKind, Fact
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
@@ -59,8 +59,8 @@ async def finish(setup: SetupService, outcome: str = "success") -> str:
         graph = graph.model_copy(update={"objectives": rules})
         campaign["scenario_graph_json"] = graph.model_dump_json()
         # This fixture authors a different rules graph; pin that graph explicitly.
-        from wayfarer.engine.simulation.scenario_document import digest_json
-        from wayfarer.engine.simulation.scenario_references import boundary
+        from wayfarer.engine.simulation.campaign.scenario_document import digest_json
+        from wayfarer.engine.simulation.campaign.scenario_references import boundary
         from wayfarer.orchestration.studio import ScenarioStudio
 
         pin = boundary(campaign)

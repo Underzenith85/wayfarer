@@ -10,7 +10,7 @@ import pytest
 from test_unarmed import action, setup, state_of
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat import Defense
+from wayfarer.engine.simulation.combat.combat import Defense
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService

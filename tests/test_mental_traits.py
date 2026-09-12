@@ -6,16 +6,16 @@ from test_mundane_traits import runtime_compiler
 from test_statistics import gurps_draft
 
 from wayfarer.engine.character.compiler import Purchase
-from wayfarer.engine.character.mental_traits import mental_traits
+from wayfarer.engine.character.traits.mental import mental_traits
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.mental_traits import (
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mental import (
     MentalTraits,
     Relationship,
     failed_self_control_obligation,
     frequency_roll,
     validate_relationships,
 )
-from wayfarer.engine.rules.traits import TraitOptions
 from wayfarer.errors import ValidationError
 
 

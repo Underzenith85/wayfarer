@@ -13,14 +13,13 @@ import pytest
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.gurps_social import (
+from wayfarer.engine.rules.social.gurps_social import (
     InfluenceSkill,
     fright_roll,
     influence_roll,
     reaction_roll,
 )
-from wayfarer.engine.rules.mundane_traits.runtime import REACTION_BINDINGS, Audience
-from wayfarer.engine.rules.social_hooks import (
+from wayfarer.engine.rules.social.social_hooks import (
     APPEARANCE_REACTIONS,
     Appearance,
     Recognition,
@@ -31,10 +30,11 @@ from wayfarer.engine.rules.social_hooks import (
     supported_appearance,
     validate_standing,
 )
-from wayfarer.engine.rules.traits import TraitOptions, TraitRules
-from wayfarer.engine.simulation.npcs import NPCSocialStanding, NPCSocialTrigger
+from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
+from wayfarer.engine.rules.traits.mundane.runtime import REACTION_BINDINGS, Audience
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialStanding, NPCSocialTrigger
 from wayfarer.engine.simulation.resources import ResourceState
-from wayfarer.engine.simulation.social import SocialCommand, SocialContext, apply_social
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, apply_social
 from wayfarer.engine.world import Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
 

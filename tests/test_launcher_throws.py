@@ -16,11 +16,11 @@ from test_gurps_melee import setup
 
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.launcher_types import LauncherSpec
-from wayfarer.engine.rules.mundane_skills import inventory
-from wayfarer.engine.rules.mundane_skills.ranged import definitions, require_mode
-from wayfarer.engine.simulation.combat import RangedSituation
-from wayfarer.engine.simulation.gurps_equipment import (
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.ranged import definitions, require_mode
+from wayfarer.engine.rules.types.launcher import LauncherSpec
+from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import (
     LITE_SOURCE,
     Damage,
     EquipmentProfile,

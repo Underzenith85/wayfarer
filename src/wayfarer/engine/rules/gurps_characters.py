@@ -23,7 +23,7 @@ from wayfarer.engine.rules.catalog import (
     SourceReference,
 )
 from wayfarer.engine.rules.conformance import profile
-from wayfarer.engine.rules.traits import TraitRules
+from wayfarer.engine.rules.traits.base import TraitRules
 from wayfarer.errors import ValidationError
 
 CAPABILITY_IDS: Final = (

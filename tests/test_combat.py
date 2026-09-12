@@ -10,7 +10,7 @@ from test_actions import actor_setup, campaign, engine, world
 
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import PlayState, Wait
-from wayfarer.engine.simulation.combat import (
+from wayfarer.engine.simulation.combat.combat import (
     Battlefield,
     CombatRules,
     Encounter,

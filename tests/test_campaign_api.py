@@ -9,8 +9,8 @@ import pytest_asyncio
 from aiohttp import web
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 
-from wayfarer.engine.simulation.access import CampaignMember
 from wayfarer.engine.simulation.actions import Wait
+from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

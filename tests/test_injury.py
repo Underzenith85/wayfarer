@@ -8,9 +8,14 @@ import pytest
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.injury_types import InjuryStatus
-from wayfarer.engine.simulation.gurps_equipment import DamageType
-from wayfarer.engine.simulation.injury import InjuryTurn, Wound, apply_injury, impaired_movement
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.simulation.equipment.catalog import DamageType
+from wayfarer.engine.simulation.health.injury import (
+    InjuryTurn,
+    Wound,
+    apply_injury,
+    impaired_movement,
+)
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
