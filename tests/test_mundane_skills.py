@@ -38,7 +38,8 @@ def test_inventory_and_references() -> None:
         "skill:arm-lock-judo",
     } <= ids
     assert len(entries) > 180
-    assert audit_report()["available"] == 54
+    # Thirty-six ranged rows become source-complete in the selected baseline.
+    assert audit_report()["available"] == 90
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -297,7 +298,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     }
     assert entries["skill:guns"].owners == (344,)
     assert entries["skill:artillery"].owners == (344,)
-    assert entries["skill:spear-thrower"].owners == (344, 362)
+    assert entries["skill:spear-thrower"].owners == (344,)
     assert coverage_blockers(PROFILE) == (
         103,
         109,
@@ -380,10 +381,9 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         "skill:performance",
         "skill:public-speaking",
         "skill:teaching",
-        # #362 publishes every ranged row whose recorded default is incomplete.
-        "skill:thrown-weapon-knife",
+        # #362 now publishes only rows whose default target is unavailable.
+        "skill:thrown-weapon-dart",
         "skill:net",
-        "skill:spear-thrower",
     } <= published
     assert all(row["owner_issue"] in (362, 368, 369, 370, 398) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]

@@ -177,7 +177,7 @@ def test_recorded_mechanics_compile_to_source_levels(
     assert spec.attribute.value == (
         "attribute:iq" if identifier == "skill:artillery" else "attribute:dx"
     )
-    assert [(d.target, d.modifier) for d in spec.defaults] == [("attribute:dx", default)]
+    assert (spec.defaults[0].target, spec.defaults[0].modifier) == ("attribute:dx", default)
     skills = profile_compiler(BASIC, *definitions(), statistics_profile=BASIC).skills
     assert isinstance(skills, SkillCompiler)
     values = {str(k): Decimal(10) for k in skills.specs}

@@ -103,8 +103,8 @@ def test_both_families_expand_into_their_indexed_specialties() -> None:
         assert procedure.blockers == () and entries[family].owners == (344,)
     dispatched = {d.id for d in definitions()}
     assert set(ARTILLERY) | set(GUNNER) <= dispatched
-    # B178 Artillery is IQ-based; B198 Gunner is DX-based. Neither is inferred
-    # from the other, and each specialty keeps its family's recorded default.
+    # B178 Artillery is IQ-based and has no cross-specialty defaults. B198
+    # Gunner is DX-based and its specialties default to one another at -4.
     for identifier, attribute, default in (
         *((row, "attribute:iq", -5) for row in ARTILLERY),
         *((row, "attribute:dx", -4) for row in GUNNER),
@@ -113,9 +113,10 @@ def test_both_families_expand_into_their_indexed_specialties() -> None:
         assert entry.bound and entry.dispatch == "combat.ranged-attack"
         assert entry.definition is not None and entry.definition.skill is not None
         assert entry.definition.skill.attribute.value == attribute
-        assert [(d.target, d.modifier) for d in entry.definition.skill.defaults] == [
-            (attribute, default)
-        ]
+        defaults = entry.definition.skill.defaults
+        assert (defaults[0].target, defaults[0].modifier) == (attribute, default)
+        assert len(defaults) == (1 if identifier in ARTILLERY else 5)
+        assert "conditional-or-skill-defaults" not in entry.blockers
 
 
 @pytest.mark.parametrize("identifier", [*ARTILLERY, *GUNNER])

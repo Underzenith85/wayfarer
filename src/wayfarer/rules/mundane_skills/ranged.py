@@ -31,8 +31,16 @@ from wayfarer.rules.gurps_characters import source
 # The same shape #345 publishes, so one report field carries both groups.
 from wayfarer.rules.mundane_skills.social import UnsupportedScope
 from wayfarer.rules.skill_types import ControllingAttribute as A
-from wayfarer.rules.skill_types import Difficulty as D
-from wayfarer.rules.skill_types import SkillDefault, SkillSpec, Specialty
+from wayfarer.rules.skill_types import (
+    DefaultCondition,
+    DefaultConditionKind,
+    Difficulty,
+    SkillDefault,
+    SkillSpec,
+    Specialty,
+)
+
+D = Difficulty
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
 OWNER: Final = 344
@@ -43,6 +51,54 @@ SPECIALTY_EXPANSION: Final = "specialty-expansion"
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
 TECHNOLOGY_LEVEL: Final = "technology-level-context"
 Hands = Literal[1, 2]
+MATCHING_TL: Final = (DefaultCondition(DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL),)
+BEAM_SPECIALTIES: Final = ("pistol", "rifle", "projector")
+GUNNER_SPECIALTIES: Final = ("beams", "cannon", "machine-gun", "rockets", "torpedoes")
+GUNS_SPECIALTIES: Final = (
+    "pistol",
+    "rifle",
+    "shotgun",
+    "submachine-gun",
+    "light-machine-gun",
+    "musket",
+    "grenade-launcher",
+    "light-anti-armor-weapon",
+)
+LIQUID_SPECIALTIES: Final = ("flamethrower", "sprayer", "squirt-gun", "water-cannon")
+INNATE_SPECIALTIES: Final = ("beam", "breath", "gaze", "projectile")
+
+
+def skill_default(identifier: str, modifier: int, *, same_tl: bool = False) -> SkillDefault:
+    return SkillDefault(f"skill:{identifier}", modifier, MATCHING_TL if same_tl else ())
+
+
+def specialty_defaults(
+    family: str,
+    specialty: str,
+    members: tuple[str, ...],
+    modifier: int,
+    *,
+    same_tl: bool = False,
+) -> tuple[SkillDefault, ...]:
+    return tuple(
+        skill_default(f"{family}-{other}", modifier, same_tl=same_tl)
+        for other in members
+        if other != specialty
+    )
+
+
+def guns_defaults(specialty: str) -> tuple[SkillDefault, ...]:
+    """B199: GL and LAW cross-default at -4; the other recorded types at -2."""
+    exceptional = {"grenade-launcher", "light-anti-armor-weapon"}
+    return tuple(
+        skill_default(
+            f"guns-{other}",
+            -4 if specialty in exceptional or other in exceptional else -2,
+            same_tl=True,
+        )
+        for other in GUNS_SPECIALTIES
+        if other != specialty
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -252,20 +308,27 @@ class RangedProcedure:
 
 
 def _thrown(name: str, title: str) -> RangedProcedure:
-    """One concrete Thrown Weapon specialty (B226); specialties never infer each other."""
+    """One concrete B226 specialty with only its explicitly listed defaults."""
+    recorded = {
+        "harpoon": (skill_default("thrown-weapon-spear", -2),),
+        "spear": (
+            skill_default("spear-thrower", -4),
+            skill_default("thrown-weapon-harpoon", -2),
+        ),
+    }
     return RangedProcedure(
         f"skill:thrown-weapon-{name}",
         f"Thrown Weapon ({title})",
         226,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),) + recorded.get(name, ()),
         THROWN,
         Specialty("thrown-weapon", name),
         resolved=(RUNTIME_PROCEDURE,),
-        # B226 also records a default from the matching melee weapon skill. That
-        # value is not in the frozen inventory and is not reconstructed here.
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
+        # Throwing is not yet a dispatched skill, so the Dart and Shuriken
+        # edges remain #362 blockers until #343 makes their target available.
+        transferred={CONDITIONAL_DEFAULTS: (362,)} if name in ("dart", "shuriken") else {},
     )
 
 
@@ -331,7 +394,6 @@ _ROWS: Final = (
         (SkillDefault(A.DX, -4),),
         specialties=tuple(entry.id for entry in THROWN_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     *THROWN_SPECIALTIES,
     # Transferred rows. Each keeps its recorded blockers and names its owner.
@@ -362,10 +424,10 @@ _ROWS: Final = (
         222,
         A.DX,
         D.AVERAGE,
-        (SkillDefault(A.DX, -5),),
-        LAUNCHED,
+        # B222: the spear specialty is the launcher's only skill default.
+        (SkillDefault(A.DX, -5), skill_default("thrown-weapon-spear", -4)),
+        weapon=LAUNCHED,
         resolved=(RUNTIME_PROCEDURE,),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     # B198/B179: TL-indexed families, expanded into concrete specialties that
     # each dispatch a weapon of the campaign's own technology level (#355).
@@ -376,19 +438,7 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        specialties=tuple(
-            f"skill:guns-{key}"
-            for key in (
-                "pistol",
-                "rifle",
-                "shotgun",
-                "submachine-gun",
-                "light-machine-gun",
-                "musket",
-                "grenade-launcher",
-                "light-anti-armor-weapon",
-            )
-        ),
+        specialties=tuple(f"skill:guns-{key}" for key in GUNS_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
     ),
     RangedProcedure(
@@ -397,11 +447,12 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + guns_defaults("pistol")
+        + (skill_default("beam-weapons-pistol", -4, same_tl=True),),
         GUN,
         Specialty("guns", "pistol"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns-rifle",
@@ -409,11 +460,12 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + guns_defaults("rifle")
+        + (skill_default("beam-weapons-rifle", -4, same_tl=True),),
         GUN,
         Specialty("guns", "rifle"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns-shotgun",
@@ -421,11 +473,10 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),) + guns_defaults("shotgun"),
         GUN,
         Specialty("guns", "shotgun"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns-submachine-gun",
@@ -433,11 +484,10 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),) + guns_defaults("submachine-gun"),
         GUN,
         Specialty("guns", "submachine-gun"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns-light-machine-gun",
@@ -445,11 +495,10 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),) + guns_defaults("light-machine-gun"),
         GUN,
         Specialty("guns", "light-machine-gun"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns-musket",
@@ -457,11 +506,10 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),) + guns_defaults("musket"),
         GUN,
         Specialty("guns", "musket"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns-grenade-launcher",
@@ -469,11 +517,10 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),) + guns_defaults("grenade-launcher"),
         GUN,
         Specialty("guns", "grenade-launcher"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns-light-anti-armor-weapon",
@@ -481,11 +528,10 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),) + guns_defaults("light-anti-armor-weapon"),
         GUN,
         Specialty("guns", "light-anti-armor-weapon"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:beam-weapons",
@@ -494,7 +540,7 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        specialties=tuple(f"skill:beam-weapons-{key}" for key in ("pistol", "rifle", "projector")),
+        specialties=tuple(f"skill:beam-weapons-{key}" for key in BEAM_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
     ),
     RangedProcedure(
@@ -503,11 +549,12 @@ _ROWS: Final = (
         179,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("beam-weapons", "pistol", BEAM_SPECIALTIES, -4, same_tl=True)
+        + (skill_default("guns-pistol", -4, same_tl=True),),
         BEAM,
         Specialty("beam-weapons", "pistol"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:beam-weapons-rifle",
@@ -515,11 +562,12 @@ _ROWS: Final = (
         179,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("beam-weapons", "rifle", BEAM_SPECIALTIES, -4, same_tl=True)
+        + (skill_default("guns-rifle", -4, same_tl=True),),
         BEAM,
         Specialty("beam-weapons", "rifle"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:beam-weapons-projector",
@@ -527,11 +575,11 @@ _ROWS: Final = (
         179,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("beam-weapons", "projector", BEAM_SPECIALTIES, -4, same_tl=True),
         BEAM,
         Specialty("beam-weapons", "projector"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     # B178/B198: crew-served and vehicle-mounted families, expanded into
     # concrete specialties that each fire from a mount rather than a grip (#357).
@@ -558,7 +606,6 @@ _ROWS: Final = (
         MOUNTED,
         Specialty("artillery", "beams"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:artillery-bombs",
@@ -570,7 +617,6 @@ _ROWS: Final = (
         MOUNTED,
         Specialty("artillery", "bombs"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:artillery-cannon",
@@ -582,7 +628,6 @@ _ROWS: Final = (
         MOUNTED,
         Specialty("artillery", "cannon"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:artillery-catapult",
@@ -594,7 +639,6 @@ _ROWS: Final = (
         MOUNTED,
         Specialty("artillery", "catapult"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:artillery-guided-missile",
@@ -606,7 +650,6 @@ _ROWS: Final = (
         MOUNTED,
         Specialty("artillery", "guided-missile"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:artillery-torpedoes",
@@ -618,7 +661,6 @@ _ROWS: Final = (
         MOUNTED,
         Specialty("artillery", "torpedoes"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:gunner",
@@ -627,10 +669,7 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        specialties=tuple(
-            f"skill:gunner-{key}"
-            for key in ("beams", "cannon", "machine-gun", "rockets", "torpedoes")
-        ),
+        specialties=tuple(f"skill:gunner-{key}" for key in GUNNER_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
     ),
     RangedProcedure(
@@ -639,11 +678,11 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("gunner", "beams", GUNNER_SPECIALTIES, -4, same_tl=True),
         MOUNTED,
         Specialty("gunner", "beams"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:gunner-cannon",
@@ -651,11 +690,11 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("gunner", "cannon", GUNNER_SPECIALTIES, -4, same_tl=True),
         MOUNTED,
         Specialty("gunner", "cannon"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:gunner-machine-gun",
@@ -663,11 +702,11 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("gunner", "machine-gun", GUNNER_SPECIALTIES, -4, same_tl=True),
         MOUNTED,
         Specialty("gunner", "machine-gun"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:gunner-rockets",
@@ -675,11 +714,11 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("gunner", "rockets", GUNNER_SPECIALTIES, -4, same_tl=True),
         MOUNTED,
         Specialty("gunner", "rockets"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:gunner-torpedoes",
@@ -687,11 +726,11 @@ _ROWS: Final = (
         198,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("gunner", "torpedoes", GUNNER_SPECIALTIES, -4, same_tl=True),
         MOUNTED,
         Specialty("gunner", "torpedoes"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     # B205: a family of held streams, expanded into concrete specialties (#359).
     RangedProcedure(
@@ -701,10 +740,7 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        specialties=tuple(
-            f"skill:liquid-projector-{key}"
-            for key in ("flamethrower", "sprayer", "squirt-gun", "water-cannon")
-        ),
+        specialties=tuple(f"skill:liquid-projector-{key}" for key in LIQUID_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
     ),
     RangedProcedure(
@@ -713,11 +749,13 @@ _ROWS: Final = (
         205,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults(
+            "liquid-projector", "flamethrower", LIQUID_SPECIALTIES, -4, same_tl=True
+        ),
         SPRAYER,
         Specialty("liquid-projector", "flamethrower"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:liquid-projector-sprayer",
@@ -725,11 +763,11 @@ _ROWS: Final = (
         205,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("liquid-projector", "sprayer", LIQUID_SPECIALTIES, -4, same_tl=True),
         SPRAYER,
         Specialty("liquid-projector", "sprayer"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:liquid-projector-squirt-gun",
@@ -737,11 +775,13 @@ _ROWS: Final = (
         205,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults(
+            "liquid-projector", "squirt-gun", LIQUID_SPECIALTIES, -4, same_tl=True
+        ),
         SPRAYER,
         Specialty("liquid-projector", "squirt-gun"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:liquid-projector-water-cannon",
@@ -749,11 +789,13 @@ _ROWS: Final = (
         205,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults(
+            "liquid-projector", "water-cannon", LIQUID_SPECIALTIES, -4, same_tl=True
+        ),
         SPRAYER,
         Specialty("liquid-projector", "water-cannon"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     # B201: the attack comes from the creature, so each specialty is a delivery
     # rather than a weapon class (#361).
@@ -764,9 +806,7 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        specialties=tuple(
-            f"skill:innate-attack-{key}" for key in ("beam", "breath", "gaze", "projectile")
-        ),
+        specialties=tuple(f"skill:innate-attack-{key}" for key in INNATE_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION),
     ),
     RangedProcedure(
@@ -775,11 +815,11 @@ _ROWS: Final = (
         201,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("innate-attack", "beam", INNATE_SPECIALTIES, -2),
         INNATE,
         Specialty("innate-attack", "beam"),
         resolved=(RUNTIME_PROCEDURE,),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:innate-attack-breath",
@@ -787,11 +827,11 @@ _ROWS: Final = (
         201,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("innate-attack", "breath", INNATE_SPECIALTIES, -2),
         INNATE,
         Specialty("innate-attack", "breath"),
         resolved=(RUNTIME_PROCEDURE,),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:innate-attack-gaze",
@@ -799,11 +839,11 @@ _ROWS: Final = (
         201,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("innate-attack", "gaze", INNATE_SPECIALTIES, -2),
         INNATE,
         Specialty("innate-attack", "gaze"),
         resolved=(RUNTIME_PROCEDURE,),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:innate-attack-projectile",
@@ -811,11 +851,11 @@ _ROWS: Final = (
         201,
         A.DX,
         D.EASY,
-        (SkillDefault(A.DX, -4),),
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("innate-attack", "projectile", INNATE_SPECIALTIES, -2),
         INNATE,
         Specialty("innate-attack", "projectile"),
         resolved=(RUNTIME_PROCEDURE,),
-        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
 )
 # Every listed ranged combat row, plus the concrete specialties this issue expands.

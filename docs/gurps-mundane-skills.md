@@ -116,7 +116,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #362 | Cross-specialty and conditional defaults for ranged combat skills. |
+| #362 | Ranged defaults whose target is not yet dispatched: Net, Thrown Weapon (Dart), and Thrown Weapon (Shuriken). |
 | #345 | Social skill procedures; see below for what it bound and what it transferred. |
 | #346 | Technology, science and vehicle procedures; see below for what it bound and what it transferred. |
 | #353 | Conditional and alternative mundane skill defaults and prerequisites. |
@@ -151,20 +151,20 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:sling` | B221, DX/H, DX-6 | Implemented. Launcher with a pinned missile. |
 | `skill:blowpipe` | B180, DX/H, DX-6 | Implemented. Launcher with a pinned missile. Poisoned ammunition is an ammunition mechanic, not part of this skill. |
 | `skill:thrown-weapon` | B226, DX/E, DX-4 | Family expanded into seven concrete specialties (Axe/Mace, Dart, Harpoon, Knife, Shuriken, Spear, Stick) and never dispatched itself. |
-| `skill:thrown-weapon-*` | B226, DX/E, DX-4 | Implemented. The projectile is the item; it leaves active inventory and is retained in `expended_items`. |
+| `skill:thrown-weapon-*` | B226, DX/E, DX-4 | Implemented. Harpoon and Spear record their mutual and spear-thrower defaults. Dart and Shuriken remain #362 until Throwing is dispatched. The projectile is the item; it leaves active inventory and is retained in `expended_items`. |
 | `skill:bolas` | B181, DX/A | Implemented. A landed throw binds the target; the binding, not the damage, is the outcome. |
 | `skill:net` | B211, DX/H | Implemented. Cross-skill defaults remain with #362. |
-| `skill:spear-thrower` | B222, DX/A, DX-5 | Implemented. A separate held launcher improves the throw and is not consumed. Cross-skill defaults remain with #362. |
+| `skill:spear-thrower` | B222, DX/A, DX-5 or Thrown Weapon (Spear)-4 | Implemented. A separate held launcher improves the throw and is not consumed. |
 | `skill:guns` | B198, DX/E, DX-4 | Family expanded into eight concrete specialties (Pistol, Rifle, Shotgun, Submachine Gun, Light Machine Gun, Musket, Grenade Launcher, Light Anti-Armor Weapon); never dispatched itself. |
 | `skill:beam-weapons` | B179, DX/E, DX-4 | Family expanded into three concrete specialties (Pistol, Rifle, Projector); never dispatched itself. |
-| `skill:guns-*`, `skill:beam-weapons-*` | B198, B179, DX/E, DX-4 | Implemented. TL-indexed: each dispatches a weapon of the campaign's own era. Cross-specialty defaults remain with #362. |
+| `skill:guns-*`, `skill:beam-weapons-*` | B198-B199, B179, DX/E, DX-4 | Implemented. Exact cross-specialty defaults require matching TL; matching Pistol/Rifle specialties also default across the families at -4. |
 | `skill:artillery` | B178, IQ/A, IQ-5 | Family expanded into six concrete specialties (Beams, Bombs, Cannon, Catapult, Guided Missile, Torpedoes); never dispatched itself. |
 | `skill:gunner` | B198, DX/E, DX-4 | Family expanded into five concrete specialties (Beams, Cannon, Machine Gun, Rockets, Torpedoes); never dispatched itself. |
-| `skill:artillery-*`, `skill:gunner-*` | B178, B198 | Implemented. Fired from a served mount rather than a grip. Cross-specialty defaults remain with #362. |
+| `skill:artillery-*`, `skill:gunner-*` | B178, B198 | Implemented. Fired from a served mount rather than a grip. Artillery explicitly has no cross-specialty defaults; Gunner specialties default to one another at -4 with matching TL. |
 | `skill:liquid-projector` | B205, DX/E, DX-4 | Family expanded into four concrete specialties (Flamethrower, Sprayer, Squirt Gun, Water Cannon); never dispatched itself. |
-| `skill:liquid-projector-*` | B205, DX/E, DX-4 | Implemented. Holds a stream second by second. Lingering fire and simultaneous area coverage are published scope owned by #398. |
+| `skill:liquid-projector-*` | B205, DX/E, DX-4 | Implemented. Specialties default to one another at -4 with matching TL. Holds a stream second by second. Lingering fire and simultaneous area coverage are published scope owned by #398. |
 | `skill:innate-attack` | B201, DX/E, DX-4 | Family expanded into four concrete specialties (Beam, Breath, Gaze, Projectile); never dispatched itself. |
-| `skill:innate-attack-*` | B201, DX/E, DX-4 | Implemented. The attack comes from the creature: no missile, no reload, no grip. Cross-specialty defaults remain with #362. |
+| `skill:innate-attack-*` | B201, DX/E, DX-4 | Implemented. Specialties default to one another at -2. The attack comes from the creature: no missile, no reload, no grip. |
 
 ### Bindings (#354)
 
@@ -250,35 +250,31 @@ stays ready for the next throw. Evidence is in `tests/test_launcher_throws.py`.
 
 An innate attack (B201) comes from the creature rather than from an item, so
 its modes carry no ammunition reference, are never thrown, and are not limited
-by a grip. Each of the four indexed specialties is a distinct row with no
-cross-specialty inference.
+by a grip. Each indexed specialty is a distinct row with the source's explicit
+-2 cross-specialty defaults.
 
 The Projectile specialty was already dispatched by the opt-in spell adapter
-under its own pin. Both are now pinned definitions of the same B201 row with
-the same recorded mechanics; the reconciled row adds the specialty record and
-the ranged dispatch hook the adapter never carried. The fireball channel gate
-accepts either, so no existing pin changes and no saved campaign is broken.
+under its own pin. Both are definitions of the same B201 row with the same base
+mechanics; the reconciled row adds the cross-specialty defaults, specialty
+record, and ranged dispatch hook the adapter never carried. The fireball channel gate
+accepts either, so the existing spell adapter remains valid.
 Evidence is in `tests/test_innate_attack_specialties.py`.
 
-### Unrecorded defaults (#362)
+### Ranged defaults (#362)
 
-Forty ranged rows carry #112's `conditional-or-skill-defaults` blocker: the
-source states a default for them that is conditional or comes from another
-skill, and neither the skill it comes from nor its modifier is recorded here.
-Verifying those values needs the selected Characters third-printing
-artifact that #336 and #191 own, and reading either off a different printing
-would defeat the baseline the audit exists to protect.
+The ranged audit records the exact B178-B179, B198-B199, B201, B205, B211,
+B222, and B226 relationships. Reciprocal specialties resolve from purchased
+native levels within their reciprocal component, preventing B173 point credit
+from feeding around a cycle, while final learned levels may still support
+one-way defaults outside that component. TL-indexed edges require matching,
+explicit skill TL facts and otherwise fail closed.
 
-So the gap is published rather than closed. Every blocked row emits an
-`unrecorded-default` scope entry naming what is missing, and a cross-specialty
-row also names the family the default would run between, so the reviewer knows
-exactly what to look up. The blocker stays with #383 for the source
-reconciliation and #362 for these rows' share of it.
-
-The regression guard is the other half: `tests/test_ranged_default_gaps.py`
-asserts that every ranged default is an attribute default and that the rows
-recording none still record none, so no cross-specialty modifier can be
-reconstructed into a runnable roll while the blocker stands.
+Three rows remain blocked. Net depends on Cloak, while Thrown Weapon (Dart) and
+Thrown Weapon (Shuriken) depend on Throwing; those target skills are not yet
+dispatched by their #339 and #343 procedure groups. These rows continue to emit
+`unrecorded-default` scope under #383/#362 rather than exposing a reference the
+active package cannot satisfy. `tests/test_ranged_default_gaps.py` pins the
+source relationships, conditional selection, and this residual set.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on
