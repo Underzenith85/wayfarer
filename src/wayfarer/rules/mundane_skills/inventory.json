@@ -356,21 +356,25 @@
     "attribute_defaults": [
       {
         "attribute": "IQ",
-        "modifier": -4
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "biographical",
+            "value": "home-area"
+          }
+        ]
       }
     ],
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       341,
-      385,
-      476
+      385
     ],
     "procedure_owner": 341,
     "variable": {
@@ -384,6 +388,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -1518,15 +1525,20 @@
     "attribute_defaults": [
       {
         "attribute": "IQ",
-        "modifier": -6
+        "modifier": -6,
+        "conditions": [
+          {
+            "kind": "biographical",
+            "value": "native-planet-type"
+          }
+        ]
       }
     ],
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
-      "contextual-default-procedure"
+      "specialty-expansion"
     ],
     "issues": [
       112,
@@ -1535,14 +1547,28 @@
       356,
       384,
       385,
-      390,
-      476
+      390
     ],
     "procedure_owner": 356,
     "variable": {
       "subject": "one planet type",
       "determination": "chosen-with-subject"
-    }
+    },
+    "skill_defaults": [
+      {
+        "target": "naturalist",
+        "modifier": -6
+      },
+      {
+        "target": "biology",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "blowpipe",
@@ -2012,15 +2038,13 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       342,
-      384,
-      476
+      384
     ],
     "prerequisites": [
       "psychology"
@@ -2033,16 +2057,29 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
       {
         "target": "hypnotism",
-        "modifier": -6
+        "modifier": -6,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "interrogation",
-        "modifier": -6
+        "modifier": -6,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "pharmacy",
@@ -2050,12 +2087,20 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
       {
         "target": "psychology",
-        "modifier": -6
+        "modifier": -6,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "surgery",
@@ -2063,6 +2108,9 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -2240,15 +2288,13 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       346,
-      384,
-      476
+      384
     ],
     "procedure_owner": 346,
     "skill_defaults": [
@@ -2258,6 +2304,9 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -2533,21 +2582,30 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       338,
-      385,
-      476
+      385
     ],
     "procedure_owner": 338,
     "variable": {
       "subject": "one category of art or luxury item",
       "determination": "chosen-with-subject"
-    }
+    },
+    "skill_defaults": [
+      {
+        "target": "any",
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "cooking",
@@ -7200,14 +7258,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "contextual_prerequisites": [
@@ -8044,14 +8100,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "contextual_prerequisites": [
@@ -9831,15 +9885,13 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       346,
-      384,
-      476
+      384
     ],
     "procedure_owner": 346,
     "skill_defaults": [
@@ -9903,6 +9955,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9912,6 +9968,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9921,6 +9981,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9930,6 +9994,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9939,6 +10007,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9948,6 +10020,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9957,6 +10033,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9966,6 +10046,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       },
@@ -9975,6 +10059,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "minimum-technology-level",
+            "value": 7
           }
         ]
       }
@@ -10162,8 +10250,7 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
-      "contextual-default-procedure"
+      "specialty-expansion"
     ],
     "issues": [
       112,
@@ -10172,8 +10259,7 @@
       356,
       384,
       385,
-      390,
-      476
+      390
     ],
     "procedure_owner": 356,
     "variable": {
@@ -10197,8 +10283,7 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
-      "contextual-default-procedure"
+      "specialty-expansion"
     ],
     "issues": [
       112,
@@ -10207,8 +10292,7 @@
       356,
       384,
       385,
-      390,
-      476
+      390
     ],
     "procedure_owner": 356,
     "variable": {
@@ -10225,6 +10309,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -10370,14 +10457,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      338,
-      476
+      338
     ],
     "procedure_owner": 338,
     "specialty": {
@@ -10387,7 +10472,12 @@
     "skill_defaults": [
       {
         "target": "musical-instrument",
-        "modifier": -2
+        "modifier": -2,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "singing",
@@ -11749,14 +11839,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      338,
-      476
+      338
     ],
     "procedure_owner": 338,
     "skill_defaults": [
@@ -11765,7 +11853,7 @@
         "modifier": -3,
         "conditions": [
           {
-            "kind": "matching-specialty"
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -13832,14 +13920,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -13852,6 +13938,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -14137,14 +14226,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -14157,6 +14244,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -14442,14 +14532,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -14462,6 +14550,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -14747,14 +14838,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -14767,6 +14856,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -15052,14 +15144,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -15072,6 +15162,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -15357,14 +15450,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -15377,6 +15468,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -15662,14 +15756,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -15682,6 +15774,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -15967,14 +16062,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -15987,6 +16080,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -16272,14 +16368,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -16292,6 +16386,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -16577,14 +16674,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -16597,6 +16692,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -16882,14 +16980,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -16902,6 +16998,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -17187,14 +17286,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -17207,6 +17304,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -17492,14 +17592,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -17512,6 +17610,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -17797,14 +17898,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -17817,6 +17916,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -18102,14 +18204,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -18122,6 +18222,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -18407,14 +18510,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -18427,6 +18528,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -18712,14 +18816,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -18732,6 +18834,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -19017,14 +19122,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -19037,6 +19140,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -19322,14 +19428,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -19342,6 +19446,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -19627,14 +19734,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -19647,6 +19752,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -19932,14 +20040,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -19952,6 +20058,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -20237,14 +20346,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -20257,6 +20364,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -20542,14 +20652,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -20562,6 +20670,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -20847,14 +20958,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -20867,6 +20976,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -21152,14 +21264,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -21172,6 +21282,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -21457,14 +21570,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -21477,6 +21588,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -21762,14 +21876,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -21782,6 +21894,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -22067,14 +22182,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -22087,6 +22200,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -22372,14 +22488,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      356,
-      476
+      356
     ],
     "procedure_owner": 356,
     "skill_defaults": [
@@ -22392,6 +22506,9 @@
           },
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -23282,20 +23399,23 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      338,
-      476
+      338
     ],
     "procedure_owner": 338,
     "skill_defaults": [
       {
         "target": "musical-instrument",
-        "modifier": -2
+        "modifier": -2,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "poetry",
@@ -23313,21 +23433,30 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       338,
-      385,
-      476
+      385
     ],
     "procedure_owner": 338,
     "variable": {
       "subject": "one musical instrument",
       "determination": "chosen-with-subject"
-    }
+    },
+    "skill_defaults": [
+      {
+        "target": "musical-instrument",
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "naturalist",
@@ -23879,14 +24008,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "skill_defaults": [
@@ -23896,6 +24023,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -25286,14 +25416,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      342,
-      476
+      342
     ],
     "procedure_owner": 342,
     "skill_defaults": [
@@ -25301,7 +25429,11 @@
         "target": "sociology",
         "modifier": -4
       }
-    ]
+    ],
+    "variable": {
+      "subject": "one sapient species when the campaign has more than one",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "public-speaking",
@@ -25388,15 +25520,13 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       341,
-      385,
-      476
+      385
     ],
     "procedure_owner": 341,
     "variable": {
@@ -25410,6 +25540,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -25419,6 +25552,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -25505,15 +25641,13 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       343,
-      385,
-      476
+      385
     ],
     "procedure_owner": 343,
     "variable": {
@@ -25527,6 +25661,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -25628,14 +25765,19 @@
     "attribute_defaults": [
       {
         "attribute": "IQ",
-        "modifier": -4
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "biographical",
+            "value": "native-culture"
+          }
+        ]
       }
     ],
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       111,
@@ -25643,8 +25785,7 @@
       336,
       345,
       366,
-      385,
-      476
+      385
     ],
     "procedure_owner": 345,
     "variable": {
@@ -25884,14 +26025,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      341,
-      476
+      341
     ],
     "procedure_owner": 341,
     "skill_defaults": [
@@ -25901,7 +26040,13 @@
       },
       {
         "target": "stealth",
-        "modifier": -4
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "action-mode",
+            "value": "on-foot"
+          }
+        ]
       }
     ]
   },
@@ -26129,7 +26274,6 @@
       "name": "ship"
     },
     "blockers": [
-      "contextual-default-procedure",
       "runtime-procedure"
     ],
     "issues": [
@@ -26137,8 +26281,7 @@
       336,
       346,
       358,
-      384,
-      476
+      384
     ],
     "procedure_owner": 346,
     "contextual_prerequisites": [
@@ -26162,6 +26305,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "vessel",
+            "value": "powered-ship"
           }
         ]
       },
@@ -26171,6 +26318,10 @@
         "conditions": [
           {
             "kind": "matching-technology-level"
+          },
+          {
+            "kind": "vessel",
+            "value": "tall-ship"
           }
         ]
       },
@@ -26947,19 +27098,21 @@
         "modifier": -5
       }
     ],
-    "specialty_required": false,
+    "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "variable": {
+      "subject": "one sport",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "staff",
@@ -26999,24 +27152,41 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      339,
-      476
+      339
     ],
     "procedure_owner": 339,
     "skill_defaults": [
       {
         "target": "combat-art",
-        "modifier": -2
+        "modifier": -2,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "combat-sport",
-        "modifier": -2
+        "modifier": -2,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
+      },
+      {
+        "target": "any",
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "performance",
@@ -27472,15 +27642,13 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       343,
-      385,
-      476
+      385
     ],
     "procedure_owner": 343,
     "specialties": [
@@ -27517,14 +27685,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27534,7 +27700,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27553,14 +27724,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27570,7 +27739,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27589,14 +27763,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27606,7 +27778,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27625,14 +27802,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27642,7 +27817,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27661,14 +27841,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27678,7 +27856,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27697,14 +27880,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27714,7 +27895,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27733,14 +27919,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27750,7 +27934,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27769,14 +27958,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27786,7 +27973,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27805,14 +27997,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27822,7 +28012,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27841,14 +28036,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27858,7 +28051,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27877,14 +28075,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27894,7 +28090,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27913,14 +28114,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27930,7 +28129,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27949,14 +28153,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -27966,7 +28168,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -27985,14 +28192,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -28002,7 +28207,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -28021,14 +28231,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "specialty": {
@@ -28038,7 +28246,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -28046,14 +28259,12 @@
     "id": "survival-woodlands",
     "name": "Survival (Woodlands)",
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "page": 223,
     "attribute": "Per",
@@ -28072,7 +28283,12 @@
     "skill_defaults": [
       {
         "target": "naturalist",
-        "modifier": -3
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       }
     ]
   },
@@ -28141,14 +28357,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      339,
-      476
+      339
     ],
     "procedure_owner": 339,
     "skill_defaults": [
@@ -28210,15 +28424,13 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       343,
-      385,
-      476
+      385
     ],
     "procedure_owner": 343,
     "variable": {
@@ -28232,6 +28444,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       },
@@ -28241,6 +28456,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -28261,15 +28479,13 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       341,
-      385,
-      476
+      385
     ],
     "procedure_owner": 341,
     "variable": {
@@ -28283,6 +28499,9 @@
         "conditions": [
           {
             "kind": "matching-specialty"
+          },
+          {
+            "kind": "campaign-selected"
           }
         ]
       }
@@ -28612,14 +28831,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343,
-      476
+      343
     ],
     "procedure_owner": 343,
     "skill_defaults": [
@@ -28639,20 +28856,38 @@
       {
         "attribute": "IQ",
         "modifier": -5
+      },
+      {
+        "attribute": "DX",
+        "modifier": -5,
+        "conditions": [
+          {
+            "kind": "action-mode",
+            "value": "disarm-trap"
+          }
+        ]
+      },
+      {
+        "attribute": "DX",
+        "modifier": -5,
+        "conditions": [
+          {
+            "kind": "action-mode",
+            "value": "reset-trap"
+          }
+        ]
       }
     ],
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
       346,
-      384,
-      476
+      384
     ],
     "procedure_owner": 346,
     "skill_defaults": [
@@ -28774,16 +29009,25 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      338,
-      476
+      338
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "skill_defaults": [
+      {
+        "target": "any",
+        "modifier": -3,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "urban-survival",
@@ -28880,22 +29124,25 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "contextual-default-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       109,
       112,
       336,
       342,
-      384,
-      476
+      384
     ],
     "procedure_owner": 342,
     "skill_defaults": [
       {
         "target": "animal-handling",
-        "modifier": -6
+        "modifier": -6,
+        "conditions": [
+          {
+            "kind": "campaign-selected"
+          }
+        ]
       },
       {
         "target": "physician",

@@ -91,6 +91,9 @@
                 "type": "string"
               },
               {
+                "type": "integer"
+              },
+              {
                 "type": "null"
               }
             ],
@@ -109,7 +112,12 @@
         "enum": [
           "matching-technology-level",
           "matching-specialty",
-          "required-equipment"
+          "required-equipment",
+          "biographical",
+          "campaign-selected",
+          "minimum-technology-level",
+          "vessel",
+          "action-mode"
         ],
         "title": "DefaultConditionKind",
         "type": "string"

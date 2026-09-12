@@ -5,7 +5,14 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.models import Record
-from wayfarer.rules.skill_types import DefaultConditionKind, Difficulty, PrerequisiteKind
+from wayfarer.rules.skill_types import (
+    BiographicalDefault,
+    DefaultActionMode,
+    DefaultConditionKind,
+    DefaultVessel,
+    Difficulty,
+    PrerequisiteKind,
+)
 
 AttributeName = Literal["IQ", "DX", "HT", "ST", "Will", "Per", "Perception"]
 Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")]
@@ -27,13 +34,36 @@ Blocker = Literal[
 
 class DefaultConditionRecord(Record):
     kind: DefaultConditionKind
-    value: Annotated[str, Field(pattern=r"^equipment:[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")] | None = None
+    value: str | int | None = None
 
     @model_validator(mode="after")
     def coherent(self) -> Self:
-        needs_value = self.kind is DefaultConditionKind.REQUIRED_EQUIPMENT
+        needs_value = self.kind in {
+            DefaultConditionKind.REQUIRED_EQUIPMENT,
+            DefaultConditionKind.BIOGRAPHICAL,
+            DefaultConditionKind.MINIMUM_TECHNOLOGY_LEVEL,
+            DefaultConditionKind.VESSEL,
+            DefaultConditionKind.ACTION_MODE,
+        }
         if needs_value != (self.value is not None):
-            raise ValueError("Only a required-equipment condition names a value")
+            raise ValueError("Default condition value does not match its predicate")
+        if self.kind is DefaultConditionKind.REQUIRED_EQUIPMENT and (
+            not isinstance(self.value, str) or not self.value.startswith("equipment:")
+        ):
+            raise ValueError("Required equipment needs a pinned definition ID")
+        if self.kind is DefaultConditionKind.BIOGRAPHICAL:
+            assert isinstance(self.value, str)
+            BiographicalDefault(self.value)
+        elif self.kind is DefaultConditionKind.MINIMUM_TECHNOLOGY_LEVEL and (
+            type(self.value) is not int or self.value < 0
+        ):
+            raise ValueError("Minimum technology level must be a nonnegative integer")
+        elif self.kind is DefaultConditionKind.VESSEL:
+            assert isinstance(self.value, str)
+            DefaultVessel(self.value)
+        elif self.kind is DefaultConditionKind.ACTION_MODE:
+            assert isinstance(self.value, str)
+            DefaultActionMode(self.value)
         return self
 
 

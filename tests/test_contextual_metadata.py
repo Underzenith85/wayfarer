@@ -373,13 +373,12 @@ def test_no_row_is_left_recording_nothing_at_all() -> None:
     # Five original open families, four #356 campaign-world families, and 19
     # campaign-subject axes recorded by #385. Families that fix their own numbers
     # still carry a definition and count as unsupported rather than contextual.
-    assert sum(e.variable is not None for e in entries) == 28
+    assert sum(e.variable is not None for e in entries) == 30
 
 
 def test_every_remaining_contextual_blocker_names_a_concrete_child() -> None:
     """#336 keeps nothing: each blocker it split names the issue that owns it."""
     assert dict(CONTEXT_RESIDUALS) == {
-        "contextual-default-procedure": (476,),
         "technology-level-context": (384,),
         "optional-rule-selection": (384,),
         "specialty-expansion": (385,),

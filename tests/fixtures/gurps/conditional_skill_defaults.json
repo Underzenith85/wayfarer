@@ -52,14 +52,10 @@
       "id": "skill:religious-ritual",
       "reference": "B217",
       "defaults": [
-        ["skill:ritual-magic", -6, ["matching-specialty"]],
-        ["skill:theology", -4, ["matching-specialty"]]
+        ["skill:ritual-magic", -6, ["matching-specialty", "campaign-selected"]],
+        ["skill:theology", -4, ["matching-specialty", "campaign-selected"]]
       ]
     }
   ],
-  "contextual_residuals": {
-    "skill:area-knowledge": [476],
-    "skill:shadowing": [476],
-    "skill:savoir-faire": [476]
-  }
+  "contextual_residuals": {}
 }

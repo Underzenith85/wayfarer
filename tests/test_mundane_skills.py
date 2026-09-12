@@ -40,7 +40,7 @@ def test_inventory_and_references() -> None:
     } <= ids
     assert len(entries) > 180
     # Physics and Research become available once their acquisition context is explicit.
-    assert audit_report()["available"] == 174
+    assert audit_report()["available"] == 209
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -368,7 +368,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         384,
         385,
         390,
-        476,
     )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
@@ -400,7 +399,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         384,
         385,
         390,
-        476,
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
