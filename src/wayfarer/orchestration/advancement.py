@@ -34,6 +34,8 @@ from wayfarer.engine.simulation.campaign.scenes import ActorScene
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
+from wayfarer.orchestration.builds import banked_points as _balance
+from wayfarer.orchestration.builds import canonical_build as _build
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 
@@ -68,16 +70,6 @@ class ApplyMigration(Record):
     encounter_scenes: tuple[EncounterSceneBinding, ...] = Field(
         default=(), exclude_if=lambda v: not v
     )
-
-
-def _build(play: PlayService, state: PlayState, actor_id: str) -> ValidatedBuild:
-    actor = next((candidate for candidate in state.actors if candidate.actor_id == actor_id), None)
-    if actor is None:
-        raise ValidationError("Unknown character")
-    build = play.engine.reviewer.review(actor.proposal).compilation.build
-    if build is None:
-        raise ValidationError("Canonical character no longer compiles")
-    return build
 
 
 def _diff(actor_id: str, before: ValidatedBuild, after: ValidatedBuild) -> BuildDiff:
@@ -125,10 +117,6 @@ def _refreshed(
         )
     carried = carry_over(RuntimePool(pool.current, pool.maximum), maximum)
     return pool.model_copy(update={"maximum": carried.maximum, "current": carried.current})
-
-
-def _balance(state: PlayState, actor_id: str) -> int:
-    return sum(entry.points for entry in state.advancement if entry.actor_id == actor_id)
 
 
 class AdvancementService:

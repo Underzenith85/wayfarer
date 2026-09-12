@@ -11,7 +11,7 @@ from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry
 from wayfarer.engine.simulation.campaign.objectives import ObjectiveState, evaluate
 from wayfarer.engine.simulation.resources import Transfer
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.advancement import _build
+from wayfarer.orchestration.builds import canonical_build as _build
 from wayfarer.orchestration.entropy import commit_command
 
 if TYPE_CHECKING:

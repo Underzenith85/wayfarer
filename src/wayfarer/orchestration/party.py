@@ -27,6 +27,7 @@ from wayfarer.engine.simulation.campaign.party import (
     migrate,
 )
 from wayfarer.engine.simulation.events import action_result
+from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.resources import Advance, Transfer
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
@@ -294,7 +295,6 @@ class PartyService:
         return state
 
     def reduce(self, state: PlayState, command: PartyCommand) -> PlayState:
-        from wayfarer.orchestration.recovery import guard
 
         guard(state, command.actor_id, command.kind)
         state = migrate(state)

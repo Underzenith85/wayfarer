@@ -12,10 +12,13 @@ from wayfarer.engine.simulation.combat.engine import hex_template
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.fright import projection as fright_projection
 from wayfarer.engine.simulation.resources import wire_weight
-from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
+from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.encounter_scenes import EncounterSceneService, MigrateEncounterScenes
+from wayfarer.orchestration.fright import FrightDecision, FrightService
+from wayfarer.orchestration.fright_builds import FrightBuildService
 from wayfarer.orchestration.medical import EnvironmentResolver
+from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.npcs import NPCProposal, NPCService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
@@ -46,11 +49,7 @@ class CampaignAccess:
 
     @staticmethod
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
-        member = next((item for item in state.members if item.principal_id == principal_id), None)
-        if member is None:
-            # Avoid disclosing whether an inaccessible campaign exists.
-            raise NotFoundError("Campaign not found")
-        return member
+        return member_for(state, principal_id)
 
     @staticmethod
     def _projection(
@@ -381,12 +380,8 @@ class CampaignAccess:
                 "propose_fright_build",
                 "approve_fright_build",
             ):
-                from wayfarer.orchestration.fright_builds import FrightBuildService
-
                 await FrightBuildService(self.play).execute(cid, value, principal_id=principal_id)
             elif kind in ("care", "panic-response"):
-                from wayfarer.orchestration.fright import FrightDecision, FrightService
-
                 await FrightService(self.play).execute(
                     cid,
                     FrightDecision.model_validate_json(raw),
@@ -498,11 +493,7 @@ class CampaignAccess:
 
     @staticmethod
     def _control(member: CampaignMember, actor_id: str) -> None:
-        if not (
-            (member.role == "player" and actor_id in member.actor_ids)
-            or (member.role == "gm" and actor_id == member.principal_id)
-        ):
-            raise AuthorizationError("Principal cannot control this actor")
+        require_control(member, actor_id)
 
     async def events(
         self, cid: str, *, principal_id: str, after: int = 0, limit: int = 100

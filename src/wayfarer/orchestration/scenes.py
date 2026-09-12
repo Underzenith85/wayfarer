@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.party import group_for, synchronous
 from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, Scene, SceneEvent
 from wayfarer.engine.simulation.health.hit_locations import disabled
+from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
@@ -104,7 +105,6 @@ class SceneService:
         group_travel: bool = False,
         commit_revision: int | None = None,
     ) -> PlayState:
-        from wayfarer.orchestration.recovery import guard
 
         guard(state, command.actor_id, command.kind)
         rules = self.play.engine.rules.scenes

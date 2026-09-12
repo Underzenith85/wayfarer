@@ -50,6 +50,7 @@ from wayfarer.models import Record
 from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
 from wayfarer.orchestration.npcs import initialize
+from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
 from wayfarer.orchestration.sessions import REGISTRY
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -366,8 +367,6 @@ class PlayService:
     def checkpoint(
         self, state: PlayState, *, before: PlayState | None = None, run_npcs: bool = True
     ) -> PlayState:
-        from wayfarer.orchestration.objectives import checkpoint
-
         resources = state.resources
         for actor in state.actors:
             resources = refund_due(resources, actor.actor_id)
@@ -384,7 +383,7 @@ class PlayService:
         state = held_checkpoint(self.rules_context, state, before_fire)
         if run_npcs:
             state = npc_checkpoint(self, state)
-        return checkpoint(self, state, before=before)
+        return objective_checkpoint(self, state, before=before)
 
     @staticmethod
     def propose(value: object) -> TypedAction:
