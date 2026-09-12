@@ -1183,6 +1183,26 @@
         "title": "SprayTarget",
         "type": "object"
       },
+      "SuppressionZone": {
+        "additionalProperties": false,
+        "description": "One declared two-yard B409 suppression zone on an exact hex map.",
+        "properties": {
+          "center": {
+            "$ref": "#/components/schemas/Hex"
+          },
+          "shots": {
+            "minimum": 1,
+            "title": "Shots",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "center",
+          "shots"
+        ],
+        "title": "SuppressionZone",
+        "type": "object"
+      },
       "TacticalActivity": {
         "additionalProperties": false,
         "properties": {
@@ -1678,6 +1698,15 @@
             "title": "Spray Targets",
             "type": "array"
           },
+          "suppression_zones": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SuppressionZone"
+            },
+            "maxItems": 20,
+            "title": "Suppression Zones",
+            "type": "array"
+          },
           "reload_ammunition_id": {
             "anyOf": [
               {
@@ -1838,7 +1867,8 @@
                   "determined",
                   "strong",
                   "double",
-                  "feint"
+                  "feint",
+                  "suppression"
                 ],
                 "type": "string"
               },
@@ -2117,7 +2147,8 @@
                   "determined",
                   "strong",
                   "double",
-                  "feint"
+                  "feint",
+                  "suppression"
                 ],
                 "type": "string"
               },
@@ -2318,7 +2349,8 @@
                   "determined",
                   "strong",
                   "double",
-                  "feint"
+                  "feint",
+                  "suppression"
                 ],
                 "type": "string"
               },

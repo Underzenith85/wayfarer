@@ -441,6 +441,15 @@ export interface components {
         | "random"
         | null;
     };
+    /**
+     * SuppressionZone
+     * @description One declared two-yard B409 suppression zone on an exact hex map.
+     */
+    SuppressionZone: {
+      center: components["schemas"]["Hex"];
+      /** Shots */
+      shots: number;
+    };
     /** TacticalActivity */
     TacticalActivity: {
       /**
@@ -648,6 +657,11 @@ export interface components {
        */
       spray_targets: components["schemas"]["SprayTarget"][];
       /**
+       * Suppression Zones
+       * @default []
+       */
+      suppression_zones: components["schemas"]["SuppressionZone"][];
+      /**
        * Reload Ammunition Id
        * @default null
        */
@@ -737,7 +751,8 @@ export interface components {
        * Attack Option
        * @default null
        */
-      attack_option: ("determined" | "strong" | "double" | "feint") | null;
+      attack_option:
+        ("determined" | "strong" | "double" | "feint" | "suppression") | null;
       /**
        * Defense Option
        * @default null
@@ -867,7 +882,8 @@ export interface components {
        * Attack Option
        * @default null
        */
-      attack_option: ("determined" | "strong" | "double" | "feint") | null;
+      attack_option:
+        ("determined" | "strong" | "double" | "feint" | "suppression") | null;
     };
     /**
      * UnarmedReaction
@@ -962,7 +978,8 @@ export interface components {
        * Attack Option
        * @default null
        */
-      attack_option: ("determined" | "strong" | "double" | "feint") | null;
+      attack_option:
+        ("determined" | "strong" | "double" | "feint" | "suppression") | null;
       /**
        * Zone
        * @default []

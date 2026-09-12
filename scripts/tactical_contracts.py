@@ -25,6 +25,7 @@ def contract(version: int = 1) -> str:
     if version == 1:
         schemas.pop("BasicMove", None)
         schemas.pop("SprayTarget", None)
+        schemas.pop("SuppressionZone", None)
     schemas["TacticalError"] = {
         "type": "object",
         "required": ["code", "error"],

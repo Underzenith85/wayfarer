@@ -9,8 +9,10 @@ from wayfarer.orchestration.combat import CombatCommand, HexPlacement
 from wayfarer.rules.location_types import Hand, HitLocation
 from wayfarer.simulation.combat import Defense, Facing, GridPoint, Maneuver, Posture
 from wayfarer.simulation.hex_geometry import Cell, Hex, Stairway, _omitted_default
-from wayfarer.simulation.maneuvers import AttackOption, DefenseOption
+from wayfarer.simulation.maneuvers import DefenseOption
 from wayfarer.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
+
+AttackOption = Literal["determined", "strong", "double", "feint"]
 
 
 class TakeUnarmedTurn(CombatCommand):

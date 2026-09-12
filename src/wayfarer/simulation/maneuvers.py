@@ -9,7 +9,7 @@ from wayfarer.rules.checks import CheckTrace
 from wayfarer.simulation.unarmed import UnarmedReaction
 
 ATTACK_MANEUVERS = frozenset({"attack", "all_out_attack", "move_and_attack"})
-AttackOption = Literal["determined", "strong", "double", "feint"]
+AttackOption = Literal["determined", "strong", "double", "feint", "suppression"]
 DefenseOption = Literal["dodge", "parry", "block", "double"]
 
 
@@ -37,6 +37,8 @@ class WaitTrigger(Record):
             or self.stop_thrust
         ):
             raise ValueError("An unarmed Wait reaction is an ordinary or All-Out Attack")
+        if self.attack_option == "suppression":
+            raise ValueError("Suppression fire requires an immediate mapped declaration")
         if len(set(self.zone)) != len(self.zone):
             raise ValueError("Wait zone contains duplicate hexes")
         if self.zone and self.action != "move":
