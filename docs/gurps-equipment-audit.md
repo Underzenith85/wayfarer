@@ -28,7 +28,7 @@ integrity checks and their failure cases.
 `ledger.json` splits B264-289 into fourteen sections. Every registered row
 (`BASIC_EQUIPMENT` plus the blocked `ULTRATECH_INDEX`) belongs to exactly one
 section, and the validator rejects a ledger whose sections do not cover the
-pinned catalog exactly. **No section is complete.** Seven carry an inspected page
+pinned catalog exactly. **No section is complete.** Ten carry an inspected page
 anchor and record what they leave out:
 
 | Section | Anchor | Rows recorded | Omitted |
@@ -40,13 +40,22 @@ anchor and record what they leave out:
 | `beam-weapons-b280` | B280 | 4 | Laser Pistol and its cell are executable; Electrolaser and Blaster remain blocked with every other beam row omitted |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `shields` | B287 | 4 | duplicate cloak appearances, the unrepresentable force shield, and buckler, material and offensive variants |
-| `general-equipment-b288` | B288 | 10 | every other B288 row and the whole B289 continuation |
+| `general-equipment-b288` | B288 | 63 | no fixed-TL physical row; behavior-bearing items remain fail-closed |
+| `weapon-accessories` | B289 | 12 | no physical row; accessory behavior remains fail-closed |
+| `general-equipment-remainder` | B289 | 41 | six variable-TL rows that need a typed TL expression |
 
-The remaining six sections record **no rows at all**: wealth and legality,
-heavy weapons, split-DR armor, higher-TL variants, weapon accessories and the
-general equipment remainder. Their anchors are recorded as `range-only`,
+The remaining four sections record **no rows at all**: wealth and legality,
+heavy weapons, split-DR armor and higher-TL variants. Their anchors are recorded as `range-only`,
 meaning B264-289 as a range that nobody has reconciled item by item. A
 `range-only` anchor is a coverage gap, not a page citation.
+
+B288-289 now account for all fixed-TL physical rows and embedded purchasable
+variants. Piton is the table's alias for Iron Spike, and Transportation is a
+cross-reference rather than a physical row. The six `Var.` rows remain explicit
+omissions until a profile can carry a skill-relative technology level. Equipment
+with an operating duration, task bonus, communications effect, protection,
+medical effect, or attachment rule is retained as an exact inventory record but
+rejected by the selection gate on its declared unsupported mechanic.
 
 The B278 adapter now preserves chambered `+1` capacity separately and keeps
 per-round ammunition mass as an exact rational number of millipounds. This

@@ -1,4 +1,4 @@
-"""Independent selected-row audit: Characters third printing B271-288."""
+"""Independent selected-row audit: Characters third printing B271-289."""
 
 from fractions import Fraction
 
@@ -832,6 +832,32 @@ def test_container_units_and_unsupported_activation() -> None:
     for vehicle in VEHICLE_INDEX:
         with pytest.raises(ValidationError, match="#358"):
             vehicle.require_operation()
+
+
+def test_b288_289_fixed_tl_inventory_reconciliation() -> None:
+    rows = {
+        entry.definition_id.removeprefix("equipment:"): (
+            entry.provenance.pages[0],
+            entry.technology_level,
+            entry.price,
+            entry.weight_millipounds,
+            entry.container_capacity_millipounds,
+        )
+        for entry in BASIC_EQUIPMENT.entries
+        if entry.provenance.pages[0] in (288, 289)
+    }
+    assert len(rows) == 116
+    assert sum(page == 288 for page, *_ in rows.values()) == 63
+    assert sum(page == 289 for page, *_ in rows.values()) == 53
+    assert rows["ceramic-bottle"] == (288, 1, 3, 1000, 2000)
+    assert rows["gasoline-gallon"] == (288, 6, Fraction(3, 2), 6000, None)
+    assert rows["secure-headset-radio"] == (288, 8, 5000, 500, None)
+    assert rows["hard-suitcase"] == (288, 5, 250, 8000, 100000)
+    assert rows["saddlebags"] == (289, 1, 100, 3000, 40000)
+    assert rows["camera-film-32"] == (289, 6, 10, 0, None)
+    assert rows["cutting-torch-gas-bottle"] == (289, 6, 50, 15000, None)
+    assert rows["wheelbarrow"] == (289, 2, 60, 18000, 350000)
+    assert rows["thermal-scope-4x"] == (289, 8, 8000, 4000, None)
 
 
 def test_catalog_roundtrip_and_profile_gate() -> None:
