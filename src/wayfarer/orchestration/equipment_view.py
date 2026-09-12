@@ -4,7 +4,12 @@ import hashlib
 
 from wayfarer.errors import WayfarerError
 from wayfarer.models import Record
-from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment, TakeCombatTurn
+from wayfarer.orchestration.combat import (
+    MigrateEncounterBasic,
+    RepairEquipment,
+    RetrieveEquipment,
+    TakeCombatTurn,
+)
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition
@@ -34,9 +39,15 @@ class EquipmentView(Record):
     charges: int | None = None
 
 
+class TacticalMigrationChoice(Record):
+    label: str
+    command: MigrateEncounterBasic
+
+
 class TacticalSnapshotV2(TacticalSnapshot):
     version: str = "tactical-v2"
     equipment: tuple[EquipmentView, ...] = ()
+    migrations: tuple[TacticalMigrationChoice, ...] = ()
 
 
 def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[EquipmentView, ...]:

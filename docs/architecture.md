@@ -275,6 +275,8 @@ in one place.
   [Basic (mapless) combat](mapless-combat.md).
 - **Migration and projections.** `MigrateEncounterHex` installs a derived template
   and records a `MigrationEntry` before switching an encounter's placements.
+  `MigrateEncounterBasic` derives authoritative facts from representable hex
+  geometry without deleting the shared template or resetting encounter state.
   `migrate_embedded_maps` lifts retained embedded maps in an atomic, replayable
   command, preserving geometry and adding no map where none existed. Scenario
   graphs retain the templates; pre-scenario typed campaigns retain a

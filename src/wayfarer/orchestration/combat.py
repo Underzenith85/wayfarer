@@ -59,6 +59,9 @@ from wayfarer.simulation.combat_commands import (
     JoinEncounter as JoinEncounter,
 )
 from wayfarer.simulation.combat_commands import (
+    MigrateEncounterBasic as MigrateEncounterBasic,
+)
+from wayfarer.simulation.combat_commands import (
     MigrateEncounterHex as MigrateEncounterHex,
 )
 from wayfarer.simulation.combat_commands import (
@@ -142,6 +145,7 @@ class CombatService:
                 StartBasicEncounter,
                 DeclareBasicSpatialFacts,
                 EndEncounter,
+                MigrateEncounterBasic,
                 MigrateEncounterHex,
                 ContinueCriticalMiss,
                 DeclareThrownLanding,
@@ -674,6 +678,26 @@ def _migrate(
         current_actor_id=encounter.current_actor_id,
     )
     return CombatStep(state, encounter, resources, result)
+
+
+def _migrate_basic(
+    state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
+) -> CombatStep:
+    assert isinstance(command, MigrateEncounterBasic)
+    from wayfarer.simulation.mechanics.tactical import migrate_basic
+
+    encounter = migrate_basic(context.play.rules_context, state, encounter, command)
+    return CombatStep(
+        state,
+        encounter,
+        state.resources,
+        CombatResult(
+            encounter_id=encounter.id,
+            code="combat.basic_migrated",
+            round=encounter.round,
+            current_actor_id=encounter.current_actor_id,
+        ),
+    )
 
 
 def _declare_basic_facts(
@@ -2083,6 +2107,7 @@ _COMBAT_STEPS: dict[
 ] = {
     "declare_basic_spatial_facts": _declare_basic_facts,
     "migrate_encounter_hex": _migrate,
+    "migrate_encounter_basic": _migrate_basic,
     "resolve_weapon_explosion": _explosion,
     "declare_thrown_landing": _landing,
     "continue_critical_miss": _critical,

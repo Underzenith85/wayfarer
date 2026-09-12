@@ -668,6 +668,48 @@
         "title": "Hex",
         "type": "object"
       },
+      "MigrateEncounterBasic": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "migrate_encounter_basic",
+            "default": "migrate_encounter_basic",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id"
+        ],
+        "title": "MigrateEncounterBasic",
+        "type": "object"
+      },
       "ObjectCondition": {
         "additionalProperties": false,
         "properties": {
@@ -1189,6 +1231,24 @@
           "hands"
         ],
         "title": "TacticalGrip",
+        "type": "object"
+      },
+      "TacticalMigrationChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/components/schemas/MigrateEncounterBasic"
+          }
+        },
+        "required": [
+          "label",
+          "command"
+        ],
+        "title": "TacticalMigrationChoice",
         "type": "object"
       },
       "TacticalTrace": {
@@ -2106,6 +2166,14 @@
               "$ref": "#/components/schemas/EquipmentView"
             },
             "title": "Equipment",
+            "type": "array"
+          },
+          "migrations": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TacticalMigrationChoice"
+            },
+            "title": "Migrations",
             "type": "array"
           }
         },
@@ -3207,6 +3275,7 @@
                 "continue_critical_miss": "#/components/schemas/ContinueCriticalMiss",
                 "declare_thrown_landing": "#/components/schemas/DeclareThrownLanding",
                 "join_encounter": "#/components/schemas/JoinEncounter",
+                "migrate_encounter_basic": "#/components/schemas/MigrateEncounterBasic",
                 "migrate_encounter_hex": "#/components/schemas/MigrateEncounterHex",
                 "repair_equipment": "#/components/schemas/RepairEquipment",
                 "resolve_choke_effects": "#/components/schemas/ResolveChokeEffects",
@@ -3254,6 +3323,9 @@
               },
               {
                 "$ref": "#/components/schemas/JoinEncounter"
+              },
+              {
+                "$ref": "#/components/schemas/MigrateEncounterBasic"
               }
             ],
             "title": "Command"

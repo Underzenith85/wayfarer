@@ -26,6 +26,7 @@ const command: Extract<TacticalCommand, { kind: "choose_defense" }> = {
 };
 const snapshot: TacticalSnapshot = {
   equipment: [],
+  migrations: [],
   version: "tactical-v2",
   campaign_id: "campaign",
   actor_id: "a",
@@ -148,6 +149,33 @@ describe("Tactical panel", () => {
     expect(button).toHaveFocus();
     fireEvent.click(button);
     await waitFor(() => expect(client.writes).toHaveBeenCalledWith(retrieval));
+  });
+  it("offers and submits the GM representation conversion", async () => {
+    const client = new FakeClient();
+    const migration: TacticalCommand = {
+      kind: "migrate_encounter_basic",
+      id: "basic:4:fight",
+      actor_id: "gm",
+      expected_revision: 4,
+      encounter_id: "fight",
+    };
+    const convertible = structuredClone(snapshot);
+    convertible.migrations = [
+      { label: "Convert to Basic combat", command: migration },
+    ];
+    client.reads.mockResolvedValue(convertible);
+    render(
+      <TacticalPanel
+        client={client}
+        cid="campaign"
+        actor="a"
+        onChange={async () => {}}
+      />,
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Convert to Basic combat" }),
+    );
+    await waitFor(() => expect(client.writes).toHaveBeenCalledWith(migration));
   });
   it("retains the exact command after a lost response and blocks new commands", async () => {
     const client = new FakeClient();

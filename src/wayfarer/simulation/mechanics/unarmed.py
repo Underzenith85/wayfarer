@@ -130,9 +130,16 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
 
 
 def guard_control(encounter: Encounter, command: TypedCombatCommand, state: PlayState) -> None:
-    from wayfarer.simulation.combat_commands import ChooseDefense, TakeCombatTurn, TakeUnarmedTurn
+    from wayfarer.simulation.combat_commands import (
+        ChooseDefense,
+        MigrateEncounterBasic,
+        TakeCombatTurn,
+        TakeUnarmedTurn,
+    )
 
     if encounter.pending_unarmed is not None:
+        if isinstance(command, MigrateEncounterBasic):
+            return
         if (
             not isinstance(command, ChooseDefense)
             or command.actor_id != encounter.pending_unarmed.target_id

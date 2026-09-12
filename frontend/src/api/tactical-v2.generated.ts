@@ -214,6 +214,22 @@ export interface components {
       /** R */
       r: number;
     };
+    /** MigrateEncounterBasic */
+    MigrateEncounterBasic: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "migrate_encounter_basic";
+      /** Encounter Id */
+      encounter_id: string;
+    };
     /** ObjectCondition */
     ObjectCondition: {
       /** Hp */
@@ -430,6 +446,12 @@ export interface components {
       location: string;
       /** Hands */
       hands: string[];
+    };
+    /** TacticalMigrationChoice */
+    TacticalMigrationChoice: {
+      /** Label */
+      label: string;
+      command: components["schemas"]["MigrateEncounterBasic"];
     };
     /** TacticalTrace */
     TacticalTrace: {
@@ -874,6 +896,11 @@ export interface components {
        * @default []
        */
       equipment: components["schemas"]["EquipmentView"][];
+      /**
+       * Migrations
+       * @default []
+       */
+      migrations: components["schemas"]["TacticalMigrationChoice"][];
     };
     /** BasicJoinPlacement */
     BasicJoinPlacement: {
@@ -1348,7 +1375,8 @@ export interface components {
         | components["schemas"]["ContinueCriticalMiss"]
         | components["schemas"]["DeclareThrownLanding"]
         | components["schemas"]["ResolveWeaponExplosion"]
-        | components["schemas"]["JoinEncounter"];
+        | components["schemas"]["JoinEncounter"]
+        | components["schemas"]["MigrateEncounterBasic"];
     };
     TacticalError: {
       code: string;

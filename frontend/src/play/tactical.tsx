@@ -163,6 +163,22 @@ export function TacticalPanel({
           Retry same action
         </Button>
       )}
+      {!!snapshot.migrations?.length && (
+        <section aria-label="Encounter representation">
+          <h3>Encounter representation</h3>
+          <div className="tactical-actions">
+            {snapshot.migrations.map((choice) => (
+              <Button
+                key={choice.command.id}
+                disabled={busy || retry !== null}
+                onClick={() => void run(choice.command)}
+              >
+                {choice.label}
+              </Button>
+            ))}
+          </div>
+        </section>
+      )}
       {!!snapshot.equipment?.length && (
         <section aria-label="Equipment condition and work">
           <h3>Equipment</h3>

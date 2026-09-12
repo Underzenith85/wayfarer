@@ -215,7 +215,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344; [bound ranged combat skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #354, #355, #357, #359, #360, #361, #362 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
-| `gurps.tactical.hex_movement` | no | yes | partial | #105 |
+| `gurps.tactical.hex_movement` | no | yes | partial | #105; #329 adds lossless [hex-to-Basic conversion](mapless-combat.md#hex-to-basic-conversion) for representable battlefields |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
 | `gurps.tactical.visibility` | no | yes | partial | #105 |
 | `gurps.recovery.fatigue` | yes | yes | partial | [#109 details](gurps-recovery.md) |

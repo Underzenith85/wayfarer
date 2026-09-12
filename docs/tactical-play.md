@@ -23,6 +23,12 @@ CAS and durable command receipts. Replaying the same ID/payload neither migrates
 again nor spends another turn. A reused ID with another payload conflicts.
 Historic square checkpoints remain readable without migration.
 
+The additive v2 surface also exposes `migrate_encounter_basic`. A GM viewing a
+hex encounter receives a keyboard-operable “Convert to Basic combat” control.
+The server derives the Basic facts and rejects consequential geometry or a
+positioned resource that the mapless representation cannot retain; the frozen v1
+schema and controls are unchanged.
+
 ## Combat integration
 
 - `take_combat_turn` accepts an explicit `hex_path` (excluding the origin) and
