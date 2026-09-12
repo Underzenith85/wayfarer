@@ -424,7 +424,6 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -435,7 +434,265 @@
       384,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "specialties": [
+      "armoury-battlesuits",
+      "armoury-body-armor",
+      "armoury-force-shields",
+      "armoury-heavy-weapons",
+      "armoury-melee-weapons",
+      "armoury-missile-weapons",
+      "armoury-small-arms",
+      "armoury-vehicular-armor"
+    ]
+  },
+  {
+    "id": "armoury-battlesuits",
+    "name": "Armoury (Battlesuits)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "battlesuits"
+    }
+  },
+  {
+    "id": "armoury-body-armor",
+    "name": "Armoury (Body Armor)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "body-armor"
+    }
+  },
+  {
+    "id": "armoury-force-shields",
+    "name": "Armoury (Force Shields)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "force-shields"
+    }
+  },
+  {
+    "id": "armoury-heavy-weapons",
+    "name": "Armoury (Heavy Weapons)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "heavy-weapons"
+    }
+  },
+  {
+    "id": "armoury-melee-weapons",
+    "name": "Armoury (Melee Weapons)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "melee-weapons"
+    }
+  },
+  {
+    "id": "armoury-missile-weapons",
+    "name": "Armoury (Missile Weapons)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "missile-weapons"
+    }
+  },
+  {
+    "id": "armoury-small-arms",
+    "name": "Armoury (Small Arms)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "small-arms"
+    }
+  },
+  {
+    "id": "armoury-vehicular-armor",
+    "name": "Armoury (Vehicular Armor)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "armoury",
+      "name": "vehicular-armor"
+    }
   },
   {
     "id": "artillery",
@@ -4497,8 +4754,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -4506,7 +4762,201 @@
       339,
       385
     ],
-    "procedure_owner": 339
+    "procedure_owner": 339,
+    "specialties": [
+      "fast-draw-force-sword",
+      "fast-draw-knife",
+      "fast-draw-long-arm",
+      "fast-draw-pistol",
+      "fast-draw-sword",
+      "fast-draw-two-handed-sword",
+      "fast-draw-arrow",
+      "fast-draw-ammo"
+    ]
+  },
+  {
+    "id": "fast-draw-force-sword",
+    "name": "Fast-Draw (Force Sword)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "force-sword"
+    }
+  },
+  {
+    "id": "fast-draw-knife",
+    "name": "Fast-Draw (Knife)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "knife"
+    }
+  },
+  {
+    "id": "fast-draw-long-arm",
+    "name": "Fast-Draw (Long Arm)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "long-arm"
+    }
+  },
+  {
+    "id": "fast-draw-pistol",
+    "name": "Fast-Draw (Pistol)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "pistol"
+    }
+  },
+  {
+    "id": "fast-draw-sword",
+    "name": "Fast-Draw (Sword)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "sword"
+    }
+  },
+  {
+    "id": "fast-draw-two-handed-sword",
+    "name": "Fast-Draw (Two-Handed Sword)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "two-handed-sword"
+    }
+  },
+  {
+    "id": "fast-draw-arrow",
+    "name": "Fast-Draw (Arrow)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "arrow"
+    }
+  },
+  {
+    "id": "fast-draw-ammo",
+    "name": "Fast-Draw (Ammo)",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "fast-draw",
+      "name": "ammo"
+    }
   },
   {
     "id": "fast-talk",
@@ -4932,7 +5382,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -4943,7 +5392,233 @@
       383,
       385
     ],
-    "procedure_owner": 345
+    "procedure_owner": 345,
+    "specialties": [
+      "fortune-telling-astrology",
+      "fortune-telling-augury",
+      "fortune-telling-crystal-gazing",
+      "fortune-telling-dream-interpretation",
+      "fortune-telling-feng-shui",
+      "fortune-telling-palmistry",
+      "fortune-telling-tarot"
+    ]
+  },
+  {
+    "id": "fortune-telling-astrology",
+    "name": "Fortune-Telling (Astrology)",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      345,
+      366,
+      383
+    ],
+    "procedure_owner": 345,
+    "specialty": {
+      "family": "fortune-telling",
+      "name": "astrology"
+    }
+  },
+  {
+    "id": "fortune-telling-augury",
+    "name": "Fortune-Telling (Augury)",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      345,
+      366,
+      383
+    ],
+    "procedure_owner": 345,
+    "specialty": {
+      "family": "fortune-telling",
+      "name": "augury"
+    }
+  },
+  {
+    "id": "fortune-telling-crystal-gazing",
+    "name": "Fortune-Telling (Crystal Gazing)",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      345,
+      366,
+      383
+    ],
+    "procedure_owner": 345,
+    "specialty": {
+      "family": "fortune-telling",
+      "name": "crystal-gazing"
+    }
+  },
+  {
+    "id": "fortune-telling-dream-interpretation",
+    "name": "Fortune-Telling (Dream Interpretation)",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      345,
+      366,
+      383
+    ],
+    "procedure_owner": 345,
+    "specialty": {
+      "family": "fortune-telling",
+      "name": "dream-interpretation"
+    }
+  },
+  {
+    "id": "fortune-telling-feng-shui",
+    "name": "Fortune-Telling (Feng Shui)",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      345,
+      366,
+      383
+    ],
+    "procedure_owner": 345,
+    "specialty": {
+      "family": "fortune-telling",
+      "name": "feng-shui"
+    }
+  },
+  {
+    "id": "fortune-telling-palmistry",
+    "name": "Fortune-Telling (Palmistry)",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      345,
+      366,
+      383
+    ],
+    "procedure_owner": 345,
+    "specialty": {
+      "family": "fortune-telling",
+      "name": "palmistry"
+    }
+  },
+  {
+    "id": "fortune-telling-tarot",
+    "name": "Fortune-Telling (Tarot)",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      345,
+      366,
+      383
+    ],
+    "procedure_owner": 345,
+    "specialty": {
+      "family": "fortune-telling",
+      "name": "tarot"
+    }
   },
   {
     "id": "forward-observer",
@@ -5269,7 +5944,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -5279,7 +5953,133 @@
       383,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "specialties": [
+      "group-performance-choreography",
+      "group-performance-conducting",
+      "group-performance-directing",
+      "group-performance-fight-choreography"
+    ]
+  },
+  {
+    "id": "group-performance-choreography",
+    "name": "Group Performance (Choreography)",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "group-performance",
+      "name": "choreography"
+    }
+  },
+  {
+    "id": "group-performance-conducting",
+    "name": "Group Performance (Conducting)",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "group-performance",
+      "name": "conducting"
+    }
+  },
+  {
+    "id": "group-performance-directing",
+    "name": "Group Performance (Directing)",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "group-performance",
+      "name": "directing"
+    }
+  },
+  {
+    "id": "group-performance-fight-choreography",
+    "name": "Group Performance (Fight Choreography)",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "group-performance",
+      "name": "fight-choreography"
+    }
   },
   {
     "id": "gunner",
@@ -9400,8 +10200,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -9410,7 +10209,189 @@
       384,
       385
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "specialties": [
+      "meteorology-earthlike",
+      "meteorology-gas-giants",
+      "meteorology-hostile-terrestrial",
+      "meteorology-ice-dwarfs",
+      "meteorology-ice-worlds",
+      "meteorology-rock-worlds"
+    ]
+  },
+  {
+    "id": "meteorology-earthlike",
+    "name": "Meteorology (Earthlike)",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "meteorology",
+      "name": "earthlike"
+    }
+  },
+  {
+    "id": "meteorology-gas-giants",
+    "name": "Meteorology (Gas Giants)",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "meteorology",
+      "name": "gas-giants"
+    }
+  },
+  {
+    "id": "meteorology-hostile-terrestrial",
+    "name": "Meteorology (Hostile Terrestrial)",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "meteorology",
+      "name": "hostile-terrestrial"
+    }
+  },
+  {
+    "id": "meteorology-ice-dwarfs",
+    "name": "Meteorology (Ice Dwarfs)",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "meteorology",
+      "name": "ice-dwarfs"
+    }
+  },
+  {
+    "id": "meteorology-ice-worlds",
+    "name": "Meteorology (Ice Worlds)",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "meteorology",
+      "name": "ice-worlds"
+    }
+  },
+  {
+    "id": "meteorology-rock-worlds",
+    "name": "Meteorology (Rock Worlds)",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "meteorology",
+      "name": "rock-worlds"
+    }
   },
   {
     "id": "mimicry",
@@ -9428,7 +10409,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -9438,7 +10418,102 @@
       383,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "specialties": [
+      "mimicry-animal-sounds",
+      "mimicry-bird-calls",
+      "mimicry-speech"
+    ]
+  },
+  {
+    "id": "mimicry-animal-sounds",
+    "name": "Mimicry (Animal Sounds)",
+    "page": 210,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "mimicry",
+      "name": "animal-sounds"
+    }
+  },
+  {
+    "id": "mimicry-bird-calls",
+    "name": "Mimicry (Bird Calls)",
+    "page": 210,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "mimicry",
+      "name": "bird-calls"
+    }
+  },
+  {
+    "id": "mimicry-speech",
+    "name": "Mimicry (Speech)",
+    "page": 210,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "mimicry",
+      "name": "speech"
+    }
   },
   {
     "id": "mind-block",
@@ -9635,7 +10710,6 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -9646,7 +10720,144 @@
       384,
       385
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "specialties": [
+      "navigation-air",
+      "navigation-land",
+      "navigation-sea",
+      "navigation-space",
+      "navigation-hyperspace"
+    ]
+  },
+  {
+    "id": "navigation-air",
+    "name": "Navigation (Air)",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "navigation",
+      "name": "air"
+    }
+  },
+  {
+    "id": "navigation-land",
+    "name": "Navigation (Land)",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "navigation",
+      "name": "land"
+    }
+  },
+  {
+    "id": "navigation-sea",
+    "name": "Navigation (Sea)",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "navigation",
+      "name": "sea"
+    }
+  },
+  {
+    "id": "navigation-space",
+    "name": "Navigation (Space)",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "navigation",
+      "name": "space"
+    }
+  },
+  {
+    "id": "navigation-hyperspace",
+    "name": "Navigation (Hyperspace)",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383,
+      384
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "navigation",
+      "name": "hyperspace"
+    }
   },
   {
     "id": "nbc-suit",
@@ -10069,7 +11280,6 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -10081,7 +11291,75 @@
       384,
       385
     ],
-    "procedure_owner": 342
+    "procedure_owner": 342,
+    "specialties": [
+      "pharmacy-herbal",
+      "pharmacy-synthetic"
+    ]
+  },
+  {
+    "id": "pharmacy-herbal",
+    "name": "Pharmacy (Herbal)",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      109,
+      112,
+      336,
+      342,
+      383,
+      384
+    ],
+    "procedure_owner": 342,
+    "specialty": {
+      "family": "pharmacy",
+      "name": "herbal"
+    }
+  },
+  {
+    "id": "pharmacy-synthetic",
+    "name": "Pharmacy (Synthetic)",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      109,
+      112,
+      336,
+      342,
+      383,
+      384
+    ],
+    "procedure_owner": 342,
+    "specialty": {
+      "family": "pharmacy",
+      "name": "synthetic"
+    }
   },
   {
     "id": "philosophy",
@@ -11516,8 +12794,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -11525,7 +12802,96 @@
       339,
       385
     ],
-    "procedure_owner": 339
+    "procedure_owner": 339,
+    "specialties": [
+      "shield-standard",
+      "shield-buckler",
+      "shield-force"
+    ]
+  },
+  {
+    "id": "shield-standard",
+    "name": "Shield (Shield)",
+    "page": 220,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "shield",
+      "name": "standard"
+    }
+  },
+  {
+    "id": "shield-buckler",
+    "name": "Shield (Buckler)",
+    "page": 220,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "shield",
+      "name": "buckler"
+    }
+  },
+  {
+    "id": "shield-force",
+    "name": "Shield (Force)",
+    "page": 220,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "shield",
+      "name": "force"
+    }
   },
   {
     "id": "shiphandling",
@@ -11979,7 +13345,6 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -11990,7 +13355,105 @@
       384,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "specialties": [
+      "smith-copper",
+      "smith-iron",
+      "smith-lead-and-tin"
+    ]
+  },
+  {
+    "id": "smith-copper",
+    "name": "Smith (Copper)",
+    "page": 221,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "smith",
+      "name": "copper"
+    }
+  },
+  {
+    "id": "smith-iron",
+    "name": "Smith (Iron)",
+    "page": 221,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "smith",
+      "name": "iron"
+    }
+  },
+  {
+    "id": "smith-lead-and-tin",
+    "name": "Smith (Lead and Tin)",
+    "page": 221,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      338,
+      383,
+      384
+    ],
+    "procedure_owner": 338,
+    "specialty": {
+      "family": "smith",
+      "name": "lead-and-tin"
+    }
   },
   {
     "id": "smuggling",
@@ -12295,7 +13758,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -12305,7 +13767,102 @@
       383,
       385
     ],
-    "procedure_owner": 339
+    "procedure_owner": 339,
+    "specialties": [
+      "strategy-land",
+      "strategy-naval",
+      "strategy-space"
+    ]
+  },
+  {
+    "id": "strategy-land",
+    "name": "Strategy (Land)",
+    "page": 222,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      339,
+      383
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "strategy",
+      "name": "land"
+    }
+  },
+  {
+    "id": "strategy-naval",
+    "name": "Strategy (Naval)",
+    "page": 222,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      339,
+      383
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "strategy",
+      "name": "naval"
+    }
+  },
+  {
+    "id": "strategy-space",
+    "name": "Strategy (Space)",
+    "page": 222,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      339,
+      383
+    ],
+    "procedure_owner": 339,
+    "specialty": {
+      "family": "strategy",
+      "name": "space"
+    }
   },
   {
     "id": "streetwise",
@@ -12560,7 +14117,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -12570,7 +14126,475 @@
       383,
       385
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "specialties": [
+      "survival-arctic",
+      "survival-desert",
+      "survival-island-beach",
+      "survival-jungle",
+      "survival-mountain",
+      "survival-plains",
+      "survival-swampland",
+      "survival-woodlands",
+      "survival-bank",
+      "survival-deep-ocean-vent",
+      "survival-fresh-water-lake",
+      "survival-open-ocean",
+      "survival-reef",
+      "survival-river-stream",
+      "survival-salt-water-sea",
+      "survival-tropical-lagoon"
+    ]
+  },
+  {
+    "id": "survival-arctic",
+    "name": "Survival (Arctic)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "arctic"
+    }
+  },
+  {
+    "id": "survival-desert",
+    "name": "Survival (Desert)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "desert"
+    }
+  },
+  {
+    "id": "survival-island-beach",
+    "name": "Survival (Island/Beach)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "island-beach"
+    }
+  },
+  {
+    "id": "survival-jungle",
+    "name": "Survival (Jungle)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "jungle"
+    }
+  },
+  {
+    "id": "survival-mountain",
+    "name": "Survival (Mountain)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "mountain"
+    }
+  },
+  {
+    "id": "survival-plains",
+    "name": "Survival (Plains)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "plains"
+    }
+  },
+  {
+    "id": "survival-swampland",
+    "name": "Survival (Swampland)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "swampland"
+    }
+  },
+  {
+    "id": "survival-bank",
+    "name": "Survival (Bank)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "bank"
+    }
+  },
+  {
+    "id": "survival-deep-ocean-vent",
+    "name": "Survival (Deep Ocean Vent)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "deep-ocean-vent"
+    }
+  },
+  {
+    "id": "survival-fresh-water-lake",
+    "name": "Survival (Fresh-Water Lake)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "fresh-water-lake"
+    }
+  },
+  {
+    "id": "survival-open-ocean",
+    "name": "Survival (Open Ocean)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "open-ocean"
+    }
+  },
+  {
+    "id": "survival-reef",
+    "name": "Survival (Reef)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "reef"
+    }
+  },
+  {
+    "id": "survival-river-stream",
+    "name": "Survival (River/Stream)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "river-stream"
+    }
+  },
+  {
+    "id": "survival-salt-water-sea",
+    "name": "Survival (Salt-Water Sea)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "salt-water-sea"
+    }
+  },
+  {
+    "id": "survival-tropical-lagoon",
+    "name": "Survival (Tropical Lagoon)",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343,
+      383
+    ],
+    "procedure_owner": 343,
+    "specialty": {
+      "family": "survival",
+      "name": "tropical-lagoon"
+    }
   },
   {
     "id": "survival-woodlands",

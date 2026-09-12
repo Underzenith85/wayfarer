@@ -150,6 +150,86 @@
       ]
     },
     {
+      "id": "armoury-battlesuits",
+      "name": "Armoury (Battlesuits)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-battlesuits"
+      ],
+      "parent": "armoury"
+    },
+    {
+      "id": "armoury-body-armor",
+      "name": "Armoury (Body Armor)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-body-armor"
+      ],
+      "parent": "armoury"
+    },
+    {
+      "id": "armoury-force-shields",
+      "name": "Armoury (Force Shields)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-force-shields"
+      ],
+      "parent": "armoury"
+    },
+    {
+      "id": "armoury-heavy-weapons",
+      "name": "Armoury (Heavy Weapons)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-heavy-weapons"
+      ],
+      "parent": "armoury"
+    },
+    {
+      "id": "armoury-melee-weapons",
+      "name": "Armoury (Melee Weapons)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-melee-weapons"
+      ],
+      "parent": "armoury"
+    },
+    {
+      "id": "armoury-missile-weapons",
+      "name": "Armoury (Missile Weapons)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-missile-weapons"
+      ],
+      "parent": "armoury"
+    },
+    {
+      "id": "armoury-small-arms",
+      "name": "Armoury (Small Arms)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-small-arms"
+      ],
+      "parent": "armoury"
+    },
+    {
+      "id": "armoury-vehicular-armor",
+      "name": "Armoury (Vehicular Armor)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "armoury-vehicular-armor"
+      ],
+      "parent": "armoury"
+    },
+    {
       "id": "artillery",
       "name": "Artillery",
       "page": 178,
@@ -1506,6 +1586,86 @@
       ]
     },
     {
+      "id": "fast-draw-force-sword",
+      "name": "Fast-Draw (Force Sword)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-force-sword"
+      ],
+      "parent": "fast-draw"
+    },
+    {
+      "id": "fast-draw-knife",
+      "name": "Fast-Draw (Knife)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-knife"
+      ],
+      "parent": "fast-draw"
+    },
+    {
+      "id": "fast-draw-long-arm",
+      "name": "Fast-Draw (Long Arm)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-long-arm"
+      ],
+      "parent": "fast-draw"
+    },
+    {
+      "id": "fast-draw-pistol",
+      "name": "Fast-Draw (Pistol)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-pistol"
+      ],
+      "parent": "fast-draw"
+    },
+    {
+      "id": "fast-draw-sword",
+      "name": "Fast-Draw (Sword)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-sword"
+      ],
+      "parent": "fast-draw"
+    },
+    {
+      "id": "fast-draw-two-handed-sword",
+      "name": "Fast-Draw (Two-Handed Sword)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-two-handed-sword"
+      ],
+      "parent": "fast-draw"
+    },
+    {
+      "id": "fast-draw-arrow",
+      "name": "Fast-Draw (Arrow)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-arrow"
+      ],
+      "parent": "fast-draw"
+    },
+    {
+      "id": "fast-draw-ammo",
+      "name": "Fast-Draw (Ammo)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "fast-draw-ammo"
+      ],
+      "parent": "fast-draw"
+    },
+    {
       "id": "fast-talk",
       "name": "Fast-Talk",
       "page": 195,
@@ -1659,6 +1819,76 @@
       ]
     },
     {
+      "id": "fortune-telling-astrology",
+      "name": "Fortune-Telling (Astrology)",
+      "page": 196,
+      "kind": "expansion",
+      "targets": [
+        "fortune-telling-astrology"
+      ],
+      "parent": "fortune-telling"
+    },
+    {
+      "id": "fortune-telling-augury",
+      "name": "Fortune-Telling (Augury)",
+      "page": 196,
+      "kind": "expansion",
+      "targets": [
+        "fortune-telling-augury"
+      ],
+      "parent": "fortune-telling"
+    },
+    {
+      "id": "fortune-telling-crystal-gazing",
+      "name": "Fortune-Telling (Crystal Gazing)",
+      "page": 196,
+      "kind": "expansion",
+      "targets": [
+        "fortune-telling-crystal-gazing"
+      ],
+      "parent": "fortune-telling"
+    },
+    {
+      "id": "fortune-telling-dream-interpretation",
+      "name": "Fortune-Telling (Dream Interpretation)",
+      "page": 196,
+      "kind": "expansion",
+      "targets": [
+        "fortune-telling-dream-interpretation"
+      ],
+      "parent": "fortune-telling"
+    },
+    {
+      "id": "fortune-telling-feng-shui",
+      "name": "Fortune-Telling (Feng Shui)",
+      "page": 196,
+      "kind": "expansion",
+      "targets": [
+        "fortune-telling-feng-shui"
+      ],
+      "parent": "fortune-telling"
+    },
+    {
+      "id": "fortune-telling-palmistry",
+      "name": "Fortune-Telling (Palmistry)",
+      "page": 196,
+      "kind": "expansion",
+      "targets": [
+        "fortune-telling-palmistry"
+      ],
+      "parent": "fortune-telling"
+    },
+    {
+      "id": "fortune-telling-tarot",
+      "name": "Fortune-Telling (Tarot)",
+      "page": 196,
+      "kind": "expansion",
+      "targets": [
+        "fortune-telling-tarot"
+      ],
+      "parent": "fortune-telling"
+    },
+    {
       "id": "forward-observer",
       "name": "Forward Observer",
       "page": 196,
@@ -1765,6 +1995,46 @@
       "targets": [
         "group-performance"
       ]
+    },
+    {
+      "id": "group-performance-choreography",
+      "name": "Group Performance (Choreography)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "group-performance-choreography"
+      ],
+      "parent": "group-performance"
+    },
+    {
+      "id": "group-performance-conducting",
+      "name": "Group Performance (Conducting)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "group-performance-conducting"
+      ],
+      "parent": "group-performance"
+    },
+    {
+      "id": "group-performance-directing",
+      "name": "Group Performance (Directing)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "group-performance-directing"
+      ],
+      "parent": "group-performance"
+    },
+    {
+      "id": "group-performance-fight-choreography",
+      "name": "Group Performance (Fight Choreography)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "group-performance-fight-choreography"
+      ],
+      "parent": "group-performance"
     },
     {
       "id": "gunner",
@@ -2889,6 +3159,66 @@
       ]
     },
     {
+      "id": "meteorology-earthlike",
+      "name": "Meteorology (Earthlike)",
+      "page": 209,
+      "kind": "expansion",
+      "targets": [
+        "meteorology-earthlike"
+      ],
+      "parent": "meteorology"
+    },
+    {
+      "id": "meteorology-gas-giants",
+      "name": "Meteorology (Gas Giants)",
+      "page": 209,
+      "kind": "expansion",
+      "targets": [
+        "meteorology-gas-giants"
+      ],
+      "parent": "meteorology"
+    },
+    {
+      "id": "meteorology-hostile-terrestrial",
+      "name": "Meteorology (Hostile Terrestrial)",
+      "page": 209,
+      "kind": "expansion",
+      "targets": [
+        "meteorology-hostile-terrestrial"
+      ],
+      "parent": "meteorology"
+    },
+    {
+      "id": "meteorology-ice-dwarfs",
+      "name": "Meteorology (Ice Dwarfs)",
+      "page": 209,
+      "kind": "expansion",
+      "targets": [
+        "meteorology-ice-dwarfs"
+      ],
+      "parent": "meteorology"
+    },
+    {
+      "id": "meteorology-ice-worlds",
+      "name": "Meteorology (Ice Worlds)",
+      "page": 209,
+      "kind": "expansion",
+      "targets": [
+        "meteorology-ice-worlds"
+      ],
+      "parent": "meteorology"
+    },
+    {
+      "id": "meteorology-rock-worlds",
+      "name": "Meteorology (Rock Worlds)",
+      "page": 209,
+      "kind": "expansion",
+      "targets": [
+        "meteorology-rock-worlds"
+      ],
+      "parent": "meteorology"
+    },
+    {
       "id": "mimicry",
       "name": "Mimicry",
       "page": 210,
@@ -2896,6 +3226,36 @@
       "targets": [
         "mimicry"
       ]
+    },
+    {
+      "id": "mimicry-animal-sounds",
+      "name": "Mimicry (Animal Sounds)",
+      "page": 210,
+      "kind": "expansion",
+      "targets": [
+        "mimicry-animal-sounds"
+      ],
+      "parent": "mimicry"
+    },
+    {
+      "id": "mimicry-bird-calls",
+      "name": "Mimicry (Bird Calls)",
+      "page": 210,
+      "kind": "expansion",
+      "targets": [
+        "mimicry-bird-calls"
+      ],
+      "parent": "mimicry"
+    },
+    {
+      "id": "mimicry-speech",
+      "name": "Mimicry (Speech)",
+      "page": 210,
+      "kind": "expansion",
+      "targets": [
+        "mimicry-speech"
+      ],
+      "parent": "mimicry"
     },
     {
       "id": "mind-block",
@@ -2977,6 +3337,56 @@
       "targets": [
         "navigation"
       ]
+    },
+    {
+      "id": "navigation-air",
+      "name": "Navigation (Air)",
+      "page": 211,
+      "kind": "expansion",
+      "targets": [
+        "navigation-air"
+      ],
+      "parent": "navigation"
+    },
+    {
+      "id": "navigation-land",
+      "name": "Navigation (Land)",
+      "page": 211,
+      "kind": "expansion",
+      "targets": [
+        "navigation-land"
+      ],
+      "parent": "navigation"
+    },
+    {
+      "id": "navigation-sea",
+      "name": "Navigation (Sea)",
+      "page": 211,
+      "kind": "expansion",
+      "targets": [
+        "navigation-sea"
+      ],
+      "parent": "navigation"
+    },
+    {
+      "id": "navigation-space",
+      "name": "Navigation (Space)",
+      "page": 211,
+      "kind": "expansion",
+      "targets": [
+        "navigation-space"
+      ],
+      "parent": "navigation"
+    },
+    {
+      "id": "navigation-hyperspace",
+      "name": "Navigation (Hyperspace)",
+      "page": 211,
+      "kind": "expansion",
+      "targets": [
+        "navigation-hyperspace"
+      ],
+      "parent": "navigation"
     },
     {
       "id": "nbc-suit",
@@ -3142,6 +3552,26 @@
       "targets": [
         "pharmacy"
       ]
+    },
+    {
+      "id": "pharmacy-herbal",
+      "name": "Pharmacy (Herbal)",
+      "page": 213,
+      "kind": "expansion",
+      "targets": [
+        "pharmacy-herbal"
+      ],
+      "parent": "pharmacy"
+    },
+    {
+      "id": "pharmacy-synthetic",
+      "name": "Pharmacy (Synthetic)",
+      "page": 213,
+      "kind": "expansion",
+      "targets": [
+        "pharmacy-synthetic"
+      ],
+      "parent": "pharmacy"
     },
     {
       "id": "philosophy",
@@ -3654,6 +4084,36 @@
       ]
     },
     {
+      "id": "shield-standard",
+      "name": "Shield (Shield)",
+      "page": 220,
+      "kind": "expansion",
+      "targets": [
+        "shield-standard"
+      ],
+      "parent": "shield"
+    },
+    {
+      "id": "shield-buckler",
+      "name": "Shield (Buckler)",
+      "page": 220,
+      "kind": "expansion",
+      "targets": [
+        "shield-buckler"
+      ],
+      "parent": "shield"
+    },
+    {
+      "id": "shield-force",
+      "name": "Shield (Force)",
+      "page": 220,
+      "kind": "expansion",
+      "targets": [
+        "shield-force"
+      ],
+      "parent": "shield"
+    },
+    {
       "id": "shiphandling",
       "name": "Shiphandling",
       "page": 220,
@@ -3784,6 +4244,36 @@
       ]
     },
     {
+      "id": "smith-copper",
+      "name": "Smith (Copper)",
+      "page": 221,
+      "kind": "expansion",
+      "targets": [
+        "smith-copper"
+      ],
+      "parent": "smith"
+    },
+    {
+      "id": "smith-iron",
+      "name": "Smith (Iron)",
+      "page": 221,
+      "kind": "expansion",
+      "targets": [
+        "smith-iron"
+      ],
+      "parent": "smith"
+    },
+    {
+      "id": "smith-lead-and-tin",
+      "name": "Smith (Lead and Tin)",
+      "page": 221,
+      "kind": "expansion",
+      "targets": [
+        "smith-lead-and-tin"
+      ],
+      "parent": "smith"
+    },
+    {
       "id": "smuggling",
       "name": "Smuggling",
       "page": 221,
@@ -3892,6 +4382,36 @@
       ]
     },
     {
+      "id": "strategy-land",
+      "name": "Strategy (Land)",
+      "page": 222,
+      "kind": "expansion",
+      "targets": [
+        "strategy-land"
+      ],
+      "parent": "strategy"
+    },
+    {
+      "id": "strategy-naval",
+      "name": "Strategy (Naval)",
+      "page": 222,
+      "kind": "expansion",
+      "targets": [
+        "strategy-naval"
+      ],
+      "parent": "strategy"
+    },
+    {
+      "id": "strategy-space",
+      "name": "Strategy (Space)",
+      "page": 222,
+      "kind": "expansion",
+      "targets": [
+        "strategy-space"
+      ],
+      "parent": "strategy"
+    },
+    {
       "id": "streetwise",
       "name": "Streetwise",
       "page": 223,
@@ -3983,6 +4503,156 @@
       "targets": [
         "survival"
       ]
+    },
+    {
+      "id": "survival-arctic",
+      "name": "Survival (Arctic)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-arctic"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-desert",
+      "name": "Survival (Desert)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-desert"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-island-beach",
+      "name": "Survival (Island/Beach)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-island-beach"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-jungle",
+      "name": "Survival (Jungle)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-jungle"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-mountain",
+      "name": "Survival (Mountain)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-mountain"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-plains",
+      "name": "Survival (Plains)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-plains"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-swampland",
+      "name": "Survival (Swampland)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-swampland"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-bank",
+      "name": "Survival (Bank)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-bank"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-deep-ocean-vent",
+      "name": "Survival (Deep Ocean Vent)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-deep-ocean-vent"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-fresh-water-lake",
+      "name": "Survival (Fresh-Water Lake)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-fresh-water-lake"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-open-ocean",
+      "name": "Survival (Open Ocean)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-open-ocean"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-reef",
+      "name": "Survival (Reef)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-reef"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-river-stream",
+      "name": "Survival (River/Stream)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-river-stream"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-salt-water-sea",
+      "name": "Survival (Salt-Water Sea)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-salt-water-sea"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "survival-tropical-lagoon",
+      "name": "Survival (Tropical Lagoon)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-tropical-lagoon"
+      ],
+      "parent": "survival"
     },
     {
       "id": "survival-woodlands",

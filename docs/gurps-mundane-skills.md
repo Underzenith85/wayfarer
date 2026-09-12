@@ -55,7 +55,7 @@ also verifies names, pages and owners against the supernatural catalog.
 | Bound runtime procedures | 233 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357). Of all inventory rows, 92 currently have no remaining blocker. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **465** | **437 inventory rows plus 28 transferred rows; 92 inventory rows are available.** |
+| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 92 inventory rows are available.** |
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
@@ -108,7 +108,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #382 | Reconciled: the supplied Characters third printing is the selected source artifact. |
 | #383 | Conditional skill defaults and the remaining alternative prerequisites. |
 | #384 | Complete. `/TL` purchases record TL explicitly, profiles activating those skills require an explicit campaign TL, and cinematic templates name and enforce their optional-rule selections. |
-| #385 | Nineteen campaign-subject specialty axes are recorded as open families; 12 finite families and one technique template remain. |
+| #385 | Complete. All open and finite specialty families are recorded; Motion-Picture Camera is explicitly transferred to its open Photography parent work in #338. |
 | #338 | Arts, crafts and trade procedures. |
 | #339 | Melee, defense and tactical skill procedures. |
 | #340 | Combat technique procedures and parent-specific dispatch. |
@@ -480,9 +480,10 @@ What this issue could not settle is split into concrete children, each owning
 specific blockers rather than a share of a general one. **#382** selected the
 supplied printing and is resolved; **#383** owns conditional defaults and the
 remaining alternative prerequisites, **#384** (complete) technology-level
-context and optional-rule selection, and **#385** the remaining specialty
-families. Nineteen of #385's families now explicitly name their campaign-scoped
-subject rather than treating source examples as an exhaustive list.
+context and optional-rule selection, and **#385** (complete) specialty-family
+expansion. Nineteen of #385's families explicitly name their campaign-scoped
+subject rather than treating source examples as an exhaustive list; its finite
+families have concrete source-indexed children.
 `blocker_owners` names them
 per row, so #336 itself keeps nothing.
 
