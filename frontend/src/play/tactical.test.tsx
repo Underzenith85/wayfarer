@@ -27,6 +27,7 @@ const command: Extract<TacticalCommand, { kind: "choose_defense" }> = {
 const snapshot: TacticalSnapshot = {
   equipment: [],
   migrations: [],
+  withdrawals: [],
   version: "tactical-v2",
   campaign_id: "campaign",
   actor_id: "a",
@@ -176,6 +177,32 @@ describe("Tactical panel", () => {
       await screen.findByRole("button", { name: "Convert to Basic combat" }),
     );
     await waitFor(() => expect(client.writes).toHaveBeenCalledWith(migration));
+  });
+  it("offers a safe withdrawal even when Basic combat has no map projection", async () => {
+    const client = new FakeClient();
+    const withdrawal: TacticalCommand = {
+      kind: "withdraw_encounter",
+      id: "withdraw:a",
+      actor_id: "a",
+      expected_revision: 5,
+      encounter_id: "fight",
+      new_group_id: "independent:a",
+    };
+    const safe = structuredClone(snapshot);
+    safe.encounters = [];
+    safe.withdrawals = [{ label: "Leave combat", command: withdrawal }];
+    client.reads.mockResolvedValue(safe);
+    render(
+      <TacticalPanel
+        client={client}
+        cid="campaign"
+        actor="a"
+        onChange={async () => {}}
+      />,
+    );
+    expect(await screen.findByText(/safe departure boundary/)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Leave combat" }));
+    await waitFor(() => expect(client.writes).toHaveBeenCalledWith(withdrawal));
   });
   it("retains the exact command after a lost response and blocks new commands", async () => {
     const client = new FakeClient();

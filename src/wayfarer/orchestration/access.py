@@ -447,6 +447,7 @@ class CampaignAccess:
                 "choose_defense",
                 "end_encounter",
                 "join_encounter",
+                "withdraw_encounter",
                 "migrate_encounter_hex",
                 "migrate_encounter_basic",
             ):

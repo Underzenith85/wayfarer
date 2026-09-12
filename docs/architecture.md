@@ -284,6 +284,11 @@ in one place.
   fail closed. `validate_contexts` checks scene ownership for Basic combat and the
   scene-to-template location for both coordinate systems. Which map a client draws
   is a projection, never a mechanic.
+- **Individual withdrawal.** `WithdrawEncounter` finalizes an already resolved Move
+  at a safe Basic or hex boundary. It removes only that actor from active initiative,
+  preserves their combatant record for round-boundary reentry, and creates a
+  same-scene subgroup without advancing or copying shared time. See
+  [individual combat withdrawal](combat-withdrawal.md).
 
 ## Consequences
 

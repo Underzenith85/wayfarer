@@ -22,8 +22,13 @@ from wayfarer.simulation.combat import (
     Combatant,
     CombatEngine,
     CombatResult,
+    CombatWithdrawal,
     CoverSpatialFact,
     Encounter,
+    HexSpatialContext,
+    ReachSpatialFact,
+    RetreatSpatialFact,
+    VisibilitySpatialFact,
     basic_visible,
 )
 from wayfarer.simulation.combat_commands import (
@@ -94,6 +99,9 @@ from wayfarer.simulation.combat_commands import (
 )
 from wayfarer.simulation.combat_commands import (
     TypedCombatCommand as TypedCombatCommand,
+)
+from wayfarer.simulation.combat_commands import (
+    WithdrawEncounter as WithdrawEncounter,
 )
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS
 from wayfarer.simulation.mechanics.injury import resolve_injury
@@ -944,6 +952,16 @@ def _join(
     joining_actor_id = command.joining_actor_id or command.actor_id
     if joining_actor_id in encounter.turn_order:
         raise ConflictError("Actor already participates")
+    prior_withdrawal = next(
+        (
+            entry
+            for entry in reversed(encounter.withdrawals)
+            if entry.actor.actor_id == joining_actor_id
+        ),
+        None,
+    )
+    if prior_withdrawal is not None and encounter.turn_index != 0:
+        raise ConflictError("Returning combatants rejoin only at a round boundary")
     joining_actor = next((a for a in state.actors if a.actor_id == joining_actor_id), None)
     if (
         joining_actor is None
@@ -1012,31 +1030,44 @@ def _join(
             raise ValidationError(
                 "Basic reinforcement placement requires one complete fact set per combatant"
             )
-    build, _ = play.engine.reviewer.activate(
-        joining_actor.proposal,
-        joining_actor.approval,
-        campaign_id=state.campaign_id,
-        actor_id=joining_actor.actor_id,
-    )
-    initiative = int(next(v.value for v in build.sheet.values if v.target == "attribute:dx"))
-    participant = Combatant(
-        actor_id=joining_actor.actor_id,
-        initiative=initiative,
-        position=placement.position
-        if isinstance(placement, (SquareJoinPlacement, HexJoinPlacement))
-        else None,
-        facing=placement.facing if isinstance(placement, SquareJoinPlacement) else "north",
-        hex_facing=placement.facing if isinstance(placement, HexJoinPlacement) else None,
-        reach=engine.rules.default_reach,
-        movement_allowance=engine.rules.movement_allowance,
-        ready_item_ids=tuple(
-            sorted(
-                i.id
-                for i in resources.items
-                if i.owner_id == joining_actor.actor_id and i.equipped and i.ready
-            )
-        ),
-    )
+    if prior_withdrawal is None:
+        build, _ = play.engine.reviewer.activate(
+            joining_actor.proposal,
+            joining_actor.approval,
+            campaign_id=state.campaign_id,
+            actor_id=joining_actor.actor_id,
+        )
+        initiative = int(next(v.value for v in build.sheet.values if v.target == "attribute:dx"))
+        participant = Combatant(
+            actor_id=joining_actor.actor_id,
+            initiative=initiative,
+            position=placement.position
+            if isinstance(placement, (SquareJoinPlacement, HexJoinPlacement))
+            else None,
+            facing=placement.facing if isinstance(placement, SquareJoinPlacement) else "north",
+            hex_facing=placement.facing if isinstance(placement, HexJoinPlacement) else None,
+            reach=engine.rules.default_reach,
+            movement_allowance=engine.rules.movement_allowance,
+            ready_item_ids=tuple(
+                sorted(
+                    i.id
+                    for i in resources.items
+                    if i.owner_id == joining_actor.actor_id and i.equipped and i.ready
+                )
+            ),
+        )
+    else:
+        participant = prior_withdrawal.actor.model_copy(
+            update={
+                "position": placement.position
+                if isinstance(placement, (SquareJoinPlacement, HexJoinPlacement))
+                else None,
+                "facing": placement.facing
+                if isinstance(placement, SquareJoinPlacement)
+                else prior_withdrawal.actor.facing,
+                "hex_facing": placement.facing if isinstance(placement, HexJoinPlacement) else None,
+            }
+        )
     if isinstance(encounter.spatial, BasicSpatialContext):
         encounter = encounter.model_copy(
             update={
@@ -1121,6 +1152,172 @@ def _end(
         current_actor_id=encounter.current_actor_id,
     )
     return CombatStep(state, encounter, resources, result)
+
+
+def _withdraw(
+    state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
+) -> CombatStep:
+    """Finalize a resolved flight without granting another movement or action."""
+    assert isinstance(command, WithdrawEncounter)
+    if (
+        encounter.status != "active"
+        or encounter.pending_defense is not None
+        or encounter.pending_unarmed is not None
+        or encounter.wait_interrupt is not None
+        or encounter.blocked_reason is not None
+    ):
+        raise ConflictError("Withdrawal requires a resolved combat boundary")
+    actor = next((p for p in encounter.participants if p.actor_id == command.actor_id), None)
+    if actor is None:
+        raise ValidationError("Actor is not a combat participant")
+    if actor.last_maneuver != "move":
+        raise ValidationError("Withdraw after resolving a Move maneuver")
+    if (
+        actor.grappled
+        or actor.pinned
+        or actor.entangled is not None
+        or any(command.actor_id in (grip.holder_id, grip.target_id) for grip in encounter.grips)
+    ):
+        raise ValidationError("Escape restraint before withdrawing")
+
+    others = tuple(p for p in encounter.participants if p.actor_id != command.actor_id)
+    spatial = encounter.spatial
+    if isinstance(spatial, BasicSpatialContext):
+        for other in others:
+            reach = spatial.active("reach", other.actor_id, command.actor_id)
+            visible = spatial.active("visibility", other.actor_id, command.actor_id)
+            retreat = spatial.active("retreat", command.actor_id, other.actor_id)
+            if (
+                not isinstance(reach, ReachSpatialFact)
+                or reach.relation != "separated"
+                or not isinstance(visible, VisibilitySpatialFact)
+                or visible.visible
+                or not isinstance(retreat, RetreatSpatialFact)
+                or not retreat.feasible
+            ):
+                raise ValidationError("Basic withdrawal requires safe authoritative facts")
+        spatial = spatial.model_copy(
+            update={
+                "facts": tuple(
+                    fact
+                    for fact in spatial.facts
+                    if command.actor_id not in (fact.subject_id, fact.object_id)
+                )
+            }
+        )
+    elif isinstance(spatial, HexSpatialContext):
+        from wayfarer.simulation.hex_geometry import Hex, neighbor
+        from wayfarer.simulation.tactical import sight
+
+        board = context.play.rules_context.require_hex(encounter)
+        cells = {cell.position for cell in board.cells}
+        position = encounter.placement(command.actor_id).position
+        assert isinstance(position, Hex)
+        if not any(neighbor(position, direction) not in cells for direction in range(6)):
+            raise ValidationError("Hex withdrawal requires a battlefield boundary")
+        if any(
+            CombatEngine.distance(encounter.placement(other.actor_id).position, position)
+            <= other.reach
+            or sight(encounter, other, actor, board=board)
+            for other in others
+        ):
+            raise ValidationError("A visible or reachable combatant can pursue")
+        spatial = spatial.model_copy(
+            update={
+                "placements": tuple(
+                    placement
+                    for placement in spatial.placements
+                    if placement.actor_id != command.actor_id
+                )
+            }
+        )
+    else:
+        raise ValidationError("Square withdrawal needs explicit adjudication")
+
+    from wayfarer.simulation.party import Subgroup, group_for
+
+    if not state.party.groups:
+        raise ValidationError("Withdrawal requires shared-time party state")
+    group = group_for(state, command.actor_id)
+    if len(group.actor_ids) < 2 or any(g.id == command.new_group_id for g in state.party.groups):
+        raise ValidationError("Withdrawal requires a fresh independent subgroup")
+    new_group = Subgroup(
+        id=command.new_group_id,
+        scene_id=group.scene_id,
+        actor_ids=(command.actor_id,),
+        ready_through=group.ready_through,
+    )
+    groups = tuple(
+        g.model_copy(
+            update={
+                "actor_ids": tuple(a for a in g.actor_ids if a != command.actor_id),
+                "generation": g.generation + 1,
+            }
+        )
+        if g.id == group.id
+        else g
+        for g in state.party.groups
+    ) + (new_group,)
+    state = state.model_copy(update={"party": state.party.model_copy(update={"groups": groups})})
+
+    removed_index = encounter.turn_order.index(command.actor_id)
+    order = tuple(a for a in encounter.turn_order if a != command.actor_id)
+    round_number = encounter.round
+    if removed_index == encounter.turn_index:
+        if removed_index == len(order):
+            turn_index = 0
+            round_number += 1
+        else:
+            turn_index = removed_index
+    else:
+        turn_index = encounter.turn_index - int(removed_index < encounter.turn_index)
+    completed = len(order) == 1
+    encounter = encounter.model_copy(
+        update={
+            "participants": others,
+            "turn_order": order,
+            "turn_index": turn_index,
+            "round": round_number,
+            "spatial_context": spatial,
+            "status": "completed" if completed else "active",
+            "completion_reason": "withdrawal" if completed else None,
+            "close_pairs": tuple(
+                pair for pair in encounter.close_pairs if command.actor_id not in pair
+            ),
+            "ranged_situations": tuple(
+                situation
+                for situation in encounter.ranged_situations
+                if command.actor_id not in (situation.attacker_id, situation.defender_id)
+            ),
+            "withdrawals": encounter.withdrawals
+            + (
+                CombatWithdrawal(
+                    actor=actor,
+                    round=encounter.round,
+                    turn_index=removed_index,
+                    group_id=command.new_group_id,
+                ),
+            ),
+        }
+    )
+    return CombatStep(
+        state,
+        encounter,
+        state.resources,
+        CombatResult(
+            encounter_id=encounter.id,
+            code="combat.withdrawn",
+            round=encounter.round,
+            current_actor_id=encounter.current_actor_id,
+        ),
+    )
+
+
+def preview_withdrawal(
+    play: PlayService, state: PlayState, encounter: Encounter, command: WithdrawEncounter
+) -> None:
+    """Validate a withdrawal choice without committing state or advancing clocks."""
+    _withdraw(state, command, encounter, CombatContext(play, state))
 
 
 def _validate_turn(
@@ -1298,6 +1495,9 @@ def _preview_turn(
             hex_path=command.hex_path,
             hex_facing=command.hex_facing,
             basic_move=command.basic_move,
+            spatial_revision=(
+                command.expected_revision + 1 if command.basic_move is not None else None
+            ),
         )
         if preview.pending_defense is not None:
             from wayfarer.simulation.mechanics.gurps_melee import prepare_attack
@@ -1670,6 +1870,9 @@ def _take_turn(
         hex_path=command_for_turn.hex_path,
         hex_facing=command_for_turn.hex_facing,
         basic_move=command_for_turn.basic_move,
+        spatial_revision=(
+            command.expected_revision + 1 if command_for_turn.basic_move is not None else None
+        ),
     )
     return _after_turn(state, command, encounter, context, command_for_turn, resources, result)
 
@@ -2116,6 +2319,7 @@ _COMBAT_STEPS: dict[
     "resolve_choke_effects": _choke,
     "take_unarmed_turn": _unarmed,
     "join_encounter": _join,
+    "withdraw_encounter": _withdraw,
     "end_encounter": _end,
     "take_combat_turn": _take_turn,
     "choose_defense": _defend,

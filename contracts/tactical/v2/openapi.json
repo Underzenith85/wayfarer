@@ -1301,6 +1301,24 @@
         "title": "TacticalTrace",
         "type": "object"
       },
+      "TacticalWithdrawalChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/components/schemas/WithdrawEncounter"
+          }
+        },
+        "required": [
+          "label",
+          "command"
+        ],
+        "title": "TacticalWithdrawalChoice",
+        "type": "object"
+      },
       "TakeCombatTurn": {
         "additionalProperties": false,
         "properties": {
@@ -2132,6 +2150,55 @@
         "title": "WaitTrigger",
         "type": "object"
       },
+      "WithdrawEncounter": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "withdraw_encounter",
+            "default": "withdraw_encounter",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "new_group_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "New Group Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "new_group_id"
+        ],
+        "title": "WithdrawEncounter",
+        "type": "object"
+      },
       "TacticalSnapshotV2": {
         "additionalProperties": false,
         "properties": {
@@ -2174,6 +2241,14 @@
               "$ref": "#/components/schemas/TacticalMigrationChoice"
             },
             "title": "Migrations",
+            "type": "array"
+          },
+          "withdrawals": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TacticalWithdrawalChoice"
+            },
+            "title": "Withdrawals",
             "type": "array"
           }
         },
@@ -3283,7 +3358,8 @@
                 "resume_interrupted_turn": "#/components/schemas/ResumeInterruptedTurn",
                 "retrieve_equipment": "#/components/schemas/RetrieveEquipment",
                 "take_combat_turn": "#/components/schemas/TakeCombatTurn",
-                "take_unarmed_turn": "#/components/schemas/TakeUnarmedTurn"
+                "take_unarmed_turn": "#/components/schemas/TakeUnarmedTurn",
+                "withdraw_encounter": "#/components/schemas/WithdrawEncounter"
               },
               "propertyName": "kind"
             },
@@ -3326,6 +3402,9 @@
               },
               {
                 "$ref": "#/components/schemas/MigrateEncounterBasic"
+              },
+              {
+                "$ref": "#/components/schemas/WithdrawEncounter"
               }
             ],
             "title": "Command"

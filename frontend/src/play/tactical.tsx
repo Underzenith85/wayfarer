@@ -141,7 +141,10 @@ export function TacticalPanel({
       setBusy(false);
     }
   };
-  if (!snapshot?.encounters.length)
+  if (
+    !snapshot ||
+    (!snapshot.encounters.length && !snapshot.withdrawals?.length)
+  )
     return error ? <p role="status">{error}</p> : null;
   return (
     <section className="scene-card tactical-panel" aria-label="Tactical combat">
@@ -162,6 +165,23 @@ export function TacticalPanel({
         <Button disabled={busy} onClick={() => void run(retry)}>
           Retry same action
         </Button>
+      )}
+      {!!snapshot.withdrawals?.length && (
+        <section aria-label="Combat withdrawal">
+          <h3>Combat withdrawal</h3>
+          <p>Your resolved movement has reached a safe departure boundary.</p>
+          <div className="tactical-actions">
+            {snapshot.withdrawals.map((choice) => (
+              <Button
+                key={choice.command.id}
+                disabled={busy || retry !== null}
+                onClick={() => void run(choice.command)}
+              >
+                {choice.label}
+              </Button>
+            ))}
+          </div>
+        </section>
       )}
       {!!snapshot.migrations?.length && (
         <section aria-label="Encounter representation">

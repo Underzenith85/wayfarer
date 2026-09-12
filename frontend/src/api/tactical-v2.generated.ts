@@ -482,6 +482,12 @@ export interface components {
        */
       source: string;
     };
+    /** TacticalWithdrawalChoice */
+    TacticalWithdrawalChoice: {
+      /** Label */
+      label: string;
+      command: components["schemas"]["WithdrawEncounter"];
+    };
     /** TakeCombatTurn */
     TakeCombatTurn: {
       /** Id */
@@ -876,6 +882,24 @@ export interface components {
       /** @default null */
       unarmed: components["schemas"]["UnarmedReaction"] | null;
     };
+    /** WithdrawEncounter */
+    WithdrawEncounter: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "withdraw_encounter";
+      /** Encounter Id */
+      encounter_id: string;
+      /** New Group Id */
+      new_group_id: string;
+    };
     /** TacticalSnapshotV2 */
     TacticalSnapshotV2: {
       /**
@@ -901,6 +925,11 @@ export interface components {
        * @default []
        */
       migrations: components["schemas"]["TacticalMigrationChoice"][];
+      /**
+       * Withdrawals
+       * @default []
+       */
+      withdrawals: components["schemas"]["TacticalWithdrawalChoice"][];
     };
     /** BasicJoinPlacement */
     BasicJoinPlacement: {
@@ -1376,7 +1405,8 @@ export interface components {
         | components["schemas"]["DeclareThrownLanding"]
         | components["schemas"]["ResolveWeaponExplosion"]
         | components["schemas"]["JoinEncounter"]
-        | components["schemas"]["MigrateEncounterBasic"];
+        | components["schemas"]["MigrateEncounterBasic"]
+        | components["schemas"]["WithdrawEncounter"];
     };
     TacticalError: {
       code: string;

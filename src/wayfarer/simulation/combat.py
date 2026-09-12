@@ -369,7 +369,7 @@ class SquareSpatialContext(Record):
 class HexSpatialContext(Record):
     kind: Literal["hex"] = "hex"
     battlefield_id: Id
-    placements: tuple[HexActorPlacement, ...] = Field(min_length=2, max_length=100)
+    placements: tuple[HexActorPlacement, ...] = Field(min_length=1, max_length=100)
 
 
 SpatialContext = Annotated[
@@ -438,6 +438,13 @@ class Combatant(Record):
         return result
 
 
+class CombatWithdrawal(Record):
+    actor: Combatant
+    round: int = Field(ge=1)
+    turn_index: int = Field(ge=0)
+    group_id: Id
+
+
 class PendingDefense(Record):
     id: Id
     attacker_id: Id
@@ -504,8 +511,8 @@ class Encounter(Record):
     )
     darkness_penalty: int = Field(default=0, ge=-10, le=0, exclude_if=lambda v: v == 0)
     status: Literal["active", "completed"] = "active"
-    participants: tuple[Combatant, ...] = Field(min_length=2)
-    turn_order: tuple[str, ...] = Field(min_length=2)
+    participants: tuple[Combatant, ...] = Field(min_length=1)
+    turn_order: tuple[str, ...] = Field(min_length=1)
     round: int = Field(default=1, ge=1)
     turn_index: int = Field(default=0, ge=0)
     pending_defense: PendingDefense | None = None
@@ -520,12 +527,17 @@ class Encounter(Record):
     unarmed_history: tuple[UnarmedTrace, ...] = ()
     ranged_situations: tuple[RangedSituation, ...] = ()
     tactical_traces: tuple[TacticalTrace, ...] = ()
+    withdrawals: tuple[CombatWithdrawal, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def validate_scene_version(self) -> Encounter:
         if (self.version == 2) != (self.scene_id is not None):
             raise ValueError("Scene-bound encounters require version 2 and a scene ID")
         context_was_serialized = self.spatial_context is not None
+        if self.status == "active" and len(self.participants) < 2:
+            raise ValueError("Active encounters require at least two participants")
         context = self.spatial
         if not isinstance(context, BasicSpatialContext):
             participants = {p.actor_id: p for p in self.participants}
@@ -751,6 +763,15 @@ def move_basic(
     actors = {p.actor_id: p for p in encounter.participants}
     actor = actors[actor_id]
     reference = actors[reference_actor_id]
+    revision = max(
+        (revision,)
+        + tuple(
+            fact.provenance.declared_revision
+            for fact in context.facts
+            if fact.provenance.invalidated_revision is None
+            and actor_id in (fact.subject_id, fact.object_id)
+        )
+    )
     retained: list[BasicSpatialFact] = []
     for fact in context.facts:
         if fact.provenance.invalidated_revision is None and actor_id in (
@@ -865,7 +886,9 @@ class CombatEngine:
         )
         if (
             len(participants) != len(encounter.participants)
-            or not 2 <= len(participants) <= self.rules.max_combatants
+            or not 1 <= len(participants) <= self.rules.max_combatants
+            or encounter.status == "active"
+            and len(participants) < 2
             or set(participants) != set(encounter.turn_order)
             or len(set(encounter.turn_order)) != len(encounter.turn_order)
             or encounter.turn_index >= len(encounter.turn_order)
@@ -1323,6 +1346,7 @@ class CombatEngine:
         hex_path: tuple[Hex, ...] = (),
         hex_facing: HexFacing | None = None,
         basic_move: BasicMove | None = None,
+        spatial_revision: int | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         original, original_resources = encounter, resources
         interrupt = encounter.wait_interrupt
@@ -1360,6 +1384,7 @@ class CombatEngine:
             actor_id=actor_id,
             maneuver=maneuver,
             resources=resources,
+            spatial_revision=spatial_revision or original_resources.revision + 1,
             destination=destination,
             facing=facing,
             posture=posture,
@@ -1518,6 +1543,7 @@ class CombatEngine:
         actor_id: str,
         maneuver: Maneuver,
         resources: ResourceState,
+        spatial_revision: int,
         command_id: str,
         destination: GridPoint | None = None,
         facing: Facing | None = None,
@@ -1665,7 +1691,7 @@ class CombatEngine:
                     direction=basic_move.direction,
                     yards=allowance,
                     command_id=command_id,
-                    revision=resources.revision,
+                    revision=spatial_revision,
                 )
         if self.rules.gurps_equipment is None and (
             maneuver not in ("do_nothing", "move", "ready", "change_posture", "attack", "wait")

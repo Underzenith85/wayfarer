@@ -179,6 +179,12 @@ class MigrateEncounterBasic(CombatCommand):
     encounter_id: Id
 
 
+class WithdrawEncounter(CombatCommand):
+    kind: Literal["withdraw_encounter"] = "withdraw_encounter"
+    encounter_id: Id
+    new_group_id: Id
+
+
 class BasicJoinPlacement(Record):
     kind: Literal["basic"] = "basic"
     facts: tuple[BasicSpatialFact, ...] = Field(min_length=1, max_length=1000)
@@ -258,7 +264,8 @@ TypedCombatCommand = Annotated[
     | DeclareThrownLanding
     | ResolveWeaponExplosion
     | MigrateEncounterHex
-    | MigrateEncounterBasic,
+    | MigrateEncounterBasic
+    | WithdrawEncounter,
     # Migration is explicit and uses the same receipt and CAS as combat commands.
     Field(discriminator="kind"),
 ]

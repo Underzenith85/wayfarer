@@ -9,6 +9,7 @@ from wayfarer.orchestration.combat import (
     RepairEquipment,
     RetrieveEquipment,
     TakeCombatTurn,
+    WithdrawEncounter,
 )
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
@@ -44,10 +45,16 @@ class TacticalMigrationChoice(Record):
     command: MigrateEncounterBasic
 
 
+class TacticalWithdrawalChoice(Record):
+    label: str
+    command: WithdrawEncounter
+
+
 class TacticalSnapshotV2(TacticalSnapshot):
     version: str = "tactical-v2"
     equipment: tuple[EquipmentView, ...] = ()
     migrations: tuple[TacticalMigrationChoice, ...] = ()
+    withdrawals: tuple[TacticalWithdrawalChoice, ...] = ()
 
 
 def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[EquipmentView, ...]:
