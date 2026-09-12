@@ -491,7 +491,7 @@ Contest, a Regular Contest, or a B359 Influence roll — the contextual conditio
 it cannot proceed without, the modifiers it derives itself, and a named effect for
 every verdict that shape can reach. Sixteen rows are bound and reach a new package
 pin; Fortune-Telling and Savoir-Faire cannot be learned without their specialties
-(#366) and Propaganda cannot resolve without a technology level (#367), so those
+(#366) and Propaganda still lacks its media-effect duration procedure (#367), so those
 three keep `runtime-procedure` and are absent from the pin.
 
 Nothing here is a second engine: rolls are scored by `rules.gurps_checks` and

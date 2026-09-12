@@ -105,11 +105,14 @@ class TechniqueTemplate:
     parents: tuple[str, ...] = ()
     parent_family: str | None = None
     attribute: ControllingAttribute | None = None
+    optional_rule: str | None = None
 
-    def expand(self, parent: str) -> Technique:
+    def expand(self, parent: str, optional_rules: frozenset[str] = frozenset()) -> Technique:
         """The concrete parent-relative technique for one permitted parent."""
         if parent not in self.parents:
             raise ValueError(f"Parent is outside the template's permitted set: {parent}")
+        if self.optional_rule is not None and self.optional_rule not in optional_rules:
+            raise ValueError(f"Technique requires optional rule: {self.optional_rule}")
         return Technique(parent, self.default_modifier, self.maximum_modifier)
 
 
@@ -144,3 +147,5 @@ class SkillSpec:
     # One satisfied alternative per group, in addition to every ``prerequisites``
     # entry. An empty tuple keeps historic package digests byte-for-byte.
     prerequisite_groups: tuple[PrerequisiteGroup, ...] = ()
+    # B168: a /TL skill purchase records the TL at which it was learned.
+    technology_level_required: bool = False

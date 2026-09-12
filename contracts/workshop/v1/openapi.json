@@ -325,6 +325,11 @@
             },
             "title": "Prerequisite Groups",
             "type": "array"
+          },
+          "technology_level_required": {
+            "default": false,
+            "title": "Technology Level Required",
+            "type": "boolean"
           }
         },
         "required": [
@@ -696,6 +701,20 @@
               }
             ],
             "default": null
+          },
+          "technology_level": {
+            "anyOf": [
+              {
+                "maximum": 12,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Technology Level"
           }
         },
         "required": [

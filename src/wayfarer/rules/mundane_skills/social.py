@@ -66,7 +66,6 @@ DISPATCH: Final = "social.skill-procedure"
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
-TECHNOLOGY_LEVEL: Final = "technology-level-context"
 
 # Owning issues for the parts of an entry these procedures do not carry.
 SPECIALTIES_ISSUE: Final = 366
@@ -556,7 +555,6 @@ _ROWS: Final = (
         defaults=(SkillDefault(A.IQ, -5),),
         transferred={
             RUNTIME_PROCEDURE: (TECHNOLOGY_LEVEL_ISSUE,),
-            TECHNOLOGY_LEVEL: (TECHNOLOGY_LEVEL_ISSUE,),
             CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
         },
     ),

@@ -323,8 +323,10 @@ def test_registration_validates_dependencies_capabilities_and_options() -> None:
         ProfileRegistry((replace(lite, rules=replace(lite.rules, edition="wayfarer-lite")),))
     with pytest.raises(ValidationError, match="policy pin"):
         ProfileRegistry((replace(lite, rules=replace(lite.rules, policy_version=2)),))
-    with pytest.raises(ValidationError, match="Optional rules"):
+    with pytest.raises(ValidationError, match="Invalid optional rules"):
         ProfileRegistry((replace(lite, optional_rules=("bleeding",)),))
+    selected = replace(lite, optional_rules=("gurps.techniques.dual-weapon-attack",))
+    assert ProfileRegistry((selected,)).profiles == (selected,)
     with pytest.raises(ValidationError, match="Unknown rules profile"):
         ProfileRegistry((replace(lite, conformance_profile_id="gurps-5e"),))
     with pytest.raises(ValidationError, match="outside conformance profile"):

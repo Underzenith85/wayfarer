@@ -163,7 +163,6 @@ def test_mathematics_specialties_and_prerequisites() -> None:
         {"procedure_owner": 112},
         {"procedure_owner": 336},
         {"issues": [112, 341]},
-        {"tl_required": True},
         {"specialty_required": True},
         {
             "attribute_defaults": [
@@ -611,7 +610,10 @@ def test_alias_and_technique_context_stays_explicit() -> None:
     # ST-based Neck Snap and cinematic choices must not become generic DX rolls.
     assert entries["skill:neck-snap"].definition is None
     for id in ("dual-weapon-attack", "whirlwind-attack"):
-        assert "optional-rule-selection" in entries[f"skill:{id}"].blockers
+        entry = entries[f"skill:{id}"]
+        assert "optional-rule-selection" not in entry.blockers
+        assert entry.template is not None
+        assert entry.template.optional_rule == f"gurps.techniques.{id}"
     # B182: the Computer Hacking prerequisite is recorded even though the #119
     # catalog owns the target, so the row no longer blocks on it (#336).
     brain_hacking = entries["skill:brain-hacking"].definition

@@ -10,14 +10,19 @@ selected Characters third-printing baseline; remaining gaps retain concrete owne
 """
 
 import json
+from dataclasses import replace
+from decimal import Decimal
 from pathlib import Path
 from typing import cast
 
 import pytest
 
+from wayfarer.character.compiler import DerivedSheet, PurchasedEntry, ValidatedBuild
+from wayfarer.character.technology import operator_from_build
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import Modifier, ModifierKind, RecordedDice
 from wayfarer.rules.conformance import BASELINE_ID
+from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.mundane_skills import PROFILE, audit_report, inventory
 from wayfarer.rules.mundane_skills.technology import (
     PROCEDURES,
@@ -28,6 +33,7 @@ from wayfarer.rules.mundane_skills.technology import (
     replay,
     require_task,
 )
+from wayfarer.rules.profiles import GURPS_BASIC_PROFILE
 
 FIXTURE = Path("tests/fixtures/gurps/technology_skills.json")
 Case = dict[str, object]
@@ -318,7 +324,40 @@ def test_recorded_mechanics_and_the_runtime_binding_cannot_drift() -> None:
     for identifier, procedure in PROCEDURES.items():
         definition = rows[identifier].definition
         assert definition is not None and definition.skill is not None
-        assert procedure.spec() == definition.skill
+        assert (
+            replace(procedure.spec(), technology_level_required=rows[identifier].tl_required)
+            == definition.skill
+        )
+
+
+def test_runtime_operator_uses_the_approved_purchase_tl() -> None:
+    """B168: procedure callers derive learned TL and skill level from the build."""
+    build = ValidatedBuild(
+        "revision",
+        GURPS_BASIC_PROFILE.rules,
+        (
+            PurchasedEntry("skill:physics", 4, 4, 7),
+            PurchasedEntry("skill:mathematics-applied", 4, 4, 7),
+        ),
+        8,
+        0,
+        DerivedSheet((DerivedValue("skill:physics", Decimal(14), ()),)),
+        "Ada",
+        "",
+    )
+    operator = operator_from_build(build, "skill:physics")
+    assert (operator.level, operator.technology_level) == (14, 7)
+    assert "skill:mathematics-applied" in operator.trained
+    result = attempt(operator, Situation(9), rng=RecordedDice([3, 3, 4]))
+    assert result.check.effective_target == 12
+    assert result.check.modifiers[0].reason == "technology-level-difference"
+
+    missing = replace(
+        build,
+        purchases=(replace(build.purchases[0], technology_level=None), build.purchases[1]),
+    )
+    with pytest.raises(ValidationError, match="no TL purchase"):
+        operator_from_build(missing, "skill:physics")
 
 
 def test_only_a_dispatched_row_carries_its_hook() -> None:

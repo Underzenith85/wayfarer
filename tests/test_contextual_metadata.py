@@ -318,6 +318,19 @@ def test_a_template_expands_only_against_a_permitted_parent() -> None:
         entry.template.expand("skill:karate")
 
 
+def test_cinematic_templates_require_the_selected_optional_rule() -> None:
+    """B230/B232: optional techniques are unavailable until the profile selects them."""
+    for identifier in ("dual-weapon-attack", "whirlwind-attack"):
+        entry = next(e for e in inventory() if e.id == f"skill:{identifier}")
+        assert entry.template is not None
+        rule = f"gurps.techniques.{identifier}"
+        assert entry.template.optional_rule == rule
+        parent = entry.template.parents[0]
+        with pytest.raises(ValueError, match="requires optional rule"):
+            entry.template.expand(parent)
+        assert entry.template.expand(parent, frozenset({rule})).parent == parent
+
+
 def test_a_template_may_permit_a_whole_open_family() -> None:
     """ "Any melee weapon skill" is a class, so the template names the family."""
     entry = next(e for e in inventory() if e.id == "skill:off-hand-weapon-training")

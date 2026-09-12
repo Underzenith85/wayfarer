@@ -97,6 +97,8 @@ class RulesPackage:
             if skill is not None:
                 if not skill["prerequisite_groups"]:
                     del skill["prerequisite_groups"]
+                if not skill["technology_level_required"]:
+                    del skill["technology_level_required"]
                 prerequisites = list(skill["prerequisites"])
                 prerequisites.extend(
                     prerequisite
