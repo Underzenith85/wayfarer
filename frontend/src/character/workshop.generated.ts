@@ -36,6 +36,22 @@ export interface components {
       | "attribute:ht"
       | "secondary:will"
       | "secondary:per";
+    /** DefaultCondition */
+    DefaultCondition: {
+      kind: components["schemas"]["DefaultConditionKind"];
+      /**
+       * Value
+       * @default null
+       */
+      value: string | null;
+    };
+    /**
+     * DefaultConditionKind
+     * @description Authoritative facts that may gate a B168-173 skill default.
+     * @enum {string}
+     */
+    DefaultConditionKind:
+      "matching-technology-level" | "matching-specialty" | "required-equipment";
     /**
      * DefinitionKind
      * @enum {string}
@@ -51,6 +67,18 @@ export interface components {
      * @enum {string}
      */
     ImplementationStatus: "implemented" | "manual-adjudication" | "unsupported";
+    /**
+     * PrerequisiteGroup
+     * @description An alternative set: satisfying any one member satisfies the requirement.
+     *
+     *     B168 states several prerequisites as "A or B". Flattening that into the
+     *     ``prerequisites`` AND list would either demand both or silently drop one, so
+     *     an alternative set is recorded as its own shape.
+     */
+    PrerequisiteGroup: {
+      /** Alternatives */
+      alternatives: components["schemas"]["SkillPrerequisite"][];
+    };
     /** ProfileOption */
     ProfileOption: {
       /** Id */
@@ -70,6 +98,11 @@ export interface components {
       target: string;
       /** Modifier */
       modifier: number;
+      /**
+       * Conditions
+       * @default []
+       */
+      conditions: components["schemas"]["DefaultCondition"][];
     };
     /** SkillPrerequisite */
     SkillPrerequisite: {
@@ -101,6 +134,11 @@ export interface components {
       specialty: components["schemas"]["Specialty"] | null;
       /** @default null */
       technique: components["schemas"]["Technique"] | null;
+      /**
+       * Prerequisite Groups
+       * @default []
+       */
+      prerequisite_groups: components["schemas"]["PrerequisiteGroup"][];
     };
     /** Specialty */
     Specialty: {

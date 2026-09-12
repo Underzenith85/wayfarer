@@ -94,8 +94,14 @@ class RulesPackage:
             # the same reason: an unused alternative-prerequisite set must not
             # move the digest of a package pinned before the shape existed.
             skill = definition.get("skill")
-            if skill is not None and not skill["prerequisite_groups"]:
-                del skill["prerequisite_groups"]
+            if skill is not None:
+                if not skill["prerequisite_groups"]:
+                    del skill["prerequisite_groups"]
+                # Conditional defaults were added after the first package pins.
+                # Absence remains absence rather than changing every historic digest.
+                for default in skill["defaults"]:
+                    if not default["conditions"]:
+                        del default["conditions"]
         return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
     @property

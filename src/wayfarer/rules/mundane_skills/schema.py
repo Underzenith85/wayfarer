@@ -5,7 +5,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.models import Record
-from wayfarer.rules.skill_types import Difficulty
+from wayfarer.rules.skill_types import DefaultConditionKind, Difficulty
 
 AttributeName = Literal["IQ", "DX", "HT", "ST", "Will", "Per", "Perception"]
 Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")]
@@ -24,14 +24,40 @@ Blocker = Literal[
 ]
 
 
+class DefaultConditionRecord(Record):
+    kind: DefaultConditionKind
+    value: Annotated[str, Field(pattern=r"^equipment:[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")] | None = None
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        needs_value = self.kind is DefaultConditionKind.REQUIRED_EQUIPMENT
+        if needs_value != (self.value is not None):
+            raise ValueError("Only a required-equipment condition names a value")
+        return self
+
+
 class AttributeDefault(Record):
     attribute: AttributeName
     modifier: int
+    conditions: tuple[DefaultConditionRecord, ...] = ()
+
+    @model_validator(mode="after")
+    def distinct_conditions(self) -> Self:
+        if len(set(self.conditions)) != len(self.conditions):
+            raise ValueError("Duplicate default condition")
+        return self
 
 
 class SkillDefaultRecord(Record):
     target: Identifier
     modifier: int
+    conditions: tuple[DefaultConditionRecord, ...] = ()
+
+    @model_validator(mode="after")
+    def distinct_conditions(self) -> Self:
+        if len(set(self.conditions)) != len(self.conditions):
+            raise ValueError("Duplicate default condition")
+        return self
 
 
 class SpecialtyRecord(Record):
@@ -183,15 +209,19 @@ class InventoryRow(Record):
             raise ValueError("Unexpanded required specialties need an explicit blocker")
         if self.tl_required and "technology-level-context" not in self.blockers:
             raise ValueError("Unimplemented TL context needs an explicit blocker")
-        for values in (
+        for metadata in (
             self.blockers,
             self.issues,
             self.prerequisites,
-            tuple(d.attribute for d in self.attribute_defaults),
-            tuple(d.target for d in self.skill_defaults),
         ):
-            if len(set(values)) != len(values):
+            if len(set(metadata)) != len(metadata):
                 raise ValueError("Duplicate inventory metadata")
+        for defaults in (
+            tuple((d.attribute, d.conditions) for d in self.attribute_defaults),
+            tuple((d.target, d.conditions) for d in self.skill_defaults),
+        ):
+            if len(set(defaults)) != len(defaults):
+                raise ValueError("Duplicate inventory default")
         return self
 
 

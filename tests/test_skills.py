@@ -7,13 +7,21 @@ import json
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
+from typing import cast
 
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
 from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.character.skills import BASIC, LITE, SkillCompiler, SkillError, relative_level
+from wayfarer.character.skills import (
+    BASIC,
+    LITE,
+    DefaultContext,
+    SkillCompiler,
+    SkillError,
+    relative_level,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import (
     DEFAULT_CATALOG,
@@ -38,14 +46,16 @@ from wayfarer.rules.skill_types import (
     ControllingAttribute as A,
 )
 from wayfarer.rules.skill_types import (
-    Difficulty as D,
-)
-from wayfarer.rules.skill_types import (
+    DefaultCondition,
+    DefaultConditionKind,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
     Specialty,
     Technique,
+)
+from wayfarer.rules.skill_types import (
+    Difficulty as D,
 )
 from wayfarer.simulation.events import action_result
 
@@ -151,6 +161,102 @@ def test_default_chains_require_training_at_every_link() -> None:
     assert levels == {"a": 15, "b": 13}
     levels = {s.target: s.level for s in engine.compile({"a": 20, "b": 4}, attrs())}
     assert levels == {"a": 15, "b": 14, "c": 12}
+
+
+def test_conditional_defaults_fail_closed_and_record_the_selected_facts() -> None:
+    matching_tl = DefaultCondition(DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL)
+    has_tools = DefaultCondition(DefaultConditionKind.REQUIRED_EQUIPMENT, "equipment:tool-kit")
+    rows = (
+        definition("skill:source", SkillSpec(A.IQ, D.EASY, "B168")),
+        definition(
+            "skill:target",
+            SkillSpec(
+                A.IQ,
+                D.HARD,
+                "B168",
+                (
+                    SkillDefault(A.IQ, -6),
+                    SkillDefault("skill:source", -1, (matching_tl,)),
+                    SkillDefault(A.IQ, -2, (has_tools,)),
+                ),
+            ),
+        ),
+    )
+    engine = skill_engine(*rows)
+    levels = {r.target: r for r in engine.compile({"skill:source": 8}, attrs())}
+    assert levels["skill:target"].level == 4
+    assert levels["skill:target"].default_conditions == ()
+
+    context = DefaultContext(
+        {"skill:source": 8, "skill:target": 8}, frozenset({"equipment:tool-kit"})
+    )
+    levels = {
+        r.target: r for r in engine.compile({"skill:source": 8}, attrs(), default_context=context)
+    }
+    assert levels["skill:target"].level == 12
+    assert levels["skill:target"].default_from == "skill:source"
+    assert levels["skill:target"].default_conditions == (matching_tl,)
+
+
+def test_matching_specialty_is_derived_from_catalog_metadata() -> None:
+    matching = DefaultCondition(DefaultConditionKind.MATCHING_SPECIALTY)
+    source = definition(
+        "skill:source",
+        SkillSpec(A.IQ, D.EASY, "B168", specialty=Specialty("carpentry", "wood")),
+    )
+    matching_target = definition(
+        "skill:matching",
+        SkillSpec(
+            A.IQ,
+            D.AVERAGE,
+            "B168",
+            (SkillDefault("skill:source", -2, (matching,)),),
+            specialty=Specialty("artistry", "wood"),
+        ),
+    )
+    other_target = definition(
+        "skill:other",
+        SkillSpec(
+            A.IQ,
+            D.AVERAGE,
+            "B168",
+            (SkillDefault("skill:source", -2, (matching,)),),
+            specialty=Specialty("craft", "stone"),
+        ),
+    )
+    levels = {
+        r.target: r
+        for r in skill_engine(source, matching_target, other_target).compile(
+            {"skill:source": 4}, attrs()
+        )
+    }
+    assert levels["skill:matching"].level == 10
+    assert levels["skill:matching"].default_conditions == (matching,)
+    assert "skill:other" not in levels
+
+
+def test_default_conditions_reject_unrecognized_or_malformed_predicates() -> None:
+    invented = DefaultCondition(cast(DefaultConditionKind, "invented"))
+    with pytest.raises(SkillError, match="Unsupported default condition"):
+        skill_engine(
+            definition(
+                "skill:target",
+                SkillSpec(A.IQ, D.EASY, "B168", (SkillDefault(A.IQ, -4, (invented,)),)),
+            )
+        )
+    missing_equipment = DefaultCondition(DefaultConditionKind.REQUIRED_EQUIPMENT)
+    with pytest.raises(SkillError, match="Invalid default condition value"):
+        skill_engine(
+            definition(
+                "skill:target",
+                SkillSpec(
+                    A.IQ,
+                    D.EASY,
+                    "B168",
+                    (SkillDefault(A.IQ, -4, (missing_equipment,)),),
+                ),
+            )
+        )
 
 
 def test_prerequisite_cannot_be_met_by_a_default_or_insufficient_training() -> None:

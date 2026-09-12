@@ -479,6 +479,23 @@ alternative prerequisites, **#384** technology-level context and optional-rule
 selection, **#385** the remaining specialty families. `blocker_owners` names them
 per row, so #336 itself keeps nothing.
 
+### Conditional default contract (#383)
+
+A recorded default may now depend on one or more typed, authoritative facts:
+matching technology level, matching specialty, or possession of a pinned equipment
+definition. Missing facts make that alternative unavailable before a level is
+calculated. The compiler then selects the best satisfied alternative and records
+both its source and the conditions it used in the returned skill-level receipt.
+Unknown predicates, malformed equipment predicates, and untyped TL context reject.
+
+Matching-specialty is derived from the two catalog specialties rather than asserted
+by a request. TL and equipment facts enter through a dedicated resolver context;
+the character and campaign persistence work that supplies TL belongs to #384. Empty
+conditions are omitted from canonical package JSON, preserving existing pins, and
+this prerelease change does not increment an engine or package version. The
+source-backed per-row migration and remaining alternative prerequisite data stay
+open under #383 until separately audited against B168-B233.
+
 ## Validation and runtime contract
 
 Candidates in this package have unsupported status and no runtime hooks. `require_available`

@@ -20,10 +20,26 @@ class ControllingAttribute(StrEnum):
     PER = "secondary:per"
 
 
+class DefaultConditionKind(StrEnum):
+    """Authoritative facts that may gate a B168-173 skill default."""
+
+    MATCHING_TECHNOLOGY_LEVEL = "matching-technology-level"
+    MATCHING_SPECIALTY = "matching-specialty"
+    REQUIRED_EQUIPMENT = "required-equipment"
+
+
+@dataclass(frozen=True, slots=True)
+class DefaultCondition:
+    kind: DefaultConditionKind
+    # Only ``required-equipment`` names a value: the pinned equipment definition.
+    value: str | None = None
+
+
 @dataclass(frozen=True, slots=True)
 class SkillDefault:
     target: str
     modifier: int
+    conditions: tuple[DefaultCondition, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

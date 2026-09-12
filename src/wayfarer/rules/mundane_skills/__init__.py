@@ -32,6 +32,7 @@ from wayfarer.rules.mundane_skills.technology import PROCEDURES as TECHNOLOGY_PR
 from wayfarer.rules.mundane_skills.technology import unsupported_scope as technology_scope
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
+    DefaultCondition,
     PrerequisiteGroup,
     SkillDefault,
     SkillPrerequisite,
@@ -303,10 +304,21 @@ def inventory() -> tuple[SkillAudit, ...]:
                 row.difficulty,
                 f"B{row.page}",
                 tuple(
-                    SkillDefault(attributes[d.attribute], d.modifier)
+                    SkillDefault(
+                        attributes[d.attribute],
+                        d.modifier,
+                        tuple(DefaultCondition(c.kind, c.value) for c in d.conditions),
+                    )
                     for d in row.attribute_defaults
                 )
-                + tuple(SkillDefault(f"skill:{d.target}", d.modifier) for d in row.skill_defaults),
+                + tuple(
+                    SkillDefault(
+                        f"skill:{d.target}",
+                        d.modifier,
+                        tuple(DefaultCondition(c.kind, c.value) for c in d.conditions),
+                    )
+                    for d in row.skill_defaults
+                ),
                 tuple(SkillPrerequisite(f"skill:{p}") for p in row.prerequisites),
                 Specialty(
                     row.specialty.family,

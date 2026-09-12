@@ -305,5 +305,6 @@ def test_the_new_shape_does_not_move_a_package_pinned_before_it_existed() -> Non
     assert GURPS_LITE_PACKAGE.digest == GURPS_LITE_PACKAGE.digest
     for package in (GURPS_LITE_PACKAGE, GURPS_CHARACTERS_PACKAGE, GURPS_RANGED_SKILLS_PACKAGE):
         assert '"prerequisite_groups"' not in package.canonical_json()
+        assert '"conditions"' not in package.canonical_json()
     # The accounting package carries Surgery, so its own digest does move.
     assert '"prerequisite_groups"' in candidate_package().canonical_json()
