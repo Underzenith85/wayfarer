@@ -5915,13 +5915,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6114,13 +6115,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6390,13 +6392,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6639,13 +6642,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7237,13 +7241,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7386,13 +7391,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7583,13 +7589,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
