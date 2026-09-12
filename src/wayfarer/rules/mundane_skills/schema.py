@@ -125,6 +125,7 @@ class TechniqueTemplateRecord(Record):
     parents: tuple[Identifier, ...] = ()
     parent_family: Identifier | None = None
     attribute: AttributeName | None = None
+    optional_rule: Annotated[str, Field(pattern=r"^gurps\.[a-z][a-z0-9.-]+$")] | None = None
 
     @model_validator(mode="after")
     def coherent(self) -> Self:
@@ -234,8 +235,6 @@ class InventoryRow(Record):
             and "specialty-expansion" not in self.blockers
         ):
             raise ValueError("Unexpanded required specialties need an explicit blocker")
-        if self.tl_required and "technology-level-context" not in self.blockers:
-            raise ValueError("Unimplemented TL context needs an explicit blocker")
         for metadata in (
             self.blockers,
             self.issues,

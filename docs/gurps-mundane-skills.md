@@ -107,7 +107,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #336 | Complete. The contextual shapes landed; everything it could not settle without the artifact or campaign state names one of the four children below. |
 | #382 | Reconciled: the supplied Characters third printing is the selected source artifact. |
 | #383 | Conditional skill defaults and the remaining alternative prerequisites. |
-| #384 | Technology-level context for TL-tagged skills, and optional-rule selection. |
+| #384 | Complete. `/TL` purchases record TL explicitly, profiles activating those skills require an explicit campaign TL, and cinematic templates name and enforce their optional-rule selections. |
 | #385 | The remaining required and optional specialty families, and the one unexpanded technique template. |
 | #338 | Arts, crafts and trade procedures. |
 | #339 | Melee, defense and tactical skill procedures. |
@@ -325,7 +325,7 @@ required condition rejects before dice.
 Three rows keep `runtime-procedure` because they cannot resolve at all yet:
 `skill:fortune-telling` and `skill:savoir-faire` are not learnable without their
 required specialties (#366), and `skill:propaganda` has no medium, reach or
-duration without a technology level (#367). Those rows are absent from the pin.
+media-effect duration procedure (#367). Those rows are absent from the pin.
 
 A bound row can still leave a named part of its entry elsewhere. That is not a
 blocker — the roll runs — so it is published as `transferred_procedure_scope`
@@ -479,25 +479,31 @@ along with the compiler behaviour and every recorded template and family.
 What this issue could not settle is split into concrete children, each owning
 specific blockers rather than a share of a general one. **#382** selected the
 supplied printing and is resolved; **#383** owns conditional defaults and the
-remaining alternative prerequisites, **#384** technology-level context and
-optional-rule selection, and **#385** the remaining specialty families.
+remaining alternative prerequisites, **#384** (complete) technology-level
+context and optional-rule selection, and **#385** the remaining specialty
+families.
 `blocker_owners` names them
 per row, so #336 itself keeps nothing.
 
 ### Conditional default contract (#383)
 
 A recorded default may now depend on one or more typed, authoritative facts:
-matching technology level, matching specialty, or possession of a pinned equipment
+matching purchased-skill technology level, matching specialty, or possession of a pinned equipment
 definition. Missing facts make that alternative unavailable before a level is
 calculated. The compiler then selects the best satisfied alternative and records
 both its source and the conditions it used in the returned skill-level receipt.
 Unknown predicates, malformed equipment predicates, and untyped TL context reject.
 
 Matching-specialty is derived from the two catalog specialties rather than asserted
-by a request. TL and equipment facts enter through a dedicated resolver context;
-the character and campaign persistence work that supplies TL belongs to #384. Empty
-conditions are omitted from canonical package JSON, preserving existing pins, and
-this prerelease change does not increment an engine or package version. The
+by a request. TL and equipment facts enter through a dedicated resolver context.
+Every `/TL` skill now requires a `Purchase.technology_level`, which is preserved
+on the approved build; a profile activating `/TL` definitions must record its own
+campaign TL, and the
+technology procedure adapter derives its operator from those server-approved
+facts. Dual-Weapon Attack and Whirlwind Attack name separate optional-rule IDs
+and refuse expansion unless the registered profile selected the matching one.
+Empty conditions are omitted from canonical package JSON, preserving existing
+pins, and this prerelease change does not increment an engine or package version. The
 source-backed conditional-default migration remains open under #383; the
 `prerequisite-procedure` blocker class is empty after the B168-B223 audit.
 

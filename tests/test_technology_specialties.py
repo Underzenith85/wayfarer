@@ -11,6 +11,7 @@ use the selected third-printing Characters baseline.
 """
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import cast
 
@@ -236,7 +237,10 @@ def test_an_open_family_records_the_axis_the_player_names() -> None:
         # row itself and the open family does not repeat them.
         assert entry.variable.attribute is None and entry.variable.difficulty is None
         assert entry.definition is not None and entry.definition.skill is not None
-        assert procedure.spec() == entry.definition.skill
+        assert (
+            replace(procedure.spec(), technology_level_required=entry.tl_required)
+            == entry.definition.skill
+        )
         assert not procedure.specialties and not procedure.dispatchable
     assert {family: subject[4] for family, subject in OPEN_FAMILIES.items()} == {
         "biology": "one planet type",

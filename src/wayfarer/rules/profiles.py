@@ -33,6 +33,13 @@ from wayfarer.rules.catalog import (
 from wayfarer.rules.mundane_skills import ranged as ranged_skills
 from wayfarer.rules.mundane_skills import social as social_skills
 
+OPTIONAL_RULES: Final = frozenset(
+    {
+        "gurps.techniques.dual-weapon-attack",
+        "gurps.techniques.whirlwind-attack",
+    }
+)
+
 
 @dataclass(frozen=True, slots=True)
 class RegisteredProfile:
@@ -90,8 +97,11 @@ class RegisteredProfile:
 def _validate(profile: RegisteredProfile) -> None:
     if profile.version < 1:
         raise ValidationError(f"Profile version must be positive: {profile.id}")
-    if profile.optional_rules:
-        raise ValidationError(f"Optional rules require a reviewed profile revision: {profile.id}")
+    if (
+        len(set(profile.optional_rules)) != len(profile.optional_rules)
+        or not set(profile.optional_rules) <= OPTIONAL_RULES
+    ):
+        raise ValidationError(f"Invalid optional rules for profile: {profile.id}")
     rules, policy = profile.rules, profile.policy
     if (rules.policy_id, rules.policy_version) != (policy.id, policy.version):
         raise ValidationError(f"Profile policy pin does not resolve: {profile.id}")

@@ -366,6 +366,61 @@ def test_compiler_uses_effective_attributes_points_and_distinct_specialties() ->
     assert illegal.build is None and illegal.diagnostics[0].code == "skill.prerequisite"
 
 
+def test_tl_skill_purchase_requires_and_preserves_its_explicit_tl() -> None:
+    """B168: a /TL skill records the TL learned, independently of campaign TL."""
+    base = GURPS_BASIC_PROFILE
+    package = base.packages[0]
+    stealth = next(d for d in package.definitions if d.id == "skill:stealth")
+    assert stealth.skill is not None
+    tl_stealth = replace(stealth, skill=replace(stealth.skill, technology_level_required=True))
+    altered = replace(
+        package,
+        version="test-tl-context",
+        definitions=tuple(tl_stealth if d.id == stealth.id else d for d in package.definitions),
+    )
+    policy = replace(base.policy, id="policy:test-tl-context", version=1, technology_level=8)
+    rules = replace(
+        base.rules,
+        packages=(
+            PackagePin(altered.id, altered.version, altered.digest),
+            base.rules.packages[1],
+        ),
+        policy_id=policy.id,
+        policy_version=policy.version,
+    )
+    with pytest.raises(ValidationError, match="campaign technology level"):
+        CharacterCompiler(
+            RulesCatalog((altered, base.packages[1])),
+            rules,
+            replace(policy, technology_level=None),
+            statistics_profile=base.conformance_profile_id,
+        )
+    engine = CharacterCompiler(
+        RulesCatalog((altered, base.packages[1])),
+        rules,
+        policy,
+        statistics_profile=base.conformance_profile_id,
+    )
+    missing = engine.compile(draft(**{"skill:stealth": 4}))
+    assert missing.build is None
+    assert "skill.technology_level" in {diagnostic.code for diagnostic in missing.diagnostics}
+
+    explicit = draft(**{"skill:stealth": 4}).model_copy(
+        update={
+            "purchases": tuple(
+                purchase.model_copy(update={"technology_level": 7})
+                if purchase.definition_id == "skill:stealth"
+                else purchase
+                for purchase in draft(**{"skill:stealth": 4}).purchases
+            )
+        }
+    )
+    build = engine.compile(explicit).build
+    assert build is not None
+    purchase = next(entry for entry in build.purchases if entry.definition_id == "skill:stealth")
+    assert purchase.technology_level == 7
+
+
 def test_profile_versions_preserve_old_pins_and_metadata_changes_digest() -> None:
     for old in (GURPS_LITE_PROFILE_V2, GURPS_BASIC_PROFILE_V2):
         assert DEFAULT_REGISTRY.resolve(old.reference) == old

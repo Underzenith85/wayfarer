@@ -8,7 +8,7 @@ No existing package pin is changed and unimplemented runtime skills fail closed.
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from enum import StrEnum
 from pathlib import Path
 from types import MappingProxyType
@@ -358,6 +358,7 @@ def inventory() -> tuple[SkillAudit, ...]:
                     PrerequisiteGroup(tuple(prerequisite(p) for p in group.alternatives))
                     for group in row.prerequisite_groups
                 ),
+                row.tl_required,
             )
             if row.attribute is not None and row.difficulty is not None
             else None
@@ -370,6 +371,7 @@ def inventory() -> tuple[SkillAudit, ...]:
                 tuple(f"skill:{parent}" for parent in row.template.parents),
                 f"skill:{row.template.parent_family}" if row.template.parent_family else None,
                 attributes[row.template.attribute] if row.template.attribute else None,
+                row.template.optional_rule,
             )
             if row.template
             else None
@@ -410,16 +412,26 @@ def inventory() -> tuple[SkillAudit, ...]:
             # A binding may only resolve or keep the blockers this inventory
             # recorded, its numbers must be the recorded ones, and every blocker
             # it keeps must name a child that the row already owns.
-            if set(procedure.resolved) | set(procedure.blockers) != set(row.blockers):
+            accounted = set(procedure.resolved) | set(procedure.blockers)
+            # Procedure groups implemented the B168 roll modifier first. #384
+            # supplies the shared persisted purchase context and retires that
+            # catalog blocker without changing their dispatch ownership.
+            if row.tl_required and "technology-level-context" not in row.blockers:
+                accounted.discard("technology-level-context")
+            if accounted != set(row.blockers):
                 raise ValidationError(f"Runtime binding disagrees with the inventory: {identifier}")
-            if procedure.spec() != spec:
+            if replace(procedure.spec(), technology_level_required=row.tl_required) != spec:
                 raise ValidationError(f"Runtime binding changes recorded mechanics: {identifier}")
             if any(not owners for owners in procedure.transferred.values()):
                 raise ValidationError(f"Transferred blocker names no owner: {identifier}")
             blockers = [b for b in blockers if b not in procedure.resolved]
-            transferred = tuple(procedure.transferred.items())
+            transferred = tuple(
+                item
+                for item in procedure.transferred.items()
+                if item[0] != "technology-level-context" or item[0] in row.blockers
+            )
             if procedure.dispatchable:
-                definition = procedure.definition()
+                definition = replace(procedure.definition(), skill=spec)
                 dispatch = procedure.dispatch
         result.append(
             SkillAudit(

@@ -39,7 +39,6 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
-from wayfarer.rules.skill_types import DefaultConditionKind
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.rules.traits import cost as trait_cost
 
@@ -48,6 +47,9 @@ class Purchase(Record):
     definition_id: str = Field(min_length=1, max_length=200)
     amount: int = Field(default=1, ge=1, le=10000)
     trait: TraitOptions | None = Field(default=None, exclude_if=lambda value: value is None)
+    technology_level: int | None = Field(
+        default=None, ge=0, le=12, exclude_if=lambda value: value is None
+    )
 
 
 class CharacterDraft(Record):
@@ -68,6 +70,7 @@ class PurchasedEntry:
     definition_id: str
     amount: int
     cost: int
+    technology_level: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,6 +222,12 @@ class CharacterCompiler:
         )
         if self.skills is None and any(d.skill is not None for d in definitions):
             raise ValidationError("GURPS skills require an exact selected rules profile")
+        if (
+            self.skills is not None
+            and any(spec.technology_level_required for spec in self.skills.specs.values())
+            and policy.technology_level is None
+        ):
+            raise ValidationError("TL skills require an explicit campaign technology level")
         if any(
             type(v) is not int or v < 0
             for v in (
@@ -229,6 +238,10 @@ class CharacterCompiler:
             )
         ):
             raise ValidationError("Invalid campaign limits")
+        if policy.technology_level is not None and (
+            type(policy.technology_level) is not int or not 0 <= policy.technology_level <= 12
+        ):
+            raise ValidationError("Invalid campaign technology level")
         self.effects = effects
         if len({e.id for _, e in effects}) != len(effects):
             raise ValidationError("Duplicate effect IDs")
@@ -344,12 +357,19 @@ class CharacterCompiler:
                 if self.skills is not None:
                     if key not in self.skills.specs:
                         error("skill.unsupported", i, "No pinned GURPS skill specification")
+                    elif self.skills.specs[key].technology_level_required:
+                        if purchase.technology_level is None:
+                            error("skill.technology_level", i, "TL skill purchase requires its TL")
+                    elif purchase.technology_level is not None:
+                        error("skill.technology_level", i, "Non-TL skill purchase cannot name a TL")
                 else:
                     # Preserve the original prototype cost curve and dispatch.
                     if definition.name not in SKILLS or "character.skill" not in definition.hooks:
                         error("skill.unsupported", i, "No implemented skill cost curve")
                     if amount not in (1, 2, 4, 8, 12, 16):
                         error("skill.points", i, "Invalid skill point allocation")
+                    if purchase.technology_level is not None:
+                        error("skill.technology_level", i, "Prototype skills do not carry a TL")
                 cost = amount
             elif definition.kind is DefinitionKind.TRAIT:
                 metadata = definition.trait_rules
@@ -385,7 +405,7 @@ class CharacterCompiler:
                 continue
             spent += cost
             disadvantages += max(0, -cost)
-            entries.append(PurchasedEntry(key, amount, cost))
+            entries.append(PurchasedEntry(key, amount, cost, purchase.technology_level))
         for definition in self.definitions.values():
             if definition.kind is DefinitionKind.ATTRIBUTE and definition.id not in selected:
                 diagnostics.append(Diagnostic("attribute.required", ("purchases",), definition.id))
@@ -485,19 +505,11 @@ class CharacterCompiler:
                 return int(adjusted)
 
             try:
-                technology_levels = (
-                    {
-                        key: self.policy.technology_level
-                        for key, spec in self.skills.specs.items()
-                        if any(
-                            condition.kind is DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL
-                            for default in spec.defaults
-                            for condition in default.conditions
-                        )
-                    }
-                    if self.policy.technology_level is not None
-                    else {}
-                )
+                technology_levels = {
+                    purchase.definition_id: purchase.technology_level
+                    for purchase in draft.purchases
+                    if purchase.technology_level is not None
+                }
                 compiled_skills = self.skills.compile(
                     {
                         p.definition_id: p.amount
@@ -604,7 +616,14 @@ class CharacterCompiler:
                     "permitted_sources": sorted(self.policy.permitted_sources),
                     "allowed_equipment": sorted(self.policy.allowed_equipment),
                 },
-                "entries": [asdict(e) for e in entries],
+                "entries": [
+                    {
+                        key: value
+                        for key, value in asdict(entry).items()
+                        if key != "technology_level" or value is not None
+                    }
+                    for entry in entries
+                ],
                 "sheet": asdict(sheet),
             }
             if cost_provenance:

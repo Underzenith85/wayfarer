@@ -127,6 +127,20 @@
               }
             ],
             "default": null
+          },
+          "technology_level": {
+            "anyOf": [
+              {
+                "maximum": 12,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Technology Level"
           }
         },
         "required": [
@@ -402,6 +416,20 @@
               }
             ],
             "default": null
+          },
+          "technology_level": {
+            "anyOf": [
+              {
+                "maximum": 12,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Technology Level"
           }
         },
         "required": [
@@ -6525,6 +6553,20 @@
               }
             ],
             "default": null
+          },
+          "technology_level": {
+            "anyOf": [
+              {
+                "maximum": 12,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Technology Level"
           }
         },
         "required": [
