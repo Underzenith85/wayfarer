@@ -5,7 +5,7 @@ import pytest
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import CAPABILITIES, CoverageStatus
 from wayfarer.engine.rules.skills.mundane import inventory
-from wayfarer.engine.rules.skills.mundane.melee import WEAPON_CLASSES
+from wayfarer.engine.rules.skills.mundane.melee_metadata import WEAPON_CLASSES
 from wayfarer.engine.rules.skills.mundane.procedures import Performer, Situation, attempt, replay
 from wayfarer.engine.rules.skills.mundane.techniques import PROCEDURES, definitions
 from wayfarer.errors import ValidationError
@@ -127,6 +127,33 @@ def test_parent_level_context_and_family_membership_fail_closed() -> None:
             Performer("skill:kicking", 13, 12, "skill:karate"),
             situation("skill:kicking"),
             rng=RecordedDice([3, 3, 3]),
+        )
+
+
+@pytest.mark.parametrize("parent", tuple(WEAPON_CLASSES))
+def test_every_weapon_class_is_a_valid_technique_family_parent(parent: str) -> None:
+    identifier = "skill:off-hand-weapon-training"
+    result = attempt(
+        PROCEDURES,
+        Performer(identifier, 8, 12, parent),
+        situation(identifier),
+        rng=RecordedDice([1, 1, 1]),
+    )
+    assert result.succeeded
+    assert replay(result) == result
+
+
+@pytest.mark.parametrize(
+    "parent", ("skill:melee-weapon", "skill:melee-weapon-invented", "skill:bow")
+)
+def test_weapon_family_rejects_nonmembers_despite_identifier_shape(parent: str) -> None:
+    identifier = "skill:off-hand-weapon-training"
+    with pytest.raises(ValidationError, match="does not match"):
+        attempt(
+            PROCEDURES,
+            Performer(identifier, 8, 12, parent),
+            situation(identifier),
+            rng=RecordedDice([]),
         )
 
 
