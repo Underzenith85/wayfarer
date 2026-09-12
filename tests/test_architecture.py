@@ -67,7 +67,6 @@ BRANCHING: dict[tuple[str, str], int] = {
     ("engine/simulation/combat/criticals/limbs.py", "resolve_limb"): 17,
     ("engine/simulation/combat/engine.py", "validate"): 28,
     ("engine/simulation/combat/firearm_transitions.py", "service"): 22,
-    ("engine/simulation/combat/melee/defense.py", "defense_value"): 29,
     ("engine/simulation/combat/melee/resolution.py", "resolve_melee"): 62,
     ("engine/simulation/combat/ranged/attack.py", "prepare"): 19,
     ("engine/simulation/combat/ranged/resolution.py", "resolve"): 71,
