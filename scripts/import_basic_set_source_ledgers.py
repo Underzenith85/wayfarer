@@ -13,7 +13,7 @@ import re
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any
+from typing import TypedDict, cast
 
 BASELINE = "gurps-4e-characters-3p-2008+campaigns-4p-2008"
 PROFILE = "gurps-basic-set-4e-2004"
@@ -62,6 +62,16 @@ OWNER_CAPABILITIES = {
     527: "gurps.equipment.catalog",
     528: "gurps.vehicles.combat",
 }
+
+LedgerRow = dict[str, object]
+
+
+class PdfWord(TypedDict):
+    """Word geometry returned by pdfplumber for the fields this importer uses."""
+
+    text: str
+    x0: float
+    top: float
 
 
 def slug(value: str) -> str:
@@ -158,22 +168,23 @@ def section_shape(depth: int, page: int, title: str) -> tuple[str, str, str]:
     return "mechanic", "required", "absent"
 
 
-def import_sections(characters: Path, campaigns: Path) -> list[dict[str, Any]]:
+def import_sections(characters: Path, campaigns: Path) -> list[LedgerRow]:
     from pypdf import PdfReader  # type: ignore[import-not-found]
 
-    rows: list[dict[str, Any]] = []
+    rows: list[LedgerRow] = []
     used: Counter[str] = Counter()
 
     def add_outline(source: str, book: str, pdf: Path, page_offset: int) -> None:
         reader = PdfReader(pdf)
 
-        def walk(items: list[Any], depth: int = 0, parent: str | None = None) -> None:
+        def walk(items: list[object], depth: int = 0, parent: str | None = None) -> None:
             previous: str | None = None
             for item in items:
                 if isinstance(item, list):
                     walk(item, depth + 1, previous or parent)
                     continue
-                title = clean_title(item.get("/Title"))
+                destination = cast(dict[str, object], item)
+                title = clean_title(destination.get("/Title"))
                 page_index = reader.get_destination_page_number(item)
                 page = (
                     BROKEN_CHARACTER_DESTINATIONS[title]
@@ -209,7 +220,7 @@ def import_sections(characters: Path, campaigns: Path) -> list[dict[str, Any]]:
                 )
                 previous = identifier
 
-        walk(reader.outline)
+        walk(cast(list[object], reader.outline))
 
     # pypdf pages are zero-based: B1 is Characters index 2 and B337 is Campaigns index 2.
     add_outline("characters-third", "characters", characters, -1)
@@ -217,9 +228,7 @@ def import_sections(characters: Path, campaigns: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def _line_words(
-    words: list[dict[str, Any]], y: float, low: float, high: float
-) -> list[dict[str, Any]]:
+def _line_words(words: list[PdfWord], y: float, low: float, high: float) -> list[PdfWord]:
     return sorted(
         (word for word in words if low <= word["x0"] < high and abs(word["top"] - y) < 1),
         key=lambda word: word["x0"],
@@ -261,14 +270,17 @@ def _runtime_candidates(root: Path) -> dict[tuple[str, str, int], list[tuple[str
     return candidates
 
 
-def import_traits(characters: Path, root: Path) -> list[dict[str, Any]]:
+def import_traits(characters: Path, root: Path) -> list[LedgerRow]:
     import pdfplumber  # type: ignore[import-not-found]
 
     page_ranges = {297: (230, 715), 298: (65, 735), 299: (145, 715), 300: (65, 510)}
     extracted: list[tuple[int, str, str, str, str, int, str]] = []
     with pdfplumber.open(characters) as pdf:
         for list_page, (minimum_y, maximum_y) in page_ranges.items():
-            words = pdf.pages[list_page + 1].extract_words(use_text_flow=False)
+            words = cast(
+                list[PdfWord],
+                pdf.pages[list_page + 1].extract_words(use_text_flow=False),
+            )
             attr_headers = [word for word in words if word["text"] == "M/P/Soc"][:2]
             for side, header in enumerate(attr_headers):
                 attr_x = header["x0"]
@@ -338,7 +350,7 @@ def import_traits(characters: Path, root: Path) -> list[dict[str, Any]]:
         raise RuntimeError(f"Expected 480 named trait items, got {len(extracted)}")
 
     candidates = _runtime_candidates(root)
-    rows: list[dict[str, Any]] = []
+    rows: list[LedgerRow] = []
     used: Counter[str] = Counter()
     for list_page, kind, title, trait_class, source_class, page, value in extracted:
         base = f"trait:{kind}:{slug(title)}"
@@ -406,14 +418,17 @@ def import_traits(characters: Path, root: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def import_modifiers(characters: Path) -> list[dict[str, Any]]:
+def import_modifiers(characters: Path) -> list[LedgerRow]:
     import pdfplumber
 
     configs = ((300, 615, 730), (301, 45, 380))
     extracted: list[tuple[int, str, str, str, int]] = []
     with pdfplumber.open(characters) as pdf:
         for list_page, minimum_y, maximum_y in configs:
-            words = pdf.pages[list_page + 1].extract_words(use_text_flow=False)
+            words = cast(
+                list[PdfWord],
+                pdf.pages[list_page + 1].extract_words(use_text_flow=False),
+            )
             candidate_headers = sorted(
                 (
                     word
@@ -422,7 +437,7 @@ def import_modifiers(characters: Path) -> list[dict[str, Any]]:
                 ),
                 key=lambda word: word["x0"],
             )
-            page_headers: list[dict[str, Any]] = []
+            page_headers: list[PdfWord] = []
             for header in candidate_headers:
                 if not any(abs(header["x0"] - seen["x0"]) < 2 for seen in page_headers):
                     page_headers.append(header)
@@ -466,7 +481,7 @@ def import_modifiers(characters: Path) -> list[dict[str, Any]]:
         raise RuntimeError(f"Expected 87 modifier rows, got {len(extracted)}")
 
     used: Counter[str] = Counter()
-    rows: list[dict[str, Any]] = []
+    rows: list[LedgerRow] = []
     for list_page, category, title, value, page in extracted:
         base = f"modifier:{category}:{slug(title)}"
         used[base] += 1
@@ -496,7 +511,7 @@ def import_modifiers(characters: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def write_ledger(output: Path, ledger_type: str, rows: list[dict[str, Any]]) -> None:
+def write_ledger(output: Path, ledger_type: str, rows: list[LedgerRow]) -> None:
     payload = {
         "schema_version": 1,
         "ledger_type": ledger_type,
