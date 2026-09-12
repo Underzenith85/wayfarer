@@ -199,17 +199,7 @@ class ResourceEngine:
                     raise ValidationError("Disabled equipment cannot be ready")
             elif item.condition is not None:
                 raise ValidationError("Object condition requires a pinned durability profile")
-            if spec.power_cell_capacity is not None:
-                if (
-                    item.quantity != 1
-                    or item.charges is None
-                    or item.charges > spec.power_cell_capacity
-                ):
-                    raise ValidationError(
-                        "Power cell requires explicit charges within pinned capacity"
-                    )
-            elif item.charges is not None:
-                raise ValidationError("Charges require a pinned power-cell definition")
+            self._validate_item_charge(item, spec)
             if spec.smartgun:
                 if (
                     not item.authorized_actor_ids
@@ -268,6 +258,20 @@ class ResourceEngine:
             if entry.due < state.game_time:
                 raise ValidationError("Overdue schedule")
             self._validate_schedule(state, entry)
+
+    @staticmethod
+    def _validate_item_charge(item: Item, spec: EquipmentSpec) -> None:
+        capacity = spec.power_cell_capacity
+        message = "Power cell requires explicit charges within pinned capacity"
+        if spec.electronics is not None and spec.electronics.power_capacity_seconds is not None:
+            capacity = spec.electronics.power_capacity_seconds
+            message = "Electronic device requires explicit charge within pinned capacity"
+        if capacity is not None and (
+            item.quantity != 1 or item.charges is None or item.charges > capacity
+        ):
+            raise ValidationError(message)
+        if capacity is None and item.charges is not None:
+            raise ValidationError("Charges require a pinned power-cell definition")
 
     def _validate_schedule(self, state: ResourceState, entry: Scheduled) -> None:
         if entry.kind == "expire" and entry.target_id not in state.active_effect_ids:

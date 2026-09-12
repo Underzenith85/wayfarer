@@ -2141,6 +2141,61 @@
         "title": "CommitmentStatus",
         "type": "string"
       },
+      "CommunicatorSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "operator_skill_id": {
+            "default": "skill:electronics-operation-communications",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operator Skill Id",
+            "type": "string"
+          },
+          "media": {
+            "items": {
+              "enum": [
+                "code",
+                "voice",
+                "text",
+                "video",
+                "data"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Media",
+            "type": "array"
+          },
+          "range_yards": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Range Yards"
+          },
+          "requires_address": {
+            "default": false,
+            "title": "Requires Address",
+            "type": "boolean"
+          },
+          "secure": {
+            "default": false,
+            "title": "Secure",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "media"
+        ],
+        "title": "CommunicatorSpec",
+        "type": "object"
+      },
       "Compatibility": {
         "additionalProperties": false,
         "properties": {
@@ -2178,6 +2233,39 @@
           "capabilities"
         ],
         "title": "Compatibility",
+        "type": "object"
+      },
+      "ComputerSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "operator_skill_id": {
+            "default": "skill:computer-operation",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operator Skill Id",
+            "type": "string"
+          },
+          "complexity": {
+            "minimum": 0,
+            "title": "Complexity",
+            "type": "integer"
+          },
+          "storage_megabytes": {
+            "minimum": 1,
+            "title": "Storage Megabytes",
+            "type": "integer"
+          },
+          "has_terminal": {
+            "default": true,
+            "title": "Has Terminal",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "complexity",
+          "storage_megabytes"
+        ],
+        "title": "ComputerSpec",
         "type": "object"
       },
       "Connection": {
@@ -2443,6 +2531,59 @@
           "mode"
         ],
         "title": "Discovery",
+        "type": "object"
+      },
+      "ElectronicsSuite": {
+        "additionalProperties": false,
+        "properties": {
+          "communicator": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CommunicatorSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "sensor": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SensorSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "computer": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ComputerSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "power_capacity_seconds": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Power Capacity Seconds"
+          }
+        },
+        "title": "ElectronicsSuite",
         "type": "object"
       },
       "EnforcementProcedure": {
@@ -2912,6 +3053,17 @@
             ],
             "default": null,
             "title": "Power Cell Capacity"
+          },
+          "electronics": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ElectronicsSuite"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "container_capacity_millipounds": {
             "anyOf": [
@@ -8007,6 +8159,88 @@
           "target_id"
         ],
         "title": "Scheduled",
+        "type": "object"
+      },
+      "SensorSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "operator_skill_id": {
+            "default": "skill:electronics-operation-sensors",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operator Skill Id",
+            "type": "string"
+          },
+          "form": {
+            "enum": [
+              "hands-free",
+              "manual",
+              "sight",
+              "mounted"
+            ],
+            "title": "Form",
+            "type": "string"
+          },
+          "sense": {
+            "enum": [
+              "vision",
+              "night-vision",
+              "infravision",
+              "hyperspectral-vision",
+              "metal-detection",
+              "radar",
+              "sonar",
+              "ladar"
+            ],
+            "title": "Sense",
+            "type": "string"
+          },
+          "range_yards": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Range Yards"
+          },
+          "active": {
+            "default": false,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "new_sense": {
+            "default": false,
+            "title": "New Sense",
+            "type": "boolean"
+          },
+          "telescopic_vision": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Telescopic Vision",
+            "type": "integer"
+          },
+          "night_vision": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Night Vision",
+            "type": "integer"
+          },
+          "picture": {
+            "default": true,
+            "title": "Picture",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "form",
+          "sense"
+        ],
+        "title": "SensorSpec",
         "type": "object"
       },
       "SetbackRule": {

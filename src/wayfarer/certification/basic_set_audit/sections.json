@@ -12810,9 +12810,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-electronics.md",
+        "tests/test_electronics.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -12834,9 +12837,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-electronics.md",
+        "tests/test_electronics.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -12858,9 +12864,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-electronics.md",
+        "tests/test_electronics.py"
+      ],
       "historical_owners": [
         191
       ],

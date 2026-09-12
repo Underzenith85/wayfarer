@@ -6,6 +6,7 @@ from wayfarer.engine.simulation.equipment.basic.ammunition import (
     SHOTGUN_AMMUNITION,
 )
 from wayfarer.engine.simulation.equipment.basic.armor import ARMOR, SHIELDS
+from wayfarer.engine.simulation.equipment.basic.electronics import ELECTRONICS, ELECTRONICS_IDS
 from wayfarer.engine.simulation.equipment.basic.firearms import FIREARMS
 from wayfarer.engine.simulation.equipment.basic.gear import ORDINARY
 from wayfarer.engine.simulation.equipment.basic.handguns import ORDINARY_HANDGUNS
@@ -45,6 +46,7 @@ BASIC_EQUIPMENT = EquipmentCatalog(
         + ARMOR
         + SHIELDS
         + SUPERSCIENCE_SHIELDS
-        + ORDINARY
+        + tuple(row for row in ORDINARY if row.definition_id not in ELECTRONICS_IDS)
+        + ELECTRONICS
     ),
 )

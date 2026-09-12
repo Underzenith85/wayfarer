@@ -13,6 +13,7 @@ from typing import Annotated, Literal
 from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.engine.rules.effects import Effect
+from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.hazard import (
     HazardSchedule,
@@ -63,6 +64,9 @@ class EquipmentSpec(Record):
     durability: ObjectProfile | None = Field(default=None, exclude_if=lambda v: v is None)
     power_cell_capacity: int | None = Field(default=None, ge=1, exclude_if=lambda v: v is None)
     smartgun: bool = Field(default=False, exclude_if=lambda value: not value)
+    electronics: ElectronicsSuite | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class Item(Record):

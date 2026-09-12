@@ -3011,6 +3011,17 @@
       "evidence": null,
       "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_rejects_an_unauthorized_owner"],
       "gap": null
+    },
+    {
+      "id": "EquipmentProfile.electronics",
+      "unit": "typed electronics capability suite",
+      "reference": "Campaigns B471-472; Characters B288-289",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_electronics.py::test_basic_catalog_pins_executable_device_profiles_and_operating_time"],
+      "gap": null
     }
   ],
   "bindings": [

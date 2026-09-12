@@ -25,6 +25,7 @@ from wayfarer.engine.rules.conformance import require_capabilities
 from wayfarer.engine.rules.skills.mundane.melee import require_mode as require_melee_mode
 from wayfarer.engine.rules.skills.mundane.melee import require_shield
 from wayfarer.engine.rules.skills.mundane.ranged import require_mode
+from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.entangle import EntangleSpec
 from wayfarer.engine.rules.types.explosion import ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmSpec
@@ -405,6 +406,7 @@ class EquipmentProfile(Record):
     )
     warhead: ExplosionSpec | None = Field(default=None, exclude_if=lambda v: v is None)
     power_cell_capacity: Positive | None = Field(default=None, exclude_if=lambda v: v is None)
+    electronics: ElectronicsSuite | None = Field(default=None, exclude_if=lambda v: v is None)
     container_capacity_millipounds: Nonnegative | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
@@ -452,8 +454,10 @@ class EquipmentProfile(Record):
                 or self.shield
                 or self.durability
                 or self.power_cell_capacity
+                or self.electronics
             ),
             power_cell_capacity=self.power_cell_capacity,
+            electronics=self.electronics,
             smartgun=any(
                 isinstance(mode, RangedMode) and mode.smartgun is not None for mode in self.modes
             ),
