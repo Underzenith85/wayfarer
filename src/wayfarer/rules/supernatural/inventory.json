@@ -82,13 +82,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -241,13 +242,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -424,13 +426,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -492,13 +495,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -514,14 +518,13 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Paid activation with Costs Fatigue 1 or 2; not every DR modifier.",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
-        "tests/test_ability_service.py"
+        "tests/test_attack_defense_traits.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -1318,15 +1321,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191,
         107
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Selected human-layout structural injury variants; complete construction and anatomy coverage remains blocked.",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
-        "tests/test_hit_locations.py"
+        "tests/test_attack_defense_traits.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -1343,14 +1345,13 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Burning Malediction 1 only, with optional Costs Fatigue 1 or 2.",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
-        "tests/test_abilities.py"
+        "tests/test_attack_defense_traits.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -1824,13 +1825,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2671,13 +2673,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2739,13 +2742,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2761,13 +2765,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2898,13 +2903,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2920,13 +2926,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3264,13 +3271,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3309,13 +3317,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3698,13 +3707,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4340,13 +4350,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4362,13 +4373,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        237,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "evidence": [
+        "tests/test_attack_defense_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,

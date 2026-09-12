@@ -414,6 +414,15 @@ class CharacterCompiler:
                             )
 
                             cost = validate_mental_spirit_trait(definition, amount, options)
+                        elif any(
+                            hook.startswith("attack-defense-trait:")
+                            for hook in metadata.runtime_hooks
+                        ):
+                            from wayfarer.rules.attack_defense_traits import (
+                                validate_purchase as validate_attack_defense_trait,
+                            )
+
+                            cost = validate_attack_defense_trait(definition, amount, options)
                         else:
                             cost = trait_cost(cost, amount, options, metadata)
                         if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):

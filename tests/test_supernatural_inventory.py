@@ -136,7 +136,7 @@ def test_every_entry_has_concrete_runtime_and_source_blockers_and_real_evidence(
         107,
         173,
         191,
-        *(n for n in range(221, 244) if n not in {233, 234, 235, 236, 241}),
+        *(n for n in range(221, 244) if n not in {233, 234, 235, 236, 237, 241}),
     }
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
