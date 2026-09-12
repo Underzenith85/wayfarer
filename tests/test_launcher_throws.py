@@ -14,21 +14,21 @@ from pydantic import ValidationError as SchemaError
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
-from wayfarer.character.compiler import Purchase
-from wayfarer.errors import ValidationError
-from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.launcher_types import LauncherSpec
-from wayfarer.rules.mundane_skills import inventory
-from wayfarer.rules.mundane_skills.ranged import definitions, require_mode
-from wayfarer.simulation.combat import RangedSituation
-from wayfarer.simulation.gurps_equipment import (
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.ranged import definitions, require_mode
+from wayfarer.engine.rules.types.launcher import LauncherSpec
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import (
     LITE_SOURCE,
     Damage,
     EquipmentProfile,
     RangedMode,
 )
-from wayfarer.simulation.resources import Item
+from wayfarer.engine.simulation.resources import Item
+from wayfarer.errors import ValidationError
+from wayfarer.orchestration.play import PlayService
 
 BASIC = "gurps-basic-set-4e-2004"
 # A thrower that reaches half again as far and adds a point of damage.

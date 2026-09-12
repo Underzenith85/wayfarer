@@ -7,28 +7,32 @@ import json
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
-from wayfarer.character.physical_traits import physical_traits
-from wayfarer.character.power import CharacterProposal
-from wayfarer.character.statistics import RuntimePool, carry_over
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id, Record
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.catalog import reference
-from wayfarer.rules.physical_traits import PhysicalTraits
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.adjudication import expire_rulings
-from wayfarer.simulation.advancement import (
+from wayfarer.engine.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
+from wayfarer.engine.character.power import CharacterProposal
+from wayfarer.engine.character.statistics import RuntimePool, carry_over
+from wayfarer.engine.character.traits.physical import physical_traits
+from wayfarer.engine.rules.catalog import reference
+from wayfarer.engine.rules.traits.physical import PhysicalTraits
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.advancement import (
     AdvancementEntry,
     AdvancementPreview,
     BuildDiff,
     MigrationEntry,
     MigrationPreview,
 )
-from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene, migrate_unique
-from wayfarer.simulation.resources import Pool
-from wayfarer.simulation.scenes import ActorScene
+from wayfarer.engine.simulation.campaign.encounter_context import (
+    EncounterSceneBinding,
+    bind_scene,
+    migrate_unique,
+)
+from wayfarer.engine.simulation.campaign.scenes import ActorScene
+from wayfarer.engine.simulation.resources import Pool
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Campaign, CommandReceipt, Id, Record
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.play import PlayService
 
 
 class GrantPoints(Record):
@@ -490,10 +494,10 @@ class MigrationService:
                     "Rules migration requires explicit ambiguous encounter scene mappings"
                 )
             if self.target.engine.rules.party is not None:
-                from wayfarer.simulation.party import migrate
+                from wayfarer.engine.simulation.campaign.party import migrate
 
                 updated = migrate(updated)
-            from wayfarer.simulation.scenario_references import boundary
+            from wayfarer.engine.simulation.campaign.scenario_references import boundary
 
             pin = boundary(campaign)
             if pin is not None:

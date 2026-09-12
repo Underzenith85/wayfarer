@@ -4,20 +4,20 @@ from typing import Final
 
 import pytest
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.location_types import LastingInjury
-from wayfarer.rules.recovery_types import FatigueStatus, ProfileId, interrupt_tasks
-from wayfarer.simulation.hazards import HazardCommand, apply_hazard
-from wayfarer.simulation.recovery_variants import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.location import LastingInjury
+from wayfarer.engine.rules.types.recovery import FatigueStatus, ProfileId, interrupt_tasks
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
+from wayfarer.engine.simulation.health.recovery_variants import (
     BeginRecoveryVariant,
     FinishRecoveryVariant,
     RecoveryVariantContext,
     apply_recovery_variant,
     surgery_equipment_modifier,
 )
-from wayfarer.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.errors import ConflictError, ValidationError
 
 PROFILE: Final[ProfileId] = "gurps-basic-set-4e-2004"
 DAY = 86400

@@ -11,19 +11,9 @@ import pytest
 from test_actions import campaign, world
 from test_statistics import BASIC, LITE, gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
-from wayfarer.orchestration.combat import (
-    ChooseDefense,
-    CombatService,
-    StartEncounter,
-    TakeCombatTurn,
-)
-from wayfarer.orchestration.play import PlayService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.catalog import (
     CampaignPolicy,
     CampaignRules,
     DefinitionKind,
@@ -32,24 +22,29 @@ from wayfarer.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.explosion_types import ExplosionSpec
-from wayfarer.rules.location_types import HumanBody
-from wayfarer.rules.object_types import ObjectCondition, ObjectProfile
-from wayfarer.rules.recovery_types import RecoveryTask
-from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillDefault, SkillSpec
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, ActorSetup
-from wayfarer.simulation.combat import (
-    Battlefield,
-    CombatRules,
-    Defense,
-    GridPoint,
-    Placement,
-    RangedSituation,
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.explosion import ExplosionSpec
+from wayfarer.engine.rules.types.location import HumanBody
+from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
+from wayfarer.engine.rules.types.recovery import RecoveryTask
+from wayfarer.engine.rules.types.skill import (
+    ControllingAttribute,
+    Difficulty,
+    SkillDefault,
+    SkillSpec,
 )
-from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
-from wayfarer.simulation.gurps_equipment import (
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
+from wayfarer.engine.simulation.actors import movement
+from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.combat.spatial import Placement
+from wayfarer.engine.simulation.combat.vocabulary import Defense
+from wayfarer.engine.simulation.equipment.catalog import (
     LITE_EQUIPMENT,
     LITE_SOURCE,
     Damage,
@@ -60,12 +55,26 @@ from wayfarer.simulation.gurps_equipment import (
     RangedMode,
     Shield,
 )
-from wayfarer.simulation.hex_geometry import HexBattlefield
-from wayfarer.simulation.mechanics.gurps_melee import defense_value, movement
-from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState, Scheduled
-from wayfarer.simulation.scenes import Scene, SceneRules
-from wayfarer.simulation.studio import ScenarioGraph
-from wayfarer.world import World
+from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
+from wayfarer.engine.simulation.hex_geometry import HexBattlefield
+from wayfarer.engine.simulation.resources import (
+    Item,
+    Owner,
+    ResourceEngine,
+    ResourceState,
+    Scheduled,
+)
+from wayfarer.engine.world import World
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.combat import (
+    ChooseDefense,
+    CombatService,
+    StartEncounter,
+    TakeCombatTurn,
+)
+from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 async def setup(
@@ -385,9 +394,9 @@ async def setup(
             for e in equipment.entries
         )
     )
-    from wayfarer.rules.abilities import definition
-    from wayfarer.rules.traits import TraitOptions
-    from wayfarer.simulation.ability_types import AbilityRules, AbilitySpec
+    from wayfarer.engine.rules.supernatural.abilities import definition
+    from wayfarer.engine.rules.traits.base import TraitOptions
+    from wayfarer.engine.simulation.ability_types import AbilityRules, AbilitySpec
 
     ability = AbilitySpec(
         definition_id="trait:shield", kind="damage-resistance", modifiers=("costs-fatigue-1",)
@@ -395,10 +404,10 @@ async def setup(
     package = profile_package(
         profile, *extras, *((definition(ability),) if ability_defense else ())
     )
-    from wayfarer.rules.physical_traits import PHYSICAL_HOOKS
+    from wayfarer.engine.rules.traits.physical import PHYSICAL_HOOKS
 
     if physical_purchases:
-        from wayfarer.rules.mundane_traits import candidate_package
+        from wayfarer.engine.rules.traits.mundane import candidate_package
 
         physical = candidate_package()
         package = replace(
@@ -407,7 +416,7 @@ async def setup(
             definitions=package.definitions + physical.definitions,
         )
     if critical_breakage is not None:
-        from wayfarer.rules.object_types import ObjectProfile
+        from wayfarer.engine.rules.types.object import ObjectProfile
 
         equipment = equipment.model_copy(
             update={

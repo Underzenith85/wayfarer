@@ -12,18 +12,18 @@ from test_actions import campaign
 from test_spell_service import resolve
 from test_spells import command, context
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.conformance import CoverageStatus, capability, require_verified
+from wayfarer.engine.simulation.abilities import apply_ability, interrupt_concentration
+from wayfarer.engine.simulation.actions import Wait
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.spells import active_spells, apply_spell
+from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.conformance import CoverageStatus, capability, require_verified
-from wayfarer.simulation.abilities import apply_ability, interrupt_concentration
-from wayfarer.simulation.actions import Wait
-from wayfarer.simulation.concentration import require_idle_concentration
-from wayfarer.simulation.resources import ResourceEvent, ResourceState
-from wayfarer.simulation.spells import active_spells, apply_spell
 
 
 @pytest.mark.parametrize("first", ["spell", "ability"])

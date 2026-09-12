@@ -12,19 +12,19 @@ from typing import Annotated, Literal
 from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.play import PlayService
-from wayfarer.simulation.actions import (
+from wayfarer.engine.simulation.actions import (
     ACTION_ADAPTER,
     ActionCommand,
     ActionResult,
     PlayState,
     Social,
 )
-from wayfarer.simulation.adjudication import Ruling, expire_rulings
-from wayfarer.simulation.events import action_result
+from wayfarer.engine.simulation.campaign.adjudication import Ruling, expire_rulings
+from wayfarer.engine.simulation.events import action_result
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Campaign, CommandReceipt, Id
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.play import PlayService
 
 
 class RequestRuling(ActionCommand):
@@ -206,7 +206,7 @@ class AdjudicationService:
         reframed = original.model_copy(
             update={"id": command.id, "expected_revision": state.revision, "approach": "diplomacy"}
         )
-        from wayfarer.simulation.party import synchronous
+        from wayfarer.engine.simulation.campaign.party import synchronous
 
         synchronous(state, command.actor_id)
         updated, resolved_events = self.play.engine.resolve(

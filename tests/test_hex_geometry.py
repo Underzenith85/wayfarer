@@ -12,10 +12,10 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError as ModelError
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.simulation.combat import Battlefield, CombatEngine, GridPoint
-from wayfarer.simulation.hex_geometry import (
+from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.hex_geometry import (
     Cell,
     Hex,
     HexBattlefield,
@@ -35,6 +35,7 @@ from wayfarer.simulation.hex_geometry import (
     ranged_distance,
     step_allowance,
 )
+from wayfarer.errors import ValidationError
 
 
 def h(q: int, r: int) -> Hex:
@@ -314,7 +315,7 @@ def test_duplicate_map_cells_and_occupants_fail_closed() -> None:
 
 
 def test_tactical_capabilities_remain_fail_closed() -> None:
-    from wayfarer.rules.conformance import CoverageStatus, capability, require_verified
+    from wayfarer.engine.rules.conformance import CoverageStatus, capability, require_verified
 
     for name in ("hex_movement", "facing", "visibility"):
         identifier = f"gurps.tactical.{name}"

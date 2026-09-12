@@ -9,20 +9,25 @@ from typing import cast
 import pytest
 from test_statistics import BASIC, LITE, gurps_draft, profile_compiler, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild, pool_limits
-from wayfarer.character.size_modifier import SizeModifierError, cost
-from wayfarer.character.statistics import Attribute
-from wayfarer.errors import ValidationError
-from wayfarer.orchestration.advancement import _refreshed
-from wayfarer.rules.conformance import CoverageStatus, capability
-from wayfarer.rules.gurps_characters import (
+from wayfarer.engine.character.compiler import (
+    CharacterCompiler,
+    Purchase,
+    ValidatedBuild,
+    pool_limits,
+)
+from wayfarer.engine.character.size_modifier import SizeModifierError, cost
+from wayfarer.engine.character.statistics import Attribute
+from wayfarer.engine.rules.conformance import CoverageStatus, capability
+from wayfarer.engine.rules.gurps_characters import (
     SIZE_MODIFIER_CAPABILITY_ID,
     SIZE_MODIFIER_DEFINITION_ID,
     size_modifier_definition,
 )
-from wayfarer.rules.profiles import DEFAULT_REGISTRY, GURPS_SIZE_PROFILE, ProfileRegistry
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.resources import Pool
+from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, GURPS_SIZE_PROFILE, ProfileRegistry
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.simulation.resources import Pool
+from wayfarer.errors import ValidationError
+from wayfarer.orchestration.advancement import _refreshed
 
 FIXTURE = Path("tests/fixtures/gurps/size_modifier_costs.json")
 

@@ -10,15 +10,15 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer import validation
+from wayfarer.engine.rules.randomness import RNG_ALGORITHM
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.events import EngineEvent, campaign_document, digest, document, fold
 from wayfarer.models import Campaign, CommandReceipt, Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.replay import execute_recorded
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import CommandRecord, StoredEvent, payload_digest
 from wayfarer.persistence.replay import ReplayCheck, require_configuration, verify_commands
-from wayfarer.rules.randomness import RNG_ALGORITHM
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.events import EngineEvent, campaign_document, digest, document, fold
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures/replay"
@@ -176,9 +176,9 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
     """Initial reviewed cases; future regeneration keeps these initial states fixed."""
     from test_wave10 import choose, setback, wait
 
+    from wayfarer.engine.simulation.actions import Inspect, Wait
     from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
     from wayfarer.orchestration.spells import SpellService
-    from wayfarer.simulation.actions import Inspect, Wait
 
     table = None
     if name == "reference":

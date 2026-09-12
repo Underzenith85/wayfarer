@@ -6,13 +6,13 @@ from pathlib import Path
 import pytest
 from test_gurps_melee import attack, choice, setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.object import ObjectProfile
+from wayfarer.engine.simulation.combat.objects.combat import BreakageResult
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.object_types import ObjectProfile
-from wayfarer.simulation.mechanics.object_combat import BreakageResult
 
 
 @pytest.mark.parametrize("table", [(1, 1, 1), (1, 1, 2), (6, 6, 5), (6, 6, 6), (3, 3, 3)])
@@ -80,7 +80,7 @@ async def test_fine_weapon_confirmation_is_recorded_not_dispatched(
 
 
 async def test_weapon_flight_landing_collision_and_remote_ready_guard(tmp_path: Path) -> None:
-    from wayfarer.simulation.mechanics.weapon_flight import FlightResult, retrieve
+    from wayfarer.engine.simulation.combat.thrown.flight import FlightResult, retrieve
 
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await attack(cid, play)
@@ -185,9 +185,9 @@ async def test_used_weapon_stress_commits_failed_attack_without_rolling_attack(
 
 
 async def test_timed_repair_has_no_early_roll_or_ownership_bypass(tmp_path: Path) -> None:
+    from wayfarer.engine.simulation.actions import Wait
+    from wayfarer.engine.simulation.equipment.repairs import tasks
     from wayfarer.orchestration.combat import EndEncounter, RepairEquipment
-    from wayfarer.simulation.actions import Wait
-    from wayfarer.simulation.object_repairs import tasks
 
     cid, play = await setup(
         tmp_path,
@@ -269,11 +269,11 @@ async def test_timed_repair_has_no_early_roll_or_ownership_bypass(tmp_path: Path
 
 
 async def test_major_repair_pins_parts_cost_and_locks_custody(tmp_path: Path) -> None:
+    from wayfarer.engine.simulation.actions import Wait
+    from wayfarer.engine.simulation.equipment.repairs import tasks
+    from wayfarer.engine.simulation.resources import Transfer
     from wayfarer.errors import ConflictError
     from wayfarer.orchestration.combat import EndEncounter, RepairEquipment
-    from wayfarer.simulation.actions import Wait
-    from wayfarer.simulation.object_repairs import tasks
-    from wayfarer.simulation.resources import Transfer
 
     cid, play = await setup(
         tmp_path,

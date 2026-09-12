@@ -5,9 +5,11 @@ from fractions import Fraction
 import pytest
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
+from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
+from wayfarer.engine.simulation.equipment.basic.vehicles import VEHICLE_INDEX
+from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, MeleeMode, RangedMode
 from wayfarer.errors import ValidationError
-from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX, VEHICLE_INDEX
-from wayfarer.simulation.gurps_equipment import EquipmentCatalog, MeleeMode, RangedMode
 
 MELEE_ROWS = (
     ("axe", 271, 0, 50, 4000),

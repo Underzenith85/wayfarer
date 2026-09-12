@@ -10,6 +10,15 @@ import pytest
 from test_actions import Dice, actor_setup, campaign, resource_seed
 from test_scenes import configured
 
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import PlayState, Wait
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.npcs import NPCAction, NPCPlan, NPCRules
+from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
+from wayfarer.engine.simulation.campaign.party import PartyRules
+from wayfarer.engine.simulation.health.recovery import RecoveryOption, RecoveryRules, SetbackRule
+from wayfarer.engine.simulation.resources import Item, Owner
+from wayfarer.engine.world import Entity, EntityKind, Fact
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.npcs import NPCProposal, NPCService
@@ -18,15 +27,6 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService, captive
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import PlayState, Wait
-from wayfarer.simulation.npcs import NPCAction, NPCPlan, NPCRules
-from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate
-from wayfarer.simulation.party import PartyRules
-from wayfarer.simulation.recovery import RecoveryOption, RecoveryRules, SetbackRule
-from wayfarer.simulation.resources import Item, Owner
-from wayfarer.world import Entity, EntityKind, Fact
 
 
 class OptionScope(TypedDict):
@@ -536,7 +536,7 @@ async def test_two_authenticated_players_capture_rescue_and_private_stream(tmp_p
 
 
 async def test_illegal_replacement_rejected_and_resupply_finite(tmp_path: Path) -> None:
-    from wayfarer.character.compiler import Purchase
+    from wayfarer.engine.character.compiler import Purchase
 
     policy = policies()
     proposal = actor_setup().proposal
@@ -652,7 +652,7 @@ async def test_authored_captive_communication_only_sends_known_facts(tmp_path: P
 async def test_downtime_advancement_reuses_compiler_and_earned_point_balance(
     tmp_path: Path,
 ) -> None:
-    from wayfarer.character.compiler import Purchase
+    from wayfarer.engine.character.compiler import Purchase
     from wayfarer.orchestration.advancement import AdvancementService, GrantPoints, _balance
 
     proposal = actor_setup().proposal

@@ -7,6 +7,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
 
+from wayfarer.engine.rules.catalog import reference
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.scenario_document import PublishedRevision
+from wayfarer.engine.simulation.campaign.setup import CreateSetup, Seat, Setup, SetupCommand
 from wayfarer.errors import (
     AuthorizationError,
     ConflictError,
@@ -19,10 +23,6 @@ from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.studio import ScenarioStudio
-from wayfarer.rules.catalog import reference
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.scenario_document import PublishedRevision
-from wayfarer.simulation.setup import CreateSetup, Seat, Setup, SetupCommand
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.providers import Orchestrator
@@ -186,8 +186,8 @@ def _activate_setup(
         raise ConflictError("Every invited player must join and confirm readiness")
     _validate_setup(setup, play)
     if "scenario_document_json" in campaign:
+        from wayfarer.engine.simulation.campaign.scenario_document import PregeneratedCharacter
         from wayfarer.orchestration.scenario_documents import ScenarioDocuments
-        from wayfarer.simulation.scenario_document import PregeneratedCharacter
 
         assert setup.graph is not None
         documents = ScenarioDocuments(ScenarioStudio(play, npc_reviewer=play.engine.reviewer))
@@ -218,8 +218,8 @@ def _activate_setup(
         if gm not in {s.principal_id for s in seats}
     )
     state = activated.initial_state(seed, graph.world, graph.resources, graph.actors, members)
+    from wayfarer.engine.simulation.campaign.scenario_references import boundary
     from wayfarer.orchestration.scenario_references import pin_scenario
-    from wayfarer.simulation.scenario_references import boundary
 
     prior = boundary(campaign)
     pin_scenario(
@@ -252,7 +252,7 @@ def _lifecycle_setup(
     source, destination = transitions[op]
     if setup.phase != source:
         raise ConflictError("Invalid lifecycle transition")
-    from wayfarer.simulation.actions import PlayState
+    from wayfarer.engine.simulation.actions import PlayState
 
     state = PlayState.model_validate_json(campaign["play_json"])
     if op == "complete" and state.objectives.outcome == "ongoing":
@@ -264,7 +264,7 @@ def _lifecycle_setup(
     if op == "complete":
         if state.party.queue or any(e.status == "active" for e in state.encounters):
             raise ConflictError("Resolve queued actions and active combat before completion")
-        from wayfarer.simulation.continuation import AdventureSnapshot
+        from wayfarer.engine.simulation.campaign.continuation import AdventureSnapshot
 
         if setup.graph is None:
             raise ValidationError("Missing completed scenario")
@@ -325,7 +325,7 @@ def reduce_setup(
     setup = setup.model_copy(update={"seats": tuple(seats)})
     revision = before["revision"] + 1
     if "play_json" in campaign:
-        from wayfarer.simulation.actions import PlayState
+        from wayfarer.engine.simulation.actions import PlayState
 
         state = PlayState.model_validate_json(campaign["play_json"])
         state = state.model_copy(
@@ -470,7 +470,7 @@ class SetupService:
         if self.load(existing).creation_json != payload:
             raise ConflictError("Creation identity already used for different input")
         if catalog_id is not None:
-            from wayfarer.simulation.scenario_references import boundary
+            from wayfarer.engine.simulation.campaign.scenario_references import boundary
 
             pin = boundary(existing)
             if pin is not None and pin.reference.catalog_id != catalog_id:
@@ -489,7 +489,7 @@ class SetupService:
 
     async def read(self, cid: str, *, principal_id: str) -> dict[str, object]:
         campaign = await self.play.store.read(cid)
-        from wayfarer.simulation.scenario_references import verify
+        from wayfarer.engine.simulation.campaign.scenario_references import verify
 
         verify(campaign)
         setup = self.load(campaign)
@@ -596,8 +596,8 @@ class SetupService:
     async def generate(
         self, cid: str, command: SetupCommand, llm: Orchestrator, *, principal_id: str
     ) -> dict[str, object]:
+        from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
         from wayfarer.orchestration.providers import ProviderRequest
-        from wayfarer.simulation.studio import ScenarioGraph
 
         campaign = await self.play.store.read(cid)
         setup = self.load(campaign)
@@ -636,7 +636,7 @@ class SetupService:
             else ()
         )
         if command.operation == "preview":
-            from wayfarer.simulation.actions import ActorSetup, PlayState
+            from wayfarer.engine.simulation.actions import ActorSetup, PlayState
 
             current_state = PlayState.model_validate_json(campaign["play_json"])
             player_ids = {a for seat in setup.seats for a in seat.actor_ids}

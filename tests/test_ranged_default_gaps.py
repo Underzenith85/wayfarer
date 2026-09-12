@@ -2,15 +2,15 @@
 
 from decimal import Decimal
 
-from wayfarer.character.skills import BASIC, DefaultContext, SkillCompiler
-from wayfarer.rules.mundane_skills import audit_report, inventory
-from wayfarer.rules.mundane_skills.ranged import (
+from wayfarer.engine.character.skills import BASIC, DefaultContext, SkillCompiler
+from wayfarer.engine.rules.skills.mundane import audit_report, inventory
+from wayfarer.engine.rules.skills.mundane.ranged import (
     CONDITIONAL_DEFAULTS,
     PROCEDURES,
     definitions,
     ranged_scope,
 )
-from wayfarer.rules.skill_types import ControllingAttribute, DefaultConditionKind
+from wayfarer.engine.rules.types.skill import ControllingAttribute, DefaultConditionKind
 
 
 def attributes() -> dict[str, Decimal]:

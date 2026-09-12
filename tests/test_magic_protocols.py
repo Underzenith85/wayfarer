@@ -2,10 +2,8 @@
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.magic_protocols import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.magic.protocols import (
     AreaSelection,
     CeremonialContribution,
     CeremonialPlan,
@@ -21,9 +19,17 @@ from wayfarer.rules.magic_protocols import (
     square_area,
     validate_tradition,
 )
-from wayfarer.rules.recovery_types import FatigueStatus
-from wayfarer.simulation.resources import Pool, ResourceState
-from wayfarer.simulation.spells import PROFILE, SpellCommand, SpellContext, apply_spell, latest
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.simulation.magic.spells import (
+    PROFILE,
+    SpellCommand,
+    SpellContext,
+    apply_spell,
+    latest,
+)
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.errors import ValidationError
 
 
 def test_ritual_requirements_use_base_skill_boundaries() -> None:

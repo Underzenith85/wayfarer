@@ -21,7 +21,7 @@ Certification requires all of the following at the same time:
 
 - the frozen source, errata, scope and fixture audit passes without stale review
   evidence;
-- every Basic-required capability in `wayfarer.rules.conformance` is `verified`;
+- every Basic-required capability in `wayfarer.engine.rules.conformance` is `verified`;
 - every Basic-required owner inventory row is source-reviewed and has executable
   implementation evidence (`implemented` or `verified`);
 - the latest registered Basic profile declares exactly the frozen required

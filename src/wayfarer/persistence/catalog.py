@@ -10,10 +10,10 @@ from contextlib import asynccontextmanager
 import aiosqlite
 import psycopg
 
+from wayfarer.engine.simulation.campaign.scenario_catalog import CatalogEntry, ScenarioGenerationJob
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.simulation.catalog import CatalogEntry, ScenarioGenerationJob
 
 
 class Connection:

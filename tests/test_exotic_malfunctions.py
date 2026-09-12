@@ -8,17 +8,17 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.types.explosion import BlastResponse, ExplosionSpec
+from wayfarer.engine.rules.types.firearm import FirearmSpec
+from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.combat.firearm_transitions import roll_malfunction
+from wayfarer.engine.simulation.equipment.catalog import Damage
 from wayfarer.errors import ConflictError
 from wayfarer.orchestration.combat import CombatService, ResolveWeaponExplosion
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.explosion_types import BlastResponse, ExplosionSpec
-from wayfarer.rules.firearm_types import FirearmSpec
-from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.simulation.explosions import blasts
-from wayfarer.simulation.gurps_equipment import Damage
-from wayfarer.simulation.mechanics.firearms import roll_malfunction
 
 
 @pytest.mark.parametrize(
@@ -167,8 +167,8 @@ async def test_grenade_dud_and_delayed_fuse(
 ) -> None:
     from test_gurps_ranged import weapon
 
+    from wayfarer.engine.simulation.combat.thrown.flight import position
     from wayfarer.orchestration.combat import DeclareThrownLanding
-    from wayfarer.simulation.mechanics.weapon_flight import position
 
     mode = weapon(thrown=True).model_copy(
         update={
@@ -279,7 +279,7 @@ async def test_single_use_dud_retires_launcher_and_round(tmp_path: Path) -> None
 
 
 async def test_fragmentation_and_object_damage_share_the_transaction(tmp_path: Path) -> None:
-    from wayfarer.rules.object_types import ObjectProfile
+    from wayfarer.engine.rules.types.object import ObjectProfile
 
     mode = firearm().model_copy(
         update={
@@ -397,7 +397,7 @@ async def test_beam_misfire_clearing_does_not_consume_charge(tmp_path: Path) -> 
 
 
 def test_beam_skill_accepts_only_explicit_beam_construction() -> None:
-    from wayfarer.simulation.gurps_equipment import require_skill_procedure
+    from wayfarer.engine.simulation.equipment.catalog import require_skill_procedure
 
     mode = firearm().model_copy(
         update={

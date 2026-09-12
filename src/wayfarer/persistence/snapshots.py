@@ -4,11 +4,11 @@ import json
 from copy import deepcopy
 
 from wayfarer import validation
+from wayfarer.engine.simulation.campaign.scenario_references import verify
+from wayfarer.engine.simulation.events import StatePatched, digest, document, fold
 from wayfarer.errors import NotFoundError, ValidationError
 from wayfarer.models import Campaign
 from wayfarer.persistence.events import StoredEvent
-from wayfarer.simulation.events import StatePatched, digest, document, fold
-from wayfarer.simulation.scenario_references import verify
 
 EVENT_PROJECTIONS = ("last_result", "last_combat_result", "scene_events")
 
@@ -43,7 +43,7 @@ def decode(raw: object) -> Campaign:
         play = validation.mapping(validation.decode(state["play_json"]))
         play.update(validation.mapping(value["event_projections"]))
         # Re-encode with the canonical model field order for legacy API consumers.
-        from wayfarer.simulation.actions import PlayState
+        from wayfarer.engine.simulation.actions import PlayState
 
         state["play_json"] = PlayState.model_validate_json(json.dumps(play)).model_dump_json()
     return state

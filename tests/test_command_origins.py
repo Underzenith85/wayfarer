@@ -6,11 +6,11 @@ from pathlib import Path
 import pytest
 from test_wave9 import FakeProvider, prepare
 
+from wayfarer.engine.simulation.actions import Wait
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.director import DirectorService
 from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.persistence.events import CommandOrigin, payload_digest
-from wayfarer.simulation.actions import Wait
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])

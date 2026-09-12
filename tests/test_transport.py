@@ -9,17 +9,12 @@ from pydantic import ValidationError as SchemaError
 from test_objects import fixture as object_fixture
 from test_resources import campaign
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.resources import ResourceService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.transport_types import Transport
-from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield
-from wayfarer.simulation.resources import Pool, ResourceEngine, ResourceState
-from wayfarer.simulation.transport import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.transport import Transport
+from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield
+from wayfarer.engine.simulation.movement.transport import (
     CollideTransport,
     ControlTransport,
     Drive,
@@ -27,6 +22,11 @@ from wayfarer.simulation.transport import (
     apply_transport,
     collision_dice,
 )
+from wayfarer.engine.simulation.resources import Pool, ResourceEngine, ResourceState
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.resources import ResourceService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
 def fixture(*, mount: bool = False, speed: int = 0) -> tuple[ResourceEngine, ResourceState]:
@@ -262,7 +262,7 @@ async def test_collision_atomic_retry_and_restart(tmp_path: Path, backend: str) 
 
 
 def test_frozen_scenario_v1_rejects_internal_transport_fields() -> None:
-    from wayfarer.simulation.scenario_document import InitialResources
+    from wayfarer.engine.simulation.campaign.scenario_document import InitialResources
 
     assert "transports" not in InitialResources.model_json_schema()["properties"]
     assert "Transport" not in InitialResources.model_json_schema().get("$defs", {})

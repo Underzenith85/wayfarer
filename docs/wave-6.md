@@ -2,7 +2,7 @@
 
 ## Character compiler (#8)
 
-`wayfarer.character.compiler.CharacterCompiler` is configured by the server with
+`wayfarer.engine.character.compiler.CharacterCompiler` is configured by the server with
 an immutable rules package pin, campaign policy and trusted catalog effect
 bindings. `compile()` accepts an untrusted draft containing a name, backstory and
 purchases (`definition_id`, `amount`). Unknown fields, including totals, discounts

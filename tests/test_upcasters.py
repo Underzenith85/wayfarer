@@ -7,6 +7,8 @@ import pytest
 from test_wave9 import prepare
 
 from wayfarer import validation
+from wayfarer.engine.simulation.actions import Wait
+from wayfarer.engine.simulation.events import digest, document, fold
 from wayfarer.errors import StorageError
 from wayfarer.persistence.events import COMMAND_UPCASTERS
 from wayfarer.persistence.upcasters import (
@@ -15,8 +17,6 @@ from wayfarer.persistence.upcasters import (
     check_retention,
     read_event,
 )
-from wayfarer.simulation.actions import Wait
-from wayfarer.simulation.events import digest, document, fold
 
 FIXTURE = Path(__file__).parent / "fixtures/retained_schemas.json"
 

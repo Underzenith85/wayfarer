@@ -7,15 +7,15 @@ from typing import Literal
 
 from pydantic import Field
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
-from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.scenes import SceneService, TravelScene
-from wayfarer.simulation.actions import ActionCommand, Inspect, PlayState, Social, UseItem, Wait
-from wayfarer.simulation.events import action_result
-from wayfarer.simulation.party import (
+from wayfarer.engine.simulation.actions import (
+    ActionCommand,
+    Inspect,
+    PlayState,
+    Social,
+    UseItem,
+    Wait,
+)
+from wayfarer.engine.simulation.campaign.party import (
     ActivityReceipt,
     PendingEffect,
     QueuedActivity,
@@ -23,7 +23,14 @@ from wayfarer.simulation.party import (
     group_for,
     migrate,
 )
-from wayfarer.simulation.resources import Advance, Transfer
+from wayfarer.engine.simulation.events import action_result
+from wayfarer.engine.simulation.resources import Advance, Transfer
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Campaign, CommandReceipt, Id
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
+from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.scenes import SceneService, TravelScene
 
 
 class PartyCommand(ActionCommand):
@@ -226,7 +233,7 @@ class PartyService:
                 code = "activity.resolved"
                 try:
                     if activity.family == "action":
-                        from wayfarer.simulation.actions import ACTION_ADAPTER
+                        from wayfarer.engine.simulation.actions import ACTION_ADAPTER
 
                         action = ACTION_ADAPTER.validate_json(activity.command_json).model_copy(
                             update={"expected_revision": revision - 1}
@@ -294,7 +301,7 @@ class PartyService:
         groups = state.party.groups
         if command.kind not in ("pause_group", "resume_group") and group.paused:
             raise ConflictError("Subgroup is explicitly paused")
-        from wayfarer.simulation.encounter_context import activity_for
+        from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 
         context = activity_for(state, command.actor_id)
         in_combat = context.group_encounter is not None

@@ -7,12 +7,12 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.object import ObjectProfile
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.object_types import ObjectProfile
 
 
 async def test_burst_targets_object_with_individual_receipts_and_restart(tmp_path: Path) -> None:
@@ -124,8 +124,8 @@ async def test_fireball_object_target_or_shield_interception(
     from test_spell_bindings import command, idle, start_fight
     from test_spell_bindings import setup as spell_setup
 
+    from wayfarer.engine.simulation.equipment.catalog import LITE_SOURCE, EquipmentProfile, Shield
     from wayfarer.orchestration.spells import SpellService
-    from wayfarer.simulation.gurps_equipment import LITE_SOURCE, EquipmentProfile, Shield
 
     entry = EquipmentProfile(
         definition_id="equipment:target",
@@ -201,8 +201,8 @@ async def test_second_defense_stresses_only_after_failed_first_defense(tmp_path:
 async def test_destroyed_shield_remains_carried_until_minus_ten_hp(tmp_path: Path) -> None:
     from test_gurps_melee import attack
 
-    from wayfarer.simulation.gurps_equipment import Damage
-    from wayfarer.simulation.mechanics.object_combat import shield_damage
+    from wayfarer.engine.simulation.combat.objects.combat import shield_damage
+    from wayfarer.engine.simulation.equipment.catalog import Damage
 
     cid, play = await setup(
         tmp_path,
@@ -228,8 +228,8 @@ async def test_destroyed_shield_remains_carried_until_minus_ten_hp(tmp_path: Pat
 
 
 async def test_ground_projectile_uses_item_distance_and_zero_speed(tmp_path: Path) -> None:
+    from wayfarer.engine.rules.types.object import GroundPosition
     from wayfarer.models import Campaign, CommandReceipt
-    from wayfarer.rules.object_types import GroundPosition
 
     cid, play = await setup(
         tmp_path,
@@ -263,7 +263,7 @@ async def test_ground_projectile_uses_item_distance_and_zero_speed(tmp_path: Pat
                 )
             }
         )
-        from wayfarer.simulation.mechanics.object_combat import synchronize
+        from wayfarer.engine.simulation.combat.objects.combat import synchronize
 
         state = state.model_copy(
             update={

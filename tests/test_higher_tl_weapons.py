@@ -6,13 +6,14 @@ import pytest
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
+from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
+from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
+from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.resources import Item, RechargePowerCell
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
-from wayfarer.simulation.combat import RangedSituation
-from wayfarer.simulation.gurps_equipment import RangedMode
-from wayfarer.simulation.resources import Item, RechargePowerCell
 
 
 def selected_mode(definition_id: str) -> RangedMode:
@@ -196,7 +197,7 @@ async def test_smartgun_rejects_an_unauthorized_owner(tmp_path: Path) -> None:
             )
         }
     )
-    from wayfarer.simulation.mechanics.gurps_melee import mode as select_mode
+    from wayfarer.engine.simulation.combat.melee.modes import mode as select_mode
 
     with pytest.raises(ValidationError, match="denies"):
         select_mode(play.rules_context, denied, "a", "sword-a", "beam")

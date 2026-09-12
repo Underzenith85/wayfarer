@@ -4,27 +4,29 @@ from typing import Final
 
 import pytest
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus
-from wayfarer.simulation.fatigue import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.simulation.health.fatigue import (
     ContinueExertion,
     FatigueCost,
     apply_fatigue,
     exertion_cost,
     fatigue_value,
 )
-from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.medical import (
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
-    apply_recovery,
+)
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
+from wayfarer.engine.simulation.health.medical.tables import (
     first_aid_parameters,
     physician_parameters,
 )
-from wayfarer.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.errors import ConflictError, ValidationError
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
 

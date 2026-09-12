@@ -1,6 +1,6 @@
 # GURPS equipment table audit (#180)
 
-`wayfarer.simulation.equipment_audit` is evidence accounting for the selected
+`wayfarer.certification.equipment_audit` is evidence accounting for the selected
 equipment tables. It contains no rules prose, no invented rows and no second
 mechanics engine. Four claims are kept apart on purpose:
 

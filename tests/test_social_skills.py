@@ -7,38 +7,37 @@ from pathlib import Path
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import ModifierKind, RecordedDice
-from wayfarer.rules.conformance import CAPABILITIES
-from wayfarer.rules.mundane_skills import inventory
-from wayfarer.rules.mundane_skills.social import (
+from wayfarer.engine.rules.checks import ModifierKind, RecordedDice
+from wayfarer.engine.rules.conformance import CAPABILITIES
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.social.attempts import SocialSkillContext, resolve
+from wayfarer.engine.rules.skills.mundane.social.inventory import (
     CONDITIONS,
     DISPATCH,
     PROCEDURES,
     VOICE,
     Resolution,
     SocialProcedure,
-    SocialSkillContext,
     Verdict,
     definitions,
     effect_ids,
     procedure,
     procedures,
     require_procedure,
-    resolve,
     supported,
     unsupported_scope,
 )
-from wayfarer.simulation.npcs import NPCSocialTrigger
-from wayfarer.simulation.resources import ResourceState
-from wayfarer.simulation.social import (
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialTrigger
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.social.social import (
     SocialCommand,
     SocialContext,
     SocialDisclosure,
     apply_interaction,
     apply_social,
 )
-from wayfarer.world import Entity, EntityKind, Fact, World
+from wayfarer.engine.world import Entity, EntityKind, Fact, World
+from wayfarer.errors import ValidationError
 
 PROFILE = "gurps-basic-set-4e-2004"
 FIXTURE = Path(__file__).parent / "fixtures/gurps/social_skills.json"
@@ -253,7 +252,7 @@ def test_paired_and_unpaired_procedures_reject_the_wrong_second_party() -> None:
 
 
 def test_reaction_modifiers_reach_influence_procedures_only() -> None:
-    from wayfarer.rules.gurps_social import ReactionModifier
+    from wayfarer.engine.rules.social.gurps_social import ReactionModifier
 
     modifiers = (ReactionModifier("status", 2, "trait:status"),)
     with pytest.raises(ValidationError, match="influence rolls only"):
@@ -364,8 +363,8 @@ def test_a_binding_cannot_disagree_with_the_recorded_inventory() -> None:
     """A procedure may not resolve a blocker the row never recorded, or restate its numbers."""
     from dataclasses import replace
 
-    import wayfarer.rules.mundane_skills as module
-    from wayfarer.rules.skill_types import SkillDefault
+    import wayfarer.engine.rules.skills.mundane as module
+    from wayfarer.engine.rules.types.skill import SkillDefault
 
     entry = procedure("skill:acting")
     for broken, message in (
@@ -509,10 +508,10 @@ async def test_a_procedure_runs_in_a_live_authorized_transaction(tmp_path: Path)
     """Director dispatch commits once, replays without the resolver, and keeps dice private."""
     from test_social_dispatch import prepare
 
+    from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.orchestration.access import CampaignAccess
     from wayfarer.orchestration.play import PlayService
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService
-    from wayfarer.simulation.actions import PlayState
 
     def resolver(play: PlayService, state: PlayState, value: SocialCommand) -> ResolvedInteraction:
         if value.trigger_id != "cellar-door":
@@ -539,8 +538,12 @@ async def test_an_authored_trigger_dispatches_a_procedure_from_an_approved_level
 
     from test_social_dispatch import prepare
 
-    from wayfarer.simulation.actions import Wait
-    from wayfarer.simulation.npcs import NPCSocialAction, NPCSocialPlan, NPCSocialRules
+    from wayfarer.engine.simulation.actions import Wait
+    from wayfarer.engine.simulation.campaign.npcs import (
+        NPCSocialAction,
+        NPCSocialPlan,
+        NPCSocialRules,
+    )
 
     rules = NPCSocialRules(
         id="parley",
@@ -589,9 +592,9 @@ def test_an_approved_voice_purchase_asserts_the_condition_and_nothing_else() -> 
     """B97: the build says the voice is heard; the procedure owns the +2."""
     from test_mundane_trait_runtime import approved
 
-    from wayfarer.character.compiler import Purchase
-    from wayfarer.character.social_traits import skill_conditions
-    from wayfarer.rules.mundane_traits.runtime import Audience
+    from wayfarer.engine.character.compiler import Purchase
+    from wayfarer.engine.character.traits.social import skill_conditions
+    from wayfarer.engine.rules.traits.mundane.runtime import Audience
 
     build, engine = approved(Purchase(definition_id="trait:voice"))
     assert skill_conditions(build, engine.definitions, "skill:diplomacy") == {"audible-voice-trait"}
@@ -626,7 +629,7 @@ def test_the_registry_rejects_an_incoherent_procedure(
     """The declared table is validated at import, not trusted because it is code."""
     from dataclasses import replace
 
-    from wayfarer.rules.mundane_skills.social import _validate
+    from wayfarer.engine.rules.skills.mundane.social.inventory import _validate
 
     entry = procedure("skill:acting")
     with pytest.raises(ValidationError, match=message):
@@ -644,10 +647,10 @@ async def test_an_unopposed_procedure_collects_no_reaction_modifiers(tmp_path: P
     """B359 modifiers reach influence rolls; an unopposed roll must not take them."""
     from test_social_dispatch import prepare
 
+    from wayfarer.engine.rules.social.social_hooks import Standing
+    from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.orchestration.play import PlayService
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService
-    from wayfarer.rules.social_hooks import Standing
-    from wayfarer.simulation.actions import PlayState
 
     def watching(play: PlayService, state: PlayState, value: SocialCommand) -> ResolvedInteraction:
         return ResolvedInteraction(
@@ -681,9 +684,9 @@ async def test_an_unopposed_procedure_collects_no_reaction_modifiers(tmp_path: P
 async def test_an_initiator_without_an_approved_build_asserts_nothing(tmp_path: Path) -> None:
     from test_social_dispatch import prepare
 
+    from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.orchestration.play import PlayService
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService
-    from wayfarer.simulation.actions import PlayState
 
     def resolver(play: PlayService, state: PlayState, value: SocialCommand) -> ResolvedInteraction:
         return ResolvedInteraction(skill_context())
@@ -701,9 +704,9 @@ async def test_an_initiator_without_an_approved_build_asserts_nothing(tmp_path: 
 async def test_dispatch_rejects_a_skill_context_without_a_procedure(tmp_path: Path) -> None:
     from test_social_dispatch import prepare
 
+    from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.orchestration.play import PlayService
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService
-    from wayfarer.simulation.actions import PlayState
 
     def bare(play: PlayService, state: PlayState, value: SocialCommand) -> ResolvedInteraction:
         return ResolvedInteraction(SocialContext(PROFILE, 0))

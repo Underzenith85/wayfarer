@@ -169,7 +169,7 @@ async def test_catalog_restart_revisions_isolation(config: Settings) -> None:
         assert await response.text() == exported
         assert await post(client, "", command) == entry
         for game in (game1, game2):
-            from wayfarer.simulation.scenario_references import boundary, verify
+            from wayfarer.engine.simulation.campaign.scenario_references import boundary, verify
 
             saved = await client.app[ACCESS_KEY].play.store.read(str(game["id"]))
             pin = boundary(saved)
@@ -408,7 +408,7 @@ async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -
 
 
 def test_authoring_contract_schema_drift() -> None:
-    from wayfarer.simulation.catalog import (
+    from wayfarer.engine.simulation.campaign.scenario_catalog import (
         CatalogCommand,
         CatalogSummary,
         InstantiateRevision,
@@ -416,7 +416,10 @@ def test_authoring_contract_schema_drift() -> None:
         ScenarioGenerationJob,
         ScenarioGenerationRequest,
     )
-    from wayfarer.simulation.scenario_document import PlayerScenarioExport, ScenarioDocument
+    from wayfarer.engine.simulation.campaign.scenario_document import (
+        PlayerScenarioExport,
+        ScenarioDocument,
+    )
 
     models = (
         CatalogCommand,

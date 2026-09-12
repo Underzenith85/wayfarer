@@ -15,24 +15,29 @@ from test_mundane_traits import combined_package, runtime_compiler
 from test_social_dispatch import command, world
 from test_statistics import gurps_draft, profile_compiler
 
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase, ValidatedBuild
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.character.social_traits import reaction_modifiers
+from wayfarer.engine.character.compiler import (
+    CharacterCompiler,
+    CharacterDraft,
+    Purchase,
+    ValidatedBuild,
+)
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.character.traits.social import reaction_modifiers
+from wayfarer.engine.rules.catalog import ImplementationStatus, RuleDefinition, RulesCatalog
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.social.gurps_social import ReactionModifier
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mundane import PROFILE
+from wayfarer.engine.rules.traits.mundane.runtime import Audience, Check
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, apply_social
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.catalog import ImplementationStatus, RuleDefinition, RulesCatalog
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.gurps_social import ReactionModifier
-from wayfarer.rules.mundane_traits import PROFILE
-from wayfarer.rules.mundane_traits.runtime import Audience, Check
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, ActorSetup, PlayState
-from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
-from wayfarer.simulation.social import SocialCommand, SocialContext, apply_social
 
 
 def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:

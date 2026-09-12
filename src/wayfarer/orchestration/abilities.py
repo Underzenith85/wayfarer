@@ -2,31 +2,31 @@
 
 from dataclasses import dataclass, replace
 
+from wayfarer.engine.rules.supernatural.abilities import fatigue_cost, validate_binding
+from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.types.hazard import require_hazards_settled
+from wayfarer.engine.rules.types.recovery import interrupt_tasks
+from wayfarer.engine.simulation.abilities import (
+    AbilityContext,
+    apply_ability,
+    internal_id,
+    validate_target,
+)
+from wayfarer.engine.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import injury_turn
+from wayfarer.engine.simulation.campaign.party import synchronous
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
-from wayfarer.rules.abilities import fatigue_cost, validate_binding
-from wayfarer.rules.ability_types import AbilitySpec
-from wayfarer.rules.hazard_types import require_hazards_settled
-from wayfarer.rules.recovery_types import interrupt_tasks
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.abilities import (
-    AbilityContext,
-    apply_ability,
-    internal_id,
-    validate_target,
-)
-from wayfarer.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Encounter
-from wayfarer.simulation.concentration import require_idle_concentration
-from wayfarer.simulation.maneuvers import ManeuverState
-from wayfarer.simulation.mechanics.gurps_melee import injury_turn
-from wayfarer.simulation.party import synchronous
-from wayfarer.simulation.resources import Advance
 
 
 @dataclass(frozen=True)
@@ -66,7 +66,7 @@ def _prepare_ability(
     values = {v.target: int(v.value) for v in build.sheet.values}
     channel = next((c for c in rules.channels if c.id == command.channel_id), None)
     if channel is not None and command.kind != "cancel":
-        from wayfarer.rules.recovery_types import require_settled
+        from wayfarer.engine.rules.types.recovery import require_settled
 
         require_settled(
             state.resources.recovery_tasks,

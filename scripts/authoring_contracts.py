@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from wayfarer.simulation.catalog import (
+from wayfarer.engine.simulation.campaign.scenario_catalog import (
     CatalogCommand,
     CatalogSummary,
     InstantiateRevision,
@@ -12,7 +12,10 @@ from wayfarer.simulation.catalog import (
     ScenarioGenerationJob,
     ScenarioGenerationRequest,
 )
-from wayfarer.simulation.scenario_document import PlayerScenarioExport, ScenarioDocument
+from wayfarer.engine.simulation.campaign.scenario_document import (
+    PlayerScenarioExport,
+    ScenarioDocument,
+)
 
 PATH = Path(__file__).resolve().parents[1] / "contracts/authoring/v1/schemas.json"
 

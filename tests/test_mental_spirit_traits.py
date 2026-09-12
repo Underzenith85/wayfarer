@@ -5,22 +5,22 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.character.mental_spirit_traits import mental_spirit_traits
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.rules.mental_spirit_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.rules.mental_spirit_traits import package as mental_spirit_package
-from wayfarer.rules.supernatural import inventory
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.mental_spirit_traits import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.character.traits.mental_spirit import mental_spirit_traits
+from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mental_spirit import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.mental_spirit import package as mental_spirit_package
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.traits.mental_spirit import (
     MentalChannel,
     MentalCommand,
     apply_mental_use,
     history,
 )
-from wayfarer.simulation.resources import Pool, ResourceState
-from wayfarer.world import Entity, EntityKind, Fact, World
+from wayfarer.engine.world import Entity, EntityKind, Fact, World
+from wayfarer.errors import ConflictError, ValidationError
 
 EXPECTED = {
     "advantage:blessed": 10,

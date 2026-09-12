@@ -12,12 +12,12 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
+from wayfarer.engine.simulation.combat.ranged_critical import RangedCritical
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
-from wayfarer.simulation.ranged_critical import RangedCritical
 
 
 @pytest.mark.parametrize(
@@ -141,7 +141,7 @@ async def test_critical_thrown_parry_drop_also_takes_incoming_hit(tmp_path: Path
     assert result.injury.injury == 2
     saved = play._load(await play.store.read(cid))
     assert not next(i for i in saved.resources.items if i.id == "sword-b").ready
-    from wayfarer.simulation.mechanics.weapon_flight import position
+    from wayfarer.engine.simulation.combat.thrown.flight import position
 
     assert next(i for i in saved.resources.items if i.id == "sword-b").ground == position(
         saved.encounters[0], saved.encounters[0].participants[1]
@@ -168,8 +168,8 @@ async def test_typed_breakage_and_resistant_second_roll(
     rolls: list[int],
     broken: bool,
 ) -> None:
-    from wayfarer.rules.object_types import ObjectCondition, ObjectProfile
-    from wayfarer.simulation.mechanics.ranged_misses import resolve_miss
+    from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
+    from wayfarer.engine.simulation.combat.ranged_misses import resolve_miss
 
     ranged = weapon()
     cid, play = await setup(

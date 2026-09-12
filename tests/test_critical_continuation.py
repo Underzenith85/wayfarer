@@ -5,12 +5,12 @@ from pathlib import Path
 import pytest
 from test_gurps_melee import attack, choice, setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat.critical import CriticalMiss
+from wayfarer.engine.simulation.combat.criticals.continuation import Continuation
+from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService, ContinueCriticalMiss
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.critical import CriticalMiss
-from wayfarer.simulation.mechanics.critical_continuation import Continuation
-from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
 
 
 @pytest.mark.parametrize("parry", [False, True])
@@ -19,7 +19,7 @@ async def test_explicit_migration_resolves_original_wounds_once(
     monkeypatch: pytest.MonkeyPatch,
     parry: bool,
 ) -> None:
-    import wayfarer.simulation.mechanics.critical_limbs as limbs
+    import wayfarer.engine.simulation.combat.criticals.limbs as limbs
 
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await attack(cid, play)

@@ -9,21 +9,21 @@ from test_actions import engine as prototype_engine
 from test_actions import seed as prototype_seed
 from test_statistics import gurps_draft, profile_compiler, profile_package
 
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus, ProfileId
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.medical import CareEnvironment
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.player_medical import choices
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.catalog import RulesCatalog
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus, ProfileId
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, ActorSetup, PlayState
-from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 
 PROFILE: ProfileId = "gurps-basic-set-4e-2004"
 

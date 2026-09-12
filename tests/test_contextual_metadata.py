@@ -11,28 +11,28 @@ from decimal import Decimal
 
 import pytest
 
-from wayfarer.character.skills import DefaultContext, SkillCompiler, SkillError
-from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.rules.mundane_skills import (
+from wayfarer.engine.character.skills import DefaultContext, SkillCompiler, SkillError
+from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
+from wayfarer.engine.rules.skills.mundane import (
     CONTEXT_RESIDUALS,
     candidate_package,
     cross_package_prerequisites,
     inventory,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     ControllingAttribute as A,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     Difficulty as D,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.types.skill import (
     PrerequisiteGroup,
     PrerequisiteKind,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
 )
+from wayfarer.errors import ValidationError
 
 BASIC = "gurps-basic-set-4e-2004"
 ATTRIBUTES = {
@@ -281,7 +281,7 @@ def test_a_prerequisite_another_catalog_owns_resolves_there() -> None:
 def test_an_unowned_cross_package_prerequisite_is_a_coverage_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import wayfarer.rules.mundane_skills as module
+    import wayfarer.engine.rules.skills.mundane as module
 
     monkeypatch.setattr(module, "CROSS_PACKAGE", frozenset({"skill:invented"}))
     with pytest.raises(ValidationError, match="Cross-package prerequisite is unowned"):
@@ -393,7 +393,7 @@ def test_every_remaining_contextual_blocker_names_a_concrete_child() -> None:
 
 def test_the_new_shape_does_not_move_a_package_pinned_before_it_existed() -> None:
     """Unused shapes stay absent; the ranged package now deliberately uses conditions."""
-    from wayfarer.rules.profiles import (
+    from wayfarer.engine.rules.profiles import (
         GURPS_CHARACTERS_PACKAGE,
         GURPS_LITE_PACKAGE,
         GURPS_RANGED_SKILLS_PACKAGE,

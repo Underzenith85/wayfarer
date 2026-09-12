@@ -2,42 +2,42 @@
 
 import json
 
-from wayfarer.errors import AuthorizationError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
-from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.play import PlayService
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellExecutionContext as SpellExecutionContext,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellResolver as SpellResolver,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     _recorded_spell_result as _recorded_spell_result,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     advance_cast_turn as advance_cast_turn,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     apparent_result as apparent_result,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     approved_context as approved_context,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     combat_guard as combat_guard,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.magic.spell_transitions import (
     reduce_spell as reduce_spell,
 )
-from wayfarer.simulation.spells import (
+from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SpellCommand,
     SpellEvent,
     SpellResult,
     event_id,
 )
+from wayfarer.errors import AuthorizationError, ValidationError
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.play import PlayService
 
 
 class SpellService:

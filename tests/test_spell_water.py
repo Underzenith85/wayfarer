@@ -2,16 +2,16 @@
 
 from spell_college_support import approved_spell
 
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.spell_water import BINDINGS, package
-from wayfarer.rules.supernatural import inventory
-from wayfarer.simulation.resources import ResourceState
-from wayfarer.simulation.spell_colleges import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.magic.water import BINDINGS, package
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.simulation.magic.colleges import (
     CollegeSpellCommand,
     apply_college_spell,
     visible_history,
 )
-from wayfarer.world import Entity, EntityKind, World
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.world import Entity, EntityKind, World
 
 
 def test_exact_water_inventory_pages_and_runtime() -> None:

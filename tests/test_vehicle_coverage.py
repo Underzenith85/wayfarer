@@ -9,12 +9,11 @@ its evidence is that the declared capability rows cannot drift from it.
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.conformance import CAPABILITIES, CoverageStatus, capability
-from wayfarer.rules.mundane_skills import inventory
-from wayfarer.rules.mundane_skills.technology import PROCEDURES, unsupported_scope
-from wayfarer.rules.vehicle_capabilities import VEHICLE_OPERATIONS
-from wayfarer.rules.vehicle_coverage import (
+from wayfarer.engine.rules.conformance import CAPABILITIES, CoverageStatus, capability
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.technology.inventory import PROCEDURES, unsupported_scope
+from wayfarer.engine.rules.types.vehicle_capabilities import VEHICLE_OPERATIONS
+from wayfarer.engine.rules.types.vehicle_coverage import (
     ALL_CONCERNS,
     COMBAT,
     COMBAT_RESIDUALS,
@@ -30,6 +29,7 @@ from wayfarer.rules.vehicle_coverage import (
     residual_owners,
     validate_coverage,
 )
+from wayfarer.errors import ValidationError
 
 # The children this audit split its residual scope into, transcribed from #358.
 RESIDUAL_OWNERS = ()
@@ -83,7 +83,7 @@ def test_vehicle_combat_is_verified_without_residuals() -> None:
 
 def replace(monkeypatch: pytest.MonkeyPatch, entry: ModeCoverage) -> None:
     """Swap one mode, keeping the declared set intact so its own rule is reached."""
-    import wayfarer.rules.vehicle_coverage as module
+    import wayfarer.engine.rules.types.vehicle_coverage as module
 
     rows = tuple(entry if row.mode == entry.mode else row for row in module._MODES)
     monkeypatch.setattr(module, "_MODES", rows)
@@ -94,7 +94,7 @@ def test_a_residual_cannot_be_resolved_into_a_closed_owner(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """#120 and #207 are closed, so neither can hold what is still missing."""
-    import wayfarer.rules.vehicle_coverage as module
+    import wayfarer.engine.rules.types.vehicle_coverage as module
 
     replace(monkeypatch, ModeCoverage("water", "B469", (), {"sinking": 120}))
     with pytest.raises(ValidationError, match="names no live owner"):
@@ -104,7 +104,7 @@ def test_a_residual_cannot_be_resolved_into_a_closed_owner(
 def test_a_mode_cannot_claim_a_concern_it_has_no_operation_for(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import wayfarer.rules.vehicle_coverage as module
+    import wayfarer.engine.rules.types.vehicle_coverage as module
 
     monkeypatch.setattr(
         module,
@@ -120,7 +120,7 @@ def test_a_mode_that_stops_owing_anything_raises_the_declared_row(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Verification is derived: clearing every residual is what moves the status."""
-    import wayfarer.rules.vehicle_coverage as module
+    import wayfarer.engine.rules.types.vehicle_coverage as module
 
     assert movement_status() is CoverageStatus.VERIFIED
     blocked = ModeCoverage("ground-mount", "B397", ALL_CONCERNS, {"unresolved consequence": 396})
@@ -134,7 +134,7 @@ def test_the_registry_cannot_quietly_disagree_with_the_audit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Raising a mode is the only way to raise a row; the reverse is rejected."""
-    import wayfarer.rules.vehicle_coverage as module
+    import wayfarer.engine.rules.types.vehicle_coverage as module
 
     monkeypatch.setattr(module, "movement_status", lambda: CoverageStatus.PARTIAL)
     with pytest.raises(ValidationError, match="disagrees with the audit"):

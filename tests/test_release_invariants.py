@@ -13,10 +13,10 @@ from test_resources import engine, seed
 from test_wave9 import FakeProvider, prepare
 from test_wave14 import Table
 
+from wayfarer.engine.simulation.resources import Consume, ResourceState, Transfer
 from wayfarer.errors import ProviderError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
-from wayfarer.simulation.resources import Consume, ResourceState, Transfer
 from wayfarer.transport.campaign_api import ACCESS_KEY
 
 

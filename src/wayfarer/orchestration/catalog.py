@@ -7,6 +7,26 @@ from uuid import NAMESPACE_URL, uuid5
 
 from pydantic import Field
 
+from wayfarer.engine.simulation.actions import ActorSetup
+from wayfarer.engine.simulation.campaign.scenario_catalog import (
+    CatalogCommand,
+    CatalogEntry,
+    CatalogRevision,
+    CatalogSummary,
+    InstantiateRevision,
+    RevisionView,
+    ScenarioGenerationJob,
+    ScenarioGenerationRequest,
+)
+from wayfarer.engine.simulation.campaign.scenario_document import (
+    DraftRevision,
+    InitialResources,
+    Provenance,
+    PublicBrief,
+    ScenarioDocumentBase,
+)
+from wayfarer.engine.simulation.campaign.setup import CreateSetup
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph, StudioFinding
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.orchestration.scenario_documents import (
@@ -18,26 +38,6 @@ from wayfarer.orchestration.scenario_documents import (
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.persistence.catalog import CatalogStore
-from wayfarer.simulation.actions import ActorSetup
-from wayfarer.simulation.catalog import (
-    CatalogCommand,
-    CatalogEntry,
-    CatalogRevision,
-    CatalogSummary,
-    InstantiateRevision,
-    RevisionView,
-    ScenarioGenerationJob,
-    ScenarioGenerationRequest,
-)
-from wayfarer.simulation.scenario_document import (
-    DraftRevision,
-    InitialResources,
-    Provenance,
-    PublicBrief,
-    ScenarioDocumentBase,
-)
-from wayfarer.simulation.setup import CreateSetup
-from wayfarer.simulation.studio import ScenarioGraph, StudioFinding
 
 
 class GeneratedActorSetup(ActorSetup):

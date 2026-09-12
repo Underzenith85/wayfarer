@@ -5,28 +5,28 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.character.movement_forms import movement_forms
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.rules.movement_forms import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.character.traits.movement_forms import movement_forms
+from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.movement_forms import (
     BINDINGS,
     PROFILE,
     RUNTIME_HOOKS,
 )
-from wayfarer.rules.movement_forms import (
+from wayfarer.engine.rules.traits.movement_forms import (
     package as movement_package,
 )
-from wayfarer.rules.supernatural import inventory
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.movement_forms import (
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.traits.movement_forms import (
     MovementFormCommand,
     active_forms,
     apply_movement_form,
     visible_forms,
 )
-from wayfarer.simulation.resources import ResourceState
-from wayfarer.world import Entity, EntityKind, Fact, World
+from wayfarer.engine.world import Entity, EntityKind, Fact, World
+from wayfarer.errors import ConflictError, ValidationError
 
 EXPECTED_COSTS = {
     "advantage:360-vision": 25,

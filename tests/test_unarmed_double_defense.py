@@ -9,12 +9,12 @@ from pathlib import Path
 import pytest
 from test_unarmed import action, setup, state_of
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import Defense
 
 
 async def pending_attack(tmp_path: Path, *, double: bool = True) -> tuple[str, PlayService]:

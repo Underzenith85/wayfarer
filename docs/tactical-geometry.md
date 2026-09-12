@@ -1,6 +1,6 @@
 # Tactical hex geometry (#105)
 
-`wayfarer.simulation.hex_geometry` supplies immutable, deterministic geometry
+`wayfarer.engine.simulation.hex_geometry` supplies immutable, deterministic geometry
 contracts for the existing combat service. It performs no I/O, rolls no dice,
 changes no campaign state, and grants no authority or visibility to a caller.
 

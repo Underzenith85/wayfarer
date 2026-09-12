@@ -16,21 +16,21 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_statistics import BASIC, gurps_draft, profile_compiler
 
-from wayfarer.character.compiler import Purchase
-from wayfarer.character.skills import SkillCompiler
-from wayfarer.errors import ValidationError
-from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.mundane_skills import inventory
-from wayfarer.rules.mundane_skills.ranged import (
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.character.skills import SkillCompiler
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.ranged import (
     CONDITIONAL_DEFAULTS,
     PROCEDURES,
     definitions,
     require_capability,
     require_mode,
 )
-from wayfarer.simulation.combat import RangedSituation
-from wayfarer.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
+from wayfarer.errors import ValidationError
+from wayfarer.orchestration.play import PlayService
 
 # The exact inventory scope #344 audits, transcribed from the issue.
 LISTED = (
@@ -324,7 +324,11 @@ def test_family_and_out_of_class_weapons_are_refused_before_dice() -> None:
 
 def test_authored_catalogs_fail_closed_before_a_campaign_exists() -> None:
     """The validator gate is the catalog itself, not a later manual ruling."""
-    from wayfarer.simulation.gurps_equipment import EquipmentCatalog, EquipmentProfile, Provenance
+    from wayfarer.engine.simulation.equipment.catalog import (
+        EquipmentCatalog,
+        EquipmentProfile,
+        Provenance,
+    )
 
     def catalog(skill_id: str, **changes: object) -> EquipmentCatalog:
         return EquipmentCatalog(
@@ -394,7 +398,7 @@ def test_capability_registry_is_the_only_authority() -> None:
 
 
 def test_new_pin_adds_the_skills_without_changing_existing_pins() -> None:
-    from wayfarer.rules.profiles import (
+    from wayfarer.engine.rules.profiles import (
         GURPS_RANGED_SKILLS_PACKAGE,
         GURPS_RANGED_SKILLS_PROFILE,
         GURPS_STATISTICS_PACKAGE,
@@ -422,8 +426,8 @@ def test_new_pin_adds_the_skills_without_changing_existing_pins() -> None:
 
 
 def test_registered_pin_compiles_a_ranged_character() -> None:
-    from wayfarer.character.compiler import CharacterCompiler
-    from wayfarer.rules.profiles import GURPS_RANGED_SKILLS_PROFILE as pinned
+    from wayfarer.engine.character.compiler import CharacterCompiler
+    from wayfarer.engine.rules.profiles import GURPS_RANGED_SKILLS_PROFILE as pinned
 
     engine = CharacterCompiler(
         pinned.catalog,

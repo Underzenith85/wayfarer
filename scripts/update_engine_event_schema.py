@@ -3,7 +3,7 @@
 import json
 
 from scripts.validate_contracts import ROOT, mapping, read
-from wayfarer.simulation.events import EVENT_ADAPTER
+from wayfarer.engine.simulation.events import EVENT_ADAPTER
 
 
 def main() -> None:

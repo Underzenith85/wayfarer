@@ -5,9 +5,9 @@ from functools import cache
 from importlib.resources import files
 from typing import TypedDict
 
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
     PROTOTYPE_PACKAGE,
@@ -18,18 +18,38 @@ from wayfarer.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, ActorSetup, CheckRule
-from wayfarer.simulation.combat import AttackProfile, Battlefield, CombatConsequence, CombatRules
-from wayfarer.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
-from wayfarer.simulation.npcs import NPCAction, NPCPlan, NPCRules
-from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate, Reward
-from wayfarer.simulation.party import PartyRules
-from wayfarer.simulation.recovery import RecoveryOption, RecoveryRules, SetbackRule
-from wayfarer.simulation.resources import EquipmentSpec, Item, Owner, ResourceEngine, ResourceState
-from wayfarer.simulation.scenes import Discovery, Scene, SceneExit, SceneRules
-from wayfarer.simulation.studio import GenerationBrief, ScenarioGraph
-from wayfarer.world import Commitment, CommitmentKind, Connection, Entity, EntityKind, Fact, World
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, CheckRule
+from wayfarer.engine.simulation.campaign.npcs import NPCAction, NPCPlan, NPCRules
+from wayfarer.engine.simulation.campaign.objectives import (
+    Objective,
+    ObjectiveRules,
+    Predicate,
+    Reward,
+)
+from wayfarer.engine.simulation.campaign.party import PartyRules
+from wayfarer.engine.simulation.campaign.scenes import Discovery, Scene, SceneExit, SceneRules
+from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
+from wayfarer.engine.simulation.combat.battlefield import Battlefield
+from wayfarer.engine.simulation.combat.profiles import AttackProfile, CombatConsequence, CombatRules
+from wayfarer.engine.simulation.health.recovery import RecoveryOption, RecoveryRules, SetbackRule
+from wayfarer.engine.simulation.resources import (
+    EquipmentSpec,
+    Item,
+    Owner,
+    ResourceEngine,
+    ResourceState,
+)
+from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules
+from wayfarer.engine.world import (
+    Commitment,
+    CommitmentKind,
+    Connection,
+    Entity,
+    EntityKind,
+    Fact,
+    World,
+)
 
 
 def world() -> World:

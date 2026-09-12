@@ -5,8 +5,8 @@ from collections.abc import Callable, Mapping
 from copy import deepcopy
 
 from wayfarer import validation
+from wayfarer.engine.simulation.events import EVENT_ADAPTER, EngineEvent
 from wayfarer.errors import StorageError
-from wayfarer.simulation.events import EVENT_ADAPTER, EngineEvent
 
 JsonRow = dict[str, object]
 Upcaster = Callable[[JsonRow], JsonRow]

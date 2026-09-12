@@ -6,9 +6,14 @@ from typing import Literal
 import pytest
 from test_recovery_variants import PROFILE, lasting_state, mortal_state
 
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.medical import BeginRecovery, CareContext, FinishRecovery, apply_recovery
-from wayfarer.simulation.resources import ResourceState
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.health.medical.commands import (
+    BeginRecovery,
+    CareContext,
+    FinishRecovery,
+)
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
+from wayfarer.engine.simulation.resources import ResourceState
 
 
 @pytest.mark.parametrize("procedure", ["trauma-maintenance", "repair-lasting"])

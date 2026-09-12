@@ -9,20 +9,16 @@ from hypothesis import given
 from hypothesis import strategies as st
 from test_resources import campaign, engine, seed
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.resources import ResourceService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.object_types import ObjectCondition, ObjectProfile
-from wayfarer.simulation.objects import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
+from wayfarer.engine.simulation.equipment.objects import (
     DamageObject,
     StressObject,
     apply_object,
     initialize_object,
     object_hp,
 )
-from wayfarer.simulation.resources import (
+from wayfarer.engine.simulation.resources import (
     Advance,
     Equip,
     ResourceEngine,
@@ -30,6 +26,10 @@ from wayfarer.simulation.resources import (
     Transfer,
     Unequip,
 )
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.resources import ResourceService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
 def fixture(construction: str = "homogenous") -> tuple[ResourceEngine, ResourceState]:

@@ -8,6 +8,29 @@ from test_actions import Dice, actor_setup, campaign
 from test_combat import combat_engine, resources, start
 from test_scenes import configured
 
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import PlayState, Wait
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.encounter_context import (
+    EncounterSceneBinding,
+    activity_for,
+    bind_scene,
+)
+from wayfarer.engine.simulation.campaign.party import (
+    PartyRules,
+    PartyState,
+    PendingEffect,
+    QueuedActivity,
+    migrate,
+)
+from wayfarer.engine.simulation.campaign.scenes import ActorScene, Scene
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.maneuvers import WaitInterrupt, WaitTrigger
+from wayfarer.engine.simulation.combat.spatial import Placement
+from wayfarer.engine.simulation.combat.unarmed_records import PendingUnarmed
+from wayfarer.engine.simulation.resources import Owner
+from wayfarer.engine.world import Entity, EntityKind
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import CombatService, EndEncounter, TakeCombatTurn
@@ -18,17 +41,6 @@ from wayfarer.orchestration.encounter_scenes import (
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import PlayState, Wait
-from wayfarer.simulation.combat import Encounter, GridPoint, Placement
-from wayfarer.simulation.encounter_context import EncounterSceneBinding, activity_for, bind_scene
-from wayfarer.simulation.maneuvers import WaitInterrupt, WaitTrigger
-from wayfarer.simulation.party import PartyRules, PartyState, PendingEffect, QueuedActivity, migrate
-from wayfarer.simulation.resources import Owner
-from wayfarer.simulation.scenes import ActorScene, Scene
-from wayfarer.simulation.unarmed import PendingUnarmed
-from wayfarer.world import Entity, EntityKind
 
 
 async def setup(
@@ -541,7 +553,7 @@ async def test_scene_less_campaign_adopts_explicit_actor_and_encounter_mappings(
 
 
 async def test_two_disjoint_groups_can_each_own_an_encounter(tmp_path: Path) -> None:
-    from wayfarer.simulation.party import Subgroup
+    from wayfarer.engine.simulation.campaign.party import Subgroup
 
     cid, play = await setup(tmp_path)
     await open_fight(play, cid)

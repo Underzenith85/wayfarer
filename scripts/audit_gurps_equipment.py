@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from wayfarer.simulation.equipment_audit import audit_report
+from wayfarer.certification.equipment_audit import audit_report
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

@@ -11,11 +11,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError as ModelValidationError
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules import conformance
-from wayfarer.rules.abilities import validate_binding
-from wayfarer.rules.ability_types import AbilitySpec
-from wayfarer.rules.catalog import (
+from wayfarer.engine.rules import conformance
+from wayfarer.engine.rules.catalog import (
     CampaignPolicy,
     CampaignRules,
     ImplementationStatus,
@@ -24,8 +21,8 @@ from wayfarer.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
-from wayfarer.rules.conformance import CoverageStatus
-from wayfarer.rules.supernatural import (
+from wayfarer.engine.rules.conformance import CoverageStatus
+from wayfarer.engine.rules.supernatural import (
     PROFILE,
     Entry,
     Inventory,
@@ -36,7 +33,10 @@ from wayfarer.rules.supernatural import (
     require_entries,
     require_family,
 )
-from wayfarer.rules.traits import TraitOptions
+from wayfarer.engine.rules.supernatural.abilities import validate_binding
+from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.errors import ValidationError
 
 # Independently transcribed source index names, not generated from package data.
 SPELLS = """
@@ -275,8 +275,8 @@ def test_partial_entry_without_subset_evidence_is_invalid() -> None:
 
 
 def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() -> None:
-    from wayfarer.rules.mundane_skills import exclusions
-    from wayfarer.source_audit import inventory as source_inventory
+    from wayfarer.certification.source_audit import inventory as source_inventory
+    from wayfarer.engine.rules.skills.mundane import exclusions
 
     assert {(e.name, e.page) for e in inventory().entries if e.kind == "skill"} == {
         (e.name, e.page) for e in exclusions()

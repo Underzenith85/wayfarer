@@ -7,9 +7,9 @@ from aiohttp import web
 from test_reinforcements import setup_profiled_basic
 from test_tactical import setup
 
+from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import RecordedDice
 from wayfarer.transport.campaign_api import create_campaign_app
 
 

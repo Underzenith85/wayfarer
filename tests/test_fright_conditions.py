@@ -8,19 +8,19 @@ from test_fright_builds import install
 from test_gurps_melee import setup
 from test_social_completion import with_aftermath
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.fright import FrightEffect
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue
+from wayfarer.engine.simulation.health.fright import effects
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.fright import FrightEffect
-from wayfarer.simulation.combat import GridPoint
-from wayfarer.simulation.condition_checks import check_modifiers
-from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue
-from wayfarer.simulation.fright import effects
-from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.mechanics.gurps_melee import defense_value
 
 
 async def aftermath(cid: str, play: PlayService) -> None:
@@ -189,7 +189,7 @@ async def test_aftermath_applies_once_to_injury_and_exertion_at_check_time(tmp_p
 def test_b365_move_and_attack_cap_is_after_condition_penalties(
     skill: int, penalty: int, expected: int
 ) -> None:
-    from wayfarer.simulation.maneuvers import ManeuverState, attack_modifier
+    from wayfarer.engine.simulation.combat.maneuvers import ManeuverState, attack_modifier
 
     maneuver = ManeuverState(attack_bonus=-4, attack_cap=9)
     base = attack_modifier(maneuver, "target", skill, check_adjustment=penalty)
@@ -206,7 +206,7 @@ async def test_aftermath_combines_with_new_physical_trait_checks(
 
     from test_mundane_trait_runtime import prepare
 
-    from wayfarer.character.compiler import Purchase
+    from wayfarer.engine.character.compiler import Purchase
     from wayfarer.orchestration.physical_checks import (
         PhysicalCheck,
         PhysicalCheckCommand,

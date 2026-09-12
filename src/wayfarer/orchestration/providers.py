@@ -13,7 +13,8 @@ from typing import Literal, Protocol
 
 from pydantic import Field
 
-from wayfarer.character.compiler import CharacterDraft
+from wayfarer.engine.character.compiler import CharacterDraft
+from wayfarer.engine.simulation.actions import ACTION_ADAPTER
 from wayfarer.errors import (
     ConflictError,
     ProviderError,
@@ -25,7 +26,6 @@ from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.persistence.events import CommandOrigin
-from wayfarer.simulation.actions import ACTION_ADAPTER
 
 
 class Usage(Record):

@@ -15,28 +15,30 @@ from test_abilities import resources, world
 from test_actions import campaign
 from test_statistics import gurps_draft, profile_compiler, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.magic.gurps_magic import definitions
+from wayfarer.engine.rules.magic.protocols import MagicItemBinding
+from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.combat.spatial import Placement
+from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, EquipmentProfile
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.magic.bindings import BackfireAlternative, SpellChannel, SpellRules
+from wayfarer.engine.simulation.magic.effects import dazed
+from wayfarer.engine.simulation.magic.spells import PROFILE, SpellCommand
+from wayfarer.engine.simulation.resources import ResourceEngine
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.combat import CombatService, StartEncounter, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService, approved_context
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.catalog import RulesCatalog
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.gurps_magic import definitions
-from wayfarer.rules.magic_protocols import MagicItemBinding
-from wayfarer.rules.spell_catalog import projectile_definition
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, ActorSetup, Wait
-from wayfarer.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
-from wayfarer.simulation.gurps_equipment import EquipmentCatalog, EquipmentProfile
-from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.resources import ResourceEngine
-from wayfarer.simulation.spell_bindings import BackfireAlternative, SpellChannel, SpellRules
-from wayfarer.simulation.spell_effects import dazed
-from wayfarer.simulation.spells import PROFILE, SpellCommand
 
 
 def compiler() -> CharacterCompiler:
@@ -92,8 +94,8 @@ async def setup(
 ) -> tuple[str, PlayService]:
     fixture_world, fixture_resources = world(), resources()
     if reserve:
-        from wayfarer.simulation.resources import Owner
-        from wayfarer.world import Entity, EntityKind
+        from wayfarer.engine.simulation.resources import Owner
+        from wayfarer.engine.world import Entity, EntityKind
 
         fixture_world = replace(
             fixture_world,
@@ -107,9 +109,9 @@ async def setup(
             }
         )
     compiled = compiler()
-    from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-    from wayfarer.rules.object_types import ObjectCondition
-    from wayfarer.simulation.resources import Item
+    from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
+    from wayfarer.engine.rules.types.object import ObjectCondition
+    from wayfarer.engine.simulation.resources import Item
 
     package = profile_package(
         PROFILE,
@@ -273,8 +275,8 @@ def test_no_default_magic_and_modified_catalog_rejected() -> None:
 
 
 async def test_magic_item_power_replaces_user_spell_skill(tmp_path: Path) -> None:
-    from wayfarer.simulation.mechanics.spell_bindings import SpellEnvironment
-    from wayfarer.simulation.mechanics.spell_bindings import approved_context as bind_context
+    from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
+    from wayfarer.engine.simulation.magic.binding_context import approved_context as bind_context
 
     cid, play = await setup(tmp_path)
     state = play._load(await play.store.read(cid))
@@ -479,8 +481,8 @@ async def idle(cid: str, play: PlayService, actor: str) -> None:
 async def test_fireball_release_uses_defense_and_exactly_once_injury(
     tmp_path: Path, backend: str
 ) -> None:
+    from wayfarer.engine.simulation.magic.spells import latest
     from wayfarer.orchestration.combat import ChooseDefense
-    from wayfarer.simulation.spells import latest
 
     cid, play = await setup(tmp_path, combat=True, backend=backend)
     combat = await start_fight(cid, play)
@@ -558,7 +560,7 @@ async def test_create_fire_exposure_ends_when_target_moves(tmp_path: Path) -> No
 async def test_light_illuminates_its_target_until_cancel_without_revealing_facts(
     tmp_path: Path,
 ) -> None:
-    from wayfarer.simulation.spell_effects import illuminated
+    from wayfarer.engine.simulation.magic.effects import illuminated
 
     cid, play = await setup(tmp_path)
     service = SpellService(play)
@@ -579,8 +581,8 @@ async def test_light_illuminates_its_target_until_cancel_without_revealing_facts
 
 
 async def test_fireball_expansion_is_limited_to_three_consecutive_seconds(tmp_path: Path) -> None:
+    from wayfarer.engine.simulation.magic.spells import latest
     from wayfarer.errors import ConflictError
-    from wayfarer.simulation.spells import latest
 
     cid, play = await setup(tmp_path, combat=True)
     await start_fight(cid, play)

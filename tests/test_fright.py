@@ -2,8 +2,8 @@
 
 import pytest
 
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.fright import fright_effect
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.fright import fright_effect
 
 
 @pytest.mark.parametrize("total", range(4, 42))

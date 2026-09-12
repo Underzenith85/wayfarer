@@ -9,16 +9,21 @@ from dataclasses import replace
 import pytest
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.supernatural.abilities import PROFILE, validate_binding
+from wayfarer.engine.rules.tables.ranged import range_penalty
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.simulation.abilities import (
+    AbilityContext,
+    apply_ability,
+    damage_resistance,
+    effects,
+)
+from wayfarer.engine.simulation.ability_types import AbilityChannel, AbilityCommand, AbilitySpec
+from wayfarer.engine.simulation.resources import Owner, Pool, ResourceState
+from wayfarer.engine.world import Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.abilities import PROFILE, validate_binding
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.ranged_tables import range_penalty
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.abilities import AbilityContext, apply_ability, damage_resistance, effects
-from wayfarer.simulation.ability_types import AbilityChannel, AbilityCommand, AbilitySpec
-from wayfarer.simulation.resources import Owner, Pool, ResourceState
-from wayfarer.world import Entity, EntityKind, Fact, World
 
 
 def world() -> World:

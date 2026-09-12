@@ -8,12 +8,8 @@ import pytest
 from jsonschema import Draft202012Validator
 from test_wave9 import prepare
 
-from wayfarer.errors import StorageError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.play import PlayService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.actions import Wait
-from wayfarer.simulation.events import (
+from wayfarer.engine.simulation.actions import Wait
+from wayfarer.engine.simulation.events import (
     EVENT_ADAPTER,
     ActorAudience,
     CommandApplied,
@@ -22,6 +18,10 @@ from wayfarer.simulation.events import (
     fold,
     visible,
 )
+from wayfarer.errors import StorageError, ValidationError
+from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
@@ -165,7 +165,7 @@ async def test_corrupt_or_reordered_stream_is_rejected(tmp_path: Path) -> None:
 async def test_action_engine_event_list_folds_without_a_persistence_callback(
     tmp_path: Path,
 ) -> None:
-    from wayfarer.simulation.events import fold_play
+    from wayfarer.engine.simulation.events import fold_play
 
     cid, play = await prepare(tmp_path)
     before = play._load(await play.store.read(cid))

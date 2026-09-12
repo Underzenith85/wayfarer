@@ -2,7 +2,7 @@
 
 import json
 
-from wayfarer.rules.mundane_skills import audit_report
+from wayfarer.engine.rules.skills.mundane import audit_report
 
 if __name__ == "__main__":
     print(json.dumps(audit_report(), indent=2))

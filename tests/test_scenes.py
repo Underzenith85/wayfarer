@@ -6,13 +6,9 @@ from pathlib import Path
 import pytest
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.scenes import ObserveScene, SceneService, TravelScene
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import Inspect
-from wayfarer.simulation.scenes import (
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import Inspect
+from wayfarer.engine.simulation.campaign.scenes import (
     Discovery,
     Obstacle,
     Scene,
@@ -20,7 +16,11 @@ from wayfarer.simulation.scenes import (
     SceneRules,
     SceneTrigger,
 )
-from wayfarer.world import Fact, World
+from wayfarer.engine.world import Fact, World
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.scenes import ObserveScene, SceneService, TravelScene
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 def configured() -> tuple[ActionEngine, World]:

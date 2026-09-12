@@ -7,7 +7,7 @@ campaign.
 
 ## Registration
 
-`wayfarer.rules.profiles.ProfileRegistry` holds `RegisteredProfile` records. Each
+`wayfarer.engine.rules.profiles.ProfileRegistry` holds `RegisteredProfile` records. Each
 profile is one exact selection: an ID and integer version, the `CampaignRules`
 pins (edition, package ID/version/digest, policy ID/version), the matching
 `CampaignPolicy`, the packages themselves, and optionally the GURPS conformance
@@ -34,7 +34,7 @@ fallback from a GURPS profile to the prototype package.
 
 The GURPS packages register identity, edition, source provenance and dependencies.
 Version 0.2.0 of the Lite and Characters packages carries the #97 attribute and
-secondary-characteristic definitions from `wayfarer.rules.gurps_characters`
+secondary-characteristic definitions from `wayfarer.engine.rules.gurps_characters`
 (identifiers and per-level costs only); later mechanics issues add skills, traits
 and equipment as further package versions and profile versions. Version 1 of each
 GURPS profile was never supported, so no campaign can reference it and it is not

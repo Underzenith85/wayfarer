@@ -5,11 +5,7 @@ import json
 from pathlib import Path
 
 from wayfarer.adventures.lantern import adventure, engine
-from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.scenario_documents import ScenarioDocuments, adapt_graph
-from wayfarer.orchestration.studio import ScenarioStudio
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.scenario_document import (
+from wayfarer.engine.simulation.campaign.scenario_document import (
     DraftRevision,
     PlayerScenarioExport,
     Provenance,
@@ -19,6 +15,10 @@ from wayfarer.simulation.scenario_document import (
     ScenarioDocument,
     ScenarioReference,
 )
+from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.scenario_documents import ScenarioDocuments, adapt_graph
+from wayfarer.orchestration.studio import ScenarioStudio
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 ROOT = Path(__file__).resolve().parents[1] / "contracts" / "scenarios" / "v1"
 

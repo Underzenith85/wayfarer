@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
+from wayfarer.certification.source_audit import blockers, inventory, load, report, validate
+from wayfarer.engine.simulation.hex_geometry import Hex, distance
 from wayfarer.errors import ValidationError
-from wayfarer.simulation.hex_geometry import Hex, distance
-from wayfarer.source_audit import blockers, inventory, load, report, validate
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -117,7 +117,7 @@ def test_compared_fixture_cannot_be_promoted_without_source_reconciliation() -> 
 
 def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() -> None:
     """#112 item-level blockers reach certification; no family-level rollup."""
-    from wayfarer.rules.mundane_skills import PROFILE, coverage_blockers
+    from wayfarer.engine.rules.skills.mundane import PROFILE, coverage_blockers
 
     rows = [r for r in inventory() if r.scope == "mundane-skills"]
     assert len(rows) == 504

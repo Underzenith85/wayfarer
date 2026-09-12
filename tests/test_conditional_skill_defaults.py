@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from wayfarer.rules.mundane_skills import inventory
+from wayfarer.engine.rules.skills.mundane import inventory
 
 FIXTURE = Path(__file__).parent / "fixtures" / "gurps" / "conditional_skill_defaults.json"
 

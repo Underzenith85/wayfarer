@@ -2,16 +2,16 @@
 
 import json
 
+from wayfarer.engine.simulation.magic.backfire_transitions import (
+    ResolveSpellBackfire as ResolveSpellBackfire,
+)
+from wayfarer.engine.simulation.magic.backfire_transitions import resolve
+from wayfarer.engine.simulation.magic.backfires import Backfire, backfires
 from wayfarer.errors import AuthorizationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
-from wayfarer.simulation.mechanics.spell_backfires import (
-    ResolveSpellBackfire as ResolveSpellBackfire,
-)
-from wayfarer.simulation.mechanics.spell_backfires import resolve
-from wayfarer.simulation.spell_backfires import Backfire, backfires
 
 
 class SpellBackfireService:

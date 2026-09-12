@@ -14,22 +14,22 @@ import pytest
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
-from wayfarer.character.compiler import Purchase
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.skills.mundane import inventory
+from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES, definitions, require_mode
+from wayfarer.engine.rules.types.mount import MountSpec
+from wayfarer.engine.rules.types.transport import Transport
+from wayfarer.engine.simulation.combat.commands import HexPlacement, MigrateEncounterHex
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
+from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
+from wayfarer.engine.world import Fact
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.rules.mount_types import MountSpec
-from wayfarer.rules.mundane_skills import inventory
-from wayfarer.rules.mundane_skills.ranged import PROCEDURES, definitions, require_mode
-from wayfarer.rules.transport_types import Transport
-from wayfarer.simulation.combat import RangedSituation
-from wayfarer.simulation.combat_commands import HexPlacement, MigrateEncounterHex
-from wayfarer.simulation.gurps_equipment import Damage, RangedMode
-from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
-from wayfarer.world import Fact
 
 BASIC: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
 ARTILLERY = tuple(

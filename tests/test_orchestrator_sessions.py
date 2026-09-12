@@ -47,7 +47,7 @@ async def test_compiled_engine_constructed_once_for_shared_configuration(
 
     cid, play = await prepare(tmp_path)
     registry = SessionRegistry()
-    from wayfarer.simulation.action_engine import ActionEngine
+    from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 
     original = ActionEngine
     count = 0

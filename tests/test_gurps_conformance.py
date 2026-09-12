@@ -8,16 +8,15 @@ from pathlib import Path
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import Modifier, ModifierKind, RecordedDice
-from wayfarer.rules.conformance import (
+from wayfarer.engine.rules.checks import Modifier, ModifierKind, RecordedDice
+from wayfarer.engine.rules.conformance import (
     BASELINE_ID,
     CAPABILITIES,
     CoverageStatus,
     capability,
     require_verified,
 )
-from wayfarer.rules.gurps_checks import (
+from wayfarer.engine.rules.gurps_checks import (
     AttemptTrace,
     Contestant,
     RepeatedAttemptPolicy,
@@ -27,6 +26,7 @@ from wayfarer.rules.gurps_checks import (
     resistance_roll,
     success_roll,
 )
+from wayfarer.errors import ValidationError
 
 FIXTURE = Path("tests/fixtures/gurps/conformance.json")
 SIZE_FIXTURE = Path("tests/fixtures/gurps/size_modifier_costs.json")
@@ -340,7 +340,7 @@ def test_resistance_cases_match_published_expectations(case: dict[str, object]) 
 
 
 def test_quick_contest_both_fail_prototype_divergence_stays_recorded() -> None:
-    from wayfarer.rules.checks import contest
+    from wayfarer.engine.rules.checks import contest
 
     case = next(case for case in load_cases() if case["id"] == "quick-contest-both-fail")
     values = _input(case)
@@ -371,14 +371,14 @@ def test_quick_contest_both_fail_prototype_divergence_stays_recorded() -> None:
 
 @pytest.mark.parametrize("profile_id", ["unknown", "package:wayfarer-lite", "GURPS-LITE-4E-2004"])
 def test_unknown_profile_rejected_even_without_requirements(profile_id: str) -> None:
-    from wayfarer.rules.conformance import require_capabilities
+    from wayfarer.engine.rules.conformance import require_capabilities
 
     with pytest.raises(ValidationError, match="Unknown rules profile"):
         require_capabilities(profile_id, ())
 
 
 def test_requirements_cannot_fall_back_to_another_profile() -> None:
-    from wayfarer.rules.conformance import require_capabilities
+    from wayfarer.engine.rules.conformance import require_capabilities
 
     with pytest.raises(ValidationError, match="outside profile"):
         require_capabilities("gurps-lite-4e-2004", ("gurps.tactical.hex_movement",))
@@ -395,7 +395,7 @@ def test_requirements_cannot_fall_back_to_another_profile() -> None:
 
 
 def test_fixtures_belong_to_their_exact_profile() -> None:
-    from wayfarer.rules.conformance import profile
+    from wayfarer.engine.rules.conformance import profile
 
     for case in load_cases():
         selected = profile(str(case["profile"]))

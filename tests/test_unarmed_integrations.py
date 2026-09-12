@@ -8,13 +8,13 @@ from pathlib import Path
 import pytest
 from test_unarmed import action, defend, setup, state_of
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeUnarmedTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.actions import PlayState
 
 
 async def checkpoint(cid: str, play: PlayService, state: PlayState) -> None:
@@ -248,7 +248,7 @@ async def test_grappled_ready_free_hand_dx_and_replay(
 async def test_partial_release_frees_only_selected_hand(tmp_path: Path) -> None:
     from test_unarmed import wait
 
-    from wayfarer.simulation.mechanics.unarmed import free_hands
+    from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
 
     cid, play = await setup(tmp_path)
     await action(cid, play, "a", "grapple", hands=("left-hand", "right-hand"), enter=True)
@@ -269,10 +269,10 @@ async def test_partial_release_frees_only_selected_hand(tmp_path: Path) -> None:
 def test_crippled_arm_pain_reuses_injury_without_hp_or_duplicate_crippling(
     roll: tuple[int, ...], stunned: bool
 ) -> None:
-    from wayfarer.rules.injury_types import InjuryStatus
-    from wayfarer.rules.location_types import LastingInjury
-    from wayfarer.simulation.injury import Wound, apply_injury
-    from wayfarer.simulation.resources import Pool, ResourceState
+    from wayfarer.engine.rules.types.injury import InjuryStatus
+    from wayfarer.engine.rules.types.location import LastingInjury
+    from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+    from wayfarer.engine.simulation.resources import Pool, ResourceState
 
     injury = LastingInjury(
         id="old", location="left-arm", kind="crippled", duration="pending", inflicted_at=0, injury=6
@@ -317,7 +317,7 @@ def test_crippled_arm_pain_reuses_injury_without_hp_or_duplicate_crippling(
 async def test_unarmed_strike_hex_retreat(tmp_path: Path, choice: str, score: int) -> None:
     from test_tactical import setup as tactical_setup
 
-    from wayfarer.simulation.hex_geometry import Hex
+    from wayfarer.engine.simulation.hex_geometry import Hex
 
     cid, play = await tactical_setup(tmp_path, unarmed=True)
     await action(cid, play, "a", "kick")

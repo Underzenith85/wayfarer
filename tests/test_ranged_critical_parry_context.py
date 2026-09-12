@@ -10,15 +10,16 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
+from wayfarer.engine.simulation.combat.ranged_critical import RangedCritical
+from wayfarer.engine.simulation.combat.thrown.flight import position, retrieve
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import GridPoint, RangedSituation
-from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
-from wayfarer.simulation.mechanics.weapon_flight import position, retrieve
-from wayfarer.simulation.ranged_critical import RangedCritical
 
 
 @pytest.mark.parametrize("second", [False, True])

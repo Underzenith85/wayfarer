@@ -20,9 +20,74 @@ REDUCER_MODULES = (
 )
 
 
+# Engine functions that still branch more than BRANCH_LIMIT times, with the count
+# each is allowed today.  An entry may shrink or disappear; it may never grow, and
+# no new name may be added.  See "Branching" in docs/architecture.md.
+BRANCH_LIMIT = 15
+BRANCHING: dict[tuple[str, str], int] = {
+    ("engine/character/compiler.py", "__init__"): 17,
+    ("engine/character/compiler.py", "compile"): 59,
+    ("engine/character/skills.py", "__init__"): 29,
+    ("engine/character/skills.py", "_conditions_satisfied"): 16,
+    ("engine/character/skills.py", "compile"): 36,
+    ("engine/rules/skills/mundane/__init__.py", "validate_inventory"): 35,
+    ("engine/simulation/abilities.py", "apply_ability"): 51,
+    ("engine/simulation/action_engine/engine.py", "_resolve_action"): 18,
+    ("engine/simulation/action_engine/engine.py", "assess"): 40,
+    ("engine/simulation/campaign/lifecycle.py", "validate_lifecycle"): 40,
+    ("engine/simulation/combat/criticals/limbs.py", "resolve_limb"): 17,
+    ("engine/simulation/combat/engine.py", "validate"): 28,
+    ("engine/simulation/combat/firearm_transitions.py", "service"): 22,
+    ("engine/simulation/combat/melee/defense.py", "defense_value"): 29,
+    ("engine/simulation/combat/melee/resolution.py", "resolve_melee"): 62,
+    ("engine/simulation/combat/ranged/attack.py", "prepare"): 19,
+    ("engine/simulation/combat/ranged/resolution.py", "resolve"): 71,
+    ("engine/simulation/combat/ranged/situation.py", "validate_command"): 34,
+    ("engine/simulation/combat/ranged_readiness.py", "reload"): 22,
+    ("engine/simulation/combat/tactical_transitions.py", "prepare_defense"): 17,
+    ("engine/simulation/combat/thrown/explosions.py", "resolve_blast"): 30,
+    ("engine/simulation/combat/turns.py", "apply_turn"): 79,
+    ("engine/simulation/combat/unarmed/declaration.py", "validate_action"): 44,
+    ("engine/simulation/combat/unarmed/fighters.py", "guard_control"): 18,
+    ("engine/simulation/combat/unarmed/resolution.py", "defend"): 29,
+    ("engine/simulation/equipment/catalog.py", "valid_entries"): 33,
+    ("engine/simulation/equipment/catalog.py", "valid_range"): 32,
+    ("engine/simulation/equipment/objects.py", "apply_object"): 20,
+    ("engine/simulation/equipment/repair_transitions.py", "repair"): 22,
+    ("engine/simulation/health/fatigue.py", "apply_fatigue"): 17,
+    ("engine/simulation/health/hazards.py", "apply_hazard"): 35,
+    ("engine/simulation/health/hit_locations.py", "wound_factor"): 16,
+    ("engine/simulation/health/injury.py", "apply_injury"): 74,
+    ("engine/simulation/health/medical/advanced.py", "_apply_advanced_recovery"): 34,
+    ("engine/simulation/health/medical/recovery.py", "apply_recovery"): 56,
+    ("engine/simulation/magic/backfire_transitions.py", "_select_backfire"): 21,
+    ("engine/simulation/magic/missiles.py", "resolve"): 18,
+    ("engine/simulation/magic/spell_transitions.py", "approved_context"): 22,
+    ("engine/simulation/magic/spells.py", "apply_spell"): 67,
+    ("engine/simulation/movement/transport.py", "apply_transport"): 33,
+    ("engine/simulation/movement/vehicles/collisions.py", "impact"): 26,
+    ("engine/simulation/movement/vehicles/motion.py", "control_vehicle"): 22,
+    ("engine/simulation/movement/vehicles/motion.py", "move_vehicle"): 30,
+    ("engine/simulation/movement/vehicles/operations/collisions.py", "resolve"): 38,
+    ("engine/simulation/movement/vehicles/operations/water.py", "resolve"): 17,
+    ("engine/simulation/resources.py", "apply"): 45,
+    ("engine/simulation/resources.py", "validate"): 36,
+    ("engine/simulation/social/social.py", "apply_social"): 29,
+}
+
+
+def reducer_sources(module: str) -> tuple[Path, ...]:
+    """The sources of one reducer seam, whether it is a module or a package."""
+    package = Path(wayfarer.__file__).parent / "orchestration"
+    single = package / f"{module}.py"
+    if single.exists():
+        return (single,)
+    return tuple(sorted((package / module).rglob("*.py")))
+
+
 class ArchitectureTests(unittest.TestCase):
     def test_encounters_reference_templates_without_embedding_maps(self) -> None:
-        from wayfarer.simulation.combat import Encounter
+        from wayfarer.engine.simulation.combat.encounter import Encounter
 
         self.assertNotIn("hex_battlefield", Encounter.model_fields)
         self.assertNotIn("HexBattlefield", Encounter.model_json_schema().get("$defs", {}))
@@ -32,14 +97,22 @@ class ArchitectureTests(unittest.TestCase):
 
     def test_simulation_entity_names_have_one_owner(self) -> None:
         owners: dict[str, list[str]] = {}
-        package = Path(wayfarer.__file__).parent / "simulation"
-        for source in package.rglob("*.py"):
+        package = Path(wayfarer.__file__).parent
+        for source in (package / "engine" / "simulation").rglob("*.py"):
             for node in ast.walk(ast.parse(source.read_text())):
                 if isinstance(node, ast.ClassDef):
-                    owners.setdefault(node.name, []).append(source.name)
+                    owners.setdefault(node.name, []).append(source.relative_to(package).as_posix())
         duplicates = {name: sorted(paths) for name, paths in owners.items() if len(paths) > 1}
         # Existing, unrelated equipment/source provenance records have distinct semantics.
-        self.assertEqual(duplicates, {"Provenance": ["gurps_equipment.py", "scenario_document.py"]})
+        self.assertEqual(
+            duplicates,
+            {
+                "Provenance": [
+                    "engine/simulation/campaign/scenario_document.py",
+                    "engine/simulation/equipment/catalog.py",
+                ]
+            },
+        )
 
     def test_event_stream_has_only_atomic_persistence_writers(self) -> None:
         package = Path(wayfarer.__file__).parent
@@ -178,58 +251,84 @@ class ArchitectureTests(unittest.TestCase):
                         self.assertIn("rng", {kw.arg for kw in node.keywords}, str(source))
                         self.assertIn("actor_id", {kw.arg for kw in node.keywords}, str(source))
 
+    def test_engine_branching_only_shrinks(self) -> None:
+        """A rule is read one branch at a time; the long ladders may only get shorter."""
+        package = Path(wayfarer.__file__).parent
+        counted: dict[tuple[str, str], int] = {}
+        for source in sorted((package / "engine").rglob("*.py")):
+            name = source.relative_to(package).as_posix()
+            for node in ast.walk(ast.parse(source.read_text())):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    branches = sum(isinstance(n, ast.If) for n in ast.walk(node))
+                    if branches > BRANCH_LIMIT:
+                        counted[(name, node.name)] = max(
+                            counted.get((name, node.name), 0), branches
+                        )
+        for key, branches in sorted(counted.items()):
+            allowed = BRANCHING.get(key)
+            with self.subTest(function=key):
+                self.assertIsNotNone(
+                    allowed,
+                    f"{key[0]}:{key[1]} has {branches} branches; dispatch on the kind instead",
+                )
+                assert allowed is not None
+                self.assertLessEqual(branches, allowed, f"{key[0]}:{key[1]} grew a branch")
+        for key, allowed in sorted(BRANCHING.items()):
+            with self.subTest(function=key):
+                self.assertLessEqual(
+                    counted.get(key, 0), allowed, f"{key[0]}:{key[1]} is stale in BRANCHING"
+                )
+
     def test_orchestration_steps_stay_reviewable(self) -> None:
         """#417's service seams must not grow another giant reducer or callback."""
-        package = Path(wayfarer.__file__).parent / "orchestration"
         for module in REDUCER_MODULES:
-            source = package / f"{module}.py"
-            tree = ast.parse(source.read_text())
-            for node in ast.walk(tree):
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    assert node.end_lineno is not None
-                    with self.subTest(module=module, function=node.name):
-                        self.assertLessEqual(node.end_lineno - node.lineno + 1, 200)
+            for source in reducer_sources(module):
+                tree = ast.parse(source.read_text())
+                for node in ast.walk(tree):
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        assert node.end_lineno is not None
+                        with self.subTest(module=source.name, function=node.name):
+                            self.assertLessEqual(node.end_lineno - node.lineno + 1, 200)
 
     def test_transaction_callbacks_are_straight_sequences(self) -> None:
         """Dispatch and mutable working state belong in named steps, not closures."""
-        package = Path(wayfarer.__file__).parent / "orchestration"
         for module in REDUCER_MODULES:
-            tree = ast.parse((package / f"{module}.py").read_text())
-            for service in ast.walk(tree):
-                if not isinstance(service, ast.AsyncFunctionDef):
+            for source in reducer_sources(module):
+                self.check_straight_callbacks(source, module)
+
+    def check_straight_callbacks(self, source: Path, module: str) -> None:
+        tree = ast.parse(source.read_text())
+        for service in ast.walk(tree):
+            if not isinstance(service, ast.AsyncFunctionDef):
+                continue
+            callbacks = {
+                node.name: node for node in service.body if isinstance(node, ast.FunctionDef)
+            }
+            for call in ast.walk(service):
+                if not isinstance(call, ast.Call):
                     continue
-                callbacks = {
-                    node.name: node for node in service.body if isinstance(node, ast.FunctionDef)
-                }
-                for call in ast.walk(service):
-                    if not isinstance(call, ast.Call):
-                        continue
-                    seeded = isinstance(call.func, ast.Name) and call.func.id == "commit_command"
-                    legacy = (
-                        isinstance(call.func, ast.Attribute) and call.func.attr == "commit_turn"
-                    )
-                    if not (seeded or legacy):
-                        continue
-                    with self.subTest(module=module, function=service.name):
-                        self.assertGreaterEqual(len(call.args), 6 if seeded else 5)
-                        callback = call.args[5 if seeded else 4]
-                        self.assertIsInstance(callback, ast.Name)
-                        assert isinstance(callback, ast.Name)
-                        self.assertIn(callback.id, callbacks)
-                        for statement in callbacks[callback.id].body:
-                            self.assertIsInstance(
-                                statement, (ast.Assign, ast.AnnAssign, ast.Expr, ast.Return)
-                            )
-                        self.assertFalse(
-                            any(
-                                isinstance(
-                                    node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
-                                )
-                                for statement in callbacks[callback.id].body
-                                for node in ast.walk(statement)
-                            ),
-                            "A transaction callback must not define another closure",
+                seeded = isinstance(call.func, ast.Name) and call.func.id == "commit_command"
+                legacy = isinstance(call.func, ast.Attribute) and call.func.attr == "commit_turn"
+                if not (seeded or legacy):
+                    continue
+                with self.subTest(module=module, function=service.name):
+                    self.assertGreaterEqual(len(call.args), 6 if seeded else 5)
+                    callback = call.args[5 if seeded else 4]
+                    self.assertIsInstance(callback, ast.Name)
+                    assert isinstance(callback, ast.Name)
+                    self.assertIn(callback.id, callbacks)
+                    for statement in callbacks[callback.id].body:
+                        self.assertIsInstance(
+                            statement, (ast.Assign, ast.AnnAssign, ast.Expr, ast.Return)
                         )
+                    self.assertFalse(
+                        any(
+                            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda))
+                            for statement in callbacks[callback.id].body
+                            for node in ast.walk(statement)
+                        ),
+                        "A transaction callback must not define another closure",
+                    )
 
     def test_orchestration_does_not_draw_random_values(self) -> None:
         """#415: all draws use the domain dice/selection API."""
@@ -278,23 +377,17 @@ class ArchitectureTests(unittest.TestCase):
                     )
 
     def test_domain_imports_are_independent(self) -> None:
+        """The engine depends inward only: on its own domains and the shared kernel."""
         package = Path(wayfarer.__file__).parent
         allowed = {
-            "rules": {"rules", "models", "validation", "errors"},
-            "character": {"rules", "character", "models", "validation", "errors"},
-            "simulation": {
-                "rules",
-                "character",
-                "simulation",
-                "models",
-                "validation",
-                "errors",
-                "world",
-            },
+            "rules": {"rules"},
+            "character": {"rules", "character"},
+            "simulation": {"rules", "character", "simulation", "world"},
         }
+        kernel = {"models", "validation", "errors"}
         forbidden = {"sqlite3", "http", "urllib", "socket", "requests", "httpx", "openai", "os"}
         for domain, dependencies in allowed.items():
-            for source in (package / domain).rglob("*.py"):
+            for source in (package / "engine" / domain).rglob("*.py"):
                 tree = ast.parse(source.read_text())
                 for node in ast.walk(tree):
                     if isinstance(node, ast.Import):
@@ -304,6 +397,8 @@ class ArchitectureTests(unittest.TestCase):
                         modules = [node.module or ""]
                         if node.module == "wayfarer":
                             modules += [f"wayfarer.{alias.name}" for alias in node.names]
+                        if node.module == "wayfarer.engine":
+                            modules += [f"wayfarer.engine.{alias.name}" for alias in node.names]
                     else:
                         continue
                     for module in modules:
@@ -313,8 +408,134 @@ class ArchitectureTests(unittest.TestCase):
                                 self.assertNotIn(
                                     module.split(".")[0], {"secrets", "random", "time", "datetime"}
                                 )
-                            if module.startswith("wayfarer."):
-                                self.assertIn(module.split(".")[1], dependencies)
+                            if not module.startswith("wayfarer."):
+                                continue
+                            parts = module.split(".")
+                            if parts[1] == "engine":
+                                self.assertIn(parts[2], dependencies)
+                            else:
+                                self.assertIn(parts[1], kernel)
+
+    def test_engine_packages_are_not_facades(self) -> None:
+        """A package init declares the package's own rules or nothing; it never re-exports.
+
+        Importing a domain must not drag in its siblings, or a noun would load a verb.
+        The three inventory packages are themselves the module, so they may import what
+        they are built from; an init that only imports is a facade and is rejected.
+        """
+        package = Path(wayfarer.__file__).parent / "engine"
+        for source in package.rglob("__init__.py"):
+            tree = ast.parse(source.read_text())
+            imports = [n for n in tree.body if isinstance(n, (ast.Import, ast.ImportFrom))]
+            declarations = [
+                n
+                for n in tree.body
+                if isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.Assign, ast.AnnAssign))
+            ]
+            with self.subTest(source=source):
+                self.assertFalse(
+                    imports and not declarations, f"{source} re-exports instead of declaring"
+                )
+
+    def test_simulation_packages_declare_nothing(self) -> None:
+        """Simulation package inits stay empty so no import order can load a verb early."""
+        package = Path(wayfarer.__file__).parent / "engine" / "simulation"
+        for source in package.rglob("__init__.py"):
+            tree = ast.parse(source.read_text())
+            with self.subTest(source=source):
+                self.assertEqual([type(node) for node in tree.body], [ast.Expr])
+
+    def test_modules_import_in_one_order(self) -> None:
+        """No module-level import cycle: a package must be importable from any entry.
+
+        Type checking resolves a cycle happily; the interpreter does not, so this
+        looks at what every module pays for on import, excluding TYPE_CHECKING
+        blocks and deferred imports inside function bodies.
+        """
+        package = Path(wayfarer.__file__).parent
+        graph: dict[str, set[str]] = {}
+        for source in package.rglob("*.py"):
+            parts = source.relative_to(package.parent).with_suffix("").parts
+            if parts[-1] == "__init__":
+                parts = parts[:-1]
+            tree = ast.parse(source.read_text())
+            deferred = {
+                node
+                for parent in ast.walk(tree)
+                if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef))
+                or (isinstance(parent, ast.If) and "TYPE_CHECKING" in ast.unparse(parent.test))
+                for node in ast.walk(parent)
+            }
+            edges: set[str] = set()
+            for node in ast.walk(tree):
+                if node in deferred:
+                    continue
+                if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("wayfarer"):
+                    assert node.module is not None
+                    edges.add(node.module)
+                elif isinstance(node, ast.Import):
+                    edges |= {a.name for a in node.names if a.name.startswith("wayfarer")}
+            graph[".".join(parts)] = edges
+
+        colour: dict[str, int] = {}
+        path: list[str] = []
+
+        def walk(module: str) -> None:
+            colour[module] = 1
+            path.append(module)
+            for imported in sorted(graph.get(module, set())):
+                if imported not in graph:
+                    continue
+                if colour.get(imported) == 1:
+                    cycle = path[path.index(imported) :] + [imported]
+                    self.fail("Import cycle: " + " -> ".join(cycle))
+                if colour.get(imported, 0) == 0:
+                    walk(imported)
+            path.pop()
+            colour[module] = 2
+
+        sys.setrecursionlimit(10000)
+        for module in sorted(graph):
+            if colour.get(module, 0) == 0:
+                walk(module)
+
+    def test_engine_nouns_do_not_import_verbs(self) -> None:
+        """A verb resolves mechanics with RulesContext; the nouns it reads never import one.
+
+        Only imports the module always pays for count: a deferred import inside a
+        function body is how the remaining mechanic cycles are broken today.
+        """
+        package = Path(wayfarer.__file__).parent
+        simulation = package / "engine" / "simulation"
+        trees = {source: ast.parse(source.read_text()) for source in simulation.rglob("*.py")}
+
+        def imported(tree: ast.Module) -> set[str]:
+            deferred = {
+                node
+                for parent in ast.walk(tree)
+                if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef))
+                for node in ast.walk(parent)
+            }
+            return {
+                node.module
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom)
+                and node.module is not None
+                and node not in deferred
+            }
+
+        def name(source: Path) -> str:
+            relative = source.relative_to(package).with_suffix("")
+            return "wayfarer." + ".".join(relative.parts)
+
+        context = "wayfarer.engine.simulation.rules_context"
+        verbs = {name(source) for source, tree in trees.items() if context in imported(tree)}
+        for source, tree in trees.items():
+            if name(source) in verbs:
+                continue
+            for module in sorted(imported(tree) & verbs):
+                with self.subTest(source=source, module=module):
+                    self.fail(f"{source} imports the verb {module}")
 
     def test_domain_import_does_not_load_adapters(self) -> None:
         subprocess.run(
@@ -323,12 +544,11 @@ class ArchitectureTests(unittest.TestCase):
                 "-c",
                 """
 import sys
-import wayfarer.simulation.action_engine
 import importlib
 import pkgutil
-import wayfarer.simulation.mechanics
-for module in pkgutil.iter_modules(wayfarer.simulation.mechanics.__path__):
-    importlib.import_module("wayfarer.simulation.mechanics." + module.name)
+import wayfarer.engine
+for module in pkgutil.walk_packages(wayfarer.engine.__path__, "wayfarer.engine."):
+    importlib.import_module(module.name)
 assert not any(m.startswith(('wayfarer.persistence', 'wayfarer.orchestration', 'wayfarer.transport')) for m in sys.modules)
 assert 'sqlite3' not in sys.modules
 """,
@@ -356,8 +576,9 @@ assert 'sqlite3' not in sys.modules
                 "-c",
                 """
 import sys
-import wayfarer.simulation.actions
-assert 'wayfarer.simulation.action_engine' not in sys.modules
+import wayfarer.engine.simulation.actions
+assert 'wayfarer.engine.simulation.action_engine' not in sys.modules
+assert 'wayfarer.engine.simulation.rules_context' not in sys.modules
 """,
             ],
             check=True,
@@ -367,7 +588,10 @@ assert 'wayfarer.simulation.action_engine' not in sys.modules
         """Transactions end in PlayService.commit; only play touches play_json."""
         package = Path(wayfarer.__file__).parent
         allowed = {package / "orchestration" / "play.py"}
-        for source in (*package.rglob("orchestration/*.py"), *package.rglob("transport/**/*.py")):
+        for source in (
+            *package.rglob("orchestration/**/*.py"),
+            *package.rglob("transport/**/*.py"),
+        ):
             if source in allowed:
                 continue
             tree = ast.parse(source.read_text())
@@ -386,9 +610,11 @@ assert 'wayfarer.simulation.action_engine' not in sys.modules
 
     def test_all_packages_import(self) -> None:
         for name in (
-            "rules",
-            "character",
-            "simulation",
+            "engine",
+            "engine.rules",
+            "engine.character",
+            "engine.simulation",
+            "certification",
             "persistence",
             "orchestration",
             "transport",
@@ -400,7 +626,7 @@ def test_prototype_resolver_and_transcript_writers_are_retired() -> None:
     from wayfarer import models
     from wayfarer.orchestration.service import GameService
 
-    assert not (Path(wayfarer.__file__).parent / "simulation/resolution.py").exists()
+    assert not (Path(wayfarer.__file__).parent / "engine/simulation/resolution.py").exists()
     assert not hasattr(GameService, "turn") and not hasattr(GameService, "interpret")
     assert not hasattr(models, "Action") and not hasattr(models, "Event")
     assert set(models.CommandReceipt.__annotations__) == {"action", "outcome"}

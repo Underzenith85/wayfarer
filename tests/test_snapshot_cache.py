@@ -7,13 +7,13 @@ from pathlib import Path
 import pytest
 from test_wave9 import prepare
 
+from wayfarer.engine.simulation.actions import Wait
+from wayfarer.engine.simulation.events import document
 from wayfarer.errors import ConflictError
 from wayfarer.orchestration.service import GameService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.persistence.snapshots import decode, encode
-from wayfarer.simulation.actions import Wait
-from wayfarer.simulation.events import document
 
 
 async def sql(
@@ -57,7 +57,7 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
         assert row is not None and row[0] == (0 if interval == 0 else 11 // interval)
     finally:
         await db.close()
-    from wayfarer.simulation.actions import PlayState
+    from wayfarer.engine.simulation.actions import PlayState
 
     assert not {"last_result", "last_combat_result", "scene_events"} & PlayState.model_fields.keys()
     encoded = json.loads(encode(expected))
@@ -117,8 +117,8 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
 async def test_narration_survives_cache_rebuild_without_becoming_state(
     service: GameService,
 ) -> None:
-    from wayfarer.character import builder
-    from wayfarer.simulation.scenario import scenario
+    from wayfarer.engine.character import builder
+    from wayfarer.engine.simulation.campaign.scenario import scenario
 
     # Use the legacy public service as well: its flavor used to mutate campaign rows.
     game = service
@@ -161,8 +161,8 @@ async def test_checkpoint_skips_covered_schemas_and_cache_failure_requires_them(
 
 
 async def test_legacy_narration_is_imported_before_replacing_cache(service: GameService) -> None:
-    from wayfarer.character import builder
-    from wayfarer.simulation.scenario import scenario
+    from wayfarer.engine.character import builder
+    from wayfarer.engine.simulation.campaign.scenario import scenario
 
     created = await service.create(builder.character(), scenario())
     cid = created["id"]

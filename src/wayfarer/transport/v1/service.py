@@ -9,6 +9,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from wayfarer.engine.simulation.actions import ActionResult
 from wayfarer.errors import (
     ConflictError,
     NotFoundError,
@@ -22,7 +23,6 @@ from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService
 from wayfarer.persistence.events import CommandOrigin
-from wayfarer.simulation.actions import ActionResult
 
 from .common import Fault, Obj, array, encoded, obj, uid, validate
 from .ledger import Ledger, Transaction

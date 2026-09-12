@@ -18,15 +18,15 @@ from test_compiler import compiler as prototype_compiler
 from test_compiler import draft as prototype_draft
 from test_compiler import trait
 
-from wayfarer.character import statistics
-from wayfarer.character.compiler import (
+from wayfarer.engine.character import statistics
+from wayfarer.engine.character.compiler import (
     CharacterCompiler,
     CharacterDraft,
     Purchase,
     ValidatedBuild,
     pool_limits,
 )
-from wayfarer.character.statistics import (
+from wayfarer.engine.character.statistics import (
     Advisory,
     Attribute,
     Encumbrance,
@@ -38,9 +38,7 @@ from wayfarer.character.statistics import (
     carry_over,
     compile_statistics,
 )
-from wayfarer.errors import ValidationError
-from wayfarer.orchestration.advancement import _refreshed
-from wayfarer.rules.catalog import (
+from wayfarer.engine.rules.catalog import (
     PROTOTYPE_PACKAGE,
     PROTOTYPE_SOURCE,
     CampaignPolicy,
@@ -52,9 +50,11 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
     RulesPackage,
 )
-from wayfarer.rules.conformance import require_capabilities
-from wayfarer.rules.effects import Effect, Operation
-from wayfarer.simulation.resources import Pool
+from wayfarer.engine.rules.conformance import require_capabilities
+from wayfarer.engine.rules.effects import Effect, Operation
+from wayfarer.engine.simulation.resources import Pool
+from wayfarer.errors import ValidationError
+from wayfarer.orchestration.advancement import _refreshed
 
 FIXTURE = Path(__file__).parent / "fixtures/gurps/conformance.json"
 LITE = "gurps-lite-4e-2004"
@@ -611,7 +611,7 @@ def test_revision_two_compiles_advisories_without_rejecting_and_preserves_pools(
 
 
 def test_registered_statistics_revision_keeps_old_package_pins() -> None:
-    from wayfarer.rules.profiles import (
+    from wayfarer.engine.rules.profiles import (
         GURPS_SIZE_PACKAGE,
         GURPS_SIZE_PROFILE,
         GURPS_STATISTICS_PACKAGE,
@@ -644,7 +644,7 @@ def test_registered_statistics_revision_keeps_old_package_pins() -> None:
     ],
 )
 def test_registered_package_compiles_high_strength(strength: int, thrust: str, swing: str) -> None:
-    from wayfarer.rules.profiles import GURPS_STATISTICS_PROFILE
+    from wayfarer.engine.rules.profiles import GURPS_STATISTICS_PROFILE
 
     profile = GURPS_STATISTICS_PROFILE
     engine = CharacterCompiler(

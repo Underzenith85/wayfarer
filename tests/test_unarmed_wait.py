@@ -9,6 +9,9 @@ from pathlib import Path
 import pytest
 from test_unarmed import action, defend, setup, state_of, wait
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat.encounter import CombatResult
+from wayfarer.engine.simulation.combat.maneuvers import WaitTrigger
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import (
     CombatService,
@@ -17,9 +20,6 @@ from wayfarer.orchestration.combat import (
 )
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import CombatResult
-from wayfarer.simulation.maneuvers import WaitTrigger
 
 PUNCH = {"action": "punch", "hands": ("right-hand",)}
 

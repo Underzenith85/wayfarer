@@ -4,10 +4,10 @@ import argparse
 import json
 from pathlib import Path
 
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
+from wayfarer.engine.simulation.campaign.social_policy import SocialScenarioDocument
 from wayfarer.orchestration.fright import FrightDecision
 from wayfarer.orchestration.fright_builds import ApproveFrightBuild, ProposeFrightBuild
-from wayfarer.simulation.npcs import NPCSocialRules
-from wayfarer.simulation.social_policy import SocialScenarioDocument
 
 PATH = Path(__file__).resolve().parents[1] / "contracts/social/v2/schemas.json"
 

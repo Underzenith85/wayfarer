@@ -5,13 +5,11 @@ Selected Characters third-printing baseline; mechanics verification pending.
 
 import pytest
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus
-from wayfarer.simulation.abilities import interrupt_concentration
-from wayfarer.simulation.resources import Pool, ResourceState
-from wayfarer.simulation.spells import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.simulation.abilities import interrupt_concentration
+from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SpellCommand,
     SpellContext,
@@ -22,6 +20,8 @@ from wayfarer.simulation.spells import (
     cost_reduction,
     latest,
 )
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.errors import ConflictError, ValidationError
 
 
 def state() -> ResourceState:

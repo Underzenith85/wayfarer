@@ -10,9 +10,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from wayfarer.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES, CoverageStatus
-from wayfarer.rules.profiles import GURPS_LITE_PROFILE
-from wayfarer.simulation.equipment_audit import lite_gaps
+from wayfarer.certification.equipment_audit import lite_gaps
+from wayfarer.engine.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES, CoverageStatus
+from wayfarer.engine.rules.profiles import GURPS_LITE_PROFILE
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = "gurps-lite-4e-2004"

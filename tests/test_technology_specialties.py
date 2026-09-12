@@ -17,11 +17,16 @@ from typing import cast
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.rules.mundane_skills import PROFILE, inventory, source_index
-from wayfarer.rules.mundane_skills.technology import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.skills.mundane import PROFILE, inventory, source_index
+from wayfarer.engine.rules.skills.mundane.technology.attempts import (
+    Operator,
+    Situation,
+    attempt,
+    require_task,
+)
+from wayfarer.engine.rules.skills.mundane.technology.inventory import (
     ELECTRONICS_SPECIALTIES,
     MECHANIC_FAMILIES,
     OPEN_FAMILIES,
@@ -29,11 +34,8 @@ from wayfarer.rules.mundane_skills.technology import (
     REPAIRABLE_ELECTRONICS,
     SCIENCE_FAMILIES,
     VEHICLE_FAMILIES,
-    Operator,
-    Situation,
-    attempt,
-    require_task,
 )
+from wayfarer.errors import ValidationError
 
 FIXTURE = Path("tests/fixtures/gurps/technology_specialties.json")
 Case = dict[str, object]

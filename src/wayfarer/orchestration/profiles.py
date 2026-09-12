@@ -13,6 +13,21 @@ from collections.abc import Callable
 
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.engine.rules.catalog import reference
+from wayfarer.engine.rules.checks import RandomSource
+from wayfarer.engine.rules.profiles import ProfileRegistry, RegisteredProfile
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.advancement import BuildDiff, MigrationEntry
+from wayfarer.engine.simulation.campaign.profiles import (
+    Incompatibility,
+    MigrateProfile,
+    PackageView,
+    ProfileMigrationPreview,
+    ProfileSelection,
+    ProfileView,
+)
+from wayfarer.engine.simulation.campaign.setup import Setup
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from wayfarer.models import Campaign
 from wayfarer.orchestration.advancement import (
@@ -24,21 +39,6 @@ from wayfarer.orchestration.advancement import (
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.catalog import reference
-from wayfarer.rules.checks import RandomSource
-from wayfarer.rules.profiles import ProfileRegistry, RegisteredProfile
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.advancement import BuildDiff, MigrationEntry
-from wayfarer.simulation.profiles import (
-    Incompatibility,
-    MigrateProfile,
-    PackageView,
-    ProfileMigrationPreview,
-    ProfileSelection,
-    ProfileView,
-)
-from wayfarer.simulation.setup import Setup
 
 EngineBuilder = Callable[[RegisteredProfile], ActionEngine]
 

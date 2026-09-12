@@ -5,9 +5,8 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.rules.catalog import (
     CampaignPolicy,
     CampaignRules,
     DefinitionKind,
@@ -16,20 +15,21 @@ from wayfarer.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.cinematic_skills import BINDINGS, PROFILE, package
-from wayfarer.rules.recovery_types import FatigueStatus
-from wayfarer.rules.skill_types import ControllingAttribute as A
-from wayfarer.rules.skill_types import Difficulty as D
-from wayfarer.rules.skill_types import SkillSpec
-from wayfarer.rules.supernatural import inventory
-from wayfarer.simulation.cinematic_skills import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.skills.cinematic import BINDINGS, PROFILE, package
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.rules.types.skill import ControllingAttribute as A
+from wayfarer.engine.rules.types.skill import Difficulty as D
+from wayfarer.engine.rules.types.skill import SkillSpec
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.skills.cinematic import (
     CinematicSkillCommand,
     apply_cinematic_skill,
     visible_history,
 )
-from wayfarer.simulation.resources import Pool, ResourceState
-from wayfarer.world import Entity, EntityKind, World
+from wayfarer.engine.world import Entity, EntityKind, World
+from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 
 SKILLS = {
     "blind-fighting",

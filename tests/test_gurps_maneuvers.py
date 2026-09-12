@@ -5,13 +5,13 @@ from pathlib import Path
 import pytest
 from test_gurps_melee import setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat.encounter import CombatResult
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService, ResumeInterruptedTurn, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import CombatResult
-from wayfarer.simulation.mechanics.gurps_melee import defense_value
 
 
 async def turn(

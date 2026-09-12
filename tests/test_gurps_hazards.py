@@ -8,24 +8,24 @@ from pathlib import Path
 import pytest
 from test_medical_service import setup
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.hazards import HazardContext, HazardService
-from wayfarer.orchestration.physical import PhysicalCommand, PhysicalRoute, PhysicalService
-from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec, RecoveryRestriction
-from wayfarer.rules.location_types import LastingInjury
-from wayfarer.rules.physical import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.physical import (
     climbing,
     falling_damage,
     hiking_miles,
     jump_distance,
     lift_limit,
 )
-from wayfarer.simulation.actions import Wait
-from wayfarer.simulation.hazards import HazardCommand, apply_hazard
-from wayfarer.simulation.medical import BeginRecovery, FinishRecovery
-from wayfarer.simulation.resources import Advance
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec, RecoveryRestriction
+from wayfarer.engine.rules.types.location import LastingInjury
+from wayfarer.engine.simulation.actions import Wait
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
+from wayfarer.engine.simulation.health.medical.commands import BeginRecovery, FinishRecovery
+from wayfarer.engine.simulation.resources import Advance
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.hazards import HazardContext, HazardService
+from wayfarer.orchestration.physical import PhysicalCommand, PhysicalRoute, PhysicalService
+from wayfarer.orchestration.play import PlayService
 
 
 def test_independent_physical_numeric_fixtures() -> None:
@@ -466,7 +466,8 @@ async def test_exhausted_drowning_checks_will_each_second_without_extra_water_da
 def test_due_hazard_does_not_deadlock_mortality_or_lifesaving_care() -> None:
     from test_advanced_medical import patient
 
-    from wayfarer.simulation.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.health.medical.commands import CareContext
+    from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 
     state = patient(mortal=True)
     spec = HazardSpec(id="fire", scene_id="dock", kind="fire", resistible=False, reference="B433")

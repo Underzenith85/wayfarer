@@ -6,20 +6,28 @@ from pathlib import Path
 import pytest
 from test_medical_service import setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.environment import ambient_spec, poison_spec
+from wayfarer.engine.rules.physical import contagion_modifier, falling_damage, falling_injury
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
+from wayfarer.engine.simulation.actions import PlayState, Wait
+from wayfarer.engine.simulation.health.condition_checks import (
+    check_modifiers,
+    require_hazard_capacity,
+)
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
+from wayfarer.engine.simulation.health.medical.commands import (
+    BeginRecovery,
+    CareContext,
+    FinishRecovery,
+)
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.hazard_care import HazardCare, HazardCareCommand, HazardCareService
 from wayfarer.orchestration.hazards import HazardContext, HazardService
 from wayfarer.orchestration.physical import PhysicalCommand, PhysicalRoute, PhysicalService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.environment import ambient_spec, poison_spec
-from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
-from wayfarer.rules.physical import contagion_modifier, falling_damage, falling_injury
-from wayfarer.simulation.actions import PlayState, Wait
-from wayfarer.simulation.condition_checks import check_modifiers, require_hazard_capacity
-from wayfarer.simulation.hazards import HazardCommand, apply_hazard
-from wayfarer.simulation.medical import BeginRecovery, CareContext, FinishRecovery, apply_recovery
 
 
 async def seed(play: PlayService, cid: str, state: PlayState, path: Path) -> None:
@@ -304,12 +312,12 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
     from test_actions import campaign, world
     from test_statistics import gurps_draft
 
-    from wayfarer.character.power import CharacterProposal
+    from wayfarer.engine.character.power import CharacterProposal
+    from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+    from wayfarer.engine.simulation.actions import ActorSetup
+    from wayfarer.engine.simulation.campaign.scenes import Scene, SceneExit, SceneRules
+    from wayfarer.engine.simulation.resources import Owner, ResourceState
     from wayfarer.orchestration.play import PlayService
-    from wayfarer.simulation.action_engine import ActionEngine
-    from wayfarer.simulation.actions import ActorSetup
-    from wayfarer.simulation.resources import Owner, ResourceState
-    from wayfarer.simulation.scenes import Scene, SceneExit, SceneRules
 
     _, original, _ = await setup(tmp_path)
     rules = SceneRules(
@@ -448,8 +456,8 @@ def test_temperature_tolerance_compiles_as_a_purchased_trait() -> None:
     from test_mundane_traits import runtime_compiler
     from test_statistics import gurps_draft
 
-    from wayfarer.character.compiler import Purchase
-    from wayfarer.character.physical_traits import physical_traits
+    from wayfarer.engine.character.compiler import Purchase
+    from wayfarer.engine.character.traits.physical import physical_traits
 
     compiler = runtime_compiler()
     result = compiler.compile(
@@ -474,17 +482,17 @@ async def test_antibiotics_consume_one_bound_dose_and_never_stack(
     from test_actions import campaign, world
     from test_statistics import gurps_draft, profile_compiler, profile_package
 
-    from wayfarer.character.compiler import CharacterCompiler
-    from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-    from wayfarer.rules.catalog import (
+    from wayfarer.engine.character.compiler import CharacterCompiler
+    from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+    from wayfarer.engine.rules.catalog import (
         DefinitionKind,
         ImplementationStatus,
         RuleDefinition,
         RulesCatalog,
     )
-    from wayfarer.simulation.action_engine import ActionEngine
-    from wayfarer.simulation.actions import ActionRules, ActorSetup
-    from wayfarer.simulation.resources import (
+    from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+    from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
+    from wayfarer.engine.simulation.resources import (
         EquipmentSpec,
         Item,
         Owner,
@@ -579,14 +587,14 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     from test_mundane_traits import combined_package
     from test_statistics import gurps_draft, profile_compiler
 
-    from wayfarer.character.compiler import CharacterCompiler, Purchase
-    from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-    from wayfarer.rules.catalog import RulesCatalog
-    from wayfarer.rules.gurps_skills import definitions
-    from wayfarer.rules.mundane_traits.runtime import SUPPORTED_HOOKS
-    from wayfarer.simulation.action_engine import ActionEngine
-    from wayfarer.simulation.actions import ActionRules, ActorSetup
-    from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
+    from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
+    from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+    from wayfarer.engine.rules.catalog import RulesCatalog
+    from wayfarer.engine.rules.skills.gurps_skills import definitions
+    from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
+    from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+    from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
+    from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
 
     profile = "gurps-basic-set-4e-2004"
     package = combined_package()
@@ -665,8 +673,8 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
 async def test_rigid_armor_fall_applies_blunt_trauma_through_inventory(tmp_path: Path) -> None:
     from test_gurps_melee import setup as melee_setup
 
-    from wayfarer.simulation.gurps_equipment import LITE_SOURCE, Armor, EquipmentProfile
-    from wayfarer.simulation.resources import Item
+    from wayfarer.engine.simulation.equipment.catalog import LITE_SOURCE, Armor, EquipmentProfile
+    from wayfarer.engine.simulation.resources import Item
 
     armor = EquipmentProfile(
         definition_id="equipment:fall-armor",
