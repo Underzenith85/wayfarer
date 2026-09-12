@@ -7,6 +7,7 @@ from pydantic import Field
 
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import draw_dice, draw_index
+from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
@@ -19,6 +20,7 @@ from wayfarer.engine.simulation.magic.backfires import Backfire, apply_backfire,
 from wayfarer.engine.simulation.magic.bindings import BackfireAlternative
 from wayfarer.engine.simulation.magic.effects import break_daze
 from wayfarer.engine.simulation.magic.spells import (
+    PROFILE,
     SPELLS,
     SpellEffect,
     SpellEvent,
@@ -29,6 +31,7 @@ from wayfarer.engine.simulation.magic.spells import (
 )
 from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.world import Fact
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
 
@@ -234,8 +237,6 @@ def _summon(
     )
     from dataclasses import replace
 
-    from wayfarer.engine.world import Fact
-
     fact = Fact("summon:" + command.id, target_id, "visible", "A summoned presence arrives.")
     world = replace(state.world, facts=state.world.facts + (fact,))
     for observer in encounter.participants:
@@ -377,8 +378,6 @@ def perceive(state: PlayState) -> PlayState:
     """Publish observable appearances without exposing private table outcomes."""
     from dataclasses import replace
 
-    from wayfarer.engine.world import Fact
-
     world = state.world
     for item in backfires(state.resources):
         if item.flavor is None:
@@ -403,8 +402,6 @@ def perceive(state: PlayState) -> PlayState:
 
 def recover_stuns(runtime: RulesContext, state: PlayState) -> PlayState:
     """Noncombat mental stun recovers once per elapsed second using approved IQ."""
-    from wayfarer.engine.rules.gurps_checks import success_roll
-    from wayfarer.engine.simulation.magic.spells import PROFILE
 
     combatants = {a for e in state.encounters if e.status == "active" for a in e.turn_order}
     resources = state.resources

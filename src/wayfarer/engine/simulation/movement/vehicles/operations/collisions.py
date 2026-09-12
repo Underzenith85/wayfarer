@@ -11,7 +11,9 @@ from wayfarer.engine.rules.types.vehicle import VehicleTrace, WaterOccupantCheck
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, neighbor
+from wayfarer.engine.simulation.movement.transport_validation import validate_transport
 from wayfarer.engine.simulation.movement.vehicles.collisions import (
+    collision_dice,
     impact,
     impact_actor,
     internal_id,
@@ -76,7 +78,6 @@ def water_hazard(
 
 
 def resolve(operation: Operation) -> Outcome:
-    from wayfarer.engine.simulation.movement.transport import validate_transport
 
     engine = operation.engine
     state = operation.state
@@ -251,8 +252,6 @@ def resolve(operation: Operation) -> Outcome:
             )
             state = state.model_copy(update={"hazards": (*state.hazards, drowning)})
         if command.landing != "water" or not clean_water_entry:
-            from wayfarer.engine.simulation.movement.transport import collision_dice
-
             damage, _ = roll_damage(
                 collision_dice(
                     pool.maximum,

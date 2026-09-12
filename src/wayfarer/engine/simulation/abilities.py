@@ -18,6 +18,7 @@ from wayfarer.engine.simulation.ability_types import (
     AbilitySpec,
 )
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
+from wayfarer.engine.simulation.health.fatigue import ContinueExertion, FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.world import World
@@ -247,8 +248,6 @@ def apply_ability(
         return record(resources, command, event), world, result
     fp = next((p for p in resources.pools if p.id == f"fp:{command.actor_id}"), None)
     if command.kind != "cancel" and fp is not None and fp.fatigue is not None:
-        from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue
-
         if fp.fatigue.collapsed or fp.fatigue.unconscious or fp.fatigue.heart_attack:
             result = AbilityOutcome(outcome="unavailable")
             event = AbilityEvent(
@@ -327,7 +326,6 @@ def apply_ability(
         fp = next((p for p in resources.pools if p.id == f"fp:{command.actor_id}"), None)
         if fp is None or fp.current < cost:
             raise ValidationError("Insufficient fatigue for ability")
-        from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 
         resources, _ = apply_fatigue(
             resources,

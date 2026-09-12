@@ -22,8 +22,18 @@ from wayfarer.engine.rules.magic.protocols import (
 )
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.magic.backfires import (
+    apply_backfire,
+    forgotten,
+    refund_later,
+    remember,
+)
+from wayfarer.engine.simulation.magic.backfires import require_settled as backfires_settled
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
@@ -283,8 +293,6 @@ def _spend_ceremonial_energy(
         if fp.current < contribution.fp:
             raise ConflictError("Ceremonial participant can no longer supply promised FP")
         if contribution.hp:
-            from wayfarer.engine.simulation.health.injury import Wound, apply_injury
-
             state, injury = apply_injury(
                 state,
                 Wound(
@@ -358,8 +366,6 @@ def apply_spell(
     )
     if command.hp_energy and command.kind in ("concentrate", "release", "focus", "remember"):
         raise ValidationError("This maneuver does not consume spell energy")
-    from wayfarer.engine.simulation.magic.backfires import forgotten
-    from wayfarer.engine.simulation.magic.backfires import require_settled as backfires_settled
 
     backfires_settled(state, command.actor_id)
     spec = SPELLS[command.spell_id]
@@ -410,8 +416,6 @@ def apply_spell(
         "forgotten",
     ]
     if command.kind == "remember":
-        from wayfarer.engine.simulation.magic.backfires import remember
-
         if effect is None:
             raise ConflictError("Unknown forgotten cast")
         state, memory = remember(
@@ -554,9 +558,7 @@ def apply_spell(
             ):
                 raise ConflictError("Spell binding changed")
             if command.kind == "focus":
-                from wayfarer.engine.simulation.combat.battlefield import GridPoint
                 from wayfarer.engine.simulation.combat.engine import CombatEngine
-                from wayfarer.engine.simulation.hex_geometry import Hex
 
                 if (
                     effect.phase != "active"
@@ -731,8 +733,6 @@ def apply_spell(
             raise ValidationError("Preflight supports only missile maneuvers")
         return state, SpellResult(outcome=outcome, energy_spent=spent, hp_spent=hp_cost)
     if hp_cost:
-        from wayfarer.engine.simulation.health.injury import Wound, apply_injury
-
         state, injury = apply_injury(
             state,
             Wound(
@@ -776,8 +776,6 @@ def apply_spell(
         and context.magery >= 0
         and command.kind in ("complete", "expand")
     ):
-        from wayfarer.engine.simulation.magic.backfires import refund_later
-
         state = refund_later(
             state,
             command.actor_id,
@@ -787,8 +785,6 @@ def apply_spell(
             before_turn=False,
         )
     if outcome == "critical-failure" and context.execution_version == 2:
-        from wayfarer.engine.simulation.magic.backfires import apply_backfire
-
         actual_critical = bool(checks and checks[-1].outcome is Outcome.CRITICAL_FAILURE)
         state = apply_backfire(
             state,

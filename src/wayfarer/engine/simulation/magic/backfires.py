@@ -13,6 +13,7 @@ from pydantic import Field
 from wayfarer.engine.rules.checks import CheckTrace, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -137,7 +138,6 @@ def apply_backfire(
     severity: Literal["normal", "mild", "disaster"],
     rng: RandomSource,
 ) -> ResourceState:
-    from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 
     identifier = hashlib.sha256(command_id.encode()).hexdigest()
     if severity != "normal":

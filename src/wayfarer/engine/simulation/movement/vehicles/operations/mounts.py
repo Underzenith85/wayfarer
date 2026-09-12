@@ -12,6 +12,7 @@ from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.engine.simulation.movement.vehicles.collisions import (
+    collision_dice,
     internal_id,
     roll_damage,
 )
@@ -106,7 +107,6 @@ def resolve(operation: Operation) -> Outcome:
         )
     elif command.riding_skill is not None:
         raise ValidationError("Riding follow-up only applies when the mount falls")
-    from wayfarer.engine.simulation.movement.transport import collision_dice
 
     traces: list[VehicleTrace] = []
     for actor, yards in (

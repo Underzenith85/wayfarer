@@ -7,6 +7,7 @@ from typing import Literal
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
 from wayfarer.engine.simulation.equipment.repairs import RepairTask, record, tasks
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume
@@ -25,7 +26,6 @@ def repair(
     task_id: str | None,
     preview: bool = False,
 ) -> tuple[PlayState, RepairTask]:
-    from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Repairs require the exact Basic Set profile")

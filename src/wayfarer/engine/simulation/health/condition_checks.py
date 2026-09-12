@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import Modifier
 from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.errors import ValidationError
 
 
 def check_modifiers(
@@ -69,7 +70,6 @@ def retching_penalty(state: ResourceState, actor_id: str) -> int:
 
 
 def require_hazard_capacity(state: ResourceState, actor_id: str, kind: str) -> None:
-    from wayfarer.errors import ValidationError
 
     for hazard in state.hazards:
         if hazard.actor_id != actor_id or hazard.affliction_until <= state.game_time:

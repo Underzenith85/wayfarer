@@ -12,6 +12,7 @@ from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import (
     Advance,
     ResourceEngine,
@@ -340,7 +341,6 @@ def recover(
                 update={"due": min(recovery_due, item.next_care_due or recovery_due)}
             )
             return save(state, item, command_id), False
-    from wayfarer.engine.simulation.health.physical_traits import physical_traits
 
     traits = physical_traits(state, actor_id)
     bonus = traits.fitness if effect.recovery_attribute == "ht" else 0

@@ -39,6 +39,7 @@ from wayfarer.engine.rules.skills.mundane.technology.inventory import (
 from wayfarer.engine.rules.skills.mundane.technology.inventory import (
     unsupported_scope as technology_scope,
 )
+from wayfarer.engine.rules.supernatural import inventory as owning_catalog
 from wayfarer.engine.rules.types.skill import ControllingAttribute as A
 from wayfarer.engine.rules.types.skill import (
     DefaultCondition,
@@ -281,7 +282,6 @@ def transferred_exclusions() -> tuple[Exclusion, ...]:
     with the same page and the same named follow-up issues. Drift there is a
     coverage failure here, not a silent removal from the Basic Set chapter.
     """
-    from wayfarer.engine.rules.supernatural import inventory as owning_catalog
 
     owned = {entry.id: entry for entry in owning_catalog().entries if entry.kind == "skill"}
     rows = exclusions()
@@ -505,7 +505,6 @@ def cross_package_prerequisites() -> frozenset[str]:
     catalog carries. The reference is real source data, so it is resolved against
     that catalog rather than dropped for being outside this inventory.
     """
-    from wayfarer.engine.rules.supernatural import inventory as owning_catalog
 
     owned = {entry.id for entry in owning_catalog().entries if entry.kind == "skill"}
     missing = CROSS_PACKAGE - owned

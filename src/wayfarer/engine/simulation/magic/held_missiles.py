@@ -1,6 +1,6 @@
 """B241 injury to a caster holding a missile, inside the existing transaction."""
 
-from wayfarer.engine.rules.checks import draw_dice
+from wayfarer.engine.rules.checks import Outcome, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
@@ -119,7 +119,6 @@ def concentration_checkpoint(
     runtime: RulesContext, state: PlayState, before: PlayState
 ) -> PlayState:
     """B238: losing manipulation freezes an effect; critical failure ends it."""
-    from wayfarer.engine.rules.checks import Outcome
 
     resources = state.resources
     for effect in active_spells(resources):

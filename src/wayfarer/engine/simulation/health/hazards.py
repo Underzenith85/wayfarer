@@ -6,10 +6,12 @@ import hashlib
 from typing import Literal
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
+from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.hazard import HazardSchedule, RecoveryRestriction
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
+from wayfarer.engine.simulation.health.fright import apply_effect
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
@@ -214,9 +216,6 @@ def apply_hazard(
                     }
                 )
                 if spec.affliction in ("retching", "seizure") and duration:
-                    from wayfarer.engine.rules.fright import FrightEffect
-                    from wayfarer.engine.simulation.health.fright import apply_effect
-
                     state = apply_effect(
                         state,
                         FrightEffect(

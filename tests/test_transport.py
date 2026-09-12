@@ -20,8 +20,8 @@ from wayfarer.engine.simulation.movement.transport import (
     Drive,
     SpookMount,
     apply_transport,
-    collision_dice,
 )
+from wayfarer.engine.simulation.movement.vehicles.collisions import collision_dice
 from wayfarer.engine.simulation.resources import Pool, ResourceEngine, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.resources import ResourceService

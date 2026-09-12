@@ -31,6 +31,7 @@ from wayfarer.engine.rules.physical import (
 )
 from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec, require_hazards_settled
 from wayfarer.engine.rules.types.location import disabled_locations
+from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import exertion, injury_turn
 from wayfarer.engine.simulation.campaign.party import migrate, synchronous
@@ -201,7 +202,6 @@ def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalConte
         ),
         default=0,
     )
-    from wayfarer.engine.simulation.abilities import damage_resistance
 
     innate_dr = (
         damage_resistance(before.resources, actor.actor_id, build_revision=compiled.revision)

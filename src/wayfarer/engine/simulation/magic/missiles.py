@@ -10,9 +10,17 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, level
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.objects.combat import (
+    damage_target,
+    intercepting_shield,
+    shield_damage,
+    target_modifier,
+)
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.vocabulary import Defense
+from wayfarer.engine.simulation.equipment.catalog import Damage
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.area_fire import armor
@@ -64,7 +72,6 @@ def resolve(
     second, second_item = defense_value(
         runtime, state, defender, second_defense or "none", second_item_id
     )
-    from wayfarer.engine.simulation.combat.objects.combat import target_modifier
 
     object_penalty = (
         target_modifier(runtime, state, defender.actor_id, pending.target_item_id)
@@ -119,7 +126,6 @@ def resolve(
         attacker = attacker.model_copy(update={"defense_penalty": -2})
         encounter = CombatEngine._replace(encounter, attacker)
         blocked = False
-    from wayfarer.engine.simulation.combat.objects.combat import intercepting_shield
 
     shield_hit = intercepting_shield(runtime, state, encounter, second_roll or defended)
     maximum = row in (6, 15)
@@ -134,9 +140,6 @@ def resolve(
     dr = armor(runtime, state, defender.actor_id)
     lost = 0
     if damage and (shield_hit or pending.target_item_id):
-        from wayfarer.engine.simulation.combat.objects.combat import damage_target, shield_damage
-        from wayfarer.engine.simulation.equipment.catalog import Damage
-
         missile = Damage(basis="fixed", dice=effect.energy, damage_type="burn")
         if pending.target_item_id:
             state, encounter, _ = damage_target(
@@ -212,7 +215,6 @@ def resolve(
         update={"ready_item_ids": tuple(i for i in defender.ready_item_ids if i in ready)}
     )
     encounter = CombatEngine._replace(encounter, defender)
-    from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 
     encounter = distracted(
         runtime,

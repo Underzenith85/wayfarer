@@ -33,6 +33,14 @@ from wayfarer.engine.rules.social.social_hooks import (
 )
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
 from wayfarer.engine.rules.traits.mundane.runtime import DEFAULT_AUDIENCE, Audience
+from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.fright import (
+    aftermath_modifiers,
+    blocked,
+    recover,
+    requires_adjudication,
+)
+from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
@@ -164,7 +172,6 @@ def apply_social(
         for e in state.events
     ):
         raise ConflictError("Social trigger already resolved")
-    from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
 
     if command.kind != "fright-recovery" and any(
         requires_adjudication(state, actor_id, handles_aftermath=True)
@@ -228,8 +235,6 @@ def apply_social(
     recognition = {"recognition": [asdict(roll) for roll in standing.recognition]}
     details: object
     if command.kind == "fright-recovery":
-        from wayfarer.engine.simulation.health.fright import recover
-
         revision = state.revision
         state, passed = recover(
             state,
@@ -246,8 +251,6 @@ def apply_social(
         outcome = SocialOutcome(kind=command.kind, outcome=trace.outcome)
         details = asdict(trace) | recognition
     elif command.kind == "influence":
-        from wayfarer.engine.simulation.health.condition_checks import check_modifiers
-
         influence = influence_roll(
             context.profile_id,
             context.skill,
@@ -302,9 +305,6 @@ def apply_social(
         )
         details = asdict(skill) | recognition
     elif command.kind == "fright":
-        from wayfarer.engine.simulation.health.fright import aftermath_modifiers
-        from wayfarer.engine.simulation.health.physical_traits import physical_traits
-
         fright = fright_roll(
             context.profile_id,
             context.target + 2 * int(physical_traits(state, command.subject_id).combat_reflexes),

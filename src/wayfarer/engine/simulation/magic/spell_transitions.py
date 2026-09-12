@@ -5,14 +5,21 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import injury_turn
+from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.objects.combat import target_modifier
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.recovery_guard import guard
+from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SpellCommand,
@@ -33,7 +40,6 @@ SpellResolver = Callable[[RulesContext, PlayState, SpellCommand], SpellEnvironme
 def approved_context(
     runtime: RulesContext, state: PlayState, command: SpellCommand
 ) -> SpellContext:
-    from wayfarer.engine.simulation.campaign.party import synchronous
 
     synchronous(state, command.actor_id)
     rules = runtime.rules.spells
@@ -75,8 +81,6 @@ def approved_context(
         if command.kind != "focus" or encounter is None:
             raise ValidationError("A manipulation destination requires combat concentration")
         if encounter.spatial_kind == "hex":
-            from wayfarer.engine.simulation.hex_geometry import Hex
-
             cell = runtime.require_hex(encounter).cell(
                 Hex(q=command.position[0], r=command.position[1])
             )
@@ -247,7 +251,6 @@ def advance_cast_turn(
     *,
     turn_started: bool = False,
 ) -> PlayState:
-    from wayfarer.engine.simulation.actors import injury_turn
 
     if not turn_started:
         before_hp = next(p for p in state.resources.pools if p.id == "hp:" + command.actor_id)
@@ -368,7 +371,6 @@ def advance_cast_turn(
 def apparent_result(
     resources: ResourceState, command: SpellCommand, result: SpellResult
 ) -> SpellResult:
-    from wayfarer.engine.simulation.magic.backfires import backfires
 
     if result.outcome == "critical-failure" and any(
         b.cast_id == command.cast_id and b.flavor == "illusion" for b in backfires(resources)
@@ -421,8 +423,6 @@ def _prepare_spell(
     ):
         raise ValidationError("Spell target is not perceived")
     if command.kind == "start":
-        from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
-
         require_idle_concentration(before.resources, command.actor_id)
     return context, encounter
 
@@ -436,8 +436,6 @@ def _release_missile(
     encounter: Encounter,
     turn_started: bool,
 ) -> PlayState:
-    from wayfarer.engine.simulation.actors import injury_turn
-    from wayfarer.engine.simulation.combat.melee.defense import defense_value
 
     if context.target_id == command.actor_id:
         raise ValidationError("Missile release requires another participant")
@@ -464,8 +462,6 @@ def _release_missile(
 
     target = next(p for p in encounter.participants if p.actor_id == context.target_id)
     if command.target_item_id:
-        from wayfarer.engine.simulation.combat.objects.combat import target_modifier
-
         target_modifier(runtime, before, target.actor_id, command.target_item_id)
         if next(i for i in before.resources.items if i.id == command.target_item_id).ground:
             raise ValidationError("Ground spell targets require a dedicated geometry adapter")
@@ -523,8 +519,6 @@ def reduce_spell(
         and encounter.wait_interrupt is None
         and command.kind in ("start", "concentrate", "focus", "release", "expand")
     ):
-        from wayfarer.engine.simulation.magic.backfires import refund_due
-
         hp = next(p for p in casting_resources.pools if p.id == "hp:" + command.actor_id)
         assert hp.injury
         casting_resources = refund_due(casting_resources, command.actor_id, turn=hp.injury.turn + 1)
@@ -545,8 +539,6 @@ def reduce_spell(
             validate_only=True,
         )
         if encounter.wait_interrupt is None:
-            from wayfarer.engine.simulation.actors import injury_turn
-
             began = injury_turn(
                 runtime, before, command.actor_id, command.id, start=True, do_nothing=False
             )

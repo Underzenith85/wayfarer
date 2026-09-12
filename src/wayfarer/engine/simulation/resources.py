@@ -35,6 +35,7 @@ from wayfarer.engine.rules.types.object import (
     ObjectCondition,
     ObjectProfile,
     ObjectResult,
+    residual_definition,
 )
 from wayfarer.engine.rules.types.readiness import ProjectileProgress
 from wayfarer.engine.rules.types.recovery import (
@@ -424,7 +425,6 @@ class ResourceEngine:
                     and condition.last_stress_at > state.game_time
                 ):
                     raise ValidationError("Object stress time is in the future")
-                from wayfarer.engine.rules.types.object import residual_definition
 
                 if (
                     condition.disabled
@@ -623,8 +623,6 @@ class ResourceEngine:
                         **{**item.model_dump(), "quantity": item.quantity - command.quantity}
                     )
             elif isinstance(command, Equip):
-                from wayfarer.engine.rules.types.object import residual_definition
-
                 if (
                     item.condition is not None
                     and item.condition.disabled

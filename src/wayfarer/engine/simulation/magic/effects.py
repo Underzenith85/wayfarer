@@ -2,6 +2,8 @@
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.spells import (
     SpellEffect,
     SpellEvent,
@@ -18,9 +20,7 @@ if TYPE_CHECKING:
 
 def lights(state: PlayState, target_id: str, *, reversed: bool = False) -> tuple[SpellEffect, ...]:
     """Local candle light (B249); illumination does not disclose hidden entities."""
-    from wayfarer.engine.simulation.combat.battlefield import GridPoint
     from wayfarer.engine.simulation.combat.engine import CombatEngine
-    from wayfarer.engine.simulation.hex_geometry import Hex
 
     entities = {e.id: e for e in state.world.entities}
     target = entities.get(target_id)
