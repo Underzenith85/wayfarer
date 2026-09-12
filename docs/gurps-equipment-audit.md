@@ -35,8 +35,8 @@ anchor and record what they leave out:
 | --- | --- | --- | --- |
 | `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
 | `muscle-powered-ranged` | B275-276 | 18 | duplicated thrown modes, special binding damage, launcher/cocking-aid behavior and remaining material/ammunition variants |
-| `firearms` | B278-279 | 11 | remaining pistols and SMGs, musket rests, repeating rifles, bipods, exotic electronics and shotguns |
-| `ammunition` | B275-279 | 16 | remaining firearm rounds, alternative missiles, ammunition variants, explosive warheads and power cells |
+| `firearms` | B278-279 | 18 | remaining pistols and SMGs, musket rests, bipods, exotic electronics, integral launchers and shotguns |
+| `ammunition` | B275-279 | 23 | remaining firearm rounds, alternative missiles, ammunition variants, explosive warheads and power cells |
 | `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `shields` | B287 | 4 | duplicate cloak appearances, the unrepresentable force shield, and buckler, material and offensive variants |
@@ -55,6 +55,9 @@ exactly `400/9` millipounds per round without inventing a rounded unit value.
 Four ordinary single-shot B279 long guns also preserve every numeric column and
 their exact one-shot load units. They remain selection-blocked until the
 dagger-marked, ST-conditioned one-hand exception can be represented directly.
+Seven ordinary repeating rifles preserve chambered `+1` separately from
+magazine capacity and reconstruct loaded table weight from exact rational
+per-round mass. They share the same explicit one-hand blocker.
 
 The four ordinary B287 shields now provide direct cases for Shield and
 EquipmentProfile.shield, including exact DB, cost, weight, DR and HP columns.

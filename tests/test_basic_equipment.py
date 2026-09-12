@@ -87,6 +87,16 @@ LONG_GUN_ROWS = (
     ("cartridge-rifle-45", 5, 200, 6000, 5, 0, "pi+", 3, 600, 2000, 4, 10, -6, 3),
 )
 
+REPEATING_RIFLE_ROWS = (
+    ("lever-action-carbine-30", 5, 300, 7000, 5, 0, 4, 450, 3000, 1, 6, 1, 3, 10, -4, 2),
+    ("bolt-action-rifle-762", 6, 350, 8900, 7, 0, 5, 1000, 4200, 1, 5, 1, 3, 10, -5, 4),
+    ("self-loading-rifle-762", 6, 600, 10000, 7, 0, 5, 1000, 4200, 3, 8, 0, 3, 10, -5, 3),
+    ("assault-rifle-556", 7, 800, 9000, 5, 0, 5, 500, 3500, 12, 30, 1, 3, 9, -4, 2),
+    ("assault-rifle-762s", 7, 300, 10500, 5, 1, 4, 400, 3000, 10, 30, 1, 3, 10, -4, 2),
+    ("battle-rifle-762", 7, 900, 11000, 7, 0, 5, 1000, 4200, 11, 20, 1, 3, 11, -5, 3),
+    ("assault-carbine-556", 8, 900, 7300, 4, 2, 4, 400, 3000, 15, 30, 1, 3, 9, -3, 2),
+)
+
 SHIELD_ROWS = (
     ("light-shield", 0, 1, 25, 2000, 5, 20),
     ("small-shield", 0, 1, 40, 8000, 6, 30),
@@ -420,6 +430,86 @@ def test_b279_single_shot_ammunition_uses_exact_load_units() -> None:
         key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected
     } == expected
     assert all(entries[key].ammunition for key in expected)
+
+
+def test_b279_repeating_rifles_reconstruct_loaded_table_weight() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    for row in REPEATING_RIFLE_ROWS:
+        (
+            key,
+            tl,
+            cost,
+            loaded_weight,
+            dice,
+            adds,
+            accuracy,
+            half,
+            maximum,
+            rate_of_fire,
+            shots,
+            chamber,
+            reload_seconds,
+            minimum_st,
+            bulk,
+            recoil,
+        ) = row
+        entry = entries[key]
+        assert (entry.provenance.pages, entry.technology_level, entry.price) == ((279,), tl, cost)
+        assert entry.unsupported_mechanics == ("conditional-one-handed-firearm",)
+        assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
+        mode = entry.modes[0]
+        assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (dice, adds, "pi")
+        assert (
+            mode.accuracy,
+            mode.half_damage_range,
+            mode.maximum_range,
+            mode.rate_of_fire,
+            mode.shots,
+            mode.chamber_capacity,
+            mode.reload_seconds,
+            mode.minimum_st,
+            mode.hands,
+            mode.bulk,
+            mode.recoil,
+        ) == (
+            accuracy,
+            half,
+            maximum,
+            rate_of_fire,
+            shots,
+            chamber,
+            reload_seconds,
+            minimum_st,
+            2,
+            bulk,
+            recoil,
+        )
+        assert mode.ammunition_id is not None
+        ammunition = entries[mode.ammunition_id.removeprefix("equipment:")]
+        assert entry.weight_millipounds + ammunition.weight_millipounds * shots == loaded_weight
+
+    lever = entries["lever-action-carbine-30"].modes[0]
+    assert isinstance(lever, RangedMode) and lever.reload_protocol == "per-round"
+
+
+def test_b279_repeating_rifle_ammunition_exact_values() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    expected = {
+        "lever-action-carbine-30-round": ("1", "50"),
+        "bolt-action-rifle-762-round": ("6/5", "60"),
+        "self-loading-rifle-762-round": ("5/4", "125/2"),
+        "assault-rifle-556-round": ("2/3", "100/3"),
+        "assault-rifle-762s-round": ("6/5", "60"),
+        "battle-rifle-762-round": ("17/10", "85"),
+        "assault-carbine-556-round": ("2/3", "100/3"),
+    }
+    assert {
+        key: (str(entries[key].price), str(entries[key].weight_millipounds)) for key in expected
+    } == expected
 
 
 def test_b287_shields_preserve_independent_table_columns() -> None:
