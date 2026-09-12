@@ -252,15 +252,23 @@
     },
     {
       "id": "shields",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B287",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
-      "selected": [],
-      "omitted_rows": "Shield rows and their defence bonus, weight, cost and damage columns. The shield schema exists but no selected-table shield row is recorded.",
+      "status": "partial",
+      "selected": [
+        "light-shield",
+        "small-shield",
+        "medium-shield",
+        "large-shield"
+      ],
+      "omitted_rows": "The Light Cloak and Heavy Cloak appearances duplicate physical rows already recorded from B276. Force Shield has a superscience TL and no finite HP, which the typed schema cannot encode. Buckler, spike, iron, plastic-riot and offensive shield-bash or shield-rush variants remain explicit behavior gaps; the four ordinary defensive rows retain the table's exact DB, cost, weight, DR and HP.",
       "mechanics": [
-        "shield-damage-and-cover"
+        "shield-offense",
+        "buckler-variant",
+        "shield-material-variants",
+        "superscience-technology-level"
       ]
     },
     {
@@ -503,8 +511,8 @@
     },
     {
       "id": "shield-defense-bonus",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B287",
+      "anchor": "inspected",
       "behaviour": "A ready shield adds its defence bonus and may be used to block once per turn.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.active_defense",
@@ -914,9 +922,44 @@
     },
     {
       "id": "shield-damage-and-cover",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B287, B408, B484",
+      "anchor": "inspected",
       "behaviour": "A shield can be damaged, destroyed, or used as cover rather than only as a bonus.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.object_durability",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_object_combat.py::test_shield_only_intercepts_when_db_changes_outcome"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "shield-offense",
+      "reference": "B287 notes 1-2",
+      "anchor": "inspected",
+      "behaviour": "Cloaks may entangle and ordinary shields may bash, rush, or carry a damage-increasing spike.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "buckler-variant",
+      "reference": "B287 note 3",
+      "anchor": "inspected",
+      "behaviour": "A buckler uses its own Shield specialty and has distinct ready, drop, hand-occupation, and rush rules.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "shield-material-variants",
+      "reference": "B287 note 4",
+      "anchor": "inspected",
+      "behaviour": "Iron and plastic-riot shield variants alter cost, weight, DR, HP, and available TL without changing DB.",
       "disposition": "unsupported",
       "capability_id": null,
       "owner_issue": 180,
@@ -1638,19 +1681,21 @@
     {
       "id": "Shield.skill_id",
       "unit": "skill reference",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B287 Shield Table",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
-      "tests": [],
-      "gap": "No audited row is a shield; shields are an omitted section."
+      "tests": [
+        "tests/test_basic_equipment.py::test_b287_shields_preserve_independent_table_columns"
+      ],
+      "gap": null
     },
     {
       "id": "Shield.defense_bonus",
       "unit": "defence bonus",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B287 DB column",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -1662,8 +1707,8 @@
     {
       "id": "Shield.can_block",
       "unit": "flag",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B287 shield rules",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -1793,13 +1838,15 @@
     {
       "id": "EquipmentProfile.shield",
       "unit": "shield record",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B287 Shield Table",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
-      "tests": [],
-      "gap": "No audited row is a shield; shields are an omitted section."
+      "tests": [
+        "tests/test_basic_equipment.py::test_b287_shields_preserve_independent_table_columns"
+      ],
+      "gap": null
     },
     {
       "id": "EquipmentProfile.unsupported_mechanics",

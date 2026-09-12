@@ -1,4 +1,4 @@
-"""Independent selected-row audit: Characters third printing B271-278,280,283,288."""
+"""Independent selected-row audit: Characters third printing B271-288."""
 
 from fractions import Fraction
 
@@ -78,6 +78,13 @@ FIREARM_ROWS = (
     ("snub-revolver-38", 6, 250, 1500, 1, 2, "pi", 1, 120, 1250, 3, 5, 3, 8, -1, 3),
     ("auto-pistol-45-tl6", 6, 300, 3000, 2, 0, "pi+", 2, 175, 1700, 3, 8, 3, 10, -2, 3),
     ("auto-pistol-9mm-tl6", 6, 350, 2400, 2, 2, "pi", 2, 150, 1850, 3, 9, 3, 9, -2, 2),
+)
+
+SHIELD_ROWS = (
+    ("light-shield", 0, 1, 25, 2000, 5, 20),
+    ("small-shield", 0, 1, 40, 8000, 6, 30),
+    ("medium-shield", 1, 2, 60, 15000, 7, 40),
+    ("large-shield", 1, 3, 90, 25000, 9, 60),
 )
 
 
@@ -345,6 +352,31 @@ def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
         key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected
     } == expected
     assert all(entries[key].ammunition for key in expected)
+
+
+def test_b287_shields_preserve_independent_table_columns() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    for key, tl, db, cost, weight, dr, hp in SHIELD_ROWS:
+        entry = entries[key]
+        assert (
+            entry.provenance.pages,
+            entry.technology_level,
+            entry.price,
+            entry.weight_millipounds,
+            entry.slot,
+        ) == ((287,), tl, cost, weight, "shield")
+        assert entry.shield is not None
+        assert (entry.shield.skill_id, entry.shield.defense_bonus, entry.shield.can_block) == (
+            "skill:shield",
+            db,
+            True,
+        )
+        assert entry.durability is not None
+        assert (entry.durability.dr, entry.durability.hp) == (dr, hp)
+
+    assert set(entries) >= {row[0] for row in SHIELD_ROWS}
 
 
 def test_sword_and_armor_independent_combat_facts() -> None:
