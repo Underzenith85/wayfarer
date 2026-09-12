@@ -39,6 +39,8 @@ are implemented by #326. The tactical-v2 projection and browser controls expose
 mapless legal choices without inventing geometry; GM setup, fact adjudication,
 reinforcement and escalation use the same typed command endpoint (#327).
 Hex-to-Basic conversion is implemented by #329 and individual withdrawal by #330.
+Cross-system timing, restart, investigation, travel and arrival evidence is
+summarized in the [mixed group activity matrix](mixed-activity.md) (#328).
 
 ## Hex-to-Basic conversion
 

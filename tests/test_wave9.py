@@ -10,6 +10,8 @@ from typing import Literal
 import pytest
 from test_actions import Dice, actor_setup, campaign, resource_seed
 from test_combat import combat_engine, resources, start
+from test_gurps_melee import setup as melee_setup
+from test_reinforcements import escalation
 from test_scenes import configured
 
 from wayfarer.errors import (
@@ -20,7 +22,13 @@ from wayfarer.errors import (
     ValidationError,
 )
 from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
+from wayfarer.orchestration.combat import (
+    ChooseDefense,
+    CombatService,
+    HexJoinPlacement,
+    JoinEncounter,
+    TakeCombatTurn,
+)
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
 from wayfarer.orchestration.party import PartyCommand, PartyService
@@ -32,6 +40,7 @@ from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import Inspect, Wait
 from wayfarer.simulation.combat import AttackProfile, GridPoint, Placement, ProtectionProfile
+from wayfarer.simulation.hex_geometry import Hex
 from wayfarer.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate, Reward
 from wayfarer.simulation.party import CrossSceneEffect, PartyRules
@@ -681,6 +690,302 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
     assert state.encounters[0].turn_order == ("a", "b", "c") and len(state.party.groups) == 1
     assert ("a", "clue") not in state.world.knowledge
     assert await play.store.replay(cid) == await play.store.read(cid)
+
+
+async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
+    tmp_path: Path,
+) -> None:
+    """#328 cross-system path uses creation and authenticated commands only."""
+    from test_basic_combat import start_basic
+
+    from wayfarer.orchestration.scenes import TravelScene
+
+    authored, authored_world = configured()
+    investigation_check = authored.rules.checks[0].model_copy(
+        update={
+            "definition_id": "skill:broadsword",
+            "package_id": "package:gurps-basic-set-4e-2004-characters",
+            "package_version": "1.0.0",
+        }
+    )
+    runtime_rules = authored.rules.model_copy(
+        update={
+            "party": PartyRules(id="mixed-party", version=1),
+            "checks": (investigation_check,),
+            "consumables": (),
+        }
+    )
+    cid, play = await melee_setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        human=True,
+        third_actor=True,
+        runtime_rules=runtime_rules,
+        runtime_world=authored_world,
+        extra_scheduled=(Scheduled(id="mixed-deadline", due=2, kind="consequence", target_id="a"),),
+        start_encounter=False,
+        aware_of=("chest",),
+    )
+    access = CampaignAccess(play)
+    await access.execute(
+        cid,
+        PartyCommand(
+            kind="split_party",
+            id="independent-c",
+            actor_id="c",
+            expected_revision=0,
+            target_id="investigators",
+        ).model_dump(mode="json"),
+        principal_id="c",
+    )
+    opening_template = start_basic(1)
+    opening = opening_template.model_copy(
+        update={
+            "id": "basic-opening",
+            "expected_revision": 1,
+            "facts": tuple(
+                fact.model_copy(
+                    update={
+                        "provenance": fact.provenance.model_copy(update={"declared_revision": 1})
+                    }
+                )
+                for fact in opening_template.facts
+            ),
+        }
+    )
+    await access.execute(cid, opening.model_dump(mode="json"), principal_id="gm")
+    attack = TakeCombatTurn(
+        id="basic-attack",
+        actor_id="a",
+        expected_revision=2,
+        encounter_id="fight",
+        maneuver="attack",
+        target_id="b",
+        item_id="sword-a",
+        mode_id="swing",
+    )
+    first = await access.execute(cid, attack.model_dump(mode="json"), principal_id="a")
+
+    # A disconnected defender reloads the exact pending decision; an attacker retry
+    # receives the durable response rather than another roll or turn.
+    assert isinstance(play.store, AsyncSQLiteStore)
+    restarted_play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=Dice())
+    restarted = CampaignAccess(restarted_play)
+    pending = restarted_play._load(await restarted_play.store.read(cid))
+    assert pending.encounters[0].pending_defense is not None
+    assert await restarted.execute(cid, attack.model_dump(mode="json"), principal_id="a") == first
+
+    # Competing commands at one revision preserve CAS. The committed pause does not
+    # resolve or discard the other group's combat decision.
+    pauses = await asyncio.gather(
+        *(
+            restarted.execute(
+                cid,
+                PartyCommand(
+                    kind="pause_group",
+                    id=command_id,
+                    actor_id="c",
+                    expected_revision=3,
+                ).model_dump(mode="json"),
+                principal_id="c",
+            )
+            for command_id in ("pause-c", "pause-c-race")
+        ),
+        return_exceptions=True,
+    )
+    assert sum(isinstance(result, ConflictError) for result in pauses) == 1
+    still_pending = restarted_play._load(await restarted_play.store.read(cid))
+    assert still_pending.encounters[0].pending_defense is not None
+    await restarted.execute(
+        cid,
+        PartyCommand(
+            kind="resume_group", id="resume-c", actor_id="c", expected_revision=4
+        ).model_dump(mode="json"),
+        principal_id="c",
+    )
+
+    investigation = Inspect(
+        id="inspect-letter", actor_id="c", expected_revision=5, target_id="chest"
+    )
+    await restarted.execute(
+        cid,
+        PartyCommand(
+            kind="queue_activity",
+            id="investigation",
+            actor_id="c",
+            expected_revision=5,
+            activity_json=investigation.model_dump_json(),
+        ).model_dump(mode="json"),
+        principal_id="c",
+    )
+    await restarted.execute(
+        cid,
+        ChooseDefense(
+            id="basic-defense",
+            actor_id="b",
+            expected_revision=6,
+            encounter_id="fight",
+            defense="none",
+        ).model_dump(mode="json"),
+        principal_id="b",
+    )
+    await restarted.execute(
+        cid,
+        TakeCombatTurn(
+            id="basic-b-1",
+            actor_id="b",
+            expected_revision=7,
+            encounter_id="fight",
+            maneuver="do_nothing",
+        ).model_dump(mode="json"),
+        principal_id="b",
+    )
+    at_one = restarted_play._load(await restarted_play.store.read(cid))
+    assert at_one.resources.game_time == 1
+    assert ("c", "clue") not in at_one.world.knowledge
+    for revision, actor in ((8, "a"), (9, "b")):
+        await restarted.execute(
+            cid,
+            TakeCombatTurn(
+                id=f"basic-{actor}-2",
+                actor_id=actor,
+                expected_revision=revision,
+                encounter_id="fight",
+                maneuver="do_nothing",
+            ).model_dump(mode="json"),
+            principal_id=actor,
+        )
+    at_two = restarted_play._load(await restarted_play.store.read(cid))
+    assert at_two.resources.game_time == 2
+    assert at_two.resources.fired.count("mixed-deadline") == 1
+    assert ("c", "clue") in at_two.world.knowledge
+    assert ("a", "clue") not in at_two.world.knowledge
+
+    # The explicit representation migration preserves round/turn state and uses
+    # the exact selected Basic profile; hiding or showing a map is not the switch.
+    before_migration = at_two.encounters[0]
+    await restarted.execute(
+        cid,
+        escalation(revision=10, b_position=Hex(q=1, r=0)).model_dump(mode="json"),
+        principal_id="gm",
+    )
+    restarted_play = restarted_play.for_campaign(await restarted_play.store.read(cid))
+    restarted = CampaignAccess(restarted_play)
+    migrated = restarted_play._load(await restarted_play.store.read(cid)).encounters[0]
+    assert migrated.spatial_kind == "hex"
+    assert (migrated.round, migrated.current_actor_id) == (
+        before_migration.round,
+        before_migration.current_actor_id,
+    )
+
+    travel = TravelScene(id="travel-c", actor_id="c", expected_revision=11, exit_id="to-alley")
+    await restarted.execute(
+        cid,
+        PartyCommand(
+            kind="queue_activity",
+            id="travel-c",
+            actor_id="c",
+            expected_revision=11,
+            activity_json=travel.model_dump_json(),
+        ).model_dump(mode="json"),
+        principal_id="c",
+    )
+    for revision, actor in ((12, "a"), (13, "b")):
+        await restarted.execute(
+            cid,
+            TakeCombatTurn(
+                id=f"hex-{actor}-3",
+                actor_id=actor,
+                expected_revision=revision,
+                encounter_id="fight",
+                maneuver="do_nothing",
+            ).model_dump(mode="json"),
+            principal_id=actor,
+        )
+    at_three = restarted_play._load(await restarted_play.store.read(cid))
+    assert at_three.resources.game_time == 3
+    assert next(s.scene_id for s in at_three.actor_scenes if s.actor_id == "c") == "dock-scene"
+    for revision, actor in ((14, "a"), (15, "b")):
+        await restarted.execute(
+            cid,
+            TakeCombatTurn(
+                id=f"hex-{actor}-4",
+                actor_id=actor,
+                expected_revision=revision,
+                encounter_id="fight",
+                maneuver="do_nothing",
+            ).model_dump(mode="json"),
+            principal_id=actor,
+        )
+    arrived = restarted_play._load(await restarted_play.store.read(cid))
+    assert arrived.resources.game_time == 4
+    assert next(s.scene_id for s in arrived.actor_scenes if s.actor_id == "c") == "alley-scene"
+
+    return_trip = TravelScene(id="return-c", actor_id="c", expected_revision=16, exit_id="return")
+    await restarted.execute(
+        cid,
+        PartyCommand(
+            kind="queue_activity",
+            id="return-c",
+            actor_id="c",
+            expected_revision=16,
+            activity_json=return_trip.model_dump_json(),
+        ).model_dump(mode="json"),
+        principal_id="c",
+    )
+    for revision, actor in ((17, "a"), (18, "b")):
+        await restarted.execute(
+            cid,
+            TakeCombatTurn(
+                id=f"hex-{actor}-5",
+                actor_id=actor,
+                expected_revision=revision,
+                encounter_id="fight",
+                maneuver="do_nothing",
+            ).model_dump(mode="json"),
+            principal_id=actor,
+        )
+    synchronized = restarted_play._load(await restarted_play.store.read(cid))
+    assert synchronized.resources.game_time == 5
+    assert next(s.scene_id for s in synchronized.actor_scenes if s.actor_id == "c") == "dock-scene"
+    inventory = tuple(
+        (item.id, item.owner_id, item.quantity) for item in synchronized.resources.items
+    )
+    await restarted.execute(
+        cid,
+        JoinEncounter(
+            id="join-c",
+            actor_id="c",
+            expected_revision=19,
+            encounter_id="fight",
+            placement=HexJoinPlacement(position=Hex(q=0, r=1), facing=3),
+        ).model_dump(mode="json"),
+        principal_id="c",
+    )
+    final = restarted_play._load(await restarted_play.store.read(cid))
+    assert final.encounters[0].turn_order == ("a", "b", "c")
+    assert (
+        tuple((item.id, item.owner_id, item.quantity) for item in final.resources.items)
+        == inventory
+    )
+    assert final.resources.fired.count("mixed-deadline") == 1
+    assert ("c", "clue") in final.world.knowledge and ("a", "clue") not in final.world.knowledge
+    assert await restarted_play.store.replay(cid) == await restarted_play.store.read(cid)
+    from wayfarer.rules.conformance import CAPABILITIES, CoverageStatus
+
+    assert restarted_play.engine.reviewer.compiler.statistics_profile == ("gurps-basic-set-4e-2004")
+    assert all(
+        CAPABILITIES[identifier].status is CoverageStatus.PARTIAL
+        for identifier in (
+            "gurps.combat.melee_attack",
+            "gurps.combat.active_defense",
+            "gurps.combat.maneuvers",
+            "gurps.combat.turn_timing",
+            "gurps.tactical.hex_movement",
+            "gurps.tactical.facing",
+            "gurps.tactical.visibility",
+        )
+    )
 
 
 async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
