@@ -33,7 +33,9 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.profiles import (
     DEFAULT_REGISTRY,
+    GURPS_BASIC_EQUIPMENT_DEFINITIONS,
     GURPS_BASIC_PROFILE,
+    GURPS_EQUIPMENT_SKILL_REFERENCES,
     GURPS_LITE_PROFILE,
     PROTOTYPE_PROFILE,
     ProfileRegistry,
@@ -262,13 +264,17 @@ def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verif
         assert profile.rules.edition == "gurps-4e-2004"
         # Version 3 adds pinned #98 skill metadata; version 2 remains registered.
         carried = {d.id for p in profile.packages for d in p.definitions}
-        assert carried == {
+        expected = {
             d.id
             for d in (
                 gurps_characters.definitions(profile.conformance_profile_id)
                 + gurps_skills.definitions(profile.conformance_profile_id)
             )
         }
+        if profile is GURPS_BASIC_PROFILE:
+            expected.update(d.id for d in GURPS_BASIC_EQUIPMENT_DEFINITIONS)
+            expected.update(d.id for d in GURPS_EQUIPMENT_SKILL_REFERENCES)
+        assert carried == expected
         assert profile.version == 3
         with pytest.raises(ValidationError, match="not supported"):
             DEFAULT_REGISTRY.require_supported(profile.id, profile.version)

@@ -24,12 +24,16 @@ from wayfarer.rules.catalog import (
     PROTOTYPE_PACKAGE,
     CampaignPolicy,
     CampaignRules,
+    DefinitionKind,
+    ImplementationStatus,
     PackagePin,
+    RuleDefinition,
     RulesCatalog,
     RulesPackage,
     SourceReference,
     reference,
 )
+from wayfarer.rules.gurps_equipment_manifest import EQUIPMENT_SKILL_IDS, SUPPORTED_EQUIPMENT_IDS
 from wayfarer.rules.mundane_skills import ranged as ranged_skills
 from wayfarer.rules.mundane_skills import social as social_skills
 
@@ -39,6 +43,50 @@ OPTIONAL_RULES: Final = frozenset(
         "gurps.techniques.whirlwind-attack",
     }
 )
+
+GURPS_BASIC_EQUIPMENT_DEFINITIONS: Final = tuple(
+    RuleDefinition(
+        id=identifier,
+        kind=DefinitionKind.EQUIPMENT,
+        name=identifier.removeprefix("equipment:").replace("-", " ").title(),
+        source_id="sjg:basic-set-characters-4e-2004",
+        point_cost=None,
+        status=ImplementationStatus.IMPLEMENTED,
+        hooks=("equipment.inventory",),
+    )
+    for identifier in SUPPORTED_EQUIPMENT_IDS
+)
+
+_EARLY_CHARACTER_DEFINITIONS: Final = gurps_characters.definitions(
+    "gurps-basic-set-4e-2004"
+) + gurps_skills.definitions("gurps-basic-set-4e-2004")
+_EARLY_CHARACTER_IDS: Final = frozenset(
+    definition.id for definition in _EARLY_CHARACTER_DEFINITIONS
+)
+
+
+_EQUIPMENT_SKILL_IDS: Final = frozenset(EQUIPMENT_SKILL_IDS)
+GURPS_EQUIPMENT_SKILL_REFERENCES: Final = tuple(
+    RuleDefinition(
+        id=identifier,
+        kind=DefinitionKind.SKILL,
+        name=identifier.removeprefix("skill:").replace("-", " ").title(),
+        source_id="sjg:basic-set-characters-4e-2004",
+        point_cost=None,
+        status=ImplementationStatus.MANUAL,
+        hooks=("equipment.skill-reference",),
+    )
+    for identifier in sorted(_EQUIPMENT_SKILL_IDS - _EARLY_CHARACTER_IDS)
+)
+
+
+def _overlay_definitions(
+    existing: tuple[RuleDefinition, ...], replacements: tuple[RuleDefinition, ...]
+) -> tuple[RuleDefinition, ...]:
+    """Replace reference-only metadata when a later package supplies the full row."""
+    updated = {definition.id: definition for definition in existing}
+    updated.update((definition.id, definition) for definition in replacements)
+    return tuple(updated.values())
 
 
 @dataclass(frozen=True, slots=True)
@@ -273,6 +321,7 @@ GURPS_BASIC_POLICY: Final = CampaignPolicy(
     attribute_ceiling=DEFAULT_POLICY.attribute_ceiling,
     skill_ceiling=DEFAULT_POLICY.skill_ceiling,
     permitted_sources=frozenset({GURPS_CHARACTERS_SOURCE.id, GURPS_CAMPAIGNS_SOURCE.id}),
+    allowed_equipment=frozenset(SUPPORTED_EQUIPMENT_IDS),
 )
 
 GURPS_LITE_PROFILE_V2: Final = RegisteredProfile(
@@ -316,8 +365,9 @@ GURPS_LITE_PACKAGE: Final = replace(
 GURPS_CHARACTERS_PACKAGE: Final = replace(
     GURPS_CHARACTERS_PACKAGE_V2,
     version="0.3.0",
-    definitions=GURPS_CHARACTERS_PACKAGE_V2.definitions
-    + gurps_skills.definitions("gurps-basic-set-4e-2004"),
+    definitions=_EARLY_CHARACTER_DEFINITIONS
+    + GURPS_EQUIPMENT_SKILL_REFERENCES
+    + GURPS_BASIC_EQUIPMENT_DEFINITIONS,
 )
 GURPS_CAMPAIGNS_PACKAGE: Final = GURPS_CAMPAIGNS_PACKAGE_V2
 GURPS_LITE_PROFILE: Final = replace(
@@ -394,7 +444,9 @@ GURPS_STATISTICS_PROFILE: Final = replace(
 GURPS_RANGED_SKILLS_PACKAGE: Final = replace(
     GURPS_STATISTICS_PACKAGE,
     version="0.7.0",
-    definitions=GURPS_STATISTICS_PACKAGE.definitions + ranged_skills.definitions(),
+    definitions=_overlay_definitions(
+        GURPS_STATISTICS_PACKAGE.definitions, ranged_skills.definitions()
+    ),
 )
 GURPS_RANGED_SKILLS_PROFILE: Final = replace(
     GURPS_STATISTICS_PROFILE,
@@ -412,7 +464,9 @@ GURPS_RANGED_SKILLS_PROFILE: Final = replace(
 GURPS_SOCIAL_SKILLS_PACKAGE: Final = replace(
     GURPS_RANGED_SKILLS_PACKAGE,
     version="0.8.0",
-    definitions=GURPS_RANGED_SKILLS_PACKAGE.definitions + social_skills.definitions(),
+    definitions=_overlay_definitions(
+        GURPS_RANGED_SKILLS_PACKAGE.definitions, social_skills.definitions()
+    ),
 )
 GURPS_SOCIAL_SKILLS_PROFILE: Final = replace(
     GURPS_RANGED_SKILLS_PROFILE,

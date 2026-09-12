@@ -2910,11 +2910,11 @@
     {
       "id": "basic-set-catalog",
       "catalog": "gurps-basic-set-4e-2004",
-      "status": "unbound",
-      "detail": "No pinned package registers an equipment definition, and the audited rows cite the source ID sjg:gurps-basic-set-4e-2004, which no package declares. Every audited Basic Set row therefore fails EquipmentCatalog.bind against the registered packages and is only exercised by test doubles.",
+      "status": "bound",
+      "detail": "Every mechanically supported Basic Set row has a matching implemented equipment definition and source in the pinned Characters package. EquipmentCatalog.bind returns exactly that supported subset; rows with declared unsupported mechanics remain audit-only and cannot produce inventory specs.",
       "owner_issue": 180,
       "tests": [
-        "tests/test_equipment_audit.py::test_audited_catalogs_do_not_bind_to_pinned_packages"
+        "tests/test_equipment_audit.py::test_supported_basic_catalog_binds_to_pinned_packages"
       ]
     },
     {
@@ -2924,7 +2924,7 @@
       "detail": "The Lite sample rows cite sjg:gurps-lite-4e-2004, which the Lite package does declare, but no pinned package registers equipment:broadsword or equipment:leather-armor, so the Lite sample cannot bind either.",
       "owner_issue": 121,
       "tests": [
-        "tests/test_equipment_audit.py::test_audited_catalogs_do_not_bind_to_pinned_packages"
+        "tests/test_equipment_audit.py::test_supported_basic_catalog_binds_to_pinned_packages"
       ]
     }
   ],

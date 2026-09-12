@@ -25,6 +25,7 @@ from wayfarer.rules.conformance import CAPABILITIES, PROFILES
 from wayfarer.rules.entangle_types import EntangleSpec
 from wayfarer.rules.explosion_types import ExplosionSpec
 from wayfarer.rules.firearm_types import FirearmSpec
+from wayfarer.rules.gurps_equipment_manifest import EQUIPMENT_SKILL_IDS, SUPPORTED_EQUIPMENT_IDS
 from wayfarer.rules.launcher_types import LauncherSpec
 from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.profiles import (
@@ -82,14 +83,22 @@ AUDITED_MODELS = (
 """Every equipment schema model whose fields require a declared unit and source anchor."""
 
 PINNED_PACKAGES: tuple[RulesPackage, ...] = (
-    GURPS_LITE_PACKAGE,
     GURPS_CHARACTERS_PACKAGE,
     GURPS_CAMPAIGNS_PACKAGE,
 )
-"""The registered packages an audited catalog must resolve against, never a test double."""
+"""The registered Basic Set packages, never a test double."""
+
+LITE_PINNED_PACKAGES: tuple[RulesPackage, ...] = (GURPS_LITE_PACKAGE,)
+"""The registered Lite package, kept separate from overlapping Basic definitions."""
 
 CATALOGS: tuple[EquipmentCatalog, ...] = (LITE_EQUIPMENT, BASIC_EQUIPMENT)
 """Both declared equipment catalogs; the ultra-tech index is deliberately not one."""
+
+
+def packages_for(catalog: EquipmentCatalog) -> tuple[RulesPackage, ...]:
+    """Return only the immutable package set selected by this catalog profile."""
+    return LITE_PINNED_PACKAGES if catalog.profile_id == "gurps-lite-4e-2004" else PINNED_PACKAGES
+
 
 Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")]
 Text = Annotated[str, Field(min_length=1)]
@@ -243,27 +252,40 @@ def catalog_entries() -> dict[str, EquipmentProfile]:
 
 
 def unregistered_rows(catalog: EquipmentCatalog) -> tuple[str, ...]:
-    """Catalog rows with no equipment definition in any pinned package."""
+    """Supported catalog rows with no equipment definition in a pinned package."""
     registered = {
         definition.id
-        for package in PINNED_PACKAGES
+        for package in packages_for(catalog)
         for definition in package.definitions
         if definition.kind is DefinitionKind.EQUIPMENT
     }
     return tuple(
-        sorted(e.definition_id for e in catalog.entries if e.definition_id not in registered)
+        sorted(
+            e.definition_id
+            for e in catalog.entries
+            if not e.unsupported_mechanics and e.definition_id not in registered
+        )
     )
 
 
 def unregistered_sources(catalog: EquipmentCatalog) -> tuple[str, ...]:
-    """Provenance source IDs a catalog cites that no pinned package declares."""
-    declared = {source.id for package in PINNED_PACKAGES for source in package.sources}
-    return tuple(sorted({e.provenance.source_id for e in catalog.entries} - declared))
+    """Supported-row source IDs that no pinned package declares."""
+    declared = {source.id for package in packages_for(catalog) for source in package.sources}
+    return tuple(
+        sorted(
+            {e.provenance.source_id for e in catalog.entries if not e.unsupported_mechanics}
+            - declared
+        )
+    )
 
 
 def binding_status(catalog: EquipmentCatalog) -> Literal["bound", "unbound"]:
     """A catalog is bound only when every row and every cited source is registered."""
     if unregistered_rows(catalog) or unregistered_sources(catalog):
+        return "unbound"
+    try:
+        catalog.bind(packages_for(catalog))
+    except ValidationError:
         return "unbound"
     return "bound"
 
@@ -283,6 +305,26 @@ def validate(current: Ledger, root: Path | None = None) -> None:
             raise ValidationError("Duplicate equipment audit identifier")
 
     entries = catalog_entries()
+    supported = {
+        entry.definition_id for entry in BASIC_EQUIPMENT.entries if not entry.unsupported_mechanics
+    }
+    if supported != set(SUPPORTED_EQUIPMENT_IDS):
+        raise ValidationError("Supported equipment catalog and package manifest have drifted")
+    skill_ids: set[str] = set()
+    for entry in BASIC_EQUIPMENT.entries:
+        if entry.unsupported_mechanics:
+            continue
+        skill_ids.update(mode.skill_id for mode in entry.modes)
+        for mode in entry.modes:
+            if isinstance(mode, RangedMode):
+                if mode.readiness is not None and mode.readiness.fast_draw_skill_id is not None:
+                    skill_ids.add(mode.readiness.fast_draw_skill_id)
+                if mode.firearm is not None and mode.firearm.armoury_skill_id is not None:
+                    skill_ids.add(mode.firearm.armoury_skill_id)
+        if entry.shield is not None:
+            skill_ids.add(entry.shield.skill_id)
+    if skill_ids != set(EQUIPMENT_SKILL_IDS):
+        raise ValidationError("Equipment skill references and package manifest have drifted")
     footnotes = {footnote.id: footnote for footnote in current.footnotes}
     profile_sources = {source for target in PROFILES.values() for source in target.source_ids}
     claimed: list[str] = []

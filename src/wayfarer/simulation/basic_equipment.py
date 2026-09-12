@@ -37,7 +37,7 @@ from wayfarer.simulation.objects import object_hp
 
 def source(page: int | tuple[int, ...]) -> Provenance:
     return Provenance(
-        source_id="sjg:gurps-basic-set-4e-2004",
+        source_id="sjg:basic-set-characters-4e-2004",
         edition="Fourth Edition, third printing (2008)",
         pages=(page,) if isinstance(page, int) else page,
         errata="Third-printing text; no separate errata overlay selected",

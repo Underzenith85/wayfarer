@@ -137,14 +137,16 @@ checks them against the source rather than inferring them.
 
 ## Package binding
 
-Neither audited catalog binds to the pinned packages. No registered package
-declares an equipment definition, and the Basic Set rows cite the source ID
-`sjg:gurps-basic-set-4e-2004`, which no package declares either. Both catalogs
-are therefore recorded as `unbound`, and the recorded status is checked against
-the registry on every run, so registering those definitions forces the ledger to
-be updated. Until then, "mechanically complete supported entries bound through
-pinned packages" is not satisfied and every audited row resolves only against
-test doubles.
+The Basic Set catalog now binds every mechanically supported row through an
+implemented definition in the pinned Characters package. Its provenance uses
+the exact source ID declared by that package, and the Basic campaign policy
+allowlist is the same supported set. Audit-only rows with declared unsupported
+mechanics are skipped by binding and still fail `inventory_spec()` and selection;
+they cannot become usable merely because their numeric inventory facts exist.
+
+The Lite sample remains unbound because its two sample definitions are not in
+the Lite package. Binding status is checked against the registry on every run,
+so catalog, package, policy, and evidence drift fail tests.
 
 ## Lite gaps
 

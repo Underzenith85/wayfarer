@@ -406,9 +406,16 @@ def test_new_pin_adds_the_skills_without_changing_existing_pins() -> None:
     assert GURPS_RANGED_SKILLS_PACKAGE.version == "0.7.0"
     assert GURPS_RANGED_SKILLS_PACKAGE.digest != GURPS_STATISTICS_PACKAGE.digest
     old = {d.id: d for d in GURPS_STATISTICS_PACKAGE.definitions}
+    current = {d.id: d for d in GURPS_RANGED_SKILLS_PACKAGE.definitions}
     added = {d.id: d for d in GURPS_RANGED_SKILLS_PACKAGE.definitions if d.id not in old}
-    assert added == {d.id: d for d in definitions()}
-    assert all(d == old[d.id] for d in GURPS_RANGED_SKILLS_PACKAGE.definitions if d.id in old)
+    expected = {d.id: d for d in definitions()}
+    assert added == {
+        identifier: row for identifier, row in expected.items() if identifier not in old
+    }
+    assert all(current[identifier] == row for identifier, row in expected.items())
+    assert all(
+        current[identifier] == row for identifier, row in old.items() if identifier not in expected
+    )
     registry = ProfileRegistry((GURPS_STATISTICS_PROFILE, GURPS_RANGED_SKILLS_PROFILE))
     assert registry is not None
     assert GURPS_RANGED_SKILLS_PROFILE.version == 7

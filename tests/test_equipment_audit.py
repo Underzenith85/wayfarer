@@ -16,6 +16,7 @@ from wayfarer.simulation.equipment_audit import (
     binding_status,
     catalog_entries,
     ledger,
+    packages_for,
     require_supported,
     rows,
     supported_equipment,
@@ -38,7 +39,7 @@ def test_selected_row_provenance_anchors() -> None:
     assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 270
     for entry in entries.values():
         provenance = entry.provenance
-        assert provenance.source_id == "sjg:gurps-basic-set-4e-2004"
+        assert provenance.source_id == "sjg:basic-set-characters-4e-2004"
         assert provenance.edition == "Fourth Edition, third printing (2008)"
         assert provenance.errata.startswith("Third-printing text")
         assert set(provenance.pages) <= {
@@ -158,20 +159,28 @@ def test_lite_equipment_gaps_are_recorded_separately_and_block_lite_selection() 
     assert all(row.required_profiles == (LITE,) for row in lite_rows)
 
 
-def test_audited_catalogs_do_not_bind_to_pinned_packages() -> None:
-    """No registered package declares equipment, so no audited row resolves outside tests."""
-    for catalog in (LITE_EQUIPMENT, BASIC_EQUIPMENT):
-        assert binding_status(catalog) == "unbound"
-        assert unregistered_rows(catalog) == tuple(
-            sorted(entry.definition_id for entry in catalog.entries)
-        )
-        with pytest.raises(ValidationError):
-            catalog.bind(PINNED_PACKAGES)
-    assert unregistered_sources(BASIC_EQUIPMENT) == ("sjg:gurps-basic-set-4e-2004",)
+def test_supported_basic_catalog_binds_to_pinned_packages() -> None:
+    """Supported Basic rows resolve; blocked audit rows cannot produce inventory specs."""
+    assert binding_status(BASIC_EQUIPMENT) == "bound"
+    assert unregistered_rows(BASIC_EQUIPMENT) == ()
+    assert unregistered_sources(BASIC_EQUIPMENT) == ()
+    bound = BASIC_EQUIPMENT.bind(PINNED_PACKAGES)
+    assert {spec.definition_id for spec in bound} == supported_equipment(BASIC)
+
+    assert binding_status(LITE_EQUIPMENT) == "unbound"
+    assert unregistered_rows(LITE_EQUIPMENT) == (
+        "equipment:broadsword",
+        "equipment:leather-armor",
+    )
     assert unregistered_sources(LITE_EQUIPMENT) == ()
+    with pytest.raises(ValidationError, match="Missing equipment definition"):
+        LITE_EQUIPMENT.bind(packages_for(LITE_EQUIPMENT))
     recorded = ledger().bindings
     assert {binding.catalog for binding in recorded} == {BASIC, LITE}
-    assert all(binding.status == "unbound" for binding in recorded)
+    assert {binding.catalog: binding.status for binding in recorded} == {
+        BASIC: "bound",
+        LITE: "unbound",
+    }
     lite = next(binding for binding in recorded if binding.catalog == LITE)
     assert lite.owner_issue == 121
 
@@ -186,7 +195,7 @@ def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     assert report["footnotes_without_evidence"] == []
     uncovered = report["fields_uncovered"]
     assert isinstance(uncovered, list) and uncovered
-    assert report["unbound_catalogs"] == [BASIC, LITE]
+    assert report["unbound_catalogs"] == [LITE]
     scopes = {row.scope for row in rows()}
     assert scopes == {
         "equipment-sections",
@@ -221,7 +230,7 @@ def test_schema_drift_and_missing_evidence_are_rejected() -> None:
     with pytest.raises(ValidationError, match="no unsupported disposition"):
         validate(current.model_copy(update={"sections": unblocked, "footnotes": footnotes}))
 
-    stale = current.bindings[0].model_copy(update={"status": "bound"})
+    stale = current.bindings[0].model_copy(update={"status": "unbound"})
     with pytest.raises(ValidationError, match="binding is stale"):
         validate(current.model_copy(update={"bindings": (stale, *current.bindings[1:])}))
 
