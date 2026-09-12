@@ -10,11 +10,10 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
     PlayerScenarioExport,
     Provenance,
     PublicBrief,
-    PublishedRevision,
-    ScenarioBoundary,
     ScenarioDocument,
     ScenarioReference,
 )
+from wayfarer.engine.simulation.campaign.scenario_loading import PublishedRevision, ScenarioBoundary
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenario_documents import ScenarioDocuments, adapt_graph
 from wayfarer.orchestration.studio import ScenarioStudio

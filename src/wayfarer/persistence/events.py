@@ -11,7 +11,7 @@ from pydantic import Field, JsonValue, TypeAdapter, model_validator
 from wayfarer import contracts, validation
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM
-from wayfarer.engine.simulation.campaign.scenario_document import ScenarioBoundary
+from wayfarer.engine.simulation.campaign.scenario_loading import ScenarioBoundary
 from wayfarer.engine.simulation.campaign.scenario_references import boundary
 from wayfarer.engine.simulation.events import EngineEvent, document, fold_document
 from wayfarer.models import Record
