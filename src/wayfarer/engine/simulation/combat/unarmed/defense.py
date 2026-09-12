@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.melee.values import standard_defense_value
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import defense_adjustment, height_effect
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
@@ -72,7 +72,7 @@ def unarmed_defense(
     if selected == "dodge":
         if item_id is not None:
             raise ValidationError("Dodge cannot select equipment")
-        value, _ = defense_value(runtime, state, actor, "dodge")
+        value, _ = standard_defense_value(runtime, state, actor, "dodge")
         assert value is not None
         return int(value.value) + height_bonus, None
     if selected != "parry" or actor.maneuver_state.parry_forbidden:
@@ -92,7 +92,7 @@ def unarmed_defense(
             and 0 not in weapon.reach
         ):
             raise ValidationError("A weapon parry in close combat requires reach C")
-        value, selected_item = defense_value(
+        value, selected_item = standard_defense_value(
             runtime, state, actor, "parry", item_id, parry_mode_id=weapon.id
         )
         assert value is not None
