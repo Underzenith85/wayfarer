@@ -28,6 +28,14 @@ const snapshot: TacticalSnapshot = {
   equipment: [],
   migrations: [],
   withdrawals: [],
+  basic_encounters: [],
+  activity: {
+    kind: "combat",
+    representation: "hex",
+    message: "Active hex combat.",
+    ready_through: 4,
+    paused: false,
+  },
   version: "tactical-v2",
   campaign_id: "campaign",
   actor_id: "a",
@@ -203,6 +211,98 @@ describe("Tactical panel", () => {
     expect(await screen.findByText(/safe departure boundary/)).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Leave combat" }));
     await waitFor(() => expect(client.writes).toHaveBeenCalledWith(withdrawal));
+  });
+  it("renders and submits server-previewed Basic combat choices without a map", async () => {
+    const client = new FakeClient();
+    const move: Extract<TacticalCommand, { kind: "take_combat_turn" }> = {
+      kind: "take_combat_turn",
+      id: "basic-move",
+      actor_id: "a",
+      expected_revision: 4,
+      encounter_id: "fight",
+      maneuver: "move",
+      destination: null,
+      facing: null,
+      posture: null,
+      item_id: null,
+      target_id: null,
+      mode_id: null,
+      shots: 1,
+      reload_ammunition_id: null,
+      unload_ammunition: false,
+      fast_draw: false,
+      cocking_aid_id: null,
+      let_down_bow: false,
+      recover_thrown_item: false,
+      escape_entanglement: false,
+      mount_crew: [],
+      firearm_service: null,
+      firearm_service_skill: "weapon",
+      hit_location: null,
+      target_item_id: null,
+      ready_hand: null,
+      attack_option: null,
+      defense_option: null,
+      wait_trigger: null,
+      step_timing: "before",
+      second_item_id: null,
+      second_target_id: null,
+      second_mode_id: null,
+      braced: false,
+      hex_path: [],
+      hex_facing: null,
+      basic_move: { reference_actor_id: "b", direction: "approach" },
+    };
+    const basic = structuredClone(snapshot);
+    basic.encounters = [];
+    basic.activity = {
+      kind: "combat",
+      representation: "basic",
+      message: "Active basic combat.",
+      ready_through: 4,
+      paused: false,
+    };
+    basic.basic_encounters = [
+      {
+        id: "fight",
+        status: "active",
+        round: 1,
+        current_actor_id: "a",
+        notice: "Spatial clarification is required for actions not listed.",
+        actors: [
+          {
+            id: "a",
+            name: "Arin",
+            controlled: true,
+            posture: "standing",
+            grappled: false,
+            pinned: false,
+          },
+          {
+            id: "b",
+            name: "Bandit",
+            controlled: false,
+            posture: "standing",
+            grappled: false,
+            pinned: false,
+          },
+        ],
+        choices: [{ label: "Approach Bandit", command: move }],
+      },
+    ];
+    client.reads.mockResolvedValue(basic);
+    render(
+      <TacticalPanel
+        client={client}
+        cid="campaign"
+        actor="a"
+        onChange={async () => {}}
+      />,
+    );
+    expect(await screen.findByText(/Basic combat · round 1/)).toBeVisible();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Approach Bandit" }));
+    await waitFor(() => expect(client.writes).toHaveBeenCalledWith(move));
   });
   it("retains the exact command after a lost response and blocks new commands", async () => {
     const client = new FakeClient();

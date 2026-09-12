@@ -50,6 +50,41 @@ export interface components {
        */
       direction: "approach" | "withdraw";
     };
+    /** BasicTacticalActor */
+    BasicTacticalActor: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Controlled */
+      controlled: boolean;
+      /** Posture */
+      posture: string;
+      /** Grappled */
+      grappled: boolean;
+      /** Pinned */
+      pinned: boolean;
+    };
+    /** BasicTacticalEncounter */
+    BasicTacticalEncounter: {
+      /** Id */
+      id: string;
+      /** Status */
+      status: string;
+      /** Round */
+      round: number;
+      /** Current Actor Id */
+      current_actor_id: string | null;
+      /** Actors */
+      actors: components["schemas"]["BasicTacticalActor"][];
+      /** Choices */
+      choices: components["schemas"]["TacticalChoice"][];
+      /**
+       * Notice
+       * @default null
+       */
+      notice: string | null;
+    };
     /** Cell */
     Cell: {
       position: components["schemas"]["Hex"];
@@ -370,6 +405,25 @@ export interface components {
        * @default null
        */
       task_id: string | null;
+    };
+    /** TacticalActivity */
+    TacticalActivity: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "combat" | "waiting" | "independent";
+      /**
+       * Representation
+       * @default null
+       */
+      representation: ("basic" | "square" | "hex") | null;
+      /** Message */
+      message: string;
+      /** Ready Through */
+      ready_through: number;
+      /** Paused */
+      paused: boolean;
     };
     /** TacticalActor */
     TacticalActor: {
@@ -930,6 +984,12 @@ export interface components {
        * @default []
        */
       withdrawals: components["schemas"]["TacticalWithdrawalChoice"][];
+      /**
+       * Basic Encounters
+       * @default []
+       */
+      basic_encounters: components["schemas"]["BasicTacticalEncounter"][];
+      activity: components["schemas"]["TacticalActivity"];
     };
     /** BasicJoinPlacement */
     BasicJoinPlacement: {
@@ -1051,6 +1111,31 @@ export interface components {
        */
       cover: "none" | "partial" | "full";
       provenance: components["schemas"]["SpatialProvenance"];
+    };
+    /** DeclareBasicSpatialFacts */
+    DeclareBasicSpatialFacts: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "declare_basic_spatial_facts";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Facts */
+      facts: (
+        | components["schemas"]["DistanceSpatialFact"]
+        | components["schemas"]["ReachSpatialFact"]
+        | components["schemas"]["VisibilitySpatialFact"]
+        | components["schemas"]["CoverSpatialFact"]
+        | components["schemas"]["ObstacleSpatialFact"]
+        | components["schemas"]["RetreatSpatialFact"]
+      )[];
     };
     /** DeclareThrownLanding */
     DeclareThrownLanding: {
@@ -1243,6 +1328,28 @@ export interface components {
         | "sitting"
         | "lying";
     };
+    /** RangedSituation */
+    RangedSituation: {
+      /** Attacker Id */
+      attacker_id: string;
+      /** Defender Id */
+      defender_id: string;
+      /**
+       * Distance Yards
+       * @default null
+       */
+      distance_yards: number | null;
+      /**
+       * Speed Yards Per Second
+       * @default 0
+       */
+      speed_yards_per_second: number;
+      /**
+       * Size Modifier
+       * @default 0
+       */
+      size_modifier: number;
+    };
     /** ReachSpatialFact */
     ReachSpatialFact: {
       /**
@@ -1374,6 +1481,43 @@ export interface components {
       start: components["schemas"]["Hex"];
       end: components["schemas"]["Hex"];
     };
+    /** StartBasicEncounter */
+    StartBasicEncounter: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "start_basic_encounter";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Scene Id */
+      scene_id: string;
+      /** Participant Ids */
+      participant_ids: string[];
+      /**
+       * Facts
+       * @default []
+       */
+      facts: (
+        | components["schemas"]["DistanceSpatialFact"]
+        | components["schemas"]["ReachSpatialFact"]
+        | components["schemas"]["VisibilitySpatialFact"]
+        | components["schemas"]["CoverSpatialFact"]
+        | components["schemas"]["ObstacleSpatialFact"]
+        | components["schemas"]["RetreatSpatialFact"]
+      )[];
+      /**
+       * Ranged Situations
+       * @default []
+       */
+      ranged_situations: components["schemas"]["RangedSituation"][];
+    };
     /** VisibilitySpatialFact */
     VisibilitySpatialFact: {
       /**
@@ -1406,7 +1550,9 @@ export interface components {
         | components["schemas"]["ResolveWeaponExplosion"]
         | components["schemas"]["JoinEncounter"]
         | components["schemas"]["MigrateEncounterBasic"]
-        | components["schemas"]["WithdrawEncounter"];
+        | components["schemas"]["WithdrawEncounter"]
+        | components["schemas"]["StartBasicEncounter"]
+        | components["schemas"]["DeclareBasicSpatialFacts"];
     };
     TacticalError: {
       code: string;

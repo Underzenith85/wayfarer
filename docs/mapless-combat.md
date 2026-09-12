@@ -35,8 +35,10 @@ provenance source and match its committed revision. Basic encounter state remain
 scene- and subgroup-validated.
 
 [Reinforcement admission and Basic-to-hex escalation](combat-reinforcements.md)
-are implemented by #326. Tactical controls are owned by #327. Hex-to-Basic
-conversion is implemented by #329; withdrawals remain owned by #330.
+are implemented by #326. The tactical-v2 projection and browser controls expose
+mapless legal choices without inventing geometry; GM setup, fact adjudication,
+reinforcement and escalation use the same typed command endpoint (#327).
+Hex-to-Basic conversion is implemented by #329 and individual withdrawal by #330.
 
 ## Hex-to-Basic conversion
 

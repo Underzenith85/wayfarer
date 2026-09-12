@@ -143,14 +143,18 @@ export function TacticalPanel({
   };
   if (
     !snapshot ||
-    (!snapshot.encounters.length && !snapshot.withdrawals?.length)
+    (!snapshot.encounters.length &&
+      !snapshot.basic_encounters.length &&
+      !snapshot.withdrawals?.length)
   )
     return error ? <p role="status">{error}</p> : null;
   return (
     <section className="scene-card tactical-panel" aria-label="Tactical combat">
       <h2>Tactical combat</h2>
       <p>
-        Server-resolved actions · one hex = one yard · revision{" "}
+        {snapshot.activity.message} Ready through{" "}
+        {snapshot.activity.ready_through}
+        {snapshot.activity.paused ? " · paused" : ""} · revision{" "}
         {snapshot.revision}
       </p>
       {error && <p role="alert">{error}</p>}
@@ -228,6 +232,50 @@ export function TacticalPanel({
           </ul>
         </section>
       )}
+      {snapshot.basic_encounters.map((encounter) => (
+        <section key={encounter.id} aria-label="Basic combat">
+          <h3>
+            Basic combat · round {encounter.round} · {encounter.status}
+          </h3>
+          <p>
+            {encounter.current_actor_id === actor
+              ? "Your turn"
+              : "Waiting for another combatant"}
+          </p>
+          {encounter.notice && <p role="status">{encounter.notice}</p>}
+          <h4>Known combatants</h4>
+          <ul>
+            {encounter.actors.map((combatant) => (
+              <li key={combatant.id}>
+                {combatant.name}
+                {combatant.controlled ? " (you)" : ""}: {combatant.posture}
+                {combatant.grappled ? ", grappled" : ""}
+                {combatant.pinned ? ", pinned" : ""}
+              </li>
+            ))}
+          </ul>
+          <h4>Legal choices</h4>
+          <p>
+            Basic combat uses authoritative distance, reach, visibility, cover,
+            obstacle, and retreat facts; unavailable actions need GM
+            clarification.
+          </p>
+          <div className="tactical-actions">
+            {encounter.choices.map((choice) => (
+              <Button
+                key={choice.command.id}
+                disabled={busy || retry !== null}
+                onClick={() => void run(choice.command)}
+              >
+                {choice.label}
+              </Button>
+            ))}
+          </div>
+          {!encounter.choices.length && (
+            <p>No legal choices for this character at this stage.</p>
+          )}
+        </section>
+      ))}
       {snapshot.encounters.map((encounter) => (
         <div key={encounter.id}>
           <h3>

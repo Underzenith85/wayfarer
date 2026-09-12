@@ -261,6 +261,109 @@
         "title": "BasicMove",
         "type": "object"
       },
+      "BasicTacticalActor": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "controlled": {
+            "title": "Controlled",
+            "type": "boolean"
+          },
+          "posture": {
+            "title": "Posture",
+            "type": "string"
+          },
+          "grappled": {
+            "title": "Grappled",
+            "type": "boolean"
+          },
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "controlled",
+          "posture",
+          "grappled",
+          "pinned"
+        ],
+        "title": "BasicTacticalActor",
+        "type": "object"
+      },
+      "BasicTacticalEncounter": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "current_actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Actor Id"
+          },
+          "actors": {
+            "items": {
+              "$ref": "#/components/schemas/BasicTacticalActor"
+            },
+            "title": "Actors",
+            "type": "array"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/TacticalChoice"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Notice"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "round",
+          "current_actor_id",
+          "actors",
+          "choices"
+        ],
+        "title": "BasicTacticalEncounter",
+        "type": "object"
+      },
       "Cell": {
         "additionalProperties": false,
         "properties": {
@@ -1021,6 +1124,57 @@
           "stage"
         ],
         "title": "RetrieveEquipment",
+        "type": "object"
+      },
+      "TacticalActivity": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "combat",
+              "waiting",
+              "independent"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "representation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "basic",
+                  "square",
+                  "hex"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Representation"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "ready_through": {
+            "title": "Ready Through",
+            "type": "integer"
+          },
+          "paused": {
+            "title": "Paused",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "message",
+          "ready_through",
+          "paused"
+        ],
+        "title": "TacticalActivity",
         "type": "object"
       },
       "TacticalActor": {
@@ -2250,13 +2404,25 @@
             },
             "title": "Withdrawals",
             "type": "array"
+          },
+          "basic_encounters": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BasicTacticalEncounter"
+            },
+            "title": "Basic Encounters",
+            "type": "array"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/TacticalActivity"
           }
         },
         "required": [
           "campaign_id",
           "actor_id",
           "revision",
-          "encounters"
+          "encounters",
+          "activity"
         ],
         "title": "TacticalSnapshotV2",
         "type": "object"
@@ -2510,6 +2676,88 @@
           "provenance"
         ],
         "title": "CoverSpatialFact",
+        "type": "object"
+      },
+      "DeclareBasicSpatialFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "declare_basic_spatial_facts",
+            "default": "declare_basic_spatial_facts",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "facts": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "cover": "#/components/schemas/CoverSpatialFact",
+                  "distance": "#/components/schemas/DistanceSpatialFact",
+                  "obstacle": "#/components/schemas/ObstacleSpatialFact",
+                  "reach": "#/components/schemas/ReachSpatialFact",
+                  "retreat": "#/components/schemas/RetreatSpatialFact",
+                  "visibility": "#/components/schemas/VisibilitySpatialFact"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/DistanceSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/ReachSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/VisibilitySpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/CoverSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/ObstacleSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/RetreatSpatialFact"
+                }
+              ]
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Facts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "facts"
+        ],
+        "title": "DeclareBasicSpatialFacts",
         "type": "object"
       },
       "DeclareThrownLanding": {
@@ -2978,6 +3226,53 @@
         "title": "Pose",
         "type": "object"
       },
+      "RangedSituation": {
+        "additionalProperties": false,
+        "properties": {
+          "attacker_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Attacker Id",
+            "type": "string"
+          },
+          "defender_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Defender Id",
+            "type": "string"
+          },
+          "distance_yards": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Distance Yards"
+          },
+          "speed_yards_per_second": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Speed Yards Per Second",
+            "type": "number"
+          },
+          "size_modifier": {
+            "default": 0,
+            "title": "Size Modifier",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attacker_id",
+          "defender_id"
+        ],
+        "title": "RangedSituation",
+        "type": "object"
+      },
       "ReachSpatialFact": {
         "additionalProperties": false,
         "properties": {
@@ -3302,6 +3597,114 @@
         "title": "Stairway",
         "type": "object"
       },
+      "StartBasicEncounter": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "start_basic_encounter",
+            "default": "start_basic_encounter",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "participant_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 2,
+            "title": "Participant Ids",
+            "type": "array"
+          },
+          "facts": {
+            "default": [],
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "cover": "#/components/schemas/CoverSpatialFact",
+                  "distance": "#/components/schemas/DistanceSpatialFact",
+                  "obstacle": "#/components/schemas/ObstacleSpatialFact",
+                  "reach": "#/components/schemas/ReachSpatialFact",
+                  "retreat": "#/components/schemas/RetreatSpatialFact",
+                  "visibility": "#/components/schemas/VisibilitySpatialFact"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/DistanceSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/ReachSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/VisibilitySpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/CoverSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/ObstacleSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/RetreatSpatialFact"
+                }
+              ]
+            },
+            "maxItems": 10000,
+            "title": "Facts",
+            "type": "array"
+          },
+          "ranged_situations": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RangedSituation"
+            },
+            "title": "Ranged Situations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "scene_id",
+          "participant_ids"
+        ],
+        "title": "StartBasicEncounter",
+        "type": "object"
+      },
       "VisibilitySpatialFact": {
         "additionalProperties": false,
         "properties": {
@@ -3348,6 +3751,7 @@
               "mapping": {
                 "choose_defense": "#/components/schemas/ChooseDefense",
                 "continue_critical_miss": "#/components/schemas/ContinueCriticalMiss",
+                "declare_basic_spatial_facts": "#/components/schemas/DeclareBasicSpatialFacts",
                 "declare_thrown_landing": "#/components/schemas/DeclareThrownLanding",
                 "join_encounter": "#/components/schemas/JoinEncounter",
                 "migrate_encounter_basic": "#/components/schemas/MigrateEncounterBasic",
@@ -3357,6 +3761,7 @@
                 "resolve_weapon_explosion": "#/components/schemas/ResolveWeaponExplosion",
                 "resume_interrupted_turn": "#/components/schemas/ResumeInterruptedTurn",
                 "retrieve_equipment": "#/components/schemas/RetrieveEquipment",
+                "start_basic_encounter": "#/components/schemas/StartBasicEncounter",
                 "take_combat_turn": "#/components/schemas/TakeCombatTurn",
                 "take_unarmed_turn": "#/components/schemas/TakeUnarmedTurn",
                 "withdraw_encounter": "#/components/schemas/WithdrawEncounter"
@@ -3405,6 +3810,12 @@
               },
               {
                 "$ref": "#/components/schemas/WithdrawEncounter"
+              },
+              {
+                "$ref": "#/components/schemas/StartBasicEncounter"
+              },
+              {
+                "$ref": "#/components/schemas/DeclareBasicSpatialFacts"
               }
             ],
             "title": "Command"
