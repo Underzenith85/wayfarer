@@ -181,6 +181,33 @@ def inventory() -> tuple[InventoryItem, ...]:
         InventoryItem(e.definition_id, f"B{e.page}", 207, "listing-only", "vehicle-catalog")
         for e in VEHICLE_INDEX
     )
+    # Exhaustive source-list records that do not yet have an executable
+    # RuleDefinition still exist as unavailable catalog rows.  Their stable IDs
+    # let source reconciliation and downstream blockers refer to the same item
+    # without making catalog presence imply runtime support.
+    audit_directory = Path(__file__).with_name("basic_set_audit")
+    for filename, scope in (
+        ("traits.json", "mundane-trait-ledger"),
+        ("modifiers.json", "ability-modifier-ledger"),
+    ):
+        source_rows = json.loads((audit_directory / filename).read_text())["rows"]
+        for source_row in source_rows:
+            if source_row["row_kind"] != "catalog-item":
+                continue
+            binding = source_row["runtime_binding"]
+            if binding != source_row["id"]:
+                continue
+            owner = int(source_row["consequence_owner"])
+            rows.append(
+                InventoryItem(
+                    binding,
+                    f"B{source_row['printed_page']}",
+                    owner,
+                    "partial" if filename == "modifiers.json" else "unsupported",
+                    scope,
+                    blockers=(owner,),
+                )
+            )
     return tuple(rows)
 
 
