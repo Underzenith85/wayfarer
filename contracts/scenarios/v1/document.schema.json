@@ -5320,6 +5320,12 @@
           "title": "Rate Of Fire",
           "type": "integer"
         },
+        "minimum_shots_per_attack": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Minimum Shots Per Attack",
+          "type": "integer"
+        },
         "shots": {
           "minimum": 1,
           "title": "Shots",

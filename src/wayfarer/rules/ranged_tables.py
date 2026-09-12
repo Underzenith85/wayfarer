@@ -17,12 +17,11 @@ def range_penalty(yards: float) -> int:
 
 
 def rapid_fire_bonus(shots: int) -> int:
-    """B373 rapid-fire bonus, bounded to the currently supported effective RoF <= 100."""
-    return next(
-        bonus
-        for limit, bonus in ((4, 0), (8, 1), (12, 2), (16, 3), (24, 4), (49, 5), (99, 6), (100, 7))
-        if shots <= limit
-    )
+    """B373 rapid-fire bonus, continuing +1 for every doubling after 50-99."""
+    for limit, bonus in ((4, 0), (8, 1), (12, 2), (16, 3), (24, 4), (49, 5), (99, 6)):
+        if shots <= limit:
+            return bonus
+    return 7 + (shots // 100).bit_length() - 1
 
 
 def multiple_projectile_attack(

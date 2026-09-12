@@ -215,6 +215,7 @@
         "auto-pistol-45-tl6",
         "auto-pistol-9mm-tl6",
         "snub-revolver-38",
+        "smg-9mm-tl6",
         "handgonne-90",
         "flintlock-musket-75",
         "rifle-musket-577",
@@ -239,10 +240,11 @@
         "auto-pistol-40",
         "machine-pistol-9mm"
       ],
-      "omitted_rows": "Fifteen B278 handgun/one-handed machine-pistol rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns fail closed until the ST-conditioned one-hand exception is typed. Gyroc acceleration, smartguns, full-auto-only fire, two-handed SMGs, musket rests, bipods and integral launchers remain unresolved.",
+      "omitted_rows": "Fifteen B278 handgun/one-handed machine-pistol rows, the B278 full-automatic 9mm SMG, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns and full-size SMG fail closed until the ST-conditioned one-hand exception is typed. Gyroc acceleration, smartguns, other SMGs, musket rests, bipods and integral launchers remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
+        "automatic-only-fire",
         "holdout-and-concealment",
         "conditional-one-handed-firearm"
       ]
@@ -267,6 +269,7 @@
         "auto-pistol-45-tl6-round",
         "auto-pistol-9mm-tl6-round",
         "snub-revolver-38-round",
+        "smg-9mm-tl6-round",
         "handgonne-90-round",
         "flintlock-musket-75-round",
         "rifle-musket-577-round",
@@ -291,7 +294,7 @@
         "auto-pistol-40-round",
         "machine-pistol-9mm-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles and thirty firearm/shotgun rounds from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
+      "omitted_rows": "B275-276 ordinary missiles and thirty-one firearm/shotgun rounds from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"
@@ -514,6 +517,20 @@
       "owner_issue": null,
       "tests": [
         "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "automatic-only-fire",
+      "reference": "Campaigns fourth printing B408",
+      "anchor": "inspected",
+      "behaviour": "A full-automatic-only firearm requires at least one-quarter of its listed RoF, rounded up, or every remaining round when fewer remain.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.rapid_fire",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_automatic_fire.py::test_full_auto_minimum_rejects_short_declared_burst",
+        "tests/test_automatic_fire.py::test_full_auto_may_fire_all_of_a_short_remaining_load"
       ],
       "evidence_gap": null
     },
@@ -1541,7 +1558,23 @@
       "reviewer": null,
       "evidence": null,
       "tests": [
-        "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
+        "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately",
+        "tests/test_gurps_ranged.py::test_b373_high_rate_of_fire_bonus_continues_by_doubling",
+        "tests/test_gurps_ranged.py::test_tactical_v2_accepts_high_cyclic_burst_without_widening_v1"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.minimum_shots_per_attack",
+      "unit": "shots per attack",
+      "reference": "Campaigns fourth printing B408",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_automatic_fire.py::test_full_auto_minimum_rejects_short_declared_burst",
+        "tests/test_automatic_fire.py::test_full_auto_may_fire_all_of_a_short_remaining_load"
       ],
       "gap": null
     },

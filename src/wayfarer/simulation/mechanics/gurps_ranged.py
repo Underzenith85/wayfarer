@@ -519,7 +519,7 @@ def prepare(
         range_st if weapon.range_basis == "st" else 1
     ):
         raise ValidationError("Target exceeds maximum ranged weapon range")
-    if shots > min(weapon.rate_of_fire, 100) or (
+    if shots > weapon.rate_of_fire or (
         shots > 1 and catalog(runtime).profile_id != "gurps-basic-set-4e-2004"
     ):
         raise ValidationError("Unsupported fire mode or shot count for profile")
@@ -558,6 +558,8 @@ def prepare(
             )
         ):
             raise ValidationError("Weapon is unloaded or reload is incomplete")
+        if shots < min(weapon.minimum_shots_per_attack, load.rounds):
+            raise ValidationError("Declared burst is below the automatic-only minimum")
     if weapon.sprayer is not None:
         # B205: a stream is held, second by second, until the firer stops or the
         # projector's own sustained-seconds ceiling is reached (#359).

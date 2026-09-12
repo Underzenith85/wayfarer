@@ -114,7 +114,7 @@ class WeaponClass:
 
     thrown: bool
     ammunition: bool
-    maximum_rate_of_fire: int = 1
+    maximum_rate_of_fire: int | None = 1
     maximum_recoil: int = 1
     hands: tuple[Hands, ...] = (1, 2)
     # Whether the mode must carry pinned entangling facts. A skill that binds
@@ -158,7 +158,7 @@ INNATE: Final = WeaponClass(thrown=False, ammunition=False, tight_beam=True)
 GUN: Final = WeaponClass(
     thrown=False,
     ammunition=True,
-    maximum_rate_of_fire=100,
+    maximum_rate_of_fire=None,
     maximum_recoil=20,
     technology_level_indexed=True,
     conventional_firearm=None,
@@ -168,7 +168,7 @@ GUN: Final = WeaponClass(
 MOUNTED: Final = WeaponClass(
     thrown=False,
     ammunition=True,
-    maximum_rate_of_fire=100,
+    maximum_rate_of_fire=None,
     maximum_recoil=20,
     technology_level_indexed=True,
     tight_beam=True,
@@ -185,7 +185,7 @@ SPRAYER: Final = WeaponClass(
 BEAM: Final = WeaponClass(
     thrown=False,
     ammunition=True,
-    maximum_rate_of_fire=100,
+    maximum_rate_of_fire=None,
     maximum_recoil=20,
     technology_level_indexed=True,
     tight_beam=True,
@@ -951,7 +951,9 @@ def require_mode(
         raise ValidationError(f"Ranged skill cannot resolve this weapon mode: {skill_id}")
     if thrown != weapon.thrown or ammunition != weapon.ammunition:
         raise ValidationError(f"Weapon mode is outside the skill's class: {skill_id}")
-    if rate_of_fire > weapon.maximum_rate_of_fire or recoil > weapon.maximum_recoil:
+    if (
+        weapon.maximum_rate_of_fire is not None and rate_of_fire > weapon.maximum_rate_of_fire
+    ) or recoil > weapon.maximum_recoil:
         raise ValidationError(f"Rapid fire and recoil are outside the skill's class: {skill_id}")
     if hands not in weapon.hands:
         raise ValidationError(f"Weapon grip is outside the skill's class: {skill_id}")
