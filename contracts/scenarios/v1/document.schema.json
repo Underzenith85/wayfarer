@@ -353,6 +353,28 @@
             }
           ],
           "default": null
+        },
+        "administration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AdministrationRules"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "law": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LawRules"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -360,6 +382,69 @@
         "version"
       ],
       "title": "ActionRules",
+      "type": "object"
+    },
+    "ActivityRule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "study",
+            "job",
+            "healing",
+            "maintenance",
+            "long-task",
+            "rest"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "credit_kind": {
+          "enum": [
+            "study",
+            "job",
+            "healing",
+            "maintenance",
+            "task",
+            "rest"
+          ],
+          "title": "Credit Kind",
+          "type": "string"
+        },
+        "load": {
+          "default": 100,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Load",
+          "type": "integer"
+        },
+        "credit_numerator": {
+          "default": 1,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Credit Numerator",
+          "type": "integer"
+        },
+        "credit_denominator": {
+          "default": 1,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Credit Denominator",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "credit_kind"
+      ],
+      "title": "ActivityRule",
       "type": "object"
     },
     "ActorSetup": {
@@ -440,6 +525,74 @@
         "proposal"
       ],
       "title": "ActorSetup",
+      "type": "object"
+    },
+    "AdministrationRules": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "profile_id": {
+          "const": "gurps-basic-set-4e-2004",
+          "default": "gurps-basic-set-4e-2004",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "reactions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ReactionContext"
+          },
+          "title": "Reactions",
+          "type": "array"
+        },
+        "knowledge": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/KnowledgeSource"
+          },
+          "title": "Knowledge",
+          "type": "array"
+        },
+        "awards": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/AwardRule"
+          },
+          "title": "Awards",
+          "type": "array"
+        },
+        "activities": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ActivityRule"
+          },
+          "title": "Activities",
+          "type": "array"
+        },
+        "traps": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TrapRule"
+          },
+          "title": "Traps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "title": "AdministrationRules",
       "type": "object"
     },
     "AmmunitionLoad": {
@@ -784,6 +937,43 @@
         "definition_id"
       ],
       "title": "AttackProfile",
+      "type": "object"
+    },
+    "AwardRule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "recipient_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Recipient Id",
+          "type": "string"
+        },
+        "points": {
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Points",
+          "type": "integer"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "recipient_id",
+        "points",
+        "reason"
+      ],
+      "title": "AwardRule",
       "type": "object"
     },
     "BackfireAlternative": {
@@ -1617,6 +1807,46 @@
       "title": "Connection",
       "type": "object"
     },
+    "CrimeRule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "jurisdiction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Jurisdiction Id",
+          "type": "string"
+        },
+        "offense": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Offense",
+          "type": "string"
+        },
+        "evidence_fact_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Fact Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "jurisdiction_id",
+        "offense"
+      ],
+      "title": "CrimeRule",
+      "type": "object"
+    },
     "CrossSceneEffect": {
       "additionalProperties": false,
       "properties": {
@@ -1817,6 +2047,134 @@
         "mode"
       ],
       "title": "Discovery",
+      "type": "object"
+    },
+    "EnforcementProcedure": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "jurisdiction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Jurisdiction Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "etiquette",
+            "encounter",
+            "arrest",
+            "jail",
+            "trial",
+            "bribery",
+            "punishment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "from_status": {
+          "enum": [
+            "accused",
+            "encounter",
+            "arrested",
+            "jailed",
+            "trial",
+            "convicted"
+          ],
+          "title": "From Status",
+          "type": "string"
+        },
+        "success_status": {
+          "enum": [
+            "encounter",
+            "arrested",
+            "jailed",
+            "trial",
+            "convicted",
+            "acquitted",
+            "punished",
+            "released"
+          ],
+          "title": "Success Status",
+          "type": "string"
+        },
+        "failure_status": {
+          "enum": [
+            "encounter",
+            "arrested",
+            "jailed",
+            "trial",
+            "convicted",
+            "acquitted",
+            "punished",
+            "released"
+          ],
+          "title": "Failure Status",
+          "type": "string"
+        },
+        "resolution": {
+          "default": "automatic",
+          "enum": [
+            "automatic",
+            "success",
+            "reaction",
+            "contest"
+          ],
+          "title": "Resolution",
+          "type": "string"
+        },
+        "primary_target": {
+          "default": 10,
+          "title": "Primary Target",
+          "type": "integer"
+        },
+        "opposing_target": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opposing Target"
+        },
+        "duration": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Duration",
+          "type": "integer"
+        },
+        "reaction_modifiers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ReactionModifier"
+          },
+          "title": "Reaction Modifiers",
+          "type": "array"
+        },
+        "consequence": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Consequence",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "jurisdiction_id",
+        "kind",
+        "from_status",
+        "success_status",
+        "failure_status"
+      ],
+      "title": "EnforcementProcedure",
       "type": "object"
     },
     "EntangleSpec": {
@@ -3551,6 +3909,73 @@
       "title": "Item",
       "type": "object"
     },
+    "Jurisdiction": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "control_rating": {
+          "maximum": 6,
+          "minimum": 0,
+          "title": "Control Rating",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "control_rating"
+      ],
+      "title": "Jurisdiction",
+      "type": "object"
+    },
+    "KnowledgeSource": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "fact_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Ids",
+          "type": "array"
+        },
+        "audience": {
+          "default": "actor",
+          "enum": [
+            "actor",
+            "campaign",
+            "gm"
+          ],
+          "title": "Audience",
+          "type": "string"
+        },
+        "provenance": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "fact_ids",
+        "provenance"
+      ],
+      "title": "KnowledgeSource",
+      "type": "object"
+    },
     "LastingInjury": {
       "additionalProperties": false,
       "properties": {
@@ -3675,6 +4100,98 @@
         "range_multiplier"
       ],
       "title": "LauncherSpec",
+      "type": "object"
+    },
+    "LawRules": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "profile_id": {
+          "const": "gurps-basic-set-4e-2004",
+          "default": "gurps-basic-set-4e-2004",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "jurisdictions": {
+          "items": {
+            "$ref": "#/$defs/Jurisdiction"
+          },
+          "minItems": 1,
+          "title": "Jurisdictions",
+          "type": "array"
+        },
+        "legality": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/LegalityRule"
+          },
+          "title": "Legality",
+          "type": "array"
+        },
+        "permits": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PermitRule"
+          },
+          "title": "Permits",
+          "type": "array"
+        },
+        "crimes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CrimeRule"
+          },
+          "title": "Crimes",
+          "type": "array"
+        },
+        "procedures": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EnforcementProcedure"
+          },
+          "title": "Procedures",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "jurisdictions"
+      ],
+      "title": "LawRules",
+      "type": "object"
+    },
+    "LegalityRule": {
+      "additionalProperties": false,
+      "properties": {
+        "definition_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Definition Id",
+          "type": "string"
+        },
+        "legality_class": {
+          "maximum": 4,
+          "minimum": 0,
+          "title": "Legality Class",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "definition_id",
+        "legality_class"
+      ],
+      "title": "LegalityRule",
       "type": "object"
     },
     "MagicItemBinding": {
@@ -4808,6 +5325,53 @@
       "title": "PartySlot",
       "type": "object"
     },
+    "PermitRule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "jurisdiction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Jurisdiction Id",
+          "type": "string"
+        },
+        "definition_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Definition Id",
+          "type": "string"
+        },
+        "holder_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Holder Id",
+          "type": "string"
+        },
+        "scope": {
+          "default": "carry",
+          "enum": [
+            "carry",
+            "own",
+            "official"
+          ],
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "jurisdiction_id",
+        "definition_id",
+        "holder_id"
+      ],
+      "title": "PermitRule",
+      "type": "object"
+    },
     "PhysicalTraits": {
       "additionalProperties": false,
       "properties": {
@@ -5788,6 +6352,72 @@
         "st"
       ],
       "title": "RatedStrength",
+      "type": "object"
+    },
+    "ReactionContext": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "npc_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Npc Id",
+          "type": "string"
+        },
+        "modifiers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ReactionModifier"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "npc_id"
+      ],
+      "title": "ReactionContext",
+      "type": "object"
+    },
+    "ReactionModifier": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "status",
+            "reputation",
+            "appearance",
+            "situation",
+            "trait"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "integer"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "hidden": {
+          "default": false,
+          "title": "Hidden",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "value",
+        "source_id"
+      ],
+      "title": "ReactionModifier",
       "type": "object"
     },
     "RecoveryOption": {
@@ -7365,6 +7995,94 @@
         }
       },
       "title": "TraitOptions",
+      "type": "object"
+    },
+    "TrapConsequence": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "injury",
+            "hazard",
+            "effect",
+            "alarm",
+            "capture"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        },
+        "amount": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Amount",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "target"
+      ],
+      "title": "TrapConsequence",
+      "type": "object"
+    },
+    "TrapRule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "trigger_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Trigger Id",
+          "type": "string"
+        },
+        "detection_target": {
+          "title": "Detection Target",
+          "type": "integer"
+        },
+        "disarm_target": {
+          "title": "Disarm Target",
+          "type": "integer"
+        },
+        "avoidance_target": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Avoidance Target"
+        },
+        "resets": {
+          "default": false,
+          "title": "Resets",
+          "type": "boolean"
+        },
+        "consequence": {
+          "$ref": "#/$defs/TrapConsequence"
+        }
+      },
+      "required": [
+        "id",
+        "trigger_id",
+        "detection_target",
+        "disarm_target",
+        "consequence"
+      ],
+      "title": "TrapRule",
       "type": "object"
     },
     "World": {

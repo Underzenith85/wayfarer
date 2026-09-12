@@ -246,6 +246,51 @@
   ],
   "fixtures": [
     {
+      "id": "basic-campaign-administration-authority",
+      "sha256": "197ff174fe2d548ab7bb3f19fadbe7e3c14a494923691f0987c3b1a3dca944ec",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_campaign_administration.py::test_private_knowledge_reaction_and_award_are_authoritative_and_exact_once"],
+      "owner": 501
+    },
+    {
+      "id": "basic-character-knowledge-boundary",
+      "sha256": "d985790179f4de6fb97e75b135fdb103a08f0cd4df059144716098f1a7491da7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_campaign_administration.py::test_private_knowledge_reaction_and_award_are_authoritative_and_exact_once"],
+      "owner": 501
+    },
+    {
+      "id": "basic-time-use-job-study-credit",
+      "sha256": "dfae47f080476649ad666bbe6ba51ab604476c07e860ff80c10d77b0ba10646e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_campaign_administration.py::test_time_use_rejects_overlap_and_settles_shared_clock_in_order"],
+      "owner": 501
+    },
+    {
+      "id": "basic-trap-independent-stages",
+      "sha256": "76e1fafdb376409bac4d76b36f4546f21f89476cb051f9fcb278df418d757d54",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_campaign_administration.py::test_trap_discovery_disarm_trigger_and_replay_projection"],
+      "owner": 501
+    },
+    {
+      "id": "basic-control-rating-legality",
+      "sha256": "7e46c8dffa4099607946f7cfa794effefd940b78fe32d94e8c85ccb052236849",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_campaign_administration.py::test_legality_permits_evidence_and_enforcement_time_are_replay_safe"],
+      "owner": 502
+    },
+    {
       "id": "lite-success-basic-pass",
       "sha256": "3dee1c378f2960db15d26d44ee62fdbbf98785c44aad659cbf8045a9a4051ea1",
       "status": "pending",

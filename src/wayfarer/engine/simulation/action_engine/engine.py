@@ -53,11 +53,14 @@ from wayfarer.engine.simulation.actions import (
 )
 from wayfarer.engine.simulation.campaign.access import validate_members
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.administration import validate_administration
 from wayfarer.engine.simulation.campaign.advancement import validate_ledgers
 from wayfarer.engine.simulation.campaign.encounter_context import activity_for, validate_contexts
+from wayfarer.engine.simulation.campaign.law import validate_law
 from wayfarer.engine.simulation.campaign.lifecycle import validate_lifecycle
 from wayfarer.engine.simulation.campaign.party import validate as validate_party
 from wayfarer.engine.simulation.campaign.party import validate_effects as validate_party_effects
+from wayfarer.engine.simulation.campaign.procedures import CampaignProcedureEngine
 from wayfarer.engine.simulation.campaign.scenes import JournalEntry, SceneEvent
 from wayfarer.engine.simulation.campaign.scenes import validate_state as validate_scene_state
 from wayfarer.engine.simulation.combat.engine import CombatEngine, validate_consequences
@@ -98,6 +101,9 @@ class ActionEngine:
             _validate_ability_rules(reviewer, rules.abilities)
         _validate_check_rules(reviewer, resources, rules)
         self.combat = CombatEngine(rules.combat, resources) if rules.combat is not None else None
+        self.campaign = CampaignProcedureEngine(
+            resources, reviewer, rules.administration, rules.law
+        )
         if rules.combat is not None:
             _validate_gurps_equipment(reviewer, resources, rules.combat)
         self.digest = _configuration_digest(reviewer, resources, rules)
@@ -135,6 +141,10 @@ class ActionEngine:
         self.resources.validate(state.resources)
         validate_scene_state(rules.scenes, state)
         validate_ledgers(state)
+        validate_administration(
+            rules.administration, state.administration, state.world, state.advancement
+        )
+        validate_law(rules.law, state.law, frozenset(fact.id for fact in state.world.facts))
         validate_members(state)
         if len({e.id for e in state.encounters}) != len(state.encounters):
             raise ValidationError("Duplicate encounter ID")
