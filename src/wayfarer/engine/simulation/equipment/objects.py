@@ -4,10 +4,12 @@ Campaigns fourth printing B380, B483-484. Opt-in profiles only; no implicit
 migration, sentient machines, diffuse targets, repairs, or special fragile traits.
 """
 
+from __future__ import annotations
+
 import hashlib
 from decimal import Decimal
 from fractions import Fraction
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import Field
 
@@ -19,12 +21,14 @@ from wayfarer.engine.simulation.resources import (
     Command,
     Item,
     Receipt,
-    ResourceEngine,
     ResourceEvent,
     ResourceState,
 )
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 class DamageObject(Command):

@@ -4,9 +4,11 @@ No item instances live here. Inventory weights use thousandths of a pound in
 this explicit adapter, never the prototype's unspecified integer units.
 """
 
+from __future__ import annotations
+
 from decimal import Decimal
 from fractions import Fraction
-from typing import Annotated, Literal, Self
+from typing import TYPE_CHECKING, Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
@@ -33,12 +35,14 @@ from wayfarer.engine.rules.types.spray import SprayerSpec
 from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
     ExactWeight,
-    ResourceEngine,
     ResourceState,
     decimal_weight,
 )
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 Nonnegative = Annotated[int, Field(ge=0)]
 Positive = Annotated[int, Field(ge=1)]

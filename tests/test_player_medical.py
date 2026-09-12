@@ -17,7 +17,8 @@ from wayfarer.engine.rules.types.recovery import FatigueStatus, ProfileId
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
-from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.medical import CareEnvironment

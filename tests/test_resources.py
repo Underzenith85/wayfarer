@@ -27,6 +27,7 @@ from wayfarer.engine.rules.catalog import (
     reference,
 )
 from wayfarer.engine.simulation.campaign.scenario import scenario
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
@@ -37,7 +38,6 @@ from wayfarer.engine.simulation.resources import (
     Item,
     Owner,
     Pool,
-    ResourceEngine,
     ResourceState,
     Schedule,
     Scheduled,

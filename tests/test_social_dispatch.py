@@ -19,7 +19,8 @@ from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
 from wayfarer.engine.simulation.campaign.party import PartyRules
 from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
 from wayfarer.engine.simulation.campaign.social_policy import SocialActionRules
-from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.engine.simulation.social.social import (
     SocialCommand,
     SocialContext,

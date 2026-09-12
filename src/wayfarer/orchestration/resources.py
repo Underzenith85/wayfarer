@@ -11,11 +11,11 @@ from wayfarer.engine.simulation.equipment.objects import ObjectCommand, apply_ob
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield
 from wayfarer.engine.simulation.movement.transport import TransportCommand, apply_transport
 from wayfarer.engine.simulation.movement.transport_validation import validate_transport
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
     RechargePowerCell,
-    ResourceEngine,
     ResourceState,
     Schedule,
 )

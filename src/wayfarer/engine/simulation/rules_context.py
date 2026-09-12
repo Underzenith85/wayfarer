@@ -1,6 +1,9 @@
 """Explicit domain dependencies for mechanic resolution; no service or storage handle."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.power import PowerReviewer
@@ -9,8 +12,10 @@ from wayfarer.engine.simulation.actions import ActionRules, PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine, hex_template
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
-from wayfarer.engine.simulation.resources import ResourceEngine
 from wayfarer.errors import ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 @dataclass(frozen=True)

@@ -503,7 +503,8 @@ def test_actual_action_accepts_unpurchased_default_and_uses_per() -> None:
         PlayActor,
         PlayState,
     )
-    from wayfarer.engine.simulation.resources import Owner, Pool, ResourceEngine, ResourceState
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
+    from wayfarer.engine.simulation.resources import Owner, Pool, ResourceState
     from wayfarer.engine.world import Entity, EntityKind, Fact, World
 
     class Dice:

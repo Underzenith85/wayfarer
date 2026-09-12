@@ -99,8 +99,8 @@ BRANCHING: dict[tuple[str, str], int] = {
     ("engine/simulation/movement/vehicles/motion.py", "move_vehicle"): 30,
     ("engine/simulation/movement/vehicles/operations/collisions.py", "resolve"): 38,
     ("engine/simulation/movement/vehicles/operations/water.py", "resolve"): 17,
-    ("engine/simulation/resources.py", "apply"): 45,
-    ("engine/simulation/resources.py", "validate"): 36,
+    ("engine/simulation/resource_engine.py", "apply"): 45,
+    ("engine/simulation/resource_engine.py", "validate"): 36,
     ("engine/simulation/social/social.py", "apply_social"): 29,
 }
 

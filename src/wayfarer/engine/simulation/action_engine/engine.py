@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from decimal import Decimal
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.character.compiler import ValidatedBuild, pool_limits
 from wayfarer.engine.character.power import PowerReviewer
@@ -73,10 +73,13 @@ from wayfarer.engine.simulation.health.condition_checks import definition_modifi
 from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
 from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
-from wayfarer.engine.simulation.resources import Advance, Consume, ResourceEngine
+from wayfarer.engine.simulation.resources import Advance, Consume
 from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
 from wayfarer.engine.world import Entity, EntityKind
 from wayfarer.errors import ConflictError, ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 class ActionEngine:

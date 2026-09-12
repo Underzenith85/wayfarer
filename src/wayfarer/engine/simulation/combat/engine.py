@@ -48,13 +48,14 @@ from wayfarer.engine.simulation.combat.unarmed.records import validate_control
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, HexFacing
 from wayfarer.engine.simulation.magic.spells import active_spells
-from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.engine.simulation.combat.commands import BasicMove
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 class CombatEngine:

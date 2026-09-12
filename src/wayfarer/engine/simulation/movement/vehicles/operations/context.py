@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.types.transport import Transport
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield
 from wayfarer.engine.simulation.movement.vehicles.commands import VehicleCommand
-from wayfarer.engine.simulation.resources import Pool, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 @dataclass(frozen=True, slots=True)

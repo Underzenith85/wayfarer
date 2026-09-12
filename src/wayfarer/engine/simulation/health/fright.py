@@ -4,8 +4,11 @@ Campaigns, Fourth Edition, fourth printing. Choice-bearing consequences remain
 visible adjudication requirements and never edit approved character purchases.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.engine.rules.fright import FrightEffect
@@ -13,14 +16,12 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
-from wayfarer.engine.simulation.resources import (
-    Advance,
-    ResourceEngine,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.engine.simulation.resources import Advance, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 PREFIX = "fright-runtime:"
 

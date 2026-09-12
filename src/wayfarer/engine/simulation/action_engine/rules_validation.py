@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus
 from wayfarer.engine.rules.magic.gurps_magic import validate_definitions
@@ -14,9 +16,11 @@ from wayfarer.engine.simulation.ability_types import AbilityRules
 from wayfarer.engine.simulation.actions import ActionRules, CheckRule, PlayState
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.magic.bindings import SpellRules
-from wayfarer.engine.simulation.resources import ResourceEngine
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 def _validate_spell_rules(reviewer: PowerReviewer, spells: SpellRules) -> None:

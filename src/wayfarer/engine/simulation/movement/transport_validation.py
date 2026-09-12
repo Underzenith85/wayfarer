@@ -9,7 +9,7 @@ from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
-    from wayfarer.engine.simulation.resources import ResourceEngine
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 def validate_transport(engine: ResourceEngine, state: ResourceState, t: Transport) -> None:

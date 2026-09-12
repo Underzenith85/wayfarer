@@ -41,7 +41,8 @@ from wayfarer.engine.simulation.actions import ActionRules, CheckRule, PlayState
 from wayfarer.engine.simulation.campaign.profiles import MigrateProfile, ProfileSelection
 from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
-from wayfarer.engine.simulation.resources import EquipmentSpec, Item, ResourceEngine
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import EquipmentSpec, Item
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService

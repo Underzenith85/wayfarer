@@ -32,7 +32,7 @@ from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.bindings import BackfireAlternative, SpellChannel, SpellRules
 from wayfarer.engine.simulation.magic.effects import dazed
 from wayfarer.engine.simulation.magic.spells import PROFILE, SpellCommand
-from wayfarer.engine.simulation.resources import ResourceEngine
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.combat import CombatService, StartEncounter, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService

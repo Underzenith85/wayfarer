@@ -1,6 +1,9 @@
 """B430-432 collision exchange and occupant injury on authoritative object/HP reducers."""
 
+from __future__ import annotations
+
 import hashlib
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.types.transport import Transport
@@ -8,8 +11,11 @@ from wayfarer.engine.rules.types.vehicle import PassengerEjection, PassengerProt
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.movement.vehicles.commands import VehicleImpact, VehicleSkid
-from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 def collision_dice(hp: int, speed: int, *, hard: bool = False) -> tuple[int, int]:

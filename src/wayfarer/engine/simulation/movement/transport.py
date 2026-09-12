@@ -5,8 +5,10 @@ Trusted internal commands only. Live-play integration and remaining modes are
 explicit coverage blockers; this is not a player-authored damage interface.
 """
 
+from __future__ import annotations
+
 import hashlib
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import Field
 
@@ -42,14 +44,11 @@ from wayfarer.engine.simulation.movement.vehicles.commands import (
     VehicleSkid,
 )
 from wayfarer.engine.simulation.movement.vehicles.resolution import resolve_vehicle
-from wayfarer.engine.simulation.resources import (
-    Command,
-    Receipt,
-    ResourceEngine,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 class Drive(Command):

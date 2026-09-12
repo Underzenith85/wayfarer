@@ -32,14 +32,8 @@ from wayfarer.engine.simulation.equipment.catalog import (
     RangedMode,
     inventory_load,
 )
-from wayfarer.engine.simulation.resources import (
-    Equip,
-    Item,
-    Owner,
-    ResourceEngine,
-    ResourceState,
-    Transfer,
-)
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Equip, Item, Owner, ResourceState, Transfer
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import hashlib
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.simulation.actions import ActionRules
-from wayfarer.engine.simulation.resources import ResourceEngine
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 def _configuration_digest(
