@@ -39,8 +39,8 @@ def test_inventory_and_references() -> None:
         "skill:arm-lock-judo",
     } <= ids
     assert len(entries) > 180
-    # #338-#340 add bound procedures without changing a package pin.
-    assert audit_report()["available"] == 316
+    # #338-#341 add bound procedures without changing a package pin.
+    assert audit_report()["available"] == 343
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -309,7 +309,7 @@ def test_concrete_specialty_families_match_the_independent_source_fixture() -> N
     assert all(e.structural_classes for e in entries.values())
     # B232 Neck Snap records its technique template, not a rollable definition.
     assert entries["skill:neck-snap"].implementation == "contextual"
-    assert entries["skill:accounting"].implementation == "unsupported"
+    assert entries["skill:accounting"].implementation == "implemented"
     assert sum(e.implementation == "contextual" for e in entries.values()) == 28
     assert not any(e.implementation == "listing-only" for e in entries.values())
 
@@ -402,11 +402,10 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # #340 binds two concrete techniques; its 18 templates stay contextual
-        # even though every parent-relative procedure is accounted for.
+        # #341 binds all 27 knowledge and investigation rows.
         "contextual": 28,
-        "implemented": 347,
-        "unsupported": 129,
+        "implemented": 374,
+        "unsupported": 102,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -683,8 +682,15 @@ def test_alias_and_owner_validation() -> None:
                 *entries[2:],
             )
         )
+    blocked_index = next(index for index, entry in enumerate(entries) if entry.blockers)
+    blocked = entries[blocked_index]
+    altered = (
+        *entries[:blocked_index],
+        replace(blocked, followup_issues=(112,)),
+        *entries[blocked_index + 1 :],
+    )
     with pytest.raises(ValidationError, match="Unowned blocker"):
-        validate_inventory((replace(first, followup_issues=(112,)), *entries[1:]))
+        validate_inventory(altered)
 
 
 def test_candidate_inventory_does_not_inherit_live_representative_metadata(
