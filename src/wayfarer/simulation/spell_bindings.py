@@ -8,6 +8,13 @@ from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
+from wayfarer.rules.magic_protocols import (
+    AreaSelection,
+    CeremonialPlan,
+    MagicItemBinding,
+    MagicTradition,
+    validate_tradition,
+)
 from wayfarer.simulation.spells import SpellId
 from wayfarer.world import EntityKind
 
@@ -23,6 +30,12 @@ class SpellChannel(Record):
     spell_id: SpellId
     distance_yards: int = Field(default=0, ge=0, le=10000)
     mana: Literal["none", "low", "normal", "high", "very-high"] = "normal"
+    tradition: MagicTradition = Field(
+        default="standard", exclude_if=lambda value: value == "standard"
+    )
+    ceremonial: CeremonialPlan | None = Field(default=None, exclude_if=lambda value: value is None)
+    magic_item_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
     light_radius: int = Field(default=2, ge=0, le=100, exclude_if=lambda value: value == 2)
     light_penalty: int = Field(default=-3, ge=-9, le=0, exclude_if=lambda value: value == -3)
 
@@ -58,6 +71,12 @@ class SpellRules(Record):
     version: int = Field(ge=1)
     profile_id: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
     channels: tuple[SpellChannel, ...]
+    enabled_optional_rules: frozenset[str] = Field(
+        default=frozenset(), exclude_if=lambda value: not value
+    )
+    magic_items: tuple[MagicItemBinding, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
     backfire_alternatives: tuple[BackfireAlternative, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
@@ -68,6 +87,19 @@ class SpellRules(Record):
             raise ValueError("Duplicate spell backfire alternative")
         if len({c.id for c in self.channels}) != len(self.channels):
             raise ValueError("Duplicate spell channel")
+        if len({c.id for c in self.magic_items}) != len(self.magic_items):
+            raise ValueError("Duplicate magic-item binding")
+        for channel in self.channels:
+            validate_tradition(
+                channel.tradition, enabled_optional_rules=self.enabled_optional_rules
+            )
+            if channel.ceremonial and channel.ceremonial.leader_id != channel.actor_id:
+                raise ValueError("Ceremonial channel leader must be its caster")
+            if channel.magic_item_id is not None and not any(
+                item.item_id == channel.magic_item_id and item.spell_id == channel.spell_id
+                for item in self.magic_items
+            ):
+                raise ValueError("Magic-item channel requires a matching binding")
         return self
 
 
@@ -85,3 +117,13 @@ def validate_channels(rules: SpellRules, state: PlayState) -> None:
             or entities[channel.location_id].kind is not EntityKind.LOCATION
         ):
             raise ValidationError("Invalid spell spell_channel entity references")
+        if channel.ceremonial:
+            participants = {c.actor_id for c in channel.ceremonial.contributions} | set(
+                channel.ceremonial.opposing_spectators
+            )
+            if not participants <= actor_ids:
+                raise ValidationError("Ceremonial magic requires approved campaign actors")
+        if channel.magic_item_id is not None and channel.magic_item_id not in {
+            item.id for item in state.resources.items
+        }:
+            raise ValidationError("Magic-item channel requires its configured item")
