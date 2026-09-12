@@ -170,6 +170,12 @@ ORDINARY_HANDGUN_ROWS = (
     ("machine-pistol-9mm", "smg", 7, 900, 5500, 2, 2, "pi", 2, 160, 1900, 20, 25, 1, 3, 12, -3, 3),
 )
 
+ORDINARY_SMG_ROWS = (
+    ("smg-45", 6, 2200, 15700, 2, 1, "pi+", 3, 190, 1750, 13, 50, 5, 11, -4, 3),
+    ("smg-9mm-tl7", 7, 1200, 7500, 3, -1, "pi", 4, 160, 1900, 13, 30, 3, 10, -4, 2),
+    ("pdw-46", 8, 800, 3900, 4, 1, "pi-", 3, 200, 2000, 15, 20, 3, 7, -3, 2),
+)
+
 SHIELD_ROWS = (
     ("light-shield", 0, 1, 25, 2000, 5, 20),
     ("small-shield", 0, 1, 40, 8000, 6, 30),
@@ -677,6 +683,83 @@ def test_remaining_b278_handgun_ammunition_exact_values() -> None:
         "auto-pistol-44m-round": ("4/3", "200/3"),
         "auto-pistol-40-round": ("14/15", "140/3"),
         "machine-pistol-9mm-round": ("22/25", "44"),
+    }
+    assert {
+        key: (str(entries[key].price), str(entries[key].weight_millipounds)) for key in expected
+    } == expected
+
+
+def test_b278_conventional_smgs_reconstruct_loaded_table_weight() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    for row in ORDINARY_SMG_ROWS:
+        (
+            key,
+            tl,
+            cost,
+            loaded_weight,
+            dice,
+            adds,
+            damage_type,
+            accuracy,
+            half,
+            maximum,
+            rate_of_fire,
+            shots,
+            reload_seconds,
+            minimum_st,
+            bulk,
+            recoil,
+        ) = row
+        entry = entries[key]
+        assert (entry.provenance.pages, entry.technology_level, entry.price) == ((278,), tl, cost)
+        assert entry.unsupported_mechanics == ("conditional-one-handed-firearm",)
+        assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
+        mode = entry.modes[0]
+        assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (
+            dice,
+            adds,
+            damage_type,
+        )
+        assert (
+            mode.accuracy,
+            mode.half_damage_range,
+            mode.maximum_range,
+            mode.rate_of_fire,
+            mode.shots,
+            mode.chamber_capacity,
+            mode.reload_seconds,
+            mode.minimum_st,
+            mode.hands,
+            mode.bulk,
+            mode.recoil,
+        ) == (
+            accuracy,
+            half,
+            maximum,
+            rate_of_fire,
+            shots,
+            1,
+            reload_seconds,
+            minimum_st,
+            2,
+            bulk,
+            recoil,
+        )
+        assert mode.ammunition_id is not None
+        ammunition = entries[mode.ammunition_id.removeprefix("equipment:")]
+        assert entry.weight_millipounds + ammunition.weight_millipounds * shots == loaded_weight
+
+
+def test_b278_conventional_smg_ammunition_exact_values() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    expected = {
+        "smg-45-round": ("49/25", "98"),
+        "smg-9mm-tl7-round": ("0.8", "40"),
+        "pdw-46-round": ("0.5", "25"),
     }
     assert {
         key: (str(entries[key].price), str(entries[key].weight_millipounds)) for key in expected

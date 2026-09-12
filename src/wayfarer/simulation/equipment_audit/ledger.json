@@ -238,9 +238,12 @@
         "revolver-44m",
         "auto-pistol-44m",
         "auto-pistol-40",
-        "machine-pistol-9mm"
+        "machine-pistol-9mm",
+        "smg-45",
+        "smg-9mm-tl7",
+        "pdw-46"
       ],
-      "omitted_rows": "Fifteen B278 handgun/one-handed machine-pistol rows, the B278 full-automatic 9mm SMG, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns and full-size SMG fail closed until the ST-conditioned one-hand exception is typed. Gyroc acceleration, smartguns, other SMGs, musket rests, bipods and integral launchers remain unresolved.",
+      "omitted_rows": "Fifteen B278 handgun/one-handed machine-pistol rows, the B278 full-automatic 9mm SMG, three conventional two-handed SMG/PDW rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The two-handed rows fail closed until the ST-conditioned one-hand exception is typed. Gyroc acceleration, smartguns, Gauss armor division, musket rests, bipods and integral launchers remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
@@ -292,9 +295,12 @@
         "revolver-44m-round",
         "auto-pistol-44m-round",
         "auto-pistol-40-round",
-        "machine-pistol-9mm-round"
+        "machine-pistol-9mm-round",
+        "smg-45-round",
+        "smg-9mm-tl7-round",
+        "pdw-46-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles and thirty-one firearm/shotgun rounds from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
+      "omitted_rows": "B275-276 ordinary missiles and thirty-four firearm/shotgun rounds from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"

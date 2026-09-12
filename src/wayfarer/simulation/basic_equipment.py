@@ -1664,6 +1664,118 @@ ORDINARY_HANDGUNS = tuple(
     )
 )
 
+# B278 two-handed SMG/PDW rows without full-auto-only, smartgun, or Gauss
+# notation. Their ordinary modes are exact; the dagger-marked one-hand ST
+# exception remains the same explicit blocker as the B279 long guns.
+ORDINARY_SMGS = tuple(
+    ranged_weapon(
+        identifier,
+        278,
+        tl,
+        price,
+        unloaded_weight,
+        firearm(
+            "shot",
+            "smg",
+            tl,
+            dice,
+            adds,
+            cast(DamageType, damage_type),
+            accuracy,
+            half_range,
+            maximum_range,
+            rate_of_fire,
+            shots,
+            reload_seconds,
+            minimum_st,
+            bulk,
+            recoil,
+            ammunition_id,
+            "repeating",
+            chamber_capacity=1,
+            hands=2,
+        ),
+        unsupported=("conditional-one-handed-firearm",),
+    )
+    for (
+        identifier,
+        tl,
+        price,
+        unloaded_weight,
+        dice,
+        adds,
+        damage_type,
+        accuracy,
+        half_range,
+        maximum_range,
+        rate_of_fire,
+        shots,
+        reload_seconds,
+        minimum_st,
+        bulk,
+        recoil,
+        ammunition_id,
+    ) in (
+        (
+            "smg-45",
+            6,
+            2200,
+            10800,
+            2,
+            1,
+            "pi+",
+            3,
+            190,
+            1750,
+            13,
+            50,
+            5,
+            11,
+            -4,
+            3,
+            "smg-45-round",
+        ),
+        (
+            "smg-9mm-tl7",
+            7,
+            1200,
+            6300,
+            3,
+            -1,
+            "pi",
+            4,
+            160,
+            1900,
+            13,
+            30,
+            3,
+            10,
+            -4,
+            2,
+            "smg-9mm-tl7-round",
+        ),
+        (
+            "pdw-46",
+            8,
+            800,
+            3400,
+            4,
+            1,
+            "pi-",
+            3,
+            200,
+            2000,
+            15,
+            20,
+            3,
+            7,
+            -3,
+            2,
+            "pdw-46-round",
+        ),
+    )
+)
+
 # B279 ordinary repeating rifles without R/B annotations or exotic footnotes.
 # Loaded table weight is split into the physical weapon plus one exact reload;
 # +1 chamber capacity stays distinct from magazine capacity.
@@ -1895,6 +2007,9 @@ FIREARM_AMMUNITION = tuple(
         ("auto-pistol-40-round", 8, Fraction(14, 15), Fraction(140, 3)),
         ("machine-pistol-9mm-round", 7, Fraction(22, 25), 44),
         ("smg-9mm-tl6-round", 6, Fraction(15, 16), Fraction(375, 8)),
+        ("smg-45-round", 6, Fraction(49, 25), 98),
+        ("smg-9mm-tl7-round", 7, Decimal("0.8"), 40),
+        ("pdw-46-round", 8, Decimal("0.5"), 25),
     )
 )
 
@@ -2019,6 +2134,7 @@ BASIC_EQUIPMENT = EquipmentCatalog(
         + MUSCLE_POWERED_AMMUNITION
         + FIREARMS
         + ORDINARY_HANDGUNS
+        + ORDINARY_SMGS
         + REPEATING_RIFLES
         + FIREARM_AMMUNITION
         + LONG_GUN_AMMUNITION
