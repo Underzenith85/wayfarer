@@ -11,17 +11,9 @@ on:
       - "tests/reference_provider.py"
       - "scripts/check_browser_evidence.py"
       - ".github/workflows/frontend.yml"
-  pull_request:
-    paths:
-      - "frontend/**"
-      - "contracts/**"
-      - "src/wayfarer/adventures/**"
-      - "tests/reference_provider.py"
-      - "scripts/check_browser_evidence.py"
-      - ".github/workflows/frontend.yml"
 
 concurrency:
-  group: frontend-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: frontend-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -66,13 +58,8 @@ jobs:
       - name: Install Chromium
         if: matrix.node == '22'
         run: pnpm exec playwright install --with-deps chromium
-      - name: Run desktop browser tests
-        if: matrix.node == '22' && github.event_name == 'pull_request'
-        run: pnpm exec playwright test --project=desktop --reporter=list,junit
-        env:
-          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/browser.xml
       - name: Run full browser tests
-        if: matrix.node == '22' && github.event_name != 'pull_request'
+        if: matrix.node == '22'
         run: pnpm test:e2e --reporter=list,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/browser.xml
@@ -84,13 +71,8 @@ jobs:
       - name: Tactical live API journeys
         if: matrix.node == '22'
         run: pnpm exec playwright test --config playwright.tactical.config.ts --reporter=list
-      - name: Run desktop live browser tests
-        if: matrix.node == '22' && github.event_name == 'pull_request'
-        run: pnpm test:e2e:live --project=desktop --reporter=list,junit
-        env:
-          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/live.xml
       - name: Run full live browser tests
-        if: matrix.node == '22' && github.event_name != 'pull_request'
+        if: matrix.node == '22'
         run: pnpm test:e2e:live --reporter=list,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/live.xml
