@@ -69,6 +69,10 @@ def _start_encounter(
         state.world,
         resources,
         frozenset(actor_map),
+        allegiances=command.allegiances,
+        oppositions=command.oppositions,
+        automatic_completion=command.automatic_completion,
+        reinforcements_expected=command.reinforcements_expected,
     )
 
     if play.engine.rules.scenes is not None or command.scene_id is not None:
@@ -146,6 +150,10 @@ def _start_basic_encounter(
         state.world,
         resources,
         frozenset(actor_map),
+        allegiances=command.allegiances,
+        oppositions=command.oppositions,
+        automatic_completion=command.automatic_completion,
+        reinforcements_expected=command.reinforcements_expected,
     )
 
     encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules, command.scene_id)

@@ -14,10 +14,12 @@ from typing import TYPE_CHECKING, Literal
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.defense import choose_defense
 from wayfarer.engine.simulation.combat.encounter import (
+    CombatAllegiance,
     Combatant,
     CombatResult,
     Encounter,
     PendingDefense,
+    SideOpposition,
 )
 from wayfarer.engine.simulation.combat.maneuvers import (
     AttackOption,
@@ -176,8 +178,6 @@ class CombatEngine:
         if (
             len(participants) != len(encounter.participants)
             or not 1 <= len(participants) <= self.rules.max_combatants
-            or encounter.status == "active"
-            and len(participants) < 2
             or set(participants) != set(encounter.turn_order)
             or len(set(encounter.turn_order)) != len(encounter.turn_order)
             or encounter.turn_index >= len(encounter.turn_order)
@@ -408,6 +408,11 @@ class CombatEngine:
         world: World,
         resources: ResourceState,
         actor_ids: frozenset[str],
+        *,
+        allegiances: tuple[CombatAllegiance, ...] = (),
+        oppositions: tuple[SideOpposition, ...] = (),
+        automatic_completion: bool = False,
+        reinforcements_expected: bool = False,
     ) -> Encounter:
         participants = tuple(
             Combatant(
@@ -463,6 +468,16 @@ class CombatEngine:
             spatial_context=spatial_context,
             participants=participants,
             turn_order=order,
+            allegiances=allegiances,
+            oppositions=oppositions,
+            completion_policy=(
+                "automatic"
+                if automatic_completion
+                else "gm"
+                if allegiances or oppositions or reinforcements_expected
+                else "legacy"
+            ),
+            reinforcements_expected=reinforcements_expected,
         )
         self.validate(encounter, world, resources, actor_ids)
         return encounter
@@ -476,6 +491,11 @@ class CombatEngine:
         world: World,
         resources: ResourceState,
         actor_ids: frozenset[str],
+        *,
+        allegiances: tuple[CombatAllegiance, ...] = (),
+        oppositions: tuple[SideOpposition, ...] = (),
+        automatic_completion: bool = False,
+        reinforcements_expected: bool = False,
     ) -> Encounter:
         participants = tuple(
             Combatant(
@@ -501,6 +521,16 @@ class CombatEngine:
             spatial_context=BasicSpatialContext(facts=facts),
             participants=participants,
             turn_order=order,
+            allegiances=allegiances,
+            oppositions=oppositions,
+            completion_policy=(
+                "automatic"
+                if automatic_completion
+                else "gm"
+                if allegiances or oppositions or reinforcements_expected
+                else "legacy"
+            ),
+            reinforcements_expected=reinforcements_expected,
         )
         self.validate(encounter, world, resources, actor_ids)
         return encounter

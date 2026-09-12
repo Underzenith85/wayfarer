@@ -2,7 +2,7 @@
 
 B419-420 and B426: nonpositive HP/FP alone does not incapacitate a fighter.
 Fatigue collapse is incapacitation even when the injury record is unaffected.
-The fewer-than-two stopping policy is separate from these rules (issue #568).
+Encounter completion is based on explicit opposition, never participant count.
 """
 
 from wayfarer.engine.simulation.actions import PlayState
@@ -33,6 +33,33 @@ def combat_ready(state: PlayState, actor_id: str, *, gurps: bool) -> bool:
     return not hp.injury.incapacitated and fatigue_ready(state, actor_id)
 
 
+def remaining_opposition(encounter: Encounter, ready: frozenset[str]) -> bool:
+    """Whether two combat-ready sides are explicitly opposed in this encounter."""
+    ready_sides = {
+        allegiance.side_id
+        for allegiance in encounter.allegiances
+        if allegiance.actor_id in ready and allegiance.side_id is not None
+    }
+    return any(set(opposition.side_ids) <= ready_sides for opposition in encounter.oppositions)
+
+
+def _completion_reason(encounter: Encounter, ready: frozenset[str]) -> str:
+    if not ready:
+        return "no_combatants_ready"
+    sides_with_participants = {
+        allegiance.side_id for allegiance in encounter.allegiances if allegiance.side_id is not None
+    }
+    ready_sides = {
+        allegiance.side_id
+        for allegiance in encounter.allegiances
+        if allegiance.actor_id in ready and allegiance.side_id is not None
+    }
+    defeated = sides_with_participants - ready_sides
+    if any(defeated & set(opposition.side_ids) for opposition in encounter.oppositions):
+        return "opposition_incapacitated"
+    return "opposition_resolved"
+
+
 def settle_encounter(runtime: RulesContext, state: PlayState, encounter: Encounter) -> Encounter:
     """Settle once after either a turn or defense, preserving pending interactions."""
     engine = runtime.combat
@@ -42,15 +69,20 @@ def settle_encounter(runtime: RulesContext, state: PlayState, encounter: Encount
         or encounter.pending_defense is not None
         or encounter.pending_unarmed is not None
         or encounter.blocked_reason is not None
+        or encounter.wait_interrupt is not None
     ):
         return encounter
     gurps = engine.rules.gurps_equipment is not None
     if not gurps and not engine.rules.attacks:
         return encounter
-    ready = {
+    ready = frozenset(
         actor_id for actor_id in encounter.turn_order if combat_ready(state, actor_id, gurps=gurps)
-    }
-    if len(ready) < 2:
+    )
+    actor_ids = frozenset(encounter.turn_order)
+    ongoing_hazard = any(
+        hazard.active and hazard.actor_id in actor_ids for hazard in state.resources.hazards
+    )
+    if encounter.completion_policy == "legacy" and len(ready) < 2:
         return encounter.model_copy(
             update={
                 "status": "completed",
@@ -58,6 +90,21 @@ def settle_encounter(runtime: RulesContext, state: PlayState, encounter: Encount
                 "wait_interrupt": None,
             }
         )
+    if (
+        encounter.completion_policy == "automatic"
+        and not encounter.reinforcements_expected
+        and not ongoing_hazard
+        and not remaining_opposition(encounter, ready)
+    ):
+        return encounter.model_copy(
+            update={
+                "status": "completed",
+                "completion_reason": _completion_reason(encounter, ready),
+                "wait_interrupt": None,
+            }
+        )
+    if not ready:
+        return encounter
     while encounter.current_actor_id not in ready:
         encounter = engine._advance(encounter)
     return encounter

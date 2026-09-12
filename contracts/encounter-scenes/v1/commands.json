@@ -1,6 +1,37 @@
 {
   "StartEncounter": {
     "$defs": {
+      "CombatAllegiance": {
+        "additionalProperties": false,
+        "description": "One participant's explicit encounter side; ``None`` is neutral.",
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "side_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Side Id"
+          }
+        },
+        "required": [
+          "actor_id"
+        ],
+        "title": "CombatAllegiance",
+        "type": "object"
+      },
       "GridPoint": {
         "additionalProperties": false,
         "properties": {
@@ -168,6 +199,35 @@
         ],
         "title": "RangedSituation",
         "type": "object"
+      },
+      "SideOpposition": {
+        "additionalProperties": false,
+        "description": "An undirected hostile relationship between two encounter sides.",
+        "properties": {
+          "side_ids": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              }
+            ],
+            "title": "Side Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "side_ids"
+        ],
+        "title": "SideOpposition",
+        "type": "object"
       }
     },
     "additionalProperties": false,
@@ -236,6 +296,32 @@
         },
         "title": "Ranged Situations",
         "type": "array"
+      },
+      "allegiances": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/CombatAllegiance"
+        },
+        "title": "Allegiances",
+        "type": "array"
+      },
+      "oppositions": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/SideOpposition"
+        },
+        "title": "Oppositions",
+        "type": "array"
+      },
+      "automatic_completion": {
+        "default": false,
+        "title": "Automatic Completion",
+        "type": "boolean"
+      },
+      "reinforcements_expected": {
+        "default": false,
+        "title": "Reinforcements Expected",
+        "type": "boolean"
       }
     },
     "required": [

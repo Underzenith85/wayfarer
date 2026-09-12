@@ -10,7 +10,11 @@ from wayfarer.engine.rules.types.explosion import BlastResponse
 from wayfarer.engine.rules.types.location import Hand, HitLocation
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
-from wayfarer.engine.simulation.combat.encounter import RangedSituation
+from wayfarer.engine.simulation.combat.encounter import (
+    CombatAllegiance,
+    RangedSituation,
+    SideOpposition,
+)
 from wayfarer.engine.simulation.combat.maneuvers import AttackOption, DefenseOption, WaitTrigger
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialFact, Placement
 from wayfarer.engine.simulation.combat.suppression import SprayTarget, SuppressionZone
@@ -37,6 +41,10 @@ class StartEncounter(CombatCommand):
     scene_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     placements: tuple[Placement, ...] = Field(min_length=2)
     ranged_situations: tuple[RangedSituation, ...] = ()
+    allegiances: tuple[CombatAllegiance, ...] = ()
+    oppositions: tuple[SideOpposition, ...] = ()
+    automatic_completion: bool = False
+    reinforcements_expected: bool = False
 
 
 class StartBasicEncounter(CombatCommand):
@@ -46,6 +54,10 @@ class StartBasicEncounter(CombatCommand):
     participant_ids: tuple[Id, ...] = Field(min_length=2, max_length=100)
     facts: tuple[BasicSpatialFact, ...] = Field(default=(), max_length=10000)
     ranged_situations: tuple[RangedSituation, ...] = ()
+    allegiances: tuple[CombatAllegiance, ...] = ()
+    oppositions: tuple[SideOpposition, ...] = ()
+    automatic_completion: bool = False
+    reinforcements_expected: bool = False
 
 
 class BasicMove(Record):
@@ -223,6 +235,17 @@ class JoinEncounter(CombatCommand):
     # Retained square input for existing callers and the frozen v1 adventure.
     position: GridPoint | None = Field(default=None, exclude_if=lambda value: value is None)
     facing: Facing = "north"
+    side_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    neutral: bool = Field(default=False, exclude_if=lambda value: not value)
+
+
+class SetEncounterOpposition(CombatCommand):
+    kind: Literal["set_encounter_opposition"] = "set_encounter_opposition"
+    encounter_id: Id
+    allegiances: tuple[CombatAllegiance, ...]
+    oppositions: tuple[SideOpposition, ...]
+    completion_policy: Literal["gm", "automatic"] = "gm"
+    reinforcements_expected: bool = False
 
 
 class EndEncounter(CombatCommand):
@@ -261,6 +284,7 @@ TypedCombatCommand = Annotated[
     | TakeCombatTurn
     | ChooseDefense
     | JoinEncounter
+    | SetEncounterOpposition
     | EndEncounter
     | ResumeInterruptedTurn
     | TakeUnarmedTurn

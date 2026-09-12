@@ -1138,6 +1138,19 @@ export interface components {
        */
       dive_cover_dr: number;
     };
+    /**
+     * CombatAllegiance
+     * @description One participant's explicit encounter side; ``None`` is neutral.
+     */
+    CombatAllegiance: {
+      /** Actor Id */
+      actor_id: string;
+      /**
+       * Side Id
+       * @default null
+       */
+      side_id: string | null;
+    };
     /** ContinueCriticalMiss */
     ContinueCriticalMiss: {
       /** Id */
@@ -1339,6 +1352,16 @@ export interface components {
        * @enum {string}
        */
       facing: "north" | "east" | "south" | "west";
+      /**
+       * Side Id
+       * @default null
+       */
+      side_id: string | null;
+      /**
+       * Neutral
+       * @default false
+       */
+      neutral: boolean;
     };
     /** MigrateEncounterHex */
     MigrateEncounterHex: {
@@ -1519,6 +1542,14 @@ export interface components {
       provenance: components["schemas"]["SpatialProvenance"];
     };
     /**
+     * SideOpposition
+     * @description An undirected hostile relationship between two encounter sides.
+     */
+    SideOpposition: {
+      /** Side Ids */
+      side_ids: [string, string];
+    };
+    /**
      * SpatialProvenance
      * @description Trusted origin and lifetime for an authoritative mapless assertion.
      */
@@ -1599,6 +1630,26 @@ export interface components {
        * @default []
        */
       ranged_situations: components["schemas"]["RangedSituation"][];
+      /**
+       * Allegiances
+       * @default []
+       */
+      allegiances: components["schemas"]["CombatAllegiance"][];
+      /**
+       * Oppositions
+       * @default []
+       */
+      oppositions: components["schemas"]["SideOpposition"][];
+      /**
+       * Automatic Completion
+       * @default false
+       */
+      automatic_completion: boolean;
+      /**
+       * Reinforcements Expected
+       * @default false
+       */
+      reinforcements_expected: boolean;
     };
     /** VisibilitySpatialFact */
     VisibilitySpatialFact: {

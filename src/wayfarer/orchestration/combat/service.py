@@ -18,6 +18,7 @@ from wayfarer.engine.simulation.combat.commands import (
     MigrateEncounterBasic,
     MigrateEncounterHex,
     ResolveWeaponExplosion,
+    SetEncounterOpposition,
     StartBasicEncounter,
     StartEncounter,
     TypedCombatCommand,
@@ -81,6 +82,7 @@ class CombatService:
                 ContinueCriticalMiss,
                 DeclareThrownLanding,
                 ResolveWeaponExplosion,
+                SetEncounterOpposition,
             ),
         ) and (command.actor_id not in self.play.engine.reviewer.gm_ids):
             raise ValidationError("Encounter lifecycle requires GM authority")
