@@ -69,7 +69,21 @@ async def load(cid: str, play: PlayService) -> None:
 
 @pytest.mark.parametrize(
     ("distance", "expected"),
-    [(2, 0), (3, -1), (3.1, -2), (7, -3), (10, -4), (20, -6), (30, -7), (100, -10)],
+    [
+        (0, 0),
+        (2, 0),
+        (3, -1),
+        (3.1, -2),
+        (4, -2),
+        (7, -3),
+        (10, -4),
+        (15, -5),
+        (20, -6),
+        (21, -7),
+        (30, -7),
+        (100, -10),
+        (1000, -16),
+    ],
 )
 def test_range_table(distance: float, expected: int) -> None:
     assert range_penalty(distance) == expected

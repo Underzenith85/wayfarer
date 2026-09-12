@@ -1,4 +1,4 @@
-"""Independent B46/48/61/69/106/111/366/550 expected results.
+"""Independent B46/48/61/69/106/111/366 expected results.
 
 Characters third printing, Campaigns fourth printing; baseline delta pending.
 No expected numbers are calculated using the implementation being tested.
@@ -11,7 +11,6 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.supernatural.abilities import PROFILE, validate_binding
-from wayfarer.engine.rules.tables.ranged import range_penalty
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.simulation.abilities import (
@@ -117,27 +116,6 @@ def resolve(
         system=True,
     )
     return updated, state_world, result.outcome
-
-
-@pytest.mark.parametrize(
-    "distance,expected",
-    [
-        (0, 0),
-        (2, 0),
-        (3, -1),
-        (4, -2),
-        (7, -3),
-        (10, -4),
-        (15, -5),
-        (20, -6),
-        (21, -7),
-        (30, -7),
-        (100, -10),
-        (1000, -16),
-    ],
-)
-def test_range_table(distance: int, expected: int) -> None:
-    assert range_penalty(distance) == expected
 
 
 @pytest.mark.parametrize(

@@ -3,11 +3,11 @@
 from dataclasses import replace
 
 import pytest
-from test_statistics import gurps_draft, profile_package
+from test_statistics import gurps_draft
+from trait_support import approved_build, options, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.sensory import sensory_traits
-from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.supernatural import inventory
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.sensory import BINDINGS, PROFILE, RUNTIME_HOOKS
@@ -58,47 +58,12 @@ EXPECTED = {
 }
 
 
-def options(**values: str | int | bool) -> TraitOptions:
-    return TraitOptions(parameters=tuple(values.items()))
-
-
 def compiler() -> CharacterCompiler:
-    base, senses = profile_package(PROFILE), sensory_package()
-    combined = replace(
-        base,
-        id="package:test-sensory-traits",
-        definitions=base.definitions + senses.definitions,
-    )
-    policy = CampaignPolicy(
-        "policy:sensory-traits",
-        1,
-        10000,
-        10000,
-        20,
-        20,
-        frozenset(source.id for source in combined.sources),
-        allow_supernatural=True,
-    )
-    rules = CampaignRules(
-        combined.edition,
-        (PackagePin(combined.id, combined.version, combined.digest),),
-        policy.id,
-        policy.version,
-    )
-    return CharacterCompiler(
-        RulesCatalog((combined,)),
-        rules,
-        policy,
-        statistics_profile=PROFILE,
-        trait_runtime_hooks=RUNTIME_HOOKS,
-    )
+    return trait_compiler("sensory-traits", PROFILE, sensory_package(), hooks=RUNTIME_HOOKS)
 
 
 def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
-    engine = compiler()
-    result = engine.compile(gurps_draft(*purchases))
-    assert result.build is not None, result.diagnostics
-    return result.build, engine
+    return approved_build(compiler(), *purchases)
 
 
 def test_registry_and_inventory_account_for_all_32_entries() -> None:
