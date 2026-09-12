@@ -5740,13 +5740,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5887,14 +5888,13 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Execution v2: fixed ground area, full-turn exposure and transient crossings.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_execution.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6063,13 +6063,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6285,13 +6286,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6309,13 +6311,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6333,15 +6336,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191,
         173
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Execution v2: held missile, expansion, Wait, injury and supported body criticals; remaining physical criticals are #173.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_execution.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6558,13 +6560,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6681,14 +6684,13 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Purchased learning prerequisite only; no Ignite Fire effect.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_energy.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7278,13 +7280,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7302,13 +7305,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7546,14 +7550,13 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Purchased learning prerequisite only; no Shape Fire effect.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_energy.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,

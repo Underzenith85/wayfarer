@@ -50,37 +50,46 @@ def college_package(
         )
         for source_id in dict.fromkeys(value.source_id for value in bindings)
     )
+    historic_all = {definition.id: definition for definition in historic_magic_definitions(2)}
     historic = {
-        definition.id: definition
-        for definition in historic_magic_definitions(2)
-        if definition.id.startswith("spell:")
+        key: definition for key, definition in historic_all.items() if key.startswith("spell:")
     }
+    spell_definitions = tuple(
+        historic.get(value.id)
+        or RuleDefinition(
+            value.id,
+            DefinitionKind.SKILL,
+            value.name,
+            value.source_id,
+            1,
+            ImplementationStatus.IMPLEMENTED,
+            hooks=(
+                "character.gurps-skill",
+                "supernatural",
+                "magic.college-learning",
+                f"spell-college:{college}",
+            ),
+            skill=SkillSpec(
+                ControllingAttribute.IQ,
+                Difficulty.HARD,
+                f"B{value.page}",
+            ),
+        )
+        for value in bindings
+    )
+    required = {ref for definition in spell_definitions for ref in definition.prerequisites}
+    spell_ids = {definition.id for definition in spell_definitions}
+    supporting = tuple(
+        historic_all[key] for key in historic_all if key in required and key not in spell_ids
+    )
+    required.update(ref for definition in supporting for ref in definition.prerequisites)
+    supporting = tuple(
+        historic_all[key] for key in historic_all if key in required and key not in spell_ids
+    )
     return RulesPackage(
         f"package:gurps-basic-spells-{college}",
         "1.0.0",
         "gurps-4e",
         sources,
-        tuple(
-            historic.get(value.id)
-            or RuleDefinition(
-                value.id,
-                DefinitionKind.SKILL,
-                value.name,
-                value.source_id,
-                1,
-                ImplementationStatus.IMPLEMENTED,
-                hooks=(
-                    "character.gurps-skill",
-                    "supernatural",
-                    "magic.college-learning",
-                    f"spell-college:{college}",
-                ),
-                skill=SkillSpec(
-                    ControllingAttribute.IQ,
-                    Difficulty.HARD,
-                    f"B{value.page}",
-                ),
-            )
-            for value in bindings
-        ),
+        supporting + spell_definitions,
     )
