@@ -23,6 +23,7 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.gurps_characters import source
 from wayfarer.engine.rules.skills.mundane.arts import PROCEDURES as ARTS_PROCEDURES
+from wayfarer.engine.rules.skills.mundane.melee import PROCEDURES as MELEE_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.ranged import ranged_scope
 from wayfarer.engine.rules.skills.mundane.schema import (
@@ -85,7 +86,13 @@ CONTEXT_RESIDUALS = MappingProxyType(
 )
 # One runtime binding per procedure group. A row bound by two groups would let
 # either one claim it, so overlap is rejected rather than resolved by order.
-BINDINGS = (ARTS_PROCEDURES, RANGED_PROCEDURES, SOCIAL_PROCEDURES, TECHNOLOGY_PROCEDURES)
+BINDINGS = (
+    ARTS_PROCEDURES,
+    MELEE_PROCEDURES,
+    RANGED_PROCEDURES,
+    SOCIAL_PROCEDURES,
+    TECHNOLOGY_PROCEDURES,
+)
 
 
 class StructuralClass(StrEnum):
