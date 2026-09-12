@@ -1,7 +1,7 @@
-"""Basic Set vehicle movement/control calculations, using the existing hex geometry.
+"""Basic Set vehicle movement/control calculations on authored hex geometry.
 
-B394-395, B468-469; straight flight/depth are supported on an authored planar map.
-Vertical navigation and environmental aftermath require dedicated consumers.
+B394-395 and B468-469: planar courses, authored air altitude trajectories, and
+mode-specific control loss. Persisted aftermath is resolved by vehicle_resolution.
 """
 
 from fractions import Fraction
@@ -97,6 +97,8 @@ def move_vehicle(
         raise ValidationError("Vehicle and map rules profiles differ")
     if command.end_speed > t.top_speed:
         raise ValidationError("Vehicle exceeds top speed")
+    if t.locomotion != "air" and command.end_altitude is not None:
+        raise ValidationError("Only air movement accepts an authored altitude")
     deceleration = safe_deceleration(t)
     entering_high = t.speed <= t.acceleration < command.end_speed
     acceleration_base = t.acceleration if entering_high else t.speed
@@ -111,6 +113,9 @@ def move_vehicle(
     if high and t.speed <= t.acceleration:
         budget = t.acceleration  # B394: full Basic Move before accelerating.
     point = Hex(q=t.q, r=t.r)
+    end_altitude = t.altitude if command.end_altitude is None else command.end_altitude
+    if t.locomotion == "air" and abs(end_altitude - t.altitude) > budget:
+        raise ValidationError("Flight trajectory exceeds the selected movement budget")
     base = board.cell(point).ground
     base_extra = board.cell(point).extra_cost
     facing = t.facing
@@ -165,7 +170,8 @@ def move_vehicle(
                 if cell in footprint(pose):
                     surcharge = max(surcharge, terrain.extra_cost)
             elif t.locomotion == "air":
-                if t.altitude <= terrain.ground + terrain.opaque_height:
+                altitude = t.altitude + (end_altitude - t.altitude) * index // max(1, budget)
+                if altitude <= terrain.ground + terrain.opaque_height:
                     raise ValidationError("Flight path intersects terrain")
             else:
                 if command.waterline is None:
@@ -253,6 +259,8 @@ def move_vehicle(
             "r": point.r,
             "facing": facing,
             "speed": speed,
+            "altitude": end_altitude,
+            "vertical_speed": 0,
             "straight_yards": straight,
             "attack_penalty": 0,
             "aim_lost": False,
@@ -299,6 +307,8 @@ def control_vehicle(
     if check.outcome.succeeded:
         if recovering or t.status == "control-required":
             changes["status"] = "controlled"
+            if recovering:
+                changes["vertical_speed"] = 0
     else:
         severe = check.outcome == Outcome.CRITICAL_FAILURE or -check.margin > t.stability
         changes.update(aim_lost=True, attack_penalty=min(-1, check.margin))
@@ -320,7 +330,12 @@ def control_vehicle(
             if severe or recovering:
                 changes["status"] = "stalled" if command.climbing else "diving"
             else:
-                changes.update(altitude=t.altitude - 5, speed=max(0, t.speed - 10))
+                changes.update(
+                    altitude=t.altitude - 5,
+                    speed=max(0, t.speed - 10),
+                    remaining_points=max(0, t.speed - 10),
+                    status="drifting",
+                )
                 if t.speed - 10 < t.minimum_speed:
                     changes["status"] = "stalled"
                 elif t.altitude - 5 <= 0:

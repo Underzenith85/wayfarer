@@ -51,10 +51,11 @@ restart. PostgreSQL runs require `WAYFARER_TEST_DATABASE_URL`.
 | Planar navigation | Authored full courses on the existing hex map; longitudinal or rotated two-dimensional footprints; occupancy and swept-turn obstruction checks | B394-395 |
 | High-speed movement | Full ordinary move before acceleration into high speed; saved velocity budget thereafter; turning radius carried across turns; early/tight-turn and emergency-braking control checks | B394-395 |
 | Terrain | Authored extra movement costs consume the velocity budget and reduce end speed; risky braking checks within the supported envelope | B395 |
-| Water/air geometry | Level flight at a saved altitude; surface draft checks and submerged clearance against an authored waterline and bottom | B466, B468 |
+| Water/air geometry | Surface draft and submerged clearance; authored air climb/dive endpoints checked against terrain throughout the trajectory | B394-395, B466, B468 |
 | Ground control | Margin/SR split, random left/right veer outside turns, remaining skid movement and mapped straight skid resolution | B469 |
 | Rollovers | Mapped straight roll/skid distance of velocity/3; integer hex position plus saved fractional thirds; body/passenger falling damage | B469, B431-432 |
 | Air control | Minor altitude/speed loss, minimum-speed stall, severe dive/stall state, and Piloting-5 recovery checks | B469 |
+| Air aftermath | Minor blunders displace the aircraft; dives descend at Top Speed each turn; stalls accelerate downward; terrain contact uses the existing collision, object-damage and occupant-injury reducers | B430-432, B469 |
 | Water control | Drift, capsize for unsinkable craft, or sinking state | B469 |
 | Space/submarine control | Drift; submarines lose depth on minor failures; severe failures roll object HT and persist stress-failure state | B469 |
 | Collision exchange | Head-on/rear-end/side-on relative velocities and faster/striking-body dice caps; each body uses the existing object-damage reducer | B430, B432 |
@@ -75,7 +76,6 @@ residual per locomotion mode and splits it into live children;
 
 | Missing consumer or variant | Current behavior | Owner |
 | --- | --- | ---: |
-| Vertical flight, climbing/diving trajectories, continuing stalls/falls, airborne drift and terrain-relative air-crash consequences | Altitude/control facts persist, but full three-dimensional movement and ongoing descent are not implemented. | #393 |
 | Sinking, capsizing recovery, underwater stress damage, leaks, decompression, water currents, fractional draft and open-deck overboard checks | Pending states block ordinary operation; open-deck control rejects before dice. | #394 |
 | Space thrust, navigation, fuel/delta-v and very large speed/damage scales | Navigation rejects; only control/stress and the resolved collision exchange are provided. | #395 |
 | Mounted movement, Riding control against the mounted loss table and rider separation | `ground-mount` carries no version-two operation at all; every path rejects by name. | #396 |
@@ -94,7 +94,7 @@ above, never the residuals.
 status is **derived** from the audit above rather than hand-set: a mode counts as
 verified only once it resolves control loss, collision, occupant injury and
 restart and owes no residual, and the movement row is verified only when every
-mode is. The five non-mounted ground modes now qualify. Air, water, underwater,
+mode is. The five non-mounted ground modes and air now qualify. Water, underwater,
 space and mounted movement keep the movement row `partial`; the combat row stays
 `partial` as well.
 

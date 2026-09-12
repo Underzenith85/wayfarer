@@ -1,5 +1,7 @@
 """Version-two vehicle dispatch under the existing transport transaction."""
 
+from math import ceil
+
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.gurps_checks import success_roll
@@ -21,6 +23,7 @@ from wayfarer.simulation.vehicle_collisions import (
     roll_damage,
 )
 from wayfarer.simulation.vehicle_commands import (
+    ResolveAirAftermath,
     ResolveVehicleEjection,
     UpgradeVehicle,
     VehicleControl,
@@ -33,6 +36,7 @@ from wayfarer.simulation.vehicle_motion import control_vehicle, footprint, move_
 
 VehicleCommand = (
     UpgradeVehicle
+    | ResolveAirAftermath
     | VehicleControl
     | VehicleImpact
     | VehicleManeuver
@@ -124,6 +128,8 @@ def resolve_vehicle(
         if t.open_cabin and t.locomotion == "water":
             raise ValidationError("Open-deck control requires overboard and swimming consumers")
         recovering = t.locomotion == "air" and t.status in ("diving", "stalled")
+        if recovering and t.aftermath_turn != state.game_time:
+            raise ValidationError("Resolve this turn's air descent before recovery")
         if recovering and t.recovery_turn == state.game_time:
             raise ConflictError("Air recovery already attempted this second")
         controlled = control_vehicle(
@@ -132,6 +138,88 @@ def resolve_vehicle(
         if recovering:
             controlled = controlled.model_copy(update={"recovery_turn": state.game_time})
         affected = (controlled,)
+    elif isinstance(command, ResolveAirAftermath):
+        if t.locomotion != "air" or t.status not in ("drifting", "diving", "stalled"):
+            raise ValidationError("Aircraft has no pending motion aftermath")
+        if t.aftermath_turn == state.game_time:
+            raise ConflictError("Air aftermath already resolved this second")
+        if board is None or board.profile_id != t.profile_id:
+            raise ValidationError("Air aftermath requires the matching tactical map")
+        point = Hex(q=t.q, r=t.r)
+        altitude = t.altitude
+        vertical_speed = t.vertical_speed
+        status = t.status
+        if status == "drifting":
+            for _ in range(t.remaining_points):
+                destination = neighbor(point, t.facing)
+                pose = t.model_copy(update={"q": destination.q, "r": destination.r})
+                if any(
+                    altitude <= board.cell(cell).ground + board.cell(cell).opaque_height
+                    or cell in occupied
+                    for cell in footprint(pose)
+                ):
+                    break
+                point = destination
+            else:
+                affected = (
+                    t.model_copy(
+                        update={
+                            "q": point.q,
+                            "r": point.r,
+                            "remaining_points": 0,
+                            "status": "controlled",
+                            "aftermath_turn": state.game_time,
+                        }
+                    ),
+                )
+                changes = {v.id: v for v in affected}
+                return state.model_copy(
+                    update={"transports": tuple(changes.get(v.id, v) for v in state.transports)}
+                )
+            vertical_speed = max(1, t.speed)
+        elif status == "diving":
+            vertical_speed = t.top_speed
+            altitude -= vertical_speed
+        else:
+            next_speed = min(t.top_speed, vertical_speed + 10)
+            altitude -= (vertical_speed + next_speed) // 2
+            vertical_speed = next_speed
+        surface_pose = t.model_copy(update={"q": point.q, "r": point.r})
+        surface = ceil(
+            max(
+                board.cell(cell).ground + board.cell(cell).opaque_height
+                for cell in footprint(surface_pose)
+            )
+        )
+        crashed = altitude <= surface or status == "drifting"
+        updated_t = t.model_copy(
+            update={
+                "q": point.q,
+                "r": point.r,
+                "altitude": max(surface, altitude),
+                "vertical_speed": vertical_speed,
+                "aftermath_turn": state.game_time,
+                "speed": max(t.speed, vertical_speed) if crashed else t.speed,
+            }
+        )
+        if crashed:
+            if health is None:
+                raise ValidationError("Air crash requires compiled occupant HT")
+            collision = VehicleImpact(
+                id=command.id,
+                actor_id=command.actor_id,
+                expected_revision=command.expected_revision,
+                transport_id=t.id,
+                angle="immovable",
+                protection=command.protection,
+            )
+            state, affected = impact(engine, state, collision, updated_t, None, health, rng)
+            affected = tuple(
+                v.model_copy(update={"status": "crashed"}) if v.status != "ejection-pending" else v
+                for v in affected
+            )
+        else:
+            affected = (updated_t,)
     else:
         if health is None:
             raise ValidationError("Collision requires compiled occupant HT")

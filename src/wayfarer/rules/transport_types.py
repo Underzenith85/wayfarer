@@ -19,6 +19,8 @@ class Transport(Record):
     profile_id: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
     mechanics_version: Literal[1, 2] = 1
     altitude: int = 0
+    vertical_speed: int = Field(default=0, ge=0, le=100)
+    aftermath_turn: int = Field(default=-1, ge=-1)
     minimum_speed: int = Field(default=0, ge=0)
     draft: int = Field(default=0, ge=0)
     open_cabin: bool = False

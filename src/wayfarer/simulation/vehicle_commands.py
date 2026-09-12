@@ -14,6 +14,7 @@ class VehicleManeuver(Command):
     transport_id: str
     course: tuple[HexFacing, ...] = Field(max_length=100)
     end_speed: int = Field(ge=0, le=100)
+    end_altitude: int | None = Field(default=None, ge=-1000, le=1000000)
     waterline: int | None = None
     control_skill: int | None = Field(default=None, ge=1, le=50)
 
@@ -70,6 +71,12 @@ class ResolveVehicleEjection(Command):
     destination_r: int = Field(ge=-1000, le=1000)
     landing: Literal["hard", "soft", "water"] = "hard"
     swimming_skill: int | None = Field(default=None, ge=1, le=50)
+
+
+class ResolveAirAftermath(Command):
+    kind: Literal["vehicle-resolve-air-aftermath"] = "vehicle-resolve-air-aftermath"
+    transport_id: str
+    protection: tuple[PassengerProtection, ...] = ()
 
 
 class UpgradeVehicle(Command):
