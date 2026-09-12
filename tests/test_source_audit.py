@@ -16,7 +16,7 @@ def test_audit_integrity_and_unresolved_sources_block_certification() -> None:
     result = report(ROOT)
     assert result["audit_complete"] is False
     manifest = load(ROOT)
-    assert sum(f.status == "compared" for f in manifest.fixtures) == 55
+    assert sum(f.status == "compared" for f in manifest.fixtures) == 56
     assert not any(f.status == "reviewed" for f in manifest.fixtures)
     assert "source:sjg:gurps-lite-4e-2004" in blockers(manifest)
     assert any(b.startswith("scope:") for b in blockers(manifest))

@@ -19,17 +19,19 @@ GROUND = frozenset(
 PLANAR = frozenset({"vehicle-maneuver", "vehicle-control", "vehicle-impact"})
 AIR = PLANAR | frozenset({"vehicle-resolve-air-aftermath"})
 WATER = PLANAR | frozenset({"vehicle-resolve-water-aftermath"})
+COMBAT = frozenset({"vehicle-ram", "vehicle-damage"})
 VEHICLE_OPERATIONS = MappingProxyType(
     {
-        "ground-wheeled": GROUND,
-        "ground-tracked": GROUND,
-        "ground-drawn": GROUND,
-        "ground-walking": GROUND,
-        "ground-slithering": GROUND,
-        "water": WATER,
-        "underwater": WATER,
-        "air": AIR,
-        "space": frozenset({"vehicle-control", "vehicle-impact", "vehicle-space-navigation"}),
+        "ground-wheeled": GROUND | COMBAT,
+        "ground-tracked": GROUND | COMBAT,
+        "ground-drawn": GROUND | COMBAT,
+        "ground-walking": GROUND | COMBAT,
+        "ground-slithering": GROUND | COMBAT,
+        "water": WATER | COMBAT,
+        "underwater": WATER | COMBAT,
+        "air": AIR | COMBAT,
+        "space": frozenset({"vehicle-control", "vehicle-impact", "vehicle-space-navigation"})
+        | COMBAT,
         "ground-mount": frozenset(
             {"vehicle-maneuver", "vehicle-control", "vehicle-resolve-mount-separation"}
         ),

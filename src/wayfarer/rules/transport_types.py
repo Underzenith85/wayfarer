@@ -31,6 +31,9 @@ class Transport(Record):
     rider_fall_yards: int = Field(default=0, ge=0, le=10)
     mount_fall_yards: int = Field(default=0, ge=0, le=10)
     mount_riding_penalty: int = Field(default=0, ge=-20, le=0)
+    occupant_cover_dr: int = Field(default=0, ge=0, le=1000)
+    disabled_systems: tuple[Literal["hull", "motive", "controls", "weapon"], ...] = ()
+    stress_turn: int = Field(default=-1, ge=-1)
     space_acceleration_tenths_g: int = Field(default=10, ge=1, le=1000000)
     space_elapsed_seconds: int = Field(default=0, ge=0)
     open_cabin: bool = False
@@ -87,6 +90,8 @@ class Transport(Record):
 
     @model_validator(mode="after")
     def consistent(self) -> Self:
+        if len(set(self.disabled_systems)) != len(self.disabled_systems):
+            raise ValueError("Vehicle disabled systems must be unique")
         if len(set(self.occupants)) != len(self.occupants) or (
             self.operator_id not in self.occupants
             and not any(e.actor_id == self.operator_id for e in self.pending_ejections)

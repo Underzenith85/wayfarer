@@ -88,6 +88,7 @@ class TakeCombatTurn(CombatCommand):
     recover_thrown_item: bool = Field(default=False, exclude_if=lambda v: not v)
     escape_entanglement: bool = Field(default=False, exclude_if=lambda v: not v)
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
+    transport_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
         default=None, exclude_if=lambda v: v is None
     )

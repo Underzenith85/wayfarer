@@ -328,8 +328,6 @@ class ActionEngine:
     def validate(self, state: PlayState) -> None:
         """Check every aggregate invariant of a checkpoint against this configuration."""
         rules = self.rules
-        if state.resources.transports:
-            raise ValidationError("Live transport encounters require the #397 integration")
         if state.configuration_digest != self.digest:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:

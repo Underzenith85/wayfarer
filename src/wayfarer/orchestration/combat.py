@@ -1387,8 +1387,9 @@ def _validate_turn(
         raise ValidationError("Weapon mode requires GURPS attack dispatch")
     if (
         command.maneuver in ATTACK_MANEUVERS | {"feint"}
-        and engine.rules.gurps_equipment is not None
-    ):
+        or command.maneuver == "aim"
+        and command.transport_id is not None
+    ) and engine.rules.gurps_equipment is not None:
         from wayfarer.simulation.mechanics.gurps_melee import mode
 
         selected_mode = mode(
@@ -1436,6 +1437,34 @@ def _validate_turn(
                 }
             ),
         )
+        if command.transport_id is not None:
+            from wayfarer.simulation.gurps_equipment import RangedMode
+            from wayfarer.simulation.hex_geometry import Hex
+
+            transport = next(
+                (t for t in resources.transports if t.id == command.transport_id), None
+            )
+            participant = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+            mount = selected_mode.mount if isinstance(selected_mode, RangedMode) else None
+            if (
+                transport is None
+                or transport.mechanics_version != 2
+                or command.actor_id not in transport.occupants
+                or mount is None
+                or not mount.vehicle_mounted
+            ):
+                raise ValidationError("Vehicle fire requires its occupant and vehicle-mounted mode")
+            if transport.last_turn == resources.game_time:
+                raise ConflictError("Vehicle already acted this second")
+            if (
+                encounter.spatial_kind != "hex"
+                or participant.position != Hex(q=transport.q, r=transport.r)
+                or participant.hex_facing != transport.facing
+            ):
+                raise ValidationError("Vehicle and gunner require one synchronized encounter pose")
+            crew = next(i for i in resources.items if i.id == command.item_id).mount_crew
+            if not set(crew) <= set(transport.occupants):
+                raise ValidationError("Vehicle-mounted weapon crew must occupy its vehicle")
     if (
         command.maneuver == "wait"
         and command.wait_trigger is not None
@@ -1760,6 +1789,37 @@ def _prepare_attack_turn(
     )
     encounter = prepare_spraying_fire(context.play.rules_context, state, encounter, command)
     assert encounter.pending_defense is not None
+    if command.transport_id is not None:
+        transport = next(t for t in resources.transports if t.id == command.transport_id)
+        encounter = encounter.model_copy(
+            update={
+                "pending_defense": encounter.pending_defense.model_copy(
+                    update={
+                        "transport_id": transport.id,
+                        "vehicle_attack_penalty": transport.attack_penalty,
+                        "vehicle_aim_lost": transport.aim_lost,
+                    }
+                )
+            }
+        )
+        resources = resources.model_copy(
+            update={
+                "transports": tuple(
+                    t.model_copy(
+                        update={
+                            "attack_penalty": 0,
+                            "aim_lost": False,
+                            "last_turn": resources.game_time,
+                        }
+                    )
+                    if t.id == transport.id
+                    else t
+                    for t in resources.transports
+                )
+            }
+        )
+        state = state.model_copy(update={"resources": resources})
+    assert encounter.pending_defense is not None
     result = result.model_copy(update={"available": encounter.pending_defense.allowed})
     return CombatStep(state, encounter, resources, result)
 
@@ -1918,6 +1978,22 @@ def _after_turn(
             do_nothing=command_for_turn.maneuver == "do_nothing",
         )
         resources = state.resources
+    if (
+        command_for_turn.maneuver == "aim"
+        and command.transport_id is not None
+        and result.code != "combat.wait_triggered"
+    ):
+        resources = resources.model_copy(
+            update={
+                "transports": tuple(
+                    t.model_copy(update={"aim_lost": False, "last_turn": resources.game_time})
+                    if t.id == command.transport_id
+                    else t
+                    for t in resources.transports
+                )
+            }
+        )
+        state = state.model_copy(update={"resources": resources})
     if command.recover_thrown_item and result.code == "combat.wait_triggered":
         from wayfarer.simulation.mechanics.thrown_items import undo_recovery
 

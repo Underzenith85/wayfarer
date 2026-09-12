@@ -6,7 +6,9 @@ firer's grip and ST do not validate the shot; the crew does. An indirectly laid
 shot arrives without warning and is not actively defended.
 """
 
+from dataclasses import replace
 from pathlib import Path
+from typing import Literal
 
 import pytest
 from test_gurps_maneuvers import defend, turn
@@ -14,15 +16,22 @@ from test_gurps_melee import setup
 
 from wayfarer.character.compiler import Purchase
 from wayfarer.errors import ValidationError
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import RecordedDice
+from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.mundane_skills import inventory
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES, definitions, require_mode
+from wayfarer.rules.transport_types import Transport
 from wayfarer.simulation.combat import RangedSituation
+from wayfarer.simulation.combat_commands import HexPlacement, MigrateEncounterHex
 from wayfarer.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
+from wayfarer.world import Fact
 
-BASIC = "gurps-basic-set-4e-2004"
+BASIC: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
 ARTILLERY = tuple(
     f"skill:artillery-{key}"
     for key in ("beams", "bombs", "cannon", "catapult", "guided-missile", "torpedoes")
@@ -131,6 +140,110 @@ async def test_every_mounted_specialty_fires_from_its_crew(tmp_path: Path, ident
     expected = 11 if identifier.startswith("skill:artillery-") else 12
     assert result.injury.attack.effective_target == expected
     assert result.injury.hits == 1
+    assert await play.store.read(cid) == await play.store.replay(cid)
+
+
+async def test_vehicle_mount_uses_vehicle_pose_control_penalty_and_occupant_cover(
+    tmp_path: Path,
+) -> None:
+    cid, play = await emplaced(tmp_path, "skill:gunner-cannon")
+    loaded = play._load(await play.store.read(cid))
+
+    def add_vehicles(campaign: Campaign) -> CommandReceipt:
+        state = play._load(campaign)
+        resources = state.resources.model_copy(
+            update={
+                "transports": (
+                    Transport(
+                        id="gun-carrier",
+                        mechanics_version=2,
+                        locomotion="ground-wheeled",
+                        body_id="sword-a",
+                        operator_id="a",
+                        occupants=("a", "c"),
+                        acceleration=3,
+                        top_speed=20,
+                        attack_penalty=-2,
+                        aim_lost=True,
+                    ),
+                    Transport(
+                        id="target-carrier",
+                        mechanics_version=2,
+                        locomotion="ground-wheeled",
+                        body_id="sword-b",
+                        operator_id="b",
+                        occupants=("b",),
+                        acceleration=3,
+                        top_speed=20,
+                        q=1,
+                        facing=3,
+                        occupant_cover_dr=4,
+                    ),
+                )
+            }
+        )
+        state = state.model_copy(
+            update={
+                "resources": resources,
+                "world": replace(
+                    state.world,
+                    facts=(
+                        *state.world.facts,
+                        Fact("vehicle-seen-b", "b", "visible", "yes"),
+                    ),
+                    knowledge=(*state.world.knowledge, ("a", "vehicle-seen-b")),
+                ),
+            }
+        )
+        campaign["play_json"] = state.model_dump_json()
+        return CommandReceipt(action="resource", outcome="vehicle poses")
+
+    await play.store.commit_turn(cid, "vehicles", loaded.revision, "vehicles", add_vehicles)
+    current = play._load(await play.store.read(cid))
+    board = HexBattlefield(
+        id=current.encounters[0].battlefield_id,
+        coordinate_system="hex-axial-v1",
+        profile_id=BASIC,
+        baseline_id=BASELINE_ID,
+        cells=tuple(Cell(position=Hex(q=q, r=r)) for q in range(-2, 4) for r in range(-2, 3)),
+    )
+    await CombatService(play).execute(
+        cid,
+        MigrateEncounterHex(
+            id="vehicle-hex",
+            actor_id="gm",
+            expected_revision=current.revision,
+            encounter_id="fight",
+            battlefield=board,
+            placements=(
+                HexPlacement(actor_id="a", pose=Pose(position=Hex(q=0, r=0), facing=0)),
+                HexPlacement(actor_id="b", pose=Pose(position=Hex(q=1, r=0), facing=3)),
+                HexPlacement(actor_id="c", pose=Pose(position=Hex(q=-1, r=0), facing=0)),
+            ),
+        ),
+        authenticated_actor_id="gm",
+    )
+    play = play.for_campaign(await play.store.read(cid))
+    await turn(
+        cid,
+        play,
+        "a",
+        "attack",
+        item_id="sword-a",
+        target_id="b",
+        mode_id="shot",
+        transport_id="gun-carrier",
+    )
+    pending = play._load(await play.store.read(cid))
+    carrier = next(t for t in pending.resources.transports if t.id == "gun-carrier")
+    assert (carrier.attack_penalty, carrier.aim_lost) == (0, False)
+    assert pending.encounters[0].pending_defense is not None
+    assert pending.encounters[0].pending_defense.transport_id == "gun-carrier"
+    play.rng = RecordedDice([3, 3, 4, 6])
+    result = await defend(cid, play, "b")
+    assert result.injury is not None
+    assert result.injury.attack.effective_target == 10
+    assert result.injury.resistance == 4
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 

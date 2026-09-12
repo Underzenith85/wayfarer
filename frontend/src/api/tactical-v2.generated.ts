@@ -707,6 +707,11 @@ export interface components {
        */
       mount_crew: string[];
       /**
+       * Transport Id
+       * @default null
+       */
+      transport_id: string | null;
+      /**
        * Firearm Service
        * @default null
        */

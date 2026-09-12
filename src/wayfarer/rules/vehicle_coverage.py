@@ -29,7 +29,6 @@ COMBAT: Final = "gurps.vehicles.combat"
 # The issues this audit split its residual scope into. A closed owner cannot
 # hold a blocker, which is why #120 and #207 are superseded rather than cited.
 SUPERSEDED: Final = (120, 207)
-VEHICLE_COMBAT_OWNER: Final = 397
 
 
 class Concern(StrEnum):
@@ -123,17 +122,7 @@ _MODES: Final = (
 MODES: Final = MappingProxyType({entry.mode: entry for entry in _MODES})
 # `gurps.vehicles.combat` has no implementation behind it at all: the adapter
 # records what combat would consume, and nothing consumes it.
-COMBAT_RESIDUALS: Final = MappingProxyType(
-    {
-        "ramming as a declared attack with its own defense": VEHICLE_COMBAT_OWNER,
-        "vehicle-mounted weapons and the pose they fire from": VEHICLE_COMBAT_OWNER,
-        "cover a vehicle gives its occupants": VEHICLE_COMBAT_OWNER,
-        "Aim and attack-penalty consumption the control state records": VEHICLE_COMBAT_OWNER,
-        "synchronised encounter poses on one battlefield and one turn clock": VEHICLE_COMBAT_OWNER,
-        "vehicle hit locations, operator incapacitation, ongoing stress below zero HP "
-        "and disabled equipment": VEHICLE_COMBAT_OWNER,
-    }
-)
+COMBAT_RESIDUALS: Final[Mapping[str, int]] = MappingProxyType({})
 
 
 def movement_status() -> CoverageStatus:

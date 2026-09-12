@@ -270,12 +270,27 @@ def test_frozen_scenario_v1_rejects_internal_transport_fields() -> None:
         InitialResources.model_validate({"transports": ()})
 
 
-def test_live_play_rejects_transport_until_atomic_combat_integration() -> None:
+def test_live_play_accepts_transport_after_atomic_combat_integration() -> None:
     from test_actions import engine as action_engine
     from test_actions import seed as play_state
 
     engine = action_engine()
     initial = play_state(engine)
-    _, resources = fixture()
-    with pytest.raises(ValidationError, match="Live transport"):
-        engine.validate(initial.model_copy(update={"resources": resources}))
+    body = next(i for i in initial.resources.items if i.owner_id == "a")
+    resources = initial.resources.model_copy(
+        update={
+            "transports": (
+                Transport(
+                    id="live-ride",
+                    mechanics_version=2,
+                    locomotion="ground-wheeled",
+                    body_id=body.id,
+                    operator_id="a",
+                    occupants=("a",),
+                    acceleration=3,
+                    top_speed=20,
+                ),
+            )
+        }
+    )
+    engine.validate(initial.model_copy(update={"resources": resources}))

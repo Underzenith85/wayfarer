@@ -26,6 +26,7 @@ from wayfarer.simulation.resources import Pool, ResourceEngine, ResourceState
 from wayfarer.simulation.transport import apply_transport
 from wayfarer.simulation.vehicle_collisions import collision_exchange, passenger_injury
 from wayfarer.simulation.vehicle_commands import (
+    DamageVehicle,
     NavigateSpace,
     ResolveAirAftermath,
     ResolveMountSeparation,
@@ -34,6 +35,7 @@ from wayfarer.simulation.vehicle_commands import (
     VehicleControl,
     VehicleImpact,
     VehicleManeuver,
+    VehicleRam,
     VehicleRollover,
     VehicleSkid,
 )
@@ -52,6 +54,27 @@ def mount_fixture(**changes: object) -> tuple[ResourceEngine, ResourceState]:
     engine, state = legacy_fixture(mount=True)
     mount = state.transports[0].model_copy(update={"mechanics_version": 2, **changes})
     return engine, state.model_copy(update={"transports": (mount,)})
+
+
+def combat_fixture(*, speed: int = 5) -> tuple[ResourceEngine, ResourceState]:
+    engine, state = fixture(speed=speed, occupants=("a",), occupant_cover_dr=6)
+    first = state.transports[0]
+    body = next(i for i in state.items if i.id == first.body_id)
+    target_body = body.model_copy(update={"id": "target-body", "owner_id": "b"})
+    target = first.model_copy(
+        update={
+            "id": "target-ride",
+            "body_id": target_body.id,
+            "operator_id": "b",
+            "occupants": ("b",),
+            "q": 1,
+            "speed": 0,
+            "occupant_cover_dr": 4,
+        }
+    )
+    return engine, state.model_copy(
+        update={"items": (*state.items, target_body), "transports": (first, target)}
+    )
 
 
 def map_fixture(
@@ -506,6 +529,104 @@ def test_mounted_collision_separates_and_injures_both_creatures() -> None:
     )
     assert [p.current for p in separated.pools] == [9, 9]
     assert separated.transports[0].status == "crashed"
+
+
+def test_declared_ram_has_separate_attack_and_dodge_before_collision_exchange() -> None:
+    engine, state = combat_fixture()
+    dodged = apply_transport(
+        engine,
+        state,
+        VehicleRam(
+            id="ram-dodged",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            target_transport_id="target-ride",
+            skill=12,
+            defender_skill=12,
+        ),
+        system=True,
+        rng=RecordedDice([3, 3, 3, 3, 3, 3]),
+    )
+    assert [trace.reason for trace in dodged.transports[0].traces[-2:]] == [
+        "declared-ram-attack",
+        "declared-ram-defense",
+    ]
+    assert (
+        next(i for i in dodged.items if i.id == "target-body").condition
+        == next(i for i in state.items if i.id == "target-body").condition
+    )
+
+    hit = apply_transport(
+        engine,
+        state,
+        VehicleRam(
+            id="ram-hit",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            target_transport_id="target-ride",
+            skill=12,
+            defender_skill=8,
+        ),
+        system=True,
+        health={"a": 12, "b": 12},
+        rng=RecordedDice([3, 3, 3, 6, 6, 6, 6, 6, 6, 6, *([1] * 12)]),
+    )
+    assert (
+        next(i for i in hit.items if i.id == "target-body").condition
+        != next(i for i in state.items if i.id == "target-body").condition
+    )
+    assert any(trace.reason == "collision-body" for trace in hit.transports[1].traces)
+
+
+def test_vehicle_hit_locations_disable_systems_and_apply_b483_stress() -> None:
+    engine, state = combat_fixture(speed=0)
+    controls = apply_transport(
+        engine,
+        state,
+        DamageVehicle(
+            id="controls",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            basic_damage=5,
+            damage_type="cr",
+            hit_location="controls",
+            operator_damage=3,
+            operator_ht=12,
+        ),
+        system=True,
+        rng=RecordedDice([]),
+    )
+    assert controls.transports[0].disabled_systems == ("controls",)
+    assert controls.transports[0].status == "control-required"
+    assert next(p for p in controls.pools if p.id == "hp:a").current == 7
+    with pytest.raises(ValidationError, match="disabled system"):
+        apply_transport(
+            engine,
+            controls,
+            maneuver(0, ()).model_copy(update={"expected_revision": 1}),
+            system=True,
+            board=map_fixture(),
+        )
+
+    destroyed = apply_transport(
+        engine,
+        state,
+        DamageVehicle(
+            id="hull",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            basic_damage=20,
+            damage_type="cr",
+        ),
+        system=True,
+        rng=RecordedDice([6, 6, 6]),
+    )
+    assert destroyed.transports[0].status == "crashed"
+    assert "hull" in destroyed.transports[0].disabled_systems
 
 
 def test_authored_slope_costs_and_automatic_terrain_control_loss() -> None:
@@ -1094,7 +1215,7 @@ def test_operation_matrix_advertises_completed_movement_and_pending_combat() -> 
     assert "vehicle-rollover" in VEHICLE_OPERATIONS["ground-tracked"]
     assert "vehicle-rollover" not in VEHICLE_OPERATIONS["water"]
     assert capability("gurps.vehicles.movement").status == CoverageStatus.VERIFIED
-    assert capability("gurps.vehicles.combat").status == CoverageStatus.PARTIAL
+    assert capability("gurps.vehicles.combat").status == CoverageStatus.VERIFIED
 
 
 def test_failed_air_recovery_cannot_fish_for_another_roll_in_same_second() -> None:
