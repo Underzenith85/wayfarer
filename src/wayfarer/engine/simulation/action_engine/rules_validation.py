@@ -16,6 +16,8 @@ from wayfarer.engine.simulation.ability_types import AbilityRules
 from wayfarer.engine.simulation.actions import ActionRules, CheckRule, PlayState
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.magic.bindings import SpellRules
+from wayfarer.engine.simulation.magic.enchanting import EnchantingRules
+from wayfarer.engine.simulation.magic.spells import SPELLS
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
 
@@ -41,6 +43,46 @@ def _validate_spell_rules(reviewer: PowerReviewer, spells: SpellRules) -> None:
         raise ValidationError("Fireball requires the pinned projectile skill")
     if any("spell:" + c.spell_id not in definitions for c in spells.channels):
         raise ValidationError("Spell channels require pinned training definitions")
+
+
+def _validate_enchanting_rules(
+    reviewer: PowerReviewer, resources: ResourceEngine, enchanting: EnchantingRules
+) -> None:
+    """Recipes may only name pinned spells and concrete inventory specifications."""
+
+    definitions = reviewer.compiler.definitions
+    if reviewer.compiler.statistics_profile != enchanting.profile_id:
+        raise ValidationError("Enchanting rules require the exact compiled profile")
+    enchant = definitions.get("spell:enchant")
+    if (
+        enchant is None
+        or enchant.kind is not DefinitionKind.SKILL
+        or enchant.status is not ImplementationStatus.IMPLEMENTED
+        or "supernatural" not in enchant.hooks
+    ):
+        raise ValidationError("Enchanting requires the pinned Enchant spell")
+    equipment = frozenset(resources.specs)
+    for recipe in enchanting.recipes:
+        spell = definitions.get(recipe.spell_id)
+        if (
+            spell is None
+            or spell.kind is not DefinitionKind.SKILL
+            or spell.status is not ImplementationStatus.IMPLEMENTED
+            or "supernatural" not in spell.hooks
+        ):
+            raise ValidationError("Enchantment recipe requires a pinned effect spell")
+        referenced = {
+            *recipe.target_definition_ids,
+            recipe.workspace_definition_id,
+            *(material.definition_id for material in recipe.materials),
+        }
+        if not referenced <= equipment:
+            raise ValidationError("Enchantment recipe requires pinned equipment specifications")
+        if recipe.runtime_spell_id is not None and (
+            recipe.runtime_spell_id not in SPELLS
+            or recipe.spell_id != "spell:" + recipe.runtime_spell_id
+        ):
+            raise ValidationError("Enchantment runtime spell differs from its catalog identity")
 
 
 def _validate_ability_rules(reviewer: PowerReviewer, abilities: AbilityRules) -> None:

@@ -13529,14 +13529,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-enchanting.md",
+        "tests/test_enchanting_projects.py::test_quick_energy_is_preflighted_spent_once_and_bad_target_is_early"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 526,
+      "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b479:magic-items",
       "classification": null,
@@ -13553,14 +13556,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-enchanting.md",
+        "tests/test_enchanting_projects.py::test_slow_project_interrupt_resume_restart_and_compile_item"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 526,
+      "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b479:magic-items",
       "classification": null,
@@ -13577,14 +13583,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-enchanting.md",
+        "tests/test_enchanting_projects.py::test_item_activation_blocks_missing_family_and_spends_one_charge"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 526,
+      "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b479:magic-items",
       "classification": null,
@@ -13601,14 +13610,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-enchanting.md",
+        "tests/test_enchanting_projects.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 526,
+      "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b479:magic-items",
       "classification": null,

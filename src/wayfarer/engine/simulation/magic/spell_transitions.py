@@ -4,6 +4,7 @@ import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from wayfarer.engine.rules.magic.protocols import MagicItemBinding
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import injury_turn
 from wayfarer.engine.simulation.campaign.party import synchronous
@@ -19,6 +20,7 @@ from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
+from wayfarer.engine.simulation.magic.bindings import SpellRules
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
@@ -33,6 +35,53 @@ from wayfarer.engine.simulation.magic.spells import (
 from wayfarer.engine.simulation.resources import Advance, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
+
+
+def _approved_magic_item(
+    state: PlayState, command: SpellCommand, item_id: str, rules: SpellRules
+) -> MagicItemBinding:
+    """Resolve a completed instance, retaining static bindings for old checkpoints."""
+    configured = next(
+        (
+            item
+            for item in rules.magic_items
+            if item.item_id == item_id and item.spell_id == command.spell_id
+        ),
+        None,
+    )
+    held = next((item for item in state.resources.items if item.id == item_id), None)
+    if (
+        held is None
+        or held.owner_id != command.actor_id
+        or (not held.equipped and not held.ready)
+        or (held.condition is not None and held.condition.disabled)
+    ):
+        raise ValidationError("Caster is not holding a usable magic item")
+    completed = next(
+        (item for item in held.enchantments if item.spell_id == command.spell_id), None
+    )
+    if completed is None and configured is None:
+        raise ValidationError("Magic item does not carry a completed matching enchantment")
+    if completed is None:
+        assert configured is not None
+        return configured
+    if completed.runtime_family != "spell":
+        raise ValidationError("Magic-item activation has no executable runtime family")
+    if completed.activation == "always-on":
+        raise ValidationError("Always-on magic items do not use a cast channel")
+    replay = any(receipt.command_id == command.id for receipt in state.resources.receipts)
+    if command.kind == "start" and completed.charges == 0 and not replay:
+        raise ValidationError("Magic item has no remaining charges")
+    return MagicItemBinding(
+        id=completed.id,
+        item_id=completed.item_id,
+        spell_id=completed.spell_id,
+        power=completed.power,
+        power_reduction=completed.power_reduction,
+        requires_magery=completed.requires_magery,
+        always_on=completed.always_on,
+    )
+
 
 SpellResolver = Callable[[RulesContext, PlayState, SpellCommand], SpellEnvironment]
 
@@ -101,23 +150,9 @@ def approved_context(
         position = command.position
     if command.kind == "focus" and command.position is None:
         raise ValidationError("Light manipulation requires a destination")
-    magic_item = None
+    magic_item: MagicItemBinding | None = None
     if channel.magic_item_id is not None:
-        magic_item = next(
-            item
-            for item in rules.magic_items
-            if item.item_id == channel.magic_item_id and item.spell_id == command.spell_id
-        )
-        held = next(
-            (item for item in state.resources.items if item.id == channel.magic_item_id), None
-        )
-        if (
-            held is None
-            or held.owner_id != command.actor_id
-            or (not held.equipped and not held.ready)
-            or (held.condition is not None and held.condition.disabled)
-        ):
-            raise ValidationError("Caster is not holding a usable magic item")
+        magic_item = _approved_magic_item(state, command, channel.magic_item_id, rules)
     context = build_context(
         runtime,
         state,
@@ -422,7 +457,9 @@ def _prepare_spell(
         and context.target_id not in perceived
     ):
         raise ValidationError("Spell target is not perceived")
-    if command.kind == "start":
+    if command.kind == "start" and not any(
+        receipt.command_id == command.id for receipt in before.resources.receipts
+    ):
         require_idle_concentration(before.resources, command.actor_id)
     return context, encounter
 
@@ -567,6 +604,31 @@ def reduce_spell(
         resources, result = apply_spell(
             casting_resources, command, context, rng=runtime.rng, system=True
         )
+    if command.kind == "start" and not any(
+        receipt.command_id == command.id for receipt in before.resources.receipts
+    ):
+        rules = runtime.rules.spells
+        channel = (
+            next(
+                (candidate for candidate in rules.channels if candidate.id == command.channel_id),
+                None,
+            )
+            if rules
+            else None
+        )
+        if channel and channel.magic_item_id:
+            carried = next(i for i in resources.items if i.id == channel.magic_item_id)
+            instances = []
+            for instance in carried.enchantments:
+                if instance.spell_id == command.spell_id and instance.charges is not None:
+                    instance = instance.model_copy(update={"charges": instance.charges - 1})
+                instances.append(instance)
+            carried = carried.model_copy(update={"enchantments": tuple(instances)})
+            resources = resources.model_copy(
+                update={
+                    "items": tuple(carried if i.id == carried.id else i for i in resources.items)
+                }
+            )
     updated = before.model_copy(update={"revision": resources.revision, "resources": resources})
     if encounter is not None and (
         unable_to_handle or command.kind in ("start", "concentrate", "expand", "focus")

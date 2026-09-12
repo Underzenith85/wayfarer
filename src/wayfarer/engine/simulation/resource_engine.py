@@ -53,6 +53,11 @@ from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 
 
+def _require_splittable(item: Item) -> None:
+    if item.enchantments:
+        raise ValidationError("Enchanted items cannot be split")
+
+
 class ResourceEngine:
     def __init__(
         self,
@@ -200,6 +205,13 @@ class ResourceEngine:
             elif item.condition is not None:
                 raise ValidationError("Object condition requires a pinned durability profile")
             self._validate_item_charge(item, spec)
+            if len({binding.id for binding in item.enchantments}) != len(item.enchantments) or any(
+                binding.item_id != item.id or binding.owner_id != item.owner_id
+                for binding in item.enchantments
+            ):
+                raise ValidationError(
+                    "Magic-item bindings must be unique and follow item ownership"
+                )
             if spec.smartgun:
                 if (
                     not item.authorized_actor_ids
@@ -361,9 +373,14 @@ class ResourceEngine:
                             **item.model_dump(),
                             "owner_id": command.owner_id,
                             "container_id": command.container_id,
+                            "enchantments": tuple(
+                                binding.model_copy(update={"owner_id": command.owner_id})
+                                for binding in item.enchantments
+                            ),
                         }
                     )
                 else:
+                    _require_splittable(item)
                     if not command.new_item_id or command.new_item_id in items:
                         raise ValidationError("Split requires a new unique item ID")
                     items[item.id] = Item(

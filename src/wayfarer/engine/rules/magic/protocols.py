@@ -216,6 +216,36 @@ class MagicItemBinding(Record):
     always_on: bool = False
 
 
+class MagicItemInstance(MagicItemBinding):
+    """Completed, provenance-bearing enchantment attached to a concrete item."""
+
+    project_id: Id
+    recipe_id: Id
+    effect_id: Id
+    activation: Literal["cast", "always-on"] = "cast"
+    runtime_family: str | None = None
+    owner_id: Id
+    created_at: int = Field(ge=0)
+    method: Literal["quick-and-dirty", "slow-and-sure"]
+    maximum_charges: int | None = Field(default=None, ge=1)
+    charges: int | None = Field(default=None, ge=0)
+    maintenance_energy: int = Field(default=0, ge=0)
+
+    @model_validator(mode="after")
+    def charge_bounds(self) -> MagicItemInstance:
+        if (self.maximum_charges is None) != (self.charges is None):
+            raise ValueError("Magic-item charges require an explicit maximum")
+        if (
+            self.charges is not None
+            and self.maximum_charges is not None
+            and self.charges > self.maximum_charges
+        ):
+            raise ValueError("Magic-item charges exceed their maximum")
+        if self.always_on != (self.activation == "always-on"):
+            raise ValueError("Magic-item activation and always-on binding disagree")
+        return self
+
+
 def effective_item_power(power: int, mana: ManaLevel) -> int | None:
     if type(power) is not int or power < 1:
         raise ValidationError("Magic-item Power must be positive")

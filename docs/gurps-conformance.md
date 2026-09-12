@@ -198,6 +198,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.campaign.time_use` | no | yes | verified | #501; [shared-clock Time Use settlement](gurps-campaign-administration.md) |
 | `gurps.campaign.traps` | no | yes | verified | #501; [authored trap branches](gurps-campaign-administration.md) |
 | `gurps.projects.invention` | no | yes | verified | #524; [ordinary persisted invention lifecycle](gurps-inventions.md) |
+| `gurps.magic.items` | no | yes | verified | #526; [persisted enchanting and executable item lifecycle](gurps-enchanting.md) |
 | `gurps.world.law` | no | yes | verified | #502; [jurisdictions, legality, and enforcement](gurps-law.md) |
 | `gurps.social.skill_procedures` | no | yes | partial | #345; [bound social skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #353, #366, #367, #368, #369, #370 |
 | `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
@@ -856,6 +857,18 @@ shared activity guard, and produced lots remain mechanically unavailable without
 both a catalog definition and runtime adapter. Cinematic gadgeteering remains
 explicitly outside this ordinary adapter. The owned B472-473 source-ledger rows
 are reviewed; the prerelease engine version is unchanged.
+
+## Enchanting projects and magic items (#526)
+
+Quick and Dirty and Slow and Sure methods now use persisted, receipt-idempotent
+projects documented in [`gurps-enchanting.md`](gurps-enchanting.md). Recipes bind
+the #221 spell catalog to approved enchanters, concrete equipment, materials,
+workspace, energy, activation, Power, charges, maintenance, provenance and an
+optional executable family. Completed spell-family items reuse direct spell
+authority, perception, resistance, mana, energy and effect consumers; absent
+families block explicitly. Market price and availability remain authored
+campaign data. The B480-481 source-ledger rows are reviewed; the prerelease
+engine version is unchanged.
 
 ## Shared supernatural concentration (#117, #118, #171)
 

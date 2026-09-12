@@ -28,6 +28,7 @@ from wayfarer.engine.simulation.campaign.party import (
 )
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.health.recovery_guard import guard
+from wayfarer.engine.simulation.magic.enchanting import busy_actor_ids as enchanting_actor_ids
 from wayfarer.engine.simulation.projects.inventions import busy_actor_ids
 from wayfarer.engine.simulation.resources import Advance, Transfer
 from wayfarer.errors import ConflictError, ValidationError
@@ -313,6 +314,8 @@ class PartyService:
                 raise ConflictError("Combat advances its own subgroup clock")
             if command.actor_id in busy_actor_ids(state.resources.inventions):
                 raise ConflictError("Actor is committed to full-time invention work")
+            if command.actor_id in enchanting_actor_ids(state.resources.enchantment_projects):
+                raise ConflictError("Actor is committed to enchanting work")
             duration, body, family = self._duration(state, command)
             activity = QueuedActivity(
                 id=command.id,
