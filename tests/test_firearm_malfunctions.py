@@ -19,7 +19,7 @@ from wayfarer.engine.rules.skills.mundane.ranged import definitions
 from wayfarer.engine.rules.types.firearm import FirearmSpec
 from wayfarer.engine.simulation.combat.firearm_transitions import ServiceRecord
 from wayfarer.engine.simulation.combat.firearms import MalfunctionRecord, save_malfunction
-from wayfarer.engine.simulation.equipment.basic_equipment import BASIC_EQUIPMENT
+from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
 from wayfarer.engine.simulation.equipment.catalog import Damage, EquipmentCatalog, RangedMode
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt

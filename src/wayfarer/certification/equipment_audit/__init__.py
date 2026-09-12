@@ -36,7 +36,8 @@ from wayfarer.engine.rules.types.launcher import LauncherSpec
 from wayfarer.engine.rules.types.mount import MountSpec
 from wayfarer.engine.rules.types.readiness import ProjectileReadiness
 from wayfarer.engine.rules.types.spray import SprayerSpec
-from wayfarer.engine.simulation.equipment.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
+from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
+from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
 from wayfarer.engine.simulation.equipment.catalog import (
     LITE_EQUIPMENT,
     Armor,

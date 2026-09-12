@@ -22,11 +22,9 @@ from wayfarer.engine.rules.skills.mundane import inventory as skills
 from wayfarer.engine.rules.supernatural import inventory as supernatural_inventory
 from wayfarer.engine.rules.traits.mundane import inventory as traits
 from wayfarer.engine.rules.types.vehicle_coverage import validate_coverage
-from wayfarer.engine.simulation.equipment.basic_equipment import (
-    BASIC_EQUIPMENT,
-    ULTRATECH_INDEX,
-    VEHICLE_INDEX,
-)
+from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
+from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
+from wayfarer.engine.simulation.equipment.basic.vehicles import VEHICLE_INDEX
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record as Entity
 
