@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.tables.combat import maneuver_move_allowance
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import blasts
@@ -513,7 +514,9 @@ def finish_defense(
                 actor_id=attacker.actor_id,
                 reference_actor_id=pending.post_attack_basic_reference_id,
                 direction=pending.post_attack_basic_direction or "approach",
-                yards=max(1, (attacker.movement_allowance + 9) // 10),
+                yards=maneuver_move_allowance(
+                    "attack", attacker.movement_allowance, attacker.posture
+                ),
                 command_id=command.id,
                 revision=state.revision,
             )

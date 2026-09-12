@@ -15,7 +15,12 @@ from wayfarer.engine.simulation.combat.encounter import (
     RangedSituation,
     SideOpposition,
 )
-from wayfarer.engine.simulation.combat.maneuvers import AttackOption, DefenseOption, WaitTrigger
+from wayfarer.engine.simulation.combat.maneuvers import (
+    AttackOption,
+    CrouchAction,
+    DefenseOption,
+    WaitTrigger,
+)
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialFact, Placement
 from wayfarer.engine.simulation.combat.suppression import SprayTarget, SuppressionZone
 from wayfarer.engine.simulation.combat.unarmed.records import (
@@ -78,6 +83,7 @@ class TakeCombatTurn(CombatCommand):
     destination: GridPoint | None = None
     facing: Facing | None = None
     posture: Posture | None = None
+    crouch: CrouchAction | None = Field(default=None, exclude_if=lambda value: value is None)
     item_id: str | None = None
     target_id: str | None = None
     mode_id: str | None = None

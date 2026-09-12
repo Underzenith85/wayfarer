@@ -1,15 +1,18 @@
 """Individual combat phases and shared-clock fixtures (Campaigns B362-B366)."""
 
+from decimal import Decimal
 from pathlib import Path
 
+import pytest
 from test_encounter_context import load, setup
 
 from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
 from wayfarer.engine.simulation.campaign.party import Subgroup
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import CombatAllegiance, Encounter
 from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.combat.withdrawal import elapsed_seconds
+from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 
@@ -86,6 +89,73 @@ def test_defense_resources_reset_only_at_that_actors_next_turn() -> None:
     actors = {p.actor_id: p for p in after_a.participants}
     assert actors["a"].parries == ("weapon",) and actors["a"].retreat_used
     assert actors["b"].parries == () and not actors["b"].retreat_used
+
+
+def test_turn_order_uses_basic_speed_then_dx_and_stays_fixed() -> None:
+    from test_combat import combat_engine, resources
+    from test_scenes import configured
+
+    engine = combat_engine().combat
+    assert engine is not None
+    _, world = configured()
+    encounter = engine.start(
+        "fight",
+        "dock-fight",
+        (
+            Placement(actor_id="a", position=GridPoint(x=0, y=0)),
+            Placement(actor_id="b", position=GridPoint(x=1, y=0)),
+        ),
+        {"a": Decimal("5.25"), "b": Decimal("5.25")},
+        world,
+        resources(),
+        frozenset({"a", "b"}),
+        dexterities={"a": 10, "b": 11},
+    )
+    assert encounter.turn_order == ("b", "a")
+    assert engine._advance(engine._advance(encounter)).turn_order == ("b", "a")
+
+
+def test_allied_occupied_position_allows_passage_but_not_destination() -> None:
+    from test_combat import combat_engine, resources
+    from test_scenes import configured
+
+    engine = combat_engine().combat
+    assert engine is not None
+    _, world = configured()
+    encounter = engine.start(
+        "fight",
+        "dock-fight",
+        (
+            Placement(actor_id="a", position=GridPoint(x=0, y=0)),
+            Placement(actor_id="b", position=GridPoint(x=1, y=0)),
+        ),
+        {"a": 10, "b": 9},
+        world,
+        resources(),
+        frozenset({"a", "b"}),
+        allegiances=(
+            CombatAllegiance(actor_id="a", side_id="allies"),
+            CombatAllegiance(actor_id="b", side_id="allies"),
+        ),
+    )
+    moved, _, _ = engine.take_turn(
+        encounter,
+        actor_id="a",
+        maneuver="move",
+        resources=resources(),
+        destination=GridPoint(x=2, y=0),
+        command_id="cross-ally",
+    )
+    assert next(p for p in moved.participants if p.actor_id == "a").position == GridPoint(x=2, y=0)
+    with pytest.raises(ValidationError, match="occupied"):
+        engine.take_turn(
+            encounter,
+            actor_id="a",
+            maneuver="move",
+            resources=resources(),
+            destination=GridPoint(x=1, y=0),
+            command_id="end-on-ally",
+        )
 
 
 async def test_two_fights_overlap_at_the_minimum_subgroup_frontier(

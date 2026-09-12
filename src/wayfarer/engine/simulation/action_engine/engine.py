@@ -160,17 +160,24 @@ class ActionEngine:
                 frozenset(actor.actor_id for actor in state.actors),
             )
         validate_contexts(state, rules.scenes, rules.combat)
-        initiatives = self._validate_actor_builds(state)
+        initiatives, dexterities = self._validate_actor_builds(state)
         if any(
-            participant.initiative != initiatives[participant.actor_id]
+            (
+                participant.initiative != dexterities[participant.actor_id]
+                if participant.initiative_dx == 0
+                else participant.initiative != initiatives[participant.actor_id]
+                or participant.initiative_dx != dexterities[participant.actor_id]
+            )
             for encounter in state.encounters
             for participant in encounter.participants
         ):
             raise ValidationError("Combat initiative disagrees with compiled character")
         _validate_world_references(rules, state)
 
-    def _validate_actor_builds(self, state: PlayState) -> dict[str, int]:
-        """Every play actor is a legal, approved build whose resources match; returns DX."""
+    def _validate_actor_builds(
+        self, state: PlayState
+    ) -> tuple[dict[str, Decimal | int], dict[str, int]]:
+        """Validate builds and return combat Basic Speed plus DX tie breakers."""
 
         entities = {e.id: e for e in state.world.entities}
         actors = {a.actor_id: a for a in state.actors}
@@ -178,7 +185,8 @@ class ActionEngine:
             raise ValidationError("Invalid play actor IDs")
         owners = {o.actor_id: o for o in state.resources.owners}
         pools = {p.id: p for p in state.resources.pools}
-        initiatives: dict[str, int] = {}
+        initiatives: dict[str, Decimal | int] = {}
+        dexterities: dict[str, int] = {}
         for actor in state.actors:
             build = self.reviewer.compiler.compile(actor.proposal.draft).build
             if build is None:
@@ -189,7 +197,14 @@ class ActionEngine:
             }:
                 raise ValidationError("Resource prerequisites do not match the compiled build")
             values = {v.target: v.value for v in build.sheet.values}
-            initiatives[actor.actor_id] = int(values["attribute:dx"])
+            dexterity = int(values["attribute:dx"])
+            exact_gurps = bool(
+                self.combat is not None and self.combat.rules.gurps_equipment is not None
+            )
+            initiatives[actor.actor_id] = (
+                values["secondary:basic-speed"] if exact_gurps else dexterity
+            )
+            dexterities[actor.actor_id] = dexterity
             for kind, maximum in pool_limits(build).items():
                 pool = pools.get(f"{kind}:{actor.actor_id}")
                 if pool is None or pool.maximum != maximum:
@@ -219,7 +234,7 @@ class ActionEngine:
                     campaign_id=state.campaign_id,
                     actor_id=actor.actor_id,
                 )
-        return initiatives
+        return initiatives, dexterities
 
     def validate_rulings(self, state: PlayState) -> None:
         if len({r.id for r in state.rulings}) != len(state.rulings):

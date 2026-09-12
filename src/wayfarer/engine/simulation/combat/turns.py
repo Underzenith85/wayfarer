@@ -6,9 +6,14 @@ import hashlib
 import json
 from typing import TYPE_CHECKING, Literal
 
+from wayfarer.engine.rules.tables.combat import (
+    maneuver_move_allowance,
+    maneuver_permission,
+)
 from wayfarer.engine.simulation.combat import maneuver_rules
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import (
+    Combatant,
     CombatResult,
     Encounter,
     PendingDefense,
@@ -19,6 +24,7 @@ from wayfarer.engine.simulation.combat.encounter import (
 from wayfarer.engine.simulation.combat.maneuvers import (
     ATTACK_MANEUVERS,
     AttackOption,
+    CrouchAction,
     DefenseOption,
     WaitInterrupt,
     WaitTrigger,
@@ -38,6 +44,208 @@ if TYPE_CHECKING:
     from wayfarer.engine.simulation.combat.engine import CombatEngine
 
 
+def _square_occupancy(encounter: Encounter, actor_id: str) -> tuple[set[GridPoint], set[GridPoint]]:
+    occupied = {
+        p.position
+        for p in encounter.participants
+        if p.actor_id != actor_id and isinstance(p.position, GridPoint)
+    }
+    blockers = {
+        p.position
+        for p in encounter.participants
+        if p.actor_id != actor_id
+        and isinstance(p.position, GridPoint)
+        and encounter.blocks_passage(actor_id, p.actor_id)
+    }
+    return occupied, blockers
+
+
+def _apply_crouch(
+    engine: CombatEngine,
+    encounter: Encounter,
+    participant: Combatant,
+    maneuver: Maneuver,
+    posture: Posture | None,
+    crouch: CrouchAction | None,
+) -> tuple[Encounter, Combatant]:
+    """Validate and apply the free posture change that occurs before a maneuver."""
+    if crouch is None:
+        return encounter, participant
+    if engine.rules.gurps_equipment is None:
+        raise ValidationError("Crouching requires exact GURPS profile dispatch")
+    if (maneuver == "change_posture" or posture is not None) and crouch != "rise":
+        raise ValidationError("Crouching cannot compose a second posture action")
+    if crouch == "after":
+        if participant.posture != "standing":
+            raise ValidationError("Only a standing combatant may crouch")
+        if maneuver_permission(maneuver).movement not in ("none", "step"):
+            raise ValidationError("Crouching after an action permits at most a step")
+        return encounter, participant
+    expected, changed = (
+        ("standing", "crouching") if crouch == "before" else ("crouching", "standing")
+    )
+    if participant.posture != expected:
+        raise ValidationError(
+            "Only a standing combatant may crouch"
+            if crouch == "before"
+            else "Only a crouching combatant may rise freely"
+        )
+    participant = participant.model_copy(update={"posture": changed})
+    return engine._replace(encounter, participant), participant
+
+
+def _finish_crouch(participant: Combatant, crouch: CrouchAction | None) -> Combatant:
+    return (
+        participant.model_copy(update={"posture": "crouching"})
+        if crouch == "after"
+        else participant
+    )
+
+
+def _wait_interruption(
+    engine: CombatEngine,
+    original: Encounter,
+    original_resources: ResourceState,
+    result: tuple[Encounter, ResourceState, CombatResult],
+    *,
+    actor_id: str,
+    maneuver: Maneuver,
+    target_id: str | None,
+    command_json: str,
+    hex_path: tuple[Hex, ...],
+    basic_move: BasicMove | None,
+    crouch: CrouchAction | None,
+) -> tuple[Encounter, ResourceState, CombatResult] | None:
+    """Pause a completed declaration when a recorded Wait trigger matches it."""
+    action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
+    waiters = {p.actor_id: p for p in original.participants if p.actor_id != actor_id}
+    for waiter_id in original.turn_order:
+        waiter = waiters.get(waiter_id)
+        trigger = waiter.maneuver_state.wait if waiter else None
+        if trigger:
+            assert waiter is not None
+            before_actor = next(p for p in original.participants if p.actor_id == actor_id)
+            after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
+            zone_hit = not trigger.zone or any(
+                (point.q, point.r) in trigger.zone
+                for point in (
+                    hex_path
+                    or ((after_actor.position,) if isinstance(after_actor.position, Hex) else ())
+                )
+            )
+            stop_candidate = trigger.stop_thrust and (
+                original.spatial_kind != "basic"
+                and action == "attack"
+                and target_id == waiter_id
+                and engine.distance(before_actor.position, after_actor.position) >= 1
+                and engine.distance(after_actor.position, waiter.position)
+                < engine.distance(before_actor.position, waiter.position)
+            )
+            if stop_candidate and waiter.reach <= before_actor.reach:
+                raise ValidationError("Equal or shorter-reach stop-thrust ordering is unsupported")
+            stop_thrust = stop_candidate and waiter.reach > before_actor.reach
+            observable = True
+            if original.spatial_kind == "hex":
+                observable = sight(result[0], waiter, after_actor, board=engine.hex_map(result[0]))
+            elif original.spatial_kind == "basic":
+                observable = basic_visible(original, waiter_id, actor_id)
+            matches = (
+                (trigger.actor_id is None or trigger.actor_id == actor_id)
+                and trigger.action == action
+                and (trigger.target_id is None or trigger.target_id == target_id)
+                and zone_hit
+                and observable
+                and (not trigger.stop_thrust or stop_thrust)
+            )
+        else:
+            matches = False
+        if not matches:
+            continue
+        assert waiter is not None and trigger is not None
+        before_actor = next(p for p in original.participants if p.actor_id == actor_id)
+        after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
+        bonus = (
+            engine.distance(before_actor.position, after_actor.position) // 2
+            if trigger.stop_thrust
+            else 0
+        )
+        moved = (
+            basic_move is not None
+            if original.spatial_kind == "basic"
+            else engine.distance(before_actor.position, after_actor.position) >= 1
+        )
+        pose_changed = moved or crouch in ("before", "rise")
+        paused = engine._replace(
+            original,
+            waiter.model_copy(
+                update={
+                    "maneuver_state": waiter.maneuver_state.model_copy(
+                        update={"wait": None, "stop_thrust_damage_bonus": bonus}
+                    )
+                }
+            ),
+        )
+        resume_json = command_json
+        if pose_changed:
+            if original.spatial_kind == "basic":
+                if moved:
+                    paused = paused.model_copy(update={"spatial_context": result[0].spatial})
+                paused = engine._replace(
+                    paused, before_actor.model_copy(update={"posture": after_actor.posture})
+                )
+            else:
+                paused = engine._replace(
+                    paused,
+                    before_actor.model_copy(
+                        update={
+                            "position": after_actor.position,
+                            "facing": after_actor.facing,
+                            "hex_facing": after_actor.hex_facing,
+                            "posture": after_actor.posture,
+                        }
+                    ),
+                )
+            saved = json.loads(command_json)
+            saved.update(
+                {
+                    "destination": None,
+                    "facing": None,
+                    "posture": None,
+                    "hex_path": [],
+                    "hex_facing": None,
+                    "basic_move": None,
+                    "step_timing": "before",
+                    "crouch": None if crouch in ("before", "rise") else crouch,
+                }
+            )
+            if maneuver == "move":
+                saved["maneuver"] = "do_nothing"
+            resume_json = json.dumps(saved, sort_keys=True, separators=(",", ":"))
+        paused = paused.model_copy(
+            update={
+                "wait_interrupt": WaitInterrupt(
+                    waiter_id=waiter_id,
+                    actor_id=actor_id,
+                    turn_index=original.turn_index,
+                    command_json=resume_json,
+                    declaration=trigger,
+                )
+            }
+        )
+        return (
+            paused,
+            original_resources,
+            CombatResult(
+                encounter_id=paused.id,
+                code="combat.wait_triggered",
+                round=paused.round,
+                current_actor_id=actor_id,
+                available=engine.available(paused, waiter_id),
+            ),
+        )
+    return None
+
+
 def take_turn(
     engine: CombatEngine,
     encounter: Encounter,
@@ -48,6 +256,7 @@ def take_turn(
     destination: GridPoint | None = None,
     facing: Facing | None = None,
     posture: Posture | None = None,
+    crouch: CrouchAction | None = None,
     item_id: str | None = None,
     target_id: str | None = None,
     command_id: str,
@@ -105,6 +314,7 @@ def take_turn(
         destination=destination,
         facing=facing,
         posture=posture,
+        crouch=crouch,
         item_id=item_id,
         target_id=target_id,
         command_id=command_id,
@@ -121,131 +331,21 @@ def take_turn(
         suppression_fire=suppression_fire,
     )
     if engine.rules.gurps_equipment is not None and interrupt is None and command_json:
-        action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
-        waiters = {p.actor_id: p for p in original.participants if p.actor_id != actor_id}
-        for waiter_id in original.turn_order:
-            waiter = waiters.get(waiter_id)
-            trigger = waiter.maneuver_state.wait if waiter else None
-            if trigger:
-                assert waiter is not None
-                before_actor = next(p for p in original.participants if p.actor_id == actor_id)
-                after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
-                zone_hit = not trigger.zone or any(
-                    (point.q, point.r) in trigger.zone
-                    for point in (
-                        hex_path
-                        or (
-                            (after_actor.position,) if isinstance(after_actor.position, Hex) else ()
-                        )
-                    )
-                )
-                stop_candidate = trigger.stop_thrust and (
-                    original.spatial_kind != "basic"
-                    and action == "attack"
-                    and target_id == waiter_id
-                    and engine.distance(before_actor.position, after_actor.position) >= 1
-                    and engine.distance(after_actor.position, waiter.position)
-                    < engine.distance(before_actor.position, waiter.position)
-                )
-                if stop_candidate and waiter.reach <= before_actor.reach:
-                    raise ValidationError(
-                        "Equal or shorter-reach stop-thrust ordering is unsupported"
-                    )
-                stop_thrust = stop_candidate and waiter.reach > before_actor.reach
-                observable = True
-                if original.spatial_kind == "hex":
-                    observable = sight(
-                        result[0], waiter, after_actor, board=engine.hex_map(result[0])
-                    )
-                elif original.spatial_kind == "basic":
-                    observable = basic_visible(original, waiter_id, actor_id)
-                matches = (
-                    (trigger.actor_id is None or trigger.actor_id == actor_id)
-                    and trigger.action == action
-                    and (trigger.target_id is None or trigger.target_id == target_id)
-                    and zone_hit
-                    and observable
-                    and (not trigger.stop_thrust or stop_thrust)
-                )
-            else:
-                matches = False
-            if matches:
-                assert waiter is not None and trigger is not None
-                declaration = trigger
-                bonus = (
-                    engine.distance(before_actor.position, after_actor.position) // 2
-                    if declaration.stop_thrust
-                    else 0
-                )
-                moved = (
-                    basic_move is not None
-                    if original.spatial_kind == "basic"
-                    else engine.distance(before_actor.position, after_actor.position) >= 1
-                )
-                paused = engine._replace(
-                    original,
-                    waiter.model_copy(
-                        update={
-                            "maneuver_state": waiter.maneuver_state.model_copy(
-                                update={
-                                    "wait": None,
-                                    "stop_thrust_damage_bonus": bonus,
-                                }
-                            )
-                        }
-                    ),
-                )
-                resume_json = command_json
-                if moved:
-                    if original.spatial_kind == "basic":
-                        paused = paused.model_copy(update={"spatial_context": result[0].spatial})
-                    else:
-                        paused_actor = before_actor.model_copy(
-                            update={
-                                "position": after_actor.position,
-                                "facing": after_actor.facing,
-                                "hex_facing": after_actor.hex_facing,
-                                "posture": after_actor.posture,
-                            }
-                        )
-                        paused = engine._replace(paused, paused_actor)
-                    saved = json.loads(command_json)
-                    saved.update(
-                        {
-                            "destination": None,
-                            "facing": None,
-                            "posture": None,
-                            "hex_path": [],
-                            "hex_facing": None,
-                            "basic_move": None,
-                            "step_timing": "before",
-                        }
-                    )
-                    if maneuver == "move":
-                        saved["maneuver"] = "do_nothing"
-                    resume_json = json.dumps(saved, sort_keys=True, separators=(",", ":"))
-                paused = paused.model_copy(
-                    update={
-                        "wait_interrupt": WaitInterrupt(
-                            waiter_id=waiter_id,
-                            actor_id=actor_id,
-                            turn_index=original.turn_index,
-                            command_json=resume_json,
-                            declaration=declaration,
-                        )
-                    }
-                )
-                return (
-                    paused,
-                    original_resources,
-                    CombatResult(
-                        encounter_id=paused.id,
-                        code="combat.wait_triggered",
-                        round=paused.round,
-                        current_actor_id=actor_id,
-                        available=engine.available(paused, waiter_id),
-                    ),
-                )
+        interrupted = _wait_interruption(
+            engine,
+            original,
+            original_resources,
+            result,
+            actor_id=actor_id,
+            maneuver=maneuver,
+            target_id=target_id,
+            command_json=command_json,
+            hex_path=hex_path,
+            basic_move=basic_move,
+            crouch=crouch,
+        )
+        if interrupted is not None:
+            return interrupted
     return result
 
 
@@ -261,6 +361,7 @@ def apply_turn(
     destination: GridPoint | None = None,
     facing: Facing | None = None,
     posture: Posture | None = None,
+    crouch: CrouchAction | None = None,
     item_id: str | None = None,
     target_id: str | None = None,
     attack_option: AttackOption | None = None,
@@ -288,6 +389,9 @@ def apply_turn(
     if maneuver == "concentrate" and engine.rules.gurps_equipment is None:
         raise ValidationError("Concentration requires a bound ability command")
     participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+    encounter, participant = _apply_crouch(
+        engine, encounter, participant, maneuver, posture, crouch
+    )
     start_position = (
         None if isinstance(encounter.spatial, BasicSpatialContext) else participant.position
     )
@@ -309,6 +413,7 @@ def apply_turn(
         or hex_facing is not None
         or posture is not None
         or basic_move is not None
+        or crouch == "after"
     ):
         raise ValidationError("A post-attack step requires movement, facing, or posture")
     if deferred_step and encounter.spatial_kind == "hex":
@@ -335,13 +440,13 @@ def apply_turn(
         assert battlefield is not None
         if not isinstance(participant.position, GridPoint):
             raise ValidationError("Square step requires square coordinates")
-        occupied = {
-            p.position
-            for p in encounter.participants
-            if p.actor_id != actor_id and isinstance(p.position, GridPoint)
-        }
-        limit = max(1, (participant.movement_allowance + 9) // 10)
-        if not engine._reachable(battlefield, participant.position, destination, limit, occupied):
+        occupied, blockers = _square_occupancy(encounter, actor_id)
+        if destination in occupied:
+            raise ValidationError("Post-attack step cannot end in an occupied position")
+        limit = maneuver_move_allowance(
+            "attack", participant.movement_allowance, participant.posture
+        )
+        if not engine._reachable(battlefield, participant.position, destination, limit, blockers):
             raise ValidationError("Post-attack step exceeds allowance or terrain constraints")
     elif (
         deferred_step
@@ -373,16 +478,7 @@ def apply_turn(
     if basic_move is not None:
         if not basic or destination is not None or facing is not None or hex_path or hex_facing:
             raise ValidationError("Basic movement cannot mix mapped movement fields")
-        allowed_steps = {
-            "attack",
-            "aim",
-            "evaluate",
-            "feint",
-            "ready",
-            "concentrate",
-            "all_out_defense",
-        }
-        if maneuver != "move" and maneuver not in allowed_steps:
+        if maneuver_permission(maneuver).movement in ("none", "triggered"):
             raise ValidationError("Maneuver does not permit basic movement")
         if maneuver in ("attack", "aim", "evaluate", "feint"):
             raise ValidationError(
@@ -392,10 +488,15 @@ def apply_turn(
         if not deferred_step:
             allowance = (
                 engine.rules.prone_movement_allowance
-                if maneuver == "move" and participant.posture == "prone"
-                else participant.movement_allowance
-                if maneuver == "move"
-                else max(1, (participant.movement_allowance + 9) // 10)
+                if engine.rules.gurps_equipment is None
+                and maneuver == "move"
+                and participant.posture == "prone"
+                else maneuver_move_allowance(
+                    maneuver,
+                    participant.movement_allowance,
+                    participant.posture,
+                    increased_dodge=(maneuver == "all_out_defense" and defense_option == "dodge"),
+                )
             )
             encounter = move_basic(
                 encounter,
@@ -439,19 +540,11 @@ def apply_turn(
             second_mode_id=second_mode_id,
             basic=basic,
         )
-        step_maneuvers = {
-            "attack",
-            "aim",
-            "evaluate",
-            "feint",
-            "ready",
-            "concentrate",
-            "all_out_defense",
-        }
-        if facing is not None and maneuver in step_maneuvers:
+        permits_step = maneuver_permission(maneuver).movement == "step"
+        if facing is not None and permits_step:
             participant = participant.model_copy(update={"facing": facing})
             facing = None
-        if posture is not None and maneuver in step_maneuvers:
+        if posture is not None and permits_step:
             if destination is not None or {posture, participant.posture} != {
                 "standing",
                 "kneeling",
@@ -461,37 +554,27 @@ def apply_turn(
             posture = None
         # A single destination is one movement allowance, never a second action.
         if destination is not None and maneuver != "move" and not deferred_step:
-            limit = max(1, (participant.movement_allowance + 9) // 10)
-            if maneuver == "move_and_attack":
-                limit = participant.movement_allowance
-            elif maneuver == "all_out_attack" or (
-                maneuver == "all_out_defense" and defense_option == "dodge"
-            ):
-                limit = participant.movement_allowance // 2
-            elif maneuver not in (
-                "attack",
-                "aim",
-                "evaluate",
-                "feint",
-                "ready",
-                "concentrate",
-                "all_out_defense",
-            ):
+            permission = maneuver_permission(maneuver)
+            if permission.movement in ("none", "triggered"):
                 raise ValidationError("Maneuver does not permit a step")
+            limit = maneuver_move_allowance(
+                maneuver,
+                participant.movement_allowance,
+                participant.posture,
+                increased_dodge=maneuver == "all_out_defense" and defense_option == "dodge",
+            )
             if not isinstance(participant.position, GridPoint):
                 raise ValidationError("Square movement requires square coordinates")
-            occupied = {
-                p.position
-                for p in encounter.participants
-                if p.actor_id != actor_id and isinstance(p.position, GridPoint)
-            }
+            occupied, blockers = _square_occupancy(encounter, actor_id)
+            if destination in occupied:
+                raise ValidationError("Movement cannot end in an occupied position")
             assert battlefield is not None
             if not engine._reachable(
                 battlefield,
                 participant.position,
                 destination,
                 limit,
-                occupied,
+                blockers,
             ):
                 raise ValidationError("Maneuver movement exceeds allowance or terrain constraints")
             if maneuver == "all_out_attack":
@@ -578,6 +661,7 @@ def apply_turn(
             post_attack_hex_path=hex_path if deferred_step else (),
             post_attack_facing=hex_facing if deferred_step else None,
             post_attack_posture=posture if deferred_step else None,
+            post_attack_crouch=crouch == "after",
             post_attack_basic_reference_id=(
                 basic_move.reference_actor_id if deferred_step and basic_move else None
             ),
@@ -600,6 +684,7 @@ def apply_turn(
         )
     else:
         participant, resources = maneuver_rules.RULES[selected](declared)
+    participant = _finish_crouch(participant, crouch)
     encounter = engine._replace(encounter, participant)
     movement_path: tuple[Hex, ...] = ()
     if isinstance(start_position, Hex):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from decimal import Decimal
 from typing import Literal, Self
 
 from pydantic import (
@@ -49,7 +50,8 @@ from wayfarer.models import Id, Record
 
 class Combatant(Record):
     actor_id: Id
-    initiative: int = Field(ge=0, le=100)
+    initiative: Decimal | int = Field(ge=0, le=100)
+    initiative_dx: int = Field(default=0, ge=0, le=100, exclude_if=lambda value: value == 0)
     # Runtime mirrors for existing mechanics. Exact spatial state is serialized only
     # through Encounter.spatial_context; _replace keeps these mirrors synchronized.
     runtime_position: GridPoint | Hex | None = Field(
@@ -170,6 +172,7 @@ class PendingDefense(Record):
     post_attack_hex_path: tuple[Hex, ...] = ()
     post_attack_facing: HexFacing | None = None
     post_attack_posture: Posture | None = None
+    post_attack_crouch: bool = Field(default=False, exclude_if=lambda value: not value)
     post_attack_basic_reference_id: Id | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
@@ -349,6 +352,12 @@ class Encounter(Record):
         if placement is None:
             raise ValidationError("Combatant has no spatial placement")
         return placement
+
+    def blocks_passage(self, actor_id: str, other_id: str) -> bool:
+        """Allies may be crossed; foes and actors without declared sides may not."""
+        sides = {entry.actor_id: entry.side_id for entry in self.allegiances}
+        side = sides.get(actor_id)
+        return side is None or sides.get(other_id) != side
 
     def replace_placement(self, placement: SquareActorPlacement | HexActorPlacement) -> Encounter:
         context = self.spatial

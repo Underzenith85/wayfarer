@@ -2984,6 +2984,39 @@
         "tests/test_vehicle_modes.py::test_vehicle_hit_locations_disable_systems_and_apply_b483_stress"
       ],
       "owner": 397
+    },
+    {
+      "id": "basic-combat-maneuver-permission-matrix",
+      "sha256": "6ed62a85bdb75f19aa2f1e4859fde391e86ebbaa9469eb73f4a64a198040aaac",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-12",
+      "evidence": "Campaigns fourth printing, February 2008, B363-366; independently checked all 13 maneuver rows for movement, attack, defense, concentration, and full-turn permissions.",
+      "tests": [
+        "tests/test_gurps_maneuvers.py::test_maneuver_permission_table"
+      ],
+      "owner": 505
+    },
+    {
+      "id": "basic-combat-step-posture-movement",
+      "sha256": "e3792e7eb49ab271bc839d4ad8c93b2314e5d0ded2f7b8750f4a4f3f073b0bd9",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-12",
+      "evidence": "Campaigns fourth printing, February 2008, B363 and B367-368; independently checked Step rounding and posture-adjusted movement allowances.",
+      "tests": [
+        "tests/test_gurps_maneuvers.py::test_maneuver_movement_composes_move_posture_and_option"
+      ],
+      "owner": 505
+    },
+    {
+      "id": "basic-combat-turn-sequence-speed-dx",
+      "sha256": "5e46945b9608022685003c3ecfc846a3b1384de7a377d1842b387bfac3980edb",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-12",
+      "evidence": "Campaigns fourth printing, February 2008, B362-363; independently checked fixed Basic Speed and DX turn ordering and one-second cycles.",
+      "tests": [
+        "tests/test_combat_timing.py::test_turn_order_uses_basic_speed_then_dx_and_stays_fixed"
+      ],
+      "owner": 505
     }
   ]
 }

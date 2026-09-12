@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.tables.combat import maneuver_permission
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.combat.combat_height import HeightEffect, melee_height
 from wayfarer.engine.simulation.hex_geometry import (
@@ -51,6 +52,14 @@ def pose(actor: Combatant) -> Pose:
 def occupants(encounter: Encounter) -> tuple[Occupant, ...]:
     return tuple(
         Occupant(actor_id=p.actor_id, position=pose(p).position) for p in encounter.participants
+    )
+
+
+def movement_blockers(encounter: Encounter, actor_id: str) -> tuple[Occupant, ...]:
+    return tuple(
+        Occupant(actor_id=p.actor_id, position=pose(p).position)
+        for p in encounter.participants
+        if p.actor_id != actor_id and encounter.blocks_passage(actor_id, p.actor_id)
     )
 
 
@@ -167,15 +176,15 @@ def move_hex(
         or any(g.holder_id == actor.actor_id for g in encounter.grips)
     ):
         raise ValidationError("Release or escape the grapple before moving")
-    steps = {"attack", "aim", "evaluate", "feint", "ready", "concentrate", "all_out_defense"}
-    if maneuver not in steps | {"move", "move_and_attack", "all_out_attack"}:
+    permission = maneuver_permission(maneuver)
+    if permission.movement in ("none", "triggered"):
         raise ValidationError("Maneuver does not permit movement")
     allowance = actor.movement_allowance
-    step = maneuver in steps
+    step = permission.movement == "step"
     if maneuver == "all_out_attack" or (
         maneuver == "all_out_defense" and defense_option == "dodge"
     ):
-        allowance = (allowance + 1) // 2
+        allowance //= 2
         step = False
     if maneuver == "all_out_attack":
         current = pose(actor)
@@ -183,13 +192,20 @@ def move_hex(
             if arc(current, point) != "front":
                 raise ValidationError("All-Out Attack movement must be forward")
             current = current.model_copy(update={"position": point})
+    occupied_destinations = {
+        pose(participant).position
+        for participant in encounter.participants
+        if participant.actor_id != actor.actor_id
+    }
+    if path and path[-1] in occupied_destinations:
+        raise ValidationError("Movement cannot end in an occupied position")
     result = movement(
         board,
         pose(actor),
         path,
         move=allowance,
         step=step,
-        occupants=occupants(encounter),
+        occupants=movement_blockers(encounter, actor.actor_id),
         actor_id=actor.actor_id,
         final_facing=facing,
         final_turn_policy="one"

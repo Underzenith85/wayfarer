@@ -140,7 +140,7 @@ def test_b367_posture_and_b387_terrain_budget() -> None:
     assert posture_move(5, "crouching") == 3
     assert posture_move(5, "kneeling") == 1
     assert posture_move(5, "crawling") == 1
-    assert posture_move(5, "lying") == 0
+    assert posture_move(5, "lying") == 1
     assert posture_move(5, "sitting") == 0
     pose = Pose(position=h(0, 0), facing=0)
     terrain = board(Cell(position=h(1, 0), extra_cost=2))

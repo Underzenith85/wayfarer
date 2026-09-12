@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.party import Subgroup, group_for
 from wayfarer.engine.simulation.combat.commands import (
@@ -50,6 +53,21 @@ def _reinforcement_allegiance(
     return CombatAllegiance(actor_id=actor_id, side_id=command.side_id)
 
 
+def _initiative(build: ValidatedBuild, *, exact_gurps: bool) -> tuple[Decimal | int, int]:
+    values = {value.target: value.value for value in build.sheet.values}
+    dexterity = int(values["attribute:dx"])
+    return (values["secondary:basic-speed"] if exact_gurps else dexterity), (
+        dexterity if exact_gurps else 0
+    )
+
+
+def _initiative_order(participants: tuple[Combatant, ...]) -> tuple[str, ...]:
+    return tuple(
+        p.actor_id
+        for p in sorted(participants, key=lambda p: (-p.initiative, -p.initiative_dx, p.actor_id))
+    )
+
+
 def _join(
     state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
 ) -> CombatStep:
@@ -57,7 +75,6 @@ def _join(
     engine = context.engine
     resources = state.resources
     assert isinstance(command, JoinEncounter)
-
     if (
         encounter.status != "active"
         or encounter.pending_defense is not None
@@ -155,10 +172,13 @@ def _join(
             campaign_id=state.campaign_id,
             actor_id=joining_actor.actor_id,
         )
-        initiative = int(next(v.value for v in build.sheet.values if v.target == "attribute:dx"))
+        initiative, initiative_dx = _initiative(
+            build, exact_gurps=engine.rules.gurps_equipment is not None
+        )
         participant = Combatant(
             actor_id=joining_actor.actor_id,
             initiative=initiative,
+            initiative_dx=initiative_dx,
             position=placement.position
             if isinstance(placement, (SquareJoinPlacement, HexJoinPlacement))
             else None,
@@ -203,9 +223,7 @@ def _join(
             reinforcements_expected=encounter.reinforcements_expected,
         )
     joined_participants = encounter.participants
-    order = tuple(
-        p.actor_id for p in sorted(joined_participants, key=lambda p: (-p.initiative, p.actor_id))
-    )
+    order = _initiative_order(joined_participants)
     current_actor = encounter.current_actor_id
     encounter = encounter.model_copy(
         update={

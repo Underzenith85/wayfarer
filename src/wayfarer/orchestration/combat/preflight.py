@@ -83,6 +83,7 @@ def _prepare_command(
                     "hex_facing": None,
                     "facing": None,
                     "posture": None,
+                    "crouch": None,
                     "item_id": None,
                     "target_id": None,
                     "mode_id": None,
