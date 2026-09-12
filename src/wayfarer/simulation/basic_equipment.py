@@ -204,13 +204,14 @@ def firearm(
     *,
     reload_protocol: Literal["magazine", "per-round"] = "magazine",
     chamber_capacity: int = 0,
+    hands: Literal[1, 2] = 1,
 ) -> RangedMode:
-    """Construct one independently transcribed B278 conventional-firearm row."""
+    """Construct one independently transcribed B278-279 conventional-firearm row."""
     return RangedMode(
         id=identifier,
         skill_id="skill:guns-" + skill,
         minimum_st=minimum_st,
-        hands=1,
+        hands=hands,
         damage=Damage(
             basis="fixed",
             dice=damage_dice,
@@ -1153,6 +1154,118 @@ FIREARMS = (
             reload_protocol="per-round",
         ),
     ),
+    ranged_weapon(
+        "handgonne-90",
+        279,
+        3,
+        300,
+        15000,
+        firearm(
+            "shot",
+            "musket",
+            3,
+            2,
+            0,
+            "pi++",
+            0,
+            100,
+            600,
+            1,
+            1,
+            60,
+            10,
+            -6,
+            4,
+            "handgonne-90-round",
+            "muzzleloader",
+            hands=2,
+        ),
+        unsupported=("conditional-one-handed-firearm",),
+    ),
+    ranged_weapon(
+        "flintlock-musket-75",
+        279,
+        4,
+        200,
+        13000,
+        firearm(
+            "shot",
+            "musket",
+            4,
+            4,
+            0,
+            "pi++",
+            2,
+            100,
+            1500,
+            1,
+            1,
+            15,
+            10,
+            -6,
+            4,
+            "flintlock-musket-75-round",
+            "muzzleloader",
+            hands=2,
+        ),
+        unsupported=("conditional-one-handed-firearm",),
+    ),
+    ranged_weapon(
+        "rifle-musket-577",
+        279,
+        5,
+        150,
+        8500,
+        firearm(
+            "shot",
+            "rifle",
+            5,
+            4,
+            0,
+            "pi+",
+            4,
+            700,
+            2100,
+            1,
+            1,
+            15,
+            10,
+            -6,
+            3,
+            "rifle-musket-577-round",
+            "muzzleloader",
+            hands=2,
+        ),
+        unsupported=("conditional-one-handed-firearm",),
+    ),
+    ranged_weapon(
+        "cartridge-rifle-45",
+        279,
+        5,
+        200,
+        6000,
+        firearm(
+            "shot",
+            "rifle",
+            5,
+            5,
+            0,
+            "pi+",
+            3,
+            600,
+            2000,
+            1,
+            1,
+            4,
+            10,
+            -6,
+            3,
+            "cartridge-rifle-45-round",
+            "breechloader",
+            hands=2,
+        ),
+        unsupported=("conditional-one-handed-firearm",),
+    ),
 )
 
 FIREARM_AMMUNITION = tuple(
@@ -1172,6 +1285,23 @@ FIREARM_AMMUNITION = tuple(
         ("snub-revolver-38-round", 6, Decimal("0.8"), 40),
         ("auto-pistol-45-tl6-round", 6, Decimal("1.5"), 75),
         ("auto-pistol-9mm-tl6-round", 6, Fraction(8, 9), Fraction(400, 9)),
+    )
+)
+
+LONG_GUN_AMMUNITION = tuple(
+    EquipmentProfile(
+        definition_id="equipment:" + identifier,
+        provenance=source(279),
+        weight_millipounds=weight,
+        price=price,
+        technology_level=tl,
+        ammunition=True,
+    )
+    for identifier, tl, price, weight in (
+        ("handgonne-90-round", 3, 2, 100),
+        ("flintlock-musket-75-round", 4, 1, 50),
+        ("rifle-musket-577-round", 5, 1, 50),
+        ("cartridge-rifle-45-round", 5, 2, 100),
     )
 )
 
@@ -1255,6 +1385,7 @@ BASIC_EQUIPMENT = EquipmentCatalog(
         + MUSCLE_POWERED_AMMUNITION
         + FIREARMS
         + FIREARM_AMMUNITION
+        + LONG_GUN_AMMUNITION
         + ARMOR
         + SHIELDS
         + ORDINARY
