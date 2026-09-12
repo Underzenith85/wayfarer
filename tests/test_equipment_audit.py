@@ -147,8 +147,9 @@ def test_selection_rejects_unsupported_and_unknown_equipment() -> None:
     with pytest.raises(ValidationError, match="outside the selected-table audit"):
         validate_selection(BASIC, ("equipment:invented-blade",))
     assert require_supported("equipment:broadsword").definition_id == "equipment:broadsword"
+    assert require_supported("equipment:laptop").electronics is not None
     with pytest.raises(ValidationError, match="battery-and-computer-operation"):
-        require_supported("equipment:laptop")
+        require_supported("equipment:heavy-flashlight")
 
 
 def test_lite_equipment_gaps_are_recorded_separately_and_block_lite_selection() -> None:
@@ -193,7 +194,7 @@ def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
     assert report["selected_rows"] == 285
-    assert report["supported_rows"] == 124
+    assert report["supported_rows"] == 134
     assert report["sections_audited"] == 0
     assert report["sections_reconciled"] == 14
     assert report["workstream_complete"] is True

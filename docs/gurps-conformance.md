@@ -831,6 +831,16 @@ the combined audit and the Basic Set certification report with their owners.
 `scripts/audit_gurps_equipment.py --require-complete` exits nonzero, which is the
 current and expected state. #114 stays partial and #122 stays blocked.
 
+## Executable electronics (#523)
+
+Communicators, sensors, and computers now use typed equipment suites and the
+engine-authorized, receipt-idempotent reducer documented in
+[`gurps-electronics.md`](gurps-electronics.md). Power, operating skill, range,
+visibility, sensor context, program Complexity, storage, terminal access, and
+task support remain explicit. The B470-471 source-ledger rows are reviewed and
+bound to independent acceptance evidence; the prerelease engine version is
+unchanged.
+
 ## Shared supernatural concentration (#117, #118, #171)
 
 Spells and abilities use one pending concentration guard. An actor cannot start
