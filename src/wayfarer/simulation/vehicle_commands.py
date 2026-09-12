@@ -53,6 +53,23 @@ class VehicleSkid(Command):
     kind: Literal["vehicle-skid"] = "vehicle-skid"
     transport_id: str
     protection: tuple[PassengerProtection, ...] = ()
+    target_transport_id: str | None = None
+    target_actor_id: str | None = None
+    target_q: int | None = Field(default=None, ge=-1000, le=1000)
+    target_r: int | None = Field(default=None, ge=-1000, le=1000)
+    impact_angle: Literal["head-on", "rear-end", "side-on"] | None = None
+    speed_after: int = Field(default=0, ge=0, le=100)
+    target_speed_after: int = Field(default=0, ge=0, le=100)
+
+
+class ResolveVehicleEjection(Command):
+    kind: Literal["vehicle-resolve-ejection"] = "vehicle-resolve-ejection"
+    transport_id: str
+    passenger_id: str
+    destination_q: int = Field(ge=-1000, le=1000)
+    destination_r: int = Field(ge=-1000, le=1000)
+    landing: Literal["hard", "soft", "water"] = "hard"
+    swimming_skill: int | None = Field(default=None, ge=1, le=50)
 
 
 class UpgradeVehicle(Command):

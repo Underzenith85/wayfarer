@@ -29,7 +29,6 @@ COMBAT: Final = "gurps.vehicles.combat"
 # The issues this audit split its residual scope into. A closed owner cannot
 # hold a blocker, which is why #120 and #207 are superseded rather than cited.
 SUPERSEDED: Final = (120, 207)
-GROUND_TERRAIN_OWNER: Final = 392
 AIR_MOVEMENT_OWNER: Final = 393
 WATER_CASUALTY_OWNER: Final = 394
 SPACE_MOVEMENT_OWNER: Final = 395
@@ -78,14 +77,7 @@ class ModeCoverage:
 # B469 ground control loss splits margin against stability into a skid or a
 # crash, B430-B432 resolve the collision exchange and the occupants, and the
 # restart path is the shared transport transaction.
-GROUND_RESIDUALS: Final = MappingProxyType(
-    {
-        "slopes and terrain-specific travel tables": GROUND_TERRAIN_OWNER,
-        "unsafe terrain deceleration beyond the supported envelope": GROUND_TERRAIN_OWNER,
-        "minor skid paths through difficult terrain or another actor": GROUND_TERRAIN_OWNER,
-        "ejection destination, follow-on impacts and the occupant manifest": GROUND_TERRAIN_OWNER,
-    }
-)
+GROUND_RESIDUALS: Final[Mapping[str, int]] = MappingProxyType({})
 GROUND_MODES: Final = (
     "ground-wheeled",
     "ground-tracked",

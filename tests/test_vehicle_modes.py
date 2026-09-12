@@ -16,19 +16,20 @@ from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.rules.transport_types import Transport
-from wayfarer.rules.vehicle_types import PassengerProtection
+from wayfarer.rules.vehicle_types import PassengerEjection, PassengerProtection
 from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield
 from wayfarer.simulation.resources import ResourceEngine, ResourceState
 from wayfarer.simulation.transport import apply_transport
 from wayfarer.simulation.vehicle_collisions import collision_exchange, passenger_injury
 from wayfarer.simulation.vehicle_commands import (
+    ResolveVehicleEjection,
     VehicleControl,
     VehicleImpact,
     VehicleManeuver,
     VehicleRollover,
     VehicleSkid,
 )
-from wayfarer.simulation.vehicle_motion import safe_deceleration
+from wayfarer.simulation.vehicle_motion import ground_cruising_speed, safe_deceleration
 
 
 def fixture(**changes: object) -> tuple[ResourceEngine, ResourceState]:
@@ -120,6 +121,100 @@ def test_b394_turn_radius_and_b395_terrain_costs() -> None:
         engine, state, maneuver(6, (0,) * 5), system=True, board=map_fixture(mud=True)
     )
     assert (updated.transports[0].q, updated.transports[0].speed) == (5, 5)
+
+
+def test_b466_ground_cruising_speed_tables_and_road_bound_cap() -> None:
+    assert ground_cruising_speed(60, 3, "ground-wheeled", "very-bad") == 6
+    assert ground_cruising_speed(60, 3, "ground-tracked", "very-bad") == 9
+    assert ground_cruising_speed(60, 3, "ground-walking", "very-bad") == 12
+    assert ground_cruising_speed(60, 3, "ground-wheeled", "good") == 75
+    assert (
+        ground_cruising_speed(60, 3, "ground-wheeled", "average", road_bound=True, on_road=False)
+        == 6
+    )
+
+
+def test_authored_slope_costs_and_automatic_terrain_control_loss() -> None:
+    engine, state = fixture()
+    board = map_fixture().model_copy(
+        update={
+            "cells": tuple(
+                cell.model_copy(update={"elevation": 1, "extra_cost": 1})
+                if cell.position == Hex(q=1, r=0)
+                else cell
+                for cell in map_fixture().cells
+            )
+        }
+    )
+    climbed = apply_transport(engine, state, maneuver(3, (0, 0)), system=True, board=board)
+    assert (climbed.transports[0].q, climbed.transports[0].speed) == (2, 2)
+
+    engine, state = fixture(speed=20)
+    board = map_fixture().model_copy(
+        update={
+            "cells": tuple(
+                cell.model_copy(update={"extra_cost": 2})
+                if 1 <= cell.position.q <= 6 and cell.position.r == 0
+                else cell
+                for cell in map_fixture().cells
+            )
+        }
+    )
+    lost = apply_transport(engine, state, maneuver(20, (0,) * 8), system=True, board=board)
+    assert (lost.transports[0].status, lost.transports[0].speed) == ("skidding", 8)
+    assert lost.transports[0].traces[-1].reason == "automatic-terrain-control-loss"
+
+
+def test_minor_skid_consumes_difficult_terrain_points() -> None:
+    engine, state = fixture(speed=5, status="skidding", remaining_points=5)
+    board = map_fixture().model_copy(
+        update={
+            "cells": tuple(
+                cell.model_copy(update={"extra_cost": 1})
+                if cell.position == Hex(q=1, r=0)
+                else cell
+                for cell in map_fixture().cells
+            )
+        }
+    )
+    resolved = apply_transport(
+        engine,
+        state,
+        VehicleSkid(id="skid", actor_id="a", expected_revision=0, transport_id="ride"),
+        system=True,
+        board=board,
+        health={"a": 12},
+    )
+    assert (resolved.transports[0].q, resolved.transports[0].remaining_points) == (4, 0)
+    assert resolved.transports[0].status == "controlled"
+
+
+def test_minor_skid_hits_declared_actor_and_preserves_impact_pose() -> None:
+    engine, state = fixture(speed=5, status="skidding", remaining_points=5)
+    resolved = apply_transport(
+        engine,
+        state,
+        VehicleSkid(
+            id="skid-hit",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            target_actor_id="b",
+            target_q=2,
+            target_r=0,
+        ),
+        system=True,
+        board=map_fixture(),
+        occupied=frozenset({Hex(q=2, r=0)}),
+        health={"a": 12, "b": 12},
+        rng=RecordedDice([6, 1, 1]),
+    )
+    assert (resolved.transports[0].q, resolved.transports[0].status) == (
+        1,
+        "control-required",
+    )
+    assert next(p for p in resolved.pools if p.id == "hp:b").current == 6
+    assert resolved.transports[0].traces[-2].reason == "skid-collision-actor"
 
 
 def test_risky_turn_failure_stores_remaining_course_and_resolves_skid() -> None:
@@ -434,6 +529,47 @@ def test_open_cabin_ejection_distance_uses_damage_before_armor() -> None:
     trace = updated.transports[0].traces[-1]
     assert (trace.basic_damage, trace.injury, trace.ejection_yards) == (8, 1, 1)
     assert updated.transports[0].status == "ejection-pending"
+    assert updated.transports[0].occupants == ()
+    assert updated.transports[0].pending_ejections[0].actor_id == "a"
+    landed = apply_transport(
+        engine,
+        updated,
+        ResolveVehicleEjection(
+            id="land",
+            actor_id="a",
+            expected_revision=1,
+            transport_id="ride",
+            passenger_id="a",
+            destination_q=1,
+            destination_r=0,
+        ),
+        system=True,
+        board=map_fixture(),
+        health={"a": 12},
+        rng=RecordedDice([1, 1, 1, 1]),
+    )
+    assert landed.transports[0].pending_ejections == ()
+    assert landed.transports[0].traces[-1].model_dump()["destination_q"] == 1
+    assert next(p for p in landed.pools if p.id == "hp:a").current == 5
+    restored = ResourceState.model_validate_json(landed.model_dump_json())
+    assert (
+        apply_transport(
+            engine,
+            restored,
+            ResolveVehicleEjection(
+                id="land",
+                actor_id="a",
+                expected_revision=1,
+                transport_id="ride",
+                passenger_id="a",
+                destination_q=1,
+                destination_r=0,
+            ),
+            system=True,
+            rng=RecordedDice([]),
+        )
+        == restored
+    )
     with pytest.raises(ValidationError, match="consequences"):
         apply_transport(
             engine,
@@ -443,6 +579,49 @@ def test_open_cabin_ejection_distance_uses_damage_before_armor() -> None:
             board=map_fixture(),
             rng=RecordedDice([]),
         )
+
+
+def test_water_ejection_enters_existing_drowning_schedule() -> None:
+    engine, state = fixture(open_cabin=True)
+    transport = state.transports[0].model_copy(
+        update={
+            "occupants": (),
+            "status": "ejection-pending",
+            "pending_ejections": (
+                PassengerEjection(
+                    actor_id="a",
+                    origin_q=0,
+                    origin_r=0,
+                    facing=0,
+                    distance_yards=1,
+                    collision_speed=5,
+                ),
+            ),
+        }
+    )
+    state = state.model_copy(update={"transports": (transport,)})
+    resolved = apply_transport(
+        engine,
+        state,
+        ResolveVehicleEjection(
+            id="water-entry",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            passenger_id="a",
+            destination_q=1,
+            destination_r=0,
+            landing="water",
+            swimming_skill=12,
+        ),
+        system=True,
+        board=map_fixture(),
+        health={"a": 12},
+        rng=RecordedDice([1, 1, 1]),
+    )
+    assert resolved.hazards[0].spec.kind == "drowning"
+    assert resolved.hazards[0].stage == "swimming"
+    assert resolved.transports[0].traces[-1].reason == "ejection-water"
 
 
 def test_planar_footprint_blocks_swinging_tail_through_obstacle() -> None:

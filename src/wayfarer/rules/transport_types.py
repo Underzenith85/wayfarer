@@ -5,7 +5,7 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.models import Record
-from wayfarer.rules.vehicle_types import Locomotion, VehicleTrace
+from wayfarer.rules.vehicle_types import Locomotion, PassengerEjection, VehicleTrace
 
 
 class Transport(Record):
@@ -29,10 +29,13 @@ class Transport(Record):
     skid_thirds: int = Field(default=0, ge=0)
     subhex_thirds: int = Field(default=0, ge=0, le=2)
     traces: tuple[VehicleTrace, ...] = ()
+    pending_ejections: tuple[PassengerEjection, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
     locomotion: Locomotion
     body_id: str = Field(min_length=1, max_length=200)
     operator_id: str = Field(min_length=1, max_length=200)
-    occupants: tuple[str, ...] = Field(min_length=1)
+    occupants: tuple[str, ...] = ()
     acceleration: int = Field(gt=0, le=100)
     top_speed: int = Field(gt=0, le=100)
     handling: int = Field(default=0, ge=-10, le=10)
@@ -68,11 +71,16 @@ class Transport(Record):
 
     @model_validator(mode="after")
     def consistent(self) -> Self:
-        if (
-            len(set(self.occupants)) != len(self.occupants)
-            or self.operator_id not in self.occupants
+        if len(set(self.occupants)) != len(self.occupants) or (
+            self.operator_id not in self.occupants
+            and not any(e.actor_id == self.operator_id for e in self.pending_ejections)
+            and self.status != "crashed"
         ):
             raise ValueError("Transport requires a unique manifest including its operator")
+        if len({e.actor_id for e in self.pending_ejections}) != len(self.pending_ejections) or set(
+            self.occupants
+        ) & {e.actor_id for e in self.pending_ejections}:
+            raise ValueError("Pending ejections must be unique and outside the manifest")
         if self.mechanics_version == 1 and self.locomotion not in (
             "ground-wheeled",
             "ground-mount",

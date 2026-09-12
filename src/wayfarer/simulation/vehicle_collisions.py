@@ -5,11 +5,11 @@ import hashlib
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.transport_types import Transport
-from wayfarer.rules.vehicle_types import PassengerProtection, VehicleTrace
+from wayfarer.rules.vehicle_types import PassengerEjection, PassengerProtection, VehicleTrace
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.objects import DamageObject, apply_object
 from wayfarer.simulation.resources import ResourceEngine, ResourceState
-from wayfarer.simulation.vehicle_commands import VehicleImpact
+from wayfarer.simulation.vehicle_commands import VehicleImpact, VehicleSkid
 
 
 def collision_exchange(
@@ -98,6 +98,153 @@ def passenger_injury(raw: int, protection: PassengerProtection) -> int:
     remaining = max(0, raw - restraint - protection.innate_dr)
     penetrating = max(0, remaining - protection.worn_dr)
     return penetrating if penetrating else remaining // 5 if protection.worn_dr else 0
+
+
+def impact_actor(
+    engine: ResourceEngine,
+    state: ResourceState,
+    command: VehicleSkid,
+    vehicle: Transport,
+    target_actor_id: str,
+    health: dict[str, int],
+    rng: RandomSource,
+) -> tuple[ResourceState, Transport]:
+    """Resolve a skidding vehicle striking one declared stationary actor (B430-B432)."""
+    from wayfarer.simulation.transport import collision_dice
+
+    if target_actor_id in vehicle.occupants or target_actor_id not in health:
+        raise ValidationError("Skid collision requires a distinct compiled target actor")
+    target_pool = next((p for p in state.pools if p.id == "hp:" + target_actor_id), None)
+    if target_pool is None or target_pool.injury is None:
+        raise ValidationError("Skid target requires an authoritative injury pool")
+    vehicle_hp, _ = durability(engine, state, vehicle.body_id)
+    vehicle_dice, actor_dice = collision_exchange(
+        vehicle_hp, vehicle.speed, target_pool.maximum, 0, "side-on"
+    )
+    actor_raw, actor_rolls = roll_damage(vehicle_dice, rng)
+    body_raw, body_rolls = roll_damage(actor_dice, rng)
+    state, body_injury = hurt_body(
+        engine, state, vehicle.operator_id, vehicle.body_id, command.id, body_raw, rng
+    )
+    state, actor_result = apply_injury(
+        state,
+        Wound(
+            id=internal_id(command.id, "skid-target:" + target_actor_id),
+            actor_id=target_actor_id,
+            expected_revision=state.revision,
+            basic_damage=actor_raw,
+            resistance=0,
+            damage_type="cr",
+            injury_source="area",
+        ),
+        ht=health[target_actor_id],
+        rng=rng,
+        system=True,
+    )
+    traces: tuple[VehicleTrace, ...] = (
+        VehicleTrace(
+            command_id=command.id,
+            reason="skid-collision-body",
+            actor_id=vehicle.body_id,
+            dice=body_rolls,
+            basic_damage=body_raw,
+            injury=body_injury,
+        ),
+        VehicleTrace(
+            command_id=command.id,
+            reason="skid-collision-actor",
+            actor_id=target_actor_id,
+            dice=actor_rolls,
+            basic_damage=actor_raw,
+            injury=actor_result.injury,
+        ),
+    )
+    protections = {p.actor_id: p for p in command.protection}
+    if len(protections) != len(command.protection) or not set(protections) <= set(
+        vehicle.occupants
+    ):
+        raise ValidationError("Duplicate or unknown skid passenger protection")
+    ejections: list[PassengerEjection] = []
+    passenger_traces: list[VehicleTrace] = []
+    for actor in vehicle.occupants:
+        if actor not in health:
+            raise ValidationError("Skid collision requires compiled occupant HT")
+        protection = protections.get(
+            actor,
+            PassengerProtection(
+                actor_id=actor,
+                belted=vehicle.restraints == "seatbelts",
+                airbag=vehicle.restraints == "airbags",
+            ),
+        )
+        if vehicle.open_cabin and not protection.belted and protection.strength is None:
+            raise ValidationError("Open-cabin skid ejection requires compiled passenger ST")
+        pool = next(p for p in state.pools if p.id == "hp:" + actor)
+        raw, rolls = roll_damage(
+            collision_dice(pool.maximum, vehicle.speed - command.speed_after, hard=True), rng
+        )
+        injury = passenger_injury(raw, protection)
+        state, result = apply_injury(
+            state,
+            Wound(
+                id=internal_id(command.id, "skid-passenger:" + actor),
+                actor_id=actor,
+                expected_revision=state.revision,
+                basic_damage=injury,
+                resistance=0,
+                damage_type="cr",
+                injury_source="area",
+            ),
+            ht=health[actor],
+            rng=rng,
+            system=True,
+        )
+        distance = (
+            raw // (protection.strength - 2)
+            if vehicle.open_cabin and not protection.belted and protection.strength is not None
+            else 0
+        )
+        if distance:
+            ejections.append(
+                PassengerEjection(
+                    actor_id=actor,
+                    origin_q=vehicle.q,
+                    origin_r=vehicle.r,
+                    facing=vehicle.facing,
+                    distance_yards=distance,
+                    collision_speed=vehicle.speed - command.speed_after,
+                )
+            )
+        passenger_traces.append(
+            VehicleTrace(
+                command_id=command.id,
+                reason="skid-collision-passenger",
+                actor_id=actor,
+                dice=rolls,
+                basic_damage=raw,
+                injury=result.injury,
+                ejection_yards=distance,
+            )
+        )
+    item = next(i for i in state.items if i.id == vehicle.body_id)
+    assert item.condition is not None
+    return state, vehicle.model_copy(
+        update={
+            "speed": command.speed_after,
+            "remaining_points": 0,
+            "status": "ejection-pending"
+            if ejections
+            else "crashed"
+            if item.condition.disabled
+            else "control-required",
+            "aim_lost": True,
+            "occupants": tuple(
+                actor for actor in vehicle.occupants if actor not in {e.actor_id for e in ejections}
+            ),
+            "pending_ejections": (*vehicle.pending_ejections, *ejections),
+            "traces": (*vehicle.traces, *traces, *passenger_traces),
+        }
+    )
 
 
 def impact(
@@ -201,7 +348,7 @@ def impact(
                 injury=injury,
             )
         ]
-        ejected = False
+        ejections: list[PassengerEjection] = []
         for actor in vehicle.occupants:
             protection = protections.get(
                 actor,
@@ -237,7 +384,17 @@ def impact(
             if vehicle.open_cabin and not protection.belted:
                 assert protection.strength is not None
                 distance = occupant_damage // (protection.strength - 2)
-            ejected |= distance > 0
+            if distance:
+                ejections.append(
+                    PassengerEjection(
+                        actor_id=actor,
+                        origin_q=vehicle.q,
+                        origin_r=vehicle.r,
+                        facing=vehicle.facing,
+                        distance_yards=distance,
+                        collision_speed=vehicle.speed - after,
+                    )
+                )
             traces.append(
                 VehicleTrace(
                     command_id=command.id,
@@ -254,7 +411,7 @@ def impact(
         status = "crashed" if item.condition.disabled else "control-required"
         # Any collision is hazardous. Require a control decision even if DR
         # stopped the body damage; actual ejection placement is a live consumer.
-        if ejected:
+        if ejections:
             status = "ejection-pending"
         updated_vehicles.append(
             vehicle.model_copy(
@@ -262,6 +419,12 @@ def impact(
                     "speed": after,
                     "status": status,
                     "aim_lost": True,
+                    "occupants": tuple(
+                        actor
+                        for actor in vehicle.occupants
+                        if actor not in {e.actor_id for e in ejections}
+                    ),
+                    "pending_ejections": (*vehicle.pending_ejections, *ejections),
                     "traces": (*vehicle.traces, *traces),
                 }
             )

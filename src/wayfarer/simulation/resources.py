@@ -175,7 +175,15 @@ class ResourceState(Record):
             raise ValueError("Invalid hazard timeline")
         if len({t.id for t in self.transports}) != len(self.transports):
             raise ValueError("Duplicate transport ID")
-        manifest = [actor for t in self.transports for actor in (*t.occupants, t.body_id)]
+        manifest = [
+            actor
+            for t in self.transports
+            for actor in (
+                *t.occupants,
+                *(e.actor_id for e in t.pending_ejections),
+                t.body_id,
+            )
+        ]
         if len(set(manifest)) != len(manifest):
             raise ValueError("Transport bodies and occupants cannot be shared")
         pools = {p.id: p for p in self.pools}
