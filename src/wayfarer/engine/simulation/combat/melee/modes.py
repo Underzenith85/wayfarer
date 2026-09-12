@@ -6,6 +6,7 @@ from wayfarer.engine.rules.skills.mundane.ranged import require_technology
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.combat.encounter import Combatant
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.objects.locations import item_hands, unavailable_hand
 from wayfarer.engine.simulation.equipment.catalog import (
     MeleeMode,
@@ -59,10 +60,6 @@ def mode(
     )
     if entry is None:
         raise ValidationError("Weapon is not in the pinned combat catalog")
-    # deferred: melee.modes -> objects.combat -> melee.defense -> melee.modes.
-    # A weapon's effective mode depends on the object's condition, and object combat
-    # scores defenses made with that mode.
-    from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
     entry = effective_entry(runtime, item)
     modes = tuple(m for m in entry.modes if (mode_id is None or m.id == mode_id))
@@ -197,8 +194,6 @@ def heavy_parry_weight(
         e.definition_id == item.definition_id and e.modes for e in equipment.entries
     ):
         return None
-    # deferred: melee.modes -> objects.combat -> melee.defense -> melee.modes, as above.
-    from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
     entry = effective_entry(runtime, item)
     modes = tuple(m for m in entry.modes if mode_id is None or m.id == mode_id)

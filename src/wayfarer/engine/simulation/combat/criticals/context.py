@@ -13,7 +13,7 @@ from wayfarer.engine.simulation.combat.critical import (
     save_critical,
 )
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.objects.combat import effective_entry
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.rules_context import RulesContext

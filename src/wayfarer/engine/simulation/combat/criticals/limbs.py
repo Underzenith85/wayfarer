@@ -13,7 +13,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.objects.combat import effective_entry
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode, WeaponMode
 from wayfarer.engine.simulation.health.injury import (
     DisableLocation,

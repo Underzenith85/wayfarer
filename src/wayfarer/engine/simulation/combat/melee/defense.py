@@ -12,6 +12,7 @@ from wayfarer.engine.simulation.combat.combat_height import defense_height
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import defense_penalty as entangle_defense_penalty
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
 from wayfarer.engine.simulation.combat.objects.locations import item_hands
@@ -228,8 +229,6 @@ def defense_value(
     for item in ready:
         if item_id is not None and item.id != item_id:
             continue
-        # deferred: melee.defense -> objects.combat -> melee.defense, as above.
-        from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
         entry = effective_entry(runtime, item)
         if (
@@ -266,8 +265,8 @@ def defense_value(
                     if incoming_weight > compiled.statistics.basic_lift * 1000 * weapon_mode.hands:
                         continue
                     if 0 < 3 * entry.weight_millipounds <= incoming_weight:
-                        # deferred: melee.modes -> objects.combat -> melee.defense -> melee.heavy_parry ->
-                        # melee.modes.  A heavy parry is scored from the weapon mode it is made with.
+                        # deferred: melee.defense -> melee.heavy_parry -> objects.combat -> melee.defense.
+                        # Heavy-parry breakage still synchronizes equipment through object combat.
                         from wayfarer.engine.simulation.combat.melee.heavy_parry import (
                             require_breakage,
                         )
