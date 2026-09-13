@@ -74,7 +74,7 @@ def test_registry_and_inventory_account_for_all_six_power_groups() -> None:
     assert (antipsi.talent_id, antipsi.talent_cost, antipsi.power_modifier) == (None, None, 0)
     rows = {row.id: row for row in inventory().entries if row.id in POWER_IDS}
     assert set(rows) == POWER_IDS
-    assert all(row.blockers == (191,) for row in rows.values())
+    assert all(row.blockers == () for row in rows.values())
     assert all(row.evidence == ("tests/test_psi_powers.py",) for row in rows.values())
 
 

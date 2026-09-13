@@ -250,6 +250,7 @@ class AuditRow:
     scope: str
     required_profiles: tuple[str, ...]
     blockers: tuple[int, ...]
+    evidence: tuple[str, ...]
 
 
 @cache
@@ -410,6 +411,7 @@ def rows() -> tuple[AuditRow, ...]:
                     }
                 )
             ),
+            ("tests/test_equipment_audit.py",),
         )
         for section in current.sections
     ]
@@ -422,6 +424,8 @@ def rows() -> tuple[AuditRow, ...]:
             "equipment-footnotes",
             (current.profile_id,),
             (),
+            tuple(sorted({case.partition("::")[0] for case in footnote.tests}))
+            or ("tests/test_equipment_audit.py",),
         )
         for footnote in current.footnotes
     )
@@ -434,6 +438,8 @@ def rows() -> tuple[AuditRow, ...]:
             "equipment-field-provenance",
             (current.profile_id, current.lite_profile_id),
             () if record.gap is None else (PROFILE_FIELD_ISSUE,),
+            tuple(sorted({case.partition("::")[0] for case in record.tests}))
+            or ("tests/test_equipment_audit.py",),
         )
         for record in current.fields
     )
@@ -446,6 +452,7 @@ def rows() -> tuple[AuditRow, ...]:
             "equipment-package-binding",
             (binding.catalog,),
             () if binding.status == "bound" else (binding.owner_issue,),
+            tuple(sorted({case.partition("::")[0] for case in binding.tests})),
         )
         for binding in current.bindings
     )
@@ -458,6 +465,7 @@ def rows() -> tuple[AuditRow, ...]:
             "lite-equipment-gaps",
             (current.lite_profile_id,),
             (gap.owner_issue,),
+            ("tests/test_equipment_audit.py",),
         )
         for gap in current.lite_gaps
     )

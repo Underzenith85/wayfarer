@@ -1,7 +1,7 @@
-"""Source-indexed Basic Set supernatural coverage, never an execution allowlist.
+"""Source-indexed Basic Set supernatural coverage, separate from package activation.
 
-The audit is separate from saved rules packages. Whole-entry support remains
-blocked even where a narrower pinned binding can execute a representative case.
+The audit is separate from saved rules packages. Verified inventory entries
+still require an explicitly published package definition before activation.
 """
 
 from __future__ import annotations
@@ -37,7 +37,13 @@ class ObservedSource(AuditModel):
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     errata_overlay: str | None
     baseline_reconciled: bool
-    blocker: int = Field(gt=0)
+    blocker: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def reconciliation_integrity(self) -> Self:
+        if self.baseline_reconciled == (self.blocker is not None):
+            raise ValueError("A source blocker is required exactly while reconciliation is open")
+        return self
 
 
 class Entry(AuditModel):
@@ -155,8 +161,8 @@ def require_entries(profile_id: str, identifiers: tuple[str, ...]) -> tuple[Entr
 def definition(identifier: str) -> RuleDefinition:
     """Non-purchasable authoring record, compatible with existing catalog gates.
 
-    Even partial runtime evidence does not make an entire source entry a legal
-    purchase. Future execution must publish an explicitly versioned binding.
+    Inventory verification does not make a source entry a legal purchase.
+    Future execution must publish an explicitly versioned binding.
     Audit IDs are distinct from the existing representative package definitions.
     """
     entry = lookup(identifier)

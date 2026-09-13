@@ -12,4 +12,5 @@ JSON restart, and exactly-once through the existing receipt ledger. Concrete
 enchantment energy schedules and item-stat mutations remain bounded by the
 existing magic-item protocols; this package does not invent recipe values.
 
-Inventory rows remain `partial` pending source certification issue #191.
+The selected-printing review and #221 implementation evidence are reconciled;
+all seven inventory rows are verified.

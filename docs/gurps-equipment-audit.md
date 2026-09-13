@@ -9,6 +9,11 @@ mechanics engine. Four claims are kept apart on purpose:
 - how each special gear behaviour is dispositioned;
 - what unit and source anchor each equipment schema field carries.
 
+Every certification-visible equipment catalog, section, footnote, field,
+binding, and Lite-gap row carries a concrete test-file evidence path. The shared
+source audit rejects a row whose evidence is missing or points outside the test
+tree.
+
 Row counts never imply source completeness. All fourteen B264-289 sections are
 now source-reconciled: every selected row, omitted physical row, non-row variant,
 cross-reference and special behavior is named against an inspected page. This

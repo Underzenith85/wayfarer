@@ -212,6 +212,7 @@ def test_audit_report_names_blockers_without_claiming_completeness() -> None:
         "equipment-package-binding",
         "lite-equipment-gaps",
     }
+    assert all(row.evidence for row in rows())
     covered = [row for row in rows() if not row.blockers]
     assert covered and all(
         row.implementation in ("implemented", "partial", "unsupported") for row in covered

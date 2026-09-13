@@ -103,6 +103,20 @@ BINDINGS = (
     TECHNIQUE_PROCEDURES,
     TECHNOLOGY_PROCEDURES,
 )
+EVIDENCE_BY_OWNER = MappingProxyType(
+    {
+        338: ("tests/test_arts_skills.py",),
+        339: ("tests/test_melee_skill_procedures.py",),
+        340: ("tests/test_combat_technique_procedures.py",),
+        341: ("tests/test_knowledge_investigation_procedures.py",),
+        342: ("tests/test_medicine_mental_procedures.py",),
+        343: ("tests/test_physical_outdoor_procedures.py",),
+        344: ("tests/test_ranged_skills.py",),
+        345: ("tests/test_social_skills.py",),
+        346: ("tests/test_technology_skills.py",),
+        356: ("tests/test_technology_specialties.py",),
+    }
+)
 
 
 class StructuralClass(StrEnum):
@@ -150,6 +164,7 @@ class SkillAudit:
     transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
     specialties: tuple[str, ...] = ()
     provenance: str = "Characters Fourth Edition, third printing (February 2008)"
+    evidence: tuple[str, ...] = ()
 
     @property
     def available(self) -> bool:
@@ -297,8 +312,8 @@ def transferred_exclusions() -> tuple[Exclusion, ...]:
     """Reuse the owning supernatural catalog as the authority for excluded skills.
 
     An excluded skill is only accounted for while another inventory carries it
-    with the same page and the same named follow-up issues. Drift there is a
-    coverage failure here, not a silent removal from the Basic Set chapter.
+    with the same page and the same remaining blockers. Drift there is a coverage
+    failure here, not a silent removal from the Basic Set chapter.
     """
 
     owned = {entry.id: entry for entry in owning_catalog().entries if entry.kind == "skill"}
@@ -497,6 +512,7 @@ def inventory() -> tuple[SkillAudit, ...]:
                 dispatch=dispatch,
                 transferred=transferred,
                 specialties=tuple(f"skill:{child}" for child in row.specialties),
+                evidence=EVIDENCE_BY_OWNER[row.procedure_owner],
             )
         )
     entries = tuple(result)

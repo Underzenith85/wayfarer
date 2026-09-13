@@ -91,6 +91,8 @@ class InventoryItem:
     required_profiles: tuple[str, ...] = ("gurps-basic-set-4e-2004",)
     source_review: str = "pending"
     blockers: tuple[int, ...] = ()
+    gaps: tuple[str, ...] = ()
+    evidence: tuple[str, ...] = ()
 
 
 def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
@@ -99,10 +101,20 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
     # inventory; a blanket family status would hide unowned runtime coverage.
     rows = [
         InventoryItem(
-            e.id, e.reference, 112, e.implementation, "mundane-skills", blockers=e.followup_issues
+            e.id,
+            e.reference,
+            112,
+            e.implementation,
+            "mundane-skills",
+            blockers=e.followup_issues,
+            evidence=e.evidence,
         )
         for e in skills()
     ]
+    supernatural = supernatural_inventory()
+    reconciled_sources = {
+        source.id for source in supernatural.sources if source.baseline_reconciled
+    }
     rows.extend(
         InventoryItem(
             identifier,
@@ -161,9 +173,10 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             e.status.value,
             "supernatural-skills" if e.kind == "skill" else "supernatural-catalog",
             () if e.optional else ("gurps-basic-set-4e-2004",),
+            "reviewed" if e.source in reconciled_sources else "pending",
             blockers=e.blockers,
         )
-        for e in supernatural_inventory().entries
+        for e in supernatural.entries
     )
     for package in (
         GURPS_LITE_PACKAGE,
@@ -198,6 +211,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             180,
             "partial" if not e.unsupported_mechanics else "unsupported",
             "equipment-catalog",
+            evidence=("tests/test_basic_equipment.py",),
         )
         for e in (*BASIC_EQUIPMENT.entries, *ULTRATECH_INDEX)
     )
@@ -212,6 +226,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             e.scope,
             e.required_profiles,
             blockers=e.blockers,
+            evidence=e.evidence,
         )
         for e in equipment_audit_rows()
     )
@@ -229,6 +244,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             entry.required_profiles,
             entry.source_review,
             entry.blockers,
+            entry.gaps,
         )
         for entry in creatures()
     )
@@ -325,6 +341,16 @@ def validate(root: Path, manifest: Manifest) -> None:
             raise ValidationError("Unreviewed source needs an owner issue")
         if source.status == "reviewed" and (source.blockers or not source.sha256):
             raise ValidationError("Reviewed source needs a digest and resolved blockers")
+    inventory_rows = inventory()
+    evidence_scopes = {"mundane-skills"} | {
+        row.scope for row in inventory_rows if row.scope.startswith("equipment-")
+    }
+    for row in inventory_rows:
+        if row.scope in evidence_scopes and not row.evidence:
+            raise ValidationError(f"Inventory row needs item-level evidence: {row.id}")
+        for filename in row.evidence:
+            if not (root / filename).is_file():
+                raise ValidationError(f"Missing inventory evidence: {row.id}: {filename}")
     for scope in manifest.scopes:
         if scope.source_id not in source_ids or not scope.reference or not scope.reason:
             raise ValidationError("Invalid scope reference or decision")
@@ -395,14 +421,52 @@ def blockers(manifest: Manifest) -> tuple[str, ...]:
     return tuple(result)
 
 
-def report(root: Path) -> dict[str, object]:
+def profile_blockers(root: Path, manifest: Manifest, profile_id: str) -> tuple[str, ...]:
+    """Return only source evidence that belongs to one conformance profile."""
+    selected = PROFILES.get(profile_id)
+    if selected is None:
+        raise ValidationError(f"Unknown source-audit profile: {profile_id}")
+    source_ids = selected.source_ids
+    result = [
+        f"source:{source.id}"
+        for source in manifest.sources
+        if source.id in source_ids and source.status != "reviewed"
+    ]
+    result.extend(
+        f"scope:{scope.id}"
+        for scope in manifest.scopes
+        if scope.source_id in source_ids and not scope.reviewed
+    )
+    cases = {
+        case["id"]: case
+        for case in json.loads((root / "tests/fixtures/gurps/conformance.json").read_text())[
+            "cases"
+        ]
+    }
+    result.extend(
+        f"fixture:{fixture.id}"
+        for fixture in manifest.fixtures
+        if cases[fixture.id]["profile"] == profile_id and fixture.status != "reviewed"
+    )
+    return tuple(result)
+
+
+def report(root: Path, *, profile_id: str | None = None) -> dict[str, object]:
     manifest = load(root)
     validate(root, manifest)
     source_ledgers = load_source_ledgers(root)
     ledger_rows = source_ledgers.rows
+    manifest_blockers = (
+        blockers(manifest) if profile_id is None else profile_blockers(root, manifest, profile_id)
+    )
+    relevant_ledger_rows = (
+        ledger_rows
+        if profile_id is None
+        else tuple(row for row in ledger_rows if profile_id in row.profile_membership)
+    )
     all_blockers = (
-        *blockers(manifest),
-        *(f"ledger:{row.id}" for row in ledger_blockers(ledger_rows)),
+        *manifest_blockers,
+        *(f"ledger:{row.id}" for row in ledger_blockers(relevant_ledger_rows)),
     )
     return {
         "baseline_id": manifest.baseline_id,

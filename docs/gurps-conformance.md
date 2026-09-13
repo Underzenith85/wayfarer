@@ -1095,10 +1095,9 @@ internal expansion is evidence of complete Basic Set vehicle play.
 
 [The source audit](gurps-source-audit.md) records inspected printing metadata,
 item-inventory ownership, optional decisions and every expectation-ledger case's
-review disposition. Its report separates later-printing comparisons from frozen
-source verification. Eighteen Basic statistics fixtures have been compared;
-exhaustive rule/item enumeration and baseline reconciliation remain incomplete.
-Statistics boundary behavior is implemented by #215 in opt-in revision 2; missing intermediate rows and frozen-source reconciliation remain explicit boundaries.
+review disposition. The supplied Characters third printing and Campaigns fourth
+printing are the reconciled Basic Set baseline; Lite remains separately blocked.
+Statistics boundary behavior is implemented by #215 in opt-in revision 2.
 
 CI now checks this document's full capability table against the registry. Aim
 and environmental hazards are reconciled to partial; Size Modifier cost ownership
@@ -1111,10 +1110,10 @@ profile certification by this audit.
 acceptance and item-coverage matrix for #117/#118/#119. Both representative
 implementation prerequisites are closed. The inventory accounts for 100 spells,
 150 advantages, 42 disadvantages, six psi powers
-eight magic protocols and 28 transferred skills: 334 records in total. Every whole entry remains
-blocked, including narrower implemented subsets. Named runtime follow-ups
-#221–#243 and frozen-source reconciliation #191 remain visible blockers for
-#122. No family or profile is certified. The conformance gate consults this
+eight magic protocols and 28 transferred skills: 334 records in total. Source
+review and implementation evidence verify 332 rows. Fireball retains #173 and
+Injury Tolerance retains #107, so neither supernatural family nor the profile is
+certified. The conformance gate consults this
 inventory before accepting either supernatural family as verified, so a family
 flag alone cannot bypass missing item evidence.
 
