@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, replace
 
-from wayfarer.engine.simulation.actions import ACTION_ADAPTER, PlayState
+from wayfarer.engine.simulation.actions import ACTION_ADAPTER, ActionRules, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.simulation.combat.engine import hex_template
@@ -20,6 +20,7 @@ from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.fright_state import projection as fright_projection
 from wayfarer.engine.simulation.resources import wire_weight
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
+from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.encounter_scenes import EncounterSceneService, MigrateEncounterScenes
 from wayfarer.orchestration.fright import FrightDecision, FrightService
@@ -41,7 +42,7 @@ from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
 from wayfarer.orchestration.sessions import Store
 from wayfarer.orchestration.tactical_view import legacy_encounter
 from wayfarer.persistence.catalog import CatalogStore
-from wayfarer.persistence.events import CommandOrigin
+from wayfarer.persistence.events import CommandOrigin, CommandRecord
 from wayfarer.persistence.jobs import JobStore
 
 
@@ -99,11 +100,23 @@ class CampaignRuntime:
         return self if play is self.play else self.for_service(play)
 
     @staticmethod
-    def _member(state: PlayState, principal_id: str) -> CampaignMember:
+    def member(state: PlayState, principal_id: str) -> CampaignMember:
         return member_for(state, principal_id)
 
+    @property
+    def rules(self) -> ActionRules:
+        return self.play.engine.rules
+
+    async def checkpoint(self, cid: str) -> PlayState:
+        """The campaign's current play state, loaded through its own pinned engine."""
+        runtime = await self.for_campaign(cid)
+        return runtime.play._load(await runtime.play.store.read(cid))
+
+    async def history(self, cid: str) -> list[CommandRecord]:
+        return await self.play.store.history(cid)
+
     @staticmethod
-    def _projection(
+    def view(
         state: PlayState, member: CampaignMember, rules: CombatRules | None = None
     ) -> dict[str, object]:
 
@@ -261,8 +274,8 @@ class CampaignRuntime:
         if runtime is not self:
             return await runtime.read(cid, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
-        member = self._member(state, principal_id)
-        projection = self._projection(state, member, self.play.engine.rules.combat)
+        member = self.member(state, principal_id)
+        projection = self.view(state, member, self.play.engine.rules.combat)
         if member.role != "player":
             return projection
         compiler = self.play.engine.reviewer.compiler
@@ -390,7 +403,7 @@ class CampaignRuntime:
         projection["scene_choices"] = scene_choices
         return projection
 
-    async def execute(
+    async def submit_json(
         self, cid: str, value: object, *, principal_id: str, origin: CommandOrigin | None = None
     ) -> dict[str, object]:
         with origin_scope(origin):
@@ -401,7 +414,7 @@ class CampaignRuntime:
         if runtime is not self:
             return await runtime._execute(cid, value, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
-        member = self._member(state, principal_id)
+        member = self.member(state, principal_id)
         if not isinstance(value, dict):
             raise ValidationError("Invalid typed campaign command")
         if state.lifecycle != "active":
@@ -442,13 +455,13 @@ class CampaignRuntime:
                 migration = MigrateEncounterScenes.model_validate_json(raw)
                 if member.role != "gm":
                     raise AuthorizationError("Encounter scene migration requires GM authority")
-                self._control(member, migration.actor_id)
+                self.control(member, migration.actor_id)
                 await EncounterSceneService(self.play).execute(
                     cid, migration, authenticated_gm_id=migration.actor_id
                 )
             elif kind == "gurps_recovery":
                 player_recovery = PlayerRecoveryCommand.model_validate_json(raw)
-                self._control(member, player_recovery.actor_id)
+                self.control(member, player_recovery.actor_id)
                 await execute_medical(
                     self.play,
                     state,
@@ -457,24 +470,20 @@ class CampaignRuntime:
                     environment=self.medical_environment,
                 )
             elif kind in ("request_ruling", "decide_ruling", "execute_ruling"):
-                # deferred: access -> adjudication -> play -> npcs -> providers -> access.
-                # The provider needs an access handle to answer a director's question.
-                from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
-
                 ruling = RULING_ADAPTER.validate_json(raw)
-                self._control(member, ruling.actor_id)
+                self.control(member, ruling.actor_id)
                 await AdjudicationService(self.play).submit(
                     cid, ruling, authenticated_actor_id=ruling.actor_id
                 )
             elif kind in ("apply_setback", "choose_recovery"):
                 recovery_command = RecoveryCommand.model_validate_json(raw)
-                self._control(member, recovery_command.actor_id)
+                self.control(member, recovery_command.actor_id)
                 await RecoveryService(self.play).execute(
                     cid, recovery_command, authenticated_actor_id=recovery_command.actor_id
                 )
             elif kind == "propose_npc":
                 proposal = NPCProposal.model_validate_json(raw)
-                self._control(member, proposal.actor_id)
+                self.control(member, proposal.actor_id)
                 await NPCService(self.play).propose(
                     cid, proposal, authenticated_gm_id=proposal.actor_id
                 )
@@ -500,25 +509,25 @@ class CampaignRuntime:
                     else None
                 )
                 if not (member.role == "gm" and graph and combat.actor_id in graph.npc_actor_ids):
-                    self._control(member, combat.actor_id)
+                    self.control(member, combat.actor_id)
                 await CombatService(self.play).execute(
                     cid, combat, authenticated_actor_id=combat.actor_id
                 )
             elif kind in ("observe_scene", "travel_scene"):
                 scene = SCENE_ADAPTER.validate_json(raw)
-                self._control(member, scene.actor_id)
+                self.control(member, scene.actor_id)
                 await SceneService(self.play).execute(
                     cid, scene, authenticated_actor_id=scene.actor_id
                 )
             elif kind in ("start_noncombat", "approach_noncombat", "withdraw_noncombat"):
                 noncombat = NoncombatCommand.model_validate_json(raw)
-                self._control(member, noncombat.actor_id)
+                self.control(member, noncombat.actor_id)
                 await NoncombatService(self.play).execute(
                     cid, noncombat, authenticated_actor_id=noncombat.actor_id
                 )
             elif kind in ("evaluate_objectives", "abandon_scenario"):
                 objective = ObjectiveCommand.model_validate_json(raw)
-                self._control(member, objective.actor_id)
+                self.control(member, objective.actor_id)
                 await ObjectiveService(self.play).execute(
                     cid, objective, authenticated_actor_id=objective.actor_id
                 )
@@ -532,20 +541,20 @@ class CampaignRuntime:
                 "transfer_item",
             ):
                 party = PartyCommand.model_validate_json(raw)
-                self._control(member, party.actor_id)
+                self.control(member, party.actor_id)
                 await PartyService(self.play).execute(
                     cid, party, authenticated_actor_id=party.actor_id
                 )
             else:
                 command = ACTION_ADAPTER.validate_json(raw)
-                self._control(member, command.actor_id)
+                self.control(member, command.actor_id)
                 await self.play.execute(cid, command, authenticated_actor_id=command.actor_id)
         except ValueError as exc:
             raise ValidationError("Invalid typed campaign command") from exc
         return await self.read(cid, principal_id=principal_id)
 
     @staticmethod
-    def _control(member: CampaignMember, actor_id: str) -> None:
+    def control(member: CampaignMember, actor_id: str) -> None:
         require_control(member, actor_id)
 
     async def events(
@@ -557,7 +566,7 @@ class CampaignRuntime:
         if after < 0 or not 1 <= limit <= 100:
             raise ValidationError("Invalid stream cursor or limit")
         current = self.play._load(await self.play.store.read(cid))
-        member = self._member(current, principal_id)
+        member = self.member(current, principal_id)
         history = await self.play.store.history(cid)
         if after > current.revision:
             raise ConflictError("Stream cursor is ahead of campaign")
@@ -587,7 +596,7 @@ class CampaignRuntime:
                         )
                         else ""
                     ),
-                    projection=self._projection(state, member, self.play.engine.rules.combat),
+                    projection=self.view(state, member, self.play.engine.rules.combat),
                 )
             )
             if len(result) == limit:

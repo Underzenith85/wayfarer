@@ -28,7 +28,7 @@ from wayfarer.errors import (
 from wayfarer.orchestration.continuation import prepare
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import ProviderRequest
+from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.scenario_documents import ScenarioDocuments
 from wayfarer.orchestration.scenario_references import pin_scenario

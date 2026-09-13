@@ -16,7 +16,7 @@ from test_runtime import settings
 
 from wayfarer.config import Settings
 from wayfarer.orchestration.catalog import GeneratedScenarioGraph
-from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 from wayfarer.runtime import create_runtime_app, starting_scenario
 from wayfarer.transport.common import ACCESS_KEY, ORCHESTRATOR_KEY
 from wayfarer.transport.setup_api import SETUP_KEY

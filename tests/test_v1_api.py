@@ -564,7 +564,7 @@ async def test_the_raw_event_stream_route_is_gone(api: tuple[str, str, V1Service
 
 
 async def test_provider_bridge_uses_only_scoped_context(api: tuple[str, str, V1Service]) -> None:
-    from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+    from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
     from wayfarer.transport.v1.provider import bind_provider
 
     _, cid, service = api

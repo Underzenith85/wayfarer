@@ -624,7 +624,7 @@ async def test_migration_is_explicit_authorized_atomic_and_idempotent(
         SetupCommand(id="resume-2", expected_revision=7, operation="resume"),
         principal_id="alice",
     )
-    await access.execute(
+    await access.submit_json(
         cid,
         {"kind": "wait", "id": "wait", "actor_id": "mira", "expected_revision": 8, "ticks": 1},
         principal_id="alice",

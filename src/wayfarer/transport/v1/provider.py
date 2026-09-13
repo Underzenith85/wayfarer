@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 
-from wayfarer.orchestration.providers import Narration, Orchestrator, ProviderRequest
+from wayfarer.orchestration.provider_contracts import ProviderRequest
+from wayfarer.orchestration.providers import Narration, Orchestrator
 from wayfarer.persistence.events import CommandOrigin
 
 from .common import HTTP, Obj, encoded, obj, validate

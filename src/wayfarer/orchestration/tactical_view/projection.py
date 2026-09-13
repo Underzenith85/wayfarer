@@ -58,8 +58,8 @@ async def snapshot(
 ) -> TacticalSnapshot:
     access = await access.for_campaign(cid)
     state = access.play._load(await access.play.store.read(cid))
-    member = access._member(state, principal)
-    access._control(member, actor_id)
+    member = access.member(state, principal)
+    access.control(member, actor_id)
     return project(access.play, state, member, actor_id)
 
 

@@ -30,6 +30,7 @@ from wayfarer.engine.simulation.resources import Consume
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, SocialDisclosure
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.persistence.events import CommandOrigin
 
 if TYPE_CHECKING:
@@ -421,9 +422,6 @@ class NPCService:
         plan_id: str,
     ) -> PlayState:
         """Generate a bounded advisory choice before submitting a typed NPC proposal."""
-        # deferred: npcs -> providers -> access -> combat -> combat.context -> play -> npcs.
-        from wayfarer.orchestration.providers import ProviderRequest
-
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         if authenticated_gm_id not in play.engine.reviewer.gm_ids:

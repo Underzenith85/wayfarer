@@ -1,7 +1,7 @@
 """Finite test-only provider. No network, credentials, or authoritative mutations."""
 
 from wayfarer.adventures.lantern import adventure
-from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 
 
 class ReferenceProvider:

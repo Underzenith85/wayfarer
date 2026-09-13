@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from typing import Literal, Protocol
+from typing import Literal
 
 from pydantic import Field
 
@@ -27,35 +27,16 @@ from wayfarer.orchestration.combat import COMBAT_ADAPTER
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.orchestration.noncombat import NoncombatCommand
 from wayfarer.orchestration.party import PartyCommand
+from wayfarer.orchestration.provider_contracts import (
+    CampaignContext,
+    ProviderReply,
+    ProviderRequest,
+    StructuredProvider,
+    Usage,
+)
 from wayfarer.orchestration.recovery import RecoveryCommand
-from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.scenes import SCENE_ADAPTER
 from wayfarer.persistence.events import CommandOrigin
-
-
-class Usage(Record):
-    input_tokens: int = Field(default=0, ge=0, le=1000000)
-    output_tokens: int = Field(default=0, ge=0, le=1000000)
-    reported: bool = True
-
-
-class ProviderReply(Record):
-    payload_json: str = Field(max_length=32000)
-    usage: Usage
-    provider: str = Field(default="custom", min_length=1, max_length=100)
-    model: str | None = Field(default=None, max_length=100)
-
-
-class ProviderRequest(Record):
-    operation: Literal["intent", "character_draft", "scenario_draft", "narration"]
-    session_id: str
-    context_json: str = Field(max_length=24000)
-    prompt: str = Field(min_length=1, max_length=4000)
-    output_schema: dict[str, object]
-
-
-class StructuredProvider(Protocol):
-    async def complete(self, request: ProviderRequest) -> object: ...
 
 
 class ResponsesProvider:
@@ -217,7 +198,7 @@ class ProviderTelemetry(Record):
 class Orchestrator:
     def __init__(
         self,
-        access: CampaignRuntime,
+        access: CampaignContext,
         provider: StructuredProvider,
         *,
         timeout: float = 20,
@@ -322,13 +303,13 @@ class Orchestrator:
         raise ProviderError("Provider request did not complete")
 
     async def context(self, cid: str, principal_id: str, actor_id: str) -> tuple[str, str, int]:
-        state = self.access.play._load(await self.access.play.store.read(cid))
-        member = self.access._member(state, principal_id)
+        state = await self.access.checkpoint(cid)
+        member = self.access.member(state, principal_id)
         # Actor-perspective contexts are always player-scoped, including NPC callers.
         if actor_id not in member.actor_ids:
             raise ValidationError("Context actor is not controlled by principal")
         member = member.model_copy(update={"actor_ids": (actor_id,)})
-        projection = self.access._projection(state, member, self.access.play.engine.rules.combat)
+        projection = self.access.view(state, member, self.access.rules.combat)
         # Durable turn history is UI data, not recursively nested model context.
         projection.pop("director", None)
         known = {f.id for f in state.world.perspective(actor_id).facts}
@@ -336,22 +317,14 @@ class Orchestrator:
             {"exit_id": e.id, "destination_id": e.destination_id}
             for cursor in state.actor_scenes
             if cursor.actor_id == actor_id
-            for scene in (
-                self.access.play.engine.rules.scenes.scenes
-                if self.access.play.engine.rules.scenes
-                else ()
-            )
+            for scene in (self.access.rules.scenes.scenes if self.access.rules.scenes else ())
             if scene.id == cursor.scene_id
             for e in scene.exits
             if set(e.required_fact_ids) <= known
         )
         projection["recovery_options"] = tuple(
             {"rule_id": o.id, "kind": o.kind, "target_actor_id": actor_id}
-            for o in (
-                self.access.play.engine.rules.recovery.options
-                if self.access.play.engine.rules.recovery
-                else ()
-            )
+            for o in (self.access.rules.recovery.options if self.access.rules.recovery else ())
             if actor_id in o.actor_ids
             and actor_id in o.target_actor_ids
             and set(o.required_fact_ids) <= known
@@ -409,7 +382,7 @@ class Orchestrator:
         _, current_session, current_revision = await self.context(cid, principal_id, actor_id)
         if current_revision != revision or current_session != session:
             raise ConflictError("Model proposal is stale; request a fresh interpretation")
-        current = self.access.play._load(await self.access.play.store.read(cid))
+        current = await self.access.checkpoint(cid)
         if len(current.party.groups) > 1 and intent.kind in (
             "inspect",
             "social",
@@ -428,10 +401,10 @@ class Orchestrator:
         origin = CommandOrigin.proposal(
             "Intent", intent.model_dump(mode="json"), provider=reply.provider, model=reply.model
         )
-        projection = await self.access.execute(
+        projection = await self.access.submit_json(
             cid, command, principal_id=principal_id, origin=origin
         )
-        history = await self.access.play.store.history(cid)
+        history = await self.access.history(cid)
         committed_event = next(
             (e for e in history if e.command_id == command_id and e.actor_id == actor_id), None
         )

@@ -48,7 +48,7 @@ from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
@@ -344,7 +344,7 @@ async def test_combat_damage_retry_armor_incapacitation_and_replay(tmp_path: Pat
 
 
 async def split(cid: str, access: CampaignRuntime) -> None:
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="split_party", id="split", actor_id="a", expected_revision=0, target_id="scouts"
@@ -374,22 +374,22 @@ async def test_split_shared_time_alarm_rejoin_and_scoped_streams(
     access = build_runtime(play)
     await split(cid, access)
     with pytest.raises(AuthorizationError):
-        await access.execute(
+        await access.submit_json(
             cid, queued("a", 1, 2, "forged").model_dump(mode="json"), principal_id="bob"
         )
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="signal_scene", id="signal", actor_id="a", expected_revision=1, target_id="alarm"
         ).model_dump(mode="json"),
         principal_id="alice",
     )
-    await access.execute(
+    await access.submit_json(
         cid, queued("a", 2, 2, "a-wait").model_dump(mode="json"), principal_id="alice"
     )
     state = play._load(await play.store.read(cid))
     assert state.resources.game_time == 0 and ("b", "clue") not in state.world.knowledge
-    await access.execute(
+    await access.submit_json(
         cid, queued("b", 3, 2, "b-wait").model_dump(mode="json"), principal_id="bob"
     )
     state = play._load(await play.store.read(cid))
@@ -399,7 +399,7 @@ async def test_split_shared_time_alarm_rejoin_and_scoped_streams(
     assert len(state.party.receipts) == 2 and all(
         r.status == "committed" for r in state.party.receipts
     )
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="rejoin_party",
@@ -427,7 +427,7 @@ async def test_queued_travel_and_independent_pending_decisions(tmp_path: Path) -
     from wayfarer.orchestration.scenes import TravelScene
 
     travel = TravelScene(id="travel", actor_id="a", expected_revision=1, exit_id="to-alley")
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="queue_activity",
@@ -438,7 +438,9 @@ async def test_queued_travel_and_independent_pending_decisions(tmp_path: Path) -
         ).model_dump(mode="json"),
         principal_id="alice",
     )
-    await access.execute(cid, queued("b", 2, 2, "wait").model_dump(mode="json"), principal_id="bob")
+    await access.submit_json(
+        cid, queued("b", 2, 2, "wait").model_dump(mode="json"), principal_id="bob"
+    )
     state = play._load(await play.store.read(cid))
     assert next(c.scene_id for c in state.actor_scenes if c.actor_id == "a") == "alley-scene"
     assert next(c.scene_id for c in state.actor_scenes if c.actor_id == "b") == "dock-scene"
@@ -612,7 +614,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
     )
     cid = initial["id"]
     access = build_runtime(play)
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="split_party", id="split", actor_id="c", expected_revision=0, target_id="scouts"
@@ -629,7 +631,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
         }
     )
     await combat.execute(cid, opening, authenticated_actor_id="gm")
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="queue_activity",
@@ -680,7 +682,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
     state = play._load(await play.store.read(cid))
     assert state.resources.game_time == 2 and ("c", "clue") in state.world.knowledge
     assert state.party.receipts[0].status == "committed"
-    await access.execute(
+    await access.submit_json(
         cid,
         JoinEncounter(
             id="rescue-arrival",
@@ -732,7 +734,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         aware_of=("chest",),
     )
     access = build_runtime(play)
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="split_party",
@@ -758,7 +760,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
             ),
         }
     )
-    await access.execute(cid, opening.model_dump(mode="json"), principal_id="gm")
+    await access.submit_json(cid, opening.model_dump(mode="json"), principal_id="gm")
     attack = TakeCombatTurn(
         id="basic-attack",
         actor_id="a",
@@ -769,7 +771,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         item_id="sword-a",
         mode_id="swing",
     )
-    first = await access.execute(cid, attack.model_dump(mode="json"), principal_id="a")
+    first = await access.submit_json(cid, attack.model_dump(mode="json"), principal_id="a")
 
     # A disconnected defender reloads the exact pending decision; an attacker retry
     # receives the durable response rather than another roll or turn.
@@ -778,13 +780,15 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     restarted = build_runtime(restarted_play)
     pending = restarted_play._load(await restarted_play.store.read(cid))
     assert pending.encounters[0].pending_defense is not None
-    assert await restarted.execute(cid, attack.model_dump(mode="json"), principal_id="a") == first
+    assert (
+        await restarted.submit_json(cid, attack.model_dump(mode="json"), principal_id="a") == first
+    )
 
     # Competing commands at one revision preserve CAS. The committed pause does not
     # resolve or discard the other group's combat decision.
     pauses = await asyncio.gather(
         *(
-            restarted.execute(
+            restarted.submit_json(
                 cid,
                 PartyCommand(
                     kind="pause_group",
@@ -801,7 +805,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     assert sum(isinstance(result, ConflictError) for result in pauses) == 1
     still_pending = restarted_play._load(await restarted_play.store.read(cid))
     assert still_pending.encounters[0].pending_defense is not None
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         PartyCommand(
             kind="resume_group", id="resume-c", actor_id="c", expected_revision=4
@@ -812,7 +816,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     investigation = Inspect(
         id="inspect-letter", actor_id="c", expected_revision=5, target_id="chest"
     )
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         PartyCommand(
             kind="queue_activity",
@@ -823,7 +827,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         ).model_dump(mode="json"),
         principal_id="c",
     )
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         ChooseDefense(
             id="basic-defense",
@@ -834,7 +838,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         ).model_dump(mode="json"),
         principal_id="b",
     )
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         TakeCombatTurn(
             id="basic-b-1",
@@ -849,7 +853,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     assert at_one.resources.game_time == 1
     assert ("c", "clue") not in at_one.world.knowledge
     for revision, actor in ((8, "a"), (9, "b")):
-        await restarted.execute(
+        await restarted.submit_json(
             cid,
             TakeCombatTurn(
                 id=f"basic-{actor}-2",
@@ -869,7 +873,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     # The explicit representation migration preserves round/turn state and uses
     # the exact selected Basic profile; hiding or showing a map is not the switch.
     before_migration = at_two.encounters[0]
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         escalation(revision=10, b_position=Hex(q=1, r=0)).model_dump(mode="json"),
         principal_id="gm",
@@ -884,7 +888,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     )
 
     travel = TravelScene(id="travel-c", actor_id="c", expected_revision=11, exit_id="to-alley")
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         PartyCommand(
             kind="queue_activity",
@@ -896,7 +900,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         principal_id="c",
     )
     for revision, actor in ((12, "a"), (13, "b")):
-        await restarted.execute(
+        await restarted.submit_json(
             cid,
             TakeCombatTurn(
                 id=f"hex-{actor}-3",
@@ -911,7 +915,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     assert at_three.resources.game_time == 3
     assert next(s.scene_id for s in at_three.actor_scenes if s.actor_id == "c") == "dock-scene"
     for revision, actor in ((14, "a"), (15, "b")):
-        await restarted.execute(
+        await restarted.submit_json(
             cid,
             TakeCombatTurn(
                 id=f"hex-{actor}-4",
@@ -927,7 +931,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     assert next(s.scene_id for s in arrived.actor_scenes if s.actor_id == "c") == "alley-scene"
 
     return_trip = TravelScene(id="return-c", actor_id="c", expected_revision=16, exit_id="return")
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         PartyCommand(
             kind="queue_activity",
@@ -939,7 +943,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         principal_id="c",
     )
     for revision, actor in ((17, "a"), (18, "b")):
-        await restarted.execute(
+        await restarted.submit_json(
             cid,
             TakeCombatTurn(
                 id=f"hex-{actor}-5",
@@ -956,7 +960,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     inventory = tuple(
         (item.id, item.owner_id, item.quantity) for item in synchronized.resources.items
     )
-    await restarted.execute(
+    await restarted.submit_json(
         cid,
         JoinEncounter(
             id="join-c",
@@ -1014,7 +1018,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
     access = build_runtime(play)
     await split(cid, access)
     for revision, actor, principal in ((1, "a", "alice"), (2, "b", "bob")):
-        await access.execute(
+        await access.submit_json(
             cid,
             NoncombatCommand(
                 kind="start_noncombat",
@@ -1030,7 +1034,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
     assert len([e for e in state.noncombat if e.status == "choice"]) == 2
     before = await play.store.read(cid)
     with pytest.raises(ValidationError):
-        await access.execute(
+        await access.submit_json(
             cid,
             PartyCommand(
                 kind="queue_activity",
@@ -1049,7 +1053,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
             principal_id="alice",
         )
     assert await play.store.read(cid) == before
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(kind="pause_group", id="pause", actor_id="a", expected_revision=3).model_dump(
             mode="json"
@@ -1057,7 +1061,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
         principal_id="alice",
     )
     # Another actor can withdraw without a consequential automatic choice for Alice.
-    await access.execute(
+    await access.submit_json(
         cid,
         NoncombatCommand(
             kind="withdraw_noncombat",
@@ -1068,7 +1072,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
         ).model_dump(mode="json"),
         principal_id="bob",
     )
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="resume_group", id="resume", actor_id="a", expected_revision=5

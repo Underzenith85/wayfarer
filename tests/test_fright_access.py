@@ -68,9 +68,9 @@ async def test_lasting_choice_visible_after_recovery_and_restart(tmp_path: Path)
     state = play._load(await play.store.read(cid))
     assert state.actors == before.actors
     assert (
-        CampaignRuntime._projection(
-            state, CampaignMember(principal_id="observer", role="spectator")
-        )["fright"]
+        CampaignRuntime.view(state, CampaignMember(principal_id="observer", role="spectator"))[
+            "fright"
+        ]
         == ()
     )
     events = await access.events(cid, principal_id="alice")
@@ -119,17 +119,17 @@ async def test_campaign_panic_decision_authority_replay_and_player_privacy(tmp_p
     }
     saved = await play.store.read(cid)
     with pytest.raises(ValidationError, match="director authority"):
-        await access.execute(cid, command, principal_id="alice")
+        await access.submit_json(cid, command, principal_id="alice")
     assert saved == await play.store.read(cid)
     play.rng = RecordedDice([1, 1, 1])
-    result = await access.execute(cid, command, principal_id="gm")
+    result = await access.submit_json(cid, command, principal_id="gm")
     assert result["fright"] == ()
     saved = await play.store.read(cid)
     play.rng = RecordedDice([])
-    assert await access.execute(cid, command, principal_id="gm") == result
+    assert await access.submit_json(cid, command, principal_id="gm") == result
     assert saved == await play.store.replay(cid)
     with pytest.raises(ConflictError):
-        await access.execute(cid, command | {"response": "changed"}, principal_id="gm")
+        await access.submit_json(cid, command | {"response": "changed"}, principal_id="gm")
     visible = await access.read(cid, principal_id="alice")
     assert "privately adjudicated" not in str(visible)
     assert "panic_severity" not in str(visible)

@@ -18,7 +18,7 @@ from wayfarer.engine.simulation.resources import Owner
 from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import ProviderRequest
+from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
