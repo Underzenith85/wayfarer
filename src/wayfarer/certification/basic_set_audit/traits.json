@@ -3519,17 +3519,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_attack_defense_traits.py"
+        "tests/test_attack_defense_traits.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         113,
         496
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": "supernatural/advantage:injury-tolerance",
       "parent_id": null,
@@ -3537,7 +3539,7 @@
       "listed_value": "Variable",
       "construction_binding": "supernatural/advantage:injury-tolerance",
       "cost_owner": "supernatural/advantage:injury-tolerance",
-      "consequence_owner": 113,
+      "consequence_owner": 688,
       "source_review_owner": null
     },
     {

@@ -21,6 +21,7 @@ from wayfarer.engine.rules.magic.protocols import (
     square_area,
 )
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
+from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.spatial import point_distance
@@ -155,6 +156,7 @@ class SpellCommand(Command):
     spell_id: SpellId
     cast_id: Id
     target_item_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    hit_location: HitLocation | None = Field(default=None, exclude_if=lambda value: value is None)
     channel_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
     radius: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)
     energy: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)

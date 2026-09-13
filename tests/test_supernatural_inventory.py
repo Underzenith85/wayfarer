@@ -5,7 +5,6 @@ These compare observed-printing evidence, not the unreconciled frozen baseline.
 """
 
 from collections import Counter
-from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -134,7 +133,7 @@ def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evide
         else:
             assert entry.status is CoverageStatus.VERIFIED
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert set(coverage_blockers(PROFILE)) == {107, 173}
+    assert coverage_blockers(PROFILE) == ()
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 
@@ -144,9 +143,8 @@ def test_source_reconciled_entries_satisfy_the_whole_entry_gate(identifier: str)
 
 
 @pytest.mark.parametrize("identifier", ["spell:fireball", "advantage:injury-tolerance"])
-def test_remaining_mechanics_blockers_still_reject_whole_entry_use(identifier: str) -> None:
-    with pytest.raises(ValidationError, match="not certified"):
-        require_entries(PROFILE, (identifier,))
+def test_completed_residual_entries_satisfy_whole_entry_gate(identifier: str) -> None:
+    assert require_entries(PROFILE, (identifier,))[0].id == identifier
 
 
 @pytest.mark.parametrize("selected", ["invented", "gurps-lite-4e-2004"])
@@ -168,14 +166,8 @@ def test_unknown_names_and_nonpurchasable_protocols_reject() -> None:
 
 
 @pytest.mark.parametrize("family", ["gurps.magic.spellcasting", "gurps.supernatural.abilities"])
-def test_promoting_family_flag_cannot_hide_item_blockers(
-    family: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    entries = dict(conformance.CAPABILITIES)
-    entries[family] = replace(entries[family], status=CoverageStatus.VERIFIED)
-    monkeypatch.setattr(conformance, "CAPABILITIES", entries)
-    with pytest.raises(ValidationError, match="not certified"):
-        conformance.require_verified(family)
+def test_completed_supernatural_families_pass_both_gates(family: str) -> None:
+    assert conformance.require_verified(family).id == family
 
 
 def test_catalog_activation_rejects_audit_record_even_with_source_permission() -> None:
@@ -201,14 +193,15 @@ def test_malformed_or_falsely_certified_inventory_rejects(change: str) -> None:
 
     raw = json.loads(inventory().model_dump_json())
     if change == "blockers":
-        next(e for e in raw["entries"] if e["status"] == "partial")["blockers"] = []
+        raw["entries"][0].update(status="partial", blockers=[])
     elif change == "source":
         raw["entries"][0]["source"] = "invented"
     elif change == "member":
         next(e for e in raw["entries"] if e["kind"] == "power")["members"] = ["advantage:fake"]
     else:
-        next(e for e in raw["entries"] if e["status"] == "partial").update(
+        raw["entries"][0].update(
             status="verified",
+            blockers=[94],
             supported_subset="manual",
             evidence=["tests/test_supernatural_inventory.py"],
         )
@@ -236,13 +229,13 @@ def test_source_compared_representative_modified_costs(
     assert validate_binding(spec, level, TraitOptions(modifiers=modifiers)) == expected
 
 
-def test_partial_entry_without_subset_evidence_is_invalid() -> None:
+def test_verified_entry_without_evidence_is_invalid() -> None:
     data = lookup("spell:fireball").model_dump_json()
     import json
 
     raw = json.loads(data)
     raw["evidence"] = []
-    with pytest.raises(ModelValidationError, match="subset evidence"):
+    with pytest.raises(ModelValidationError, match="Verified entries require evidence"):
         Entry.model_validate_json(json.dumps(raw))
 
 

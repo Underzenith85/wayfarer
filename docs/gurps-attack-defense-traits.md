@@ -14,4 +14,7 @@ attacker's canonical HP pool. All paths enforce actor authority, compare-and-set
 stable receipts, and restart-safe replay.
 
 The selected-printing review and #237 implementation evidence are reconciled.
-Seventeen rows are verified; Injury Tolerance remains partial under #107.
+Issue #688 completes and verifies the final Injury Tolerance row: all structural
+and additive forms have exact construction costs and inclusions, and their
+anatomy, hit-location, wounding, choking, crippling, recovery and replay effects
+run through the shared injury services.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -15,11 +16,116 @@ from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_str
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
+from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
+    from wayfarer.engine.simulation.combat.encounter import Combatant
     from wayfarer.engine.simulation.rules_context import RulesContext
+
+
+def _aim(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    actor: Combatant,
+    command: TakeCombatTurn,
+) -> Encounter:
+    held_missile = next(
+        (
+            effect
+            for effect in active_spells(state.resources)
+            if effect.actor_id == actor.actor_id
+            and effect.spell_id == "fireball"
+            and effect.execute_effects
+            and command.item_id == "spell:" + hashlib.sha256(effect.cast_id.encode()).hexdigest()
+        ),
+        None,
+    )
+    if held_missile is not None:
+        if command.braced or command.mode_id not in (None, "fireball"):
+            raise ValidationError("Fireball Aim does not accept bracing, sights, or weapon modes")
+        return CombatEngine._replace(
+            encounter,
+            actor.model_copy(
+                update={
+                    "maneuver_state": actor.maneuver_state.model_copy(
+                        update={"aim_accuracy": 1, "aim_mode_id": "fireball"}
+                    )
+                }
+            ),
+        )
+    item = next((i for i in state.resources.items if i.id == command.item_id), None)
+    if item is None or item.owner_id != actor.actor_id or not item.ready or not item.equipped:
+        raise ValidationError("Aim requires an owned ready weapon")
+    entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
+    modes = [
+        m
+        for m in entry.modes
+        if isinstance(m, RangedMode) and (command.mode_id is None or m.id == command.mode_id)
+    ]
+    if len(modes) != 1:
+        raise ValidationError("Aim requires one selected ranged mode")
+    aimed_mode = modes[0]
+    if aimed_mode.rated_strength is not None:
+        stats = build(runtime, state, actor.actor_id).statistics
+        assert stats is not None
+        fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
+        validate_rated_strength(
+            catalog(runtime).profile_id, aimed_mode, fatigue_value(fp, stats.st)
+        )
+    hands = tuple(hand for item_id, hand in actor.hand_bindings if item_id == item.id)
+    if command.braced:
+        if aimed_mode.brace_kind == "one-handed" and set(hands) != {
+            "left-hand",
+            "right-hand",
+        }:
+            raise ValidationError("One-handed weapon bracing requires both hands")
+        if aimed_mode.brace_kind == "bipod" and actor.posture != "prone":
+            raise ValidationError("Bipod bracing requires a prone shooter")
+        if aimed_mode.brace_kind is None:
+            raise ValidationError("Selected ranged mode cannot be braced")
+        if aimed_mode.hands == 2 and (
+            command.destination is not None
+            or command.hex_path
+            or command.hex_facing is not None
+            or command.posture is not None
+        ):
+            raise ValidationError("A braced two-handed weapon does not permit a step")
+    previous = next(
+        p
+        for e in state.encounters
+        if e.id == encounter.id
+        for p in e.participants
+        if p.actor_id == actor.actor_id
+    )
+    seconds = actor.maneuver_state.aim_seconds
+    if previous.maneuver_state.aim_mode_id != aimed_mode.id:
+        seconds = 1
+    sight_bonus = (
+        aimed_mode.scope_bonus
+        if aimed_mode.fixed_power_scope and seconds >= aimed_mode.scope_bonus
+        else 0
+        if aimed_mode.fixed_power_scope
+        else min(aimed_mode.scope_bonus, seconds)
+    )
+    return CombatEngine._replace(
+        encounter,
+        actor.model_copy(
+            update={
+                "maneuver_state": actor.maneuver_state.model_copy(
+                    update={
+                        "aim_accuracy": aimed_mode.accuracy,
+                        "aim_mode_id": aimed_mode.id,
+                        "aim_seconds": seconds,
+                        "aim_braced": command.braced,
+                        "aim_sight_bonus": min(aimed_mode.accuracy, sight_bonus),
+                    }
+                )
+            }
+        ),
+    )
 
 
 def observe(
@@ -28,76 +134,7 @@ def observe(
     actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     target = next(p for p in encounter.participants if p.actor_id == command.target_id)
     if command.maneuver == "aim":
-        item = next((i for i in state.resources.items if i.id == command.item_id), None)
-        if item is None or item.owner_id != actor.actor_id or not item.ready or not item.equipped:
-            raise ValidationError("Aim requires an owned ready weapon")
-        entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
-        modes = [
-            m
-            for m in entry.modes
-            if isinstance(m, RangedMode) and (command.mode_id is None or m.id == command.mode_id)
-        ]
-        if len(modes) != 1:
-            raise ValidationError("Aim requires one selected ranged mode")
-        aimed_mode = modes[0]
-        if aimed_mode.rated_strength is not None:
-            stats = build(runtime, state, actor.actor_id).statistics
-            assert stats is not None
-            fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
-            validate_rated_strength(
-                catalog(runtime).profile_id, aimed_mode, fatigue_value(fp, stats.st)
-            )
-        hands = tuple(hand for item_id, hand in actor.hand_bindings if item_id == item.id)
-        if command.braced:
-            if aimed_mode.brace_kind == "one-handed" and set(hands) != {
-                "left-hand",
-                "right-hand",
-            }:
-                raise ValidationError("One-handed weapon bracing requires both hands")
-            if aimed_mode.brace_kind == "bipod" and actor.posture != "prone":
-                raise ValidationError("Bipod bracing requires a prone shooter")
-            if aimed_mode.brace_kind is None:
-                raise ValidationError("Selected ranged mode cannot be braced")
-            if aimed_mode.hands == 2 and (
-                command.destination is not None
-                or command.hex_path
-                or command.hex_facing is not None
-                or command.posture is not None
-            ):
-                raise ValidationError("A braced two-handed weapon does not permit a step")
-        previous = next(
-            p
-            for e in state.encounters
-            if e.id == encounter.id
-            for p in e.participants
-            if p.actor_id == actor.actor_id
-        )
-        seconds = actor.maneuver_state.aim_seconds
-        if previous.maneuver_state.aim_mode_id != aimed_mode.id:
-            seconds = 1
-        sight_bonus = (
-            aimed_mode.scope_bonus
-            if aimed_mode.fixed_power_scope and seconds >= aimed_mode.scope_bonus
-            else 0
-            if aimed_mode.fixed_power_scope
-            else min(aimed_mode.scope_bonus, seconds)
-        )
-        return CombatEngine._replace(
-            encounter,
-            actor.model_copy(
-                update={
-                    "maneuver_state": actor.maneuver_state.model_copy(
-                        update={
-                            "aim_accuracy": aimed_mode.accuracy,
-                            "aim_mode_id": aimed_mode.id,
-                            "aim_seconds": seconds,
-                            "aim_braced": command.braced,
-                            "aim_sight_bonus": min(aimed_mode.accuracy, sight_bonus),
-                        }
-                    )
-                }
-            ),
-        )
+        return _aim(runtime, state, encounter, actor, command)
     weapon = mode(runtime, state, actor.actor_id, command.item_id or "", command.mode_id)
     if not isinstance(weapon, MeleeMode):
         raise ValidationError("Feint requires a melee mode")

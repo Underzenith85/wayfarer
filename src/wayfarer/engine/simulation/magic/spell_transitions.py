@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import target_geometry, target_modifier
 from wayfarer.engine.simulation.combat.vocabulary import Defense
+from wayfarer.engine.simulation.health.hit_locations import require_location
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
@@ -498,6 +499,11 @@ def _release_missile(
     )
 
     target = next(p for p in encounter.participants if p.actor_id == context.target_id)
+    target_hp = next(p for p in before.resources.pools if p.id == "hp:" + target.actor_id)
+    if command.hit_location is not None:
+        if target_hp.injury is None:
+            raise ValidationError("Fireball hit locations require a GURPS injury profile")
+        require_location(target_hp.injury, command.hit_location)
     ground_target = False
     if command.target_item_id:
         target_modifier(runtime, before, target.actor_id, command.target_item_id)
@@ -512,6 +518,17 @@ def _release_missile(
             continue
         allowed.append(defense)
     attacker = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+    spell_item_id = "spell:" + hashlib.sha256(command.cast_id.encode()).hexdigest()
+    aim_bonus = (
+        attacker.maneuver_state.aim_bonus
+        if (
+            attacker.maneuver_state.aim_item_id,
+            attacker.maneuver_state.aim_target_id,
+            attacker.maneuver_state.aim_mode_id,
+        )
+        == (spell_item_id, context.target_id, "fireball")
+        else 0
+    )
     encounter = CombatEngine._replace(
         encounter,
         attacker.model_copy(
@@ -526,11 +543,13 @@ def _release_missile(
                 id=event_id(command.id),
                 attacker_id=command.actor_id,
                 defender_id=context.target_id,
-                weapon_id="spell:" + hashlib.sha256(command.cast_id.encode()).hexdigest(),
+                weapon_id=spell_item_id,
                 allowed=tuple(allowed),
                 opened_round=encounter.round,
                 opened_turn=encounter.turn_index,
                 spell_cast_id=command.cast_id,
+                spell_aim_bonus=aim_bonus,
+                hit_location=command.hit_location,
                 target_item_id=command.target_item_id,
             )
         }

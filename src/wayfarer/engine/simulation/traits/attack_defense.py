@@ -233,9 +233,8 @@ def _apply_affliction(
         raise ValidationError("Affliction requires a resistance roll and no basic damage")
     penetration = resolve_affliction_penetration(target.damage_resistance(), channel.penetration)
     attack_hit = _roll_succeeds(channel.attack_roll, channel.attack_score)
-    homogeneous_choking = (
-        channel.condition == "choking" and target.injury_tolerance() == "homogeneous"
-    )
+    tolerance = target.injury_tolerance_profile()
+    choking_immunity = channel.condition == "choking" and bool(tolerance and tolerance.no_neck)
     resistance_target = (
         target_ht
         - max(0, attacker.level("advantage:affliction") - 1)
@@ -245,14 +244,14 @@ def _apply_affliction(
     if channel.resistance_score is not None and channel.resistance_score != resistance_target:
         raise ValidationError("Affliction resistance target differs from trusted target facts")
     resisted = _roll_succeeds(channel.resistance_roll, resistance_target)
-    applies = attack_hit and penetration.applies and not homogeneous_choking and not resisted
+    applies = attack_hit and penetration.applies and not choking_immunity and not resisted
     effect_id = _id(channel.id, channel.kind)
     expires = resources.game_time + channel.duration_seconds
     result_kind: Literal["applied", "resisted", "missed", "unaffected"] = (
         "missed"
         if not attack_hit
         else "unaffected"
-        if not penetration.applies or homogeneous_choking
+        if not penetration.applies or choking_immunity
         else "resisted"
         if resisted
         else "applied"
@@ -266,9 +265,7 @@ def _apply_affliction(
         expires_at=expires if applies else None,
         condition=channel.condition,
         resistance_target=resistance_target,
-        penetration_reason=(
-            "injury-tolerance-homogeneous" if homogeneous_choking else penetration.reason
-        ),
+        penetration_reason=("injury-tolerance-no-neck" if choking_immunity else penetration.reason),
     )
     update: dict[str, object] = {"revision": resources.revision + 1}
     if applies:

@@ -97,7 +97,7 @@
       "owner": 119,
       "decision": "required",
       "reviewed": true,
-      "reason": "The #119 typed inventory accounts for all 100 indexed spells, 192 exotic/supernatural or psi-member traits, six psi powers and eight magic protocols. The selected printing is reconciled; Fireball and Injury Tolerance retain their concrete mechanics blockers."
+      "reason": "The #119 typed inventory accounts for all 100 indexed spells, 192 exotic/supernatural or psi-member traits, six psi powers and eight magic protocols. The selected printing is reconciled; #688 completes the residual Fireball and Injury Tolerance mechanics."
     },
     {
       "id": "equipment-catalog",
@@ -3151,6 +3151,28 @@
         "tests/test_mounted_flying_combat.py::test_personal_flight_uses_vertical_cost_and_not_vehicle_state"
       ],
       "owner": 528
+    },
+    {
+      "id": "basic-fireball-aimed-face-release",
+      "sha256": "d8afc42e8588a4c06ae2f6154bfc7ffabc55b690110726d3caadf0a4c7fdd964",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-spell-fire.md",
+      "tests": [
+        "tests/test_spell_execution.py::test_fireball_aim_and_hit_location_use_persisted_ranged_state"
+      ],
+      "owner": 688
+    },
+    {
+      "id": "basic-injury-tolerance-form-inclusions",
+      "sha256": "77de102de10dbf9e52f9cd2dc1187b65018fbb326ed7086b1efdda04197cf188",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-attack-defense-traits.md",
+      "tests": [
+        "tests/test_attack_defense_traits.py::test_all_injury_tolerance_forms_project_exact_anatomy"
+      ],
+      "owner": 688
     }
   ]
 }

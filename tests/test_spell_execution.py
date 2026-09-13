@@ -347,6 +347,63 @@ async def test_fireball_body_criticals_execute_damage(
     assert result.injury.adjudication_required is None
 
 
+async def test_fireball_aim_and_hit_location_use_persisted_ranged_state(
+    tmp_path: Path,
+) -> None:
+    cid, play = await setup(tmp_path, combat=True, execution_version=2, human_targets=True)
+    combat = await start_fight(cid, play)
+    service = SpellService(play)
+    start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    play.rng = RecordedDice([3, 3, 3])
+    await service.execute(cid, start, principal_id="a")
+    await idle(cid, play, "b")
+    spell_item = "spell:" + hashlib.sha256(b"cast").hexdigest()
+    await combat.execute(
+        cid,
+        TakeCombatTurn(
+            id="aim",
+            actor_id="a",
+            expected_revision=3,
+            encounter_id="fight",
+            maneuver="aim",
+            item_id=spell_item,
+            target_id="b",
+        ),
+        principal_id="a",
+    )
+    await idle(cid, play, "b")
+    await service.execute(
+        cid,
+        start.model_copy(
+            update={
+                "id": "release",
+                "kind": "release",
+                "expected_revision": 5,
+                "hit_location": "face",
+            }
+        ),
+        principal_id="a",
+    )
+    saved = play._load(await play.store.read(cid))
+    pending = saved.encounters[0].pending_defense
+    assert pending and pending.spell_aim_bonus == 1 and pending.hit_location == "face"
+    play.rng = RecordedDice([1, 1, 1, 3, 3, 2, 4, 3, 3, 3])
+    result = await combat.execute(
+        cid,
+        ChooseDefense(
+            id="impact",
+            actor_id="b",
+            expected_revision=6,
+            encounter_id="fight",
+            defense="none",
+        ),
+        principal_id="b",
+    )
+    assert result.injury and result.injury.attack.effective_target == 2
+    assert result.injury.injury == 4
+    assert await play.store.read(cid) == await play.store.replay(cid)
+
+
 async def test_noncombat_mental_stun_recovers_at_next_second_with_iq(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.actions import Wait
     from wayfarer.engine.simulation.magic.backfires import backfires

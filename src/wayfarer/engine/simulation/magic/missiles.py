@@ -19,6 +19,7 @@ from wayfarer.engine.simulation.combat.objects.combat import (
     target_modifier,
 )
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
+from wayfarer.engine.simulation.combat.special_melee import targeted_attack_penalty
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import Damage
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
@@ -81,9 +82,17 @@ def resolve(
     attack = success_roll(
         PROFILE,
         int(value.value)
+        + pending.spell_aim_bonus
         + range_penalty(distance)
         + object_penalty
-        - (actor_hp.injury.shock if actor_hp.injury else 0),
+        - (actor_hp.injury.shock if actor_hp.injury else 0)
+        + targeted_attack_penalty(
+            pending.hit_location,
+            armor_chink=False,
+            damage_type="burn",
+            tight_beam=False,
+            shield_side=None,
+        ),
         check_modifiers(state.resources, attacker.actor_id, "dx"),
         rng=runtime.rng,
     )
@@ -177,6 +186,7 @@ def resolve(
                 basic_damage=damage,
                 resistance=dr,
                 damage_type="burn",
+                location=pending.hit_location,
             ),
             ht=defend_build.statistics.ht,
             rng=runtime.rng,

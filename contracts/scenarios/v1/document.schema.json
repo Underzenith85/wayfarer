@@ -7028,6 +7028,11 @@
           "title": "Structure",
           "type": "string"
         },
+        "no_blood": {
+          "default": false,
+          "title": "No Blood",
+          "type": "boolean"
+        },
         "no_brain": {
           "default": false,
           "title": "No Brain",

@@ -190,6 +190,7 @@ class PendingDefense(Record):
     defender_close_combat: bool = Field(default=False, exclude_if=lambda value: not value)
     stray_target_order: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)
     spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    spell_aim_bonus: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
     tactical_approach: TacticalApproach | None = Field(
         default=None, exclude_if=lambda value: value is None
     )

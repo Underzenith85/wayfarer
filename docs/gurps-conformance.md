@@ -266,8 +266,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110, #154, #517, and #518; [typed persistent exposure schedules](gurps-hazards.md), [poisons, intoxication, drugs, withdrawal, and overdose](gurps-toxins.md); illness ownership remains separate |
-| `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
-| `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
+| `gurps.magic.spellcasting` | no | yes | verified | #688; complete supernatural spell inventory with Fireball lifecycle, Aim, targeting, ranged criticals, replay and restart evidence |
+| `gurps.supernatural.abilities` | no | yes | verified | #688; complete supernatural ability inventory with all Injury Tolerance forms and shared injury/effect integration |
 | `gurps.vehicles.movement` | no | yes | verified | #358; [vehicle operation audit](gurps-vehicles.md); all ten modes complete in #392-#396 |
 | `gurps.vehicles.combat` | no | yes | verified | #358; [vehicle operation audit](gurps-vehicles.md); live integration complete in #397 |
 
@@ -1024,18 +1024,10 @@ The bounded acceptance criteria of #118 are implemented:
 | Mental: surface thoughts, resistance and private replay | `test_actual_approved_reading_wait_resistance_private_replay` |
 | Unsupported modifiers, ownership and shared concentration | `test_unsupported_combinations_never_only_charge_points`, `test_unowned_ability_and_overspend_rejected`, `tests/test_supernatural_concentration.py` |
 
-Closing this representative implementation issue does not promote the full
-supernatural capability to verified: the exhaustive catalog/source audit belongs
-to #119, and unsupported combinations remain rejected.
-
-#117/#171 are still incomplete. Required remaining paths include critical spell
-failure consequences, very-high mana recovery/backfire, HP-powered casting,
-concentration-dependent maintenance, Wait-triggered missile release, held-missile
-injury/disposal, nonpositive-HP missile release, transient fire crossings and full
-hex-area geometry, and the independent frozen-source audit. Ranged critical
-consequences retain the existing explicit #173 combat pause. Neither a lifecycle
-result nor this partial adapter certifies these missing paths or unblocks #119's
-hard #117 prerequisite.
+This section records the bounded #118 state at delivery time. The later #171 and
+#688 sections supersede its historical blocker list and promote the completed
+spellcasting and supernatural-ability inventories to verified. Unsupported
+combinations remain explicitly rejected.
 
 
 ## Spell execution completion (#171)
@@ -1045,7 +1037,8 @@ version 2, profile version 5 prerequisite correction, source review, concrete
 backfires, HP energy, mana refunds, manipulation, held missiles, Wait and fire
 crossings. The earlier “remaining paths” lists above describe historical slices;
 use the execution guide for current behavior and the explicitly unsupported
-variants. Full `gurps.magic.spellcasting` certification remains partial under #119.
+variants. Issue #688 completes the residual Fireball coverage and verifies
+`gurps.magic.spellcasting`.
 
 ## Geometry and injury follow-up (#105/#107)
 
@@ -1059,12 +1052,14 @@ maps retain their meanings. Non-stair climbing/jumping/falling remains owned by
 Human-layout injury now executes the declared Injury Tolerance structures and
 missing-part variants, with distinct attack/area/internal injury sources and
 B552 targeted near-miss torso fallback. The hit-location, armor-divisor and
-lasting-wound registry entries are reconciled from absent to partial.
+lasting-wound registry entries are reconciled from absent to partial; #688
+independently verifies Injury Tolerance.
 
 See [geometry](tactical-geometry.md) and [injury](gurps-hit-locations.md) for
 independent fixture bindings, persistence evidence and remaining boundaries.
-The source inventory and audit disposition are recorded by #191; no capability
-or whole profile is promoted to certified by these changes.
+The source inventory and audit disposition are recorded by #191. Issue #688
+promotes only the two supernatural family capabilities named above, not the whole
+profile.
 
 ### Ground transport foundation (#120; initial bounded delivery)
 
@@ -1145,9 +1140,8 @@ acceptance and item-coverage matrix for #117/#118/#119. Both representative
 implementation prerequisites are closed. The inventory accounts for 100 spells,
 150 advantages, 42 disadvantages, six psi powers
 eight magic protocols and 28 transferred skills: 334 records in total. Source
-review and implementation evidence verify 332 rows. Fireball retains #173 and
-Injury Tolerance retains #107, so neither supernatural family nor the profile is
-certified. The conformance gate consults this
+review and implementation evidence verify all 334 rows after #688 completed
+Fireball and Injury Tolerance. The conformance gate consults this
 inventory before accepting either supernatural family as verified, so a family
 flag alone cannot bypass missing item evidence.
 

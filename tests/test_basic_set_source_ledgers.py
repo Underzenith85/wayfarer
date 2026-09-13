@@ -35,7 +35,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 208
+    assert len(ledger_blockers(bundle.rows)) == 207
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -302,7 +302,7 @@ def test_campaigns_section_obligations_cannot_fall_back_to_the_roadmap() -> None
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 208
+    assert len(ledger) == 207
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
@@ -314,6 +314,6 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         "686": 3,
         "689": 6,
         "690": 2,
-        "94": 197,
-        "none": 1_077,
+        "94": 196,
+        "none": 1_078,
     }

@@ -6,7 +6,14 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
-from test_attack_defense_traits import approved, channel, command, resources, world
+from test_attack_defense_traits import (
+    approved,
+    channel,
+    command,
+    resources,
+    tolerance_options,
+    world,
+)
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_resources import engine as resource_engine
@@ -201,7 +208,7 @@ def test_affliction_dr_bonus_and_injury_tolerance_are_distinct_boundaries() -> N
         Purchase(definition_id="advantage:damage-resistance", amount=4),
         Purchase(
             definition_id="advantage:injury-tolerance",
-            trait=options(kind="homogeneous"),
+            trait=tolerance_options(no_neck=True),
         ),
     )
     attack = channel(
@@ -227,7 +234,7 @@ def test_affliction_dr_bonus_and_injury_tolerance_are_distinct_boundaries() -> N
     )
     assert outcome.outcome == "unaffected"
     assert outcome.resistance_target == 16
-    assert outcome.penetration_reason == "injury-tolerance-homogeneous"
+    assert outcome.penetration_reason == "injury-tolerance-no-neck"
     assert not state.afflictions
 
 

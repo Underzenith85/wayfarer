@@ -162,4 +162,4 @@ def test_new_version_requires_explicit_selection_and_remains_uncertified() -> No
     assert DEFAULT_REGISTRY.resolve(GURPS_BASIC_PROFILE.reference) == GURPS_BASIC_PROFILE
     with pytest.raises(ValidationError, match="not supported"):
         DEFAULT_REGISTRY.require_supported(GURPS_MAGIC_PROFILE.id, 4)
-    assert "gurps.magic.spellcasting" in GURPS_MAGIC_PROFILE.unverified_capabilities
+    assert "gurps.magic.spellcasting" not in GURPS_MAGIC_PROFILE.unverified_capabilities

@@ -3,10 +3,10 @@
 The audit accounts for every spell in the Basic Set spell index, every exotic
 or supernatural advantage/disadvantage row in the trait index, and the six
 listed psi powers. **This completes inventory accounting, not supernatural
-runtime coverage.** The selected-printing source review is reconciled. Of 334
-entries, 332 are verified against their completed implementation evidence;
-Fireball and Injury Tolerance remain partial under their concrete mechanics
-owners. No campaign profile or saved package is changed.
+runtime coverage.** The selected-printing source review is reconciled. All 334
+entries are verified against their completed implementation evidence after #688
+closed the residual Fireball and Injury Tolerance mechanics. No campaign profile
+or saved package is changed.
 
 ## Source boundary
 
@@ -31,7 +31,7 @@ supplement the existing execution tests; they do not certify every variant.
 
 | Inventory group | Rows | Coverage decision |
 | --- | ---: | --- |
-| Characters spells | 93 | Source and college implementations are verified except Fireball, which retains an explicit critical-consequence blocker. |
+| Characters spells | 93 | Source, college and runtime implementations are verified, including Fireball's canonical missile/ranged path. |
 | Campaigns enchantment spells | 7 | Enchant, Accuracy, Deflect, Fortify, Power, Puissance and Staff are verified required entries, not supplement exclusions. |
 | Exotic/supernatural advantages | 146 | Includes all X and Sup index rows, even if an exotic trait could have a nonmagical origin. |
 | Additional psi-member advantages | 4 | Animal Empathy, Danger Sense, Empathy and Resistant are mundane index entries explicitly listed in psi powers; included here for their psi use. Mundane construction is certified separately. |
@@ -39,7 +39,7 @@ supplement the existing execution tests; they do not certify every variant.
 | Psi powers | 6 | Explicit member references, conditional membership, Talent cost and power modifier. No Antipsi Talent or power discount. |
 | Magic protocols | 8 | Includes blocked class/area/ceremonial/item protocols and explicitly optional Clerical/Ritual Magic. |
 | Transferred cinematic/supernatural skills | 28 | All explicit #112 exclusions retain named blockers #242/#243; not silently excluded from Basic. |
-| **Total** | **334** | **332 verified; two partial.** |
+| **Total** | **334** | **334 verified.** |
 
 A row covers its entire named definition, including levels, special modifiers
 and conditional variants. Subtypes such as Morph, Alternate Form, Para-Radar
@@ -68,9 +68,8 @@ when loading the package data, independently of the process working directory.
 `require_entries(profile_id, ids)` rejects unknown profiles, out-of-scope Lite
 requests, unknown IDs, optional systems and every unverified whole entry.
 `require_verified()` in the shared conformance registry additionally invokes
-this item gate for magic and supernatural families: changing a family flag to
-verified cannot hide its unresolved entries. Tests exercise that attempted
-promotion explicitly.
+this item gate for magic and supernatural families, so future row regressions
+cannot be hidden by their verified family flags.
 
 `definition()` supplies non-purchasable `audit:*` catalog records using existing
 `RuleDefinition` and `ImplementationStatus.UNSUPPORTED`. Even with explicit
@@ -83,9 +82,9 @@ The supported-subset and evidence fields record narrower work honestly:
 Light/Daze/Fireball/Create Fire execution version 2; purchased Foolishness,
 Ignite Fire and Shape Fire prerequisites; profile v5 Magery learning; burning
 Malediction, paid DR, rare Detect and shared-language Mind Reading; trusted
-Mind Shield resistance context and selected Injury Tolerance structures.
-Remaining physical Fireball critical consequences retain #173. A source row
-being partial does not imply its entire trait can be purchased or activated.
+Mind Shield resistance context and every Injury Tolerance form. Fireball adds
+held-missile Aim, exact hit-location targeting and completed ranged critical
+consequences through shared services.
 
 ## Acceptance reconciliation
 
@@ -96,14 +95,14 @@ maintenance and persisted retries have executable evidence in
 `test_spell_energy.py`, `test_spell_backfires.py`, `test_spell_execution.py`,
 `test_spell_bindings.py` and `test_spell_service.py`.
 #118's representative attack/defense/sensing/mental scope was already reconciled
-in PR #187. Both prerequisites are closed; their family capabilities remain
-partial. Earlier conformance sections describe historical implementation slices
-and do not override these acceptance decisions.
+in PR #187. Issue #688 completes the two residual inventory rows, so both family
+capabilities are verified. Earlier conformance sections describe historical
+implementation slices and do not override these acceptance decisions.
 
 The completed implementation workstreams below own the row evidence. They no
-longer appear as blockers merely to preserve history. Only #107 on Injury
-Tolerance and #173 on Fireball remain as concrete mechanics blockers; #122
-cannot claim Basic Set completeness until those required entries are complete.
+longer appear as blockers merely to preserve history. Issue #688 reconciles the
+former #107 Injury Tolerance and #173 Fireball residuals; unrelated #122 Basic
+Set blockers remain visible in their owning inventories and ledgers.
 
 | Owner | Exact family (entry lists are in each issue and inventory) |
 | --- | --- |
@@ -123,7 +122,7 @@ cannot claim Basic Set completeness until those required entries are complete.
 | #234 | Sensing, concealment and communication traits |
 | #235 | Physiology, survival and recovery traits |
 | #236 | Mental, spirit and fortune traits |
-| #237 | Attack, defense and injury traits; coordinate #107/#173 |
+| #237 | Attack, defense and injury traits; residual Injury Tolerance completed by #688 |
 | #238 | Jumper, Snatcher and Warp |
 | #239 | Magery variants, mana and divine traits |
 | #240 | Six psi powers, Talent, suppression and conditional members |
