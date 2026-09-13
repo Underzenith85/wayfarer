@@ -40,10 +40,10 @@ from wayfarer.engine.simulation.combat.suppression import (
     PendingSprayTarget,
     PendingSuppressionAttack,
 )
-from wayfarer.engine.simulation.combat.tactical import TacticalTrace
+from wayfarer.engine.simulation.combat.tactical import TacticalApproach, TacticalTrace
 from wayfarer.engine.simulation.combat.unarmed.records import Grip, PendingUnarmed, UnarmedTrace
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
-from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing
+from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing, Pose
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 
@@ -167,6 +167,12 @@ class PendingDefense(Record):
     interrupted_actor_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
     laser_sight: bool = Field(default=False, exclude_if=lambda value: not value)
     spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    tactical_approach: TacticalApproach | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    tactical_attack_pose: Pose | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()

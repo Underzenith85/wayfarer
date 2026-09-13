@@ -80,9 +80,8 @@ profile before constructing a tagged hex battlefield.
 
 ## Source provenance and evidence
 
-Frozen reference: **GURPS Basic Set: Campaigns, Fourth Edition, 2004 first
-printing**, with the January 26, 2007
-[errata](https://www.sjgames.com/errata/gurps/4e/basic-set-campaigns.html).
+Frozen reference: **GURPS Basic Set: Campaigns, Fourth Edition, fourth printing
+(April 2008)**.
 Page references for independent expected-result tests: B367–368 (posture/Step),
 B377 (retreat restrictions), B384–387 (hexes, facing, movement), B388 (reach),
 B391–392 (retreat and close combat), B402–403 (height and reach), and B407
@@ -91,9 +90,10 @@ copied examples or rulebook prose. `tests/test_hex_geometry.py` also checks
 serialization, failed paths and metric/LOS properties.
 
 The frozen-source inventory and audit disposition were completed in #191. The
-tactical rows remain partial because the broader combat and physical-feat
-capabilities retain their own explicit blockers; they must not be promoted merely
-because this bounded geometry contract is complete.
+B384-B391 tactical rows completed by #507 are source-reviewed in
+[the tactical combat completion note](gurps-tactical-combat.md). Broader
+close-combat, special-combat and physical-feat capabilities retain their own
+explicit blockers; this bounded geometry contract does not promote those rows.
 
 The following geometric conventions are explicitly **engine policy**, not claims
 about a published numeric example:

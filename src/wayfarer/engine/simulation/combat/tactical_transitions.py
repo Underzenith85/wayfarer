@@ -453,7 +453,16 @@ def prepare_defense(
         raise ValidationError("Defense is unavailable")
     actor = next(p for p in encounter.participants if p.actor_id == attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == defender_id)
-    bonus = defense_adjustment(encounter, actor, target) if command.defense != "none" else 0
+    bonus = (
+        defense_adjustment(
+            encounter,
+            actor,
+            target,
+            approach=pending.tactical_approach if pending else None,
+        )
+        if command.defense != "none"
+        else 0
+    )
     if command.retreat is not None:
         if command.defense == "none" or command.second_defense is not None:
             raise ValidationError("Retreat requires one active defense")

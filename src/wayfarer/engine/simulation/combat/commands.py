@@ -123,6 +123,7 @@ class TakeCombatTurn(CombatCommand):
     braced: bool = Field(default=False, exclude_if=lambda value: not value)
     hex_path: tuple[Hex, ...] = Field(default=(), max_length=100)
     hex_facing: HexFacing | None = None
+    pop_up: bool = Field(default=False, exclude_if=lambda value: not value)
     basic_move: BasicMove | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
