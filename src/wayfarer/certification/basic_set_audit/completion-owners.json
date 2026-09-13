@@ -362,6 +362,21 @@
       "issue": 528,
       "state": "closed",
       "title": "Complete flying and mounted combat"
+    },
+    {
+      "issue": 686,
+      "state": "open",
+      "title": "Complete remaining general equipment and accessory behavior"
+    },
+    {
+      "issue": 689,
+      "state": "open",
+      "title": "Complete residual task and physical-activity procedures"
+    },
+    {
+      "issue": 690,
+      "state": "open",
+      "title": "Complete residual Campaigns economic procedures"
     }
   ]
 }
