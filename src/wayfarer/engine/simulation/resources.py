@@ -33,6 +33,7 @@ from wayfarer.engine.rules.types.recovery import (
     FatigueStatus,
     RecoveryTask,
 )
+from wayfarer.engine.rules.types.toxin import DrugDependency, Intoxication, ToxinExposure
 from wayfarer.engine.rules.types.transport import Transport
 from wayfarer.engine.simulation.magic.enchanting import EnchantmentProject
 from wayfarer.engine.simulation.projects.inventions import InventionProject
@@ -172,6 +173,9 @@ class ResourceState(Record):
     recovery_tasks: tuple[RecoveryTask, ...] = ()
     hazards: tuple[HazardSchedule, ...] = ()
     illnesses: tuple[RecoveryRestriction, ...] = ()
+    toxins: tuple[ToxinExposure, ...] = Field(default=(), exclude_if=lambda v: not v)
+    intoxications: tuple[Intoxication, ...] = Field(default=(), exclude_if=lambda v: not v)
+    dependencies: tuple[DrugDependency, ...] = Field(default=(), exclude_if=lambda v: not v)
     transports: tuple[Transport, ...] = Field(default=(), exclude_if=lambda v: not v)
     creatures: tuple[Creature, ...] = Field(default=(), exclude_if=lambda v: not v)
     object_results: tuple[ObjectResult, ...] = Field(default=(), exclude_if=lambda v: not v)
@@ -186,6 +190,7 @@ class ResourceState(Record):
             raise ValueError("Duplicate hazard schedule ID")
         if len({i.id for i in self.illnesses}) != len(self.illnesses):
             raise ValueError("Duplicate illness restriction ID")
+        _validate_toxin_state(self)
         if any(h.due < h.started or h.started > self.game_time for h in self.hazards):
             raise ValueError("Invalid hazard timeline")
         if len({t.id for t in self.transports}) != len(self.transports):
@@ -230,6 +235,25 @@ class ResourceState(Record):
             if task.status == "completed" and (not task.settled or task.due > self.game_time):
                 raise ValueError("Completed recovery must be due and settled")
         return self
+
+
+def _validate_toxin_state(state: ResourceState) -> None:
+    if len({t.id for t in state.toxins}) != len(state.toxins):
+        raise ValueError("Duplicate toxin exposure ID")
+    if len({i.actor_id for i in state.intoxications}) != len(state.intoxications):
+        raise ValueError("Duplicate intoxication actor")
+    if len({d.id for d in state.dependencies}) != len(state.dependencies):
+        raise ValueError("Duplicate drug dependency ID")
+    if any(
+        t.started > state.game_time or (t.active and t.due < state.game_time)
+        for t in state.toxins
+    ):
+        raise ValueError("Invalid toxin deadline")
+    if any(
+        d.started > state.game_time or (d.active and d.due < state.game_time)
+        for d in state.dependencies
+    ):
+        raise ValueError("Invalid withdrawal deadline")
 
 
 class Command(Record):

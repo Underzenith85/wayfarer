@@ -245,7 +245,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
-| `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
+| `gurps.world.environmental_hazards` | yes | yes | partial | #110 and #518; [persistent exposure schedules](gurps-hazards.md), [poisons, intoxication, drugs, withdrawal, and overdose](gurps-toxins.md) |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
 | `gurps.vehicles.movement` | no | yes | verified | #358; [vehicle operation audit](gurps-vehicles.md); all ten modes complete in #392-#396 |

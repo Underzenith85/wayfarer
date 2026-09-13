@@ -37,6 +37,26 @@ def check_modifiers(
             penalty += -6 if fraction >= 4 else -4 if fraction >= 3 else -2 if fraction >= 2 else 0
         if penalty:
             result += (Modifier(penalty, "Toxin symptoms", "hazard:" + hazard.id, "B428/B439"),)
+    for toxin in state.toxins:
+        if toxin.actor_id != actor_id or toxin.condition_until <= state.game_time:
+            continue
+        condition = toxin.profile.condition
+        penalty = (
+            -3
+            if condition == "coughing" and attribute.lower() == "dx"
+            else -1
+            if condition in ("coughing", "drowsy") and attribute.lower() == "iq"
+            else 0
+        )
+        if penalty:
+            result += (
+                Modifier(
+                    penalty,
+                    "Toxin condition",
+                    "toxin:" + toxin.id,
+                    "Basic Set Campaigns 4e B428/B438-B441",
+                ),
+            )
     return result
 
 
@@ -76,4 +96,13 @@ def require_hazard_capacity(state: ResourceState, actor_id: str, kind: str) -> N
         if hazard.spec.affliction == "coughing" and kind == "stealth":
             raise ValidationError("Coughing prevents Stealth")
         if hazard.spec.affliction == "blindness" and kind == "vision":
+            raise ValidationError("Toxin blindness prevents vision")
+    for toxin in state.toxins:
+        if toxin.actor_id != actor_id or toxin.condition_until <= state.game_time:
+            continue
+        if toxin.profile.condition == "paralysis" and kind not in ("question", "wait"):
+            raise ValidationError("Paralysis prevents voluntary physical action")
+        if toxin.profile.condition == "coughing" and kind == "stealth":
+            raise ValidationError("Coughing prevents Stealth")
+        if toxin.profile.condition == "blindness" and kind == "vision":
             raise ValidationError("Toxin blindness prevents vision")
