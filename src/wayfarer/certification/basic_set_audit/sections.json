@@ -6947,15 +6947,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -12098,15 +12104,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.medical_treatment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
@@ -12124,15 +12136,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12150,15 +12168,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.medical_treatment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12176,15 +12200,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12202,15 +12232,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.medical_treatment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12228,15 +12264,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.medical_treatment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12254,15 +12296,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.medical_treatment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12280,15 +12328,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-advanced-treatment.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_advanced_medical.py",
+        "tests/test_medical_service.py"
       ],
       "historical_owners": [
-        191
+        191,
+        515
       ],
-      "completion_owner": 515,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",

@@ -1,4 +1,4 @@
-# GURPS fatigue and medical recovery (#109)
+# GURPS fatigue and medical recovery (#109, #515)
 
 The implementation remains **partial**. It adds deterministic mechanics and an
 internal authoritative service; it does not certify or enable a GURPS profile in
@@ -29,6 +29,17 @@ unchanged. The coverage ledger is [GURPS conformance](gurps-conformance.md).
 - Physician treatment uses technology-specific intervals and patient limits.
   Only one physician treatment can occupy a patient's treatment interval.
   High-HP healing scales by full tens of maximum HP, starting at 20 HP.
+- Injury unconsciousness uses persistent shared-clock tasks: automatic recovery
+  after 15 minutes above 0 HP, hourly HT attempts above negative maximum HP,
+  and a single wake attempt after 12 hours at or below negative maximum HP.
+  Failure of that deep wake attempt changes subsequent 12-hour rolls to survival
+  checks until successful mortal-wound treatment unlocks recovery. Outcomes retain
+  their dice trace and survive JSON reload.
+- Selected TL9+ healing drugs are explicit procedures. The bound care environment
+  supplies an individually tracked dose, form, and authored HP/FP effect. Starting
+  treatment consumes that inventory item exactly once; pills, contact agents,
+  aerosols, and injections use their cited onset bands. Interruption consumes an
+  administered dose without granting its full effect.
 
 `MedicalService` derives HT and medical skill from approved builds. Its bound
 environment resolver supplies location-relevant supplies and technology; these
@@ -58,7 +69,9 @@ unverified healing amounts.
 ## Evidence and boundaries
 
 Numeric expectations were checked against the selected Basic Set: Campaigns
-fourth printing, B424-427 and B429. This is not full conformance certification.
+fourth printing, B423-427 and B429. The B423-B425 recovery rows owned by #515
+are source-reviewed and verified; this does not certify adjacent illness,
+fatigue, or optional medical variants.
 Tests contain independent numeric
 expectations rather than copied explanatory text.
 
@@ -69,12 +82,13 @@ shared-clock waiting, movement interruption, authorization, and heart-attack
 deadline execution. Existing prototype tests remain regression evidence.
 
 Advanced resuscitation and stabilization are described in
-[advanced treatment](gurps-advanced-treatment.md). Still unsupported: illness-
-specific healing restrictions, and trait-specific recovery rates. First-aid and
+[advanced treatment](gurps-advanced-treatment.md). Still unsupported: authored
+permanent-crippling surgery details and non-healing ultra-tech drug effects.
+First-aid and
 Physician commands require an available approved skill definition; the separate
 catalog coverage gates are not bypassed. Exact Lite-specific source certification,
 complete combat exertion dispatch, and player-facing GURPS recovery controls are
-not claimed by this PR. No coverage row is marked verified by these additions.
+not claimed by this implementation.
 
 ### One medical procedure API
 

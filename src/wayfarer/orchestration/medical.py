@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import cast
+from typing import Literal, cast
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import ValidatedBuild
@@ -39,6 +39,10 @@ class CareEnvironment:
     infection_risk: bool = False
     infection_modifier: int = 0
     resuscitation_first_aid_penalty: int = 4
+    drug_item_id: str | None = None
+    drug_form: Literal["pill", "contact", "aerosol", "injection"] | None = None
+    drug_hp: int = 0
+    drug_fp: int = 0
 
 
 EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
@@ -119,6 +123,10 @@ def care_context(
         equipment_quality_modifier=env.equipment_quality_modifier,
         infection_risk=env.infection_risk,
         infection_modifier=env.infection_modifier,
+        drug_item_id=env.drug_item_id,
+        drug_form=env.drug_form,
+        drug_hp=env.drug_hp,
+        drug_fp=env.drug_fp,
     )
 
 
@@ -168,15 +176,18 @@ class MedicalService:
             kind = command.kind if isinstance(command, BeginRecovery) else task.kind if task else ""
             if task is not None:
                 context = CareContext(
-                    task.profile_id,
-                    task.ht,
-                    task.skill,
-                    task.technology_level,
-                    task.food,
-                    task.water,
-                    task.sleep,
-                    task.physician_skill,
-                    task.physician_id,
+                    profile_id=task.profile_id,
+                    ht=task.ht,
+                    skill=task.skill,
+                    technology_level=task.technology_level,
+                    food=task.food,
+                    water=task.water,
+                    sleep=task.sleep,
+                    physician_skill=task.physician_skill,
+                    physician_id=task.physician_id,
+                    drug_item_id=task.drug_item_id,
+                    drug_hp=task.drug_hp,
+                    drug_fp=task.drug_fp,
                 )
                 resources, result = apply_recovery(
                     before.resources, command, context, rng=play.rng, system=True
