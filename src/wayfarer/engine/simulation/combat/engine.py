@@ -725,6 +725,7 @@ class CombatEngine:
         command_json: str = "",
         hex_path: tuple[Hex, ...] = (),
         hex_facing: HexFacing | None = None,
+        pop_up: bool = False,
         basic_move: BasicMove | None = None,
         spatial_revision: int | None = None,
         suppression_fire: bool = False,
@@ -753,6 +754,7 @@ class CombatEngine:
             command_json=command_json,
             hex_path=hex_path,
             hex_facing=hex_facing,
+            pop_up=pop_up,
             basic_move=basic_move,
             spatial_revision=spatial_revision,
             suppression_fire=suppression_fire,
@@ -782,6 +784,7 @@ class CombatEngine:
         second_mode_id: str | None = None,
         hex_path: tuple[Hex, ...] = (),
         hex_facing: HexFacing | None = None,
+        pop_up: bool = False,
         basic_move: BasicMove | None = None,
         suppression_fire: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
@@ -809,6 +812,7 @@ class CombatEngine:
             second_mode_id=second_mode_id,
             hex_path=hex_path,
             hex_facing=hex_facing,
+            pop_up=pop_up,
             basic_move=basic_move,
             suppression_fire=suppression_fire,
         )

@@ -820,6 +820,11 @@ export interface components {
        * @default null
        */
       hex_facing: (0 | 1 | 2 | 3 | 4 | 5) | null;
+      /**
+       * Pop Up
+       * @default false
+       */
+      pop_up: boolean;
       /** @default null */
       basic_move: components["schemas"]["BasicMove"] | null;
     };

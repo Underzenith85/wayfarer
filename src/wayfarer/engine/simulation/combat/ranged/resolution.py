@@ -142,6 +142,7 @@ def resolve(
         )
         and aim.aim_seconds > 0
         and not pending.vehicle_aim_lost
+        and pending.tactical_approach != "pop-up"
     )
     bonus = (
         pending.suppression_aim_bonus
@@ -174,6 +175,7 @@ def resolve(
         # A mount bears the weapon, so the firer's own ST is not what limits it.
         - (0 if weapon.mount is not None else minimum_strength_penalty(weapon.minimum_st, st))
         + pending.vehicle_attack_penalty
+        + (-2 if pending.tactical_approach == "pop-up" else 0)
     )
     if pending.laser_sight and scene.laser_visible_to_firer:
         attack_target += 1

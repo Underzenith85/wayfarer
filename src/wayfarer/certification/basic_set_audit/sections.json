@@ -10006,15 +10006,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": null,
@@ -10032,15 +10037,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10058,15 +10068,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10084,15 +10099,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:the-combat-map",
@@ -10110,15 +10130,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:the-combat-map",
@@ -10136,15 +10161,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10162,15 +10192,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b385:maneuvers-in-tactical-combat",
@@ -10188,15 +10223,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10214,15 +10254,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b386:movement-in-tactical-combat",
@@ -10240,15 +10285,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b386:movement-in-tactical-combat",
@@ -10266,15 +10316,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10292,15 +10347,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b388:attacking-in-tactical-combat",
@@ -10318,15 +10378,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b388:attacking-in-tactical-combat",
@@ -10344,15 +10409,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b388:attacking-in-tactical-combat",
@@ -10370,15 +10440,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b388:attacking-in-tactical-combat",
@@ -10396,15 +10471,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10422,15 +10502,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/tactical-geometry.md",
+        "docs/gurps-tactical-combat.md",
+        "tests/test_hex_geometry.py",
+        "tests/test_tactical_completion.py",
+        "tests/test_tactical.py"
       ],
       "historical_owners": [
-        191
+        191,
+        507
       ],
-      "completion_owner": 507,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b390:defending-in-tactical-combat",
@@ -10456,7 +10541,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10482,7 +10567,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10508,7 +10593,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10534,7 +10619,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10560,7 +10645,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10586,7 +10671,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10612,7 +10697,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10638,7 +10723,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10664,7 +10749,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 507,
+      "completion_owner": 508,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",

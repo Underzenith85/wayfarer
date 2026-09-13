@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.rules.tables.combat import maneuver_permission
 from wayfarer.engine.rules.types.location import HitLocation
@@ -18,6 +18,7 @@ from wayfarer.engine.simulation.hex_geometry import (
     in_reach,
     line_of_sight,
     movement,
+    pop_up_movement,
 )
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
@@ -57,9 +58,13 @@ def occupants(encounter: Encounter) -> tuple[Occupant, ...]:
 
 def movement_blockers(encounter: Encounter, actor_id: str) -> tuple[Occupant, ...]:
     return tuple(
-        Occupant(actor_id=p.actor_id, position=pose(p).position)
+        Occupant(
+            actor_id=p.actor_id,
+            position=pose(p).position,
+            relation="enemy" if encounter.blocks_passage(actor_id, p.actor_id) else "ally",
+        )
         for p in encounter.participants
-        if p.actor_id != actor_id and encounter.blocks_passage(actor_id, p.actor_id)
+        if p.actor_id != actor_id
     )
 
 
@@ -144,13 +149,37 @@ def height_effect(
     return melee_height(start, end, reach=reach, location=location)
 
 
-def defense_adjustment(encounter: Encounter, actor: Combatant, target: Combatant) -> int:
+TacticalApproach = Literal["front", "side", "rear", "runaround", "pop-up"]
+
+
+def attack_approach(
+    defender: Pose,
+    attacker: Pose,
+    *,
+    origin: Pose | None = None,
+) -> TacticalApproach:
+    """Classify the defender's awareness from the committed attack path (B390-391)."""
+    direction = arc(defender, attacker.position)
+    if direction == "rear":
+        if origin is not None and arc(defender, origin.position) == "front":
+            return "runaround"
+        return "rear"
+    return "side" if direction in ("left", "right") else "front"
+
+
+def defense_adjustment(
+    encounter: Encounter,
+    actor: Combatant,
+    target: Combatant,
+    *,
+    approach: TacticalApproach | None = None,
+) -> int:
     if encounter.spatial_kind != "hex":
         return 0
-    direction = arc(pose(target), pose(actor).position)
-    if direction == "rear":
+    classified = approach or attack_approach(pose(target), pose(actor))
+    if classified == "rear":
         raise ValidationError("No active defense against a rear attack")
-    return -2 if direction in ("left", "right") else 0
+    return -2 if classified in ("side", "runaround") else 0
 
 
 def move_hex(
@@ -216,4 +245,35 @@ def move_hex(
     )
     return actor.model_copy(
         update={"position": result.destination.position, "hex_facing": result.destination.facing}
+    )
+
+
+def pop_up_hex(
+    encounter: Encounter,
+    actor: Combatant,
+    path: tuple[Hex, ...],
+    facing: HexFacing | None,
+    *,
+    board: HexBattlefield | None,
+) -> tuple[Combatant, Pose]:
+    """Validate and apply only the final pose of an atomic pop-up movement."""
+    if encounter.spatial_kind != "hex" or board is None:
+        raise ValidationError("Pop-up attack requires the matching hex battlefield")
+    result = pop_up_movement(
+        board,
+        pose(actor),
+        path,
+        move=actor.movement_allowance,
+        occupants=movement_blockers(encounter, actor.actor_id),
+        actor_id=actor.actor_id,
+        exposure_facing=facing,
+    )
+    return (
+        actor.model_copy(
+            update={
+                "position": result.destination.position,
+                "hex_facing": result.destination.facing,
+            }
+        ),
+        result.exposure,
     )

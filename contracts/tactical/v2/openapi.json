@@ -2026,6 +2026,11 @@
             "default": null,
             "title": "Hex Facing"
           },
+          "pop_up": {
+            "default": false,
+            "title": "Pop Up",
+            "type": "boolean"
+          },
           "basic_move": {
             "anyOf": [
               {

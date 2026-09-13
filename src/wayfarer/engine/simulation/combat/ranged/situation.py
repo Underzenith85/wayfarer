@@ -74,9 +74,25 @@ def situation(
     if encounter.spatial_kind == "hex":
         actor = next(p for p in encounter.participants if p.actor_id == attacker)
         target = next(p for p in encounter.participants if p.actor_id == defender)
-        attack_geometry(encounter, actor, target, board=runtime.hex_map(encounter))
+        pending = encounter.pending_defense
+        geometry = encounter
+        if (
+            pending is not None
+            and pending.attacker_id == attacker
+            and pending.tactical_attack_pose is not None
+        ):
+            attack_pose = pending.tactical_attack_pose
+            actor = actor.model_copy(
+                update={
+                    "position": attack_pose.position,
+                    "hex_facing": attack_pose.facing,
+                    "posture": "prone" if attack_pose.posture == "lying" else attack_pose.posture,
+                }
+            )
+            geometry = CombatEngine._replace(encounter, actor)
+        attack_geometry(geometry, actor, target, board=runtime.hex_map(geometry))
         distance = ranged_distance(
-            runtime.require_hex(encounter),
+            runtime.require_hex(geometry),
             pose(actor).position,
             pose(target).position,
             beam=bool(weapon and weapon.damage.tight_beam),
@@ -100,9 +116,37 @@ def situation(
     return value
 
 
+def _validate_pop_up(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
+) -> None:
+    if command.pop_up:
+        selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
+        if (
+            command.maneuver != "attack"
+            or encounter.spatial_kind != "hex"
+            or not isinstance(selected, RangedMode)
+            or selected.skill_id in ("skill:bow", "skill:sling")
+            or selected.readiness is not None
+            and selected.readiness.kind == "bow"
+            or command.step_timing != "before"
+            or command.basic_move is not None
+            or command.destination is not None
+            or command.facing is not None
+            or command.posture is not None
+            or command.crouch is not None
+            or command.suppression_zones
+            or command.spray_targets
+            or command.second_item_id is not None
+        ):
+            raise ValidationError(
+                "Pop-up attack requires one mapped ranged Attack with a firearm, crossbow, or thrown weapon"
+            )
+
+
 def validate_command(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> None:
+    _validate_pop_up(runtime, state, encounter, command)
     if command.spray_targets and (
         command.maneuver not in ATTACK_MANEUVERS
         or command.item_id is None

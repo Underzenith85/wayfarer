@@ -141,6 +141,7 @@ def preview(
         second_mode_id=command.second_mode_id,
         hex_path=command.hex_path,
         hex_facing=command.hex_facing,
+        pop_up=command.pop_up,
         basic_move=command.basic_move,
         spatial_revision=command.expected_revision + 1 if command.basic_move is not None else None,
     )

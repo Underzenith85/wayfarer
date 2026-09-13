@@ -217,8 +217,13 @@ def _prepare_encounter(
     if play.engine.rules.scenes is not None:
         encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules)
     if encounter.spatial_kind == "hex" and isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
-        if command.target_id is not None and command.target_id not in visible_actors(
-            state, encounter, command.actor_id, board=play.rules_context.hex_map(encounter)
+        if (
+            command.target_id is not None
+            and not (isinstance(command, TakeCombatTurn) and command.pop_up)
+            and command.target_id
+            not in visible_actors(
+                state, encounter, command.actor_id, board=play.rules_context.hex_map(encounter)
+            )
         ):
             raise ValidationError("Target is unavailable")
         if isinstance(command, TakeCombatTurn) and command.wait_trigger is not None:
