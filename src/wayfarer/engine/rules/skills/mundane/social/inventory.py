@@ -30,7 +30,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.conformance import CoverageStatus, capability, profile
@@ -42,8 +42,13 @@ from wayfarer.engine.rules.skills.mundane.source_defaults import (
 from wayfarer.engine.rules.social.gurps_social import influence_procedure
 from wayfarer.engine.rules.types.skill import ControllingAttribute as A
 from wayfarer.engine.rules.types.skill import Difficulty as D
-from wayfarer.engine.rules.types.skill import SkillDefault, SkillSpec
+from wayfarer.engine.rules.types.skill import SkillDefault, SkillSpec, Specialty
 from wayfarer.errors import ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.rules.skills.mundane.social.specialties import (
+        CampaignSocialSpecialties,
+    )
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
 
@@ -175,6 +180,11 @@ class SocialProcedure:
     modifiers: tuple[ConditionalModifier, ...] = ()
     paired: bool = False
     """Both parties must know the skill; the lower effective level decides (B198)."""
+    specialty: Specialty | None = None
+    # A required-specialty family is implemented by its children and is never
+    # itself a rollable skill. Open families receive children from campaign data.
+    specialties: tuple[str, ...] = ()
+    open_subject: str | None = None
     resolved: tuple[str, ...] = ()
     # Blockers this issue does not close, each mapped to the concrete open child
     # that owns it. A transferred blocker without an owner is a coverage failure.
@@ -200,7 +210,7 @@ class SocialProcedure:
 
     @property
     def dispatchable(self) -> bool:
-        return self.implemented
+        return self.implemented and not self.specialties and self.open_subject is None
 
     @property
     def dispatch(self) -> str | None:
@@ -230,6 +240,7 @@ class SocialProcedure:
             self.difficulty,
             self.reference,
             self.defaults,
+            specialty=self.specialty,
             technology_level_required=self.technology_level_required,
         )
 
@@ -309,6 +320,53 @@ def _unopposed(
         (Verdict.SUCCESS, success),
         (Verdict.FAILURE, Effect(f"{prefix}-{lost}")),
         (Verdict.CRITICAL_FAILURE, Effect(f"{prefix}-{botched}", requires_adjudication=True)),
+    )
+
+
+FORTUNE_TELLING_SPECIALTIES: Final = (
+    ("astrology", "Astrology"),
+    ("augury", "Augury"),
+    ("crystal-gazing", "Crystal Gazing"),
+    ("dream-interpretation", "Dream Interpretation"),
+    ("feng-shui", "Feng Shui"),
+    ("palmistry", "Palmistry"),
+    ("tarot", "Tarot"),
+)
+
+
+FORTUNE_TELLING_EFFECTS: Final = _contested(
+    "fortune-telling",
+    won="believed",
+    tied="uncertain",
+    lost="doubted",
+    exposed="exposed",
+)
+
+
+SAVOIR_FAIRE_EFFECTS: Final = _plain(
+    "savoir-faire",
+    (Verdict.SUCCESS, "accepted"),
+    (Verdict.TIE, "unmoved"),
+    (Verdict.FAILURE, "rebuffed"),
+)
+
+
+def _fortune_telling_specialties() -> tuple[SocialProcedure, ...]:
+    """B196's finite list; each tradition is independently purchasable."""
+    return tuple(
+        SocialProcedure(
+            f"skill:fortune-telling-{identifier}",
+            f"Fortune-Telling ({label})",
+            196,
+            A.IQ,
+            D.AVERAGE,
+            Resolution.QUICK_CONTEST,
+            FORTUNE_TELLING_EFFECTS,
+            (SkillDefault(A.IQ, -5),),
+            specialty=Specialty("fortune-telling", identifier),
+            resolved=(RUNTIME_PROCEDURE,),
+        )
+        for identifier, label in FORTUNE_TELLING_SPECIALTIES
     )
 
 
@@ -399,12 +457,15 @@ _DECLARED_ROWS: Final = (
         A.IQ,
         D.AVERAGE,
         Resolution.QUICK_CONTEST,
+        FORTUNE_TELLING_EFFECTS,
         defaults=(SkillDefault(A.IQ, -5),),
-        transferred={
-            RUNTIME_PROCEDURE: (SPECIALTIES_ISSUE,),
-            CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
-        },
+        specialties=tuple(
+            f"skill:fortune-telling-{identifier}" for identifier, _ in FORTUNE_TELLING_SPECIALTIES
+        ),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
     ),
+    *_fortune_telling_specialties(),
     SocialProcedure(
         "skill:gesture",
         "Gesture",
@@ -572,11 +633,12 @@ _DECLARED_ROWS: Final = (
         A.IQ,
         D.EASY,
         Resolution.INFLUENCE,
+        SAVOIR_FAIRE_EFFECTS,
         defaults=(SkillDefault(A.IQ, -4),),
-        transferred={
-            RUNTIME_PROCEDURE: (SPECIALTIES_ISSUE,),
-            CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
-        },
+        required_conditions=("matching-milieu",),
+        open_subject="one culture or social group",
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
     ),
     SocialProcedure(
         "skill:sex-appeal",
@@ -690,12 +752,15 @@ def definitions() -> tuple[RuleDefinition, ...]:
     return tuple(entry.definition() for entry in _ROWS if entry.dispatchable)
 
 
-def supported(profile_id: str) -> tuple[str, ...]:
+def supported(
+    profile_id: str, campaign_specialties: CampaignSocialSpecialties | None = None
+) -> tuple[str, ...]:
     """Identifiers a validator may accept, so an unknown one cannot be assumed."""
     if profile_id != PROFILE:
         raise ValidationError("Social skill procedures require the Basic Set profile")
     profile(profile_id)
-    return tuple(entry.id for entry in _ROWS if entry.dispatchable)
+    configured = () if campaign_specialties is None else tuple(campaign_specialties.procedures())
+    return tuple(entry.id for entry in _ROWS if entry.dispatchable) + configured
 
 
 def unsupported_scope() -> tuple[tuple[str, UnsupportedScope], ...]:
@@ -703,8 +768,12 @@ def unsupported_scope() -> tuple[tuple[str, UnsupportedScope], ...]:
     return tuple((entry.id, scope) for entry in _ROWS for scope in entry.unsupported)
 
 
-def procedure(identifier: str) -> SocialProcedure:
+def procedure(
+    identifier: str, campaign_specialties: CampaignSocialSpecialties | None = None
+) -> SocialProcedure:
     entry = PROCEDURES.get(identifier)
+    if entry is None and campaign_specialties is not None:
+        entry = campaign_specialties.procedure(identifier)
     if entry is None:
         raise ValidationError(f"Unknown social skill procedure: {identifier}")
     return entry
@@ -719,14 +788,28 @@ def require_capability(profile_id: str, capability_id: str) -> None:
         raise ValidationError(f"Rules capability has no coverage: {capability_id}")
 
 
-def require_procedure(profile_id: str, identifier: str) -> SocialProcedure:
+def require_procedure(
+    profile_id: str,
+    identifier: str,
+    campaign_specialties: CampaignSocialSpecialties | None = None,
+) -> SocialProcedure:
     """Fail closed before dice when a caller claims an unbound social skill."""
     if profile_id != PROFILE:
         raise ValidationError(
             f"Social skill procedure requires the exact Basic Set profile: {identifier}"
         )
-    entry = procedure(identifier)
+    entry = procedure(identifier, campaign_specialties)
     if not entry.dispatchable:
+        if entry.specialties:
+            raise ValidationError(
+                f"Social skill family requires a concrete specialty: {identifier}: "
+                + ", ".join(entry.specialties)
+            )
+        if entry.open_subject is not None:
+            raise ValidationError(
+                f"Social skill family requires a campaign specialty: {identifier}: "
+                f"{entry.open_subject}"
+            )
         raise ValidationError(
             f"Social skill procedure is unsupported: {identifier}: "
             + ", ".join(

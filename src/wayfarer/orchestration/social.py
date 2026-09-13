@@ -112,7 +112,9 @@ def bind_skill_conditions(
 
     if context.procedure_id is None:
         raise ValidationError("Social skill dispatch requires a declared procedure")
-    procedure = require_procedure(context.profile_id, context.procedure_id)
+    procedure = require_procedure(
+        context.profile_id, context.procedure_id, context.campaign_specialties
+    )
     if procedure.id != "skill:propaganda" and context.medium_id is not None:
         raise ValidationError("Only Propaganda can select an authored medium")
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
@@ -134,7 +136,11 @@ def bind_skill_conditions(
         )
     definitions = play.engine.reviewer.compiler.definitions
     context.conditions = context.conditions | skill_conditions(
-        approved, definitions, procedure.id, context.audience
+        approved,
+        definitions,
+        procedure.id,
+        context.audience,
+        context.campaign_specialties,
     )
     if procedure.resolution is not Resolution.INFLUENCE:
         # Reaction modifiers reach influence rolls only (B359); an unopposed

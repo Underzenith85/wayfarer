@@ -1,0 +1,75 @@
+{
+  "baseline_id": "source:gurps-basic-set-characters-4e-third-printing-2008",
+  "profile": "gurps-basic-set-4e-2004",
+  "owner": 366,
+  "references": ["B196", "B218", "B301-B304", "Campaigns B359"],
+  "fortune_telling": [
+    {
+      "specialty": "astrology",
+      "skill": 12,
+      "resistance": 10,
+      "dice": [1, 1, 1, 4, 4, 4],
+      "verdict": "critical-success",
+      "effect": "fortune-telling-believed"
+    },
+    {
+      "specialty": "augury",
+      "skill": 12,
+      "resistance": 10,
+      "dice": [3, 3, 3, 4, 4, 4],
+      "verdict": "success",
+      "effect": "fortune-telling-believed"
+    },
+    {
+      "specialty": "crystal-gazing",
+      "skill": 12,
+      "resistance": 10,
+      "dice": [3, 3, 4, 2, 3, 3],
+      "verdict": "tie",
+      "effect": "fortune-telling-uncertain"
+    },
+    {
+      "specialty": "dream-interpretation",
+      "skill": 12,
+      "resistance": 10,
+      "dice": [5, 5, 5, 3, 3, 3],
+      "verdict": "failure",
+      "effect": "fortune-telling-doubted"
+    },
+    {
+      "specialty": "feng-shui",
+      "skill": 12,
+      "resistance": 10,
+      "dice": [6, 6, 6, 3, 3, 3],
+      "verdict": "critical-failure",
+      "effect": "fortune-telling-exposed"
+    },
+    {
+      "specialty": "palmistry",
+      "skill": 11,
+      "resistance": 10,
+      "dice": [3, 3, 3, 4, 4, 4],
+      "verdict": "success",
+      "effect": "fortune-telling-believed"
+    },
+    {
+      "specialty": "tarot",
+      "skill": 10,
+      "resistance": 12,
+      "dice": [4, 4, 4, 3, 3, 3],
+      "verdict": "failure",
+      "effect": "fortune-telling-doubted"
+    }
+  ],
+  "savoir_faire": {
+    "subject": "High Society",
+    "definition_id": "skill:savoir-faire-high-society",
+    "skill": 12,
+    "resistance": 10,
+    "conditions": ["matching-milieu"],
+    "dice": [3, 3, 3, 4, 4, 4],
+    "verdict": "success",
+    "effect": "savoir-faire-accepted",
+    "reaction": "good"
+  }
+}

@@ -321,13 +321,11 @@ Evidence is in `tests/test_ranged_skills.py`.
 
 ## Social procedures (#345)
 
-The parent inventory is accounted for: 17 of its 19 headline rows are bound and
-executable. Fortune-Telling and Savoir-Faire explicitly retain #366 as their
-runtime owner; those rows remain unavailable until their required specialty is
-implemented. Propaganda's TL-keyed media procedure is complete under #367. This is
-the issue's required fail-closed transfer outcome, not a claim that the child
-mechanics are complete. Seven concrete Fortune-Telling specialties introduced
-by the source reconciliation likewise stay blocked under #366.
+The parent inventory is accounted for. Required-specialty family selectors stay
+non-rollable: Fortune-Telling expands to its seven B196 traditions, while
+Savoir-Faire materializes the campaign's declared B218 social milieus. Each
+concrete child is bound to the existing social procedure service. Propaganda's
+TL-keyed media procedure is complete under #367.
 
 A social row is implemented only when
 `wayfarer.engine.rules.skills.mundane.social` binds it to a service that already
@@ -348,6 +346,7 @@ required condition rejects before dice.
 | `skill:carousing` | B183, HT/E | Success roll; B183 goodwill of +2, or -2 and 1 FP on a critical failure. |
 | `skill:diplomacy` | B187, IQ/H | B359 influence roll, keeping the better ordinary reaction. |
 | `skill:fast-talk` | B195, IQ/A | B359 influence roll; the subject reacts at -3 once he realizes. |
+| `skill:fortune-telling-*` | B196, IQ/A | Quick Contest through one of seven source-indexed traditions; the family ID is not rollable. |
 | `skill:gesture` | B198, IQ/E | Success roll at the less fluent party's level. |
 | `skill:interrogation` | B202, IQ/A | Regular Contest against the subject's Will. |
 | `skill:intimidation` | B202, Will/A | B359 influence roll. |
@@ -357,14 +356,14 @@ required condition rejects before dice.
 | `skill:performance` | B212, IQ/A | Success roll. |
 | `skill:politics` | B215, IQ/A | Quick Contest. |
 | `skill:public-speaking` | B216, IQ/A | Success roll. |
+| `skill:savoir-faire-*` | B218, IQ/E | B359 influence roll for a campaign-declared milieu; requires a matching audience class. |
 | `skill:sex-appeal` | B219, HT/A | B359 influence roll; a win is Very Good. |
 | `skill:streetwise` | B223, IQ/A | B359 influence roll. |
 | `skill:teaching` | B224, IQ/A | Success roll. |
 
-Three rows keep `runtime-procedure` because they cannot resolve at all yet:
-`skill:fortune-telling` and `skill:savoir-faire` are not learnable without their
-required specialties (#366). `skill:propaganda` is present only in the explicit
-revision-11/package-0.9.0 pin and requires an authored medium under #367.
+Fortune-Telling and Savoir-Faire clear `runtime-procedure` under #366 while
+remaining non-rollable selectors. `skill:propaganda` requires an authored medium
+under #367.
 
 A bound row can still leave a named part of its entry elsewhere. That is not a
 blocker — the roll runs — so it is published as `transferred_procedure_scope`

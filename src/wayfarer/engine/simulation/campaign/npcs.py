@@ -5,6 +5,7 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.skills.mundane.social.inventory import CONDITIONS, PROCEDURES
+from wayfarer.engine.rules.skills.mundane.social.specialties import is_open_specialty_id
 from wayfarer.engine.rules.social.gurps_social import influence_procedure
 from wayfarer.engine.rules.social.social_hooks import Appearance, Recognition, ReputationScope
 from wayfarer.engine.simulation.campaign.propaganda import PropagandaRules
@@ -81,7 +82,7 @@ class NPCSocialTrigger(Record):
             if self.conditions or self.medium_id is not None:
                 raise ValueError("Contextual conditions belong to a social skill trigger")
             return self
-        if self.skill_id not in PROCEDURES:
+        if self.skill_id not in PROCEDURES and not is_open_specialty_id(self.skill_id):
             raise ValueError(f"Unsupported social skill procedure: {self.skill_id}")
         if self.modifier:
             # A procedure derives its own modifiers from the conditions below, so
@@ -92,6 +93,8 @@ class NPCSocialTrigger(Record):
         unknown = sorted(set(self.conditions) - CONDITIONS)
         if unknown:
             raise ValueError(f"Undeclared social skill condition: {', '.join(unknown)}")
+        if "matching-milieu" in self.conditions:
+            raise ValueError("A Savoir-Faire milieu match is derived from the selected specialty")
         if (self.medium_id is not None) != (self.skill_id == "skill:propaganda"):
             raise ValueError("Only Propaganda selects an authored medium, and it must select one")
         return self

@@ -40,7 +40,7 @@ def test_inventory_and_references() -> None:
     } <= ids
     assert len(entries) > 180
     # #338-#343 add bound procedures without changing a package pin.
-    assert audit_report()["available"] == 428
+    assert audit_report()["available"] == 435
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -202,9 +202,10 @@ def test_candidate_audit_and_runtime_agree(monkeypatch: pytest.MonkeyPatch) -> N
     assert bow.definition.status is ImplementationStatus.IMPLEMENTED
     assert bow.available
     assert require_available("skill:bow") == bow.definition
-    entry = next(e for e in entries if e.definition and not e.bound)
+    entry = next(e for e in entries if e.id == "skill:savoir-faire")
+    assert entry.definition is not None and entry.bound and not entry.available
     monkeypatch.setattr(module, "inventory", lambda: (replace(entry, blockers=()),))
-    # Even a mistakenly cleared blocker list cannot activate an unsupported definition.
+    # A completed family selector remains unavailable without a concrete child.
     with pytest.raises(ValidationError, match="unavailable"):
         require_available(entry.id)
 
@@ -404,8 +405,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert report["implementation_counts"] == {
         # #343 binds 66 concrete physical/outdoor rows and four templates.
         "contextual": 28,
-        "implemented": 467,
-        "unsupported": 9,
+        "implemented": 476,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -681,8 +681,8 @@ def test_alias_and_owner_validation() -> None:
                 *entries[2:],
             )
         )
-    blocked_index = next(index for index, entry in enumerate(entries) if entry.blockers)
-    blocked = entries[blocked_index]
+    blocked_index = 0
+    blocked = replace(entries[blocked_index], blockers=("runtime-procedure",))
     altered = (
         *entries[:blocked_index],
         replace(blocked, followup_issues=(112,)),

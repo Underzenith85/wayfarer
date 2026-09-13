@@ -12,6 +12,7 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.background import background_traits
 from wayfarer.engine.rules.catalog import ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.skills.mundane.social.inventory import VOICE, procedure
+from wayfarer.engine.rules.skills.mundane.social.specialties import CampaignSocialSpecialties
 from wayfarer.engine.rules.social.gurps_social import ReactionModifier
 from wayfarer.engine.rules.social.social_hooks import Reputation, Standing, validate_standing
 from wayfarer.engine.rules.traits.mundane.runtime import (
@@ -149,6 +150,7 @@ def skill_conditions(
     definitions: Mapping[str, RuleDefinition],
     procedure_id: str,
     audience: Audience = DEFAULT_AUDIENCE,
+    campaign_specialties: CampaignSocialSpecialties | None = None,
 ) -> frozenset[str]:
     """Named conditions the initiator's approved build asserts for a social procedure.
 
@@ -158,10 +160,17 @@ def skill_conditions(
     perceptible to this audience asserts nothing, and a procedure that declares no
     such modifier never receives the condition.
     """
-    entry = procedure(procedure_id)
+    entry = procedure(procedure_id, campaign_specialties)
     declared = {modifier.condition for modifier in entry.modifiers}
+    conditions: set[str] = set()
+    if (
+        entry.specialty is not None
+        and entry.specialty.family == "savoir-faire"
+        and entry.specialty.name in audience.classes
+    ):
+        conditions.add("matching-milieu")
     if VOICE.condition not in declared:
-        return frozenset()
+        return frozenset(conditions)
     binding = REACTION_BINDINGS["trait:voice"]
     purchase = next(
         (p for p in build.trait_purchases if p.definition_id == "trait:voice"),
@@ -169,11 +178,13 @@ def skill_conditions(
     )
     definition = definitions.get("trait:voice")
     if purchase is None or definition is None or definition.trait_rules is None:
-        return frozenset()
+        return frozenset(conditions)
     if definition.status is not ImplementationStatus.IMPLEMENTED:
-        return frozenset()
+        return frozenset(conditions)
     if binding.hook not in definition.trait_rules.runtime_hooks:
-        return frozenset()
+        return frozenset(conditions)
     if not 1 <= purchase.amount <= definition.trait_rules.maximum_level:
         raise ValidationError("Approved trait level is outside its catalog bounds")
-    return frozenset({VOICE.condition}) if audience.audible else frozenset()
+    if audience.audible:
+        conditions.add(VOICE.condition)
+    return frozenset(conditions)

@@ -142,9 +142,6 @@
       "unsupported": [],
       "dispatched": false,
       "transferred": {
-        "runtime-procedure": [
-          366
-        ],
         "conditional-or-skill-defaults": [
           383
         ]
@@ -415,14 +412,13 @@
       "attribute": "attribute:iq",
       "difficulty": "easy",
       "resolution": "influence",
-      "required_conditions": [],
+      "required_conditions": [
+        "matching-milieu"
+      ],
       "modifiers": [],
       "unsupported": [],
       "dispatched": false,
       "transferred": {
-        "runtime-procedure": [
-          366
-        ],
         "conditional-or-skill-defaults": [
           383
         ]
