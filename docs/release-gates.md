@@ -37,7 +37,7 @@ No licensed GURPS rule text is bundled or claimed to be verified.
 | --- | --- | --- |
 | Attributes, skills, costs, legality, effects and power | Compiler, rules, power and generated legality tests | Original prototype definitions |
 | Inventory, clocks, resource pools | Generated transfer/consume/retry sequences, durable transactions | Authored equipment and effects only |
-| Checks, combat and bounded rulings | Server dice, defense/replay, approval bounds | Implemented tactical subset |
+| Checks, combat and bounded rulings | Server dice, defense/replay, approval bounds | Implemented authored combat coverage; profile certification remains separate |
 | GURPS profile checks, contests and resistance | Independent source-referenced fixtures, replay without rerolls, property tests | Profile-gated services; campaign pipelines use the prototype package until a GURPS profile is fully verified |
 | Multiplayer and knowledge | Concurrent writers, shared-time barriers, private projections/streams | Explicit sharing only |
 | Persistence | SQLite process death during writes, PostgreSQL rollback/concurrency, replay | Recorded authoritative projections; not re-rolling historical actions |
@@ -45,7 +45,7 @@ No licensed GURPS rule text is bundled or claimed to be verified.
 | AI boundary | Prompt forgery, hidden-context isolation, stale/timeout/cancel/degradation | Narration is untrusted; semantic prose accuracy is not guaranteed |
 | Manual definitions | Keen senses, Fit, Curious, Code of honor | Catalog labels do not grant executable effects |
 | Rules profiles and migration | Exact profile selection, fail-closed GURPS profiles, dispatch, atomic and idempotent host migration | Registered pins include bounded verified mechanics, but no full GURPS profile is supported |
-| Unsupported | Full published GURPS catalog, magic/psionics, vehicles and unimplemented definitions | Require separately approved implementation or bounded manual handling |
+| Unsupported | Uncertified GURPS remainder and capabilities still marked `partial`, `manual`, or `absent` | Require independently evidenced implementation or an explicit reviewed boundary |
 
 The divergent-narration test deliberately supplies false victory/HP/equipment
 claims and verifies that persisted engine outcomes do not change. This establishes

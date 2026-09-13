@@ -4,7 +4,8 @@ A local-first, service-backed GURPS-inspired roleplaying engine with persistent 
 
 ## Setup and run
 
-Install Python 3.14, [uv](https://docs.astral.sh/uv/), Node 22.22.2+ or 24.15.0+, and pnpm 11.19.0. From the repository root:
+Install Python 3.14, [uv](https://docs.astral.sh/uv/), Node `^22.22.2`,
+`^24.15.0`, or `>=26.0.0`, and pnpm 11.19.0. From the repository root:
 
 ```bash
 uv sync --frozen
@@ -38,6 +39,8 @@ SQLite saves campaigns and drafts under `data/wayfarer.sqlite3`; durable player-
 
 - `WAYFARER_HOST` and `WAYFARER_PORT`: default `127.0.0.1:8000`. `--port` overrides the port.
 - `WAYFARER_DB`: campaign database path; `--db` overrides it.
+- `WAYFARER_PARTITION`: provider-job partition owned by this runtime, default
+  `default`. Never run two workers with the same campaign partition.
 - `WAYFARER_FRONTEND_DIR`: production build directory, default `frontend/dist` relative to the working directory. When launching an installed wheel outside the checkout, point this at the absolute path of your frontend build.
 - `WAYFARER_ALLOWED_ORIGINS`: JSON array of permitted WebSocket origins. Defaults include localhost/127.0.0.1 on ports 8000 and 5173. Set it to the browser's actual origin when using another port or host.
 - `WAYFARER_DATABASE_URL`: optional PostgreSQL connection string; the API receipt database still uses the configured local database path.
@@ -61,7 +64,12 @@ For the Codex provider using a supported ChatGPT login, follow the [Codex setup 
 ## Documentation
 
 See the [engine guide](docs/engine.md), [architecture](docs/architecture.md),
-[UI onboarding](docs/ui-onboarding.md),
-[unavailable states](docs/ui-availability.md), [guided scenario authoring](docs/scenario-authoring.md), [API runtime](docs/api-v1-runtime.md), [rules](docs/rules-catalog.md), [rules profiles](docs/rules-profiles.md), [persistence](docs/persistence.md), [testing](docs/testing.md), and [contributing](CONTRIBUTING.md).
+[UI onboarding](docs/ui-onboarding.md), [unavailable states](docs/ui-availability.md),
+[guided scenario authoring](docs/scenario-authoring.md),
+[API runtime](docs/api-v1-runtime.md), [rules](docs/rules-catalog.md),
+[rules profiles](docs/rules-profiles.md), [persistence](docs/persistence.md),
+[operations](docs/operations.md), [quality](docs/quality.md),
+[testing](docs/testing.md), [release gates](docs/release-gates.md), and
+[contributing](CONTRIBUTING.md).
 
 This is a limited GURPS-inspired implementation, not a complete or officially licensed GURPS ruleset. No proprietary rulebook text is included.

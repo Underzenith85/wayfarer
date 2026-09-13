@@ -5,8 +5,8 @@ the `WAYFARER_` prefix. The current settings are:
 
 - access and serving: `TOKENS`, `HOST`, `PORT`, `FRONTEND_DIR` and
   `ALLOWED_ORIGINS`;
-- storage: `DB`, `DATABASE_URL`, `DB_TIMEOUT_SECONDS`, `CODEX_HOME` and
-  `CODEX_SESSIONS`;
+- storage and ownership: `DB`, `DATABASE_URL`, `DB_TIMEOUT_SECONDS`, `PARTITION`,
+  `CODEX_HOME` and `CODEX_SESSIONS`;
 - providers: `LLM_PROVIDER`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `CODEX_MODEL`,
   `CODEX_EFFORT` and `MODEL_TIMEOUT_SECONDS`;
 - logging: `LOG_LEVEL`.
@@ -16,6 +16,17 @@ be set together. The Codex provider uses its separate login and storage paths.
 Secrets use Pydantic `SecretStr` and are never included in configuration output
 or logs. `src/wayfarer/config.py` is the authoritative list and supplies defaults
 and validation bounds.
+
+`PARTITION` defaults to `default` and names the campaign/provider-job partition
+owned by one runtime. Restart recovery only touches that partition. Horizontal
+deployments must route a campaign consistently and must not start two workers
+for the same partition; this is ownership, not a distributed lease queue.
+
+With SQLite, the authoritative campaign database defaults to
+`data/wayfarer.sqlite3` and the frozen player API uses the sibling
+`data/wayfarer.v1.sqlite3` ledger. Back up both together. PostgreSQL replaces the
+campaign store when `DATABASE_URL` is set, but the composed application still
+uses the sibling local v1 ledger configured from `DB`.
 
 The aiohttp server uses an application-scoped client session and closes it on
 shutdown. Provider calls have a bounded timeout and propagate task cancellation.

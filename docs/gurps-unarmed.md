@@ -30,7 +30,14 @@ Commands use the existing authenticated actor check, canonical payload digest, c
 
 ## Evidence and limits
 
-The declared source is the selected Basic Set baseline: Characters third printing (February 2008) and Campaigns fourth printing (April 2008), with no separate errata overlay. Numeric references: Characters B182, B203, B228 and B271; Campaigns B349, B366, B370-371, B379, B400, B403 and B436. Tests contain numeric expectations and references, not rulebook prose. Independent cases are in the common conformance ledger and `tests/test_unarmed.py`. Individual mechanics review remains outstanding; the implementation is not a conformance certificate.
+The declared source is the selected Basic Set baseline: Characters third printing
+(February 2008) and Campaigns fourth printing (April 2008), with no separate
+errata overlay. Numeric references: Characters B182, B203, B228 and B271;
+Campaigns B349, B366, B370-371, B379, B400, B403 and B436. Tests contain numeric
+expectations and references, not rulebook prose. Independent cases are in the
+common conformance ledger and `tests/test_unarmed.py`. The selected-source review
+and #176 implementation scope are complete; broader close-combat and multi-hex
+work remains under #508, so this is not a whole-profile conformance certificate.
 
 Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which keeps the existing scenario/character capability checks fail-closed. #108 remains open. [Follow-up #176](https://github.com/Underzenith85/wayfarer/issues/176) tracks the remaining work:
 
@@ -107,7 +114,11 @@ hex projection and the v1/v2 HTTP boundary. Wait integration does not complete #
 
 `/api/tactical/v2/campaigns/{cid}/commands` accepts `TakeUnarmedTurn.maneuver` and `attack_option`, plus `ChooseDefense.parry_mode_id` and `second_parry_mode_id` and `TakeCombatTurn.wait_trigger.unarmed`. The unchanged snapshot format remains `tactical-v1`. Gameplay v1 and the tactical v1 input schema remain unchanged; the latter rejects the new options. Omitted v2 options do not alter the canonical command payload, preserving existing receipt digests. The tactical v1 request keeps its own frozen `TakeCombatTurn` and `WaitTrigger` shapes, which require `item_id` and reject `unarmed`; the v1 document gains only the unreferenced `UnarmedReaction` definition that the shared snapshot projection carries. See `contracts/tactical/v2/openapi.json` and `frontend/src/api/tactical-v2.generated.ts`.
 
-Verify both contracts with `uv run python -m scripts.tactical_contracts --check` and `uv run python -m scripts.tactical_contracts --version 2 --check`. The exact historical printing/errata equivalence audit remains open; numeric tests are not a source-baseline certification.
+Verify both contracts with
+`uv run --frozen python -m scripts.tactical_contracts --check` and
+`uv run --frozen python -m scripts.tactical_contracts --version 2 --check`.
+Selected-baseline source review completed in #191; numeric tests do not by
+themselves certify the whole profile.
 
 ## Choke Hold completion carried forward from PR #408
 
