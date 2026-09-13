@@ -30,8 +30,9 @@ else.
 
 ## Ornament that is earned
 
-Every drawn mark has one meaning and one home. The full table is in
-[`ornaments/README.md`](../ornaments/README.md). The rules:
+Every drawn mark has one meaning and one home. The implemented set lives in
+[`frontend/src/components/ornaments.tsx`](../../frontend/src/components/ornaments.tsx).
+The rules:
 
 1. **Stroked SVG**, 16 or 24px grid, `stroke-width` 1.1–1.2. Never emoji.
 2. **`currentColor`.** `<Seal>` is the only exception — wax is genuinely filled.
