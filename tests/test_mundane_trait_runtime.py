@@ -221,16 +221,12 @@ async def test_dispatch_applies_the_approved_build_and_refuses_supplied_trait_mo
 ) -> None:
     cid, play = await prepare(tmp_path / "plain")
     # The same recorded 3d6 reaches the existing table with and without traits.
-    plain_outcome = await SocialService(play, plain).execute(
-        cid, command(), authenticated_gm_id="gm"
-    )
+    plain_outcome = await SocialService(play, plain).execute(cid, command(), principal_id="gm")
     assert plain_outcome.outcome == "good"
     charismatic, second = await prepare(
         tmp_path / "charisma", Purchase(definition_id="trait:charisma", amount=2)
     )
-    improved = await SocialService(second, plain).execute(
-        charismatic, command(), authenticated_gm_id="gm"
-    )
+    improved = await SocialService(second, plain).execute(charismatic, command(), principal_id="gm")
     assert improved.outcome == "very-good"
 
     def supplied(play: PlayService, state: PlayState, value: SocialCommand) -> ResolvedInteraction:
@@ -240,4 +236,4 @@ async def test_dispatch_applies_the_approved_build_and_refuses_supplied_trait_mo
 
     blocked, third = await prepare(tmp_path / "supplied")
     with pytest.raises(ValidationError, match="derived from approved builds"):
-        await SocialService(third, supplied).execute(blocked, command(), authenticated_gm_id="gm")
+        await SocialService(third, supplied).execute(blocked, command(), principal_id="gm")

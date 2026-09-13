@@ -71,7 +71,7 @@ async def test_stream_append_failure_rolls_back_everything(tmp_path: Path) -> No
         await play.execute(
             cid,
             Wait(id="fail", actor_id="a", expected_revision=0, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
     assert [r.command_id for r in await play.store.history(cid)] == ["setup:seed"]
@@ -109,7 +109,7 @@ async def test_corrupt_or_reordered_stream_is_rejected(tmp_path: Path) -> None:
         await play.execute(
             cid,
             Wait(id=f"w{revision}", actor_id="a", expected_revision=revision, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     events = [e.event for e in await play.store.stream(cid)]
     with pytest.raises(ValidationError, match="digest"):
@@ -140,7 +140,7 @@ async def test_new_receipts_never_write_transcript_fields(tmp_path: Path, backen
     await play.execute(
         cid,
         Wait(id="receipt", actor_id="a", expected_revision=0, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     from wayfarer.persistence.catalog import CatalogStore
 

@@ -88,7 +88,7 @@ async def turn(
             "maneuver": maneuver,
             **options,
         },
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -107,7 +107,7 @@ async def defend(
             "defense": defense,
             **options,
         },
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -250,12 +250,12 @@ async def test_wait_restart_resume_once(tmp_path: Path) -> None:
         id="resume", actor_id="b", expected_revision=state.revision, encounter_id="fight"
     )
     play.rng = RecordedDice([])
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert (play._load(await play.store.read(cid))).encounters[0].pending_defense is not None
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
     with pytest.raises(ConflictError):
         await CombatService(play).execute(
-            cid, command.model_copy(update={"id": "resume-again"}), authenticated_actor_id="b"
+            cid, command.model_copy(update={"id": "resume-again"}), principal_id="b"
         )
     assert await play.store.read(cid) == await play.store.replay(cid)
 

@@ -87,7 +87,7 @@ async def test_adapters_share_upcaster_registry(
     await play.execute(
         cid,
         Wait(id="schema", actor_id="a", expected_revision=0, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     expected = await play.store.stream_states(cid)
     calls: list[str] = []

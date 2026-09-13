@@ -32,14 +32,12 @@ async def resolve(
         parry_mode_id="swing" if armed else None,
     )
     play.rng = RecordedDice(dice)
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert play.rng.exhausted()
     after = await state_of(cid, play)
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice(()))
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
     assert await state_of(cid, restarted) == after
     return after
 
@@ -222,7 +220,7 @@ async def test_weapon_attack_also_observes_dropped_guard(tmp_path: Path, benefit
     )
     # Ordinary failures of both defenses; one damage point avoids a major wound.
     play.rng = RecordedDice((3, 3, 3, 3, 3, 3, 3, 3, 3, 1))
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury is not None
     trace = result.injury
     assert trace.attack.effective_target == (17 if benefit == "evaluate" else 13)

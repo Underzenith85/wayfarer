@@ -59,7 +59,7 @@ async def test_collapse_updates_the_authoritative_encounter_and_replays(tmp_path
         trigger_id="encounter-fear",
         expected_revision=1,
     )
-    result = await SocialService(play, resolve).execute(cid, command, authenticated_gm_id="gm")
+    result = await SocialService(play, resolve).execute(cid, command, principal_id="gm")
     saved = await play.store.read(cid)
     state = play._load(saved)
     assert result.outcome == "failed"
@@ -67,9 +67,7 @@ async def test_collapse_updates_the_authoritative_encounter_and_replays(tmp_path
     assert effects(state.resources)[0].effect.collapse
 
     play.rng = RecordedDice([])
-    assert (
-        await SocialService(play, resolve).execute(cid, command, authenticated_gm_id="gm") == result
-    )
+    assert await SocialService(play, resolve).execute(cid, command, principal_id="gm") == result
     assert await play.store.read(cid) == saved == await play.store.replay(cid)
 
 

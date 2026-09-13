@@ -233,7 +233,7 @@ async def test_elevated_melee_uses_height_and_preserves_pending_defense(tmp_path
         }
     )
     await CombatService(play).execute(
-        cid, command.model_copy(update={"battlefield": board_}), authenticated_actor_id="gm"
+        cid, command.model_copy(update={"battlefield": board_}), principal_id="gm"
     )
     play = play.for_campaign(await play.store.read(cid))
     state = play._load(await play.store.read(cid))
@@ -250,7 +250,7 @@ async def test_elevated_melee_uses_height_and_preserves_pending_defense(tmp_path
             mode_id="swing",
             hit_location="left-leg",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     reloaded = PlayService(
         AsyncSQLiteStore(tmp_path / "melee.sqlite"),
@@ -265,11 +265,11 @@ async def test_elevated_melee_uses_height_and_preserves_pending_defense(tmp_path
         encounter_id="fight",
         defense="dodge",
     )
-    result = await CombatService(reloaded).execute(cid, defense, authenticated_actor_id="b")
+    result = await CombatService(reloaded).execute(cid, defense, principal_id="b")
     assert result.injury is not None
     assert result.injury.attack is not None and result.injury.defense is not None
     assert result.injury.defense.effective_target == 10
-    assert await CombatService(reloaded).execute(cid, defense, authenticated_actor_id="b") == result
+    assert await CombatService(reloaded).execute(cid, defense, principal_id="b") == result
 
 
 @pytest.mark.parametrize(
@@ -307,7 +307,7 @@ async def test_melee_location_near_miss_hits_torso_and_can_be_defended(tmp_path:
             target_id="b",
             hit_location="skull",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     # Sword-13, skull -7 = 6; a seven hits the torso. Defender still gets Dodge.
     play.rng = RecordedDice([2, 2, 3, 5, 5, 5, 2])
@@ -320,7 +320,7 @@ async def test_melee_location_near_miss_hits_torso_and_can_be_defended(tmp_path:
             encounter_id="fight",
             defense="dodge",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     assert result.injury is not None and result.injury.defense is not None
     assert result.injury.attack.effective_target == 6
@@ -341,7 +341,7 @@ async def test_unreachable_elevated_target_rejects_without_dice_or_revision(tmp_
         }
     )
     await CombatService(play).execute(
-        cid, command.model_copy(update={"battlefield": board_}), authenticated_actor_id="gm"
+        cid, command.model_copy(update={"battlefield": board_}), principal_id="gm"
     )
     play = play.for_campaign(await play.store.read(cid))
     play.rng = RecordedDice([])
@@ -360,7 +360,7 @@ async def test_unreachable_elevated_target_rejects_without_dice_or_revision(tmp_
                 target_id="b",
                 hit_location="torso",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert play._load(await play.store.read(cid)) == original
 

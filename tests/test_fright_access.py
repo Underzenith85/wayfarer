@@ -34,7 +34,7 @@ async def fright(cid: str, play: PlayService, dice: list[int]) -> None:
             trigger_id="hidden-monster",
             expected_revision=0,
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
 
 
@@ -54,7 +54,7 @@ async def test_lasting_choice_visible_after_recovery_and_restart(tmp_path: Path)
     await play.execute(
         cid,
         Wait(id="recover", actor_id="a", expected_revision=1, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "social.sqlite", 10), play.engine, rng=RecordedDice([])
@@ -103,7 +103,7 @@ async def test_campaign_panic_decision_authority_replay_and_player_privacy(tmp_p
             trigger_id="secret",
             expected_revision=0,
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     access = build_runtime(play)
     state = play._load(await play.store.read(cid))
@@ -155,7 +155,7 @@ async def test_care_through_authenticated_http(tmp_path: Path) -> None:
             trigger_id="private",
             expected_revision=0,
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     runner = web.AppRunner(
         create_campaign_app(

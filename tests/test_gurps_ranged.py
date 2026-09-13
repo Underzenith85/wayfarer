@@ -190,8 +190,8 @@ async def test_interrupted_reload_restart_retry_and_reservation(tmp_path: Path) 
         mode_id="ranged",
         reload_ammunition_id="ammo-a",
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="a") == result
+    result = await CombatService(play).execute(cid, command, principal_id="a")
+    assert await CombatService(play).execute(cid, command, principal_id="a") == result
     state = play._load(await play.store.read(cid))
     assert state.resources.ammunition_loads[0].rounds == 1
     assert state.resources.ammunition_loads[0].reload_progress == 0
@@ -270,8 +270,8 @@ async def test_missed_single_shot_restart_and_lost_response_conserve_ammo(tmp_pa
         target_id="b",
         mode_id="ranged",
     )
-    result = await CombatService(play).execute(cid, attack, authenticated_actor_id="a")
-    assert await CombatService(play).execute(cid, attack, authenticated_actor_id="a") == result
+    result = await CombatService(play).execute(cid, attack, principal_id="a")
+    assert await CombatService(play).execute(cid, attack, principal_id="a") == result
     assert isinstance(play.store, AsyncSQLiteStore)
     play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([5, 5, 5]))
     state = play._load(await play.store.read(cid))
@@ -282,8 +282,8 @@ async def test_missed_single_shot_restart_and_lost_response_conserve_ammo(tmp_pa
         encounter_id="fight",
         defense="none",
     )
-    result = await CombatService(play).execute(cid, defense, authenticated_actor_id="b")
-    assert await CombatService(play).execute(cid, defense, authenticated_actor_id="b") == result
+    result = await CombatService(play).execute(cid, defense, principal_id="b")
+    assert await CombatService(play).execute(cid, defense, principal_id="b") == result
     assert result.injury is not None and result.injury.hits == 0
     state = play._load(await play.store.read(cid))
     assert next(i.quantity for i in state.resources.items if i.id == "ammo-a") == 9

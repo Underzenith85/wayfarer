@@ -289,7 +289,7 @@ async def workshop_grant(request: web.Request) -> web.Response:
     if access.member(state, principal).role != "gm":
         raise AuthorizationError("Point grants require campaign GM")
     body = GrantPoints.model_validate_json(json.dumps(await _json(request)))
-    result = await AdvancementService(access.play).grant(cid, body, authenticated_gm_id=principal)
+    result = await AdvancementService(access.play).grant(cid, body, principal_id=principal)
     return web.json_response(result.model_dump(mode="json"))
 
 
@@ -318,9 +318,9 @@ async def workshop_advance(request: web.Request) -> web.Response:
     access.control(access.member(state, _identity(request)), body.actor_id)
     service = AdvancementService(access.play)
     if request.match_info["operation"] == "preview":
-        result = await service.preview(cid, body, authenticated_actor_id=body.actor_id)
+        result = await service.preview(cid, body, principal_id=body.actor_id)
     elif request.match_info["operation"] == "apply":
-        entry = await service.advance(cid, body, authenticated_actor_id=body.actor_id)
+        entry = await service.advance(cid, body, principal_id=body.actor_id)
         return web.json_response(entry.model_dump(mode="json"))
     else:
         raise ValidationError("Unknown advancement operation")

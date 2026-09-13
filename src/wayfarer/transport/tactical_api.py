@@ -302,9 +302,7 @@ async def execute(request: web.Request) -> web.Response:
         return web.json_response(result.model_dump(mode="json"))
     CombatService(access.play).precheck(state, member, command)
     try:
-        await CombatService(access.play).execute(
-            cid, command, authenticated_actor_id=command.actor_id
-        )
+        await CombatService(access.play).execute(cid, command, principal_id=command.actor_id)
     except WayfarerError as exc:
         # Do not reflect internal actor IDs, authored secrets or hidden geometry in errors.
         return web.json_response(

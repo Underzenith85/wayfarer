@@ -379,7 +379,7 @@ async def test_director_combat_defense_survives_restart(tmp_path: Path) -> None:
                 )
             }
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     service = DirectorService(build_orchestrator(build_runtime(play), FakeProvider()))
     result = await service.run(

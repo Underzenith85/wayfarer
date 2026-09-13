@@ -136,11 +136,9 @@ class ObjectiveService:
             rng=self.play.rng,
         )
 
-    async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> ObjectiveState:
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> ObjectiveState:
         try:
             command = ObjectiveCommand.model_validate(value)
         except ValueError as exc:
             raise ValidationError("Invalid objective command") from exc
-        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)
+        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)

@@ -33,7 +33,7 @@ async def test_breakage_retains_custody_and_replays(
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, *table])
     results = await asyncio.gather(
-        *(CombatService(play).execute(cid, choice(), authenticated_actor_id="b") for _ in range(2))
+        *(CombatService(play).execute(cid, choice(), principal_id="b") for _ in range(2))
     )
     assert results[0] == results[1]
     assert results[0].injury and results[0].injury.adjudication_required is None
@@ -45,13 +45,10 @@ async def test_breakage_retains_custody_and_replays(
     assert "sword-a" not in state.encounters[0].participants[0].ready_item_ids
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert (
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b")
-        == results[0]
-    )
+    assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == results[0]
     assert restarted._load(await restarted.store.read(cid)).resources == state.resources
     with pytest.raises(ValidationError, match="authorized"):
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="a")
+        await CombatService(restarted).execute(cid, choice(), principal_id="a")
 
 
 @pytest.mark.parametrize("confirmation,broken", [((3, 3, 3), False), ((1, 1, 1), True)])
@@ -66,7 +63,7 @@ async def test_fine_weapon_confirmation_is_recorded_not_dispatched(
     )
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, 1, 1, 1, *confirmation])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     item = next(i for i in state.resources.items if i.id == "sword-a")
     assert item.condition and item.condition.disabled is broken
@@ -76,7 +73,7 @@ async def test_fine_weapon_confirmation_is_recorded_not_dispatched(
     assert record.table == (1, 1, 1) and record.confirmation == confirmation
     assert result.injury and result.injury.effect_dice == confirmation
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, choice(), authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, choice(), principal_id="b") == result
 
 
 async def test_weapon_flight_landing_collision_and_remote_ready_guard(tmp_path: Path) -> None:
@@ -86,7 +83,7 @@ async def test_weapon_flight_landing_collision_and_remote_ready_guard(tmp_path: 
     await attack(cid, play)
     # Actor a is (0,0) facing east; one yard forward lands on b at (1,0).
     play.rng = RecordedDice([6, 6, 6, 4, 5, 5, 1, 1, 6, 6, 6, 4])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     event = next(e for e in state.resources.events if e.id.startswith("critical-flight:"))
     flight = FlightResult.model_validate_json(event.kind)
@@ -100,7 +97,7 @@ async def test_weapon_flight_landing_collision_and_remote_ready_guard(tmp_path: 
     with pytest.raises(ValidationError, match="recorded location"):
         retrieve(state, state.encounters[0], "a", "sword-a")
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, choice(), authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, choice(), principal_id="b") == result
 
 
 async def test_object_target_records_damage_without_hurting_owner(tmp_path: Path) -> None:
@@ -124,10 +121,10 @@ async def test_object_target_records_damage_without_hurting_owner(tmp_path: Path
             target_id="b",
             target_item_id="sword-b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([3, 3, 3, 4])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     assert result.injury and result.injury.attack.effective_target == 9
     assert result.injury.hp_before == result.injury.hp_after == 10
@@ -135,7 +132,7 @@ async def test_object_target_records_damage_without_hurting_owner(tmp_path: Path
     assert damage.item_id == "sword-b" and damage.injury == 4  # floor((4+1-2)*1.5)
     assert damage.condition.hp == 8
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, choice(), authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, choice(), principal_id="b") == result
 
 
 @pytest.mark.parametrize(
@@ -151,7 +148,7 @@ async def test_shield_only_intercepts_when_db_changes_outcome(
     )
     await attack(cid, play)
     play.rng = RecordedDice([3, 3, 3, *defense_dice, *([4] if shield_injury else [])])
-    result = await CombatService(play).execute(cid, choice("dodge"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("dodge"), principal_id="b")
     state = play._load(await play.store.read(cid))
     assert result.injury and result.injury.injury == owner_injury
     shield = next(i for i in state.resources.items if i.id == "shield-b")
@@ -211,7 +208,7 @@ async def test_timed_repair_has_no_early_roll_or_ownership_bypass(tmp_path: Path
             encounter_id="fight",
             reason="safe workshop",
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     begin = RepairEquipment(
         id="repair",
@@ -222,7 +219,7 @@ async def test_timed_repair_has_no_early_roll_or_ownership_bypass(tmp_path: Path
         stage="start",
     )
     play.rng = RecordedDice([])
-    await CombatService(play).execute(cid, begin, authenticated_actor_id="b")
+    await CombatService(play).execute(cid, begin, principal_id="b")
     state = play._load(await play.store.read(cid))
     assert tasks(state.resources)[0].due == state.resources.game_time + 1800
     finish = RepairEquipment(
@@ -237,20 +234,20 @@ async def test_timed_repair_has_no_early_roll_or_ownership_bypass(tmp_path: Path
     from wayfarer.errors import ConflictError
 
     with pytest.raises(ConflictError, match="deadline"):
-        await CombatService(play).execute(cid, finish, authenticated_actor_id="b")
+        await CombatService(play).execute(cid, finish, principal_id="b")
     assert play._load(await play.store.read(cid)) == state
     with pytest.raises(ValidationError, match="authorized"):
-        await CombatService(play).execute(cid, finish, authenticated_actor_id="a")
+        await CombatService(play).execute(cid, finish, principal_id="a")
     await play.execute(
         cid,
         Wait(id="work", actor_id="b", expected_revision=3, ticks=1800),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     play.rng = RecordedDice([3, 3, 3])
     after_work = play._load(await play.store.read(cid))
     assert after_work.resources.game_time == 1800
     finish = finish.model_copy(update={"expected_revision": after_work.revision})
-    result = await CombatService(play).execute(cid, finish, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, finish, principal_id="b")
     state = play._load(await play.store.read(cid))
     task = tasks(state.resources)[0]
     assert task.status == "completed" and task.check and task.check.effective_target == 12
@@ -259,12 +256,12 @@ async def test_timed_repair_has_no_early_roll_or_ownership_bypass(tmp_path: Path
     assert item.condition and item.condition.hp == 9 and not item.ready
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(restarted).execute(cid, finish, authenticated_actor_id="b") == result
+    assert await CombatService(restarted).execute(cid, finish, principal_id="b") == result
     with pytest.raises(ConflictError, match="settled"):
         await CombatService(restarted).execute(
             cid,
             finish.model_copy(update={"id": "reroll", "expected_revision": state.revision}),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
 
 
@@ -298,7 +295,7 @@ async def test_major_repair_pins_parts_cost_and_locks_custody(tmp_path: Path) ->
             encounter_id="fight",
             reason="safe workshop",
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play.rng = RecordedDice([2])
     begin = RepairEquipment(
@@ -309,13 +306,13 @@ async def test_major_repair_pins_parts_cost_and_locks_custody(tmp_path: Path) ->
         item_id="sword-b",
         stage="start",
     )
-    result = await CombatService(play).execute(cid, begin, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, begin, principal_id="b")
     state = play._load(await play.store.read(cid))
     task = tasks(state.resources)[0]
     assert task.parts_die == 2 and task.parts_quantity == 10  # $500 * 20% / $10
     assert next(i.quantity for i in state.resources.items if i.id == "parts-b") == 20
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, begin, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, begin, principal_id="b") == result
     for item_id in ("sword-b", "tool-b"):
         with pytest.raises(ConflictError, match="pending repair"):
             play.engine.resources.apply(
@@ -332,7 +329,7 @@ async def test_major_repair_pins_parts_cost_and_locks_custody(tmp_path: Path) ->
     await play.execute(
         cid,
         Wait(id="work", actor_id="b", expected_revision=state.revision, ticks=1800),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     play.rng = RecordedDice([3, 3, 3])
@@ -347,7 +344,7 @@ async def test_major_repair_pins_parts_cost_and_locks_custody(tmp_path: Path) ->
             stage="finish",
             task_id="repair",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     task = tasks(state.resources)[0]
@@ -395,7 +392,7 @@ async def test_salvage_pins_work_and_transfers_recovered_material(tmp_path: Path
             encounter_id="fight",
             reason="safe workshop",
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     await service.execute(
         cid,
@@ -407,7 +404,7 @@ async def test_salvage_pins_work_and_transfers_recovered_material(tmp_path: Path
             item_id="sword-b",
             stage="start",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     task = tasks(state.resources)[0]
@@ -427,7 +424,7 @@ async def test_salvage_pins_work_and_transfers_recovered_material(tmp_path: Path
     await play.execute(
         cid,
         Wait(id="work", actor_id="b", expected_revision=3, ticks=600),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     play.rng = RecordedDice([3, 3, 3])
@@ -442,7 +439,7 @@ async def test_salvage_pins_work_and_transfers_recovered_material(tmp_path: Path
             stage="finish",
             task_id="salvage",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     task = tasks(state.resources)[0]
@@ -490,7 +487,7 @@ async def test_cheap_weapon_breaks_on_parry_drop_exception(tmp_path: Path) -> No
     )
     await attack(cid, play)
     play.rng = RecordedDice([3, 3, 3, 6, 6, 6, 4, 5, 5, 4, 3, 3, 3])
-    result = await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("parry"), principal_id="b")
     state = play._load(await play.store.read(cid))
     item = next(i for i in state.resources.items if i.id == "sword-b")
     assert item.condition and item.condition.disabled and not item.condition.destroyed
@@ -529,7 +526,7 @@ async def test_duplicate_lookup_uses_one_snapshot_during_concurrent_commit(
         await close(cursor)
         if not committed and columns == ("payload_hash", "resulting_revision"):
             committed = True
-            await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+            await CombatService(play).execute(cid, command, principal_id="b")
 
     monkeypatch.setattr(aiosqlite.Cursor, "close", commit_between_reads)
     assert await play.store.duplicate(cid, command.id, payload) is None

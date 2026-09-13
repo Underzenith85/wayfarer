@@ -725,6 +725,6 @@ class RecoveryService:
             rng=self.play.rng,
         )
 
-    async def execute(self, cid: str, value: object, *, authenticated_actor_id: str) -> PlayState:
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> PlayState:
         command = RecoveryCommand.model_validate(value)
-        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)
+        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)

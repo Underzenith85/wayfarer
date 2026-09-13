@@ -255,7 +255,7 @@ async def test_temporary_affliction_expires_to_exact_previous_build(tmp_path: Pa
     await play.execute(
         cid,
         Wait(id="wait-expiry", actor_id="a", expected_revision=2, ticks=5),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     reverted = await service.execute(
         cid,

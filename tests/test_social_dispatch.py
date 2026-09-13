@@ -245,7 +245,7 @@ async def test_durable_dispatch_replays_without_resolver_and_keeps_secrets_priva
 ) -> None:
     cid, play = await prepare(tmp_path)
     service = SocialService(play, resolve)
-    result = await service.execute(cid, command(), authenticated_gm_id="gm")
+    result = await service.execute(cid, command(), principal_id="gm")
     saved = await play.store.read(cid)
     assert saved == await play.store.replay(cid)
 
@@ -256,7 +256,7 @@ async def test_durable_dispatch_replays_without_resolver_and_keeps_secrets_priva
         AsyncSQLiteStore(tmp_path / "social.sqlite", 10), play.engine, rng=RecordedDice([])
     )
     assert (
-        await SocialService(restarted, forbidden).execute(cid, command(), authenticated_gm_id="gm")
+        await SocialService(restarted, forbidden).execute(cid, command(), principal_id="gm")
         == result
     )
     assert await restarted.store.read(cid) == saved
@@ -266,9 +266,7 @@ async def test_durable_dispatch_replays_without_resolver_and_keeps_secrets_priva
     events = await build_runtime(restarted).events(cid, principal_id="alice")
     assert all("secret" not in e.model_dump_json() for e in events)
     with pytest.raises(ConflictError):
-        await service.execute(
-            cid, command().model_copy(update={"id": "stale"}), authenticated_gm_id="gm"
-        )
+        await service.execute(cid, command().model_copy(update={"id": "stale"}), principal_id="gm")
 
 
 async def test_dispatch_authority_player_choice_and_failed_knowledge_are_atomic(
@@ -277,12 +275,12 @@ async def test_dispatch_authority_player_choice_and_failed_knowledge_are_atomic(
     cid, play = await prepare(tmp_path)
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="director authority"):
-        await SocialService(play, resolve).execute(cid, command(), authenticated_gm_id="alice")
+        await SocialService(play, resolve).execute(cid, command(), principal_id="alice")
     with pytest.raises(NotFoundError):
-        await SocialService(play, resolve).execute(cid, command(), authenticated_gm_id="outsider")
+        await SocialService(play, resolve).execute(cid, command(), principal_id="outsider")
     with pytest.raises(ValidationError, match="player character"):
         await SocialService(play, resolve).execute(
-            cid, command().model_copy(update={"subject_id": "a"}), authenticated_gm_id="gm"
+            cid, command().model_copy(update={"subject_id": "a"}), principal_id="gm"
         )
     assert await play.store.read(cid) == before
 
@@ -301,10 +299,10 @@ async def test_unknown_disclosure_foreign_profile_and_unavailable_fright_do_not_
 
     for resolver, error in ((unknown, "unknown facts"), (foreign, "campaign profile")):
         with pytest.raises(ValidationError, match=error):
-            await SocialService(play, resolver).execute(cid, command(), authenticated_gm_id="gm")
+            await SocialService(play, resolver).execute(cid, command(), principal_id="gm")
     with pytest.raises(ValidationError, match="authoritative HP and FP"):
         await SocialService(play, resolve).execute(
-            cid, command().model_copy(update={"kind": "fright"}), authenticated_gm_id="gm"
+            cid, command().model_copy(update={"kind": "fright"}), principal_id="gm"
         )
     assert await play.store.read(cid) == before
     assert await played(play.store, cid) == []

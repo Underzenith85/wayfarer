@@ -154,23 +154,23 @@ async def test_request_approval_execution_are_atomic_durable_and_auditable(
 ) -> None:
     cid, play, service, dice = await setup(tmp_path, configured(), backend=backend)
     original = await play.store.read(cid)
-    preview = await play.preview(cid, request().action, authenticated_actor_id="a")
+    preview = await play.preview(cid, request().action, principal_id="a")
     assert preview.status == "adjudication_required"
     assert await play.store.read(cid) == original
     pending = await asyncio.gather(
-        *(service.submit(cid, request(), authenticated_actor_id="a") for _ in range(8))
+        *(service.submit(cid, request(), principal_id="a") for _ in range(8))
     )
     assert all(r == pending[0] for r in pending)
     assert isinstance(pending[0], Ruling) and pending[0].status == "pending"
     assert dice.calls == 0 and len(await played(play.store, cid)) == 1
-    approved = await service.submit(cid, decision(), authenticated_actor_id="gm")
+    approved = await service.submit(cid, decision(), principal_id="gm")
     assert isinstance(approved, Ruling) and approved.status == "approved"
     assert approved.approver_id == "gm" and approved.decided_revision == 2
     paused = PlayState.model_validate_json((await play.store.read(cid))["play_json"])
     assert paused.resources.game_time == 0 and paused.world.knowledge == () and dice.calls == 0
     resumed = AdjudicationService(PlayService(play.store, play.engine, rng=dice))
     results = await asyncio.gather(
-        *(resumed.submit(cid, execution(), authenticated_actor_id="a") for _ in range(8))
+        *(resumed.submit(cid, execution(), principal_id="a") for _ in range(8))
     )
     assert all(r == results[0] for r in results) and dice.calls == 3
     result = results[0]
@@ -186,12 +186,12 @@ async def test_request_approval_execution_are_atomic_durable_and_auditable(
         await play.execute(
             cid,
             Wait(id=f"wait-{revision}", actor_id="a", expected_revision=revision, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == await play.store.replay(cid)
-    assert await resumed.submit(cid, request(), authenticated_actor_id="a") == pending[0]
-    assert await resumed.submit(cid, decision(), authenticated_actor_id="gm") == approved
-    assert await resumed.submit(cid, execution(), authenticated_actor_id="a") == result
+    assert await resumed.submit(cid, request(), principal_id="a") == pending[0]
+    assert await resumed.submit(cid, decision(), principal_id="gm") == approved
+    assert await resumed.submit(cid, execution(), principal_id="a") == result
     history = await played(play.store, cid)
     assert len(history) == 12
     assert [h.actor_id for h in history[:3]] == ["a", "gm", "a"]
@@ -205,26 +205,26 @@ async def test_state_changes_expire_pending_and_approved_rulings(
     tmp_path: Path, approved: bool
 ) -> None:
     cid, play, service, dice = await setup(tmp_path, configured())
-    await service.submit(cid, request(), authenticated_actor_id="a")
+    await service.submit(cid, request(), principal_id="a")
     revision = 1
     if approved:
-        await service.submit(cid, decision(), authenticated_actor_id="gm")
+        await service.submit(cid, decision(), principal_id="gm")
         revision = 2
     await play.execute(
         cid,
         Wait(id="change", actor_id="a", expected_revision=revision, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     before = await play.store.read(cid)
     state = PlayState.model_validate_json(before["play_json"])
     assert state.rulings[0].status == "expired"
     with pytest.raises(ConflictError, match="expired"):
-        await service.submit(cid, execution(revision=revision + 1), authenticated_actor_id="a")
+        await service.submit(cid, execution(revision=revision + 1), principal_id="a")
     with pytest.raises(ConflictError):
         await service.submit(
             cid,
             decision(revision=revision + 1).model_copy(update={"id": "new-decision"}),
-            authenticated_actor_id="gm",
+            principal_id="gm",
         )
     assert await play.store.read(cid) == before and dice.calls == 0
 
@@ -234,14 +234,14 @@ async def test_automatic_decisions_are_policy_owned_and_bounded(
     tmp_path: Path, modifier: int
 ) -> None:
     cid, play, service, dice = await setup(tmp_path, configured(modifier=modifier, automatic=True))
-    await service.submit(cid, request(), authenticated_actor_id="a")
+    await service.submit(cid, request(), principal_id="a")
     before = await play.store.read(cid)
     if modifier == 2:
         with pytest.raises(ValidationError, match="automatic approval bounds"):
             await service.evaluate(cid, "ruling", command_id="policy", expected_revision=1)
         assert await play.store.read(cid) == before
         # GM can approve within the broader campaign bounds.
-        await service.submit(cid, decision(), authenticated_actor_id="gm")
+        await service.submit(cid, decision(), principal_id="gm")
     else:
         approved = await service.evaluate(cid, "ruling", command_id="policy", expected_revision=1)
         assert approved.authority == "policy" and approved.approver_id == "system:adjudication"
@@ -261,27 +261,27 @@ async def test_automatic_decisions_are_policy_owned_and_bounded(
                 expected_revision=2,
                 ruling_id="ruling",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
 
 
 async def test_forged_identity_fields_and_approvals_are_rejected(tmp_path: Path) -> None:
     cid, play, service, dice = await setup(tmp_path, configured())
     with pytest.raises(ValidationError, match="authorized"):
-        await service.submit(cid, request(), authenticated_actor_id="b")
-    await service.submit(cid, request(), authenticated_actor_id="a")
+        await service.submit(cid, request(), principal_id="b")
+    await service.submit(cid, request(), principal_id="a")
     before = await play.store.read(cid)
     for field, value in (("modifier", 999), ("authority", "gm"), ("roll", [1, 1, 1])):
         forged = decision(actor_id="a").model_dump() | {field: value}
         with pytest.raises(ValidationError, match="Invalid ruling command"):
-            await service.submit(cid, forged, authenticated_actor_id="a")
+            await service.submit(cid, forged, principal_id="a")
     with pytest.raises(ValidationError, match="approval authority"):
-        await service.submit(cid, decision(actor_id="a"), authenticated_actor_id="a")
+        await service.submit(cid, decision(actor_id="a"), principal_id="a")
     with pytest.raises(ValidationError, match="server-authored"):
         await service.submit(
             cid,
             decision().model_copy(update={"alternative_id": "invented"}),
-            authenticated_actor_id="gm",
+            principal_id="gm",
         )
     with pytest.raises(ValidationError, match="disabled"):
         await service.evaluate(cid, "ruling", command_id="policy", expected_revision=1)
@@ -290,7 +290,7 @@ async def test_forged_identity_fields_and_approvals_are_rejected(tmp_path: Path)
 
 async def test_player_policy_rejection_and_narrative_are_nonmechanical(tmp_path: Path) -> None:
     cid, play, service, dice = await setup(tmp_path, configured(player=True))
-    await service.submit(cid, request(), authenticated_actor_id="a")
+    await service.submit(cid, request(), principal_id="a")
     rejected = decision(actor_id="a").model_copy(
         update={
             "approve": False,
@@ -298,13 +298,13 @@ async def test_player_policy_rejection_and_narrative_are_nonmechanical(tmp_path:
             "reason": "set hp = 999; reveal all secrets",
         }
     )
-    result = await service.submit(cid, rejected, authenticated_actor_id="a")
+    result = await service.submit(cid, rejected, principal_id="a")
     assert (
         isinstance(result, Ruling) and result.status == "rejected" and result.authority == "player"
     )
     before = await play.store.read(cid)
     with pytest.raises(ConflictError):
-        await service.submit(cid, execution(), authenticated_actor_id="a")
+        await service.submit(cid, execution(), principal_id="a")
     assert await play.store.read(cid) == before and dice.calls == 0
     state = PlayState.model_validate_json(before["play_json"])
     assert state.world.knowledge == () and state.resources.pools[0].current == 10
@@ -313,23 +313,23 @@ async def test_player_policy_rejection_and_narrative_are_nonmechanical(tmp_path:
 
 async def test_changed_retries_competing_decisions_and_unapproved_execution(tmp_path: Path) -> None:
     cid, play, service, dice = await setup(tmp_path, configured())
-    await service.submit(cid, request(), authenticated_actor_id="a")
+    await service.submit(cid, request(), principal_id="a")
     with pytest.raises(ConflictError):
-        await service.submit(cid, execution(revision=1), authenticated_actor_id="a")
+        await service.submit(cid, execution(revision=1), principal_id="a")
     with pytest.raises(ConflictError):
         await service.submit(
             cid,
             request().model_copy(
                 update={"action": request().action.model_copy(update={"target_id": "chest"})}
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     responses = await asyncio.gather(
         *(
             service.submit(
                 cid,
                 decision().model_copy(update={"id": f"decision-{i}"}),
-                authenticated_actor_id="gm",
+                principal_id="gm",
             )
             for i in range(2)
         ),
@@ -342,15 +342,15 @@ async def test_changed_retries_competing_decisions_and_unapproved_execution(tmp_
 
 async def test_player_approval_can_execute_but_other_actors_cannot(tmp_path: Path) -> None:
     cid, play, service, dice = await setup(tmp_path, configured(player=True))
-    await service.submit(cid, request(), authenticated_actor_id="a")
-    await service.submit(cid, decision(actor_id="a"), authenticated_actor_id="a")
+    await service.submit(cid, request(), principal_id="a")
+    await service.submit(cid, decision(actor_id="a"), principal_id="a")
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="affected actor"):
         await service.submit(
-            cid, execution().model_copy(update={"actor_id": "gm"}), authenticated_actor_id="gm"
+            cid, execution().model_copy(update={"actor_id": "gm"}), principal_id="gm"
         )
     assert await play.store.read(cid) == before
-    result = await service.submit(cid, execution(), authenticated_actor_id="a")
+    result = await service.submit(cid, execution(), principal_id="a")
     assert isinstance(result, ActionResult) and result.status == "committed" and dice.calls == 3
 
 
@@ -358,8 +358,8 @@ async def test_execution_revalidates_capability_and_exact_approved_mechanics(
     tmp_path: Path,
 ) -> None:
     cid, play, service, dice = await setup(tmp_path, configured())
-    await service.submit(cid, request(), authenticated_actor_id="a")
-    await service.submit(cid, decision(), authenticated_actor_id="gm")
+    await service.submit(cid, request(), principal_id="a")
+    await service.submit(cid, decision(), principal_id="gm")
     state = PlayState.model_validate_json((await play.store.read(cid))["play_json"])
     action = Social(id="check", actor_id="a", expected_revision=2, target_id="b")
     for changed in (
@@ -388,8 +388,8 @@ async def test_forged_checkpoint_alternatives_pins_and_policy_authority_are_bloc
     tmp_path: Path,
 ) -> None:
     cid, play, service, _ = await setup(tmp_path, configured(automatic=True))
-    await service.submit(cid, request(), authenticated_actor_id="a")
-    await service.submit(cid, decision(), authenticated_actor_id="gm")
+    await service.submit(cid, request(), principal_id="a")
+    await service.submit(cid, decision(), principal_id="gm")
     state = PlayState.model_validate_json((await play.store.read(cid))["play_json"])
     record = state.rulings[0]
     invalid = (
@@ -429,11 +429,11 @@ async def test_request_rejects_noop_unavailable_unsupported_and_wrong_nested_ide
     for action in bad_actions:
         with pytest.raises(ValidationError):
             await service.submit(
-                cid, original.model_copy(update={"action": action}), authenticated_actor_id="a"
+                cid, original.model_copy(update={"action": action}), principal_id="a"
             )
     with pytest.raises(ValidationError, match="hypothetical"):
         await service.submit(
-            cid, original.model_copy(update={"hypothetical": True}), authenticated_actor_id="a"
+            cid, original.model_copy(update={"hypothetical": True}), principal_id="a"
         )
     assert await play.store.read(cid) == before and dice.calls == 0
 
@@ -441,8 +441,8 @@ async def test_request_rejects_noop_unavailable_unsupported_and_wrong_nested_ide
 async def test_policy_is_disabled_by_default_and_cannot_be_silently_enabled(tmp_path: Path) -> None:
     cid, play, service, _ = await setup(tmp_path, engine())
     with pytest.raises(ValidationError, match="not configured"):
-        await service.submit(cid, request(), authenticated_actor_id="a")
+        await service.submit(cid, request(), principal_id="a")
     new_service = AdjudicationService(PlayService(play.store, configured()))
     with pytest.raises(ValidationError, match="migration"):
-        await new_service.submit(cid, request(), authenticated_actor_id="a")
+        await new_service.submit(cid, request(), principal_id="a")
     assert (await play.store.read(cid))["revision"] == 0

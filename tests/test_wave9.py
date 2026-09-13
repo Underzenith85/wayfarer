@@ -148,9 +148,7 @@ async def test_objective_settlement_is_atomic_exactly_once_and_terminal(
 ) -> None:
     cid, play = await prepare(tmp_path, objectives=goals(), backend=backend)
     action = Inspect(id="discover", actor_id="a", expected_revision=0, target_id="chest")
-    results = await asyncio.gather(
-        *(play.execute(cid, action, authenticated_actor_id="a") for _ in range(4))
-    )
+    results = await asyncio.gather(*(play.execute(cid, action, principal_id="a") for _ in range(4)))
     assert len(set(results)) == 1
     state = play._load(await play.store.read(cid))
     assert state.objectives.outcome == "success"
@@ -160,7 +158,7 @@ async def test_objective_settlement_is_atomic_exactly_once_and_terminal(
     await ObjectiveService(play).execute(
         cid,
         ObjectiveCommand(kind="abandon_scenario", id="late", actor_id="gm", expected_revision=1),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     assert play._load(await play.store.read(cid)).objectives == terminal
     assert await play.store.replay(cid) == await play.store.read(cid)
@@ -174,7 +172,7 @@ async def test_deadline_boundary_precedes_simultaneous_success(
     await play.execute(
         cid,
         Inspect(id="inspect", actor_id="a", expected_revision=0, target_id="chest"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     assert state.objectives.outcome == expected
@@ -184,7 +182,7 @@ async def test_deadline_boundary_precedes_simultaneous_success(
 async def test_failure_abandonment_and_invalid_references(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path, objectives=goals(deadline=1))
     await play.execute(
-        cid, Wait(id="wait", actor_id="a", expected_revision=0, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="wait", actor_id="a", expected_revision=0, ticks=1), principal_id="a"
     )
     assert play._load(await play.store.read(cid)).objectives.outcome == "failure"
     with pytest.raises(ValueError, match="contradictory"):
@@ -247,7 +245,7 @@ async def test_noncombat_categories_failure_progress_restart_withdraw(
             encounter_id="one",
             selection_id="challenge",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     first = await service.execute(
         cid,
@@ -259,7 +257,7 @@ async def test_noncombat_categories_failure_progress_restart_withdraw(
             encounter_id="one",
             selection_id="careful",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert first.progress == 1 and first.failures == 1 and first.status == "choice"
     assert first.pending_choices == ("careful",)
@@ -274,7 +272,7 @@ async def test_noncombat_categories_failure_progress_restart_withdraw(
             encounter_id="one",
             selection_id="careful",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert second.status == "success" and second.failures == 2
     assert await play.store.replay(cid) == await play.store.read(cid)
@@ -313,7 +311,7 @@ async def test_combat_damage_retry_armor_incapacitation_and_replay(tmp_path: Pat
             )
         }
     )
-    await service.execute(initial["id"], opening, authenticated_actor_id="gm")
+    await service.execute(initial["id"], opening, principal_id="gm")
     await service.execute(
         initial["id"],
         TakeCombatTurn(
@@ -325,13 +323,13 @@ async def test_combat_damage_retry_armor_incapacitation_and_replay(tmp_path: Pat
             target_id="b",
             item_id="sword-a",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     defense = ChooseDefense(
         id="defend", actor_id="b", expected_revision=2, encounter_id="fight", defense="none"
     )
     results = await asyncio.gather(
-        *(service.execute(initial["id"], defense, authenticated_actor_id="b") for _ in range(4))
+        *(service.execute(initial["id"], defense, principal_id="b") for _ in range(4))
     )
     assert results[0] == results[-1]
     trace = results[0].injury
@@ -457,7 +455,7 @@ async def test_queued_travel_and_independent_pending_decisions(tmp_path: Path) -
                 expected_revision=3,
                 target_id="group:dock-scene",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
 
 
@@ -535,7 +533,7 @@ async def test_provider_stale_timeout_and_cancellation(tmp_path: Path) -> None:
             await play.execute(
                 cid,
                 Wait(id="other", actor_id="b", expected_revision=0, ticks=1),
-                authenticated_actor_id="b",
+                principal_id="b",
             )
             return await super().complete(request)
 
@@ -633,7 +631,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
             )
         }
     )
-    await combat.execute(cid, opening, authenticated_actor_id="gm")
+    await combat.execute(cid, opening, principal_id="gm")
     await access.submit_json(
         cid,
         PartyCommand(
@@ -658,7 +656,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
             target_id="b",
             item_id="sword-a",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     assert state.resources.game_time == 0 and ("c", "clue") not in state.world.knowledge
@@ -668,7 +666,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
         ChooseDefense(
             id="defend", actor_id="b", expected_revision=4, encounter_id="fight", defense="none"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     for revision, actor in ((5, "b"), (6, "a"), (7, "b")):
         await combat.execute(
@@ -680,7 +678,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
                 encounter_id="fight",
                 maneuver="wait",
             ),
-            authenticated_actor_id=actor,
+            principal_id=actor,
         )
     state = play._load(await play.store.read(cid))
     assert state.resources.game_time == 2 and ("c", "clue") in state.world.knowledge
@@ -1154,7 +1152,7 @@ async def test_partial_success_abandonment_predicates_and_reward_rollback(tmp_pa
         await failing.execute(
             seed["id"],
             Inspect(id="try", actor_id="a", expected_revision=0, target_id="chest"),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await failing.store.read(seed["id"]) == before
 

@@ -23,10 +23,13 @@ from wayfarer.engine.simulation.resources import (
 )
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
-from wayfarer.orchestration.entropy import CommandRandom, SeedSource, commit_command, token_seed
+from wayfarer.orchestration.entropy import CommandRandom, SeedSource, token_seed
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
+
+ENGINE_AUTHORITY = "Resource commands require authenticated engine authority"
 
 
 class ResourceService:
@@ -63,12 +66,12 @@ class ResourceService:
             )
 
     async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str, system: bool = False
+        self, cid: str, value: object, *, principal_id: str, system: bool = False
     ) -> ResourceState:
         """Authentication/system authority comes from trusted transport, not JSON."""
         rng = CommandRandom()
         command = COMMAND_ADAPTER.validate_python(value)
-        if command.actor_id != authenticated_actor_id or command.actor_id not in self.engine.actors:
+        if command.actor_id not in self.engine.actors:
             raise ValidationError("Command actor is not authorized")
         if isinstance(command, (Schedule, Advance, RechargePowerCell)) and not system:
             raise ValidationError("Clock and recharge commands require engine authority")
@@ -88,32 +91,39 @@ class ResourceService:
             state["revision"] = updated.revision
             return CommandReceipt(action="resource", outcome=command.kind)
 
-        result = await commit_command(
+        async def outcome(state: Campaign) -> ResourceState:
+            return ResourceState.model_validate_json(state["resources_json"])
+
+        return await submit(
             self,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id="system" if system else authenticated_actor_id,
-            rng=rng,
+            CommandPlan(
+                command_id=command.id,
+                expected_revision=command.expected_revision,
+                payload=payload,
+                resolve=resolve,
+                actor_id="system" if system else command.actor_id,
+                outcome=outcome,
+                control=(ActsAs(command.actor_id),),
+                rng=rng,
+            ),
+            principal_id=principal_id,
         )
-        return ResourceState.model_validate_json(result["state"]["resources_json"])
 
     async def execute_object(
         self,
         cid: str,
         value: object,
         *,
-        authenticated_actor_id: str,
+        principal_id: str,
         system: bool = False,
         rng: RandomSource = secrets,
     ) -> ResourceState:
         """Internal resolved-damage transaction; no player-facing damage payload."""
         rng = CommandRandom(rng)
         command: ObjectCommand = TypeAdapter(ObjectCommand).validate_python(value)
-        if not system or command.actor_id != authenticated_actor_id:
-            raise ValidationError("Object commands require authenticated engine authority")
+        if not system:
+            raise ValidationError(ENGINE_AUTHORITY)
         if command.actor_id not in self.engine.actors:
             raise ValidationError("Object command actor is not authorized")
         payload = command.model_dump_json()
@@ -134,24 +144,31 @@ class ResourceService:
             state["revision"] = updated.revision
             return CommandReceipt(action="resource", outcome=command.kind)
 
-        result = await commit_command(
+        async def outcome(state: Campaign) -> ResourceState:
+            return ResourceState.model_validate_json(state["resources_json"])
+
+        return await submit(
             self,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id="system",
-            rng=rng,
+            CommandPlan(
+                command_id=command.id,
+                expected_revision=command.expected_revision,
+                payload=payload,
+                resolve=resolve,
+                actor_id="system",
+                outcome=outcome,
+                control=(ActsAs(command.actor_id, ENGINE_AUTHORITY),),
+                rng=rng,
+            ),
+            principal_id=principal_id,
         )
-        return ResourceState.model_validate_json(result["state"]["resources_json"])
 
     async def execute_transport(
         self,
         cid: str,
         value: object,
         *,
-        authenticated_actor_id: str,
+        principal_id: str,
         system: bool = False,
         rng: RandomSource = secrets,
         board: HexBattlefield | None = None,
@@ -161,8 +178,8 @@ class ResourceService:
         """Internal resolved-damage transaction; no player-facing damage payload."""
         rng = CommandRandom(rng)
         command: TransportCommand = TypeAdapter(TransportCommand).validate_python(value)
-        if not system or command.actor_id != authenticated_actor_id:
-            raise ValidationError("Transport commands require authenticated engine authority")
+        if not system:
+            raise ValidationError(ENGINE_AUTHORITY)
         if command.actor_id not in self.engine.actors:
             raise ValidationError("Transport command actor is not authorized")
         payload = command.model_dump_json()
@@ -192,14 +209,21 @@ class ResourceService:
             state["revision"] = updated.revision
             return CommandReceipt(action="resource", outcome=command.kind)
 
-        result = await commit_command(
+        async def outcome(state: Campaign) -> ResourceState:
+            return ResourceState.model_validate_json(state["resources_json"])
+
+        return await submit(
             self,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id="system",
-            rng=rng,
+            CommandPlan(
+                command_id=command.id,
+                expected_revision=command.expected_revision,
+                payload=payload,
+                resolve=resolve,
+                actor_id="system",
+                outcome=outcome,
+                control=(ActsAs(command.actor_id, ENGINE_AUTHORITY),),
+                rng=rng,
+            ),
+            principal_id=principal_id,
         )
-        return ResourceState.model_validate_json(result["state"]["resources_json"])

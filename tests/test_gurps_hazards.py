@@ -61,26 +61,26 @@ async def test_hazard_deadline_cas_restart_and_shared_clock(tmp_path: Path) -> N
     enter = HazardCommand(
         id="enter", actor_id="a", expected_revision=0, kind="enter", hazard_id=spec.id
     )
-    result = await service.execute(cid, enter, authenticated_actor_id="a")
+    result = await service.execute(cid, enter, principal_id="a")
     assert result.due == 1800
     with pytest.raises(ConflictError):
         await play.execute(
             cid,
             Wait(id="skip", actor_id="a", expected_revision=1, ticks=1801),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert (await play.store.read(cid))["revision"] == 1
     await play.execute(
         cid,
         Wait(id="wait", actor_id="a", expected_revision=1, ticks=1800),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([5, 5, 5])
     resolve = HazardCommand(
         id="resolve", actor_id="a", expected_revision=2, kind="resolve", hazard_id=spec.id
     )
     results = await asyncio.gather(
-        *(service.execute(cid, resolve, authenticated_actor_id="a") for _ in range(3))
+        *(service.execute(cid, resolve, principal_id="a") for _ in range(3))
     )
     assert all(r == results[0] for r in results)
     assert results[0].fp_lost == 1 and results[0].due == 3600
@@ -88,7 +88,7 @@ async def test_hazard_deadline_cas_restart_and_shared_clock(tmp_path: Path) -> N
         PlayService(play.store, play.engine, rng=RecordedDice([])),
         lambda *_: (_ for _ in ()).throw(AssertionError("replay must not resolve environment")),
     )
-    assert await restart.execute(cid, resolve, authenticated_actor_id="a") == results[0]
+    assert await restart.execute(cid, resolve, principal_id="a") == results[0]
     after = play._load(await play.store.read(cid))
     assert after.resources.illnesses[0].fp_debt == 1
     assert after.resources.game_time == 1800
@@ -106,12 +106,12 @@ async def test_physical_authority_time_and_durable_result(tmp_path: Path) -> Non
         id="lift", actor_id="a", expected_revision=0, kind="lift", route_id="stone"
     )
     with pytest.raises(ValidationError):
-        await service.execute(cid, command, authenticated_actor_id="other")
-    result = await service.execute(cid, command, authenticated_actor_id="a")
+        await service.execute(cid, command, principal_id="other")
+    result = await service.execute(cid, command, principal_id="a")
     assert result.succeeded and result.capacity == "160" and result.seconds == 4
     assert play._load(await play.store.read(cid)).resources.game_time == 4
     service.resolver = lambda *_: replace(route, pounds=Decimal(1000))
-    assert await service.execute(cid, command, authenticated_actor_id="a") == result
+    assert await service.execute(cid, command, principal_id="a") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
@@ -137,7 +137,7 @@ async def test_physical_attempt_cannot_cross_due_exposure(tmp_path: Path) -> Non
         HazardCommand(
             id="enter", actor_id="a", expected_revision=0, kind="enter", hazard_id="fire"
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     service = PhysicalService(play, lambda *_: PhysicalRoute(id="stone", scene_id=scene))
     with pytest.raises(ConflictError):
@@ -146,7 +146,7 @@ async def test_physical_attempt_cannot_cross_due_exposure(tmp_path: Path) -> Non
             PhysicalCommand(
                 id="lift", actor_id="a", expected_revision=1, kind="lift", route_id="stone"
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert (await play.store.read(cid))["revision"] == 1
 
@@ -290,7 +290,7 @@ async def test_physical_routes_execute_on_authoritative_clock(
     )
     route = PhysicalRoute(id="route", scene_id="dock", kind=command.kind, seconds=seconds)
     service = PhysicalService(play, lambda *_: route)
-    result = await service.execute(cid, command, authenticated_actor_id="a")
+    result = await service.execute(cid, command, principal_id="a")
     assert result.succeeded and result.seconds == seconds
     state = play._load(await play.store.read(cid))
     assert state.resources.game_time == seconds
@@ -349,17 +349,17 @@ async def test_exposure_debt_cannot_be_restored_by_ordinary_rest(tmp_path: Path)
         BeginRecovery(
             id="rest", actor_id="a", expected_revision=0, kind="rest", target_id="a", seconds=600
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await play.execute(
         cid,
         Wait(id="wait", actor_id="a", expected_revision=1, ticks=600),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     result = await medical.execute(
         cid,
         FinishRecovery(id="finish", actor_id="a", expected_revision=2, task_id="rest"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.fp_recovered == 0
     assert (
@@ -414,7 +414,7 @@ async def test_disabled_leg_cannot_bypass_lasting_injury_through_jump(tmp_path: 
             PhysicalCommand(
                 id="jump", actor_id="a", expected_revision=0, kind="jump", route_id="gap"
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert (await play.store.read(cid))["revision"] == 0
 

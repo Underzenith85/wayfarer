@@ -83,20 +83,20 @@ async def test_rest_wait_finish_retry_restart_and_atomic_replay(tmp_path: Path) 
     start = BeginRecovery(
         id="rest", actor_id="a", expected_revision=0, kind="rest", target_id="a", seconds=1200
     )
-    assert (await service.execute(cid, start, authenticated_actor_id="a")).status == "pending"
+    assert (await service.execute(cid, start, principal_id="a")).status == "pending"
     await play.execute(
         cid,
         Wait(id="wait", actor_id="a", expected_revision=1, ticks=1200),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     finish = FinishRecovery(id="finish", actor_id="a", expected_revision=2, task_id="rest")
-    result = await service.execute(cid, finish, authenticated_actor_id="a")
+    result = await service.execute(cid, finish, principal_id="a")
     assert result.fp_recovered == 2 and result.hp_recovered == 0
     restarted = MedicalService(
         PlayService(play.store, play.engine, rng=RecordedDice([])),
         lambda *_args: (_ for _ in ()).throw(AssertionError("resolver must not rerun")),
     )
-    assert await restarted.execute(cid, finish, authenticated_actor_id="a") == result
+    assert await restarted.execute(cid, finish, principal_id="a") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
     after = play._load(await play.store.read(cid))
     assert after.resources.game_time == 1200 and after.resources.revision == after.revision == 3
@@ -111,29 +111,29 @@ async def test_movement_interrupts_rest_retaining_only_completed_minutes(tmp_pat
         BeginRecovery(
             id="rest", actor_id="a", expected_revision=0, kind="rest", target_id="a", seconds=1200
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await play.execute(
         cid,
         Wait(id="wait", actor_id="a", expected_revision=1, ticks=900),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await play.execute(
         cid,
         Move(id="move", actor_id="a", expected_revision=2, destination_id="alley"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     result = await service.execute(
         cid,
         FinishRecovery(id="finish", actor_id="a", expected_revision=3, task_id="rest"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.status == "interrupted" and result.fp_recovered == 1
     with pytest.raises(ConflictError):
         await service.execute(
             cid,
             FinishRecovery(id="finish-again", actor_id="a", expected_revision=4, task_id="rest"),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
 
 
@@ -141,20 +141,20 @@ async def test_too_early_unauthorized_and_stale_commands_do_not_mutate(tmp_path:
     cid, play, service = await setup(tmp_path)
     start = BeginRecovery(id="rest", actor_id="a", expected_revision=0, kind="rest", target_id="a")
     with pytest.raises(ValidationError):
-        await service.execute(cid, start, authenticated_actor_id="b")
-    await service.execute(cid, start, authenticated_actor_id="a")
+        await service.execute(cid, start, principal_id="b")
+    await service.execute(cid, start, principal_id="a")
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="not due"):
         await service.execute(
             cid,
             FinishRecovery(id="early", actor_id="a", expected_revision=1, task_id="rest"),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     with pytest.raises(ConflictError):
         await service.execute(
             cid,
             FinishRecovery(id="stale", actor_id="a", expected_revision=0, task_id="rest"),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
 
@@ -173,7 +173,7 @@ async def test_stunned_healer_cannot_begin_treatment(tmp_path: Path) -> None:
                 expected_revision=0,
                 wound_id="injury:wound",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
 

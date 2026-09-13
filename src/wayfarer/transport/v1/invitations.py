@@ -6,11 +6,8 @@ import hashlib
 import secrets
 from datetime import UTC, datetime
 
-from wayfarer.contracts import Campaign, CommandReceipt
-from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.orchestration.clock import CommandInstant
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.play import record_play_state
+from wayfarer.orchestration.membership_grants import MembershipGrant, MembershipService
 
 from .common import Fault, Obj, encoded, obj, uid
 from .service import V1Service
@@ -91,38 +88,16 @@ async def invitation(
     # allow another principal to redeem an already-applied grant.
     async with service.ledger.transaction(instant=instant) as tx:
         raw = await service.play.store.read(cid)
-        payload = encoded(
-            {"operation": "v1-invitation", "invitation": value["id"], "principal": principal}
-        )
-        internal_id = service.projector.token(principal, cid, "invitation", data["command_id"])
-
-        def grant(campaign: Campaign) -> CommandReceipt:
-            state = service.play.for_campaign(campaign)._load(campaign)
-            if not any(m.principal_id == principal for m in state.members):
-                member = CampaignMember.model_validate(
-                    {"principal_id": principal, "role": value["role"]}
-                )
-                state = state.model_copy(update={"members": state.members + (member,)})
-            state = state.model_copy(
-                update={
-                    "revision": state.revision + 1,
-                    "resources": state.resources.model_copy(
-                        update={"revision": state.revision + 1}
-                    ),
-                }
-            )
-            record_play_state(campaign, state)
-            return CommandReceipt(action="v1-membership", outcome="Membership granted")
-
-        await commit_command(
-            service.play,
+        await MembershipService(service.play).execute(
             cid,
-            internal_id,
-            raw["revision"],
-            payload,
-            grant,
-            actor_id=principal,
-            rng=service.play.rng,
+            MembershipGrant(
+                id=service.projector.token(principal, cid, "invitation", data["command_id"]),
+                actor_id=principal,
+                expected_revision=raw["revision"],
+                invitation_id=str(value["id"]),
+                role="gm" if value["role"] == "gm" else "player",
+            ),
+            principal_id=principal,
             instant=instant,
         )
         membership = obj((await service.view(tx, cid, principal)).campaign["membership"])

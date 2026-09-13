@@ -65,16 +65,16 @@ async def test_long_climb_checks_at_start_and_five_minutes_and_replays(tmp_path:
     first = PhysicalCommand(
         id="climb-1", actor_id="a", expected_revision=0, kind="climb", route_id="wall"
     )
-    result = await service.execute(cid, first, authenticated_actor_id="a")
+    result = await service.execute(cid, first, principal_id="a")
     assert result.progress == "20" and not result.completed and result.seconds == 300
     result = await service.execute(
         cid,
         first.model_copy(update={"id": "climb-2", "expected_revision": 1}),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.progress == "40" and result.completed and result.elapsed == 600
     play.rng = RecordedDice([])
-    assert (await service.execute(cid, first, authenticated_actor_id="a")).progress == "20"
+    assert (await service.execute(cid, first, principal_id="a")).progress == "20"
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
@@ -89,7 +89,7 @@ async def test_failed_initial_climb_does_not_fall_from_top(tmp_path: Path) -> No
         PhysicalCommand(
             id="fall", actor_id="a", expected_revision=0, kind="climb", route_id="wall"
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert not result.succeeded and result.injury == 0 and result.elapsed == 0
 
@@ -107,7 +107,7 @@ async def test_hiking_roll_is_daily_across_routes(tmp_path: Path) -> None:
             PhysicalCommand(
                 id=f"hike-{rev}", actor_id="a", expected_revision=rev, kind="hike", route_id="road"
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
         assert len(result.checks) == (1 if rev == 0 else 0)
     assert Decimal(result.progress) == 15 and result.fp_lost == 1
@@ -128,7 +128,7 @@ async def test_swimming_minute_fatigue_survives_split_commands(tmp_path: Path) -
             PhysicalCommand(
                 id=f"swim-{rev}", actor_id="a", expected_revision=rev, kind="swim", route_id="water"
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert result.elapsed == 60 and result.progress == "60" and result.fp_lost == 1
     assert len(result.checks) == 1 and result.checks[0].effective_target == 10
@@ -265,15 +265,15 @@ async def test_diagnosis_durable_and_failed_attempt_cannot_reroll(tmp_path: Path
     service = HazardCareService(play, lambda *_: HazardCare("diagnosis", "a", "exposure"))
     play.rng = RecordedDice([1, 1, 1])
     cmd = HazardCareCommand(id="diagnose", actor_id="a", expected_revision=0, treatment_id="exam")
-    result = await service.execute(cid, cmd, authenticated_actor_id="a")
+    result = await service.execute(cid, cmd, principal_id="a")
     assert result.succeeded
     play.rng = RecordedDice([])
-    assert await service.execute(cid, cmd, authenticated_actor_id="a") == result
+    assert await service.execute(cid, cmd, principal_id="a") == result
     with pytest.raises(ConflictError, match="already attempted"):
         await service.execute(
             cid,
             cmd.model_copy(update={"id": "retry", "expected_revision": 1}),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == await play.store.replay(cid)
 
@@ -385,7 +385,7 @@ async def test_completed_climb_uses_scene_exit_without_extra_time(tmp_path: Path
                 kind="climb",
                 route_id="wall",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert result.completed
     state = play._load(await play.store.read(cid))
@@ -415,7 +415,7 @@ async def test_full_day_group_hike_moves_together_and_preserves_clocks(tmp_path:
     result = await PhysicalService(play, lambda *_: route).execute(
         cid,
         PhysicalCommand(id="hike", actor_id="a", expected_revision=0, kind="hike", route_id="road"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.completed and Decimal(result.progress) == 60 and result.fp_lost == 0
     assert len(result.checks) == 2
@@ -445,11 +445,11 @@ async def test_lifesaving_check_and_durable_rescue(tmp_path: Path) -> None:
         play, lambda *_: HazardCare("lifesaving", "b", "exposure", safe_landing=True)
     )
     command = HazardCareCommand(id="save", actor_id="a", expected_revision=0, treatment_id="bank")
-    result = await service.execute(cid, command, authenticated_actor_id="a")
+    result = await service.execute(cid, command, principal_id="a")
     assert result.succeeded and result.check is not None and result.check.effective_target == 1
     assert play._load(await play.store.read(cid)).resources.hazards[0].stage == "rescued"
     play.rng = RecordedDice([])
-    assert await service.execute(cid, command, authenticated_actor_id="a") == result
+    assert await service.execute(cid, command, principal_id="a") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
@@ -558,21 +558,21 @@ async def test_antibiotics_consume_one_bound_dose_and_never_stack(
     command = HazardCareCommand(
         id="medicine", actor_id="a", expected_revision=0, treatment_id="dose"
     )
-    result = await service.execute(cid, command, authenticated_actor_id="a")
+    result = await service.execute(cid, command, principal_id="a")
     assert result.treatment_bonus == bonus and result.succeeded == (bonus > 0)
     after = play._load(await play.store.read(cid))
     assert (
         after.resources.items[0].quantity == 1
         and after.resources.hazards[0].treatment_bonus == bonus
     )
-    assert await service.execute(cid, command, authenticated_actor_id="a") == result
+    assert await service.execute(cid, command, principal_id="a") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
     if bonus:
         with pytest.raises(ConflictError, match="already active"):
             await service.execute(
                 cid,
                 command.model_copy(update={"id": "double", "expected_revision": 1}),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
 
 
@@ -638,14 +638,14 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     )
     incomplete = HazardService(play, lambda *_: HazardContext(spec, temperature_f=120))
     with pytest.raises(ValidationError, match="explicit protection"):
-        await incomplete.execute(cid, enter, authenticated_actor_id="a")
+        await incomplete.execute(cid, enter, principal_id="a")
 
     protection = HazardProtection()
     service = HazardService(
         play,
         lambda *_: HazardContext(spec, temperature_f=120, protection=protection),
     )
-    await service.execute(cid, enter, authenticated_actor_id="a")
+    await service.execute(cid, enter, principal_id="a")
     hazard = play._load(await play.store.read(cid)).resources.hazards[0]
     assert hazard.survival == 12 and hazard.spec.resistance_modifier == -1
     assert hazard.spec.environment is not None
@@ -655,7 +655,7 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     await play.execute(
         cid,
         Wait(id="wait", actor_id="a", expected_revision=1, ticks=1800),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([3, 4, 4])
     result = await service.execute(
@@ -663,7 +663,7 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
         HazardCommand(
             id="check", actor_id="a", expected_revision=2, kind="resolve", hazard_id="sun"
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.check is not None and result.check.effective_target == 11 and result.fp_lost == 0
     play.rng = RecordedDice([3, 3, 3, 5, 5, 4])
@@ -673,7 +673,7 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     swim = await PhysicalService(play, lambda *_: route).execute(
         cid,
         PhysicalCommand(id="swim", actor_id="a", expected_revision=3, kind="swim", route_id="swim"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert swim.checks[-1].effective_target == 15 and swim.fp_lost == 0
 
@@ -713,9 +713,7 @@ async def test_rigid_armor_fall_applies_blunt_trauma_through_inventory(tmp_path:
     command = PhysicalCommand(
         id="fall", actor_id="a", expected_revision=before.revision, kind="fall", route_id="ledge"
     )
-    result = await PhysicalService(play, lambda *_: route).execute(
-        cid, command, authenticated_actor_id="a"
-    )
+    result = await PhysicalService(play, lambda *_: route).execute(cid, command, principal_id="a")
     assert result.injury == 2 and result.completed
     after = play._load(await play.store.read(cid))
     assert next(p.current for p in after.resources.pools if p.id == "hp:a") == 8

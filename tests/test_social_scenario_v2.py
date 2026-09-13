@@ -138,13 +138,13 @@ async def test_import_publish_activate_and_restart_social_occurrence(tmp_path: P
     restarted = restarted.for_campaign(await restarted.store.read(cid))
     started = restarted._load(await restarted.store.read(cid))
     wait = Wait(id="alarm-clock", actor_id="a", expected_revision=started.revision, ticks=1)
-    result = await restarted.execute(cid, wait, authenticated_actor_id="a")
+    result = await restarted.execute(cid, wait, principal_id="a")
     bound = restarted.for_campaign(await restarted.store.read(cid))
     after = bound._load(await restarted.store.read(cid))
     assert len(effects(after.resources)) == 1 and effects(after.resources)[0].active
     assert after.npcs.decisions[0].status == "committed"
     restarted.rng = RecordedDice([])
-    assert await restarted.execute(cid, wait, authenticated_actor_id="a") == result
+    assert await restarted.execute(cid, wait, principal_id="a") == result
     assert await restarted.store.read(cid) == await restarted.store.replay(cid)
     visible = await build_runtime(play).read(cid, principal_id="alice")
     assert "alarm-plan" not in json.dumps(visible) and "private-plan" not in json.dumps(visible)

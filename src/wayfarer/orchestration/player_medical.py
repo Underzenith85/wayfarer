@@ -320,5 +320,5 @@ async def execute(
             seconds=600,
         )
     await MedicalService(play, resolver).execute(
-        state.campaign_id, medical, authenticated_actor_id=command.actor_id
+        state.campaign_id, medical, principal_id=command.actor_id
     )

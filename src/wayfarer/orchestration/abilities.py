@@ -17,16 +17,19 @@ from wayfarer.engine.simulation.abilities import (
 from wayfarer.engine.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import injury_turn
+from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Advance
-from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.membership import member_for
+from wayfarer.orchestration.pipeline import CommandPlan, Controls, Seats, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
+
+ABILITY_REFUSAL = "Ability actor is not controlled by principal"
 
 
 @dataclass(frozen=True)
@@ -297,14 +300,17 @@ class AbilityService:
         updated, _ = reduce_ability(state, command, AbilityExecutionContext(self.play))
         return updated
 
-    async def execute(self, cid: str, value: object, *, principal_id: str) -> AbilityOutcome:
-        command = AbilityCommand.model_validate(value)
-        play = self.play.for_campaign(await self.play.store.read(cid))
+    def plan(
+        self,
+        play: PlayService,
+        state: PlayState,
+        member: CampaignMember,
+        command: AbilityCommand,
+        *,
+        principal_id: str,
+    ) -> CommandPlan[AbilityOutcome]:
+        """What an ability use writes; the pipeline decides whether it runs."""
         service = AbilityService(play)
-        state = play._load(await play.store.read(cid))
-        member = member_for(state, principal_id)
-        if member.role != "player" or command.actor_id not in member.actor_ids:
-            raise AuthorizationError("Ability actor is not controlled by principal")
         payload = principal_id + ":" + command.model_dump_json()
 
         def resolve(campaign: Campaign) -> CommandReceipt:
@@ -314,16 +320,33 @@ class AbilityService:
             play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome="ability")
 
-        committed = await commit_command(
-            play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> AbilityOutcome:
+            updated = play._load(campaign)
+            event = next(e for e in updated.resources.events if e.id == internal_id(command.id))
+            return AbilityEvent.model_validate_json(event.kind).outcome
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(
+                Seats(state, "player", refusal=ABILITY_REFUSAL),
+                Controls(member, command.actor_id, ABILITY_REFUSAL),
+            ),
             rng=play.rng,
         )
-        updated = play._load(committed["state"])
-        event = next(e for e in updated.resources.events if e.id == internal_id(command.id))
-        return AbilityEvent.model_validate_json(event.kind).outcome
+
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> AbilityOutcome:
+        command = AbilityCommand.model_validate(value)
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        state = play._load(await play.store.read(cid))
+        member = member_for(state, principal_id)
+        return await submit(
+            play,
+            cid,
+            self.plan(play, state, member, command, principal_id=principal_id),
+            principal_id=principal_id,
+        )

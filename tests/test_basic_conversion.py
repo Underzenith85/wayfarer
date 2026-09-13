@@ -36,7 +36,7 @@ async def setup_hex(tmp_path: Path, distance: int = 2) -> tuple[str, PlayService
     await CombatService(play).execute(
         cid,
         escalation(revision=2, b_position=Hex(q=distance, r=0)),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     return cid, play.for_campaign(await play.store.read(cid))
 
@@ -49,9 +49,9 @@ async def test_hex_basic_round_trip_preserves_nonspatial_state_and_replay(tmp_pa
     original_board = play.rules_context.require_hex(before)
 
     command = convert(3)
-    first = await service.execute(cid, command, authenticated_actor_id="gm")
+    first = await service.execute(cid, command, principal_id="gm")
     restarted = CombatService(PlayService(play.store, play.engine))
-    assert await restarted.execute(cid, command, authenticated_actor_id="gm") == first
+    assert await restarted.execute(cid, command, principal_id="gm") == first
     converted = play._load(await play.store.read(cid)).encounters[0]
     assert isinstance(converted.spatial, BasicSpatialContext)
     assert len(converted.spatial.facts) == 11
@@ -74,7 +74,7 @@ async def test_hex_basic_round_trip_preserves_nonspatial_state_and_replay(tmp_pa
             ),
         }
     )
-    await service.execute(cid, back, authenticated_actor_id="gm")
+    await service.execute(cid, back, principal_id="gm")
     play = play.for_campaign(await play.store.read(cid))
     restored = play._load(await play.store.read(cid)).encounters[0]
     assert tuple(actor.position for actor in restored.participants) == tuple(
@@ -116,7 +116,7 @@ async def test_pending_defense_survives_without_refresh(tmp_path: Path) -> None:
         return CommandReceipt(action="setup", outcome="pending-defense")
 
     await play.store.commit_turn(cid, "seed-pending", 3, "seed-pending", pause)
-    await CombatService(play).execute(cid, convert(4), authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, convert(4), principal_id="gm")
     converted = play._load(await play.store.read(cid)).encounters[0]
     assert converted.pending_defense == pending
     assert converted.participants == tuple(
@@ -173,7 +173,7 @@ async def test_consequential_terrain_blocks_and_gm_projection_offers_control(
         await CombatService(play).execute(
             cid,
             convert(3).model_copy(update={"actor_id": "a"}),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     grounded = state.model_copy(
         update={
@@ -211,8 +211,8 @@ async def test_consequential_terrain_blocks_and_gm_projection_offers_control(
         migrate.model_copy(
             update={"battlefield": migrate.battlefield.model_copy(update={"cells": cells})}
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play = play.for_campaign(await play.store.read(cid))
     with pytest.raises(ValidationError, match="terrain"):
-        await CombatService(play).execute(cid, convert(3), authenticated_actor_id="gm")
+        await CombatService(play).execute(cid, convert(3), principal_id="gm")

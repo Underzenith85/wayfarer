@@ -155,10 +155,8 @@ async def test_authoritative_turn_records_same_hex_entry(tmp_path: Path) -> None
         hex_path=(h(1, 0),),
         enter_close_combat=True,
     )
-    result = await CombatService(play).execute(campaign_id, command, authenticated_actor_id="a")
-    assert result == await CombatService(play).execute(
-        campaign_id, command, authenticated_actor_id="a"
-    )
+    result = await CombatService(play).execute(campaign_id, command, principal_id="a")
+    assert result == await CombatService(play).execute(campaign_id, command, principal_id="a")
     saved = play._load(await play.store.read(campaign_id)).encounters[0]
     assert saved.close_pairs == (("a", "b"),)
     assert saved.participants[0].position == saved.participants[1].position

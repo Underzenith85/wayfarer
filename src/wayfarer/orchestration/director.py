@@ -16,8 +16,8 @@ from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.director import DirectorTurn
 from wayfarer.errors import AuthorizationError, ConflictError, ProviderError, ValidationError
-from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.party import PartyCommand
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.providers import Intent, Narration, Orchestrator, TurnResponse
 from wayfarer.persistence.events import CommandOrigin
@@ -59,11 +59,16 @@ class DirectorService:
         self.access = orchestrator.access
         self.play = self.access.play
 
-    async def _save(
-        self, cid: str, turn: DirectorTurn, revision: int, *, origin: CommandOrigin | None = None
-    ) -> None:
+    def plan(
+        self, turn: DirectorTurn, revision: int, *, origin: CommandOrigin | None = None
+    ) -> CommandPlan[None]:
+        """What one director turn writes; the pipeline decides whether it runs.
+
+        The director speaks for the campaign itself, so the turn's own actor is the
+        principal: this family is reached only from the scheduled run, never from a
+        request.
+        """
         payload = turn.model_dump_json()
-        key = "director:" + hashlib.sha256(payload.encode()).hexdigest()[:64]
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
@@ -71,16 +76,26 @@ class DirectorService:
             self.play.commit(campaign, state)
             return CommandReceipt(action="director", outcome=turn.phase)
 
-        await commit_command(
-            self.play,
-            cid,
-            key,
-            revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> None:
+            return None
+
+        return CommandPlan(
+            command_id="director:" + hashlib.sha256(payload.encode()).hexdigest()[:64],
+            expected_revision=revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=turn.actor_id,
+            outcome=outcome,
+            control=(ActsAs(turn.actor_id),),
             rng=self.play.rng,
             origin=origin,
+        )
+
+    async def _save(
+        self, cid: str, turn: DirectorTurn, revision: int, *, origin: CommandOrigin | None = None
+    ) -> None:
+        await submit(
+            self.play, cid, self.plan(turn, revision, origin=origin), principal_id=turn.actor_id
         )
 
     async def run(
@@ -335,7 +350,7 @@ class DirectorService:
             )
         state = self.play._load(await self.play.store.read(cid))
         if receipt is None:
-            result = await self.play.preview(cid, command, authenticated_actor_id=actor_id)
+            result = await self.play.preview(cid, command, principal_id=actor_id)
             turn = turn.model_copy(
                 update={
                     "phase": "narration" if result.status == "question" else "clarification",

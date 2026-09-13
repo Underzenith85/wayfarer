@@ -157,7 +157,7 @@ async def test_contact_and_internal_modes_use_authoritative_center(
         internal_actor_id="b" if mode == "internal" else None,
     )
     play.rng = RecordedDice([1] * 20)
-    await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, command, principal_id="gm")
     state = play._load(await play.store.read(cid))
     assert next(p.current for p in state.resources.pools if p.id == "hp:b") == expected_hp
     assert next(p.current for p in state.resources.pools if p.id == "hp:a") == 10
@@ -211,7 +211,7 @@ async def test_barrier_objects_and_multiple_distances_share_blast_transaction(
         environment="air",
     )
     play.rng = RecordedDice([2, 2, 2, 2] * 6)
-    await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, command, principal_id="gm")
     state = play._load(await play.store.read(cid))
     assert len(state.resources.object_results) == 4
     assert all(result.injury == 0 for result in state.resources.object_results)

@@ -17,13 +17,14 @@ from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import DefinitionKind
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.health.fright import TimedFright, effects, public_id, save
 from wayfarer.engine.simulation.resources import Command, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.advancement import _refreshed
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.membership import member_for, require_control
+from wayfarer.orchestration.membership import member_for
+from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -126,23 +127,28 @@ def validate_change(
     return result
 
 
+APPROVAL_REFUSAL = "Fright build decisions require a configured director"
+
+
 class FrightBuildService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def execute(
-        self, cid: str, command: ProposeFrightBuild | ApproveFrightBuild, *, principal_id: str
-    ) -> None:
-        play = self.play.for_campaign(await self.play.store.read(cid))
-        member = member_for(play._load(await play.store.read(cid)), principal_id)
-        if member.role != "gm":
-            require_control(member, command.actor_id)
-        elif principal_id not in play.engine.reviewer.gm_ids:
-            raise ValidationError("Fright build proposals require a configured director")
-        if isinstance(command, ApproveFrightBuild) and (
-            member.role != "gm" or principal_id not in play.engine.reviewer.gm_ids
-        ):
-            raise ValidationError("Fright build approval requires director authority")
+    def plan(
+        self,
+        cid: str,
+        play: PlayService,
+        member: CampaignMember,
+        command: ProposeFrightBuild | ApproveFrightBuild,
+        *,
+        principal_id: str,
+    ) -> CommandPlan[None]:
+        """What a fright build decision writes; the pipeline decides whether it runs.
+
+        A player proposes for an actor they control; only a configured director
+        approves. The two differ in their declared rules, not in a branch.
+        """
+        director = Trusted(play.engine.reviewer.gm_ids, refusal=APPROVAL_REFUSAL)
         payload = json.dumps(
             {
                 "operation": "fright-build",
@@ -152,7 +158,7 @@ class FrightBuildService:
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> CommandReceipt:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
             item = next(
                 (
@@ -265,15 +271,34 @@ class FrightBuildService:
             play.commit(campaign, updated)
             return CommandReceipt(action="npc", outcome="fright build decision recorded")
 
-        await commit_command(
+        async def outcome(campaign: Campaign) -> None:
+            return None
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=principal_id,
+            outcome=outcome,
+            control=(
+                (director,)
+                if isinstance(command, ApproveFrightBuild) or member.role == "gm"
+                else (Controls(member, command.actor_id),)
+            ),
+            rng=play.rng,
+        )
+
+    async def execute(
+        self, cid: str, command: ProposeFrightBuild | ApproveFrightBuild, *, principal_id: str
+    ) -> None:
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        member = member_for(play._load(await play.store.read(cid)), principal_id)
+        await submit(
             play,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            reduce,
-            actor_id=principal_id,
-            rng=play.rng,
+            self.plan(cid, play, member, command, principal_id=principal_id),
+            principal_id=principal_id,
         )
 
 

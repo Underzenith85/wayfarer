@@ -23,7 +23,7 @@ from wayfarer.engine.simulation.health.condition_checks import (
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -47,21 +47,22 @@ class PhysicalCheckService:
     def __init__(self, play: PlayService, resolve: Resolver) -> None:
         self.play, self.resolve = play, resolve
 
-    async def execute(self, cid: str, command: PhysicalCheckCommand, *, gm_id: str) -> bool:
-        command = PhysicalCheckCommand.model_validate(command)
-        if not command.trigger_id:
-            raise ValidationError("Physical checks require a stable authored trigger")
-        play = self.play.for_campaign(await self.play.store.read(cid))
+    def plan(
+        self,
+        play: PlayService,
+        state: PlayState,
+        command: PhysicalCheckCommand,
+        *,
+        principal_id: str,
+    ) -> CommandPlan[bool]:
+        """What a physical check writes; the pipeline decides whether it runs."""
         payload = json.dumps(
-            {"physical-check": command.model_dump(mode="json"), "gm": gm_id}, sort_keys=True
+            {"physical-check": command.model_dump(mode="json"), "gm": principal_id},
+            sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> CommandReceipt:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
-            if gm_id not in play.engine.reviewer.gm_ids or not any(
-                m.principal_id == gm_id and m.role == "gm" for m in state.members
-            ):
-                raise ValidationError("Physical checks require director authority")
             compiled = build(play.rules_context, state, command.actor_id)
             stats = compiled.statistics
             if stats is None or stats.profile_id != "gurps-basic-set-4e-2004":
@@ -152,18 +153,39 @@ class PhysicalCheckService:
             play.commit(campaign, updated)
             return CommandReceipt(action="noncombat", outcome=json.dumps(trace.outcome.succeeded))
 
-        committed = await commit_command(
-            play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            reduce,
-            actor_id=gm_id,
+        async def outcome(campaign: Campaign) -> bool:
+            # The committed event is returned on retries; the resolver is never rerun.
+            stored = play._load(campaign)
+            event_id = "physical-check:" + json.dumps([command.actor_id, command.trigger_id])
+            event = next(e for e in stored.resources.events if e.id == event_id)
+            return bool(json.loads(event.kind)["outcome"] in ("success", "critical-success"))
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=principal_id,
+            outcome=outcome,
+            control=(
+                Seats(state, refusal="Physical checks require director authority"),
+                Trusted(
+                    play.engine.reviewer.gm_ids,
+                    refusal="Physical checks require director authority",
+                ),
+            ),
             rng=play.rng,
         )
-        # The committed event is returned on retries; the resolver is never rerun.
-        stored = play._load(committed["state"])
-        event_id = "physical-check:" + json.dumps([command.actor_id, command.trigger_id])
-        event = next(e for e in stored.resources.events if e.id == event_id)
-        return json.loads(event.kind)["outcome"] in ("success", "critical-success")
+
+    async def execute(self, cid: str, command: PhysicalCheckCommand, *, principal_id: str) -> bool:
+        command = PhysicalCheckCommand.model_validate(command)
+        if not command.trigger_id:
+            raise ValidationError("Physical checks require a stable authored trigger")
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        state = play._load(await play.store.read(cid))
+        return await submit(
+            play,
+            cid,
+            self.plan(play, state, command, principal_id=principal_id),
+            principal_id=principal_id,
+        )

@@ -410,7 +410,7 @@ class V1Service:
                             event = await SceneService(view.runtime).execute(
                                 cid,
                                 command,
-                                authenticated_actor_id=str(request["actor_id"]),
+                                principal_id=str(request["actor_id"]),
                                 authorize=authorize,
                             )
                             result = ActionResult(
@@ -423,7 +423,7 @@ class V1Service:
                             result = await view.runtime.execute(
                                 cid,
                                 command,
-                                authenticated_actor_id=str(request["actor_id"]),
+                                principal_id=str(request["actor_id"]),
                                 authorize=authorize,
                             )
                 except ConflictError:

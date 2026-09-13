@@ -145,7 +145,7 @@ async def test_actual_approved_reading_wait_resistance_private_replay(tmp_path: 
     with pytest.raises(ConflictError, match="not complete"):
         await service.execute(cid, command(1, "resolve"), principal_id="a")
     await play.execute(
-        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([3, 3, 3, 4, 4, 4])
     resolve = command(2, "resolve")
@@ -172,7 +172,7 @@ async def test_malediction_executes_injury_on_signed_profile_pool(tmp_path: Path
     service = AbilityService(play)
     await service.execute(cid, command(), principal_id="a")
     await play.execute(
-        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([3, 3, 3, 4, 4, 4, 4])
     assert (await service.execute(cid, command(2, "resolve"), principal_id="a")).outcome == "hit"
@@ -197,7 +197,7 @@ async def test_defense_spends_fp_maintains_expires_and_cancels(tmp_path: Path, t
     await play.execute(
         cid,
         Wait(id="wait", actor_id="a", expected_revision=1, ticks=ticks),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     maintain = command(2, "maintain").model_copy(update={"channel_id": None})
     await service.execute(cid, maintain, principal_id="a")
@@ -256,7 +256,7 @@ async def test_activated_defense_reduces_authoritative_melee_injury(tmp_path: Pa
             mode_id="swing",
             target_id="a",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     play.rng = RecordedDice([4, 4, 4, 3])
     result = await CombatService(play).execute(
@@ -264,7 +264,7 @@ async def test_activated_defense_reduces_authoritative_melee_injury(tmp_path: Pa
         ChooseDefense(
             id="defend", actor_id="a", expected_revision=3, encounter_id="fight", defense="none"
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.injury is not None
     assert result.injury.basic_damage == 4
@@ -328,7 +328,7 @@ async def test_ability_concentration_obeys_combat_turn_and_shared_round_clock(
                 Placement(actor_id="b", position=GridPoint(x=2, y=1)),
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     service = AbilityService(play)
     await service.execute(cid, command(1), principal_id="a")
@@ -345,7 +345,7 @@ async def test_ability_concentration_obeys_combat_turn_and_shared_round_clock(
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].current_actor_id == "a" and state.resources.game_time == 1
@@ -422,7 +422,7 @@ async def test_shock_from_activation_is_retained_until_resolution(tmp_path: Path
     state = play._load(await play.store.read(cid))
     assert effects(state.resources)[0].activation_shock == 4
     await play.execute(
-        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([3, 3, 3, 4, 4, 4])
     assert (

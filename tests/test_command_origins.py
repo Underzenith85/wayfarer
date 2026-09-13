@@ -103,7 +103,7 @@ async def test_npc_proposal_uses_same_origin_and_scope_resets_on_failure(tmp_pat
         id="npc-origin", actor_id="gm", expected_revision=0, plan_id="patrol", action_id="unknown"
     )
     origin = CommandOrigin.proposal("NPCProposal", command.model_dump(mode="json"), provider="fake")
-    await NPCService(play).propose(cid, command, authenticated_gm_id="gm", origin=origin)
+    await NPCService(play).propose(cid, command, principal_id="gm", origin=origin)
     assert (await played(play.store, cid))[-1].origin == origin
     with pytest.raises(ValidationError):
         await build_runtime(play).submit_json(cid, {}, principal_id="alice", origin=origin)

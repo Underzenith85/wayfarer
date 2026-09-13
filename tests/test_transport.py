@@ -240,7 +240,7 @@ async def test_collision_atomic_retry_and_restart(tmp_path: Path, backend: str) 
             service.execute_transport(
                 initial["id"],
                 command,
-                authenticated_actor_id="a",
+                principal_id="a",
                 system=True,
                 health={"a": 12, "b": 12},
                 rng=RecordedDice([4, 4, 4]),
@@ -252,14 +252,12 @@ async def test_collision_atomic_retry_and_restart(tmp_path: Path, backend: str) 
     restarted = ResourceService(store, engine)
     assert (
         await restarted.execute_transport(
-            initial["id"], command, authenticated_actor_id="a", system=True, rng=RecordedDice([])
+            initial["id"], command, principal_id="a", system=True, rng=RecordedDice([])
         )
         == results[0]
     )
     with pytest.raises(ValidationError, match="authority"):
-        await restarted.execute_transport(
-            initial["id"], command, authenticated_actor_id="b", system=True
-        )
+        await restarted.execute_transport(initial["id"], command, principal_id="b", system=True)
 
 
 def test_frozen_scenario_v1_rejects_internal_transport_fields() -> None:

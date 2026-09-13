@@ -76,7 +76,7 @@ async def test_unresolved_landing_gm_declaration_and_recovery_receipt(tmp_path: 
         item_id="sword-a",
         landing=position(state.encounters[0], a),
     )
-    await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, command, principal_id="gm")
     await turn(cid, play, "b", "do_nothing")
     with pytest.raises(ValidationError, match="Ground recovery"):
         await turn(
@@ -102,14 +102,12 @@ async def test_unresolved_landing_gm_declaration_and_recovery_receipt(tmp_path: 
         recover_thrown_item=True,
         ready_hand="right-hand",
     )
-    result = await CombatService(play).execute(cid, recovery, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, recovery, principal_id="a")
     # The actual fixture store path is retained for a genuine connection restart.
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine, rng=RecordedDice([])
     )
-    assert (
-        await CombatService(restarted).execute(cid, recovery, authenticated_actor_id="a") == result
-    )
+    assert await CombatService(restarted).execute(cid, recovery, principal_id="a") == result
     state = play._load(await play.store.read(cid))
     item = next(i for i in state.resources.items if i.id == original.id)
     assert (
@@ -212,7 +210,7 @@ async def test_recovery_rejects_broken_items_and_hidden_observers(tmp_path: Path
             item_id="sword-a",
             landing=landing,
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     state = play._load(await play.store.read(cid))
     encounter = state.encounters[0].model_copy(

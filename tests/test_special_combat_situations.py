@@ -175,7 +175,7 @@ async def test_b393_surprise_persists_side_initiative_and_replays(tmp_path: Path
         play,
         lambda *_: SurpriseSides(("a",), ("b",), "a", "b", total=False),
     )
-    await service.execute(cid, command, gm_id="gm")
+    await service.execute(cid, command, principal_id="gm")
     first = await play.store.read(cid)
     encounter = play._load(first).encounters[0]
     assert encounter.surprise is not None
@@ -183,7 +183,7 @@ async def test_b393_surprise_persists_side_initiative_and_replays(tmp_path: Path
     assert encounter.surprise.initiative_winner == 0
     assert tuple(side.roll for side in encounter.surprise.sides) == (5, 2)
     assert encounter.turn_order == ("a", "b")
-    await service.execute(cid, command, gm_id="gm")
+    await service.execute(cid, command, principal_id="gm")
     assert play.rng.exhausted()
     assert await play.store.read(cid) == first
 
@@ -265,7 +265,7 @@ async def test_b394_hidden_target_modifiers_are_authoritative_and_not_projected(
             item_id="sword-a",
             mode_id="swing",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     pending = play._load(await play.store.read(cid)).encounters[0].pending_defense
     assert pending is not None
@@ -296,6 +296,6 @@ async def test_b394_unknown_hidden_location_rejects_without_revealing_target(
                 item_id="sword-a",
                 mode_id="swing",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert play._load(await play.store.read(cid)).revision == state.revision

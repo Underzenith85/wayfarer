@@ -108,7 +108,7 @@ async def test_fast_draw_preserves_ammunition_and_receipts(
         fast_draw=True,
     )
     play.rng = RecordedDice(dice)
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, command, principal_id="a")
     saved = play._load(await play.store.read(cid))
     assert (
         sum(i.quantity for i in saved.resources.items if i.definition_id == "equipment:ammo") == 10
@@ -118,9 +118,7 @@ async def test_fast_draw_preserves_ammunition_and_receipts(
     assert len([e for e in saved.resources.events if e.id.startswith("fast-draw:")]) == 1
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="a") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="a") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 

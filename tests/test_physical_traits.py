@@ -240,14 +240,14 @@ async def test_approved_sense_check_is_private_authorized_and_retry_safe(tmp_pat
         id="look", actor_id="a", trigger_id="footprints", expected_revision=0
     )
     with pytest.raises(ValidationError, match="authority"):
-        await service.execute(cid, command, gm_id="alice")
+        await service.execute(cid, command, principal_id="alice")
     assert not await service.execute(
-        cid, command, gm_id="gm"
+        cid, command, principal_id="gm"
     )  # Per10 + Acute3 - residual darkness3 = 10; dice15.
     stored = play._load(await play.store.read(cid))
     trace = json.loads(stored.resources.events[-1].kind)
     assert trace["effective_target"] == 10
-    assert not await service.execute(cid, command, gm_id="gm")
+    assert not await service.execute(cid, command, principal_id="gm")
     assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
 
 
@@ -323,12 +323,12 @@ async def test_surprise_uses_leader_bonus_and_never_freezes_reflexes(tmp_path: P
         id="ambush", actor_id="gm", expected_revision=1, encounter_id="fight", trigger_id="ambush"
     )
     service = SurpriseService(play, lambda *_: SurpriseSides(("a",), ("b",), "a", "b", total=True))
-    await service.execute(cid, command, gm_id="gm")
+    await service.execute(cid, command, principal_id="gm")
     state = play._load(await play.store.read(cid))
     hp = next(p for p in state.resources.pools if p.id == "hp:b")
     assert hp.injury is not None and hp.injury.surprise == SurpriseState(partial=True)
     assert json.loads(state.resources.events[-1].kind) == {"initiative": [6, 3], "freeze": 0}
-    await service.execute(cid, command, gm_id="gm")
+    await service.execute(cid, command, principal_id="gm")
     assert play.rng.exhausted()
 
 
@@ -447,7 +447,7 @@ async def test_night_vision_applies_in_melee_resolution(tmp_path: Path) -> None:
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await service.execute(
         cid,
@@ -461,7 +461,7 @@ async def test_night_vision_applies_in_melee_resolution(tmp_path: Path) -> None:
             item_id="sword-b",
             mode_id="swing",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     play.rng = RecordedDice([4, 4, 4])
     await service.execute(
@@ -469,7 +469,7 @@ async def test_night_vision_applies_in_melee_resolution(tmp_path: Path) -> None:
         ChooseDefense(
             id="defense-a", actor_id="a", expected_revision=3, encounter_id="fight", defense="none"
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     check = state.encounters[0].wounds[-1].attack
@@ -499,6 +499,6 @@ async def test_approved_physical_checks_apply_selected_bonus(
     }
     service = PhysicalCheckService(play, lambda *_: specs[kind])
     command = PhysicalCheckCommand(id="check", actor_id="a", trigger_id=kind, expected_revision=0)
-    await service.execute(cid, command, gm_id="gm")
+    await service.execute(cid, command, principal_id="gm")
     stored = play._load(await play.store.read(cid))
     assert json.loads(stored.resources.events[-1].kind)["effective_target"] == target

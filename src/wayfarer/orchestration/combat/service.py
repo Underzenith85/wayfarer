@@ -205,15 +205,9 @@ class CombatService:
             rng=self.play.rng,
         )
 
-    async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> CombatResult:
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> CombatResult:
         command = self.propose(value)
         bound = self.play.for_campaign(await self.play.store.read(cid))
         if bound is not self.play:
-            return await CombatService(bound).execute(
-                cid, value, authenticated_actor_id=authenticated_actor_id
-            )
-        return await submit(
-            self.play, cid, self.plan(cid, command), principal_id=authenticated_actor_id
-        )
+            return await CombatService(bound).execute(cid, value, principal_id=principal_id)
+        return await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)

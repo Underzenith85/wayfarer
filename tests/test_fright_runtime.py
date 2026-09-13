@@ -27,7 +27,7 @@ async def test_fright_loss_restart_privacy_and_recovery(tmp_path: Path) -> None:
     # B360: failed by 4 + table 10 = row 14, 2 seconds stun, 3 FP lost.
     play.rng = RecordedDice([4, 5, 5, 3, 3, 4, 2, 3])
     value = command().model_copy(update={"kind": "fright", "subject_id": "a"})
-    result = await SocialService(play, resolve).execute(cid, value, authenticated_gm_id="gm")
+    result = await SocialService(play, resolve).execute(cid, value, principal_id="gm")
     saved = await play.store.read(cid)
     state = play._load(saved)
     assert state.revision == state.resources.revision == 1
@@ -48,9 +48,7 @@ async def test_fright_loss_restart_privacy_and_recovery(tmp_path: Path) -> None:
             system=True,
         )
     play.rng = RecordedDice([])
-    assert (
-        await SocialService(play, resolve).execute(cid, value, authenticated_gm_id="gm") == result
-    )
+    assert await SocialService(play, resolve).execute(cid, value, principal_id="gm") == result
     assert await play.store.read(cid) == saved == await play.store.replay(cid)
     projection = await build_runtime(play).read(cid, principal_id="alice")
     assert "recovery_target" not in str(projection)
@@ -136,7 +134,7 @@ async def test_trait_requirement_does_not_change_approved_build(tmp_path: Path) 
     # Failed by four plus table nine gives B361 row 13: a new mental quirk.
     play.rng = RecordedDice([4, 5, 5, 3, 3, 3])
     value = command().model_copy(update={"kind": "fright", "subject_id": "a"})
-    outcome = await SocialService(play, resolve).execute(cid, value, authenticated_gm_id="gm")
+    outcome = await SocialService(play, resolve).execute(cid, value, principal_id="gm")
     after = play._load(await play.store.read(cid))
     assert outcome.requires_adjudication and outcome.adjudication == ("quirk:-1",)
     assert before.actors == after.actors

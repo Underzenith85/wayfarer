@@ -104,7 +104,7 @@ async def test_b278_production_revolver_uses_authoritative_burst_failure(tmp_pat
         defense="dodge",
     )
     play.rng = RecordedDice([6, 6, 6, 3, 3, 3])
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury is not None
     assert (result.injury.malfunction, result.injury.shots_fired, result.injury.hits) == (
         "stoppage",
@@ -181,7 +181,7 @@ async def test_malfunction_precedes_critical_miss_and_retries_once(
         defense="dodge",
     )
     play.rng = RecordedDice([6, 6, 6, *table])
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury is not None
     assert result.injury.malfunction == kind and result.injury.malfunction_table == table
     assert result.injury.critical_table == () and result.injury.defense is None
@@ -189,7 +189,7 @@ async def test_malfunction_precedes_critical_miss_and_retries_once(
     assert result.injury.adjudication_required is None
     assert isinstance(play.store, AsyncSQLiteStore)
     play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
     state = play._load(await play.store.read(cid))
     assert state.resources.ammunition_loads[0].rounds == 6 - fired
     assert next(i.quantity for i in state.resources.items if i.id == "ammo-a") == 10 - fired
@@ -290,10 +290,10 @@ async def test_stoppage_clearing_three_readies_and_interruption(
             firearm_service="clear",
         )
         play.rng = RecordedDice(list(roll) if index == 2 else [])
-        result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+        result = await CombatService(play).execute(cid, command, principal_id="a")
         assert isinstance(play.store, AsyncSQLiteStore)
         play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-        assert await CombatService(play).execute(cid, command, authenticated_actor_id="a") == result
+        assert await CombatService(play).execute(cid, command, principal_id="a") == result
         await turn(cid, play, "b", "do_nothing")
         if index == 0:
             await turn(cid, play, "a", "do_nothing")
@@ -463,10 +463,10 @@ async def test_hourly_repair_success_failure_and_destruction(
         firearm_service_skill="armoury",
     )
     play.rng = RecordedDice(list(dice))
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, command, principal_id="a")
     assert isinstance(play.store, AsyncSQLiteStore)
     play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="a") == result
+    assert await CombatService(play).execute(cid, command, principal_id="a") == result
     state = play._load(await play.store.read(cid))
     failure = next(i for i in state.resources.items if i.id == "sword-a").firearm_failure
     assert (failure.kind if failure else None) == expected

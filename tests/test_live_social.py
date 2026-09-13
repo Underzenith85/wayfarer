@@ -110,7 +110,7 @@ async def test_panic_response_records_choice_without_forcing_player_behavior(
             trigger_id="panic",
             expected_revision=0,
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     play.rng = RecordedDice([6, 6, 6, 2, 2, 2])
     choice = FrightDecision(
@@ -121,12 +121,12 @@ async def test_panic_response_records_choice_without_forcing_player_behavior(
         kind="panic-response",
         response="The player resolved the first reaction.",
     )
-    await FrightService(play).execute(cid, choice, authenticated_gm_id="gm")
+    await FrightService(play).execute(cid, choice, principal_id="gm")
     saved = await play.store.read(cid)
     item = effects(play._load(saved).resources)[0]
     assert item.active and item.effect.panic_severity == 6 and len(item.panic_responses) == 1
     play.rng = RecordedDice([])
-    await FrightService(play).execute(cid, choice, authenticated_gm_id="gm")
+    await FrightService(play).execute(cid, choice, principal_id="gm")
     assert saved == await play.store.read(cid)
     play.rng = RecordedDice([1, 1, 1])
     await FrightService(play).execute(
@@ -138,7 +138,7 @@ async def test_panic_response_records_choice_without_forcing_player_behavior(
                 "response": "The player resolved the second reaction.",
             }
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     after = play._load(await play.store.read(cid))
     assert not effects(after.resources)[0].active
@@ -170,14 +170,14 @@ async def test_npc_fright_and_failed_recovery_run_in_live_wait_transactions(tmp_
     cid, play = await prepare(tmp_path, rules)
     play.rng = RecordedDice([4, 5, 5, 1, 1, 1])  # failure by 4 + table 3 = B360 row 7
     first = Wait(id="first", actor_id="a", expected_revision=0, ticks=1)
-    await play.execute(cid, first, authenticated_actor_id="a")
+    await play.execute(cid, first, principal_id="a")
     initial = play._load(await play.store.read(cid))
     assert effects(initial.resources)[0].due == 2
     assert initial.npcs.decisions[0].status == "committed"
     assert checkpoint(play, initial) == initial  # finite occurrence, not a fresh roll
     play.rng = RecordedDice([6, 6, 6, 1, 1, 1])
     second = Wait(id="second", actor_id="a", expected_revision=1, ticks=3)
-    result = await play.execute(cid, second, authenticated_actor_id="a")
+    result = await play.execute(cid, second, principal_id="a")
     saved = await play.store.read(cid)
     state = play._load(saved)
     assert state.revision == state.resources.revision == 2
@@ -187,7 +187,7 @@ async def test_npc_fright_and_failed_recovery_run_in_live_wait_transactions(tmp_
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "social.sqlite", 10), play.engine, rng=RecordedDice([])
     )
-    assert await restarted.execute(cid, second, authenticated_actor_id="a") == result
+    assert await restarted.execute(cid, second, principal_id="a") == result
     assert saved == await restarted.store.replay(cid)
     projection = await build_runtime(restarted).read(cid, principal_id="alice")
     assert "recovery_checks" not in str(projection) and "guard-alarm" not in str(projection)
@@ -241,7 +241,7 @@ async def test_authored_standing_drives_a_live_reaction_without_leaking_it(
     await play.execute(
         cid,
         Wait(id="first", actor_id="a", expected_revision=0, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     private = json.loads(state.resources.events[-1].kind)
@@ -361,14 +361,14 @@ async def test_care_decision_is_authorized_and_retry_safe(tmp_path: Path) -> Non
         id="care", actor_id="a", expected_revision=1, kind="care", fright_id="care-case", care=True
     )
     with pytest.raises(ValidationError, match="director authority"):
-        await FrightService(play).execute(cid, command, authenticated_gm_id="alice")
-    await FrightService(play).execute(cid, command, authenticated_gm_id="gm")
+        await FrightService(play).execute(cid, command, principal_id="alice")
+    await FrightService(play).execute(cid, command, principal_id="gm")
     saved = await play.store.read(cid)
-    await FrightService(play).execute(cid, command, authenticated_gm_id="gm")
+    await FrightService(play).execute(cid, command, principal_id="gm")
     assert await play.store.read(cid) == saved
     with pytest.raises(ConflictError):
         await FrightService(play).execute(
-            cid, command.model_copy(update={"care": False}), authenticated_gm_id="gm"
+            cid, command.model_copy(update={"care": False}), principal_id="gm"
         )
     state = play._load(saved)
     advanced = play.engine.resources.apply(

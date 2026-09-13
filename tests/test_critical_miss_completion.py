@@ -63,7 +63,7 @@ async def test_selected_parry_mode_resolves_limb_and_incoming_hit_once(
     play.rng = RecordedDice(
         [4, 4, 4, *([4, 4, 4] if second else []), 6, 6, 6, *table, *limb_dice, *([3] * 12)]
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id=subject)
+    result = await CombatService(play).execute(cid, command, principal_id=subject)
     assert result.injury and result.injury.adjudication_required is None
     saved = play._load(await play.store.read(cid))
     event = next(e for e in saved.resources.events if e.id.startswith("critical-limb:"))
@@ -79,10 +79,7 @@ async def test_selected_parry_mode_resolves_limb_and_incoming_hit_once(
         assert strain.recovery_at == strain.inflicted_at + 1800
         assert next(i for i in saved.resources.items if i.id == f"sword-{subject}").ready
     restarted = await restart(play)
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id=subject)
-        == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id=subject) == result
     assert restarted._load(await restarted.store.read(cid)).resources == saved.resources
 
 
@@ -91,7 +88,7 @@ async def test_selected_mode_is_preserved_when_anatomy_is_missing(tmp_path: Path
     await attack(cid, play)
     command = choice("parry").model_copy(update={"parry_mode_id": "swing"})
     play.rng = RecordedDice([4, 4, 4, 6, 6, 6, 2, 2, 1])
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury and result.injury.adjudication_required == "basic-critical-miss:5:defender"
     saved = play._load(await play.store.read(cid))
     context = CriticalMiss.model_validate_json(
@@ -100,9 +97,7 @@ async def test_selected_mode_is_preserved_when_anatomy_is_missing(tmp_path: Path
     assert tuple(w.mode.id for w in context.weapons) == ("swing",)
     assert context.incoming and context.incoming.actor_id == "b"
     restarted = await restart(play)
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
 
 
 @pytest.mark.parametrize(
@@ -120,7 +115,7 @@ async def test_invalid_parry_mode_rejected_before_dice_or_state_change(
         update={"parry_mode_id": mode, "second_parry_mode_id": second}
     )
     with pytest.raises(ValidationError):
-        await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+        await CombatService(play).execute(cid, command, principal_id="b")
     assert await play.store.read(cid) == before
 
 
@@ -134,7 +129,7 @@ async def test_flight_geometry_collision_and_restart(
     await attack(cid, play)
     pending = play._load(await play.store.read(cid)).encounters[0]
     play.rng = RecordedDice([6, 6, 6, 4, 5, 5, 1, direction, *dx_roll, *([4] if injury else [])])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     event = next(e for e in state.resources.events if e.id.startswith("critical-flight:"))
     flight = FlightResult.model_validate_json(event.kind)
@@ -143,9 +138,7 @@ async def test_flight_geometry_collision_and_restart(
     assert len(flight.collisions) == (1 if direction == 1 else 0)
     assert next(p.current for p in state.resources.pools if p.id == "hp:b") == 10 - injury
     restarted = await restart(play)
-    assert (
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == result
     reloaded = restarted._load(await restarted.store.read(cid))
     assert reloaded.resources == state.resources
     # Direct consequence retry must not change an already recorded table.

@@ -84,7 +84,7 @@ class SceneService:
         cid: str,
         value: object,
         *,
-        authenticated_actor_id: str,
+        principal_id: str,
         authorize: Callable[[Campaign], None] | None = None,
     ) -> SceneEvent:
         try:
@@ -95,7 +95,7 @@ class SceneService:
             self.play,
             cid,
             self.plan(command),
-            principal_id=authenticated_actor_id,
+            principal_id=principal_id,
             authorize=authorize,
         )
 

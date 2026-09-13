@@ -14,7 +14,7 @@ from wayfarer.engine.simulation.actions import PlayState, Wait
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.spells import SpellCommand, active_spells
 from wayfarer.engine.simulation.rules_context import RulesContext
-from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -27,14 +27,14 @@ def resolve(play: RulesContext, state: PlayState, value: SpellCommand) -> SpellE
 async def test_concurrent_completion_restart_and_private_rolls(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path, spec(), magic=True)
     service = SpellService(play, resolve)
-    await service.execute(cid, command(), authenticated_gm_id="gm")
+    await service.execute(cid, command(), principal_id="gm")
     await play.execute(
-        cid, Wait(id="time", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="time", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([3, 3, 3])
     complete = command(2, kind="complete")
     results = await asyncio.gather(
-        *(service.execute(cid, complete, authenticated_gm_id="gm") for _ in range(3))
+        *(service.execute(cid, complete, principal_id="gm") for _ in range(3))
     )
     assert all(r == results[0] for r in results)
     assert results[0].energy_spent == 1
@@ -51,7 +51,7 @@ async def test_concurrent_completion_restart_and_private_rolls(tmp_path: Path) -
         AsyncSQLiteStore(tmp_path / "abilities.sqlite", 10), play.engine, rng=RecordedDice([])
     )
     assert (
-        await SpellService(restarted, forbidden).execute(cid, complete, authenticated_gm_id="gm")
+        await SpellService(restarted, forbidden).execute(cid, complete, principal_id="gm")
         == results[0]
     )
     assert await restarted.store.read(cid) == saved
@@ -59,22 +59,22 @@ async def test_concurrent_completion_restart_and_private_rolls(tmp_path: Path) -
     assert "effective_target" not in str(events)
     assert "approved" not in str(events)
     with pytest.raises(ConflictError):
-        await service.execute(
-            cid, complete.model_copy(update={"id": "stale"}), authenticated_gm_id="gm"
-        )
+        await service.execute(cid, complete.model_copy(update={"id": "stale"}), principal_id="gm")
 
 
 async def test_player_cannot_inject_context_and_invalid_target_is_atomic(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path, spec(), magic=True)
     before = await play.store.read(cid)
-    with pytest.raises(ValidationError, match="director authority"):
-        await SpellService(play, resolve).execute(cid, command(), authenticated_gm_id="a")
+    # Membership decides the caster's part (#639): a seated player never reaches the
+    # director's resolver, and is refused as one who cannot act for that actor.
+    with pytest.raises(AuthorizationError, match="not controlled by principal"):
+        await SpellService(play, resolve).execute(cid, command(), principal_id="a")
 
     def hidden(play: RulesContext, state: PlayState, value: SpellCommand) -> SpellEnvironment:
         return SpellEnvironment(target_id="b").model_copy(update={"target_id": "unseen"})
 
     with pytest.raises(ValidationError, match="not perceived"):
-        await SpellService(play, hidden).execute(cid, command(), authenticated_gm_id="gm")
+        await SpellService(play, hidden).execute(cid, command(), principal_id="gm")
     assert await play.store.read(cid) == before
 
 

@@ -20,8 +20,8 @@ from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.resources import Command, Consume, ResourceEvent
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
-from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
 
@@ -55,13 +55,10 @@ class HazardCareService:
     def __init__(self, play: PlayService, resolver: CareResolver) -> None:
         self.play, self.resolver = play, resolver
 
-    async def execute(
-        self, cid: str, command: HazardCareCommand, *, authenticated_actor_id: str
-    ) -> HazardCareResult:
-        command = HazardCareCommand.model_validate(command)
-        if command.actor_id != authenticated_actor_id:
-            raise ValidationError("Care actor does not match authenticated actor")
-        play = self.play.for_campaign(await self.play.store.read(cid))
+    def plan(
+        self, play: PlayService, command: HazardCareCommand, *, principal_id: str
+    ) -> CommandPlan[HazardCareResult]:
+        """What a hazard treatment writes; the pipeline decides whether it runs."""
         payload = json.dumps({"hazard-care": command.model_dump(mode="json")}, sort_keys=True)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
@@ -279,16 +276,30 @@ class HazardCareService:
             play.commit(campaign, updated)
             return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
-        committed = await commit_command(
-            play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> HazardCareResult:
+            state = play._load(campaign)
+            event = next(e for e in state.resources.events if e.id == "hazard-care:" + command.id)
+            return HazardCareResult.model_validate_json(event.kind)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id, "Care actor does not match authenticated actor"),),
             rng=play.rng,
         )
-        state = play._load(committed["state"])
-        event = next(e for e in state.resources.events if e.id == "hazard-care:" + command.id)
-        return HazardCareResult.model_validate_json(event.kind)
+
+    async def execute(
+        self, cid: str, command: HazardCareCommand, *, principal_id: str
+    ) -> HazardCareResult:
+        command = HazardCareCommand.model_validate(command)
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        return await submit(
+            play,
+            cid,
+            self.plan(play, command, principal_id=principal_id),
+            principal_id=principal_id,
+        )

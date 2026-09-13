@@ -62,14 +62,12 @@ class AdjudicationService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def submit(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> Ruling | ActionResult:
+    async def submit(self, cid: str, value: object, *, principal_id: str) -> Ruling | ActionResult:
         try:
             command = RULING_ADAPTER.validate_python(value)
         except SchemaError as exc:
             raise ValidationError("Invalid ruling command") from exc
-        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)
+        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)
 
     async def evaluate(
         self, cid: str, ruling_id: str, *, command_id: str, expected_revision: int

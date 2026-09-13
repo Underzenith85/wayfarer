@@ -144,7 +144,7 @@ async def open_fight(play: PlayService, cid: str) -> None:
                 ),
             }
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
 
 
@@ -170,7 +170,7 @@ async def test_scene_binding_is_persisted_and_completed_encounter_survives_trave
         EndEncounter(
             id="end", actor_id="gm", expected_revision=1, encounter_id="fight", reason="Resolved"
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     state = await load(play, cid)
     moved = state.model_copy(
@@ -242,7 +242,7 @@ async def test_scene_invariants_and_duplicate_subgroup_encounters(tmp_path: Path
         }
     )
     with pytest.raises(ValidationError, match="Subgroup participates"):
-        await CombatService(play).execute(cid, second, authenticated_actor_id="gm")
+        await CombatService(play).execute(cid, second, principal_id="gm")
     assert await play.store.read(cid) == before
     duplicate = state.encounters[0].model_copy(update={"id": "duplicate"})
     with pytest.raises(ValidationError, match="multiple active encounters"):
@@ -277,7 +277,7 @@ async def test_ambiguous_migration_is_explicit_authorized_atomic_and_retry_safe(
             TakeCombatTurn(
                 id="turn", actor_id="a", expected_revision=0, encounter_id="fight", maneuver="wait"
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     command = MigrateEncounterScenes(
         id="bind",
@@ -298,7 +298,7 @@ async def test_ambiguous_migration_is_explicit_authorized_atomic_and_retry_safe(
                     )
                 }
             ),
-            authenticated_gm_id="gm",
+            principal_id="gm",
         )
     assert await play.store.read(cid) == before
     await access.submit_json(cid, command.model_dump(mode="json"), principal_id="gm")
@@ -312,7 +312,7 @@ async def test_ambiguous_migration_is_explicit_authorized_atomic_and_retry_safe(
     assert migrated.configuration_digest == state.configuration_digest
     with pytest.raises(ConflictError):
         await EncounterSceneService(play).execute(
-            cid, command.model_copy(update={"id": "stale"}), authenticated_gm_id="gm"
+            cid, command.model_copy(update={"id": "stale"}), principal_id="gm"
         )
     restarted = PlayService(play.store, play.engine, rng=Dice())
     assert await load(restarted, cid) == migrated
@@ -439,7 +439,7 @@ async def test_spectator_split_cannot_bypass_barriers(tmp_path: Path, blocker: s
                 item_id="sword-a",
                 target_id="b",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
         state = await load(play, cid)
     elif blocker in ("unarmed", "wait_interrupt", "blocked"):
@@ -520,7 +520,7 @@ async def test_scene_less_campaign_adopts_explicit_actor_and_encounter_mappings(
     )
     before = await old_play.store.read(cid)
     with pytest.raises(ValidationError, match="explicit actor scene mapping"):
-        await service.apply(cid, command, authenticated_gm_id="gm")
+        await service.apply(cid, command, principal_id="gm")
     command = command.model_copy(
         update={
             "actor_scenes": tuple(
@@ -529,7 +529,7 @@ async def test_scene_less_campaign_adopts_explicit_actor_and_encounter_mappings(
         }
     )
     with pytest.raises(ValidationError, match="ambiguous encounter"):
-        await service.apply(cid, command, authenticated_gm_id="gm")
+        await service.apply(cid, command, principal_id="gm")
     assert await old_play.store.read(cid) == before
     command = command.model_copy(
         update={
@@ -538,8 +538,8 @@ async def test_scene_less_campaign_adopts_explicit_actor_and_encounter_mappings(
             )
         }
     )
-    first = await service.apply(cid, command, authenticated_gm_id="gm")
-    assert await service.apply(cid, command, authenticated_gm_id="gm") == first
+    first = await service.apply(cid, command, principal_id="gm")
+    assert await service.apply(cid, command, principal_id="gm") == first
     after = await load(target, cid)
     assert after.encounters[0].scene_id == "dock-scene"
     assert (

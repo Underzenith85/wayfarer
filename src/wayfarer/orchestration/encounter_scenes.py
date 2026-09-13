@@ -78,11 +78,11 @@ class EncounterSceneService:
         )
 
     async def execute(
-        self, cid: str, command: MigrateEncounterScenes, *, authenticated_gm_id: str
+        self, cid: str, command: MigrateEncounterScenes, *, principal_id: str
     ) -> PlayState:
         bound = self.play.for_campaign(await self.play.store.read(cid))
         if bound is not self.play:
             return await EncounterSceneService(bound).execute(
-                cid, command, authenticated_gm_id=authenticated_gm_id
+                cid, command, principal_id=principal_id
             )
-        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_gm_id)
+        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)

@@ -31,7 +31,7 @@ async def test_services_share_commitment_and_cancel_releases_it(tmp_path: Path, 
     cid, play = await setup(tmp_path, spec(), magic=True)
     spells, abilities = SpellService(play, resolve), AbilityService(play)
     if first == "spell":
-        await spells.execute(cid, command(), authenticated_gm_id="gm")
+        await spells.execute(cid, command(), principal_id="gm")
     else:
         await abilities.execute(cid, ability_command(), principal_id="a")
     before = await play.store.read(cid)
@@ -39,10 +39,10 @@ async def test_services_share_commitment_and_cancel_releases_it(tmp_path: Path, 
         if first == "spell":
             await abilities.execute(cid, ability_command(1), principal_id="a")
         else:
-            await spells.execute(cid, command(1), authenticated_gm_id="gm")
+            await spells.execute(cid, command(1), principal_id="gm")
     assert await play.store.read(cid) == before
     if first == "spell":
-        await spells.execute(cid, command(1, kind="cancel"), authenticated_gm_id="gm")
+        await spells.execute(cid, command(1, kind="cancel"), principal_id="gm")
         assert (
             await abilities.execute(cid, ability_command(2), principal_id="a")
         ).outcome == "concentrating"
@@ -51,11 +51,9 @@ async def test_services_share_commitment_and_cancel_releases_it(tmp_path: Path, 
         await play.execute(
             cid,
             Wait(id="finish-second", actor_id="a", expected_revision=2, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
-        assert (
-            await spells.execute(cid, command(3), authenticated_gm_id="gm")
-        ).outcome == "casting"
+        assert (await spells.execute(cid, command(3), principal_id="gm")).outcome == "casting"
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
@@ -64,7 +62,7 @@ async def test_racing_spell_and_ability_commit_only_one_and_retry_survives_resta
 ) -> None:
     cid, play = await setup(tmp_path, spec(), magic=True)
     results = await asyncio.gather(
-        SpellService(play, resolve).execute(cid, command(), authenticated_gm_id="gm"),
+        SpellService(play, resolve).execute(cid, command(), principal_id="gm"),
         AbilityService(play).execute(cid, ability_command(), principal_id="a"),
         return_exceptions=True,
     )
@@ -76,7 +74,7 @@ async def test_racing_spell_and_ability_commit_only_one_and_retry_survives_resta
     )
     if not isinstance(results[0], BaseException):
         assert (
-            await SpellService(restarted, resolve).execute(cid, command(), authenticated_gm_id="gm")
+            await SpellService(restarted, resolve).execute(cid, command(), principal_id="gm")
         ) == results[0]
     else:
         assert (
@@ -87,7 +85,7 @@ async def test_racing_spell_and_ability_commit_only_one_and_retry_survives_resta
 
 async def test_reducer_guard_survives_restart_and_missed_spell_deadline(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path, spec(), magic=True)
-    await SpellService(play, resolve).execute(cid, command(), authenticated_gm_id="gm")
+    await SpellService(play, resolve).execute(cid, command(), principal_id="gm")
     state = play._load(await play.store.read(cid)).resources
     restored = ResourceState.model_validate_json(state.model_dump_json()).model_copy(
         update={"game_time": 100}
@@ -142,14 +140,14 @@ async def test_ability_reducer_cannot_overlap_itself_or_start_a_spell(tmp_path: 
 async def test_active_spell_is_not_pending_concentration(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path, spec(), magic=True)
     spells = SpellService(play, resolve)
-    await spells.execute(cid, command(), authenticated_gm_id="gm")
+    await spells.execute(cid, command(), principal_id="gm")
     await play.execute(
         cid,
         Wait(id="time", actor_id="a", expected_revision=1, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([3, 3, 3])
-    await spells.execute(cid, command(2, kind="complete"), authenticated_gm_id="gm")
+    await spells.execute(cid, command(2, kind="complete"), principal_id="gm")
     play.rng = RecordedDice([])
     result = await AbilityService(play).execute(cid, ability_command(3), principal_id="a")
     assert result.outcome == "concentrating"

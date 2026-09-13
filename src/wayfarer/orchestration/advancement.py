@@ -123,14 +123,12 @@ class AdvancementService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def preview(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> AdvancementPreview:
+    async def preview(self, cid: str, value: object, *, principal_id: str) -> AdvancementPreview:
         try:
             command = AdvanceCharacter.model_validate(value)
         except SchemaError as exc:
             raise ValidationError("Invalid advancement") from exc
-        ActsAs(command.actor_id)(authenticated_actor_id)
+        ActsAs(command.actor_id)(principal_id)
         state = self.play._load(await self.play.store.read(cid))
         before = _build(self.play, state, command.actor_id)
         if (
@@ -198,14 +196,12 @@ class AdvancementService:
             rng=self.play.rng,
         )
 
-    async def grant(self, cid: str, value: object, *, authenticated_gm_id: str) -> AdvancementEntry:
+    async def grant(self, cid: str, value: object, *, principal_id: str) -> AdvancementEntry:
         try:
             command = GrantPoints.model_validate(value)
         except SchemaError as exc:
             raise ValidationError("Invalid point grant") from exc
-        return await submit(
-            self.play, cid, self.grant_plan(command), principal_id=authenticated_gm_id
-        )
+        return await submit(self.play, cid, self.grant_plan(command), principal_id=principal_id)
 
     def reduce_purchase(
         self, state: PlayState, command: AdvanceCharacter, *, revision: int
@@ -335,16 +331,12 @@ class AdvancementService:
             rng=self.play.rng,
         )
 
-    async def advance(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> AdvancementEntry:
+    async def advance(self, cid: str, value: object, *, principal_id: str) -> AdvancementEntry:
         try:
             command = AdvanceCharacter.model_validate(value)
         except SchemaError as exc:
             raise ValidationError("Invalid advancement") from exc
-        return await submit(
-            self.play, cid, self.advance_plan(command), principal_id=authenticated_actor_id
-        )
+        return await submit(self.play, cid, self.advance_plan(command), principal_id=principal_id)
 
     @staticmethod
     def _payload(operation: str, command: object) -> str:
@@ -535,7 +527,7 @@ class MigrationService:
         )
 
     async def apply(
-        self, cid: str, value: object, *, authenticated_gm_id: str, payload: str | None = None
+        self, cid: str, value: object, *, principal_id: str, payload: str | None = None
     ) -> MigrationEntry:
         try:
             command = ApplyMigration.model_validate(value)
@@ -545,5 +537,5 @@ class MigrationService:
             self.current,
             cid,
             self.plan(cid, command, payload=payload),
-            principal_id=authenticated_gm_id,
+            principal_id=principal_id,
         )

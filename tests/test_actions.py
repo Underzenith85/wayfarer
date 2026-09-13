@@ -475,17 +475,17 @@ async def test_receipt_miss_racing_an_identical_commit_returns_original_result(
         if not raced and receipt is None:
             raced = True
             # Another caller commits after this lookup misses, before it returns.
-            await service.execute(cid, command, authenticated_actor_id="a")
+            await service.execute(cid, command, principal_id="a")
         return receipt
 
     monkeypatch.setattr(store, "duplicate", racing_duplicate)
-    result = await service.execute(initial["id"], command, authenticated_actor_id="a")
+    result = await service.execute(initial["id"], command, principal_id="a")
     assert result.status == "committed" and result.revision == 1
     assert dice.calls == 3 and len(await played(store, initial["id"])) == 1
-    assert await service.execute(initial["id"], command, authenticated_actor_id="a") == result
+    assert await service.execute(initial["id"], command, principal_id="a") == result
     with pytest.raises(ConflictError):
         await service.execute(
-            initial["id"], command.model_copy(update={"target_id": "b"}), authenticated_actor_id="a"
+            initial["id"], command.model_copy(update={"target_id": "b"}), principal_id="a"
         )
 
 
@@ -509,19 +509,15 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     await seed_play(service, initial, world(), resource_seed(), (actor_setup(),))
     raw_before = await store.read(initial["id"])
     command = Inspect(id="inspect", actor_id="a", expected_revision=0, target_id="chest")
-    assert (
-        await service.preview(initial["id"], command, authenticated_actor_id="a")
-    ).status == "feasible"
+    assert (await service.preview(initial["id"], command, principal_id="a")).status == "feasible"
     assert dice.calls == 0 and await store.read(initial["id"]) == raw_before
     with pytest.raises(ValidationError, match="authorized"):
-        await service.execute(initial["id"], command, authenticated_actor_id="b")
+        await service.execute(initial["id"], command, principal_id="b")
     question = Question(id="q", actor_id="a", expected_revision=0, text="What if I attack?")
-    assert (
-        await service.execute(initial["id"], question, authenticated_actor_id="a")
-    ).status == "question"
+    assert (await service.execute(initial["id"], question, principal_id="a")).status == "question"
     assert await played(store, initial["id"]) == []
     results = await asyncio.gather(
-        *(service.execute(initial["id"], command, authenticated_actor_id="a") for _ in range(8))
+        *(service.execute(initial["id"], command, principal_id="a") for _ in range(8))
     )
     assert all(r == results[0] for r in results) and dice.calls == 3
     assert len(await played(store, initial["id"])) == 1
@@ -532,7 +528,7 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
                 UseItem(
                     id=f"race-{i}", actor_id="a", expected_revision=1, item_id="potions", quantity=4
                 ),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
             for i in range(2)
         ),
@@ -541,16 +537,16 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     assert sum(isinstance(r, ActionResult) and r.status == "committed" for r in competing) == 1
     assert sum(isinstance(r, ConflictError) for r in competing) == 1
     restarted = PlayService(store, reducer, rng=Dice(5))
-    assert await restarted.execute(initial["id"], command, authenticated_actor_id="a") == results[0]
+    assert await restarted.execute(initial["id"], command, principal_id="a") == results[0]
     with pytest.raises(ConflictError):
         await restarted.execute(
-            initial["id"], command.model_copy(update={"target_id": "b"}), authenticated_actor_id="a"
+            initial["id"], command.model_copy(update={"target_id": "b"}), principal_id="a"
         )
     for revision in range(2, 12):
         await restarted.execute(
             initial["id"],
             Wait(id=f"wait-{revision}", actor_id="a", expected_revision=revision, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
     history = await played(store, initial["id"])
@@ -575,7 +571,7 @@ async def test_pending_approval_is_durable_authorized_and_revalidated(tmp_path: 
     blocked = await service.execute(
         initial["id"],
         Wait(id="pending", actor_id="a", expected_revision=0, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert (
         blocked.code == "character.approval_required" and await played(store, initial["id"]) == []
@@ -588,29 +584,29 @@ async def test_pending_approval_is_durable_authorized_and_revalidated(tmp_path: 
         reason="Reviewed for this scenario",
     )
     with pytest.raises(ValidationError, match="authority"):
-        await service.approve(initial["id"], approval, authenticated_gm_id="a")
-    record = await service.approve(initial["id"], approval, authenticated_gm_id="gm")
+        await service.approve(initial["id"], approval, principal_id="a")
+    record = await service.approve(initial["id"], approval, principal_id="gm")
     assert record.recorded_revision == 1 and record.approver_id == "gm"
     restarted = PlayService(store, reducer)
-    assert await restarted.approve(initial["id"], approval, authenticated_gm_id="gm") == record
+    assert await restarted.approve(initial["id"], approval, principal_id="gm") == record
     result = await restarted.execute(
         initial["id"],
         Wait(id="active", actor_id="a", expected_revision=1, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.status == "committed"
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
     assert (await played(store, initial["id"]))[0].event["action"] == "power-approval"
     with pytest.raises(ConflictError):
         await restarted.approve(
-            initial["id"], approval.model_copy(update={"id": "stale"}), authenticated_gm_id="gm"
+            initial["id"], approval.model_copy(update={"id": "stale"}), principal_id="gm"
         )
     migrated = engine(automatic=True)
     with pytest.raises(ValidationError, match="migration"):
         await PlayService(store, migrated).preview(
             initial["id"],
             Wait(id="x", actor_id="a", expected_revision=2, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
 
 

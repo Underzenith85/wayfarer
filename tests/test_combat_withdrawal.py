@@ -75,7 +75,7 @@ async def prepared_basic(tmp_path: Path) -> tuple[str, PlayService, PlayState]:
                 facts=reinforcement_facts("c", ("a", "b"), revision=2, command_id="admit-c")
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     await service.execute(
         cid,
@@ -87,7 +87,7 @@ async def prepared_basic(tmp_path: Path) -> tuple[str, PlayService, PlayState]:
             maneuver="move",
             basic_move=BasicMove(reference_actor_id="b", direction="withdraw"),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await service.execute(
         cid,
@@ -98,7 +98,7 @@ async def prepared_basic(tmp_path: Path) -> tuple[str, PlayService, PlayState]:
             encounter_id="fight",
             facts=safe_facts(("b", "c"), revision=4, command_id="safe-boundary"),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play = play.for_campaign(await play.store.read(cid))
     return cid, play, play._load(await play.store.read(cid))
@@ -118,9 +118,9 @@ async def test_basic_withdrawal_preserves_state_and_rejoins_without_a_free_turn(
     assert offered.withdrawals[0].command.encounter_id == "fight"
 
     command = withdraw(5)
-    first = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    first = await CombatService(play).execute(cid, command, principal_id="a")
     restarted = CombatService(PlayService(play.store, play.engine))
-    assert await restarted.execute(cid, command, authenticated_actor_id="a") == first
+    assert await restarted.execute(cid, command, principal_id="a") == first
     departed = play._load(await play.store.read(cid))
     encounter = departed.encounters[0]
     assert encounter.status == "active"
@@ -142,7 +142,7 @@ async def test_basic_withdrawal_preserves_state_and_rejoins_without_a_free_turn(
                 facts=reinforcement_facts("a", ("b", "c"), revision=6, command_id="return-a")
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     rejoined = play._load(await play.store.read(cid))
     restored = next(p for p in rejoined.encounters[0].participants if p.actor_id == "a")
@@ -201,7 +201,7 @@ async def test_current_actor_withdrawal_advances_without_reset(tmp_path: Path) -
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     await service.execute(
         cid,
@@ -212,11 +212,11 @@ async def test_current_actor_withdrawal_advances_without_reset(tmp_path: Path) -
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="c",
+        principal_id="c",
     )
     before = play._load(await play.store.read(cid)).encounters[0]
     assert before.current_actor_id == "a" and before.round == 2
-    await service.execute(cid, withdraw(7), authenticated_actor_id="a")
+    await service.execute(cid, withdraw(7), principal_id="a")
     after = play._load(await play.store.read(cid)).encounters[0]
     assert after.current_actor_id == "b"
     assert after.round == 2
@@ -227,7 +227,7 @@ async def test_withdrawn_actor_can_queue_same_scene_activity_without_duplicating
     tmp_path: Path,
 ) -> None:
     cid, play, _ = await prepared_basic(tmp_path)
-    await CombatService(play).execute(cid, withdraw(5), authenticated_actor_id="a")
+    await CombatService(play).execute(cid, withdraw(5), principal_id="a")
     state = play._load(await play.store.read(cid))
     now = state.resources.game_time
     queued = await PartyService(play).execute(
@@ -244,7 +244,7 @@ async def test_withdrawn_actor_can_queue_same_scene_activity_without_duplicating
                 ticks=1,
             ).model_dump_json(),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert queued.resources.game_time == now
     assert queued.party.queue[0].actor_id == "a"
@@ -261,12 +261,12 @@ async def test_hex_final_withdrawal_requires_resolved_safe_flight(tmp_path: Path
             b_position=Hex(q=0, r=3),
             battlefield=board(opaque=opaque),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play = play.for_campaign(await play.store.read(cid))
     service = CombatService(play)
     with pytest.raises(ValidationError, match="Move maneuver"):
-        await service.execute(cid, withdraw(3), authenticated_actor_id="a")
+        await service.execute(cid, withdraw(3), principal_id="a")
     await service.execute(
         cid,
         TakeCombatTurn(
@@ -277,7 +277,7 @@ async def test_hex_final_withdrawal_requires_resolved_safe_flight(tmp_path: Path
             maneuver="move",
             hex_path=tuple(Hex(q=q, r=0) for q in range(1, 6)),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     interrupted = state.encounters[0].model_copy(
@@ -300,7 +300,7 @@ async def test_hex_final_withdrawal_requires_resolved_safe_flight(tmp_path: Path
         )
 
     resources = state.resources
-    await service.execute(cid, withdraw(4), authenticated_actor_id="a")
+    await service.execute(cid, withdraw(4), principal_id="a")
     departed = play._load(await play.store.read(cid))
     assert departed.encounters[0].status == "completed"
     assert departed.encounters[0].completion_reason == "withdrawal"

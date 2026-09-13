@@ -178,10 +178,10 @@ async def test_crossbow_reload_timing_interruptions_and_restart(
             mode_id="ranged",
             reload_ammunition_id="ammo-a",
         )
-        result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+        result = await CombatService(play).execute(cid, command, principal_id="a")
         assert isinstance(play.store, AsyncSQLiteStore)
         play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-        assert await CombatService(play).execute(cid, command, authenticated_actor_id="a") == result
+        assert await CombatService(play).execute(cid, command, principal_id="a") == result
         state = play._load(await play.store.read(cid))
         ammunition = state.resources.ammunition_loads[0]
         assert ammunition.rounds == (1 if index == seconds - 1 else 0)

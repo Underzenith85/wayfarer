@@ -16,9 +16,12 @@ from dataclasses import dataclass
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RandomSource
-from wayfarer.errors import ValidationError
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.entropy import CommandBoundary, commit_command
+from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.persistence.events import CommandOrigin
 
 # Each raises on refusal, so a plan states its rule instead of checking for itself.
@@ -30,10 +33,11 @@ class ActsAs:
     """The principal may submit only as the actor the command names."""
 
     actor_id: str
+    refusal: str = "Command actor is not authorized"
 
     def __call__(self, principal_id: str) -> None:
         if self.actor_id != principal_id:
-            raise ValidationError("Command actor is not authorized")
+            raise ValidationError(self.refusal)
 
 
 @dataclass(frozen=True)
@@ -45,10 +49,44 @@ class Trusted:
     """
 
     ids: frozenset[str]
+    refusal: str = "Command requires GM authority"
 
     def __call__(self, principal_id: str) -> None:
         if principal_id not in self.ids:
-            raise ValidationError("Command requires GM authority")
+            raise ValidationError(self.refusal)
+
+
+@dataclass(frozen=True)
+class Controls:
+    """Campaign membership must let this principal act for the named actor."""
+
+    member: CampaignMember
+    actor_id: str
+    refusal: str = "Principal cannot control this actor"
+
+    def __call__(self, principal_id: str) -> None:
+        try:
+            require_control(self.member, self.actor_id)
+        except AuthorizationError as exc:
+            raise AuthorizationError(self.refusal) from exc
+
+
+@dataclass(frozen=True)
+class Seats:
+    """The campaign's own membership must seat the principal in this role.
+
+    Trust and seating are separate facts: `Trusted` says the deployment accepts a
+    principal as a director, this says the campaign does. Director families
+    compose both.
+    """
+
+    state: PlayState
+    role: str = "gm"
+    refusal: str = "This command requires trusted director authority"
+
+    def __call__(self, principal_id: str) -> None:
+        if member_for(self.state, principal_id).role != self.role:
+            raise ValidationError(self.refusal)
 
 
 @dataclass(frozen=True)

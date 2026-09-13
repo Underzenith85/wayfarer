@@ -93,7 +93,7 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
     """B367-368: basic movement needs no board; Move 3 and a one-yard step are exact."""
     cid, play = await setup(tmp_path)
     service = CombatService(play)
-    await service.execute(cid, start_basic(5, ranged=True), authenticated_actor_id="gm")
+    await service.execute(cid, start_basic(5, ranged=True), principal_id="gm")
     state = await load(play, cid)
     encounter = state.encounters[0]
     assert isinstance(encounter.spatial, BasicSpatialContext)
@@ -117,7 +117,7 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
         maneuver="move",
         basic_move=BasicMove(reference_actor_id="b", direction="approach"),
     )
-    await service.execute(cid, moved, authenticated_actor_id="a")
+    await service.execute(cid, moved, principal_id="a")
     state = await load(play, cid)
     assert basic_distance(state.encounters[0], "a", "b") == 2
     assert situation(play.rules_context, state.encounters[0], "a", "b").distance == 2
@@ -126,8 +126,8 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
     assert spatial.active("visibility", "a", "b") is None
 
     restarted = CombatService(PlayService(play.store, play.engine))
-    assert await restarted.execute(cid, moved, authenticated_actor_id="a") == await service.execute(
-        cid, moved, authenticated_actor_id="a"
+    assert await restarted.execute(cid, moved, principal_id="a") == await service.execute(
+        cid, moved, principal_id="a"
     )
     await service.execute(
         cid,
@@ -138,7 +138,7 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     with pytest.raises(ValidationError, match="visibility"):
         await service.execute(
@@ -152,7 +152,7 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
                 target_id="b",
                 item_id="sword-a",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     decision = provenance(3, source="gm-adjudication", source_id="refresh-step")
     await service.execute(
@@ -172,7 +172,7 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
                 ),
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     await service.execute(
         cid,
@@ -185,7 +185,7 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
             item_id="sword-a",
             basic_move=BasicMove(reference_actor_id="b", direction="approach"),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = await load(play, cid)
     assert basic_distance(state.encounters[0], "a", "b") == 1
@@ -200,7 +200,7 @@ async def test_missing_visibility_and_blocked_retreat_require_gm_facts(tmp_path:
     """B367/B377: the GM owns unknown spatial judgment and retreat feasibility."""
     cid, play = await setup(tmp_path)
     service = CombatService(play)
-    await service.execute(cid, start_basic(1, retreat=False), authenticated_actor_id="gm")
+    await service.execute(cid, start_basic(1, retreat=False), principal_id="gm")
     await service.execute(
         cid,
         TakeCombatTurn(
@@ -212,7 +212,7 @@ async def test_missing_visibility_and_blocked_retreat_require_gm_facts(tmp_path:
             target_id="b",
             item_id="sword-a",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     blocked = ChooseDefense(
         id="blocked-retreat",
@@ -223,7 +223,7 @@ async def test_missing_visibility_and_blocked_retreat_require_gm_facts(tmp_path:
         basic_retreat=True,
     )
     with pytest.raises(ValidationError, match="Retreat is unavailable"):
-        await service.execute(cid, blocked, authenticated_actor_id="b")
+        await service.execute(cid, blocked, principal_id="b")
 
     declaration = DeclareBasicSpatialFacts(
         id="clear-retreat",
@@ -239,11 +239,11 @@ async def test_missing_visibility_and_blocked_retreat_require_gm_facts(tmp_path:
             ),
         ),
     )
-    await service.execute(cid, declaration, authenticated_actor_id="gm")
+    await service.execute(cid, declaration, principal_id="gm")
     await service.execute(
         cid,
         blocked.model_copy(update={"id": "legal-retreat", "expected_revision": 3}),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = await load(play, cid)
     assert basic_distance(state.encounters[0], "a", "b") == 2
@@ -258,7 +258,7 @@ async def test_missing_visibility_and_blocked_retreat_require_gm_facts(tmp_path:
             declaration.model_copy(
                 update={"id": "player-fact", "actor_id": "a", "expected_revision": 4}
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
 
 
@@ -272,7 +272,7 @@ async def test_conflicting_cover_and_obstacle_facts_fail_closed(tmp_path: Path) 
         await service.execute(
             cid,
             start_basic(5).model_copy(update={"facts": tuple(conflicting)}),
-            authenticated_actor_id="gm",
+            principal_id="gm",
         )
 
     blocked = list(opening_facts(5))
@@ -281,7 +281,7 @@ async def test_conflicting_cover_and_obstacle_facts_fail_closed(tmp_path: Path) 
     await service.execute(
         cid,
         start_basic(5).model_copy(update={"facts": tuple(blocked)}),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     with pytest.raises(ValidationError, match="Full cover"):
         await service.execute(
@@ -295,7 +295,7 @@ async def test_conflicting_cover_and_obstacle_facts_fail_closed(tmp_path: Path) 
                 target_id="b",
                 item_id="sword-a",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     with pytest.raises(ValidationError, match="obstacle"):
         await service.execute(
@@ -308,7 +308,7 @@ async def test_conflicting_cover_and_obstacle_facts_fail_closed(tmp_path: Path) 
                 maneuver="move",
                 basic_move=BasicMove(reference_actor_id="b", direction="approach"),
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
 
     decision = provenance(1, source="gm-adjudication", source_id="clear-path")
@@ -326,7 +326,7 @@ async def test_conflicting_cover_and_obstacle_facts_fail_closed(tmp_path: Path) 
                 ),
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     await service.execute(
         cid,
@@ -338,7 +338,7 @@ async def test_conflicting_cover_and_obstacle_facts_fail_closed(tmp_path: Path) 
             maneuver="move",
             basic_move=BasicMove(reference_actor_id="b", direction="approach"),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert basic_distance((await load(play, cid)).encounters[0], "a", "b") == 2
 

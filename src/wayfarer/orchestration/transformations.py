@@ -15,6 +15,7 @@ from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import DefinitionKind
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry
 from wayfarer.engine.simulation.campaign.transformations import (
@@ -29,9 +30,9 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.builds import canonical_build, spendable_points
-from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.fright_builds import refresh_checks
-from wayfarer.orchestration.membership import member_for, require_control
+from wayfarer.orchestration.membership import member_for
+from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -421,42 +422,37 @@ def _apply_build(
     )
 
 
+APPROVAL_REFUSAL = "Transformation approval requires director authority"
+
+
 class TransformationService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def execute(self, cid: str, value: object, *, principal_id: str) -> TransformationRecord:
-        if not isinstance(value, dict):
-            raise ValidationError("Invalid transformation command")
-        try:
-            operation = value.get("operation")
-            if operation == "propose":
-                command: ProposeTransformation | ApproveTransformation | ResolveTransformation = (
-                    ProposeTransformation.model_validate(value)
-                )
-            elif operation == "approve":
-                command = ApproveTransformation.model_validate(value)
-            elif operation == "resolve":
-                command = ResolveTransformation.model_validate(value)
-            else:
-                raise ValidationError("Unknown transformation operation")
-        except SchemaError as exc:
-            raise ValidationError("Invalid transformation command") from exc
-        play = self.play.for_campaign(await self.play.store.read(cid))
-        initial = play._load(await play.store.read(cid))
-        member = member_for(initial, principal_id)
-        gm = member.role == "gm" and principal_id in play.engine.reviewer.gm_ids
-        if not gm:
-            require_control(member, command.actor_id)
-        if isinstance(command, ApproveTransformation) and not gm:
-            raise ValidationError("Transformation approval requires director authority")
+    def plan(
+        self,
+        cid: str,
+        play: PlayService,
+        member: CampaignMember,
+        command: ProposeTransformation | ApproveTransformation | ResolveTransformation,
+        value: object,
+        *,
+        principal_id: str,
+    ) -> CommandPlan[TransformationRecord]:
+        """What a transformation writes; the pipeline decides whether it runs.
+
+        A director drives approval; anyone else may only act for an actor they
+        control. The two are declared rules, not a branch inside the transaction.
+        """
+        director = Trusted(play.engine.reviewer.gm_ids, refusal=APPROVAL_REFUSAL)
+        seated = member.role == "gm" and principal_id in play.engine.reviewer.gm_ids
         payload = json.dumps(
             {"operation": "transformation", "principal": principal_id, "command": value},
             sort_keys=True,
             separators=(",", ":"),
         )
 
-        def reduce(campaign: Campaign) -> CommandReceipt:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
             revision = state.revision + 1
             if isinstance(command, ProposeTransformation):
@@ -694,25 +690,59 @@ class TransformationService:
             play.commit(campaign, updated)
             return CommandReceipt(action="transformation", outcome=record.model_dump_json())
 
-        committed = await commit_command(
-            play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            reduce,
+        async def outcome(campaign: Campaign) -> TransformationRecord:
+            state = play._load(campaign)
+            result = next(
+                (
+                    r
+                    for r in state.transformations.records
+                    if r.id == command.id or r.proposal_id == getattr(command, "proposal_id", "")
+                ),
+                None,
+            )
+            if result is None:
+                raise ConflictError("Command ID belongs to another operation")
+            return result
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=principal_id,
+            outcome=outcome,
+            control=(
+                (director,)
+                if isinstance(command, ApproveTransformation)
+                else ()
+                if seated
+                else (Controls(member, command.actor_id),)
+            ),
             rng=play.rng,
         )
-        state = play._load(committed["state"])
-        result = next(
-            (
-                r
-                for r in state.transformations.records
-                if r.id == command.id or r.proposal_id == getattr(command, "proposal_id", "")
-            ),
-            None,
+
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> TransformationRecord:
+        if not isinstance(value, dict):
+            raise ValidationError("Invalid transformation command")
+        try:
+            operation = value.get("operation")
+            if operation == "propose":
+                command: ProposeTransformation | ApproveTransformation | ResolveTransformation = (
+                    ProposeTransformation.model_validate(value)
+                )
+            elif operation == "approve":
+                command = ApproveTransformation.model_validate(value)
+            elif operation == "resolve":
+                command = ResolveTransformation.model_validate(value)
+            else:
+                raise ValidationError("Unknown transformation operation")
+        except SchemaError as exc:
+            raise ValidationError("Invalid transformation command") from exc
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        member = member_for(play._load(await play.store.read(cid)), principal_id)
+        return await submit(
+            play,
+            cid,
+            self.plan(cid, play, member, command, value, principal_id=principal_id),
+            principal_id=principal_id,
         )
-        if result is None:
-            raise ConflictError("Command ID belongs to another operation")
-        return result
