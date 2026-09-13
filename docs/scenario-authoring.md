@@ -72,11 +72,13 @@ Normal CI uses deterministic provider fakes and needs no model credential. To
 exercise a configured Responses or Codex subscription provider locally:
 
 1. Complete the normal provider setup in `README.md` and start Wayfarer.
-2. Open **New game**, authenticate, and choose **Create with AI**.
+2. Open Wayfarer, authenticate, choose **Create scenario**, and begin a new
+   scenario or load a template. In the editor, choose **Create with AI**.
 3. Generate a short scenario, reload while the job is running, and confirm the job
    recovers. Review the spoiler-safe proposal, then enable author/GM mode.
-4. Accept, save, validate, publish, and create the game. Assign every player slot,
-   mark the party ready, and use the explicit **Start game** action.
+4. Accept, save, validate, and publish the scenario. Return to **Start game**,
+   choose the published scenario, and create the game draft. Assign every player
+   slot, mark the party ready, and use the explicit **Start game** action.
 5. Export the accepted scenario, import it as a new scenario, and launch the
    imported revision. Confirm no new generation job or provider call occurs.
 
