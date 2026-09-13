@@ -237,6 +237,8 @@ class WorldContextOutcome(Record):
     subject_id: Id
     effective_technology_level: int | None = None
     destination_realm_id: Id | None = None
+    private: str = ""
+    consequence: str | None = None
 
 
 def effective_technology_level(
