@@ -21,7 +21,6 @@ from wayfarer.engine.simulation.actions import ActorSetup
 from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
 from wayfarer.errors import (
     AuthorizationError,
-    ConflictError,
     ValidationError,
     WayfarerError,
 )
@@ -390,41 +389,6 @@ async def save_draft(request: web.Request) -> web.Response:
     return web.json_response(result)
 
 
-class ActivateScenarioRequest(Record):
-    campaign_id: str = Field(min_length=1, max_length=100)
-    expected_draft_revision: int = Field(ge=1)
-
-
-async def activate_scenario(request: web.Request) -> web.Response:
-
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    cid = request.match_info["cid"]
-    state = access.play._load(await access.play.store.read(cid))
-    principal = _identity(request)
-    member = access._member(state, principal)
-    if member.role != "gm":
-        raise AuthorizationError("Scenario activation requires GM")
-    body = ActivateScenarioRequest.model_validate(await _json(request))
-    draft = WorkshopService(access)._get(state, request.match_info["did"], principal)
-    if draft.kind != "scenario" or draft.revision != body.expected_draft_revision:
-        raise ConflictError("Scenario draft changed")
-    graph = ScenarioGraph.model_validate_json(draft.content_json)
-    seed = (await access.play.store.read(cid)).copy()
-    seed.pop("play_json", None)
-    seed.pop("resources_json", None)
-    seed.pop("scenario_graph_json", None)
-    seed["id"], seed["revision"] = body.campaign_id, 0
-    activated = await ScenarioStudio(access.play).activate(
-        graph, seed, state.members, principal_id=principal
-    )
-    return web.json_response(
-        {
-            "campaign_id": body.campaign_id,
-            "revision": activated._load(await activated.store.read(body.campaign_id)).revision,
-        }
-    )
-
-
 async def validate_scenario(request: web.Request) -> web.Response:
 
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
@@ -487,7 +451,6 @@ def create_campaign_app(
                 web.post("/campaigns/{cid}/workshop-advancement/{operation}", workshop_advance),
                 web.post("/campaigns/{cid}/drafts", save_draft),
                 web.post("/campaigns/{cid}/scenario-validation", validate_scenario),
-                web.post("/campaigns/{cid}/drafts/{did}/activate-scenario", activate_scenario),
             ]
         )
 

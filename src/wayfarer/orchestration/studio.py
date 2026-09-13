@@ -15,7 +15,6 @@ from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.rules.catalog import CampaignPolicy, reference
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActorSetup, CheckRule
-from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.scenes import Scene, SceneExit
 from wayfarer.engine.simulation.campaign.studio import (
     GenerationBrief,
@@ -23,10 +22,9 @@ from wayfarer.engine.simulation.campaign.studio import (
     StudioFinding,
     StudioReport,
 )
-from wayfarer.errors import ConflictError, NotFoundError, ValidationError
+from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
-from wayfarer.orchestration.scenario_references import pin_scenario
 
 
 def _listed(values: Iterable[object]) -> str:
@@ -811,59 +809,3 @@ class ScenarioStudio:
         if graph is None or report is None:
             raise ValidationError("Scenario generation exhausted its schema repair budget")
         return graph, report
-
-    async def activate(
-        self,
-        graph: ScenarioGraph,
-        campaign: Campaign,
-        members: tuple[CampaignMember, ...],
-        *,
-        principal_id: str,
-    ) -> PlayService:
-        if principal_id not in self.play.engine.reviewer.gm_ids:
-            raise ValidationError("Scenario activation requires trusted author authority")
-        report = self.validate(graph)
-        if not report.valid:
-            raise ValidationError("Scenario failed hard playability checks")
-        activated = self.play.derived(self.engine(graph), rng=self.play.rng)
-        # A deterministic campaign ID makes retries identify the same starting snapshot.
-
-        try:
-            existing = await self.play.store.read(campaign["id"])
-        except NotFoundError:
-            existing = None
-        if existing is not None:
-            existing_graph = existing.get("scenario_graph_json")
-            if existing_graph is None or json.loads(existing_graph) != graph.model_dump(
-                mode="json"
-            ):
-                raise ConflictError("Campaign identity already belongs to another scenario")
-            if existing.get("scenario_document_json") != campaign.get("scenario_document_json"):
-                raise ConflictError("Campaign identity already pins another document revision")
-            existing_state = activated._load(existing)
-            if existing_state.members != members:
-                raise ConflictError("Activation membership changed")
-            return activated
-        seed = campaign.copy()
-
-        published = None
-        if "scenario_document_json" in seed:
-            # deferred: scenario_documents -> studio -> scenario_documents.  Activation saves a
-            # draft through the documents service, which wraps this studio.
-            from wayfarer.orchestration.scenario_documents import ScenarioDocuments
-
-            documents = ScenarioDocuments(self)
-            draft = documents.save_draft(
-                seed["scenario_document_json"], draft_id="activation", principal_id=principal_id
-            )
-            published = documents.publish(draft, principal_id=principal_id)
-        pin_scenario(
-            seed,
-            graph,
-            runtime_digest=activated.engine.digest,
-            command_id="activate",
-            campaign_revision=0,
-            published=published,
-        )
-        await activated.create(seed, graph.world, graph.resources, graph.actors, members)
-        return activated

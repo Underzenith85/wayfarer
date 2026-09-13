@@ -912,3 +912,9 @@ def test_prototype_resolver_and_legacy_paths_are_retired() -> None:
     for module in (models, contracts):
         assert not hasattr(module, "Action") and not hasattr(module, "Event")
     assert set(contracts.CommandReceipt.__annotations__) == {"action", "outcome"}
+    # The lobby is the only creation path; a studio may not write a starting snapshot.
+    from wayfarer.orchestration.scenario_documents import ScenarioDocuments
+    from wayfarer.orchestration.studio import ScenarioStudio
+
+    for owner in (ScenarioStudio, ScenarioDocuments):
+        assert not hasattr(owner, "activate"), owner.__name__

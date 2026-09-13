@@ -13,12 +13,10 @@ from dataclasses import asdict
 from pydantic import TypeAdapter
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.contracts import Campaign
 from wayfarer.engine.character.power import CharacterProposal, PowerReview, PowerReviewer
 from wayfarer.engine.rules.catalog import CampaignRules, ImplementationStatus
 from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.simulation.actions import ActorSetup
-from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
 from wayfarer.engine.simulation.campaign.scenario_document import (
     Capability,
@@ -45,7 +43,6 @@ from wayfarer.engine.simulation.campaign.social_policy import (
 )
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph, StudioFinding
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.studio import ScenarioStudio
 
 
@@ -446,24 +443,3 @@ class ScenarioDocuments:
             brief=document.public,
             party_size=len(document.party.slots),
         )
-
-    async def activate(
-        self,
-        revision: PublishedRevision,
-        campaign: Campaign,
-        members: tuple[CampaignMember, ...],
-        *,
-        principal_id: str,
-        party: tuple[PregeneratedCharacter, ...] | None = None,
-    ) -> PlayService:
-        self.authorize(principal_id)
-        # Restored/untrusted snapshots are revalidated, including current engine and actual party.
-        revision = PublishedRevision.model_validate_json(revision.model_dump_json())
-        report = self.validate(revision.content_json, party=party)
-        if report.status != "playable":
-            raise ValidationError("Document is incompatible with this engine or party")
-        document = parse_document(revision.content_json)
-        graph = bind_party(document, party)
-        seed = campaign.copy()
-        seed["scenario_document_json"] = revision.content_json
-        return await self.studio.activate(graph, seed, members, principal_id=principal_id)

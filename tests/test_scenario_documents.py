@@ -8,11 +8,10 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError as SchemaError
 from support.runtime import build_runtime
-from test_actions import campaign
+from support.setup import host_game, play_game
 from test_scenes import configured
 from test_wave11 import graph_fixture
 
-from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.scenario_document import (
     DraftRevision,
     PlayerScenarioExport,
@@ -29,13 +28,17 @@ from wayfarer.orchestration.scenario_documents import (
     engine_digest,
     parse_document,
 )
+from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 def setup(tmp_path: Path) -> tuple[ScenarioDocuments, ScenarioDocument]:
     engine, _ = configured()
-    studio = ScenarioStudio(PlayService(AsyncSQLiteStore(tmp_path / "documents.sqlite"), engine))
+    studio = ScenarioStudio(
+        PlayService(AsyncSQLiteStore(tmp_path / "documents.sqlite"), engine),
+        npc_reviewer=engine.reviewer,
+    )
     graph = graph_fixture()
     document = adapt_graph(
         graph,
@@ -217,23 +220,34 @@ def test_private_exports_and_authorization(tmp_path: Path) -> None:
 async def test_published_snapshot_survives_edits_and_restart(tmp_path: Path) -> None:
     service, document = setup(tmp_path)
     revision = publish(service, document)
-    initial = campaign(service.studio.engine(bind_party(document)))
-    members = (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),)
-    activated = await service.activate(revision, initial, members, principal_id="gm")
-    await service.activate(revision, initial, members, principal_id="gm")
+    hosting = SetupService(build_runtime(service.studio.play))
+    cid = await play_game(
+        hosting,
+        bind_party(document),
+        command_id="courier",
+        document_json=revision.content_json,
+        published=revision,
+    )
     restarted, _ = setup(tmp_path)
-    stored = await restarted.studio.play.store.read(initial["id"])
+    stored = await restarted.studio.play.store.read(cid)
     assert stored["scenario_document_json"] == document.canonical()
-    assert "scenario_document_json" not in await build_runtime(activated).read(
-        initial["id"], principal_id="alice"
+    assert "scenario_document_json" not in await build_runtime(service.studio.play).read(
+        cid, principal_id="alice"
     )
     later = document.model_copy(
         update={"revision_id": "courier-r2", "revision": 2, "gm_notes": "New secret"}
     )
     next_revision = publish(service, later)
+    # The same creation command cannot be replayed onto a different pinned revision.
     with pytest.raises(ConflictError):
-        await service.activate(next_revision, initial, members, principal_id="gm")
-    assert (await service.studio.play.store.read(initial["id"]))[
+        await host_game(
+            hosting,
+            bind_party(later),
+            command_id="courier",
+            document_json=next_revision.content_json,
+            published=next_revision,
+        )
+    assert (await service.studio.play.store.read(cid))[
         "scenario_document_json"
     ] == revision.content_json
     assert PublishedRevision.model_validate_json(revision.model_dump_json()) == revision
@@ -241,8 +255,9 @@ async def test_published_snapshot_survives_edits_and_restart(tmp_path: Path) -> 
         PublishedRevision.model_validate_json(
             revision.model_copy(update={"content_json": later.canonical()}).model_dump_json()
         )
+    # Authorship is the catalog's gate, not the lobby's.
     with pytest.raises(AuthorizationError):
-        await service.activate(revision, initial, members, principal_id="alice")
+        service.authorize("alice")
 
 
 def test_draft_compare_and_swap_and_stale_report(tmp_path: Path) -> None:
@@ -297,10 +312,10 @@ def test_published_examples_and_contract_drift(tmp_path: Path) -> None:
 async def test_activation_revalidates_actual_party_and_engine(tmp_path: Path) -> None:
     service, document = setup(tmp_path)
     revision = publish(service, document)
-    initial = campaign(service.studio.engine(bind_party(document)))
-    members = (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),)
+    hosting = SetupService(build_runtime(service.studio.play))
+    # A graph can only reach the lobby with a party bound to every scenario slot.
     with pytest.raises(ValidationError):
-        await service.activate(revision, initial, members, principal_id="gm", party=())
+        bind_party(document, ())
     pregen = document.pregenerated[0]
     changed = pregen.model_copy(
         update={
@@ -315,34 +330,27 @@ async def test_activation_revalidates_actual_party_and_engine(tmp_path: Path) ->
     )
     report = service.validate(document.canonical(), party=(changed,))
     assert report.status == "playable" and report.party_digest != revision.report.party_digest
-    activated = await service.activate(
-        revision, initial, members, principal_id="gm", party=(changed,)
+    cid = await play_game(
+        hosting,
+        bind_party(document, (changed,)),
+        command_id="changed",
+        document_json=revision.content_json,
+        published=revision,
     )
-    assert (
-        activated._load(await activated.store.read(initial["id"])).actors[0].proposal
-        == changed.proposal
-    )
-    policy = service.studio.play.engine.reviewer.policy
-    service.studio.play.engine.reviewer.policy = policy.model_copy(
-        update={"version": policy.version + 1}
-    )
+    play = service.studio.play
+    record = await play.store.read(cid)
+    assert play.for_campaign(record)._load(record).actors[0].proposal == changed.proposal
+    policy = play.engine.reviewer.policy
+    play.engine.reviewer.policy = policy.model_copy(update={"version": policy.version + 1})
+    # The pinned document is revalidated against the engine the lobby activates on.
     with pytest.raises(ValidationError):
-        await service.activate(revision, initial, members, principal_id="gm", party=(changed,))
-
-
-async def test_existing_graph_activation_ignores_json_key_order(tmp_path: Path) -> None:
-    service, document = setup(tmp_path)
-    graph = bind_party(document)
-    engine = service.studio.engine(graph)
-    initial = campaign(engine)
-    # Existing graph serialization placed actors before NPC fields; factoring the
-    # shared content base must not turn a semantically identical retry into a conflict.
-    initial["scenario_graph_json"] = json.dumps(graph.model_dump(mode="json"), sort_keys=True)
-    members = (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),)
-    await PlayService(service.studio.play.store, engine).create(
-        initial, graph.world, graph.resources, graph.actors, members
-    )
-    await service.studio.activate(graph, initial, members, principal_id="gm")
+        await play_game(
+            hosting,
+            bind_party(document, (changed,)),
+            command_id="after-engine-change",
+            document_json=revision.content_json,
+            published=revision,
+        )
 
 
 @pytest.mark.parametrize(

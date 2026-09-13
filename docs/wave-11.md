@@ -77,8 +77,9 @@ scenario authoring UI remain consumers in #40 and #56.
 - `POST /campaigns/{cid}/generate-draft`: character generation followed by CAS save.
 - `POST /campaigns/{cid}/generate-scenario`: GM-only scenario generation and CAS save.
 - `POST /campaigns/{cid}/scenario-validation`: GM-only structural validation.
-- `POST /campaigns/{cid}/drafts/{draft_id}/activate-scenario`: GM-only activation
-  with `campaign_id` and `expected_draft_revision`.
+
+A validated scenario reaches play through the lobby: `SetupService.create` pins the
+graph and its published document, and the `activate` setup command starts the game.
 
 Provider routes are enabled when `create_campaign_app` receives `settings`.
 Pass `frontend_dir=Path("frontend/dist")` to serve the built React application on

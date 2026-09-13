@@ -6,7 +6,8 @@ from pydantic import Field
 
 from wayfarer.engine.simulation.campaign.continuation import AdventureSnapshot
 from wayfarer.engine.simulation.campaign.profiles import ProfileSelection
-from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
+from wayfarer.engine.simulation.campaign.social_policy import AnyScenarioGraph
+from wayfarer.engine.simulation.campaign.studio import GenerationBrief
 from wayfarer.models import Id, Record
 
 Phase = Literal["draft", "ready", "active", "paused", "completed", "archived"]
@@ -25,15 +26,15 @@ class Setup(Record):
     brief: GenerationBrief
     phase: Phase = "draft"
     seats: tuple[Seat, ...]
-    graph: ScenarioGraph | None = None
+    graph: AnyScenarioGraph | None = None
     adventures: tuple[AdventureSnapshot, ...] = ()
-    next_graph: ScenarioGraph | None = None
+    next_graph: AnyScenarioGraph | None = None
 
 
 class CreateSetup(Record):
     id: Id
     brief: GenerationBrief
-    graph: ScenarioGraph | None = None
+    graph: AnyScenarioGraph | None = None
     # Omitted means the server default profile; the saved pin never floats afterwards.
     rules_profile: ProfileSelection | None = None
 
@@ -57,7 +58,7 @@ class SetupCommand(Record):
         "continue",
     ]
     brief: GenerationBrief | None = None
-    graph: ScenarioGraph | None = None
+    graph: AnyScenarioGraph | None = None
     principal_id: Id | None = None
     actor_ids: tuple[Id, ...] = ()
     ready: bool = True
