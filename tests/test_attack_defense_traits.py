@@ -60,7 +60,12 @@ def test_registry_and_inventory_account_for_all_18_entries() -> None:
     assert {binding.id: binding.point_cost for binding in BINDINGS} == EXPECTED
     rows = {row.id: row for row in inventory().entries if row.id in EXPECTED}
     assert set(rows) == set(EXPECTED)
-    assert all(191 in row.blockers and 237 not in row.blockers for row in rows.values())
+    assert rows["advantage:injury-tolerance"].blockers == (107,)
+    assert all(
+        row.blockers == ()
+        for identifier, row in rows.items()
+        if identifier != "advantage:injury-tolerance"
+    )
     assert all(row.evidence == ("tests/test_attack_defense_traits.py",) for row in rows.values())
 
 

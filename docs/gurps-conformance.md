@@ -437,7 +437,7 @@ creating another package pin. #344 binds twelve ranged combat rows to a runtime 
 and transfers the rest of that group to #354, #355, #357, #359, #360, #361 and
 #362, so a blocker a procedure owner splits keeps naming the child that owns it.
 #345 binds sixteen social rows the same way in a further pin, transfers
-Fortune-Telling and Savoir-Faire to #366, Propaganda to #367 and the conditional
+Fortune-Telling and Savoir-Faire to #366, initially transferred Propaganda to #367, and the conditional
 defaults to #353, and declares the part of a *bound* entry it still does not
 carry — coercion (#368), advancement and group activity (#369), audience
 reactions and income (#370) — as `transferred_procedure_scope` in the report.
@@ -447,9 +447,10 @@ twelve discipline-keyed rows to #356 and Motion-Picture Camera to #338; its boun
 vehicle rows additionally record `gurps.vehicles.movement` until #358 verifies
 that capability. #356 then binds 83 more, expanding seven discipline-keyed
 families into 46 concrete specialties and deriving 29 Mechanic machine types from
-the vehicle specialties #346 recorded rather than authoring them twice; the four
-families whose axis is a planet type, a species or a region record that axis and
-transfer their procedure to #390. Those definitions are not yet in a package pin:
+the vehicle specialties #346 recorded rather than authoring them twice. #390
+binds the remaining four families through campaign-authored subjects: only
+declared deterministic children become rollable and the source catalog remains
+unchanged. Those definitions are not yet in a package pin:
 two ids already exist in the pinned package on another hook, which is a
 deliberate migration.
 A bound row reports as `implemented` and stays blocked by the printing delta. Item-level owners and unsupported/listing-only states reach `source_audit`.
@@ -519,10 +520,10 @@ do not reveal other facts or change NPC beliefs.
 Each declares the shape that decides it — an unopposed success roll, a Quick
 Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
 it cannot proceed without, the modifiers it derives itself, and a named effect for
-every verdict that shape can reach. Sixteen rows are bound and reach a new package
-pin; Fortune-Telling and Savoir-Faire cannot be learned without their specialties
-(#366) and Propaganda still lacks its media-effect duration procedure (#367), so those
-three keep `runtime-procedure` and are absent from the pin.
+every verdict that shape can reach. Seventeen rows are now bound: Propaganda is
+introduced by #367's explicit revision-11/package-0.9.0 pin and requires a
+campaign-authored TL-keyed medium. Fortune-Telling and Savoir-Faire cannot be
+learned without their specialties (#366), so those two keep `runtime-procedure`.
 
 Nothing here is a second engine: rolls are scored by `rules.gurps_checks` and
 influence procedures call the existing `influence_roll`, so the Diplomacy
@@ -617,6 +618,19 @@ death at -5 HP, mortal wounds, shock, major wounds, knockdown, consciousness at
 turn start, and stun recovery after Do Nothing. Rebuilds preserve the full injury
 deficit, and ordinary healing retains injury status. Low-HP Move/Dodge uses
 ceiling division. Turn ordering rejects repeated phases with new command IDs.
+
+## Character transformations (#500)
+
+Campaign-authored transformation rules now govern body modification, mind
+transfer, supernatural affliction, and explicit death transformations. Typed
+proposal, approval, treatment, interruption, completion, reversal, cure, and
+expiry commands use the existing compiler, authority checks, CAS receipts, and
+replay boundary. Identity and history remain attached to the actor while rules
+route body traits, inventory, credentials, knowledge, relationships, and control;
+point adjustments, charges, and debt are recorded separately. Unsupported or
+incompletely mapped transformations reject, and death never triggers a rebuild or
+implicit healing. See [character transformations](gurps-transformations.md) for
+the supported lifecycle and deliberate exclusions.
 
 Coverage remains **partial** pending source verification and complete maneuver
 timing (#104). The profile-selected melee adapter now persists deferred injury,
@@ -862,6 +876,16 @@ task support remain explicit. The B470-471 source-ledger rows are reviewed and
 bound to independent acceptance evidence; the prerelease engine version is
 unchanged.
 
+## Futuristic and anomalous artifacts (#527)
+
+Campaign-authored artifact definitions now separate apparent function from actual,
+property-scoped capability as documented in [`gurps-artifacts.md`](gurps-artifacts.md).
+Analysis reveals only one authorized property at a time. Operation consumes the #504
+realm and field TL context without mutating the equipment catalog, and registered typed
+adapters persist authored effects and recorded random side effects with idempotent
+receipts. Missing capabilities and effect families reject before entropy or depletion.
+The B478-B479 source-ledger rows are reviewed; the prerelease engine version is unchanged.
+
 ## Ordinary invention projects (#524)
 
 Concept/design, prototype, testing, and production now use the persisted project
@@ -1082,10 +1106,9 @@ internal expansion is evidence of complete Basic Set vehicle play.
 
 [The source audit](gurps-source-audit.md) records inspected printing metadata,
 item-inventory ownership, optional decisions and every expectation-ledger case's
-review disposition. Its report separates later-printing comparisons from frozen
-source verification. Eighteen Basic statistics fixtures have been compared;
-exhaustive rule/item enumeration and baseline reconciliation remain incomplete.
-Statistics boundary behavior is implemented by #215 in opt-in revision 2; missing intermediate rows and frozen-source reconciliation remain explicit boundaries.
+review disposition. The supplied Characters third printing and Campaigns fourth
+printing are the reconciled Basic Set baseline; Lite remains separately blocked.
+Statistics boundary behavior is implemented by #215 in opt-in revision 2.
 
 CI now checks this document's full capability table against the registry. Aim
 and environmental hazards are reconciled to partial; Size Modifier cost ownership
@@ -1098,10 +1121,10 @@ profile certification by this audit.
 acceptance and item-coverage matrix for #117/#118/#119. Both representative
 implementation prerequisites are closed. The inventory accounts for 100 spells,
 150 advantages, 42 disadvantages, six psi powers
-eight magic protocols and 28 transferred skills: 334 records in total. Every whole entry remains
-blocked, including narrower implemented subsets. Named runtime follow-ups
-#221–#243 and frozen-source reconciliation #191 remain visible blockers for
-#122. No family or profile is certified. The conformance gate consults this
+eight magic protocols and 28 transferred skills: 334 records in total. Source
+review and implementation evidence verify 332 rows. Fireball retains #173 and
+Injury Tolerance retains #107, so neither supernatural family nor the profile is
+certified. The conformance gate consults this
 inventory before accepting either supernatural family as verified, so a family
 flag alone cannot bypass missing item evidence.
 

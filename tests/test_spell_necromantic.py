@@ -31,7 +31,7 @@ def test_exact_necromantic_inventory_pages_and_runtime() -> None:
         for value in inventory().entries
         if value.id in {binding.id for binding in BINDINGS}
     }
-    assert all(value.blockers == (191,) for value in rows.values())
+    assert all(value.blockers == () for value in rows.values())
     assert all(value.evidence == ("tests/test_spell_necromantic.py",) for value in rows.values())
     build = approved_spell(package(), BINDINGS[0].id)
     world = World(

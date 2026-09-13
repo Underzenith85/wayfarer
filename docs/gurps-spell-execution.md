@@ -2,8 +2,9 @@
 
 Issue #171 connects the four representative spells to approved characters and
 existing world, combat, injury, hazard and campaign-ledger services. It does not
-make the full Basic Set magic catalog executable. `gurps.magic.spellcasting`
-remains **partial**; the exhaustive catalog and frozen-source audit remain #119.
+make every broader Basic Set magic rule executable. The catalog source review is
+reconciled, but `gurps.magic.spellcasting` remains **partial** because Fireball
+retains #173 and the source ledger still records incomplete magic mechanics.
 
 ## Opt-in configuration
 

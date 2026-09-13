@@ -5,6 +5,14 @@ Campaigns fourth printing, B455-460. It does not claim a complete bestiary.
 The catalog currently contains a house cat, large guard dog, timber wolf,
 cavalry horse, draft horse, basilisk and gryphon.
 
+The source identities and recorded facts have been reviewed, but these seven
+creature rows remain `partial`: their templates do not yet carry every listed
+trait or skill, and the basilisk's death gaze is not executable. The B461 Bees
+row is also `partial` until its 50-yard hive-disengagement behavior exists.
+Bats and Rats are the only creature-workstream inventory rows currently eligible
+for `implemented` status. `certification.creature_audit` itemizes each missing
+mechanic so catalog compilation cannot promote an incomplete source row.
+
 ## Construction boundary
 
 `CreatureCatalog` owns trusted species defaults. Primary attributes and

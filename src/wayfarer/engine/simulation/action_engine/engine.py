@@ -67,8 +67,11 @@ from wayfarer.engine.simulation.campaign.party import validate_effects as valida
 from wayfarer.engine.simulation.campaign.procedures import CampaignProcedureEngine
 from wayfarer.engine.simulation.campaign.scenes import JournalEntry, SceneEvent
 from wayfarer.engine.simulation.campaign.scenes import validate_state as validate_scene_state
+from wayfarer.engine.simulation.campaign.transformations import validate_transformations
+from wayfarer.engine.simulation.campaign.world_context import validate_world_context
 from wayfarer.engine.simulation.combat.engine import CombatEngine, validate_consequences
 from wayfarer.engine.simulation.combat.firearms import validate_failures
+from wayfarer.engine.simulation.equipment.artifacts import validate_artifacts
 from wayfarer.engine.simulation.equipment.repairs import tasks
 from wayfarer.engine.simulation.events import (
     ActionResolved,
@@ -89,6 +92,17 @@ from wayfarer.errors import ConflictError, ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.resource_engine import ResourceEngine
+
+
+def _guard_transformation_recovery(state: PlayState, command: TypedAction) -> None:
+    if command.kind not in ("question", "wait") and any(
+        record.actor_id == command.actor_id
+        and record.status == "active"
+        and record.recovery_until is not None
+        and record.recovery_until > state.resources.game_time
+        for record in state.transformations.records
+    ):
+        raise ValidationError("Character is still recovering from a transformation")
 
 
 class ActionEngine:
@@ -116,6 +130,8 @@ class ActionEngine:
             rules.law,
             rules.economics,
             rules.development,
+            rules.world_context,
+            rules.artifacts,
         )
         if rules.combat is not None:
             _validate_gurps_equipment(reviewer, resources, rules.combat)
@@ -154,6 +170,14 @@ class ActionEngine:
         self.resources.validate(state.resources)
         validate_scene_state(rules.scenes, state)
         validate_ledgers(state)
+        try:
+            validate_transformations(
+                rules.transformations,
+                state.transformations,
+                frozenset(actor.actor_id for actor in state.actors),
+            )
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
         validate_administration(
             rules.administration, state.administration, state.world, state.advancement
         )
@@ -164,6 +188,8 @@ class ActionEngine:
             state.advancement,
             frozenset(actor.actor_id for actor in state.actors),
         )
+        validate_world_context(rules.world_context, state.world_context, state.world)
+        validate_artifacts(rules.artifacts, state.artifacts, state.resources)
         validate_law(rules.law, state.law, frozenset(fact.id for fact in state.world.facts))
         compiled: dict[str, ValidatedBuild | None] = {}
         if rules.economics is not None:
@@ -375,6 +401,7 @@ class ActionEngine:
         return entity.id if entity.kind is EntityKind.LOCATION else entity.location_id
 
     def assess(self, state: PlayState, command: TypedAction) -> ActionResult:
+        _guard_transformation_recovery(state, command)
         if command.kind != "question" and (
             command.actor_id in state.recovery.dead_actor_ids
             or any(

@@ -177,7 +177,8 @@ Lobby (`setup/lobby.tsx`), inventory (`character/pages.tsx`), tactical
 
 ## Phase 7 — Guard rails (~1 h)
 
-1. Add [`CLAUDE-snippet.md`](CLAUDE-snippet.md) to the repo's `CLAUDE.md`.
+1. Keep the repository guidance in [`AGENTS.md`](../../AGENTS.md) synchronized
+   with the enduring rules in [`00-principles.md`](00-principles.md).
 2. Add a lint step that fails on the things this system forbids:
 
 ```jsonc

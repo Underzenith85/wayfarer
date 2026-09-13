@@ -36,7 +36,7 @@ def test_registry_and_inventory_account_for_all_three_entries() -> None:
     assert {binding.id: binding.point_cost for binding in BINDINGS} == EXPECTED
     rows = {row.id: row for row in inventory().entries if row.id in EXPECTED}
     assert set(rows) == set(EXPECTED)
-    assert all(row.blockers == (191,) for row in rows.values())
+    assert all(row.blockers == () for row in rows.values())
     assert all(row.evidence == ("tests/test_world_travel_traits.py",) for row in rows.values())
 
 

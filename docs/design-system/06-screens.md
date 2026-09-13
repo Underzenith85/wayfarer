@@ -20,13 +20,15 @@ Access-token field, then `Sign in`.
 - Tabs are underscored, never filled.
 - The token field is a well with a visible `.label`. Never a placeholder-as-label.
 
-## Setup lobby — `setup/lobby.tsx` (1305 lines — the biggest screen)
+## Setup lobby — `setup/lobby.tsx`
 
 `.setup-lobby` centred column. Starting a game asks for one published
-adventure, then rules, then review; it never authors a second premise.
+adventure, then rules, then a Ready review; it never authors a second premise.
 `.setup-steps` is the numbered progress strip (collapses to 44px circles below
 700px), `.step-nav` the back/next footer, and `.setup-review` the final
-summary list. Saved and invited games live only under Join game.
+summary list. Saved and invited games live only under Join game. Publishing in
+Create scenario returns the author to Start game to choose the new adventure;
+it does not instantiate a game from the catalog.
 
 Drawn on the canvas as **Table lobby**. The pieces:
 

@@ -27,7 +27,7 @@ def test_exact_communication_empathy_inventory_pages_and_runtime() -> None:
         for value in inventory().entries
         if value.id in {binding.id for binding in BINDINGS}
     }
-    assert all(value.blockers == (191,) for value in rows.values())
+    assert all(value.blockers == () for value in rows.values())
     assert all(
         value.evidence == ("tests/test_spell_communication_empathy.py",) for value in rows.values()
     )

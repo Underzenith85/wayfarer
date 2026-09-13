@@ -126,9 +126,7 @@ def context(case: dict[str, object]) -> SocialSkillContext:
 
 
 # Rows this issue binds; the rest keep `runtime-procedure` for a named child.
-BOUND = tuple(
-    name for name in SCOPE if name not in ("fortune-telling", "propaganda", "savoir-faire")
-)
+BOUND = tuple(name for name in SCOPE if name not in ("fortune-telling", "savoir-faire"))
 
 
 def test_every_listed_row_is_accounted_for_and_only_bound_rows_dispatch() -> None:
@@ -162,7 +160,6 @@ def test_issue_345_parent_scope_is_complete_or_explicitly_transferred() -> None:
     rows = {row.id: row for row in inventory()}
     transferred = {
         "skill:fortune-telling": 366,
-        "skill:propaganda": 367,
         "skill:savoir-faire": 366,
     }
     for name in SCOPE:
@@ -351,7 +348,7 @@ def test_unsupported_scope_is_published_with_an_owner() -> None:
         for identifier, entry in PROCEDURES.items()
         if "runtime-procedure" in entry.blockers
     }
-    assert transferred == {"skill:fortune-telling", "skill:propaganda", "skill:savoir-faire"}
+    assert transferred == {"skill:fortune-telling", "skill:savoir-faire"}
 
 
 def test_inventory_rows_agree_with_the_procedure_registry() -> None:

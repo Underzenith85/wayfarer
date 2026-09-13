@@ -1,15 +1,12 @@
 # Reusable scenario catalog
 
-The **Scenarios** tab, beside the game modes, holds the **Scenario catalog** after token authentication; it is deliberately outside the numbered setup steps, which ask only which adventure to play (#261). Creating a game from a revision hands the shell back to setup, on the party screen the new draft opens at. Choose a bundled
-scenario document or enter authored JSON, save a draft, reopen any saved revision, inspect its
-diagnostics, publish it, and create a game from that revision. Assign legal characters to joined
-players, mark ready, and start through the existing setup activation flow. Drafts exist independently
-of campaigns. Incomplete and structurally invalid text can be saved and exported exactly.
+The **Create scenario** tab, beside the other game modes, holds the **Scenario catalog** after token authentication; it is deliberately outside the numbered setup steps, which ask only which adventure to play (#261). Choose a bundled scenario document or enter authored JSON, save a draft, reopen any saved revision, inspect its diagnostics, and publish it. Publishing does not create a game. Return to **Start game**, choose the published scenario under **Adventure and starting party**, continue through Rules and Ready, and create the game draft. Party assignment follows the numbered steps; assign legal characters to joined players, mark ready, and start through the existing setup activation flow. Scenario drafts exist independently of campaigns. Incomplete and structurally invalid text can be saved and exported exactly.
 
 The initial authoring interface is a JSON editor. Its source is the same
 [scenario document v1](scenario-documents.md) used for authored and generated content. The older
-setup graph editor remains available for existing direct-graph setup flows. Guided generation into
-the catalog is the separate #84 integration.
+setup graph editor remains available for existing direct-graph setup flows. When a backend provider is
+configured, **Create with AI** opens the guided generation workflow described in
+[guided scenario authoring](scenario-authoring.md).
 
 ## Permissions and identity
 
@@ -39,16 +36,16 @@ models live in `engine/simulation/campaign/scenario_catalog.py`; their generated
 input/activation, 401 missing credentials, 403 missing author authority, 404 inaccessible resource,
 409 stale version or reused command identity, 429 rate limit.
 
-| Method and suffix | Request | Response |
-| --- | --- | --- |
-| GET `/authoring/v1/scenarios` | — | Array of `CatalogSummary`, private to the owner |
-| GET `/templates` | — | Bundled v1 `ScenarioDocument` array |
-| POST collection | `CatalogCommand`: create or import, `content_json`, expected_version 0 | `CatalogSummary` |
-| GET `/{id}?revision=N` | Optional saved ordinal; defaults to latest | `RevisionView` with source, saved and current diagnostics |
-| POST `/{id}` | `CatalogCommand`: save, validate, publish, duplicate or archive | `CatalogSummary` |
-| GET `/{id}/export?revision=N` | Optional saved ordinal | Raw stored author JSON/text |
-| GET `/{id}/preview?revision=N` | Published ordinal | Filtered `PlayerScenarioExport` |
-| POST `/{id}/instantiate` | `InstantiateRevision`: command `id`, revision ordinal, optional legal `party` | Existing setup/lobby response (201) |
+| Method and suffix              | Request                                                                       | Response                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------- |
+| GET `/authoring/v1/scenarios`  | —                                                                             | Array of `CatalogSummary`, private to the owner           |
+| GET `/templates`               | —                                                                             | Bundled v1 `ScenarioDocument` array                       |
+| POST collection                | `CatalogCommand`: create or import, `content_json`, expected_version 0        | `CatalogSummary`                                          |
+| GET `/{id}?revision=N`         | Optional saved ordinal; defaults to latest                                    | `RevisionView` with source, saved and current diagnostics |
+| POST `/{id}`                   | `CatalogCommand`: save, validate, publish, duplicate or archive               | `CatalogSummary`                                          |
+| GET `/{id}/export?revision=N`  | Optional saved ordinal                                                        | Raw stored author JSON/text                               |
+| GET `/{id}/preview?revision=N` | Published ordinal                                                             | Filtered `PlayerScenarioExport`                           |
+| POST `/{id}/instantiate`       | `InstantiateRevision`: command `id`, revision ordinal, optional legal `party` | Existing setup/lobby response (201)                       |
 
 Every catalog command carries a unique `id`. Saves, validation, publication and archive require the
 current `expected_version`, distinct from the document revision ordinal. Duplicate requires an explicit

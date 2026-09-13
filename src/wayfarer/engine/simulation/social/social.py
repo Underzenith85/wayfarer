@@ -4,11 +4,18 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from pydantic import Field
+
 from wayfarer.engine.rules.checks import Modifier, RandomSource
-from wayfarer.engine.rules.skills.mundane.social.attempts import SocialSkillContext, resolve
+from wayfarer.engine.rules.skills.mundane.social.attempts import (
+    SocialSkillContext,
+    SocialSkillTrace,
+    resolve,
+)
 from wayfarer.engine.rules.skills.mundane.social.inventory import (
     Resolution,
     effect_ids,
@@ -33,6 +40,7 @@ from wayfarer.engine.rules.social.social_hooks import (
 )
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
 from wayfarer.engine.rules.traits.mundane.runtime import DEFAULT_AUDIENCE, Audience
+from wayfarer.engine.simulation.campaign.propaganda import PropagandaMediaContext
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fright import recover
 from wayfarer.engine.simulation.health.fright_state import (
@@ -74,6 +82,9 @@ class SocialOutcome(Record):
     outcome: str
     requires_adjudication: bool = False
     adjudication: tuple[str, ...] = ()
+    media: PropagandaMediaContext | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class SocialContext:
@@ -103,6 +114,8 @@ class SocialContext:
         skill_level: int = 0,
         partner_skill: int | None = None,
         conditions: frozenset[str] = frozenset(),
+        medium_id: str | None = None,
+        media: PropagandaMediaContext | None = None,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
@@ -116,12 +129,33 @@ class SocialContext:
         # about the situation; the procedure owns every integer they are worth.
         self.procedure_id, self.skill_level = procedure_id, skill_level
         self.partner_skill, self.conditions = partner_skill, conditions
+        self.medium_id, self.media = medium_id, media
 
     def bind_trait_modifiers(self, modifiers: tuple[ReactionModifier, ...]) -> None:
         """Attach server-derived trait modifiers; a resolver never supplies them."""
         if any(m.kind == "trait" for m in self.modifiers):
             raise ValidationError("Trait reaction modifiers are derived from approved builds")
         self.modifiers = self.modifiers + modifiers
+
+
+def _require_propaganda_media(
+    procedure_id: str, context: SocialContext
+) -> PropagandaMediaContext | None:
+    if (context.media is not None) != (procedure_id == "skill:propaganda"):
+        raise ValidationError("Propaganda alone requires a bound campaign medium")
+    return context.media
+
+
+def _social_skill_details(
+    skill: SocialSkillTrace,
+    recognition: Mapping[str, object],
+    media: PropagandaMediaContext | None,
+) -> dict[str, object]:
+    details: dict[str, object] = asdict(skill)
+    details.update(recognition)
+    if media is not None:
+        details["media"] = media.model_dump(mode="json")
+    return details
 
 
 def apply_social(
@@ -282,6 +316,7 @@ def apply_social(
     elif command.kind == "skill":
         if procedure is None:
             raise ValidationError("Social skill checks require a declared procedure")
+        media = _require_propaganda_media(procedure.id, context)
         skill = resolve(
             context.profile_id,
             procedure.id,
@@ -302,8 +337,9 @@ def apply_social(
             outcome=skill.effect.id,
             requires_adjudication=skill.effect.requires_adjudication,
             adjudication=(skill.effect.id,) if skill.effect.requires_adjudication else (),
+            media=media,
         )
-        details = asdict(skill) | recognition
+        details = _social_skill_details(skill, recognition, media)
     elif command.kind == "fright":
         fright = fright_roll(
             context.profile_id,
