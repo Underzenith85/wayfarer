@@ -946,10 +946,10 @@
       "reference": "B288",
       "anchor": "inspected",
       "behaviour": "Fuel-burning gear consumes a fuel supply over time.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_fuel_consumption_is_conserved_and_replay_safe"],
       "evidence_gap": null
     },
     {
@@ -957,10 +957,10 @@
       "reference": "B288",
       "anchor": "inspected",
       "behaviour": "Insulated gear modifies cold environment exposure while it is in use.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.world.environmental_hazards",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_catalog_completes_all_94_scoped_rows"],
       "evidence_gap": null
     },
     {
@@ -968,10 +968,10 @@
       "reference": "B288",
       "anchor": "inspected",
       "behaviour": "Battery-powered computing gear runs tasks while charge remains.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_tl_legality_and_consumable_failures_are_explicit"],
       "evidence_gap": null
     },
     {
@@ -1055,10 +1055,10 @@
       "reference": "B283-286 armor tables and notes",
       "anchor": "inspected",
       "behaviour": "One armor row grants different DR to different covered locations.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
       "evidence_gap": null
     },
     {
@@ -1066,10 +1066,10 @@
       "reference": "B283-286 armor tables and notes",
       "anchor": "inspected",
       "behaviour": "One armor row protects only one facing of the locations it covers.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
       "evidence_gap": null
     },
     {
@@ -1077,10 +1077,10 @@
       "reference": "B283-286 armor tables and notes",
       "anchor": "inspected",
       "behaviour": "Armor worn over other armor combines DR at an encumbrance and flexibility cost.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
       "evidence_gap": null
     },
     {
@@ -1088,10 +1088,10 @@
       "reference": "B283-285 armor tables and notes",
       "anchor": "inspected",
       "behaviour": "Armor concealment under clothing changes what observers can notice.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
       "evidence_gap": null
     },
     {
@@ -1333,10 +1333,10 @@
       "reference": "B268-289 equipment tables and notes",
       "anchor": "inspected",
       "behaviour": "A row's higher-TL variant substitutes weight, cost or performance values.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_tl_legality_and_consumable_failures_are_explicit"],
       "evidence_gap": null
     },
     {
@@ -1344,10 +1344,10 @@
       "reference": "B289 Weapon and Combat Accessories",
       "anchor": "inspected",
       "behaviour": "Accessories attach to a weapon and change its handling or accuracy.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_accessory_attachment_and_firearm_effects_are_exact"],
       "evidence_gap": null
     },
     {
@@ -1355,10 +1355,10 @@
       "reference": "B288-289 General Equipment",
       "anchor": "inspected",
       "behaviour": "Ordinary tools grant task or skill effects rather than combat values.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_catalog_completes_all_94_scoped_rows"],
       "evidence_gap": null
     },
     {
@@ -1388,10 +1388,10 @@
       "reference": "B267 Legality Class",
       "anchor": "inspected",
       "behaviour": "A row's legality class governs where it may lawfully be carried.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.campaign.economics",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_tl_legality_and_consumable_failures_are_explicit"],
       "evidence_gap": null
     },
     {
@@ -1399,10 +1399,10 @@
       "reference": "B264-266 Starting Wealth and economics",
       "anchor": "inspected",
       "behaviour": "Starting wealth and cost of living bound what equipment a character may buy.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.campaign.economics",
+      "owner_issue": null,
+      "tests": ["tests/test_general_equipment.py::test_equipment_modifiers_starting_wealth_and_drug_design"],
       "evidence_gap": null
     },
     {
@@ -3105,6 +3105,105 @@
       "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_electronics.py::test_basic_catalog_pins_executable_device_profiles_and_operating_time"],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.uses",
+      "unit": "typed source-defined task procedures",
+      "reference": "Characters third printing B288-B289 and Campaigns fourth printing B345",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_catalog_completes_all_94_scoped_rows"],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.fuel",
+      "unit": "seconds per authoritative supply charge",
+      "reference": "Characters third printing B288-B289",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_fuel_consumption_is_conserved_and_replay_safe"],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.accessory",
+      "unit": "typed attachment compatibility and effect",
+      "reference": "Characters third printing B289 and Campaigns fourth printing B411-B412",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_accessory_attachment_and_firearm_effects_are_exact"],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.legality_class",
+      "unit": "Legality Class 0-4",
+      "reference": "Characters third printing B267 and B288-B289",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_tl_legality_and_consumable_failures_are_explicit"],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.skill_relative_technology",
+      "unit": "skill-relative TL marker",
+      "reference": "Characters third printing B288-B289",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_tl_legality_and_consumable_failures_are_explicit"],
+      "gap": null
+    },
+    {
+      "id": "Armor.alternate_dr",
+      "unit": "alternate damage resistance",
+      "reference": "Characters third printing B283-B286 split DR notes",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
+      "gap": null
+    },
+    {
+      "id": "Armor.alternate_damage_types",
+      "unit": "damage-type selector for alternate DR",
+      "reference": "Characters third printing B283-B286 split DR notes",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
+      "gap": null
+    },
+    {
+      "id": "Armor.front_only",
+      "unit": "front-facing protection flag",
+      "reference": "Characters third printing B283-B286 armor tables",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
+      "gap": null
+    },
+    {
+      "id": "Armor.concealable",
+      "unit": "concealable-under-clothing flag",
+      "reference": "Characters third printing B283-B286 armor notes",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-general-equipment.md",
+      "tests": ["tests/test_general_equipment.py::test_split_front_only_and_layered_armor"],
       "gap": null
     }
   ],

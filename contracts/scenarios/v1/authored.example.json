@@ -40,7 +40,7 @@
       "policy_id": "policy:wayfarer-demo",
       "policy_version": 1
     },
-    "engine_digest": "da7ed45c363cf2395bc9fcc8c1b9479091626922d4c678a4cfcdecfe1e2d7345",
+    "engine_digest": "a52cc881d0646db781e66b17e23627d852e01859270ef56447526cd78d28bb64",
     "capabilities": [
       "actions-v1",
       "scenes-v1",

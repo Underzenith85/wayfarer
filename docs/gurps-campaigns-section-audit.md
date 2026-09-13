@@ -8,15 +8,15 @@ printed page, source digest, profile membership, or engine version.
 
 | Obligation | Rows | Certification treatment |
 | --- | ---: | --- |
-| Executable mechanics joined to independent tests | 57 | `required` and `verified` |
-| Executable mechanics with bounded follow-up work | 11 | `required` and blocked by #686, #689, or #690 |
+| Executable mechanics joined to independent tests | 60 | `required` and `verified` |
+| Executable mechanics with bounded follow-up work | 8 | `required` and blocked by #689 or #690 |
 | Construction/reference data | 10 | `reference-only`; the indexed section is data or a summary, not a second runtime procedure |
 | Reference-only guidance | 34 | `reference-only`; the source leaves the decision or authored content to the GM |
 | Structural/non-runtime material | 7 | `reference-only`; chapter and appendix headings carry no behavior |
 
-The resulting source-ledger blocker count is 517, down exactly 108 from the
-1,214-blocker baseline's 625 ledger blockers. Eleven Campaigns section blockers
-remain: three owned by #686, six by #689, and two by #690. None falls back to
+The resulting source-ledger blocker count is reduced by three more rows from the
+#679 audit baseline. Eight Campaigns section blockers remain: six owned by #689
+and two by #690. None falls back to
 roadmap #94.
 
 ## Executable joins
@@ -35,8 +35,6 @@ an implementation claim.
 
 ## Residual executable work
 
-- #686 owns B345 equipment modifiers, B411 firearm accessories, and B425
-  ultra-tech drugs.
 - #689 owns B346 long tasks plus B350-B356 digging, gravity, breath-holding,
   running, and extra effort.
 - #690 owns B515 making goods and B518 coerced-labor economic/social contracts.

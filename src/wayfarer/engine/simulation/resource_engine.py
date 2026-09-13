@@ -244,6 +244,14 @@ class ResourceEngine:
         if not set(owners) <= self.actors:
             raise ValidationError("Inventory owner is not a world actor")
         items = {i.id: i for i in state.items}
+        for attachment in state.equipment_attachments:
+            accessory = items[attachment.accessory_item_id]
+            target = items[attachment.target_item_id]
+            accessory_spec = self.specs[accessory.definition_id]
+            if accessory_spec.accessory is None or accessory_spec.accessory.compatible == "actor":
+                raise ValidationError("Equipment attachment requires a compatible accessory")
+            if accessory.equipped or accessory.container_id is not None or target.container_id:
+                raise ValidationError("Attached equipment must remain directly accessible")
         unique(tuple(load.weapon_id for load in state.ammunition_loads))
         reserved: dict[str, int] = {}
         for load in state.ammunition_loads:
@@ -310,10 +318,14 @@ class ResourceEngine:
                     raise ValidationError("Item is not a container")
                 parent_id = parent.container_id
             if item.equipped:
-                if item.container_id is not None or spec.slot is None:
+                worn_accessory = spec.accessory is not None and spec.accessory.compatible == "actor"
+                if item.container_id is not None or spec.slot is None and not worn_accessory:
                     raise ValidationError("Equipment must be accessible and have a slot")
                 if not set(spec.required_definitions) <= set(owners[item.owner_id].definitions):
                     raise ValidationError("Equipment prerequisites are not satisfied")
+                if worn_accessory:
+                    continue
+                assert spec.slot is not None
                 slot = (item.owner_id, spec.slot)
                 count = occupied.get(slot, 0) + 1
                 if count > (2 if spec.slot == "hand" else 1):
@@ -346,6 +358,9 @@ class ResourceEngine:
     def _validate_item_charge(item: Item, spec: EquipmentSpec) -> None:
         capacity = spec.power_cell_capacity
         message = "Power cell requires explicit charges within pinned capacity"
+        if spec.fuel is not None and spec.fuel.kind == "supply":
+            capacity = spec.fuel.initial_charges
+            message = "Fuel supply requires explicit charges within pinned capacity"
         if spec.electronics is not None and spec.electronics.power_capacity_seconds is not None:
             capacity = spec.electronics.power_capacity_seconds
             message = "Electronic device requires explicit charge within pinned capacity"

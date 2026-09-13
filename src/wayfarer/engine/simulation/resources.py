@@ -17,6 +17,7 @@ from wayfarer.engine.rules.magic.protocols import MagicItemInstance
 from wayfarer.engine.rules.types.affliction import AfflictionEffect
 from wayfarer.engine.rules.types.creature import Creature, Swarm
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
+from wayfarer.engine.rules.types.equipment import AccessorySpec, EquipmentUseSpec, FuelSpec
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.hazard import (
     HazardSchedule,
@@ -70,6 +71,9 @@ class EquipmentSpec(Record):
     slot: str | None = None
     ammunition: bool = False
     technology_level: int = Field(default=0, ge=0)
+    skill_relative_technology: bool = False
+    price: Decimal | int | Fraction = Field(default=0, ge=0, allow_inf_nan=False)
+    legality_class: int = Field(default=4, ge=0, le=4)
     required_definitions: tuple[str, ...] = ()
     effects: tuple[Effect, ...] = ()
     durability: ObjectProfile | None = Field(default=None, exclude_if=lambda v: v is None)
@@ -78,6 +82,11 @@ class EquipmentSpec(Record):
     electronics: ElectronicsSuite | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+    uses: tuple[EquipmentUseSpec, ...] = Field(default=(), exclude_if=lambda value: not value)
+    fuel: FuelSpec | None = Field(default=None, exclude_if=lambda value: value is None)
+    accessory: AccessorySpec | None = Field(default=None, exclude_if=lambda value: value is None)
+    weapon_skill_ids: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)
+    ranged_weapon: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class Item(Record):
@@ -97,6 +106,12 @@ class Item(Record):
     # Everyone currently serving a mounted weapon, the gunner included (#357).
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
     enchantments: tuple[MagicItemInstance, ...] = Field(default=(), exclude_if=lambda v: not v)
+
+
+class EquipmentAttachment(Record):
+    accessory_item_id: Id
+    target_item_id: Id
+    mounted_at: Tick
 
 
 class Owner(Record):
@@ -194,6 +209,12 @@ class ResourceState(Record):
     enchantment_projects: tuple[EnchantmentProject, ...] = Field(
         default=(), exclude_if=lambda v: not v
     )
+    equipment_attachments: tuple[EquipmentAttachment, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    equipment_events: tuple[dict[str, object], ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def validate_recovery_tasks(self) -> ResourceState:
@@ -275,6 +296,25 @@ class ResourceState(Record):
                 raise ValueError("Swarm requires a canonical Basic Set injury pool")
             if hp.maximum != swarm.spec.dispersal_hp or hp.current != swarm.remaining_hp:
                 raise ValueError("Swarm HP pool must match its dispersal state")
+        return self
+
+    @model_validator(mode="after")
+    def validate_equipment_attachments(self) -> ResourceState:
+        if len({row.accessory_item_id for row in self.equipment_attachments}) != len(
+            self.equipment_attachments
+        ):
+            raise ValueError("An accessory cannot be mounted more than once")
+        items = {item.id: item for item in self.items}
+        for row in self.equipment_attachments:
+            accessory = items.get(row.accessory_item_id)
+            target = items.get(row.target_item_id)
+            if (
+                accessory is None
+                or target is None
+                or accessory.owner_id != target.owner_id
+                or row.mounted_at > self.game_time
+            ):
+                raise ValueError("Invalid equipment attachment state")
         return self
 
 

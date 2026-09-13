@@ -1524,6 +1524,121 @@
         "title": "AbilitySpec",
         "type": "object"
       },
+      "AccessorySpec": {
+        "additionalProperties": false,
+        "description": "Attachment compatibility and the exact B289/B412 consequence.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "hearing-protection",
+              "quiver",
+              "holster",
+              "lanyard",
+              "laser-sight",
+              "scope",
+              "silencer",
+              "load-bearing"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "compatible": {
+            "enum": [
+              "actor",
+              "bow",
+              "pistol",
+              "pistol-or-smg",
+              "ranged-weapon"
+            ],
+            "title": "Compatible",
+            "type": "string"
+          },
+          "capacity": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "attack_bonus": {
+            "default": 0,
+            "title": "Attack Bonus",
+            "type": "integer"
+          },
+          "dodge_bonus_to_visible_target": {
+            "default": 0,
+            "title": "Dodge Bonus To Visible Target",
+            "type": "integer"
+          },
+          "accuracy_bonus": {
+            "default": 0,
+            "title": "Accuracy Bonus",
+            "type": "integer"
+          },
+          "minimum_aim_seconds": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Minimum Aim Seconds",
+            "type": "integer"
+          },
+          "hearing_modifier": {
+            "default": 0,
+            "title": "Hearing Modifier",
+            "type": "integer"
+          },
+          "holdout_modifier": {
+            "default": 0,
+            "title": "Holdout Modifier",
+            "type": "integer"
+          },
+          "fast_draw_modifier": {
+            "default": 0,
+            "title": "Fast Draw Modifier",
+            "type": "integer"
+          },
+          "retrieval_ready_seconds": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Retrieval Ready Seconds",
+            "type": "integer"
+          },
+          "cut_dr": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Cut Dr",
+            "type": "integer"
+          },
+          "cut_hp": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Cut Hp",
+            "type": "integer"
+          },
+          "grants_infravision": {
+            "default": false,
+            "title": "Grants Infravision",
+            "type": "boolean"
+          },
+          "powered_seconds": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Powered Seconds"
+          }
+        },
+        "required": [
+          "kind",
+          "compatible"
+        ],
+        "title": "AccessorySpec",
+        "type": "object"
+      },
       "ActionRules": {
         "additionalProperties": false,
         "properties": {
@@ -2392,6 +2507,50 @@
           "flexible": {
             "default": false,
             "title": "Flexible",
+            "type": "boolean"
+          },
+          "alternate_dr": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Alternate Dr"
+          },
+          "alternate_damage_types": {
+            "default": [],
+            "items": {
+              "enum": [
+                "cr",
+                "cut",
+                "imp",
+                "pi-",
+                "pi",
+                "pi+",
+                "pi++",
+                "burn",
+                "cor",
+                "tox",
+                "fat"
+              ],
+              "type": "string"
+            },
+            "title": "Alternate Damage Types",
+            "type": "array"
+          },
+          "front_only": {
+            "default": false,
+            "title": "Front Only",
+            "type": "boolean"
+          },
+          "concealable": {
+            "default": false,
+            "title": "Concealable",
             "type": "boolean"
           }
         },
@@ -6133,6 +6292,35 @@
         "title": "EntityKind",
         "type": "string"
       },
+      "EquipmentAttachment": {
+        "additionalProperties": false,
+        "properties": {
+          "accessory_item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Accessory Item Id",
+            "type": "string"
+          },
+          "target_item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Item Id",
+            "type": "string"
+          },
+          "mounted_at": {
+            "minimum": 0,
+            "title": "Mounted At",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accessory_item_id",
+          "target_item_id",
+          "mounted_at"
+        ],
+        "title": "EquipmentAttachment",
+        "type": "object"
+      },
       "EquipmentCatalog": {
         "additionalProperties": false,
         "properties": {
@@ -6374,6 +6562,48 @@
             ],
             "default": null
           },
+          "uses": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EquipmentUseSpec"
+            },
+            "title": "Uses",
+            "type": "array"
+          },
+          "fuel": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FuelSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "accessory": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AccessorySpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "legality_class": {
+            "default": 4,
+            "maximum": 4,
+            "minimum": 0,
+            "title": "Legality Class",
+            "type": "integer"
+          },
+          "skill_relative_technology": {
+            "default": false,
+            "title": "Skill Relative Technology",
+            "type": "boolean"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {
@@ -6396,6 +6626,146 @@
           "technology_level"
         ],
         "title": "EquipmentProfile",
+        "type": "object"
+      },
+      "EquipmentUseSpec": {
+        "additionalProperties": false,
+        "description": "One source-defined way an ordinary item changes a task or situation.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "basic-equipment",
+              "skill-bonus",
+              "sense-bonus",
+              "control-bonus",
+              "capacity",
+              "protection",
+              "rest",
+              "light",
+              "fire",
+              "purify",
+              "record",
+              "restraint",
+              "mobility",
+              "production",
+              "maintenance",
+              "communication"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "skill_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Skill Ids",
+            "type": "array"
+          },
+          "modifier": {
+            "default": 0,
+            "title": "Modifier",
+            "type": "integer"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Duration Seconds"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Capacity"
+          },
+          "range_yards": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Range Yards"
+          },
+          "protection": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Protection"
+          },
+          "consumes_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Consumes Definition Id"
+          },
+          "consumes_quantity": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Consumes Quantity",
+            "type": "integer"
+          },
+          "minimum_technology_level": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Minimum Technology Level"
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ],
+        "title": "EquipmentUseSpec",
         "type": "object"
       },
       "ExchangeOffer": {
@@ -6879,6 +7249,51 @@
           "action"
         ],
         "title": "FirearmSpec",
+        "type": "object"
+      },
+      "FuelSpec": {
+        "additionalProperties": false,
+        "description": "A supply or appliance duration; charges are authoritative item state.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "supply",
+              "appliance"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "fuel_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fuel Id"
+          },
+          "seconds_per_charge": {
+            "minimum": 1,
+            "title": "Seconds Per Charge",
+            "type": "integer"
+          },
+          "initial_charges": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Initial Charges",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "seconds_per_charge"
+        ],
+        "title": "FuelSpec",
         "type": "object"
       },
       "GadgetContext": {
@@ -8193,6 +8608,23 @@
               "$ref": "#/$defs/EnchantmentProject"
             },
             "title": "Enchantment Projects",
+            "type": "array"
+          },
+          "equipment_attachments": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EquipmentAttachment"
+            },
+            "title": "Equipment Attachments",
+            "type": "array"
+          },
+          "equipment_events": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Equipment Events",
             "type": "array"
           }
         },

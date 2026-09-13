@@ -6,12 +6,14 @@ from wayfarer.engine.rules.types.electronics import (
     ElectronicsSuite,
     SensorSpec,
 )
-from wayfarer.engine.simulation.equipment.basic.gear import ORDINARY
+from wayfarer.engine.simulation.equipment.basic.behavior import GENERAL_EQUIPMENT
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile
 
 
 def _row(identifier: str, suite: ElectronicsSuite) -> EquipmentProfile:
-    profile = next(row for row in ORDINARY if row.definition_id == "equipment:" + identifier)
+    profile = next(
+        row for row in GENERAL_EQUIPMENT if row.definition_id == "equipment:" + identifier
+    )
     remaining = tuple(
         blocker
         for blocker in profile.unsupported_mechanics

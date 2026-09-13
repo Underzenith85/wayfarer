@@ -27,6 +27,7 @@ from wayfarer.engine.rules.skills.mundane.melee import require_shield
 from wayfarer.engine.rules.skills.mundane.ranged import require_mode
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.entangle import EntangleSpec
+from wayfarer.engine.rules.types.equipment import AccessorySpec, EquipmentUseSpec, FuelSpec
 from wayfarer.engine.rules.types.explosion import ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmSpec
 from wayfarer.engine.rules.types.launcher import LauncherSpec
@@ -400,12 +401,42 @@ class Armor(Record):
     locations: tuple[Location, ...] = Field(min_length=1)
     dr: Nonnegative
     flexible: bool = False
+    alternate_dr: Nonnegative | None = None
+    alternate_damage_types: tuple[DamageType, ...] = ()
+    front_only: bool = False
+    concealable: bool = False
 
     @model_validator(mode="after")
     def unique_locations(self) -> Self:
         if len(set(self.locations)) != len(self.locations):
             raise ValueError("Duplicate armor location")
+        if (self.alternate_dr is None) != (not self.alternate_damage_types):
+            raise ValueError("Split DR requires both an alternate value and damage family")
         return self
+
+    def protection(self, location: Location, damage_type: DamageType, *, facing: str) -> int:
+        if location not in self.locations or self.front_only and facing != "front":
+            return 0
+        if self.alternate_dr is not None and damage_type in self.alternate_damage_types:
+            return self.alternate_dr
+        return self.dr
+
+
+def layered_armor(
+    armors: tuple[Armor, ...], location: Location, damage_type: DamageType, *, facing: str
+) -> tuple[int, int]:
+    """B286 combined DR and DX penalty, rejecting an illegal inner layer."""
+    covering = tuple(
+        armor for armor in armors if armor.protection(location, damage_type, facing=facing) > 0
+    )
+    if len(covering) > 1 and not all(
+        armor.flexible and armor.concealable for armor in covering[:-1]
+    ):
+        raise ValidationError("Inner armor layer must be flexible and concealable")
+    return (
+        sum(armor.protection(location, damage_type, facing=facing) for armor in covering),
+        -max(0, len(covering) - 1) if location not in ("skull", "face") else 0,
+    )
 
 
 class Shield(Record):
@@ -436,6 +467,11 @@ class EquipmentProfile(Record):
     warhead: ExplosionSpec | None = Field(default=None, exclude_if=lambda v: v is None)
     power_cell_capacity: Positive | None = Field(default=None, exclude_if=lambda v: v is None)
     electronics: ElectronicsSuite | None = Field(default=None, exclude_if=lambda v: v is None)
+    uses: tuple[EquipmentUseSpec, ...] = Field(default=(), exclude_if=lambda v: not v)
+    fuel: FuelSpec | None = Field(default=None, exclude_if=lambda v: v is None)
+    accessory: AccessorySpec | None = Field(default=None, exclude_if=lambda v: v is None)
+    legality_class: Annotated[int, Field(ge=0, le=4)] = 4
+    skill_relative_technology: bool = Field(default=False, exclude_if=lambda v: not v)
     container_capacity_millipounds: Nonnegative | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
@@ -443,7 +479,10 @@ class EquipmentProfile(Record):
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
         if not isinstance(self.technology_level, int) and not self.unsupported_mechanics:
-            raise ValueError("Non-numeric technology levels must remain explicitly unsupported")
+            if self.technology_level != "skill-relative" or not self.skill_relative_technology:
+                raise ValueError(
+                    "Non-numeric technology requires an explicit skill-relative adapter"
+                )
         if self.power_cell_capacity is not None and (not self.ammunition or self.warhead):
             raise ValueError("Power cell requires nonexplosive ammunition metadata")
         if self.warhead is not None and not (
@@ -464,6 +503,14 @@ class EquipmentProfile(Record):
             raise ValueError("Usable equipment requires an inventory slot")
         if self.ammunition and (self.modes or self.armor or self.shield):
             raise ValueError("Ammunition cannot also be wearable or a weapon")
+        if self.accessory is not None and (
+            self.modes or self.armor or self.shield or self.ammunition
+        ):
+            raise ValueError("An accessory is attached inventory, not a weapon or armor row")
+        if self.fuel is not None and self.electronics is not None:
+            raise ValueError("Fuel-burning and electronic operation are separate procedures")
+        if len({use.id for use in self.uses}) != len(self.uses):
+            raise ValueError("Duplicate equipment use")
         return self
 
     def inventory_spec(self) -> EquipmentSpec:
@@ -471,12 +518,19 @@ class EquipmentProfile(Record):
             raise ValidationError(
                 "Equipment has unsupported mechanics: " + ", ".join(self.unsupported_mechanics)
             )
-        if not isinstance(self.technology_level, int):
-            raise ValidationError("Supported equipment requires a concrete technology level")
+        technology_level = self.technology_level if isinstance(self.technology_level, int) else 0
         return EquipmentSpec(
             definition_id=self.definition_id,
             unit_weight=self.weight_millipounds,
-            technology_level=self.technology_level,
+            technology_level=technology_level,
+            skill_relative_technology=self.skill_relative_technology,
+            price=self.price,
+            legality_class=self.legality_class,
+            uses=self.uses,
+            fuel=self.fuel,
+            accessory=self.accessory,
+            weapon_skill_ids=tuple(mode.skill_id for mode in self.modes),
+            ranged_weapon=any(isinstance(mode, RangedMode) for mode in self.modes),
             stackable=not bool(
                 self.modes
                 or self.armor

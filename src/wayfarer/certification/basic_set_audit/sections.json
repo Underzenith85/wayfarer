@@ -6842,18 +6842,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-general-equipment.md",
+        "tests/test_general_equipment.py"
       ],
       "historical_owners": [
         191,
         527,
         94
       ],
-      "completion_owner": 686,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b282:armor",
@@ -6904,18 +6904,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-general-equipment.md",
+        "tests/test_general_equipment.py"
       ],
       "historical_owners": [
         191,
         527,
         94
       ],
-      "completion_owner": 686,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b287:shields",
@@ -8174,18 +8174,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-campaigns-section-audit.md"
+        "docs/gurps-general-equipment.md",
+        "tests/test_general_equipment.py"
       ],
       "historical_owners": [
         191,
         501,
         679
       ],
-      "completion_owner": 686,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -12676,17 +12676,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-campaigns-section-audit.md"
+        "docs/gurps-general-equipment.md",
+        "tests/test_general_equipment.py"
       ],
       "historical_owners": [
         191,
         679
       ],
-      "completion_owner": 686,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -13691,18 +13691,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-campaigns-section-audit.md"
+        "docs/gurps-general-equipment.md",
+        "tests/test_general_equipment.py"
       ],
       "historical_owners": [
         191,
         518,
         679
       ],
-      "completion_owner": 686,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
