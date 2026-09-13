@@ -231,8 +231,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.skills.medicine_mental` | no | yes | partial | #342; [medicine and mental procedures](gurps-mundane-skills.md#medicine-and-mental-procedures-342) |
 | `gurps.skills.physical_outdoors` | no | yes | partial | #343; [physical, outdoor and animal procedures](gurps-mundane-skills.md#physical-outdoor-and-animal-procedures-343) |
 | `gurps.skills.technology_vehicles` | no | yes | partial | #346 parent audit complete; [83 implemented owner rows and explicit cross-family transfers](gurps-mundane-skills.md#technology-science-and-vehicle-procedures-346) |
-| `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
-| `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
+| `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
+| `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
 | `gurps.equipment.object_durability` | no | yes | partial | #114; #181 live melee/repair integration; remaining #289/#290 |
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
@@ -646,8 +646,8 @@ incompletely mapped transformations reject, and death never triggers a rebuild o
 implicit healing. See [character transformations](gurps-transformations.md) for
 the supported lifecycle and deliberate exclusions.
 
-Coverage remains **partial** pending source verification and complete maneuver
-timing (#104). The profile-selected melee adapter now persists deferred injury,
+Coverage remains **partial** pending complete maneuver timing (#104). The
+profile-selected melee adapter now persists deferred injury,
 turn-start consciousness and end-turn stun recovery through the existing CAS
 boundary; see [melee integration](gurps-melee.md) for #102/#103 evidence and
 remaining Basic critical consequences in #146. Recovery from mortal wounds and elapsed
@@ -655,7 +655,8 @@ medical checks belong to #109; location effects to #107. Fatigue damage rejects
 until #109; corrosion's persistent armor destruction remains unavailable under
 #114. No generic damage multiplier implements those missing runtime effects.
 The intended source is Lite August 2004 pp. 28-30 and the selected Basic Set:
-Campaigns fourth printing, B378-381 and B419-423; source audit pending.
+Campaigns fourth printing, B378-381 and B419-423. The Basic Set printing is
+reviewed; the unavailable Lite source remains pending.
 
 ## Character workshop integration (#116)
 
@@ -853,20 +854,18 @@ effects behind the camp stove, sleeping bag and laptop are recorded the same way
 The typed weapon critical breakage #173 added is recorded as implemented, though
 no audited row declares a quality for it.
 
-The #101 weapon and armor profile verification is carried forward here. All 64
-fields of the equipment schema carry a declared unit, a source anchor and either
-executable coverage or an explicit gap, and adding a field without a record fails
-the audit. Every record is `pending`: nothing is reconciled with an inspected
-printing, so `gurps.equipment.weapon_profiles` and
-`gurps.equipment.armor_profiles` remain partial. Weights, including container
-capacity, are thousandths of a pound; prices are dollars. Seven fields have no
-executable case, and no audited row is a shield or a ranged weapon, so the
-`Shield` and `RangedMode` schemas rest on synthetic fixtures alone.
+The #101 weapon and armor profile verification is carried forward here. All 125
+fields of the audited equipment schema carry a declared unit, an inspected
+source anchor, independent review evidence, and either executable coverage or an
+explicit gap; adding a field without a record fails the audit. The two uncovered
+fields are adapter discriminators with no source column. Weights, including
+container capacity, are thousandths of a pound; prices are dollars. This review
+does not promote the still-partial weapon- and armor-profile capabilities.
 
-Neither audited catalog binds to the pinned packages: no registered package
-declares an equipment definition, and the Basic Set rows cite a source ID no
-package declares. Both are recorded as unbound and the recorded status is
-rechecked against the registry on every run. `require_supported` and
+The Basic Set catalog binds its mechanically supported rows to the pinned
+Characters and Campaigns packages. The Lite catalog remains unbound and its
+separate source and catalog gaps remain pending. Binding status is rechecked
+against the registry on every run. `require_supported` and
 `validate_selection` are the scenario and character gate; they reject an entry
 outside the audit or one carrying an unsupported behavior, naming its owning
 issue, and `supported_equipment` refuses to build a Lite allowlist while the

@@ -201,8 +201,8 @@ class FieldProvenance(Record):
             raise ValueError("A field records either executable coverage or an explicit gap")
         if self.status != "pending" and not (self.reviewer and self.evidence):
             raise ValueError("A compared or reviewed field needs independent review evidence")
-        if self.status != "pending" and self.gap is not None:
-            raise ValueError("An uncovered field cannot claim a source comparison")
+        if self.status == "compared" and self.gap is not None:
+            raise ValueError("An uncovered field cannot claim an incomplete source comparison")
         return self
 
 
@@ -442,7 +442,12 @@ def rows() -> tuple[AuditRow, ...]:
             (current.profile_id, current.lite_profile_id),
             "reviewed" if record.status == "reviewed" else "pending",
             () if record.gap is None else (PROFILE_FIELD_ISSUE,),
-            tuple(sorted({case.partition("::")[0] for case in record.tests}))
+            tuple(
+                sorted(
+                    {case.partition("::")[0] for case in record.tests}
+                    | ({record.evidence} if record.evidence is not None else set())
+                )
+            )
             or ("tests/test_equipment_audit.py",),
         )
         for record in current.fields
