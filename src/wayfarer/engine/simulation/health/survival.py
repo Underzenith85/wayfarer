@@ -107,9 +107,7 @@ def _digest(command: Command) -> str:
     return hashlib.sha256(command.model_dump_json().encode()).hexdigest()
 
 
-def _replay(
-    state: ResourceState, command: Command
-) -> tuple[ResourceState, SurvivalResult] | None:
+def _replay(state: ResourceState, command: Command) -> tuple[ResourceState, SurvivalResult] | None:
     receipt = next((r for r in state.receipts if r.command_id == command.id), None)
     if receipt is None:
         return None
@@ -128,8 +126,7 @@ def _record(
     updated = state.model_copy(
         update={
             "revision": original.revision + 1,
-            "receipts": state.receipts
-            + (Receipt(command_id=command.id, digest=_digest(command)),),
+            "receipts": state.receipts + (Receipt(command_id=command.id, digest=_digest(command)),),
             "events": state.events
             + (
                 ResourceEvent(
@@ -430,9 +427,7 @@ def settle_survival(
         fp_lost += lost
         hp_lost += spill
     if state.game_time == status.next_water_due:
-        state, status, water, lost, injury = _settle_water(
-            state, command, context, status, rng
-        )
+        state, status, water, lost, injury = _settle_water(state, command, context, status, rng)
         fp_lost += lost
         hp_lost += injury
     if not context.does_not_sleep and state.game_time == status.next_sleep_due:
@@ -445,9 +440,7 @@ def settle_survival(
         )
         status = status.model_copy(update={"next_sleep_due": status.next_sleep_due + QUARTER_DAY})
         if not sleeping:
-            state, lost, spill = _restricted_fatigue(
-                state, command, context, "sleep", 1, rng
-            )
+            state, lost, spill = _restricted_fatigue(state, command, context, "sleep", 1, rng)
             fp_lost += lost
             hp_lost += spill
     sleeping = any(
@@ -465,8 +458,7 @@ def settle_survival(
     state = state.model_copy(
         update={
             "survival": tuple(
-                status if entry.actor_id == command.actor_id else entry
-                for entry in state.survival
+                status if entry.actor_id == command.actor_id else entry for entry in state.survival
             ),
             "survival_tasks": _credit_sleep_supplies(
                 state.survival_tasks, command.actor_id, meals, water
@@ -537,11 +529,7 @@ def _restore_sleep(
     duration = task.due - task.start
     ordinary_debt = max(
         0,
-        fp.maximum
-        - fp.current
-        - fp.fatigue.starvation
-        - fp.fatigue.dehydration
-        - fp.fatigue.sleep,
+        fp.maximum - fp.current - fp.fatigue.starvation - fp.fatigue.dehydration - fp.fatigue.sleep,
     )
     ordinary = min(ordinary_debt, duration // 600)
     sleep = (
@@ -601,9 +589,15 @@ def _restore_sleep(
                 "forced_asleep": False,
             }
         )
-    return state.model_copy(
-        update={"pools": tuple(fp if pool.id == fp.id else pool for pool in state.pools)}
-    ), status, recovered, meals, water
+    return (
+        state.model_copy(
+            update={"pools": tuple(fp if pool.id == fp.id else pool for pool in state.pools)}
+        ),
+        status,
+        recovered,
+        meals,
+        water,
+    )
 
 
 def finish_sleep(
@@ -727,9 +721,7 @@ def _poison_foragers(
         )
         for actor in affected:
             ht = dict(task.party_ht)[actor]
-            resistance = success_roll(
-                PROFILE, ht, check_modifiers(state, actor, "ht"), rng=rng
-            )
+            resistance = success_roll(PROFILE, ht, check_modifiers(state, actor, "ht"), rng=rng)
             poison_checks.append(resistance)
             damage = 1 if resistance.outcome.succeeded else rng.randbelow(6) + 1
             state, injury = apply_injury(
@@ -798,8 +790,10 @@ def finish_foraging(
             meals += int(check.outcome.succeeded)
     plant_checks = tuple(checks)
     if task.animal_skill is not None:
-        target = task.animal_skill + task.terrain_modifier - (
-            4 if task.animal_method == "missile" else 0
+        target = (
+            task.animal_skill
+            + task.terrain_modifier
+            - (4 if task.animal_method == "missile" else 0)
         )
         for _ in range(count):
             check = success_roll(

@@ -94,17 +94,13 @@ def test_meals_and_water_settle_once_per_eight_hour_interval_after_restart() -> 
     ctx = context(meal_item_ids=("food",), water_item_ids=("water",))
     state = start(state, ctx).model_copy(update={"game_time": 28800})
     command = SettleSurvival(id="interval-1", actor_id="a", expected_revision=1)
-    state, result = settle_survival(
-        state, command, ctx, rng=RecordedDice([]), system=True
-    )
+    state, result = settle_survival(state, command, ctx, rng=RecordedDice([]), system=True)
     assert (result.meals_consumed, result.water_consumed, result.fp_lost) == (1, 2, 0)
     assert next(item for item in state.items if item.id == "food").quantity == 1
     assert {item.id for item in state.expended_items} == {"water", "spent:interval-1:meal:food"}
 
     restored = ResourceState.model_validate_json(state.model_dump_json())
-    replay, repeated = settle_survival(
-        restored, command, ctx, rng=RecordedDice([]), system=True
-    )
+    replay, repeated = settle_survival(restored, command, ctx, rng=RecordedDice([]), system=True)
     assert replay == restored and repeated == result
     assert next(item for item in replay.items if item.id == "food").quantity == 1
 
@@ -228,9 +224,7 @@ def test_full_sleep_recovers_sleep_and_ordinary_fatigue_and_short_sleep_shifts_d
     state = state.model_copy(update={"game_time": 32400})
     state, result = finish_sleep(
         state,
-        FinishSurvivalActivity(
-            id="wake", actor_id="a", expected_revision=2, task_id="sleep"
-        ),
+        FinishSurvivalActivity(id="wake", actor_id="a", expected_revision=2, task_id="sleep"),
         context(),
         system=True,
     )
@@ -378,9 +372,7 @@ def test_dedicated_foraging_gets_five_attempts_and_critical_poison_is_recorded()
             id="finish-serious", actor_id="a", expected_revision=1, task_id="serious"
         ),
         forage_context(),
-        rng=RecordedDice(
-            [6, 6, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
-        ),
+        rng=RecordedDice([6, 6, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         system=True,
     )
     assert len(result.forage_checks) == 5
@@ -399,9 +391,7 @@ def test_activity_interruption_prevents_sleep_or_foraging_credit() -> None:
     state = state.model_copy(
         update={
             "game_time": 60,
-            "survival_tasks": interrupt_survival_tasks(
-                state.survival_tasks, frozenset({"a"}), 60
-            ),
+            "survival_tasks": interrupt_survival_tasks(state.survival_tasks, frozenset({"a"}), 60),
         }
     )
     state, result = finish_sleep(
@@ -429,9 +419,7 @@ def test_resource_clock_stops_at_survival_deadlines_and_activity_interrupts_slee
         water_day_started=0,
     )
     task = SurvivalTask(id="sleep", actor_id="a", kind="sleep", start=0, due=100)
-    state = resource_seed().model_copy(
-        update={"survival": (status,), "survival_tasks": (task,)}
-    )
+    state = resource_seed().model_copy(update={"survival": (status,), "survival_tasks": (task,)})
     reducer = resource_engine()
     with pytest.raises(ConflictError, match="survival deadline"):
         reducer.apply(

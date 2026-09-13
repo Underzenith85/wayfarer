@@ -44,9 +44,7 @@ def _require_survival_available(state: ResourceState, actor_ids: frozenset[str])
         state.game_time,
     )
     if any(
-        activity.status == "pending"
-        and not activity.settled
-        and activity.actor_id in actor_ids
+        activity.status == "pending" and not activity.settled and activity.actor_id in actor_ids
         for activity in state.survival_tasks
     ):
         raise ConflictError("Recovery is incompatible with an active survival activity")

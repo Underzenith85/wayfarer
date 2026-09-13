@@ -176,9 +176,7 @@ class ResourceState(Record):
     expended_items: tuple[Item, ...] = ()
     recovery_tasks: tuple[RecoveryTask, ...] = ()
     survival: tuple[SurvivalStatus, ...] = Field(default=(), exclude_if=lambda value: not value)
-    survival_tasks: tuple[SurvivalTask, ...] = Field(
-        default=(), exclude_if=lambda value: not value
-    )
+    survival_tasks: tuple[SurvivalTask, ...] = Field(default=(), exclude_if=lambda value: not value)
     hazards: tuple[HazardSchedule, ...] = ()
     illnesses: tuple[RecoveryRestriction, ...] = ()
     transports: tuple[Transport, ...] = Field(default=(), exclude_if=lambda v: not v)
