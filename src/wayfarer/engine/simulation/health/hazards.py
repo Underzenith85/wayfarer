@@ -8,7 +8,7 @@ from typing import Literal
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.types.hazard import HazardSchedule, RecoveryRestriction
+from wayfarer.engine.rules.types.hazard import CombatHazardTurn, HazardSchedule, RecoveryRestriction
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.fright import apply_effect
@@ -34,6 +34,19 @@ class HazardResult(Record):
     consciousness: CheckTrace | None = None
 
 
+def _validate_deadline(
+    state: ResourceState,
+    schedule: HazardSchedule,
+    combat_turn: CombatHazardTurn | None,
+) -> None:
+    if schedule.combat_turn is not None:
+        if combat_turn != schedule.combat_turn or state.game_time < schedule.due:
+            raise ConflictError("Resolve suffocation on its recorded combat turn")
+        return
+    if state.game_time != schedule.due:
+        raise ConflictError("Resolve hazards at their shared-clock deadline")
+
+
 def apply_hazard(
     state: ResourceState,
     command: HazardCommand,
@@ -41,6 +54,7 @@ def apply_hazard(
     *,
     rng: RandomSource,
     system: bool = False,
+    combat_turn: CombatHazardTurn | None = None,
 ) -> tuple[ResourceState, HazardResult]:
     if not system:
         raise ValidationError("Hazards require authoritative scenario context")
@@ -76,7 +90,7 @@ def apply_hazard(
             raise ConflictError("Exposure is not active")
         schedule = existing
         if command.kind == "leave":
-            if schedule.due <= state.game_time:
+            if schedule.combat_turn is None and schedule.due <= state.game_time:
                 raise ConflictError("Resolve due exposure before leaving")
             if schedule.spec.kind in ("poison", "disease", "drowning"):
                 raise ValidationError("Ending this condition requires its treatment procedure")
@@ -90,8 +104,7 @@ def apply_hazard(
                 }
             )
         else:
-            if state.game_time != schedule.due:
-                raise ConflictError("Resolve hazards at their shared-clock deadline")
+            _validate_deadline(state, schedule, combat_turn)
             spec = schedule.spec
             checking = (
                 spec.kind != "drowning"
@@ -335,7 +348,12 @@ def apply_hazard(
                     "remaining": remaining,
                     "cycle": schedule.cycle + 1,
                     "successes": successes,
-                    "due": schedule.due + interval,
+                    "due": (state.game_time if schedule.combat_turn else schedule.due) + interval,
+                    "combat_turn": schedule.combat_turn.model_copy(
+                        update={"round": schedule.combat_turn.round + 1}
+                    )
+                    if schedule.combat_turn
+                    else None,
                     "stage": stage,
                     "next_check_at": next_check_at,
                     "active": remaining > 0,

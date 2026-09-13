@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.tactical import height_effect
+from wayfarer.engine.simulation.combat.unarmed.choke import start_choke_hold
 from wayfarer.engine.simulation.combat.unarmed.defense import parry_candidates, unarmed_defense
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
     encumbrance_level,
@@ -108,9 +109,10 @@ def defend(
         {"torso": 0, "neck": 2, "left-arm": 1, "right-arm": 1, "left-leg": 1, "right-leg": 1}[
             pending.location
         ]
-        if pending.action == "grapple"
+        if pending.action == "grapple" and not pending.choke_hold
         else 0
     )
+    value -= int(pending.choke_hold) * {"skill:judo": 2, "skill:wrestling": 3}.get(pending.skill, 0)
     if pending.action in ("punch", "kick"):
         value -= {
             "torso": 0,
@@ -292,7 +294,9 @@ def defend(
             skill=pending.skill,
             acquired_round=encounter.round,
             arm_lock=pending.action == "arm_lock",
+            choke_hold=pending.choke_hold,
         )
+        state, grip = start_choke_hold(runtime, state, encounter, grip, pending.id)
         encounter = encounter.model_copy(
             update={"grips": tuple(g for g in encounter.grips if g.id != pending.grip_id) + (grip,)}
         )

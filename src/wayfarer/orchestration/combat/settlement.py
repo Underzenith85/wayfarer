@@ -19,7 +19,7 @@ from wayfarer.engine.simulation.combat.objects.locations import settle_crippling
 from wayfarer.engine.simulation.combat.ranged.readiness import interrupted_draws
 from wayfarer.engine.simulation.combat.settlement import settle_encounter
 from wayfarer.engine.simulation.combat.tactical import TacticalTrace
-from wayfarer.engine.simulation.combat.unarmed.choke import retire_chokes
+from wayfarer.engine.simulation.combat.unarmed.choke import finish_choke_turns, retire_chokes
 from wayfarer.engine.simulation.combat.unarmed.fighters import settle_control
 from wayfarer.engine.simulation.combat.withdrawal import elapsed_seconds
 from wayfarer.engine.simulation.magic.area_fire import crossings
@@ -64,6 +64,7 @@ def _settle_combat(
             encounter.grips,
             command.id,
         )
+        state = finish_choke_turns(state, encounter)
         resources = state.resources
         encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
     if encounter.status == "completed" and engine.rules.gurps_equipment is not None:

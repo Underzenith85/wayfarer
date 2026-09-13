@@ -6246,13 +6246,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
@@ -6326,13 +6338,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6350,13 +6374,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6374,13 +6410,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6398,13 +6446,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -7454,13 +7514,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
@@ -7710,13 +7782,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7763,13 +7847,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7787,13 +7883,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7811,13 +7919,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -8096,13 +8216,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8120,13 +8252,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8144,13 +8288,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b368:melee-attacks",
@@ -8168,13 +8324,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b368:melee-attacks",
@@ -8192,13 +8360,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b368:melee-attacks",
@@ -8216,13 +8396,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8240,13 +8432,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b371:ranged-attacks",
@@ -8264,13 +8468,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b371:ranged-attacks",
@@ -8288,13 +8504,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8312,13 +8540,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8336,13 +8576,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8360,13 +8612,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8384,13 +8648,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8408,13 +8684,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8432,13 +8720,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8456,13 +8756,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8480,13 +8792,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8504,13 +8828,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8528,13 +8864,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8552,13 +8900,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8576,13 +8936,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8600,13 +8972,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8624,13 +9008,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8648,13 +9044,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8672,13 +9080,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8696,13 +9116,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8720,13 +9152,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b380:critical-hits-and-misses",
@@ -8744,13 +9188,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b380:critical-hits-and-misses",
@@ -8768,13 +9224,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "reference-only",
-      "implementation": "not-applicable",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b380:critical-hits-and-misses",
@@ -8792,13 +9260,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8816,13 +9296,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b381:other-actions-in-combat",
@@ -8840,13 +9332,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b381:other-actions-in-combat",
@@ -8864,13 +9368,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "docs/gurps-melee.md",
+        "docs/gurps-ranged.md",
+        "docs/gurps-unarmed.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_gurps_melee.py",
+        "tests/test_gurps_ranged.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_critical_miss_completion.py",
+        "tests/test_choke_hold.py"
       ],
-      "completion_owner": 506,
+      "historical_owners": [
+        191,
+        506
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b381:other-actions-in-combat",

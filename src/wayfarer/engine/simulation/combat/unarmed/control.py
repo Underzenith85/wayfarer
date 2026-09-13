@@ -90,6 +90,7 @@ def control(
         first = strength(runtime, state, actor.actor_id, trained=False)
         if command.action == "strangle":
             first -= 5 if len(grip.hands) == 1 else 0
+            first += 3 if grip.choke_hold else 0
         else:
             attacker = build(runtime, state, actor.actor_id)
             first = max(

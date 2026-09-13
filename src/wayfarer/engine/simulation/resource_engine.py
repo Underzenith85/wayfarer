@@ -476,7 +476,10 @@ class ResourceEngine:
             living = {
                 p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
             }
-            if any(h.active and h.actor_id in living and h.due < command.to for h in state.hazards):
+            if any(
+                h.active and h.combat_turn is None and h.actor_id in living and h.due < command.to
+                for h in state.hazards
+            ):
                 raise ConflictError(
                     "Advance to the hazard deadline and resolve it before continuing"
                 )

@@ -2169,6 +2169,11 @@
             "title": "Enter Close Combat",
             "type": "boolean"
           },
+          "choke_hold": {
+            "default": false,
+            "title": "Choke Hold",
+            "type": "boolean"
+          },
           "maneuver": {
             "default": "attack",
             "enum": [

@@ -8,6 +8,7 @@ from wayfarer.engine.rules.tables.unarmed import UNARMED_SKILLS
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, movement
 from wayfarer.engine.simulation.combat.encounter import (
+    Combatant,
     CombatResult,
     Encounter,
     basic_distance,
@@ -16,6 +17,7 @@ from wayfarer.engine.simulation.combat.encounter import (
 )
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import WaitInterrupt, WaitTrigger
+from wayfarer.engine.simulation.combat.objects.locations import from_behind
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import attack_geometry, occupants, pose, sight
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
@@ -120,6 +122,7 @@ def validate_action(
     if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
         raise ValidationError("Move and Attack requires a strike or grapple")
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)
+    validate_choke_hold(encounter, command, actor, target)
     if actor.actor_id == target.actor_id:
         raise ValidationError("Unarmed action requires another actor")
     for participant in (actor, target):
@@ -284,10 +287,12 @@ def validate_action(
             and (
                 len(set(command.hands)) != len(command.hands)
                 or not set(command.hands) <= set(grip.hands)
-                or (grip.arm_lock and set(command.hands) != set(grip.hands))
+                or ((grip.arm_lock or grip.choke_hold) and set(command.hands) != set(grip.hands))
             )
         ):
-            raise ValidationError("Release must select held hands; an arm lock requires both hands")
+            raise ValidationError(
+                "Release must select held hands; an arm lock or Choke Hold requires both hands"
+            )
         if command.action == "break_free" and encounter.round < grip.escape_after_round:
             raise ValidationError("A pinned escape attempt requires ten seconds between attempts")
         if command.action == "pin" and (
@@ -304,6 +309,32 @@ def validate_action(
             or grip.last_damage_round == encounter.round
         ):
             raise ValidationError("Arm-lock damage is available once on each subsequent turn")
+
+
+def validate_choke_hold(
+    encounter: Encounter,
+    command: TakeUnarmedTurn,
+    actor: Combatant,
+    target: Combatant,
+) -> None:
+    if not command.choke_hold:
+        return
+    if (
+        command.action != "grapple"
+        or command.location != "neck"
+        or command.skill not in ("skill:judo", "skill:wrestling")
+        or set(command.hands) != {"left-hand", "right-hand"}
+        or not command.enter_close_combat
+        or encounter.spatial_kind != "hex"
+        or not from_behind(actor, target)
+    ):
+        raise ValidationError(
+            "Choke Hold requires two hands, Judo/Wrestling and explicit rear hex entry"
+        )
+    if encounter.wait_interrupt is not None or any(
+        participant.maneuver_state.wait is not None for participant in encounter.participants
+    ):
+        raise ValidationError("Choke Hold during a Wait requires rear-entry interruption context")
 
 
 def interrupt_wait(

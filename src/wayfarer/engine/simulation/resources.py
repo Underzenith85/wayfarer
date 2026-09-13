@@ -208,7 +208,10 @@ class ResourceState(Record):
             if (
                 hazard.active
                 and not hp.injury.dead
-                and (hazard.remaining == 0 or hazard.due < self.game_time)
+                and (
+                    hazard.remaining == 0
+                    or (hazard.combat_turn is None and hazard.due < self.game_time)
+                )
             ):
                 raise ValueError("Active hazard cannot have expired or exhausted cycles")
         if len({task.id for task in self.recovery_tasks}) != len(self.recovery_tasks):
