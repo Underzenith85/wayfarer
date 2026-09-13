@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.health.injury import (
     Wound,
     apply_injury,
     impaired_movement,
+    patient_status,
 )
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
@@ -90,6 +91,39 @@ def test_repeated_damage_does_not_repeat_crossed_threshold() -> None:
     )
     assert second.pools[0].current == -11
     assert not trace.checks
+
+
+def test_separate_injuries_settle_each_death_threshold_once() -> None:
+    resources = state(-9)
+    observed: list[int | None] = []
+    revision = 0
+    for damage in (1, 10, 10):
+        resources, result = apply_injury(
+            resources,
+            wound(damage, revision=revision, id=f"hit-{revision}"),
+            ht=20,
+            rng=RecordedDice([1, 1, 1] * 2),
+            system=True,
+        )
+        observed.extend(check.threshold for check in result.checks if check.reason == "death")
+        revision += 1
+    assert observed == [-10, -20, -30]
+
+
+@pytest.mark.parametrize(
+    ("hp", "expected"),
+    [
+        (10, "good"),
+        (5, "good"),
+        (4, "fair"),
+        (1, "fair"),
+        (0, "serious"),
+        (-9, "serious"),
+        (-10, "critical"),
+    ],
+)
+def test_patient_status_boundaries(hp: int, expected: str) -> None:
+    assert patient_status(state(hp).pools[0]) == expected
 
 
 def test_automatic_death_and_mortal_wound() -> None:

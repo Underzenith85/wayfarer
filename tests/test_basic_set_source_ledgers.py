@@ -31,7 +31,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 1_060
+    assert len(ledger_blockers(bundle.rows)) == 1_050
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -90,7 +90,7 @@ def test_every_trait_row_has_separate_construction_consequence_and_review_owners
     absent = next(row for row in named if row.source_row_id == "trait:advantage:absolute-direction")
     assert absent.construction == "source-value-recorded"
     assert not absent.available
-    assert absent.consequence_owner == 514
+    assert absent.consequence_owner == 496
 
 
 def test_duplicate_ids_invalid_pages_and_missing_or_closed_owners_are_rejected() -> None:
@@ -194,7 +194,7 @@ def test_implemented_or_reviewed_dispositions_require_evidence() -> None:
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 1_060
+    assert len(ledger) == 1_050
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )

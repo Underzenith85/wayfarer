@@ -1,8 +1,8 @@
-"""GURPS torso injury on the existing resource checkpoint and receipt ledger.
+"""GURPS injury on the existing resource checkpoint and receipt ledger.
 
-Rules reconstructed from model knowledge: Lite 28-30; B378-381, B419-423.
-Exact source/errata audit is pending. Server call sites supply damage, DR and HT;
-this module is not an endpoint accepting player-authored wound commands.
+Source reviewed against Campaigns fourth printing B378-381 and B418-423.
+Server call sites supply damage, DR and HT; this module is not an endpoint
+accepting player-authored wound commands.
 """
 
 from __future__ import annotations
@@ -114,6 +114,8 @@ _FACTORS = {
     "tox": (1, 1),
 }
 _LITE_TYPES = frozenset({"cr", "cut", "imp", "pi-", "pi", "pi+"})
+
+type PatientStatus = Literal["good", "fair", "serious", "critical"]
 
 
 def apply_injury(
@@ -664,6 +666,19 @@ def impaired_movement(pool: Pool, value: int) -> int:
     if pool.injury is None or value < 0:
         raise ValidationError("Requires a profile HP pool and nonnegative movement")
     return (value + 1) // 2 if pool.current * 3 < pool.maximum else value
+
+
+def patient_status(pool: Pool) -> PatientStatus:
+    """Return the durable B421 patient-status band for a profile HP pool."""
+    if pool.injury is None or pool.maximum < 1:
+        raise ValidationError("Patient status requires an explicit profile HP pool")
+    if pool.current <= -pool.maximum:
+        return "critical"
+    if pool.current <= 0:
+        return "serious"
+    if pool.current * 2 < pool.maximum:
+        return "fair"
+    return "good"
 
 
 def apply_location_effect(
