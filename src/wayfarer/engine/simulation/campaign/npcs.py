@@ -7,6 +7,7 @@ from pydantic import Field, model_validator
 from wayfarer.engine.rules.skills.mundane.social.inventory import CONDITIONS, PROCEDURES
 from wayfarer.engine.rules.social.gurps_social import influence_procedure
 from wayfarer.engine.rules.social.social_hooks import Appearance, Recognition, ReputationScope
+from wayfarer.engine.simulation.campaign.propaganda import PropagandaRules
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 
@@ -56,6 +57,7 @@ class NPCSocialTrigger(Record):
     # The procedure owns every integer they are worth, so an author selects a
     # circumstance here and never a roll modifier.
     conditions: tuple[Id, ...] = Field(default=(), max_length=15)
+    medium_id: Id | None = None
 
     @model_validator(mode="after")
     def standing_belongs_to_a_reaction(self) -> Self:
@@ -76,7 +78,7 @@ class NPCSocialTrigger(Record):
     def procedure_scope_is_declared(self) -> Self:
         """Reject an undeclared procedure or condition before any dice are drawn."""
         if self.kind != "skill":
-            if self.conditions:
+            if self.conditions or self.medium_id is not None:
                 raise ValueError("Contextual conditions belong to a social skill trigger")
             return self
         if self.skill_id not in PROCEDURES:
@@ -90,6 +92,8 @@ class NPCSocialTrigger(Record):
         unknown = sorted(set(self.conditions) - CONDITIONS)
         if unknown:
             raise ValueError(f"Undeclared social skill condition: {', '.join(unknown)}")
+        if (self.medium_id is not None) != (self.skill_id == "skill:propaganda"):
+            raise ValueError("Only Propaganda selects an authored medium, and it must select one")
         return self
 
 
@@ -138,6 +142,35 @@ class NPCSocialRules(NPCRules):
 
     version: Literal[2] = 2
     plans: tuple[NPCSocialPlan, ...] = Field(max_length=50)
+    propaganda: PropagandaRules | None = None
+
+    @model_validator(mode="after")
+    def propaganda_media_are_authored(self) -> Self:
+        selected = {
+            action.social.medium_id
+            for plan in self.plans
+            for action in plan.actions
+            if isinstance(action, NPCSocialAction) and action.social.skill_id == "skill:propaganda"
+        }
+        if not selected:
+            return self
+        if self.propaganda is None:
+            raise ValueError("Propaganda triggers require an authored campaign media policy")
+        known = {medium.id for medium in self.propaganda.media}
+        unknown = sorted(value for value in selected if value is not None and value not in known)
+        if unknown:
+            raise ValueError("Unknown authored Propaganda media: " + ", ".join(unknown))
+        selected_media = tuple(medium for medium in self.propaganda.media if medium.id in selected)
+        unsupported = sorted(
+            medium.capability_id
+            for medium in selected_media
+            if medium.capability_id not in self.propaganda.executable_capability_ids
+        )
+        if unsupported:
+            raise ValueError(
+                "Unsupported authored Propaganda media capability: " + ", ".join(unsupported)
+            )
+        return self
 
 
 class NPCProgress(Record):
