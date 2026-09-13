@@ -17,6 +17,10 @@ from wayfarer.engine.rules.skills.mundane.technology.inventory import (
     Effect,
     TechnologyProcedure,
 )
+from wayfarer.engine.rules.skills.mundane.technology.specialties import (
+    CampaignTechnologySpecialties,
+    is_open_specialty_id,
+)
 from wayfarer.engine.rules.types.skill import PrerequisiteKind, SkillPrerequisite
 from wayfarer.errors import ValidationError
 
@@ -71,10 +75,20 @@ class ProcedureResult:
         return self.check.outcome.succeeded
 
 
-def require_task(profile_id: str, skill_id: str) -> TechnologyProcedure:
+def require_task(
+    profile_id: str,
+    skill_id: str,
+    campaign_specialties: CampaignTechnologySpecialties | None = None,
+) -> TechnologyProcedure:
     """Fail closed before dice when a row is a family, unbound or off-profile."""
     entry = PROCEDURES.get(skill_id)
+    if entry is None and campaign_specialties is not None:
+        entry = campaign_specialties.procedure(skill_id)
     if entry is None:
+        if is_open_specialty_id(skill_id):
+            raise ValidationError(
+                f"Technology specialty is outside the campaign's declared subjects: {skill_id}"
+            )
         raise ValidationError(f"Skill is outside the technology procedures: {skill_id}")
     if profile_id != PROFILE:
         raise ValidationError(f"Technology skill requires the exact Basic Set profile: {skill_id}")
@@ -166,6 +180,7 @@ def attempt(
     *,
     rng: RandomSource,
     profile_id: str = PROFILE,
+    campaign_specialties: CampaignTechnologySpecialties | None = None,
 ) -> ProcedureResult:
     """Execute one attempt at the procedure bound to the operator's skill.
 
@@ -174,7 +189,7 @@ def attempt(
     procedure that does not steer, and any check capability the profile has not
     verified.
     """
-    entry = require_task(profile_id, operator.skill_id)
+    entry = require_task(profile_id, operator.skill_id, campaign_specialties)
     require_capabilities(profile_id, CHECK_CAPABILITIES)
     base = technique_target(entry, operator) if entry.technique else operator.level
     if base < 1:
@@ -213,9 +228,14 @@ def attempt(
     )
 
 
-def replay(result: ProcedureResult) -> ProcedureResult:
+def replay(
+    result: ProcedureResult,
+    campaign_specialties: CampaignTechnologySpecialties | None = None,
+) -> ProcedureResult:
     """Re-score a recorded attempt without rolling; receipts must be reproducible."""
     entry = PROCEDURES.get(result.procedure_id)
+    if entry is None and campaign_specialties is not None:
+        entry = campaign_specialties.procedure(result.procedure_id)
     if entry is None or not entry.dispatchable:
         raise ValidationError(f"Recorded procedure is no longer bound: {result.procedure_id}")
     check = replay_success(result.check)
