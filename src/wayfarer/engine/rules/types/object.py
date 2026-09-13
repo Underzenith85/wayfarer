@@ -20,6 +20,10 @@ class ObjectProfile(Record):
     repair_parts_definition: str | None = Field(default=None, exclude_if=lambda v: v is None)
     # Six reviewed B485 outcomes, indexed by the recorded d6. None means unusable.
     residual_definitions: tuple[str | None, ...] = Field(default=(), exclude_if=lambda v: not v)
+    # B408: ordinary structural cover adds HP/4; thin slabs use DR alone.
+    cover_kind: Literal["structural", "thin"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def residual_table(self) -> Self:

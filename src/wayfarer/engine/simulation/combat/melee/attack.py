@@ -42,6 +42,8 @@ def prepare_attack(
     strike_strength: int | None = None,
     subdual_mode: Literal["flat", "blunt-end"] | None = None,
     target_item_id: str | None = None,
+    cover_item_id: str | None = None,
+    overpenetration_target_id: str | None = None,
     shots: int = 1,
 ) -> Encounter:
     pending = encounter.pending_defense
@@ -81,7 +83,11 @@ def prepare_attack(
             shots=shots,
             hit_location=hit_location,
             target_item_id=target_item_id,
+            cover_item_id=cover_item_id,
+            overpenetration_target_id=overpenetration_target_id,
         )
+    if cover_item_id is not None or overpenetration_target_id is not None:
+        raise ValidationError("Cover and overpenetration require a ranged mode")
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)

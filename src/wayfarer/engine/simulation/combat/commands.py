@@ -117,6 +117,8 @@ class TakeCombatTurn(CombatCommand):
         default=None, exclude_if=lambda value: value is None
     )
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    cover_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    overpenetration_target_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ready_hand: Hand | Literal["both"] | None = None
     attack_option: AttackOption | None = None
     defense_option: DefenseOption | None = None

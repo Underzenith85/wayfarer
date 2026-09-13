@@ -20,7 +20,9 @@ from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import target_geometry
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
 from wayfarer.engine.simulation.combat.ranged.situation import situation
+from wayfarer.engine.simulation.combat.ranged.special import validate_cover_geometry
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
+from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.combat.tactical import defense_adjustment
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.visibility import combat_visibility
@@ -34,6 +36,54 @@ if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
 
 
+def _validate_penetration_targets(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    weapon: RangedMode,
+    *,
+    attacker_id: str,
+    target_id: str,
+    weapon_item_id: str,
+    target_item_id: str | None,
+    cover_item_id: str | None,
+    overpenetration_target_id: str | None,
+) -> None:
+    penetrating = weapon.damage.damage_type in ("imp", "pi-", "pi", "pi+", "pi++") or (
+        weapon.damage.damage_type == "burn" and weapon.damage.tight_beam
+    )
+    if cover_item_id is not None:
+        if target_item_id is not None or cover_item_id == weapon_item_id:
+            raise ValidationError("Cover cannot also be the attack target or attacking weapon")
+        validate_cover_geometry(
+            runtime,
+            state,
+            encounter,
+            attacker_id=attacker_id,
+            target_id=target_id,
+            barrier_item_id=cover_item_id,
+        )
+        if not penetrating:
+            raise ValidationError("Selected attack cannot pass through cover")
+    if overpenetration_target_id is None:
+        return
+    if overpenetration_target_id in (attacker_id, target_id):
+        raise ValidationError("Overpenetration requires a distinct secondary target")
+    secondary = next(
+        (p for p in encounter.participants if p.actor_id == overpenetration_target_id), None
+    )
+    if secondary is None:
+        raise ValidationError("Unknown overpenetration target")
+    actor = next(p for p in encounter.participants if p.actor_id == attacker_id)
+    target = next(p for p in encounter.participants if p.actor_id == target_id)
+    if point_distance(actor.position, target.position) + point_distance(
+        target.position, secondary.position
+    ) != point_distance(actor.position, secondary.position):
+        raise ValidationError("Overpenetration target is not behind the primary target")
+    if not penetrating:
+        raise ValidationError("Selected attack cannot overpenetrate")
+
+
 def prepare(
     runtime: RulesContext,
     state: PlayState,
@@ -43,6 +93,8 @@ def prepare(
     shots: int,
     hit_location: HitLocation | None,
     target_item_id: str | None = None,
+    cover_item_id: str | None = None,
+    overpenetration_target_id: str | None = None,
 ) -> Encounter:
 
     pending = encounter.pending_defense
@@ -94,6 +146,18 @@ def prepare(
 
     validate_target(
         runtime, state, encounter, actor.actor_id, target.actor_id, weapon, hit_location
+    )
+    _validate_penetration_targets(
+        runtime,
+        state,
+        encounter,
+        weapon,
+        attacker_id=actor.actor_id,
+        target_id=target.actor_id,
+        weapon_item_id=pending.weapon_id,
+        target_item_id=target_item_id,
+        cover_item_id=cover_item_id,
+        overpenetration_target_id=overpenetration_target_id,
     )
     if actor.last_maneuver == "feint" or (
         actor.last_maneuver == "all_out_attack"
@@ -192,6 +256,8 @@ def prepare(
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
                     "target_item_id": target_item_id,
+                    "cover_item_id": cover_item_id,
+                    "overpenetration_target_id": overpenetration_target_id,
                     "visibility_attack_penalty": visibility.attack_penalty,
                     "visibility_defense_penalty": visibility.defense_penalty,
                     "close_combat": close,

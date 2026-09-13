@@ -2936,6 +2936,53 @@
       "gap": null
     },
     {
+      "id": "RangedMode.guidance",
+      "unit": "typed guided, homing, or semi-active projectile adapter",
+      "reference": "Campaigns fourth printing B412-B413",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": [
+        "tests/test_special_ranged_procedures.py::test_b412_guided_flight_arrival_and_interruption_round_trip",
+        "tests/test_special_ranged_procedures.py::test_b412_homing_roles_and_semi_active_designation_are_explicit"
+      ],
+      "gap": null
+    },
+    {
+      "id": "GuidanceSpec.kind",
+      "unit": "guidance family selector",
+      "reference": "Campaigns fourth printing B412-B413",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_special_ranged_procedures.py::test_b412_homing_roles_and_semi_active_designation_are_explicit"],
+      "gap": null
+    },
+    {
+      "id": "GuidanceSpec.seeker_skill",
+      "unit": "effective homing attack skill",
+      "reference": "Campaigns fourth printing B413",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_special_ranged_procedures.py::test_b412_guided_flight_arrival_and_interruption_round_trip"],
+      "gap": null
+    },
+    {
+      "id": "GuidanceSpec.seeker_sense",
+      "unit": "typed seeker sense identifier",
+      "reference": "Campaigns fourth printing B413",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_special_ranged_procedures.py::test_b412_homing_roles_and_semi_active_designation_are_explicit"],
+      "gap": null
+    },
+    {
       "id": "RocketAcceleration.close_max_yards",
       "unit": "yards",
       "reference": "B278 Gyroc footnote 2",

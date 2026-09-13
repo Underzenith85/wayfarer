@@ -48,3 +48,10 @@ The comparison corrected three ledger claims:
 All other declared units and anchors agree with the selected source. Executable
 tests remain the implementation evidence; this document is the independent
 source-comparison evidence for the field review state.
+
+Issue #511 adds an audited `RangedMode.guidance` adapter and nested guidance
+family, seeker-skill, and seeker-sense fields from Campaigns B412-B413. A
+special weapon is available only when its equipment row supplies the complete
+adapter; technology level and weapon names never imply guidance support. Cover
+remains an object-durability concern documented in
+`gurps-special-ranged-procedures.md`.

@@ -782,6 +782,16 @@ export interface components {
        */
       target_item_id: string | null;
       /**
+       * Cover Item Id
+       * @default null
+       */
+      cover_item_id: string | null;
+      /**
+       * Overpenetration Target Id
+       * @default null
+       */
+      overpenetration_target_id: string | null;
+      /**
        * Ready Hand
        * @default null
        */

@@ -248,6 +248,8 @@ describe("Tactical panel", () => {
       strike_strength: null,
       subdual_mode: null,
       target_item_id: null,
+      cover_item_id: null,
+      overpenetration_target_id: null,
       ready_hand: null,
       attack_option: null,
       defense_option: null,
