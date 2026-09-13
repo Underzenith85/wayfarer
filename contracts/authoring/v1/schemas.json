@@ -1757,6 +1757,17 @@
               }
             ],
             "default": null
+          },
+          "world_context": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/WorldContextRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -9023,6 +9034,28 @@
         "title": "MagicItemOffer",
         "type": "object"
       },
+      "MaterialCost": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "item_id",
+          "quantity"
+        ],
+        "title": "MaterialCost",
+        "type": "object"
+      },
       "MaterialRequirement": {
         "additionalProperties": false,
         "properties": {
@@ -11629,6 +11662,69 @@
         "title": "ReactionModifier",
         "type": "object"
       },
+      "Realm": {
+        "additionalProperties": false,
+        "description": "A world or plane whose concrete destinations remain canonical world locations.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "physical",
+              "alternate",
+              "mirror",
+              "interpenetrating",
+              "phase",
+              "void",
+              "virtual"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "baseline_technology_level": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Baseline Technology Level",
+            "type": "integer"
+          },
+          "technology_fields": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/TechnologyField"
+            },
+            "title": "Technology Fields",
+            "type": "array"
+          },
+          "location_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Location Ids",
+            "type": "array"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "baseline_technology_level",
+          "location_ids"
+        ],
+        "title": "Realm",
+        "type": "object"
+      },
       "RecoveryOption": {
         "additionalProperties": false,
         "properties": {
@@ -14049,6 +14145,179 @@
         "title": "TeachingBinding",
         "type": "object"
       },
+      "TechnologyField": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Field",
+            "type": "string"
+          },
+          "level": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Level",
+            "type": "integer"
+          },
+          "path_id": {
+            "default": "standard",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Path Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "level"
+        ],
+        "title": "TechnologyField",
+        "type": "object"
+      },
+      "TechnologyPath": {
+        "additionalProperties": false,
+        "description": "A setting-authored technological path, including divergent and superscience paths.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "divergence_level": {
+            "anyOf": [
+              {
+                "maximum": 12,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Divergence Level"
+          },
+          "superscience": {
+            "default": false,
+            "title": "Superscience",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "TechnologyPath",
+        "type": "object"
+      },
+      "TechnologyProjectRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "realm_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Realm Id",
+            "type": "string"
+          },
+          "field": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Field",
+            "type": "string"
+          },
+          "from_level": {
+            "maximum": 11,
+            "minimum": 0,
+            "title": "From Level",
+            "type": "integer"
+          },
+          "to_level": {
+            "maximum": 12,
+            "minimum": 1,
+            "title": "To Level",
+            "type": "integer"
+          },
+          "duration_seconds": {
+            "exclusiveMinimum": 0,
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "qualifications": {
+            "items": {
+              "$ref": "#/$defs/TechnologyQualification"
+            },
+            "minItems": 1,
+            "title": "Qualifications",
+            "type": "array"
+          },
+          "material_costs": {
+            "items": {
+              "$ref": "#/$defs/MaterialCost"
+            },
+            "minItems": 1,
+            "title": "Material Costs",
+            "type": "array"
+          },
+          "labor_available": {
+            "default": true,
+            "title": "Labor Available",
+            "type": "boolean"
+          },
+          "host_cooperation": {
+            "default": true,
+            "title": "Host Cooperation",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "realm_id",
+          "field",
+          "from_level",
+          "to_level",
+          "duration_seconds",
+          "qualifications",
+          "material_costs"
+        ],
+        "title": "TechnologyProjectRule",
+        "type": "object"
+      },
+      "TechnologyQualification": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "technology_level": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Technology Level",
+            "type": "integer"
+          },
+          "minimum_level": {
+            "default": 12,
+            "minimum": 1,
+            "title": "Minimum Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "definition_id",
+          "technology_level"
+        ],
+        "title": "TechnologyQualification",
+        "type": "object"
+      },
       "ToxinExposure": {
         "additionalProperties": false,
         "properties": {
@@ -14602,6 +14871,116 @@
         "title": "TrapRule",
         "type": "object"
       },
+      "TravelLink": {
+        "additionalProperties": false,
+        "description": "An executable, authored connection between concrete locations in two realms.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "origin_realm_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Origin Realm Id",
+            "type": "string"
+          },
+          "destination_realm_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Destination Realm Id",
+            "type": "string"
+          },
+          "origin_location_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Origin Location Id",
+            "type": "string"
+          },
+          "destination_location_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Destination Location Id",
+            "type": "string"
+          },
+          "method_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Method Id",
+            "type": "string"
+          },
+          "capability_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "mode": {
+            "default": "physical",
+            "enum": [
+              "physical",
+              "projection"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "travel_seconds": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Travel Seconds",
+            "type": "integer"
+          },
+          "fatigue_cost_per_traveler": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Fatigue Cost Per Traveler",
+            "type": "integer"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "required_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Definition Ids",
+            "type": "array"
+          },
+          "required_item_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Item Definition Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "origin_realm_id",
+          "destination_realm_id",
+          "origin_location_id",
+          "destination_location_id",
+          "method_id",
+          "capability_id"
+        ],
+        "title": "TravelLink",
+        "type": "object"
+      },
       "World": {
         "properties": {
           "entities": {
@@ -14664,6 +15043,83 @@
           }
         },
         "title": "World",
+        "type": "object"
+      },
+      "WorldContextRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "paths": {
+            "default": [
+              {
+                "id": "standard",
+                "divergence_level": null,
+                "superscience": false
+              }
+            ],
+            "items": {
+              "$ref": "#/$defs/TechnologyPath"
+            },
+            "title": "Paths",
+            "type": "array"
+          },
+          "realms": {
+            "items": {
+              "$ref": "#/$defs/Realm"
+            },
+            "minItems": 1,
+            "title": "Realms",
+            "type": "array"
+          },
+          "links": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/TravelLink"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "technology_projects": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/TechnologyProjectRule"
+            },
+            "title": "Technology Projects",
+            "type": "array"
+          },
+          "executable_capability_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Executable Capability Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "realms"
+        ],
+        "title": "WorldContextRules",
         "type": "object"
       },
       "wayfarer__engine__simulation__campaign__scenario_document__Provenance": {
