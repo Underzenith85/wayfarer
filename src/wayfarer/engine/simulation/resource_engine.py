@@ -138,6 +138,7 @@ class ResourceEngine:
         unique(tuple(p.id for p in state.pools))
         unique(tuple(s.id for s in state.scheduled))
         unique(tuple(r.command_id for r in state.receipts))
+        unique(tuple(creature.actor_id for creature in state.creatures))
         unique(tuple(r.command_id for r in state.object_results))
         if not {r.command_id for r in state.object_results} <= {
             r.command_id for r in state.receipts
@@ -150,6 +151,14 @@ class ResourceEngine:
         if any(p.current > p.maximum for p in state.pools):
             raise ValidationError("Resource pool exceeds maximum")
         owners = {o.actor_id: o for o in state.owners}
+        if not {creature.actor_id for creature in state.creatures} <= self.actors:
+            raise ValidationError("Creature is not a world actor")
+        if any(
+            reference is not None and reference not in self.actors
+            for creature in state.creatures
+            for reference in (creature.owner_id, creature.handler_id)
+        ):
+            raise ValidationError("Creature relationship is not a world actor")
         if not set(owners) <= self.actors:
             raise ValidationError("Inventory owner is not a world actor")
         items = {i.id: i for i in state.items}
