@@ -23,6 +23,9 @@ PDF page `B-335`. Printed footers were checked before comparing the records.
   vocabulary: TL, damage, Acc, range, weight, RoF, shots, cost, minimum ST,
   bulk, recoil, location, DR, flexibility, defense bonus, reach, parry, weapon
   quality, ammunition and container capacity.
+- The B270 double-dagger marker supplies the exact 1.5x minimum-ST threshold
+  for post-attack readiness. The B272 monowire-whip expression supplies a
+  separate d6 term added to ST-based swing damage; it is not a fixed-damage row.
 - Characters B16, B178, B181, B195, B198, B205, B211, B222 and B270 were
   checked for rated ST, mounted/crew-served weapons, entangling attacks,
   readiness, sprayers and launcher-assisted throws.

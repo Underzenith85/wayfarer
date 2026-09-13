@@ -506,7 +506,7 @@ def resolve_melee(
         else (attack_build.statistics.thrust, attack_build.statistics.swing)
     )
     expression = swing if weapon.damage.basis == "swing" else thrust
-    dice_count = weapon.damage.dice or expression.dice
+    dice_count = (weapon.damage.dice or expression.dice) + weapon.damage.bonus_dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
     adds -= int(pending.subdual_mode == "blunt-end")
     adds += attacker.maneuver_state.stop_thrust_damage_bonus
@@ -843,7 +843,7 @@ def resolve_melee(
         injured=injury > 0,
     )
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
-    if weapon.ready_after_attack:
+    if weapon.becomes_unready_after_attack(attack_build.statistics.st):
         state = state.model_copy(
             update={
                 "resources": state.resources.model_copy(

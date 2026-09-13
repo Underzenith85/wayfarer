@@ -1,6 +1,7 @@
 """Basic Set melee weapon rows (B271-276, B283)."""
 
 from decimal import Decimal
+from fractions import Fraction
 
 from wayfarer.engine.simulation.equipment.basic.rows import melee, thrown, weapon
 
@@ -265,12 +266,12 @@ WEAPONS = (
             (2, 3),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
         melee(
             "polearm-thrust", "polearm", 11, "thrust", 3, "imp", (1, 2, 3), hands=2, unbalanced=True
         ),
-        unsupported=("conditional-ready-after-attack", "variable-reach-ready"),
+        unsupported=("variable-reach-ready",),
     ),
     weapon(
         "naginata",
@@ -312,7 +313,7 @@ WEAPONS = (
             (2, 3),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
         melee(
             "polearm-pick",
@@ -324,12 +325,12 @@ WEAPONS = (
             (2, 3),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
         melee(
             "polearm-thrust", "polearm", 12, "thrust", 3, "imp", (1, 2, 3), hands=2, unbalanced=True
         ),
-        unsupported=("conditional-ready-after-attack", "pick-stuck", "variable-reach-ready"),
+        unsupported=("pick-stuck", "variable-reach-ready"),
     ),
     weapon(
         "poleaxe",
@@ -347,7 +348,7 @@ WEAPONS = (
             (2, 3),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
         melee(
             "polearm-crush",
@@ -359,9 +360,9 @@ WEAPONS = (
             (2, 3),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
-        unsupported=("conditional-ready-after-attack", "variable-reach-ready"),
+        unsupported=("variable-reach-ready",),
     ),
     weapon(
         "rapier",
@@ -502,9 +503,9 @@ WEAPONS = (
             (1, 2),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
-        unsupported=("conditional-ready-after-attack", "variable-reach-ready"),
+        unsupported=("variable-reach-ready",),
     ),
     weapon(
         "great-axe",
@@ -522,9 +523,9 @@ WEAPONS = (
             (1, 2),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
-        unsupported=("conditional-ready-after-attack", "variable-reach-ready"),
+        unsupported=("variable-reach-ready",),
     ),
     weapon(
         "scythe",
@@ -542,7 +543,7 @@ WEAPONS = (
             (1,),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
         melee(
             "two-handed-axe-mace-pick",
@@ -554,9 +555,9 @@ WEAPONS = (
             (1,),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
-        unsupported=("conditional-ready-after-attack", "pick-stuck"),
+        unsupported=("pick-stuck",),
     ),
     weapon(
         "warhammer",
@@ -574,9 +575,9 @@ WEAPONS = (
             (1, 2),
             hands=2,
             unbalanced=True,
-            ready_after_attack=True,
+            ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
-        unsupported=("conditional-ready-after-attack", "pick-stuck", "variable-reach-ready"),
+        unsupported=("pick-stuck", "variable-reach-ready"),
     ),
     weapon(
         "flail",

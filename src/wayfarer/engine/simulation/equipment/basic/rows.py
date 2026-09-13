@@ -5,6 +5,7 @@ explicit review data for the selected later-printing profile.
 """
 
 from decimal import Decimal
+from fractions import Fraction
 from typing import Literal
 
 from wayfarer.engine.rules.types.firearm import FirearmSpec
@@ -55,7 +56,9 @@ def melee(
     fencing: bool = False,
     divisor: str = "1",
     dice: int | None = None,
+    bonus_dice: int = 0,
     ready_after_attack: bool = False,
+    ready_after_attack_below_st_multiple: Fraction | None = None,
 ) -> MeleeMode:
     """Construct one independently transcribed melee-table mode."""
     return MeleeMode(
@@ -66,6 +69,7 @@ def melee(
         damage=Damage(
             basis=basis,
             dice=dice,
+            bonus_dice=bonus_dice,
             adds=adds,
             damage_type=damage_type,
             armor_divisor=Decimal(divisor),
@@ -75,6 +79,7 @@ def melee(
             None if parry is None else Parry(modifier=parry, unbalanced=unbalanced, fencing=fencing)
         ),
         ready_after_attack=ready_after_attack,
+        ready_after_attack_below_st_multiple=ready_after_attack_below_st_multiple,
     )
 
 

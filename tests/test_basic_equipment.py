@@ -8,7 +8,12 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
 from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
 from wayfarer.engine.simulation.equipment.basic.vehicles import VEHICLE_INDEX
-from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, MeleeMode, RangedMode
+from wayfarer.engine.simulation.equipment.catalog import (
+    Damage,
+    EquipmentCatalog,
+    MeleeMode,
+    RangedMode,
+)
 from wayfarer.errors import ValidationError
 
 MELEE_ROWS = (
@@ -285,8 +290,16 @@ def test_melee_table_modes_cover_parry_hands_and_footnotes() -> None:
         "burn",
     )
     glaive = entries["equipment:glaive"].modes[0]
-    assert isinstance(glaive, MeleeMode) and glaive.ready_after_attack
-    assert "conditional-ready-after-attack" in entries["equipment:glaive"].unsupported_mechanics
+    assert isinstance(glaive, MeleeMode)
+    assert glaive.ready_after_attack_below_st_multiple == Fraction(3, 2)
+    assert not glaive.becomes_unready_after_attack(17)
+    assert glaive.becomes_unready_after_attack(16)
+    assert "conditional-ready-after-attack" not in entries["equipment:glaive"].unsupported_mechanics
+
+    extra_die = Damage(basis="swing", bonus_dice=1, adds=-2, damage_type="cut")
+    assert (extra_die.bonus_dice, extra_die.adds) == (1, -2)
+    with pytest.raises(SchemaError, match="Fixed damage cannot"):
+        Damage(basis="fixed", dice=1, bonus_dice=1, damage_type="cut")
 
 
 def test_b275_276_melee_rows_bind_their_exact_alternate_thrown_modes() -> None:

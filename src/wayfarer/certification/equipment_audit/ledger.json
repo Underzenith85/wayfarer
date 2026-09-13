@@ -889,10 +889,12 @@
       "reference": "B272-274 double-dagger ST entries",
       "anchor": "inspected",
       "behaviour": "A double-dagger weapon becomes unready after attacking unless the wielder has at least 1.5 times its listed ST.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.melee_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_maneuvers.py::test_double_dagger_readiness_uses_exact_strength_threshold"
+      ],
       "evidence_gap": null
     },
     {
@@ -1497,6 +1499,19 @@
       "gap": null
     },
     {
+      "id": "Damage.bonus_dice",
+      "unit": "additional d6 count",
+      "reference": "B272/B274 ST-based damage expressions",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": [
+        "tests/test_gurps_melee.py::test_strength_damage_can_add_a_source_authored_die"
+      ],
+      "gap": null
+    },
+    {
       "id": "Damage.adds",
       "unit": "damage adds",
       "reference": "B271 damage column",
@@ -1699,6 +1714,19 @@
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_maneuvers.py::test_unready_after_attack_requires_ready_and_forbids_double"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.ready_after_attack_below_st_multiple",
+      "unit": "exact ST multiple",
+      "reference": "B270 double-dagger ST marker",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": [
+        "tests/test_gurps_maneuvers.py::test_double_dagger_readiness_uses_exact_strength_threshold"
       ],
       "gap": null
     },

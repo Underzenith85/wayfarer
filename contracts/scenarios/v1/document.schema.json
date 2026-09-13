@@ -3687,6 +3687,12 @@
           "default": null,
           "title": "Dice"
         },
+        "bonus_dice": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Bonus Dice",
+          "type": "integer"
+        },
         "adds": {
           "default": 0,
           "title": "Adds",
@@ -8819,6 +8825,20 @@
           "default": false,
           "title": "Ready After Attack",
           "type": "boolean"
+        },
+        "ready_after_attack_below_st_multiple": {
+          "anyOf": [
+            {
+              "format": "fraction",
+              "gt": 0,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ready After Attack Below St Multiple"
         }
       },
       "required": [
