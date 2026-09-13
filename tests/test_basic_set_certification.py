@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from wayfarer.certification.basic_set_certification import PROFILE_ID, evaluate, require_certified
+from wayfarer.certification.source_ledgers import load_source_ledgers
 from wayfarer.engine.rules.conformance import PROFILES
 from wayfarer.errors import ValidationError
 
@@ -45,22 +46,16 @@ def test_basic_set_gate_exposes_capability_source_and_inventory_blockers() -> No
     )
 
 
-def test_inventory_cannot_outrun_bound_source_ledger_implementation() -> None:
+def test_inventory_uses_reconciled_bound_source_ledger_implementation() -> None:
     result = evaluate(ROOT)
     inventory_blockers = {
         blocker.identifier: blocker for blocker in result.blockers if blocker.kind == "inventory"
     }
 
-    # The runtime hook exists, but the exhaustive source row still records only
-    # partial rule coverage. The inventory row must therefore remain blocked.
-    combat_reflexes = inventory_blockers["trait:combat-reflexes"]
-    assert "implementation=implemented" in combat_reflexes.detail
-    assert "source_review=reviewed" in combat_reflexes.detail
-    assert "source_ledger_implementation=partial" in combat_reflexes.detail
-    assert combat_reflexes.owner_issue == 496
-
-    # A row whose runtime and bound source evidence are both verified remains
-    # eligible and must not acquire a duplicate inventory blocker.
+    # Reviewed runtime bindings with independent test evidence are joined to
+    # their source-ledger implementation and do not create duplicate blockers.
+    assert "trait:combat-reflexes" not in inventory_blockers
+    assert "supernatural/advantage:360-vision" not in inventory_blockers
     assert "development:adventure" not in inventory_blockers
 
 
@@ -70,12 +65,28 @@ def test_inventory_blocker_reports_itemized_creature_gaps() -> None:
         blocker.identifier: blocker for blocker in result.blockers if blocker.kind == "inventory"
     }
     cat = blockers["creature:house-cat"]
-    assert cat.owner_issue == 521
+    assert cat.owner_issue == 94
     assert "implementation=partial" in cat.detail
     assert "gaps=catfall,combat-reflexes,domestic-animal" in cat.detail
     assert "swarm:bees" in blockers
     assert "swarm:bats" not in blockers
     assert "swarm:rats" not in blockers
+
+
+def test_every_reported_blocker_has_a_currently_open_owner() -> None:
+    bundle = load_source_ledgers(ROOT)
+    owner_states = {issue.issue: issue.state for issue in bundle.owners.issues}
+    report = evaluate(ROOT)
+    assert all(
+        blocker.owner_issue is None or owner_states[blocker.owner_issue] == "open"
+        for blocker in report.blockers
+    )
+    assert {blocker.owner_issue for blocker in report.blockers} == {
+        94,
+        106,
+        512,
+        513,
+    }
 
 
 def test_basic_set_release_rejects_current_incomplete_evidence() -> None:

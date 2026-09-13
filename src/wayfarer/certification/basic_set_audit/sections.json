@@ -1634,9 +1634,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
@@ -1660,9 +1661,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1686,9 +1688,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1712,9 +1715,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1738,9 +1742,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1764,9 +1769,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1790,9 +1796,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1816,9 +1823,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
@@ -1842,9 +1850,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
@@ -1868,9 +1877,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
@@ -1894,9 +1904,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
@@ -1920,9 +1931,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1946,9 +1958,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -1972,9 +1985,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -1998,9 +2012,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -2024,9 +2039,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -2077,9 +2093,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497,
+        94
       ],
-      "completion_owner": 497,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -2103,9 +2121,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -2129,9 +2148,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497,
+        94
       ],
-      "completion_owner": 497,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -2155,9 +2176,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -2181,9 +2203,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b117:new-advantages",
@@ -2207,9 +2230,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b117:new-advantages",
@@ -2233,9 +2257,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
@@ -2259,9 +2284,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2285,9 +2311,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2311,9 +2338,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2337,9 +2365,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2363,9 +2392,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2389,9 +2419,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2415,9 +2446,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2441,9 +2473,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2467,9 +2500,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496,
+        94
       ],
-      "completion_owner": 496,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b122:disadvantage-list",
@@ -2493,9 +2528,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2519,9 +2555,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b162:quirks",
@@ -2545,9 +2582,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496,
+        94
       ],
-      "completion_owner": 496,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b162:quirks",
@@ -2571,9 +2610,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b162:quirks",
@@ -2597,9 +2637,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2623,9 +2664,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        496
       ],
-      "completion_owner": 496,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b165:new-disadvantages",
@@ -3560,9 +3602,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": null,
@@ -3586,9 +3629,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500,
+        94
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
@@ -3612,9 +3657,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
@@ -3638,9 +3684,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:learning-magic",
@@ -3664,9 +3711,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:learning-magic",
@@ -3690,9 +3738,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
@@ -3716,9 +3765,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3742,9 +3792,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3768,9 +3819,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3794,9 +3846,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3820,9 +3873,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3846,9 +3900,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3872,9 +3927,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3898,9 +3954,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3924,9 +3981,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3950,9 +4008,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -3976,9 +4035,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -4002,9 +4062,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
@@ -4028,9 +4089,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4054,9 +4116,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4080,9 +4143,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4106,9 +4170,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4132,9 +4197,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4158,9 +4224,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4184,9 +4251,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4210,9 +4278,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
@@ -4236,9 +4305,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4262,9 +4332,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4288,9 +4359,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4314,9 +4386,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4340,9 +4413,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4366,9 +4440,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4392,9 +4467,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4418,9 +4494,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4444,9 +4521,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4470,9 +4548,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4496,9 +4575,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4522,9 +4602,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4548,9 +4629,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4574,9 +4656,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4600,9 +4683,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4626,9 +4710,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
@@ -4652,9 +4737,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": null,
@@ -4678,9 +4764,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500,
+        94
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:6-psionics",
@@ -4704,9 +4792,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:6-psionics",
@@ -4730,9 +4819,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:powers-abilities-and-talens",
@@ -4756,9 +4846,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:powers-abilities-and-talens",
@@ -4782,9 +4873,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:6-psionics",
@@ -4808,9 +4900,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:6-psionics",
@@ -4834,9 +4927,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -4860,9 +4954,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -4886,9 +4981,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -4912,9 +5008,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -4938,9 +5035,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -4964,9 +5062,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -4990,9 +5089,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -5016,9 +5116,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500,
+        94
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -5042,9 +5144,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": 94,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
@@ -5398,9 +5501,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": null,
@@ -5424,9 +5528,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -5450,9 +5555,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -5476,9 +5582,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -5502,9 +5609,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527,
+        94
       ],
-      "completion_owner": 527,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -5528,9 +5637,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -5554,9 +5664,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b266:buying-equipment",
@@ -5580,9 +5691,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -5606,9 +5718,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5632,9 +5745,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5658,9 +5772,11 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527,
+        94
       ],
-      "completion_owner": 527,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5711,9 +5827,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5737,9 +5854,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5763,9 +5881,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5789,9 +5908,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5815,9 +5935,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5841,9 +5962,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5867,9 +5989,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5920,9 +6043,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -5946,9 +6070,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -5972,9 +6097,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b282:armor",
@@ -5998,9 +6124,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b282:armor",
@@ -6024,9 +6151,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -6050,9 +6178,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b287:shields",
@@ -6076,9 +6205,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
@@ -6102,9 +6232,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": null,
@@ -6130,9 +6261,10 @@
         "tests/test_character_development.py"
       ],
       "historical_owners": [
-        191
+        191,
+        499
       ],
-      "completion_owner": 499,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "development:adventure",
       "parent_id": "section:characters:b290:9-character-development",
@@ -6158,9 +6290,10 @@
         "tests/test_character_development.py"
       ],
       "historical_owners": [
-        191
+        191,
+        499
       ],
-      "completion_owner": 499,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "development:gained-in-play",
       "parent_id": "section:characters:b290:improvement-through-adventure",
@@ -6185,9 +6318,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:characters:b290:improvement-through-adventure",
@@ -6213,9 +6347,10 @@
         "tests/test_character_development.py"
       ],
       "historical_owners": [
-        191
+        191,
+        499
       ],
-      "completion_owner": 499,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "development:quick-learning",
       "parent_id": "section:characters:b290:improvement-through-adventure",
@@ -6241,9 +6376,10 @@
         "tests/test_character_development.py"
       ],
       "historical_owners": [
-        191
+        191,
+        499
       ],
-      "completion_owner": 499,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "development:study",
       "parent_id": "section:characters:b290:9-character-development",
@@ -6268,9 +6404,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:characters:b292:improvement-through-study",
@@ -6296,9 +6433,10 @@
         "tests/test_character_development.py"
       ],
       "historical_owners": [
-        191
+        191,
+        499
       ],
-      "completion_owner": 499,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "development:teachers",
       "parent_id": "section:characters:b292:improvement-through-study",
@@ -6351,9 +6489,10 @@
         "tests/test_character_development.py"
       ],
       "historical_owners": [
-        191
+        191,
+        499
       ],
-      "completion_owner": 499,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "development:learnable-advantages",
       "parent_id": "section:characters:b292:improvement-through-study",
@@ -6379,9 +6518,10 @@
         "tests/test_transformations.py"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "transformation:campaign",
       "parent_id": "section:characters:b290:9-character-development",
@@ -6407,9 +6547,10 @@
         "tests/test_transformations.py"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "transformation:body-modification",
       "parent_id": "section:characters:b294:transformations",
@@ -6435,9 +6576,10 @@
         "tests/test_transformations.py"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "transformation:mind-transfer",
       "parent_id": "section:characters:b294:transformations",
@@ -6463,9 +6605,10 @@
         "tests/test_transformations.py"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "transformation:supernatural-affliction",
       "parent_id": "section:characters:b294:transformations",
@@ -6491,9 +6634,10 @@
         "tests/test_transformations.py"
       ],
       "historical_owners": [
-        191
+        191,
+        500
       ],
-      "completion_owner": 500,
+      "completion_owner": null,
       "capability_id": "gurps.character.development",
       "runtime_binding": "transformation:death-boundary",
       "parent_id": "section:characters:b294:transformations",
@@ -7078,9 +7222,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": null,
@@ -7104,9 +7249,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": null,
@@ -7130,9 +7276,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7156,9 +7303,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7182,9 +7330,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7208,9 +7357,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7234,9 +7384,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7260,9 +7411,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7286,9 +7438,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7339,9 +7492,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7365,9 +7519,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7391,9 +7546,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b348:contests",
@@ -7417,9 +7573,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b348:contests",
@@ -7443,9 +7600,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b348:contests",
@@ -7469,9 +7627,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7495,9 +7654,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7521,9 +7681,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7547,9 +7708,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7573,9 +7735,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7599,9 +7762,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7625,9 +7789,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7678,9 +7843,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7704,9 +7870,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7730,9 +7897,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7756,9 +7924,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7782,9 +7951,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7808,9 +7978,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7834,9 +8005,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
@@ -7860,9 +8032,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7886,9 +8059,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b358:sense-rolls",
@@ -7912,9 +8086,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b358:sense-rolls",
@@ -7938,9 +8113,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b358:sense-rolls",
@@ -7964,9 +8140,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -7990,9 +8167,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b359:influence-rolls",
@@ -8016,9 +8194,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
@@ -8042,9 +8221,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b360:will-rolls",
@@ -10540,9 +10720,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10567,9 +10748,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10594,9 +10776,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10621,9 +10804,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10648,9 +10832,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10675,9 +10860,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10702,9 +10888,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10729,9 +10916,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b391:close-combat",
@@ -10756,9 +10944,10 @@
         "tests/test_close_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        508
       ],
-      "completion_owner": 508,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b384:12-tactical-combat",
@@ -10950,9 +11139,10 @@
         "tests/test_mounted_flying_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        528
       ],
-      "completion_owner": 528,
+      "completion_owner": null,
       "capability_id": "gurps.combat.mounted",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b394:special-movement",
@@ -10978,9 +11168,10 @@
         "tests/test_mounted_flying_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        528
       ],
-      "completion_owner": 528,
+      "completion_owner": null,
       "capability_id": "gurps.combat.personal_flight",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b394:special-movement",
@@ -12549,9 +12740,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": 94,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -14785,9 +14977,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": null,
@@ -14811,9 +15004,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -14837,9 +15031,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -14863,9 +15058,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -14889,9 +15085,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -14915,9 +15112,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -14941,9 +15139,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -14967,9 +15166,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -14993,9 +15193,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -15019,9 +15220,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -15045,9 +15247,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -15071,9 +15274,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
@@ -15097,9 +15301,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -15125,9 +15330,10 @@
         "tests/test_electronics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        523
       ],
-      "completion_owner": 523,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b471:electronics",
@@ -15153,9 +15359,10 @@
         "tests/test_electronics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        523
       ],
-      "completion_owner": 523,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b471:electronics",
@@ -15181,9 +15388,10 @@
         "tests/test_electronics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        523
       ],
-      "completion_owner": 523,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b471:electronics",
@@ -15209,9 +15417,10 @@
         "tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"
       ],
       "historical_owners": [
-        191
+        191,
+        524
       ],
-      "completion_owner": 524,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -15235,9 +15444,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15261,9 +15471,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15287,9 +15498,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15315,9 +15527,10 @@
         "tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"
       ],
       "historical_owners": [
-        191
+        191,
+        524
       ],
-      "completion_owner": 524,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15343,9 +15556,10 @@
         "tests/test_invention_projects.py::test_shortfalls_block_before_project_time_or_randomness"
       ],
       "historical_owners": [
-        191
+        191,
+        524
       ],
-      "completion_owner": 524,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15369,9 +15583,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15397,9 +15612,10 @@
         "tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"
       ],
       "historical_owners": [
-        191
+        191,
+        524
       ],
-      "completion_owner": 524,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15423,9 +15639,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
@@ -15451,9 +15668,10 @@
         "tests/test_invention_projects.py::test_compiled_capability_and_campaign_permission_gate_gadget_methods"
       ],
       "historical_owners": [
-        191
+        191,
+        525
       ],
-      "completion_owner": 525,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -15479,9 +15697,10 @@
         "tests/test_invention_projects.py::test_quick_schedule_defects_and_improvised_parts_replay_exactly"
       ],
       "historical_owners": [
-        191
+        191,
+        525
       ],
-      "completion_owner": 525,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
@@ -15507,9 +15726,10 @@
         "tests/test_invention_projects.py::test_quick_schedule_defects_and_improvised_parts_replay_exactly"
       ],
       "historical_owners": [
-        191
+        191,
+        525
       ],
-      "completion_owner": 525,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
@@ -15535,9 +15755,10 @@
         "tests/test_invention_projects.py::test_quick_schedule_defects_and_improvised_parts_replay_exactly"
       ],
       "historical_owners": [
-        191
+        191,
+        525
       ],
-      "completion_owner": 525,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
@@ -15563,9 +15784,10 @@
         "tests/test_invention_projects.py::test_gadget_work_pauses_for_adventure_time_and_non_gadget_access_is_bounded"
       ],
       "historical_owners": [
-        191
+        191,
+        525
       ],
-      "completion_owner": 525,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
@@ -15591,9 +15813,10 @@
         "tests/test_invention_projects.py::test_gadget_work_pauses_for_adventure_time_and_non_gadget_access_is_bounded"
       ],
       "historical_owners": [
-        191
+        191,
+        525
       ],
-      "completion_owner": 525,
+      "completion_owner": null,
       "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
@@ -15619,9 +15842,10 @@
         "tests/test_artifacts.py::test_unknown_and_partial_artifacts_expose_only_authorized_properties"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -15647,9 +15871,10 @@
         "tests/test_artifacts.py::test_analysis_discovers_one_property_and_records_the_minute"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b478:futuristic-and-alien-artifacts",
@@ -15675,9 +15900,10 @@
         "tests/test_artifacts.py::test_anachronistic_tl_context_changes_procedures_without_catalog_mutation"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b478:futuristic-and-alien-artifacts",
@@ -15703,9 +15929,10 @@
         "tests/test_artifacts.py::test_missing_effect_family_rejects_before_check_side_effect_or_depletion"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -15731,9 +15958,10 @@
         "tests/test_artifacts.py::test_random_side_effect_is_recorded_once_and_replays_without_entropy"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b479:weird-technology",
@@ -15757,9 +15985,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -15783,9 +16012,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -15811,9 +16041,10 @@
         "tests/test_enchanting_projects.py::test_quick_energy_is_preflighted_spent_once_and_bad_target_is_early"
       ],
       "historical_owners": [
-        191
+        191,
+        526
       ],
-      "completion_owner": 526,
+      "completion_owner": null,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -15839,9 +16070,10 @@
         "tests/test_enchanting_projects.py::test_slow_project_interrupt_resume_restart_and_compile_item"
       ],
       "historical_owners": [
-        191
+        191,
+        526
       ],
-      "completion_owner": 526,
+      "completion_owner": null,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -15867,9 +16099,10 @@
         "tests/test_enchanting_projects.py::test_item_activation_blocks_missing_family_and_spends_one_charge"
       ],
       "historical_owners": [
-        191
+        191,
+        526
       ],
-      "completion_owner": 526,
+      "completion_owner": null,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -15895,9 +16128,10 @@
         "tests/test_enchanting_projects.py"
       ],
       "historical_owners": [
-        191
+        191,
+        526
       ],
-      "completion_owner": 526,
+      "completion_owner": null,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -15921,9 +16155,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -15947,9 +16182,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
@@ -15973,9 +16209,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
@@ -15999,9 +16236,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
@@ -16025,9 +16263,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
@@ -16051,9 +16290,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
@@ -16077,9 +16317,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
@@ -16103,9 +16344,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        527
       ],
-      "completion_owner": 527,
+      "completion_owner": 94,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
@@ -16129,9 +16371,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": null,
@@ -16155,9 +16398,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
@@ -16181,9 +16425,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
@@ -16207,9 +16452,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
@@ -16233,9 +16479,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
@@ -16259,9 +16506,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
@@ -16285,9 +16533,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
@@ -16311,9 +16560,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
@@ -16337,9 +16587,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b490:starting-a-game-session",
@@ -16363,9 +16614,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b490:starting-a-game-session",
@@ -16389,9 +16641,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b490:starting-a-game-session",
@@ -16415,9 +16668,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
@@ -16441,9 +16695,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16467,9 +16722,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16493,9 +16749,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16519,9 +16776,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16547,9 +16805,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.administration",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16575,9 +16834,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.knowledge",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16603,9 +16863,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.knowledge",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16629,9 +16890,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16657,9 +16919,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.time_use",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16683,9 +16946,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
@@ -16711,9 +16975,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.administration",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
@@ -16739,9 +17004,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.administration",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b498:ending-a-play-session",
@@ -16767,9 +17033,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.time_use",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b498:ending-a-play-session",
@@ -16793,9 +17060,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
@@ -16819,9 +17087,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
@@ -16845,9 +17114,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
@@ -16871,9 +17141,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
@@ -16899,9 +17170,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.traps",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
@@ -16925,9 +17197,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
@@ -16951,9 +17224,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
@@ -16977,9 +17251,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        501
       ],
-      "completion_owner": 501,
+      "completion_owner": 94,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
@@ -17003,9 +17278,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": null,
@@ -17029,9 +17305,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
@@ -17057,9 +17334,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
@@ -17085,9 +17363,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b506:laws-and-customs",
@@ -17113,9 +17392,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b506:laws-and-customs",
@@ -17141,9 +17421,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b506:laws-and-customs",
@@ -17169,9 +17450,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b506:laws-and-customs",
@@ -17197,9 +17479,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b506:laws-and-customs",
@@ -17225,9 +17508,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b506:laws-and-customs",
@@ -17253,9 +17537,10 @@
         "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
-        191
+        191,
+        502
       ],
-      "completion_owner": 502,
+      "completion_owner": null,
       "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b506:laws-and-customs",
@@ -17279,9 +17564,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
@@ -17305,9 +17591,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b509:society-and-government-types",
@@ -17331,9 +17618,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b509:society-and-government-types",
@@ -17357,9 +17645,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b509:society-and-government-types",
@@ -17580,9 +17869,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
@@ -17607,9 +17897,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17634,9 +17925,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17661,9 +17953,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17688,9 +17981,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17714,9 +18008,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17741,9 +18036,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17768,9 +18064,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17795,9 +18092,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.hirelings",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17822,9 +18120,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17848,9 +18147,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        504
       ],
-      "completion_owner": 504,
+      "completion_owner": 94,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
@@ -17875,9 +18175,10 @@
         "tests/test_economics.py"
       ],
       "historical_owners": [
-        191
+        191,
+        503
       ],
-      "completion_owner": 503,
+      "completion_owner": null,
       "capability_id": "gurps.campaign.hirelings",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
