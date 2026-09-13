@@ -12,7 +12,7 @@ from wayfarer.engine.rules.types.explosion import BlastResponse, ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import catalog, movement
+from wayfarer.engine.simulation.actors import build, catalog, movement
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -21,10 +21,11 @@ from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts, sa
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.thrown.flight import position
-from wayfarer.engine.simulation.combat.unarmed.injury import hurt
+from wayfarer.engine.simulation.combat.unarmed.injury import armor_dr, hurt
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.hit_locations import select_location
+from wayfarer.engine.simulation.hex_geometry import DIRECTIONS as HEX_DIRECTIONS
 from wayfarer.engine.simulation.hex_geometry import Hex, distance
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
@@ -44,6 +45,7 @@ def schedule_payload(
     hits: int,
     shots_fired: int,
     critical: int,
+    attack: CheckTrace,
 ) -> tuple[PlayState, Encounter, bool]:
 
     pending = encounter.pending_defense
@@ -90,6 +92,10 @@ def schedule_payload(
     for index in range(count):
         fuse = (draw_dice(runtime.rng, 1)[0],) if delayed else ()
         direct = pending.attacker_id if explodes else pending.defender_id if index < hits else None
+        aim_point = pending.area_aim_point
+        attack_range = separation(position(encounter, attacker), aim_point) if aim_point else None
+        scatter_direction: int | None = None
+        scatter_distance = 0
         center = (
             position(encounter, attacker)
             if explodes
@@ -97,6 +103,35 @@ def schedule_payload(
             if direct
             else None
         )
+        if aim_point is not None:
+            center = aim_point
+            direct = None
+            if not attack.outcome.succeeded:
+                scatter_direction = draw_dice(runtime.rng, 1)[0]
+                margin = max(1, attack.total - attack.effective_target)
+                scatter_distance = margin * margin if pending.scatter_squared else margin
+                assert attack_range is not None
+                scatter_distance = min(scatter_distance, (attack_range + 1) // 2)
+                dq, dr = HEX_DIRECTIONS[scatter_direction - 1]
+                if aim_point.geometry == "grid":
+                    # The six B414 facings map clockwise onto the square adapter.
+                    dq, dr = ((0, -1), (1, -1), (1, 0), (0, 1), (-1, 1), (-1, 0))[
+                        scatter_direction - 1
+                    ]
+                center = aim_point.model_copy(
+                    update={
+                        "x": aim_point.x + dq * scatter_distance,
+                        "y": aim_point.y + dr * scatter_distance,
+                    }
+                )
+            resources = resources.model_copy(
+                update={
+                    "expended_items": tuple(
+                        item.model_copy(update={"ground": center}) if item.id == source.id else item
+                        for item in resources.expended_items
+                    )
+                }
+            )
         resources = save(
             resources,
             BlastRecord(
@@ -112,7 +147,13 @@ def schedule_payload(
                 direct_actor_id=direct,
                 critical=critical if index == 0 and not failure else 0,
                 follow_item=grenade and not explodes,
+                destroy_source=grenade and not explodes,
                 fuse_dice=fuse,
+                aim_point=aim_point,
+                attack_range=attack_range,
+                attack_dice=attack.dice if aim_point is not None else (),
+                scatter_direction=scatter_direction,
+                scatter_distance=scatter_distance,
             ),
             f"{pending.id}:blast:{index}:schedule",
         )
@@ -150,6 +191,82 @@ def validate_position(runtime: RulesContext, encounter: Encounter, point: Ground
             raise ValidationError("Blast position is outside the battlefield")
 
 
+def _resolved_center(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    blast: BlastRecord,
+    supplied: GroundPosition | None,
+) -> GroundPosition:
+    resolved = blast.center
+    if blast.follow_item:
+        item = next(
+            (
+                i
+                for i in (*state.resources.items, *state.resources.expended_items)
+                if i.id == blast.source_item_id
+            ),
+            None,
+        )
+        if item is not None and item.ground:
+            resolved = item.ground
+        elif item is not None and item in state.resources.items:
+            owner = next((p for p in encounter.participants if p.actor_id == item.owner_id), None)
+            if owner is None:
+                raise ValidationError("Carried grenade holder needs an explicit encounter position")
+            resolved = position(encounter, owner)
+    if resolved is None:
+        if supplied is None:
+            raise ValidationError(
+                "Unresolved projectile landing requires an explicit GM blast center"
+            )
+        resolved = supplied
+    elif supplied is not None and supplied != resolved:
+        raise ValidationError("A recorded blast center cannot be replaced")
+    if blast.scatter_direction is None:
+        validate_position(runtime, encounter, resolved)
+    elif resolved.encounter_id != encounter.id or resolved.geometry != (
+        "hex" if encounter.spatial_kind == "hex" else "grid"
+    ):
+        raise ValidationError("Recorded scatter does not share the encounter geometry")
+    return resolved
+
+
+def _validate_special_explosion(
+    encounter: Encounter,
+    center: GroundPosition,
+    contact_actor_id: str | None,
+    internal_actor_id: str | None,
+) -> None:
+    if contact_actor_id is not None and internal_actor_id is not None:
+        raise ValidationError("An explosion cannot be both contact and internal")
+    actor_id = contact_actor_id or internal_actor_id
+    if actor_id is None:
+        return
+    actor = next((p for p in encounter.participants if p.actor_id == actor_id), None)
+    if actor is None or separation(position(encounter, actor), center):
+        raise ValidationError("Contact/internal explosion actor must occupy the blast center")
+
+
+def _special_blast_adjustment(
+    runtime: RulesContext,
+    state: PlayState,
+    *,
+    actor_id: str,
+    amount: int,
+    contact_actor_id: str | None,
+    internal_actor_id: str | None,
+) -> tuple[int, int, bool, bool]:
+    contact = contact_actor_id == actor_id
+    internal = internal_actor_id == actor_id
+    contact_cover = 0
+    if contact_actor_id is not None and not contact:
+        compiled = build(runtime, state, contact_actor_id)
+        assert compiled.statistics is not None
+        contact_cover = compiled.statistics.hp + armor_dr(runtime, state, contact_actor_id, "torso")
+    return amount * (3 if internal else 1), contact_cover, contact, internal
+
+
 def resolve_blast(
     runtime: RulesContext,
     state: PlayState,
@@ -162,6 +279,8 @@ def resolve_blast(
     object_sizes: dict[str, int],
     center: GroundPosition | None,
     environment: str,
+    contact_actor_id: str | None,
+    internal_actor_id: str | None,
 ) -> tuple[PlayState, Encounter, int]:
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
@@ -174,37 +293,8 @@ def resolve_blast(
         or blast.due > state.resources.game_time
     ):
         raise ValidationError("No due unresolved blast is available")
-    resolved_center = blast.center
-    if blast.follow_item:
-        item = next(
-            (
-                i
-                for i in (*state.resources.items, *state.resources.expended_items)
-                if i.id == blast.source_item_id
-            ),
-            None,
-        )
-        if item is not None:
-            if item.ground:
-                resolved_center = item.ground
-            elif item in state.resources.items:
-                owner = next(
-                    (p for p in encounter.participants if p.actor_id == item.owner_id), None
-                )
-                if owner is None:
-                    raise ValidationError(
-                        "Carried grenade holder needs an explicit encounter position"
-                    )
-                resolved_center = position(encounter, owner)
-    if resolved_center is None:
-        if center is None:
-            raise ValidationError(
-                "Unresolved projectile landing requires an explicit GM blast center"
-            )
-        resolved_center = center
-    elif center is not None and center != resolved_center:
-        raise ValidationError("A recorded blast center cannot be replaced")
-    validate_position(runtime, encounter, resolved_center)
+    resolved_center = _resolved_center(runtime, state, encounter, blast, center)
+    _validate_special_explosion(encounter, resolved_center, contact_actor_id, internal_actor_id)
     payload = blast.payload
     radius = max(2 * payload.dice * payload.multiplier, 5 * payload.fragmentation_dice)
     participants = tuple(
@@ -300,10 +390,21 @@ def resolve_blast(
                 covered = response.dive_covered_locations
         distance_ = separation(point, resolved_center)
         direct = blast.direct_actor_id == actor.actor_id and not blast.follow_item
+        contact = contact_actor_id == actor.actor_id
         amount, dice = (
-            blast_damage(distance_, direct, blast.critical if direct else 0)
+            (max(0, (6 * payload.dice + payload.adds) * payload.multiplier), ())
+            if contact
+            else blast_damage(distance_, direct, blast.critical if direct else 0)
             if distance_ <= 2 * payload.dice * payload.multiplier
             else (0, ())
+        )
+        adjusted, contact_cover, contact, internal = _special_blast_adjustment(
+            runtime,
+            state,
+            actor_id=actor.actor_id,
+            amount=amount,
+            contact_actor_id=contact_actor_id,
+            internal_actor_id=internal_actor_id,
         )
         state, encounter, injury = hurt(
             runtime,
@@ -311,10 +412,14 @@ def resolve_blast(
             encounter,
             actor.actor_id,
             command_id + ":" + actor.actor_id + ":blast",
-            max(0, amount - (cover if "torso" in covered else 0)),
+            max(
+                0,
+                adjusted - contact_cover - (cover if "torso" in covered else 0),
+            ),
             damage_type=payload.damage_type,
             armor_divisor=payload.armor_divisor if direct else Decimal(1),
             critical=blast.critical if direct else 0,
+            ignore_dr=internal,
         )
         evidence.append(
             {
@@ -323,6 +428,9 @@ def resolve_blast(
                 "basic": amount,
                 "injury": injury,
                 "defense": asdict(defense) if defense else None,
+                "contact": contact,
+                "internal": internal,
+                "contact_cover_dr": contact_cover,
             }
         )
         if payload.fragmentation_dice and distance_ <= 5 * payload.fragmentation_dice:
@@ -461,6 +569,8 @@ def resolve_blast(
                         "object_cover": object_cover,
                         "object_sizes": object_sizes,
                         "environment": environment,
+                        "contact_actor_id": contact_actor_id,
+                        "internal_actor_id": internal_actor_id,
                         "outcomes": evidence,
                     },
                     sort_keys=True,
@@ -471,7 +581,7 @@ def resolve_blast(
         command_id + ":resolve-blast",
     )
     # An exploded grenade remains the same spent instance, permanently unavailable.
-    if blast.follow_item:
+    if blast.destroy_source or blast.follow_item:
         resources = resources.model_copy(
             update={
                 "items": tuple(i for i in resources.items if i.id != blast.source_item_id),

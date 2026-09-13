@@ -48,6 +48,13 @@ def _validate_special_strike_command(command: TakeCombatTurn, *, gurps: bool) ->
         raise ValidationError("Subdual striking requires a single GURPS attack")
 
 
+def _validate_area_command(command: TakeCombatTurn, *, gurps: bool) -> None:
+    if (command.area_aim_point is not None or command.scatter_squared) and (
+        command.maneuver not in ATTACK_MANEUVERS or not gurps or command.attack_option == "double"
+    ):
+        raise ValidationError("Area aim requires a single GURPS ranged attack")
+
+
 def _validate_turn(
     state: PlayState, command: TakeCombatTurn, encounter: Encounter, context: CombatContext
 ) -> tuple[PlayState, Encounter]:
@@ -79,6 +86,7 @@ def _validate_turn(
         or command.attack_option == "double"
     ):
         raise ValidationError("Object and penetration targeting require a single GURPS attack")
+    _validate_area_command(command, gurps=engine.rules.gurps_equipment is not None)
     if command.ready_hand is not None and (
         command.maneuver != "ready" or engine.rules.gurps_equipment is None
     ):
@@ -259,6 +267,8 @@ def _preview_turn(
                 target_item_id=command.target_item_id,
                 cover_item_id=command.cover_item_id,
                 overpenetration_target_id=command.overpenetration_target_id,
+                area_aim_point=command.area_aim_point,
+                scatter_squared=command.scatter_squared,
                 shots=(
                     preview.pending_defense.shots
                     if preview.pending_defense.suppression_zone_id is not None
@@ -408,6 +418,8 @@ def _begin_turn(
                 "braced": False,
                 "hit_location": None,
                 "ready_hand": None,
+                "area_aim_point": None,
+                "scatter_squared": False,
             }
         )
     else:
@@ -480,6 +492,8 @@ def _prepare_attack_turn(
         target_item_id=command.target_item_id,
         cover_item_id=command.cover_item_id,
         overpenetration_target_id=command.overpenetration_target_id,
+        area_aim_point=command.area_aim_point,
+        scatter_squared=command.scatter_squared,
         shots=command.shots,
     )
     encounter = prepare_spraying_fire(context.play.rules_context, state, encounter, command)

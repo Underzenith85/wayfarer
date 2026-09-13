@@ -45,6 +45,8 @@ def _explosion(
         object_sizes=command.object_sizes,
         center=command.center,
         environment=command.environment,
+        contact_actor_id=command.contact_actor_id,
+        internal_actor_id=command.internal_actor_id,
     )
     resources = state.resources
     result = CombatResult(

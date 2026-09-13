@@ -59,7 +59,7 @@ from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.special import impact_cover, living_cover_dr
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
 from wayfarer.engine.simulation.combat.special_melee import targeted_attack_penalty
-from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload
+from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload, separation
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
 from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
@@ -277,6 +277,11 @@ def resolve(
             and next(i for i in state.resources.items if i.id == pending.target_item_id).ground
         ),
     )
+    attack_distance = (
+        float(separation(position(encounter, actor), pending.area_aim_point))
+        if pending.area_aim_point is not None
+        else scene.distance
+    )
     equipment = catalog(runtime)
     compiled = build(runtime, state, actor.actor_id)
     defender_build = build(runtime, state, target.actor_id)
@@ -291,7 +296,8 @@ def resolve(
     validate_rated_strength(equipment.profile_id, weapon, st)
     aim = actor.maneuver_state
     aimed = (
-        (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id)
+        pending.area_aim_point is None
+        and (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id)
         == (
             pending.weapon_id,
             weapon.id,
@@ -320,19 +326,22 @@ def resolve(
         effective_shots, close_projectile_multiplier = multiple_projectile_attack(
             pending.shots,
             weapon.multiple_projectiles.projectiles_per_shot,
-            scene.distance,
+            attack_distance,
             float(weapon.half_damage_range),
         )
     range_modifier = (
         weapon.bulk
         if pending.close_combat
-        else range_penalty(scene.distance + scene.speed_yards_per_second)
+        else range_penalty(
+            attack_distance
+            + (0 if pending.area_aim_point is not None else scene.speed_yards_per_second)
+        )
     )
     attack_target = (
         int(value.value)
         + pending.visibility_attack_penalty
         + bonus
-        + scene.size_modifier
+        + (4 if pending.area_aim_point is not None else scene.size_modifier)
         + range_modifier
         + rapid_fire_bonus(effective_shots)
         # A mount bears the weapon, so the firer's own ST is not what limits it.
@@ -668,6 +677,7 @@ def resolve(
         hits=hits,
         shots_fired=shots_fired,
         critical=critical,
+        attack=attack,
     )
     target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
     if payload_attack:

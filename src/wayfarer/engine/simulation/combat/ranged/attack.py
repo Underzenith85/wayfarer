@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HitLocation
+from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.close_combat import (
@@ -24,6 +25,8 @@ from wayfarer.engine.simulation.combat.ranged.special import validate_cover_geom
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
 from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.combat.tactical import defense_adjustment
+from wayfarer.engine.simulation.combat.thrown.explosions import separation, validate_position
+from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.visibility import combat_visibility
 from wayfarer.engine.simulation.combat.vocabulary import Defense
@@ -84,6 +87,42 @@ def _validate_penetration_targets(
         raise ValidationError("Selected attack cannot overpenetrate")
 
 
+def _area_attack_distance(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    weapon: RangedMode,
+    *,
+    weapon_item_id: str,
+    actor_id: str,
+    aim_point: GroundPosition | None,
+    scatter_squared: bool,
+    shots: int,
+    hit_location: HitLocation | None,
+    target_item_id: str | None,
+    cover_item_id: str | None,
+    overpenetration_target_id: str | None,
+) -> float | None:
+    if scatter_squared and aim_point is None:
+        raise ValidationError("Squared scatter requires a declared area aim point")
+    if aim_point is None:
+        return None
+    if target_item_id or cover_item_id or overpenetration_target_id or hit_location:
+        raise ValidationError("Area aim cannot select a body part, object, or penetration target")
+    if shots != 1:
+        raise ValidationError("An area attack resolves one payload at a time")
+    source = next(i for i in state.resources.items if i.id == weapon_item_id)
+    entries = {entry.definition_id: entry for entry in catalog(runtime).entries}
+    ammunition = entries.get(weapon.ammunition_id or "")
+    if entries[source.definition_id].warhead is None and (
+        ammunition is None or ammunition.warhead is None
+    ):
+        raise ValidationError("Area aim requires an explosive or area-effect payload")
+    validate_position(runtime, encounter, aim_point)
+    actor = next(p for p in encounter.participants if p.actor_id == actor_id)
+    return float(separation(position(encounter, actor), aim_point))
+
+
 def prepare(
     runtime: RulesContext,
     state: PlayState,
@@ -95,18 +134,36 @@ def prepare(
     target_item_id: str | None = None,
     cover_item_id: str | None = None,
     overpenetration_target_id: str | None = None,
+    area_aim_point: GroundPosition | None = None,
+    scatter_squared: bool = False,
 ) -> Encounter:
 
     pending = encounter.pending_defense
     assert pending is not None
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    area_distance = _area_attack_distance(
+        runtime,
+        state,
+        encounter,
+        weapon,
+        weapon_item_id=pending.weapon_id,
+        actor_id=pending.attacker_id,
+        aim_point=area_aim_point,
+        scatter_squared=scatter_squared,
+        shots=shots,
+        hit_location=hit_location,
+        target_item_id=target_item_id,
+        cover_item_id=cover_item_id,
+        overpenetration_target_id=overpenetration_target_id,
+    )
     visibility = combat_visibility(encounter, actor.actor_id, target.actor_id)
     close = bool(opponents_in_close_combat(encounter, actor.actor_id))
     defender_close = bool(opponents_in_close_combat(encounter, target.actor_id))
     bystanders = tuple(
         participant.actor_id
         for participant in encounter.participants
+        if area_aim_point is None
         if participant.actor_id not in (actor.actor_id, target.actor_id)
         and pair(participant.actor_id, target.actor_id) in encounter.close_pairs
     )
@@ -126,6 +183,7 @@ def prepare(
             and next(i for i in state.resources.items if i.id == target_item_id).ground
         ),
     )
+    attack_distance = area_distance if area_distance is not None else scene.distance
 
     if len(disabled(state.resources, actor.actor_id) & {"left-eye", "right-eye"}) == 2:
         raise ValidationError("Blind ranged attacks require an explicit sensory targeting adapter")
@@ -135,7 +193,7 @@ def prepare(
     st = fatigue_value(fp, stats.st)
     validate_rated_strength(catalog(runtime).profile_id, weapon, st)
     range_st = weapon.rated_strength.st if weapon.rated_strength is not None else st
-    if scene.distance > float(weapon.maximum_range) * (
+    if attack_distance > float(weapon.maximum_range) * (
         range_st if weapon.range_basis == "st" else 1
     ):
         raise ValidationError("Target exceeds maximum ranged weapon range")
@@ -211,7 +269,9 @@ def prepare(
     indirect = weapon.mount is not None and weapon.mount.indirect
     candidates = tuple(
         candidate
-        for candidate in (() if indirect else ("dodge", "block", "parry"))
+        for candidate in (
+            () if indirect or area_aim_point is not None else ("dodge", "block", "parry")
+        )
         if candidate in visibility.defenses
     )
     for candidate in candidates:
@@ -258,7 +318,11 @@ def prepare(
                     "target_item_id": target_item_id,
                     "cover_item_id": cover_item_id,
                     "overpenetration_target_id": overpenetration_target_id,
-                    "visibility_attack_penalty": visibility.attack_penalty,
+                    "area_aim_point": area_aim_point,
+                    "scatter_squared": scatter_squared,
+                    "visibility_attack_penalty": (
+                        0 if area_aim_point is not None else visibility.attack_penalty
+                    ),
                     "visibility_defense_penalty": visibility.defense_penalty,
                     "close_combat": close,
                     "defender_close_combat": defender_close,

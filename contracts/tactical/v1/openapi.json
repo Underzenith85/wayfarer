@@ -414,6 +414,41 @@
         "title": "GridPoint",
         "type": "object"
       },
+      "GroundPosition": {
+        "additionalProperties": false,
+        "properties": {
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "geometry": {
+            "enum": [
+              "grid",
+              "hex"
+            ],
+            "title": "Geometry",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "geometry",
+          "x",
+          "y"
+        ],
+        "title": "GroundPosition",
+        "type": "object"
+      },
       "Hex": {
         "additionalProperties": false,
         "properties": {

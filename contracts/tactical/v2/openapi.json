@@ -1971,6 +1971,22 @@
             "default": null,
             "title": "Overpenetration Target Id"
           },
+          "area_aim_point": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroundPosition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "scatter_squared": {
+            "default": false,
+            "title": "Scatter Squared",
+            "type": "boolean"
+          },
           "ready_hand": {
             "anyOf": [
               {
@@ -3758,6 +3774,34 @@
             ],
             "title": "Environment",
             "type": "string"
+          },
+          "contact_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Contact Actor Id"
+          },
+          "internal_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Internal Actor Id"
           }
         },
         "required": [

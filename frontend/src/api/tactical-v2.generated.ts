@@ -806,6 +806,13 @@ export interface components {
        * @default null
        */
       overpenetration_target_id: string | null;
+      /** @default null */
+      area_aim_point: components["schemas"]["GroundPosition"] | null;
+      /**
+       * Scatter Squared
+       * @default false
+       */
+      scatter_squared: boolean;
       /**
        * Ready Hand
        * @default null
@@ -1599,6 +1606,16 @@ export interface components {
        * @enum {string}
        */
       environment: "air" | "water" | "vacuum";
+      /**
+       * Contact Actor Id
+       * @default null
+       */
+      contact_actor_id: string | null;
+      /**
+       * Internal Actor Id
+       * @default null
+       */
+      internal_actor_id: string | null;
     };
     /** RetreatSpatialFact */
     RetreatSpatialFact: {

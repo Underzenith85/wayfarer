@@ -117,6 +117,20 @@ export interface components {
       /** Y */
       y: number;
     };
+    /** GroundPosition */
+    GroundPosition: {
+      /** Encounter Id */
+      encounter_id: string;
+      /**
+       * Geometry
+       * @enum {string}
+       */
+      geometry: "grid" | "hex";
+      /** X */
+      x: number;
+      /** Y */
+      y: number;
+    };
     /** Hex */
     Hex: {
       /** Q */
