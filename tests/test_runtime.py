@@ -98,7 +98,7 @@ async def test_normal_runtime_restart_and_opening_action(tmp_path: Path) -> None
     async with TestClient(TestServer(recovered)) as client:
         response = await client.get("/setups", headers=headers)
         assert (await response.json())[0]["phase"] == "active"
-        access = await client.app[SETUP_KEY].access.runtime(cid)
+        access = await client.app[SETUP_KEY].access.for_campaign(cid)
         state = access.play._load(await access.play.store.read(cid))
         assert state.resources.game_time == 1
         assert state.actor_scenes[0].scene_id == "harbor-scene"

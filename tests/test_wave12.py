@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 from aiohttp.test_utils import TestClient, TestServer
+from support.runtime import build_orchestrator, build_runtime
 from test_scenes import configured
 from test_wave11 import graph_fixture
 
 from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -22,7 +22,7 @@ from wayfarer.transport.campaign_api import create_campaign_app
 def service(tmp_path: Path) -> SetupService:
     engine, _ = configured()
     return SetupService(
-        CampaignAccess(PlayService(AsyncSQLiteStore(tmp_path / "setup.sqlite"), engine))
+        build_runtime(PlayService(AsyncSQLiteStore(tmp_path / "setup.sqlite"), engine))
     )
 
 
@@ -60,7 +60,7 @@ async def test_atomic_activation_restart_and_lifecycle(tmp_path: Path) -> None:
         len([e for e in await setup.play.store.history(cid) if e.event["outcome"] == "active"]) == 1
     )
     restarted = service(tmp_path)
-    access = await restarted.access.runtime(cid)
+    access = await restarted.access.for_campaign(cid)
     state = access.play._load(await access.play.store.read(cid))
     assert state.actor_scenes[0].scene_id == graph_fixture().opening_scene_id
     assert state.members[0].actor_ids == ("a",)
@@ -327,7 +327,7 @@ async def test_two_players_activate_and_resume_through_public_api(tmp_path: Path
             )
         assert value["phase"] == "active"
     restarted = service(tmp_path)
-    access = await restarted.access.runtime(cid)
+    access = await restarted.access.for_campaign(cid)
     state = access.play._load(await access.play.store.read(cid))
     assert set(state.party.groups[0].actor_ids) == {"a", "b"}
     async with TestClient(
@@ -351,7 +351,7 @@ async def test_late_generation_and_provider_failure_preserve_newer_draft(tmp_pat
     from test_wave9 import FakeProvider
 
     from wayfarer.errors import ProviderError
-    from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
+    from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
 
     setup = service(tmp_path)
     cid = await ready(setup)
@@ -365,7 +365,9 @@ async def test_late_generation_and_provider_failure_preserve_newer_draft(tmp_pat
 
     command = SetupCommand(id="generate", expected_revision=3, operation="edit")
     task = asyncio.create_task(
-        setup.generate(cid, command, Orchestrator(setup.access, Delayed()), principal_id="alice")
+        setup.generate(
+            cid, command, build_orchestrator(setup.access, Delayed()), principal_id="alice"
+        )
     )
     await asyncio.wait_for(entered.wait(), timeout=5)
     await setup.execute(
@@ -386,7 +388,7 @@ async def test_late_generation_and_provider_failure_preserve_newer_draft(tmp_pat
         await setup.generate(
             cid,
             command.model_copy(update={"expected_revision": 4}),
-            Orchestrator(setup.access, Failed(), attempts=1),
+            build_orchestrator(setup.access, Failed(), attempts=1),
             principal_id="alice",
         )
     assert await setup.play.store.read(cid) == saved
@@ -395,12 +397,10 @@ async def test_late_generation_and_provider_failure_preserve_newer_draft(tmp_pat
 async def test_generation_retry_uses_saved_receipt(tmp_path: Path) -> None:
     from test_wave9 import FakeProvider
 
-    from wayfarer.orchestration.providers import Orchestrator
-
     setup = service(tmp_path)
     cid = await ready(setup)
     provider = FakeProvider(graph_fixture().model_dump_json())
-    llm = Orchestrator(setup.access, provider)
+    llm = build_orchestrator(setup.access, provider)
     command = SetupCommand(id="generate", expected_revision=3, operation="edit")
     first = await setup.generate(cid, command, llm, principal_id="alice")
     second = await setup.generate(cid, command, llm, principal_id="alice")
@@ -415,7 +415,7 @@ async def test_engine_ending_required_for_completion_and_archive(tmp_path: Path)
         SetupCommand(id="activate", expected_revision=3, operation="activate"),
         principal_id="alice",
     )
-    access = await setup.access.runtime(cid)
+    access = await setup.access.for_campaign(cid)
     await access.execute(
         cid,
         {
@@ -495,7 +495,7 @@ async def test_v1_reads_activated_runtime_and_rejects_paused_actions(
             principal_id="alice",
         )
         await v1.resolve(str(action["id"]))
-        state = (await setup.access.runtime(cid)).play._load(await setup.play.store.read(cid))
+        state = (await setup.access.for_campaign(cid)).play._load(await setup.play.store.read(cid))
         assert state.resources.game_time == 0
         response = await client.get(f"/api/v1/campaigns/{cid}", headers=headers)
         assert response.status == 200

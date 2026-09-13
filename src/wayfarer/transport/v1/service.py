@@ -18,7 +18,8 @@ from wayfarer.errors import (
     ValidationError,
     provider_diagnostic,
 )
-from wayfarer.orchestration.jobs import jobs_for
+from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.jobs import ProviderJobs
 from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService
@@ -41,10 +42,18 @@ Narrator = Callable[[Obj, Obj], Awaitable[str]]
 
 class V1Service:
     def __init__(
-        self, play: PlayService, path: Path, *, tick_ms: int = 1000, weight_grams: int = 1
+        self,
+        play: PlayService,
+        path: Path,
+        *,
+        jobs: ProviderJobs,
+        instants: Callable[[], CommandInstant] = capture_instant,
+        tick_ms: int = 1000,
+        weight_grams: int = 1,
     ) -> None:
-        self.play, self.ledger = play, Ledger(path)
-        self.jobs = jobs_for(play.store)
+        self.play, self.instants = play, instants
+        self.ledger = Ledger(path, instants=instants)
+        self.jobs = jobs
         self.tick_ms, self.weight_grams = tick_ms, weight_grams
         self.projector: Projector
         self.interpret: Interpreter | None = None

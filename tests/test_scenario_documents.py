@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError as SchemaError
+from support.runtime import build_runtime
 from test_actions import campaign
 from test_scenes import configured
 from test_wave11 import graph_fixture
@@ -20,7 +21,6 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
 )
 from wayfarer.engine.simulation.campaign.scenario_loading import PublishedRevision
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenario_documents import (
     ScenarioDocuments,
@@ -224,7 +224,7 @@ async def test_published_snapshot_survives_edits_and_restart(tmp_path: Path) -> 
     restarted, _ = setup(tmp_path)
     stored = await restarted.studio.play.store.read(initial["id"])
     assert stored["scenario_document_json"] == document.canonical()
-    assert "scenario_document_json" not in await CampaignAccess(activated).read(
+    assert "scenario_document_json" not in await build_runtime(activated).read(
         initial["id"], principal_id="alice"
     )
     later = document.model_copy(

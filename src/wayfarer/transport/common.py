@@ -14,12 +14,12 @@ from aiohttp import web
 
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import AuthenticationError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.providers import Orchestrator
+from wayfarer.orchestration.runtime import CampaignRuntime
 
 MAX_BODY = 32_000
 
-ACCESS_KEY = web.AppKey("campaign-access", CampaignAccess)
+ACCESS_KEY = web.AppKey("campaign-runtime", CampaignRuntime)
 ORCHESTRATOR_KEY = web.AppKey("campaign-orchestrator", Orchestrator)
 TOKENS_KEY = web.AppKey("campaign-tokens", dict[str, str])
 TEMPLATES_KEY = web.AppKey("setup-templates", tuple[ScenarioGraph, ...])

@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.campaign.access import CampaignMember
-from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import record_play_state
 
@@ -26,7 +26,7 @@ def claim_is_valid(invite: Obj, key: str, instant: CommandInstant, *, retry: boo
 async def invitation(
     service: V1Service, principal: str, cid: str, path: str, data: Obj, *, redeem: bool
 ) -> Obj:
-    instant = capture_instant()
+    instant = service.instants()
     key = "receipt:" + encoded([principal, data["command_id"]])
     fingerprint = encoded(["POST", path, data])
     token_key = "invite:" + hashlib.sha256(str(data.get("token", "")).encode()).hexdigest()
@@ -115,7 +115,7 @@ async def invitation(
             return CommandReceipt(action="v1-membership", outcome="Membership granted")
 
         await commit_command(
-            service.play.store,
+            service.play,
             cid,
             internal_id,
             raw["revision"],

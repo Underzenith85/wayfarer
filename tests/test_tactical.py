@@ -11,6 +11,7 @@ from pathlib import Path
 import aiohttp
 import pytest
 from aiohttp import web
+from support.runtime import build_runtime
 from test_gurps_melee import setup as melee_setup
 from test_unarmed import setup as unarmed_setup
 
@@ -26,7 +27,6 @@ from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, P
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import Fact
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
@@ -128,7 +128,7 @@ def migration() -> MigrateEncounterHex:
 async def http(tmp_path: Path) -> AsyncIterator[tuple[str, str, PlayService]]:
     cid, play = await setup(tmp_path)
     app = create_campaign_app(
-        CampaignAccess(play),
+        build_runtime(play),
         {f"{p}-token": p for p in ("alice", "bob", "charlie", "gm", "spectator")},
         legacy_routes=True,
     )
@@ -146,7 +146,7 @@ async def http(tmp_path: Path) -> AsyncIterator[tuple[str, str, PlayService]]:
 async def unarmed_http(tmp_path: Path) -> AsyncIterator[tuple[str, str, PlayService]]:
     cid, play = await setup(tmp_path, unarmed=True)
     app = create_campaign_app(
-        CampaignAccess(play),
+        build_runtime(play),
         {f"{p}-token": p for p in ("alice", "bob", "charlie", "gm", "spectator")},
         legacy_routes=True,
     )
@@ -332,7 +332,7 @@ async def test_melee_retreat_numeric_trace_survives_restart(tmp_path: Path) -> N
     assert (
         await CombatService(restarted).execute(cid, defense, authenticated_actor_id="b") == result
     )
-    projected = await snapshot(CampaignAccess(restarted), cid, "bob", "b")
+    projected = await snapshot(build_runtime(restarted), cid, "bob", "b")
     assert projected.encounters[0].traces[-1].totals == (9, 9)
 
 
@@ -346,7 +346,7 @@ async def test_hex_grapple_control_and_escape(tmp_path: Path) -> None:
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].participants[0].position == Hex(q=1, r=0)
     assert len(state.encounters[0].grips) == 1
-    view_state = await snapshot(CampaignAccess(play), cid, "bob", "b")
+    view_state = await snapshot(build_runtime(play), cid, "bob", "b")
     assert view_state.encounters[0].grips[0].holder_id == "a"
     play.rng = RecordedDice((2, 3, 3, 4, 4, 4))
     grip = state.encounters[0].grips[0]
@@ -758,7 +758,7 @@ async def test_v2_equipment_view_and_object_attack_use_authenticated_authority(
         tmp_path, durability=ObjectProfile(construction="homogenous", hp=12, dr=2, ht=12)
     )
     app = create_campaign_app(
-        CampaignAccess(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
+        build_runtime(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
     )
     runner = web.AppRunner(app)
     await runner.setup()

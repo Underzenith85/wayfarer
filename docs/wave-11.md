@@ -60,7 +60,7 @@ This deliberately rejects unsupported NPC builds rather than weakening legality.
 
 Activation inserts a new starting snapshot atomically. A retry with the same
 campaign ID, graph and membership returns the existing campaign. The graph is
-stored privately on the campaign so `CampaignAccess.runtime` can reconstruct its
+stored privately on the campaign so `CampaignRuntime.for_campaign` can reconstruct its
 pinned scene configuration after restart. New-game party assembly and polished
 scenario authoring UI remain consumers in #40 and #56.
 

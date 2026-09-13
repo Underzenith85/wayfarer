@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
+from support.runtime import build_orchestrator
 
 from wayfarer.adventures.lantern import adventure
 from wayfarer.adventures.runtime import application
@@ -467,13 +468,12 @@ async def test_reference_generated_fixture_uses_public_generation_and_persists(
 ) -> None:
     from reference_provider import ReferenceProvider
 
-    from wayfarer.orchestration.providers import Orchestrator
     from wayfarer.transport.common import ORCHESTRATOR_KEY
     from wayfarer.transport.setup_api import generate
 
     app = application(tmp_path / "generated.sqlite", {"alice-token": "alice"})
     provider = ReferenceProvider()
-    app[ORCHESTRATOR_KEY] = Orchestrator(app[ACCESS_KEY], provider)
+    app[ORCHESTRATOR_KEY] = build_orchestrator(app[ACCESS_KEY], provider)
     app.router.add_post("/setups/{cid}/generate", generate)
     async with TestClient(TestServer(app)) as client:
         headers = {"Authorization": "Bearer alice-token"}

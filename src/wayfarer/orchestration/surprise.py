@@ -33,7 +33,7 @@ class SurpriseService:
             return CommandReceipt(action="combat", outcome="resolved")
 
         await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

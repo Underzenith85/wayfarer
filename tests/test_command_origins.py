@@ -4,19 +4,18 @@ import json
 from pathlib import Path
 
 import pytest
+from support.runtime import build_orchestrator, build_runtime
 from test_wave9 import FakeProvider, prepare
 
 from wayfarer.engine.simulation.actions import Wait
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.director import DirectorService
-from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.persistence.events import CommandOrigin, payload_digest
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, backend: str) -> None:
     cid, play = await prepare(tmp_path, backend=backend)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     proposal = {"kind": "wait", "ticks": 1}
     origin = CommandOrigin.proposal("Intent", proposal, provider="fake", model="test-model")
     command = Wait(id="origin", actor_id="a", expected_revision=0, ticks=1)
@@ -46,7 +45,7 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
 async def test_provider_origin_and_replay_never_call_provider(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
     provider = FakeProvider()
-    await Orchestrator(CampaignAccess(play), provider).interpret_and_execute(
+    await build_orchestrator(build_runtime(play), provider).interpret_and_execute(
         cid, principal_id="alice", actor_id="a", command_id="wait", text="Wait"
     )
     row = (await play.store.history(cid))[0]
@@ -66,7 +65,7 @@ async def test_director_origin_survives_restart_before_resolution(tmp_path: Path
             raise RuntimeError("restart")
 
     with pytest.raises(RuntimeError, match="restart"):
-        await DirectorService(Orchestrator(CampaignAccess(play), provider)).run(
+        await DirectorService(build_orchestrator(build_runtime(play), provider)).run(
             cid,
             principal_id="alice",
             actor_id="a",
@@ -76,7 +75,7 @@ async def test_director_origin_survives_restart_before_resolution(tmp_path: Path
         )
     saved = (await play.store.history(cid))[-1].origin
     assert saved is not None
-    await DirectorService(Orchestrator(CampaignAccess(play), provider)).run(
+    await DirectorService(build_orchestrator(build_runtime(play), provider)).run(
         cid, principal_id="alice", actor_id="a", command_id="turn", text="wait"
     )
     domain = next(e for e in await play.store.history(cid) if e.event["action"] == "typed-action")
@@ -105,5 +104,5 @@ async def test_npc_proposal_uses_same_origin_and_scope_resets_on_failure(tmp_pat
     await NPCService(play).propose(cid, command, authenticated_gm_id="gm", origin=origin)
     assert (await play.store.history(cid))[-1].origin == origin
     with pytest.raises(ValidationError):
-        await CampaignAccess(play).execute(cid, {}, principal_id="alice", origin=origin)
+        await build_runtime(play).execute(cid, {}, principal_id="alice", origin=origin)
     assert current_origin.get() is None

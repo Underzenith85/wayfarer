@@ -23,6 +23,9 @@ class Settings(BaseSettings):
 
     host: str = "127.0.0.1"
     port: int = Field(default=8000, ge=0, le=65535)
+    # Horizontal scale is a partition by campaign id: one provider-job worker owns
+    # a partition, and a restart only recovers the work of its own partition.
+    partition: str = Field(default="default", min_length=1, max_length=100)
     db: Path = Path("data/wayfarer.sqlite3")
     database_url: SecretStr | None = None
     log_level: str = "INFO"

@@ -91,7 +91,7 @@ def prepare(
         raise ValidationError(
             "; ".join(f.message for f in report.findings if f.severity == "error")
         )
-    active = PlayService(play.store, studio.engine(graph), rng=play.rng)
+    active = play.derived(studio.engine(graph), rng=play.rng)
     seed = campaign.copy()
     seed.pop("play_json", None)
     seed.pop("resources_json", None)

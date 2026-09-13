@@ -38,6 +38,49 @@ APPLICATION_PAYLOADS = frozenset(
     }
 )
 
+# The same rule for the layers above the engine (#631). Behaviour that differs by
+# kind belongs in a registered object, not in another ladder: an entry may shrink
+# or disappear, it may never grow, and no new name may be added.
+ORCHESTRATION_BRANCHING: dict[tuple[str, str], int] = {
+    ("orchestration/abilities.py", "_prepare_ability"): 18,
+    ("orchestration/codex.py", "strict_schema"): 16,
+    ("orchestration/combat/encounters.py", "_prepare_encounter"): 16,
+    ("orchestration/combat/preflight.py", "_prepare_command"): 20,
+    ("orchestration/combat/roster.py", "_join"): 20,
+    ("orchestration/combat/turns.py", "_validate_turn"): 22,
+    ("orchestration/fright_builds.py", "validate_change"): 17,
+    ("orchestration/hazard_care.py", "execute"): 18,
+    ("orchestration/hazard_care.py", "resolve"): 17,
+    ("orchestration/hazards.py", "execute"): 20,
+    ("orchestration/hazards.py", "resolve"): 18,
+    ("orchestration/noncombat.py", "reduce"): 22,
+    ("orchestration/npcs.py", "social_occurrence"): 20,
+    ("orchestration/party.py", "reduce"): 21,
+    ("orchestration/play.py", "initial_state"): 17,
+    ("orchestration/recovery.py", "_execute"): 18,
+    ("orchestration/recovery.py", "_effect"): 20,
+    ("orchestration/runtime.py", "_execute"): 18,
+    ("orchestration/tactical_view/hex_choices.py", "choices"): 28,
+    ("orchestration/tactical_view/preview.py", "preview"): 18,
+    ("orchestration/workshop.py", "execute"): 18,
+    ("orchestration/workshop.py", "resolve"): 16,
+    ("transport/tactical_api.py", "execute"): 18,
+    ("transport/v1/http.py", "route"): 28,
+    ("transport/v1/live.py", "live"): 62,
+    ("transport/v1/service.py", "resolve"): 20,
+}
+
+# The store handles belong to the runtime. ``persistence`` builds them, the three
+# composition roots wire them, and nothing else names a store constructor.
+STORE_CONSTRUCTORS = frozenset(
+    {"AsyncSQLiteStore", "AsyncPostgresStore", "CatalogStore", "JobStore"}
+)
+STORE_OWNERS = frozenset({"runtime.py", "adventures/runtime.py", "orchestration/runtime.py"})
+# ``orchestration/service.py`` is the unwired pre-runtime composition root; step 2
+# of #631 deletes it and empties this allowlist.
+STORE_CONSTRUCTOR_ALLOWLIST = frozenset({"orchestration/service.py"})
+
+
 REDUCER_MODULES = (
     "combat",
     "physical",
@@ -760,6 +803,86 @@ assert 'wayfarer.engine.simulation.rules_context' not in sys.modules
                             and element.slice.value == "play_json"
                         ):
                             self.fail(f"{source}:{node.lineno} writes play_json directly")
+
+    def test_orchestration_holds_no_module_level_runtime_state(self) -> None:
+        """#631: a registry or a worker belongs to a runtime, never to the process."""
+        package = Path(wayfarer.__file__).parent
+        owned = {"SessionRegistry", "ProviderJobs", "WeakKeyDictionary"}
+        for source in sorted((package / "orchestration").rglob("*.py")):
+            tree = ast.parse(source.read_text())
+            # A constructor inside a function body runs per instance; one outside
+            # any function body runs once per process and is the thing banned here.
+            inside = {
+                node
+                for parent in ast.walk(tree)
+                if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef))
+                for node in ast.walk(parent)
+            }
+            for call in ast.walk(tree):
+                if not isinstance(call, ast.Call) or call in inside:
+                    continue
+                name = (
+                    call.func.id
+                    if isinstance(call.func, ast.Name)
+                    else call.func.attr
+                    if isinstance(call.func, ast.Attribute)
+                    else ""
+                )
+                self.assertNotIn(
+                    name,
+                    owned,
+                    f"{source}:{call.lineno} builds a {name} at module scope; "
+                    "inject it from the runtime instead",
+                )
+            self.assertNotIn("jobs_for", ast.unparse(tree), str(source))
+
+    def test_stores_are_constructed_by_the_runtime(self) -> None:
+        """#631: only persistence and the composition roots name a store constructor."""
+        package = Path(wayfarer.__file__).parent
+        for source in sorted(package.rglob("*.py")):
+            relative = source.relative_to(package).as_posix()
+            if relative.startswith("persistence/") or relative in STORE_OWNERS:
+                continue
+            if relative in STORE_CONSTRUCTOR_ALLOWLIST:
+                continue
+            for node in ast.walk(ast.parse(source.read_text())):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                    self.assertNotIn(
+                        node.func.id,
+                        STORE_CONSTRUCTORS,
+                        f"{relative}:{node.lineno} opens a store; take it from the runtime",
+                    )
+
+    def test_orchestration_branching_only_shrinks(self) -> None:
+        """The engine's rule, applied to the layers above it: ladders may only shrink."""
+        package = Path(wayfarer.__file__).parent
+        counted: dict[tuple[str, str], int] = {}
+        for domain in ("orchestration", "transport"):
+            for source in sorted((package / domain).rglob("*.py")):
+                name = source.relative_to(package).as_posix()
+                for node in ast.walk(ast.parse(source.read_text())):
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        branches = sum(isinstance(n, ast.If) for n in ast.walk(node))
+                        if branches > BRANCH_LIMIT:
+                            counted[(name, node.name)] = max(
+                                counted.get((name, node.name), 0), branches
+                            )
+        for key, branches in sorted(counted.items()):
+            allowed = ORCHESTRATION_BRANCHING.get(key)
+            with self.subTest(function=key):
+                self.assertIsNotNone(
+                    allowed,
+                    f"{key[0]}:{key[1]} has {branches} branches; register a family instead",
+                )
+                assert allowed is not None
+                self.assertLessEqual(branches, allowed, f"{key[0]}:{key[1]} grew a branch")
+        for key, allowed in sorted(ORCHESTRATION_BRANCHING.items()):
+            with self.subTest(function=key):
+                self.assertLessEqual(
+                    counted.get(key, 0),
+                    allowed,
+                    f"{key[0]}:{key[1]} is stale in ORCHESTRATION_BRANCHING",
+                )
 
     def test_all_packages_import(self) -> None:
         for name in (

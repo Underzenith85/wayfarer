@@ -3,12 +3,11 @@
 from pathlib import Path
 
 import pytest
+from support.runtime import build_orchestrator, build_runtime
 from test_wave9 import FakeProvider, prepare, split
 
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.director import DirectorService
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
@@ -17,9 +16,9 @@ async def test_scheduled_turn_waits_across_restart_without_narrating(
     tmp_path: Path, boundary: str
 ) -> None:
     cid, play = await prepare(tmp_path, party=True)
-    await split(cid, CampaignAccess(play))
+    await split(cid, build_runtime(play))
     provider = FakeProvider()
-    director = DirectorService(Orchestrator(CampaignAccess(play), provider))
+    director = DirectorService(build_orchestrator(build_runtime(play), provider))
 
     def crash(phase: str) -> None:
         if phase == boundary:
@@ -36,7 +35,7 @@ async def test_scheduled_turn_waits_across_restart_without_narrating(
             checkpoint=crash,
         )
     restarted = PlayService(AsyncSQLiteStore(tmp_path / "wave9.sqlite", 10), play.engine)
-    director = DirectorService(Orchestrator(CampaignAccess(restarted), provider))
+    director = DirectorService(build_orchestrator(build_runtime(restarted), provider))
     waiting = await director.run(
         cid, principal_id="alice", actor_id="a", command_id="wait-a", text="wait"
     )
@@ -48,7 +47,7 @@ async def test_scheduled_turn_waits_across_restart_without_narrating(
     revision = state.revision
     await director.run(cid, principal_id="alice", actor_id="a", command_id="wait-a", text="wait")
     assert restarted._load(await restarted.store.read(cid)).revision == revision
-    assert "wait-a" not in str(await CampaignAccess(restarted).read(cid, principal_id="bob"))
+    assert "wait-a" not in str(await build_runtime(restarted).read(cid, principal_id="bob"))
     other = await director.run(
         cid,
         principal_id="bob",
@@ -80,7 +79,7 @@ async def test_changed_subgroup_releases_uninterpreted_turn(tmp_path: Path) -> N
 
     cid, play = await prepare(tmp_path, party=True)
     provider = FakeProvider()
-    director = DirectorService(Orchestrator(CampaignAccess(play), provider))
+    director = DirectorService(build_orchestrator(build_runtime(play), provider))
 
     def crash(phase: str) -> None:
         raise RuntimeError("restart")
@@ -132,7 +131,7 @@ async def test_director_captive_rescuer_reunion_and_receipt_replay(tmp_path: Pat
     cid, play = await recovery_prepare(tmp_path)
     await setback(cid, play, "capture")
     provider = FakeProvider()
-    director = DirectorService(Orchestrator(CampaignAccess(play), provider))
+    director = DirectorService(build_orchestrator(build_runtime(play), provider))
 
     async def act(actor: str, key: str, proposal: dict[str, object] | None = None) -> bool:
         result = await director.run(
@@ -152,7 +151,7 @@ async def test_director_captive_rescuer_reunion_and_receipt_replay(tmp_path: Pat
     assert provider.requests == []
     assert await act("b", "wait", {"kind": "wait", "ticks": 1})
     director = DirectorService(
-        Orchestrator(CampaignAccess(PlayService(play.store, play.engine)), provider)
+        build_orchestrator(build_runtime(PlayService(play.store, play.engine)), provider)
     )
     assert await act("a", "observe")
     assert not await act("b", "rescue", recovery("rescue"))
@@ -183,15 +182,15 @@ async def test_director_captive_rescuer_reunion_and_receipt_replay(tmp_path: Pat
         assert await act(actor, key)
     assert await play.store.read(cid) == before
     assert await play.store.replay(cid) == before
-    bob = str((await CampaignAccess(play).read(cid, principal_id="bob"))["director"])
+    bob = str((await build_runtime(play).read(cid, principal_id="bob"))["director"])
     assert "observe" not in bob and "assist" not in bob
 
 
 async def test_rejected_scheduled_action_is_not_narrated_as_success(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path, party=True)
-    await split(cid, CampaignAccess(play))
+    await split(cid, build_runtime(play))
     provider = FakeProvider()
-    director = DirectorService(Orchestrator(CampaignAccess(play), provider))
+    director = DirectorService(build_orchestrator(build_runtime(play), provider))
     await director.run(
         cid,
         principal_id="alice",
@@ -255,7 +254,7 @@ async def test_stalled_narration_never_blocks_committed_projection(tmp_path: Pat
                 await release.wait()
             return await super().complete(request)
 
-    director = DirectorService(Orchestrator(CampaignAccess(play), BlockingProvider()))
+    director = DirectorService(build_orchestrator(build_runtime(play), BlockingProvider()))
     result = await asyncio.wait_for(
         director.run(cid, principal_id="alice", actor_id="a", command_id="slow", text="wait"), 5
     )
@@ -279,7 +278,7 @@ async def test_unsupported_recovery_keeps_adjudication_visible(tmp_path: Path) -
     cid, play = await recovery_prepare(tmp_path)
     await setback(cid, play, "capture")
     provider = FakeProvider()
-    result = await DirectorService(Orchestrator(CampaignAccess(play), provider)).run(
+    result = await DirectorService(build_orchestrator(build_runtime(play), provider)).run(
         cid,
         principal_id="alice",
         actor_id="a",

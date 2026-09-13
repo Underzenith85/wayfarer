@@ -7,7 +7,7 @@ wait for their own boundary lock. No provider call belongs in this transaction.
 from __future__ import annotations
 
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -44,14 +44,17 @@ class Transaction:
 
 
 class Ledger:
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self, path: Path, *, instants: Callable[[], CommandInstant] = capture_instant
+    ) -> None:
         self.path = path
+        self.instants = instants
 
     @asynccontextmanager
     async def transaction(
         self, *, instant: CommandInstant | None = None
     ) -> AsyncIterator[Transaction]:
-        instant = instant if instant is not None else capture_instant()
+        instant = instant if instant is not None else self.instants()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         async with aiosqlite.connect(self.path, timeout=30) as db:
             await db.execute(

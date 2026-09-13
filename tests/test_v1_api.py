@@ -12,6 +12,7 @@ import aiohttp
 import pytest
 import pytest_asyncio
 from aiohttp import web
+from support.runtime import build_orchestrator, build_runtime, job_worker
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -19,7 +20,6 @@ from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import Owner
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.transport.campaign_api import create_campaign_app
@@ -56,7 +56,7 @@ async def api(tmp_path: Path) -> AsyncIterator[tuple[str, str, V1Service]]:
         ),
     )
     app = create_campaign_app(
-        CampaignAccess(play),
+        build_runtime(play),
         {"alice-key": "alice", "bob-key": "bob", "gm-key": "gm", "new-key": "new"},
         v1_origins=frozenset({"https://game.example"}),
         v1_allow_no_origin=True,
@@ -188,7 +188,7 @@ async def test_concurrent_retry_stale_and_restart_receipts(api: tuple[str, str, 
             root + "/actions", json={**request, "command_id": uid()}
         ) as response:
             assert response.status == 409
-        restarted = V1Service(service.play, service.ledger.path)
+        restarted = V1Service(service.play, service.ledger.path, jobs=service.jobs)
         await restarted.start()
         try:
             replay = await restarted.submit(
@@ -447,7 +447,7 @@ async def test_recover_after_engine_commit_before_receipt_finalization(
             assert record is not None
             service.transition(record, "resolving", at=tx.instant.isoformat())
             await tx.put("action:" + aid, record)
-        restarted = V1Service(service.play, service.ledger.path)
+        restarted = V1Service(service.play, service.ledger.path, jobs=service.jobs)
         await restarted.start()
         try:
             restored = await finish(client, root, action)
@@ -562,7 +562,7 @@ async def test_legacy_routes_are_disabled_by_default(api: tuple[str, str, V1Serv
 
 
 async def test_provider_bridge_uses_only_scoped_context(api: tuple[str, str, V1Service]) -> None:
-    from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
+    from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
     from wayfarer.transport.v1.provider import bind_provider
 
     _, cid, service = api
@@ -578,7 +578,7 @@ async def test_provider_bridge_uses_only_scoped_context(api: tuple[str, str, V1S
             )
             return ProviderReply(payload_json=json.dumps(value), usage=Usage())
 
-    bind_provider(service, Orchestrator(CampaignAccess(service.play), Provider()))
+    bind_provider(service, build_orchestrator(build_runtime(service.play), Provider()))
     async with service.ledger.transaction() as tx:
         view = await service.view(tx, cid, "alice")
     context: Obj = {
@@ -605,7 +605,7 @@ async def test_configured_scene_travel_uses_scene_engine(tmp_path: Path) -> None
     from test_scenes import setup
 
     cid, play, _ = await setup(tmp_path)
-    service = V1Service(play, tmp_path / "travel-v1.sqlite")
+    service = V1Service(play, tmp_path / "travel-v1.sqlite", jobs=job_worker(play.store))
     await service.start()
     try:
         async with service.ledger.transaction() as tx:

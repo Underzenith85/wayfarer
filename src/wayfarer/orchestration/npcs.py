@@ -527,7 +527,7 @@ class NPCService:
             return CommandReceipt(action="npc", outcome="proposed")
 
         result = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,

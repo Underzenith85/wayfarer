@@ -30,12 +30,12 @@ the existing campaign app composition:
 ```python
 from aiohttp import web
 from wayfarer.config import Settings
-from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.transport.campaign_api import create_campaign_app
 
 # play and token_to_principal come from the trusted application composition.
 app = create_campaign_app(
-    CampaignAccess(play),
+    CampaignRuntime(play),
     token_to_principal,
     settings=Settings(llm_provider="codex"),
 )

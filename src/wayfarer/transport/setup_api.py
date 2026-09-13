@@ -12,6 +12,7 @@ from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.profiles import ProfileMigrations
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.workshop_options import CharacterPreviewRequest, preview_character
+from wayfarer.persistence.catalog import CatalogStore
 from wayfarer.transport.catalog_api import install as install_catalog
 from wayfarer.transport.common import (
     ORCHESTRATOR_KEY,
@@ -133,11 +134,20 @@ async def migrate(request: web.Request) -> web.Response:
     return web.json_response({"entry": entry.model_dump(mode="json"), "setup": setup})
 
 
-def install(app: web.Application, service: SetupService, graphs: tuple[ScenarioGraph, ...]) -> None:
+def install(
+    app: web.Application,
+    service: SetupService,
+    graphs: tuple[ScenarioGraph, ...],
+    *,
+    catalog: CatalogStore,
+) -> None:
     app[SETUP_KEY] = service
     app[TEMPLATES_KEY] = graphs
 
-    install_catalog(app, ScenarioCatalog(service, frozenset(app[TOKENS_KEY].values())))
+    install_catalog(
+        app,
+        ScenarioCatalog(service, frozenset(app[TOKENS_KEY].values()), store=catalog),
+    )
     if service.profiles is not None:
         app[MIGRATIONS_KEY] = ProfileMigrations(service.profiles)
     app.add_routes(

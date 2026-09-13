@@ -98,7 +98,7 @@ async def read(request: web.Request) -> web.Response:
         request.query.get("actor_id", ""),
     )
     if request.path.startswith("/api/tactical/v2/"):
-        runtime = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+        runtime = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
         state = runtime.play._load(await runtime.play.store.read(request.match_info["cid"]))
         member = runtime._member(state, _identity(request))
         runtime._control(member, result.actor_id)
@@ -275,7 +275,7 @@ def enrich(
 
 async def execute(request: web.Request) -> web.Response:
     cid, principal = request.match_info["cid"], _identity(request)
-    access = await request.app[ACCESS_KEY].runtime(cid)
+    access = await request.app[ACCESS_KEY].for_campaign(cid)
     state = access.play._load(await access.play.store.read(cid))
     member = access._member(state, principal)
     request_type = (
@@ -376,7 +376,7 @@ async def execute(request: web.Request) -> web.Response:
             },
             status=exc.status,
         )
-    access = await access.runtime(cid)
+    access = await access.for_campaign(cid)
     state = access.play._load(await access.play.store.read(cid))
     result = project(
         access.play,

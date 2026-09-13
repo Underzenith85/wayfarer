@@ -280,7 +280,7 @@ class HazardCareService:
             return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
         committed = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

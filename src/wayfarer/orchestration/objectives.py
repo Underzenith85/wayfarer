@@ -129,7 +129,7 @@ class ObjectiveService:
             return CommandReceipt(action="objectives", outcome=state.objectives.model_dump_json())
 
         committed = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,
