@@ -120,6 +120,16 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             ("development:learnable-advantages", "B294"),
         )
     )
+    rows.extend(
+        InventoryItem(identifier, reference, 519, "verified", "disease-aging")
+        for identifier, reference in (
+            ("disease:illness", "B442-B444"),
+            ("disease:profiles", "B442-B443"),
+            ("disease:contagion", "B443"),
+            ("disease:infection", "B444"),
+            ("disease:aging", "B20-B21/B444"),
+        )
+    )
     # A bound runtime effect is reported as implemented; naming one is still partial.
     rows.extend(
         InventoryItem(

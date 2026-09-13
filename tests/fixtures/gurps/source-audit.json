@@ -3074,6 +3074,50 @@
         "tests/test_economics.py::test_hireling_loyalty_is_persisted_without_private_event_leakage"
       ],
       "owner": 503
+    },
+    {
+      "id": "basic-poison-cyclic-dose",
+      "sha256": "99f2706a144d0f6cbd15a7a1b439e4582aa59af654478230b43fd876d3e15e9a",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-toxins.md",
+      "tests": [
+        "tests/test_toxins.py::test_cyclic_settlement_replay_and_future_only_treatment"
+      ],
+      "owner": 518
+    },
+    {
+      "id": "basic-poison-private-identity",
+      "sha256": "768b8950b6f410d46f67f1b5585e96870d74ea42be43c942d3e8a84728d15bd5",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-toxins.md",
+      "tests": [
+        "tests/test_toxins.py::test_delivery_fails_closed_and_identity_is_private"
+      ],
+      "owner": 518
+    },
+    {
+      "id": "basic-depressant-overdose",
+      "sha256": "71a0106fe75c166fc777d740bc1364db6142d8223cca0b4464ff5b49b497150b",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-toxins.md",
+      "tests": [
+        "tests/test_toxins.py::test_double_depressant_overdose_is_persistent"
+      ],
+      "owner": 518
+    },
+    {
+      "id": "basic-physiological-withdrawal",
+      "sha256": "8cae7e96350ed3686cc00708b3e0d6d92e9957c37e02919faa00caff8627f09b",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-toxins.md",
+      "tests": [
+        "tests/test_toxins.py::test_intoxication_and_withdrawal_are_durable"
+      ],
+      "owner": 518
     }
   ]
 }

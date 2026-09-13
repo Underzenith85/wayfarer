@@ -173,6 +173,10 @@ slice described in [creature construction and training](gurps-creatures.md).
 Its seven-item ledger deliberately does not claim an unlimited bestiary. Animal
 combat, natural-attack resolution and swarms remain owned by #522.
 
+Issue #519 supplies authored disease/contact profiles, private incubation,
+wound-linked infection schedules, chronological aging, and the approved lasting
+attribute-loss boundary described in [disease, infection, and aging](gurps-disease-aging.md).
+
 ## Mechanics-family coverage matrix
 
 Status and implementation ownership mirror `CAPABILITIES`. None is certified. References name source sections without reproducing prose; precise item/page verification remains part of the source audit above.
@@ -241,11 +245,11 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.tactical.hex_movement` | no | yes | partial | #105; #329 adds lossless [hex-to-Basic conversion](mapless-combat.md#hex-to-basic-conversion) for representable battlefields |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
 | `gurps.tactical.visibility` | no | yes | partial | #105 |
-| `gurps.recovery.fatigue` | yes | yes | partial | [#109 details](gurps-recovery.md) |
+| `gurps.recovery.fatigue` | yes | yes | partial | #516; [Basic Set survival complete](gurps-survival.md), exact Lite source remains unavailable |
 | `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
-| `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
+| `gurps.world.environmental_hazards` | yes | yes | partial | #110, #154, #517, and #518; [typed persistent exposure schedules](gurps-hazards.md), [poisons, intoxication, drugs, withdrawal, and overdose](gurps-toxins.md); illness ownership remains separate |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
 | `gurps.vehicles.movement` | no | yes | verified | #358; [vehicle operation audit](gurps-vehicles.md); all ten modes complete in #392-#396 |

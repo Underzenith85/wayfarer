@@ -32,7 +32,7 @@
     {"issue": 516, "state": "open", "title": "Complete fatigue and deprivation"},
     {"issue": 517, "state": "open", "title": "Complete environmental hazards"},
     {"issue": 518, "state": "open", "title": "Complete poisons and drugs"},
-    {"issue": 519, "state": "open", "title": "Complete disease and aging"},
+    {"issue": 519, "state": "closed", "title": "Complete disease and aging"},
     {"issue": 520, "state": "open", "title": "Complete Fright Check consequences"},
     {"issue": 521, "state": "open", "title": "Implement animal and monster statistics"},
     {"issue": 522, "state": "open", "title": "Implement animal and swarm combat"},
