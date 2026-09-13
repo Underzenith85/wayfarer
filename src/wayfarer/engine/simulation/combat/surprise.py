@@ -3,9 +3,11 @@
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Literal
 
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.traits.physical import SurpriseState
+from wayfarer.engine.rules.types.tactical import EncounterSurprise, InitiativeSideResult
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
@@ -79,7 +81,9 @@ def apply_surprise(
             and (pool.injury.stunned or pool.injury.incapacitated)
         ):
             raise ValidationError("Surprise requires conscious, unstunned combatants")
-    scores = []
+    scores: list[int] = []
+    rolls: list[int | None] = []
+    modifiers: list[int] = []
     iq = []
     for group, leader in zip(groups, leaders, strict=True):
         if leader is not None and leader not in group:
@@ -102,9 +106,13 @@ def apply_surprise(
             bonus += (2 if tactics is not None and tactics.value >= 20 else 1) if learned else 0
         elif any(s is not None and s.iq > 5 for a in group if (s := stats[a]) is not None):
             bonus -= 2
+        modifiers.append(bonus)
         if not sides.total or any(traits[a].combat_reflexes for a in second):
-            scores.append(draw_dice(runtime.rng, 1)[0] + bonus)
+            roll = draw_dice(runtime.rng, 1)[0]
+            rolls.append(roll)
+            scores.append(roll + bonus)
         else:
+            rolls.append(None)
             scores.append(1 if index == 0 else 0)
     loser = first if scores[0] < scores[1] else second if scores[1] < scores[0] else set()
     freeze = (
@@ -144,7 +152,34 @@ def apply_surprise(
     order = tuple(a for a in encounter.turn_order if a in leading) + tuple(
         a for a in encounter.turn_order if a not in leading
     )
-    encounter = encounter.model_copy(update={"turn_order": order})
+    winner: Literal[0, 1] | None = (
+        0 if scores[0] > scores[1] else 1 if scores[1] > scores[0] else None
+    )
+    side_results = tuple(
+        InitiativeSideResult(
+            actor_ids=group,
+            leader_id=leader,
+            roll=roll,
+            modifier=modifier,
+            score=score,
+        )
+        for group, leader, roll, modifier, score in zip(
+            groups, leaders, rolls, modifiers, scores, strict=True
+        )
+    )
+    encounter = encounter.model_copy(
+        update={
+            "turn_order": order,
+            "surprise": EncounterSurprise(
+                trigger_id=command.trigger_id,
+                kind="total" if sides.total else "partial",
+                sides=(side_results[0], side_results[1]),
+                initiative_winner=winner,
+                frozen_side=1 if sides.total and freeze else None,
+                freeze_turns=freeze,
+            ),
+        }
+    )
     resources = state.resources.model_copy(
         update={
             "pools": tuple(pools),

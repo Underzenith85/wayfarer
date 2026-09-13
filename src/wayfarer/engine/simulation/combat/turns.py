@@ -314,6 +314,7 @@ def take_turn(
     hex_path: tuple[Hex, ...] = (),
     hex_facing: HexFacing | None = None,
     pop_up: bool = False,
+    enter_high_speed: bool = False,
     basic_move: BasicMove | None = None,
     spatial_revision: int | None = None,
     suppression_fire: bool = False,
@@ -373,6 +374,7 @@ def take_turn(
         hex_path=hex_path,
         hex_facing=hex_facing,
         pop_up=pop_up,
+        enter_high_speed=enter_high_speed,
         basic_move=basic_move,
         suppression_fire=suppression_fire,
         enter_close_combat=enter_close_combat,
@@ -411,11 +413,14 @@ def _apply_hex_movement(
     hex_path: tuple[Hex, ...],
     hex_facing: HexFacing | None,
     pop_up: bool,
+    enter_high_speed: bool,
     basic_move: BasicMove | None,
     enter_close_combat: bool,
 ) -> tuple[Combatant, Pose | None]:
     """Select one mapped movement transaction without growing turn dispatch."""
     if pop_up:
+        if enter_high_speed:
+            raise ValidationError("Pop-up attacks cannot enter high-speed movement")
         if (
             enter_close_combat
             or maneuver != "attack"
@@ -449,6 +454,7 @@ def _apply_hex_movement(
             hex_facing,
             defense_option,
             board=engine.hex_map(encounter),
+            enter_high_speed=enter_high_speed,
             enter_close_combat=enter_close_combat,
         ),
         None,
@@ -473,6 +479,22 @@ def _validate_close_entry(
         or maneuver not in ("move", "attack", "move_and_attack", "all_out_attack")
     ):
         raise ValidationError("Close-combat entry requires a legal mapped maneuver and target")
+
+
+def _validate_high_speed(
+    encounter: Encounter,
+    participant: Combatant,
+    actor_id: str,
+    enter_high_speed: bool,
+) -> None:
+    if enter_high_speed and encounter.spatial_kind != "hex":
+        raise ValidationError("High-speed movement requires an exact hex battlefield")
+    if (enter_high_speed or participant.high_speed is not None) and any(
+        combatant.maneuver_state.wait is not None
+        for combatant in encounter.participants
+        if combatant.actor_id != actor_id
+    ):
+        raise ValidationError("High-speed movement with an active Wait is not yet supported")
 
 
 def apply_turn(
@@ -500,6 +522,7 @@ def apply_turn(
     hex_path: tuple[Hex, ...] = (),
     hex_facing: HexFacing | None = None,
     pop_up: bool = False,
+    enter_high_speed: bool = False,
     basic_move: BasicMove | None = None,
     suppression_fire: bool = False,
     enter_close_combat: bool = False,
@@ -517,6 +540,7 @@ def apply_turn(
     if maneuver == "concentrate" and engine.rules.gurps_equipment is None:
         raise ValidationError("Concentration requires a bound ability command")
     participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+    _validate_high_speed(encounter, participant, actor_id, enter_high_speed)
     _validate_close_entry(
         encounter,
         maneuver,
@@ -614,6 +638,7 @@ def apply_turn(
             hex_path=hex_path,
             hex_facing=hex_facing,
             pop_up=pop_up,
+            enter_high_speed=enter_high_speed,
             basic_move=basic_move,
             enter_close_combat=enter_close_combat,
         )

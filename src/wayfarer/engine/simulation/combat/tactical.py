@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from wayfarer.engine.rules.tables.combat import maneuver_permission
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.combat.combat_height import HeightEffect, melee_height
+from wayfarer.engine.simulation.combat.high_speed import transition as high_speed_transition
 from wayfarer.engine.simulation.combat.spatial import HexActorPlacement
 from wayfarer.engine.simulation.hex_geometry import (
     Hex,
@@ -198,6 +199,7 @@ def move_hex(
     enter_close_combat: bool = False,
     *,
     board: HexBattlefield | None,
+    enter_high_speed: bool = False,
 ) -> Combatant:
     if encounter.spatial_kind == "hex" and board is None:
         raise ValidationError("Hex encounter requires its configured template")
@@ -215,7 +217,18 @@ def move_hex(
     permission = maneuver_permission(maneuver)
     if permission.movement in ("none", "triggered"):
         raise ValidationError("Maneuver does not permit movement")
-    allowance = actor.movement_allowance
+    high_speed = high_speed_transition(
+        board,
+        pose(actor),
+        path,
+        basic_move=actor.movement_allowance,
+        maneuver=maneuver,
+        current=actor.high_speed,
+        enter=enter_high_speed,
+    )
+    allowance = (
+        actor.high_speed.velocity if actor.high_speed is not None else actor.movement_allowance
+    )
     step = permission.movement == "step"
     if maneuver == "all_out_attack" or (
         maneuver == "all_out_defense" and defense_option == "dodge"
@@ -260,7 +273,11 @@ def move_hex(
         enter_close_combat=enter_close_combat,
     )
     return actor.model_copy(
-        update={"position": result.destination.position, "hex_facing": result.destination.facing}
+        update={
+            "position": result.destination.position,
+            "hex_facing": result.destination.facing,
+            "high_speed": high_speed,
+        }
     )
 
 

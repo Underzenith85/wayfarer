@@ -60,6 +60,12 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 
+def _visibility_adjustment(value: DerivedValue | None, penalty: int) -> DerivedValue | None:
+    if value is None:
+        return None
+    return DerivedValue(value.target, value.value + penalty, value.explanations)
+
+
 def resolve_melee(
     runtime: RulesContext,
     state: PlayState,
@@ -144,6 +150,7 @@ def resolve_melee(
         raise ValidationError("Second defense equipment requires a second defense")
     attack_target = (
         int(attack_value.value)
+        + pending.visibility_attack_penalty
         + attacker_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
         - attacker_hp.injury.shock
         - minimum_strength_penalty(
@@ -208,6 +215,8 @@ def resolve_melee(
             - attacker.maneuver_state.feint_penalty * (2 if defender.unarmed_guard_dropped else 1),
             defense_derived.explanations,
         )
+    defense_derived = _visibility_adjustment(defense_derived, pending.visibility_defense_penalty)
+    second_derived = _visibility_adjustment(second_derived, pending.visibility_defense_penalty)
     attack = success_roll(
         equipment.profile_id,
         attack_target,

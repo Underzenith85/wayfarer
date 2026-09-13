@@ -100,7 +100,20 @@ class VisibilitySpatialFact(Record):
     subject_id: Id
     object_id: Id
     visible: bool
+    # A plain false value remains a hard LOS barrier. These qualifiers distinguish
+    # B394 sensory concealment from a wall without trusting an attack command.
+    obscuration: Literal["blocked", "invisible", "smoke", "darkness"] = "blocked"
+    location_known: bool = False
+    aware_of_attack: bool = False
     provenance: SpatialProvenance
+
+    @model_validator(mode="after")
+    def validate_obscuration(self) -> VisibilitySpatialFact:
+        if self.visible and (
+            self.obscuration != "blocked" or self.location_known or self.aware_of_attack
+        ):
+            raise ValueError("Visible targets cannot carry hidden-target qualifiers")
+        return self
 
 
 class CoverSpatialFact(Record):

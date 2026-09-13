@@ -10802,16 +10802,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-combat-situations.md",
+        "tests/test_special_combat_situations.py",
+        "tests/test_physical_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        509
       ],
-      "completion_owner": 509,
-      "capability_id": "gurps.tactical.visibility",
+      "completion_owner": null,
+      "capability_id": "gurps.combat.turn_timing",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
       "classification": null,
@@ -10828,15 +10831,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-combat-situations.md",
+        "tests/test_special_combat_situations.py",
+        "tests/test_basic_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        509
       ],
-      "completion_owner": 509,
+      "completion_owner": null,
       "capability_id": "gurps.tactical.visibility",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
@@ -10880,16 +10886,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-combat-situations.md",
+        "tests/test_special_combat_situations.py",
+        "tests/test_tactical_completion.py"
       ],
       "historical_owners": [
-        191
+        191,
+        509
       ],
-      "completion_owner": 509,
-      "capability_id": "gurps.tactical.visibility",
+      "completion_owner": null,
+      "capability_id": "gurps.tactical.hex_movement",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b394:special-movement",
       "classification": null,

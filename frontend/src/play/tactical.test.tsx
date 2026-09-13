@@ -257,6 +257,7 @@ describe("Tactical panel", () => {
       hex_path: [],
       hex_facing: null,
       pop_up: false,
+      enter_high_speed: false,
       basic_move: { reference_actor_id: "b", direction: "approach" },
       enter_close_combat: false,
     };

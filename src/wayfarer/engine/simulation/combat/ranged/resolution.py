@@ -77,6 +77,13 @@ from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.errors import ValidationError
 
+
+def _visibility_adjustment(value: DerivedValue | None, penalty: int) -> DerivedValue | None:
+    if value is None:
+        return None
+    return DerivedValue(value.target, value.value + penalty, value.explanations)
+
+
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
 
@@ -173,6 +180,7 @@ def resolve(
     )
     attack_target = (
         int(value.value)
+        + pending.visibility_attack_penalty
         + bonus
         + scene.size_modifier
         + range_modifier
@@ -229,6 +237,8 @@ def resolve(
         second_item_id,
         parry_mode_id=second_parry_mode_id,
     )
+    defense_value_ = _visibility_adjustment(defense_value_, pending.visibility_defense_penalty)
+    second_value = _visibility_adjustment(second_value, pending.visibility_defense_penalty)
     if pending.laser_sight and scene.laser_visible_to_target:
         if selected == "dodge" and defense_value_ is not None:
             defense_value_ = DerivedValue(defense_value_.target, defense_value_.value + 1, ())

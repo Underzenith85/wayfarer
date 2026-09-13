@@ -23,6 +23,7 @@ from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
 from wayfarer.engine.simulation.combat.tactical import defense_adjustment
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
+from wayfarer.engine.simulation.combat.visibility import combat_visibility
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
@@ -48,6 +49,7 @@ def prepare(
     assert pending is not None
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    visibility = combat_visibility(encounter, actor.actor_id, target.actor_id)
     close = bool(opponents_in_close_combat(encounter, actor.actor_id))
     defender_close = bool(opponents_in_close_combat(encounter, target.actor_id))
     bystanders = tuple(
@@ -143,7 +145,12 @@ def prepare(
     # B178: a shot laid indirectly arrives without warning, so the target has no
     # active defense against it. A directly laid mount is defended normally.
     indirect = weapon.mount is not None and weapon.mount.indirect
-    for candidate in () if indirect else ("dodge", "block", "parry"):
+    candidates = tuple(
+        candidate
+        for candidate in (() if indirect else ("dodge", "block", "parry"))
+        if candidate in visibility.defenses
+    )
+    for candidate in candidates:
         if (
             target_item_id
             and next(i for i in state.resources.items if i.id == target_item_id).ground
@@ -185,6 +192,8 @@ def prepare(
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
                     "target_item_id": target_item_id,
+                    "visibility_attack_penalty": visibility.attack_penalty,
+                    "visibility_defense_penalty": visibility.defense_penalty,
                     "close_combat": close,
                     "defender_close_combat": defender_close,
                     "stray_target_order": stray_order,
