@@ -5735,6 +5735,74 @@
       "evidence_kind": "independent-reaction-case",
       "provenance": "Independent pay modifier, reaction total, and private-motive boundary checked against Campaigns fourth printing.",
       "test": "tests/test_economics.py::test_hireling_loyalty_is_persisted_without_private_event_leakage"
+    },
+    {
+      "id": "basic-poison-cyclic-dose",
+      "capability_id": "gurps.world.environmental_hazards",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B437-B439",
+      "input": {
+        "vector": "digestive",
+        "delay_seconds": 3600,
+        "interval_seconds": 3600,
+        "cycles": 8,
+        "resistance_modifier": -2,
+        "dice": [6, 6, 6, 3]
+      },
+      "expected": {
+        "delivered": true,
+        "resisted": false,
+        "hp_lost": 3,
+        "remaining_cycles": 7
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-toxin-cycle-case",
+      "provenance": "Independent arsenic timing and resistance fixture derived from Campaigns fourth printing.",
+      "test": "tests/test_toxins.py::test_cyclic_settlement_replay_and_future_only_treatment"
+    },
+    {
+      "id": "basic-poison-private-identity",
+      "capability_id": "gurps.world.environmental_hazards",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B439",
+      "input": {"observer_discovered": false, "victim_swallowed": true},
+      "expected": {"observer_substance_id": null, "victim_substance_id": null},
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-visibility-case",
+      "provenance": "Independent discovery boundary checked against the poison identification procedure.",
+      "test": "tests/test_toxins.py::test_delivery_fails_closed_and_identity_is_private"
+    },
+    {
+      "id": "basic-depressant-overdose",
+      "capability_id": "gurps.injury.hp_thresholds",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B441",
+      "input": {"dose": 2, "effective_ht": 6, "dice": [6, 6, 6]},
+      "expected": {"hp_lost": 2, "remaining_cycles": 23, "unconscious_hours": 12},
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-overdose-case",
+      "provenance": "Independent double-dose penalty, failure margin, and overdose schedule checked against Campaigns fourth printing.",
+      "test": "tests/test_toxins.py::test_double_depressant_overdose_is_persistent"
+    },
+    {
+      "id": "basic-physiological-withdrawal",
+      "capability_id": "gurps.recovery.medical_treatment",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B440",
+      "input": {"target": 10, "drug_available": false, "dice": [6, 6, 6]},
+      "expected": {"successes": 0, "hp_lost": 1, "natural_healing_blocked": true},
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-withdrawal-case",
+      "provenance": "Independent daily physiological-withdrawal failure checked against Campaigns fourth printing.",
+      "test": "tests/test_toxins.py::test_intoxication_and_withdrawal_are_durable"
     }
   ]
 }

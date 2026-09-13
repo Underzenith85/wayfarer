@@ -29,6 +29,7 @@ from wayfarer.engine.rules.types.survival import (
     interrupt_survival_tasks,
     require_survival_settled,
 )
+from wayfarer.engine.rules.types.toxin import require_toxins_settled
 from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
@@ -379,6 +380,9 @@ class ResourceEngine:
             blast_guard(state)
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
+            require_toxins_settled(
+                state.toxins, state.dependencies, frozenset({command.actor_id}), state.game_time
+            )
             state = _survival_before_command(state, command)
         items = {i.id: i for i in state.items}
         updated = state
@@ -517,12 +521,24 @@ class ResourceEngine:
             living = {
                 p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
             }
-            if any(
-                h.active and h.combat_turn is None and h.actor_id in living and h.due < command.to
-                for h in state.hazards
+            if (
+                any(
+                    h.active
+                    and h.combat_turn is None
+                    and h.actor_id in living
+                    and h.due < command.to
+                    for h in state.hazards
+                )
+                or any(
+                    t.active and t.actor_id in living and t.due < command.to for t in state.toxins
+                )
+                or any(
+                    d.active and d.actor_id in living and d.due < command.to
+                    for d in state.dependencies
+                )
             ):
                 raise ConflictError(
-                    "Advance to the hazard deadline and resolve it before continuing"
+                    "Advance to the hazard, toxin, or withdrawal deadline before continuing"
                 )
             if any(
                 p.injury is not None

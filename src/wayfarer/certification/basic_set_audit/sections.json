@@ -13198,15 +13198,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
@@ -13224,15 +13227,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13250,15 +13256,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13279,12 +13288,15 @@
       "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13302,15 +13314,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13328,15 +13343,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13354,15 +13372,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13380,15 +13401,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-toxins.md",
+        "tests/test_toxins.py"
       ],
       "historical_owners": [
-        191
+        191,
+        518
       ],
-      "completion_owner": 518,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",

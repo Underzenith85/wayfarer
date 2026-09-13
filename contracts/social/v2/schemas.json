@@ -3442,6 +3442,78 @@
         "title": "Discovery",
         "type": "object"
       },
+      "DrugDependency": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "identity_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Identity Digest",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "physiological",
+              "psychological"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "started": {
+            "minimum": 0,
+            "title": "Started",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "successes": {
+            "default": 0,
+            "maximum": 14,
+            "minimum": 0,
+            "title": "Successes",
+            "type": "integer"
+          },
+          "quirks": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Quirks",
+            "type": "integer"
+          },
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "discovered_by": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Discovered By",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "identity_digest",
+          "kind",
+          "started",
+          "due"
+        ],
+        "title": "DrugDependency",
+        "type": "object"
+      },
       "EconomicsRules": {
         "additionalProperties": false,
         "properties": {
@@ -6148,6 +6220,30 @@
             "title": "Illnesses",
             "type": "array"
           },
+          "toxins": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ToxinExposure"
+            },
+            "title": "Toxins",
+            "type": "array"
+          },
+          "intoxications": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Intoxication"
+            },
+            "title": "Intoxications",
+            "type": "array"
+          },
+          "dependencies": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/DrugDependency"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
           "creatures": {
             "default": [],
             "items": {
@@ -6380,6 +6476,95 @@
           }
         },
         "title": "InjuryTolerance",
+        "type": "object"
+      },
+      "Intoxication": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "window_started": {
+            "minimum": 0,
+            "title": "Window Started",
+            "type": "integer"
+          },
+          "drinks": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Drinks",
+            "type": "integer"
+          },
+          "total_session_drinks": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Total Session Drinks",
+            "type": "integer"
+          },
+          "level": {
+            "default": "sober",
+            "enum": [
+              "sober",
+              "tipsy",
+              "drunk",
+              "unconscious",
+              "coma"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "stopped_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stopped At"
+          },
+          "sober_due": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sober Due"
+          },
+          "hangover_due": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hangover Due"
+          },
+          "hangover_until": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hangover Until",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "actor_id",
+          "window_started"
+        ],
+        "title": "Intoxication",
         "type": "object"
       },
       "InventionAttempt": {
@@ -13081,6 +13266,287 @@
           "study_rule_id"
         ],
         "title": "TeachingBinding",
+        "type": "object"
+      },
+      "ToxinExposure": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/$defs/ToxinProfile"
+          },
+          "identity_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Identity Digest",
+            "type": "string"
+          },
+          "started": {
+            "minimum": 0,
+            "title": "Started",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "remaining": {
+            "minimum": 0,
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "ht": {
+            "minimum": 1,
+            "title": "Ht",
+            "type": "integer"
+          },
+          "dose": {
+            "default": 1,
+            "maximum": 1024,
+            "minimum": 1,
+            "title": "Dose",
+            "type": "integer"
+          },
+          "treatment_bonus": {
+            "default": 0,
+            "maximum": 30,
+            "minimum": 0,
+            "title": "Treatment Bonus",
+            "type": "integer"
+          },
+          "discovered_by": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Discovered By",
+            "type": "array"
+          },
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "cycle": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Cycle",
+            "type": "integer"
+          },
+          "hp_lost": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hp Lost",
+            "type": "integer"
+          },
+          "fp_lost": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Fp Lost",
+            "type": "integer"
+          },
+          "condition_until": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Condition Until",
+            "type": "integer"
+          },
+          "overdose_until": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Overdose Until",
+            "type": "integer"
+          },
+          "halted_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Halted By"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "profile",
+          "identity_digest",
+          "started",
+          "due",
+          "remaining",
+          "ht"
+        ],
+        "title": "ToxinExposure",
+        "type": "object"
+      },
+      "ToxinProfile": {
+        "additionalProperties": false,
+        "description": "Trusted scenario profile.  Descriptive identity is never accepted from a player.",
+        "properties": {
+          "id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "vector": {
+            "enum": [
+              "contact",
+              "blood",
+              "digestive",
+              "respiratory",
+              "sense",
+              "follow-up"
+            ],
+            "title": "Vector",
+            "type": "string"
+          },
+          "delay": {
+            "default": 0,
+            "maximum": 31536000,
+            "minimum": 0,
+            "title": "Delay",
+            "type": "integer"
+          },
+          "interval": {
+            "default": 1,
+            "maximum": 31536000,
+            "minimum": 1,
+            "title": "Interval",
+            "type": "integer"
+          },
+          "cycles": {
+            "default": 1,
+            "maximum": 100000,
+            "minimum": 1,
+            "title": "Cycles",
+            "type": "integer"
+          },
+          "resistance_modifier": {
+            "default": 0,
+            "maximum": 30,
+            "minimum": -30,
+            "title": "Resistance Modifier",
+            "type": "integer"
+          },
+          "resistible": {
+            "default": true,
+            "title": "Resistible",
+            "type": "boolean"
+          },
+          "hp_dice": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Hp Dice",
+            "type": "integer"
+          },
+          "hp_add": {
+            "default": 0,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Hp Add",
+            "type": "integer"
+          },
+          "fp_dice": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Fp Dice",
+            "type": "integer"
+          },
+          "fp_add": {
+            "default": 0,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Fp Add",
+            "type": "integer"
+          },
+          "condition": {
+            "default": "none",
+            "enum": [
+              "none",
+              "coughing",
+              "blindness",
+              "drowsy",
+              "ecstasy",
+              "hallucinating",
+              "unconscious",
+              "paralysis",
+              "retching",
+              "seizure"
+            ],
+            "title": "Condition",
+            "type": "string"
+          },
+          "condition_seconds": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Condition Seconds",
+            "type": "integer"
+          },
+          "duration_per_margin": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Duration Per Margin",
+            "type": "integer"
+          },
+          "treatment_owner": {
+            "default": "none",
+            "enum": [
+              "none",
+              "first-aid",
+              "physician",
+              "poisons",
+              "antidote"
+            ],
+            "title": "Treatment Owner",
+            "type": "string"
+          },
+          "addictive": {
+            "default": "none",
+            "enum": [
+              "none",
+              "physiological",
+              "psychological"
+            ],
+            "title": "Addictive",
+            "type": "string"
+          },
+          "depressant": {
+            "default": false,
+            "title": "Depressant",
+            "type": "boolean"
+          },
+          "reference": {
+            "pattern": "^B(437|438|439|440|441)(-|$)",
+            "title": "Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "vector",
+          "reference"
+        ],
+        "title": "ToxinProfile",
         "type": "object"
       },
       "TradeOffer": {
