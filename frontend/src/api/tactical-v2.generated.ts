@@ -827,6 +827,11 @@ export interface components {
       pop_up: boolean;
       /** @default null */
       basic_move: components["schemas"]["BasicMove"] | null;
+      /**
+       * Enter Close Combat
+       * @default false
+       */
+      enter_close_combat: boolean;
     };
     /** TakeUnarmedTurn */
     TakeUnarmedTurn: {

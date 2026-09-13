@@ -18,7 +18,7 @@ from wayfarer.engine.simulation.combat.close_combat import (
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.spatial import HexActorPlacement, HexSpatialContext
 from wayfarer.engine.simulation.combat.tactical import move_hex, transformed_footprint
-from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
+from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, HexFacing, Pose
 from wayfarer.errors import ValidationError
 
 
@@ -40,7 +40,7 @@ def board(*, blocked: tuple[Hex, ...] = ()) -> HexBattlefield:
     )
 
 
-def fighter(actor_id: str, position: Hex, facing: int) -> Combatant:
+def fighter(actor_id: str, position: Hex, facing: HexFacing) -> Combatant:
     return Combatant(
         actor_id=actor_id,
         initiative=12 if actor_id == "a" else 10,

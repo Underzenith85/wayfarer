@@ -258,6 +258,7 @@ describe("Tactical panel", () => {
       hex_facing: null,
       pop_up: false,
       basic_move: { reference_actor_id: "b", direction: "approach" },
+      enter_close_combat: false,
     };
     const basic = structuredClone(snapshot);
     basic.encounters = [];
