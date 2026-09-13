@@ -14,7 +14,6 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.character.compiler import CharacterDraft
-from wayfarer.engine.simulation.actions import ACTION_ADAPTER
 from wayfarer.errors import (
     ConflictError,
     ProviderError,
@@ -23,9 +22,8 @@ from wayfarer.errors import (
     ValidationError,
 )
 from wayfarer.models import Record
-from wayfarer.orchestration.combat import COMBAT_ADAPTER
+from wayfarer.orchestration.commands import parse as parse_command
 from wayfarer.orchestration.llm import LLMClient
-from wayfarer.orchestration.noncombat import NoncombatCommand
 from wayfarer.orchestration.party import PartyCommand
 from wayfarer.orchestration.provider_contracts import (
     CampaignContext,
@@ -34,8 +32,6 @@ from wayfarer.orchestration.provider_contracts import (
     StructuredProvider,
     Usage,
 )
-from wayfarer.orchestration.recovery import RecoveryCommand
-from wayfarer.orchestration.scenes import SCENE_ADAPTER
 from wayfarer.persistence.events import CommandOrigin
 
 
@@ -157,18 +153,8 @@ class Intent(Record):
                 "reference_actor_id": reference,
                 "direction": direction,
             }
-        # Validate required fields and the final discriminated command schema.
-        encoded = json.dumps(value)
-        if self.kind in ("travel_scene", "observe_scene"):
-            SCENE_ADAPTER.validate_json(encoded)
-        elif self.kind == "choose_recovery":
-            RecoveryCommand.model_validate_json(encoded)
-        elif self.kind in ("approach_noncombat", "start_noncombat", "withdraw_noncombat"):
-            NoncombatCommand.model_validate_json(encoded)
-        elif self.kind in ("take_combat_turn", "choose_defense"):
-            COMBAT_ADAPTER.validate_json(encoded)
-        else:
-            ACTION_ADAPTER.validate_json(encoded)
+        # Validate required fields through the family that owns this kind.
+        parse_command(self.kind, json.dumps(value))
         return value
 
 

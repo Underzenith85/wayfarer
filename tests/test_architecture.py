@@ -6,6 +6,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from typing import get_args
 
 import wayfarer
 
@@ -946,3 +947,135 @@ def test_persistence_declares_each_schema_once_and_reads_no_older_shape() -> Non
         assert "narration_migrations" not in source, adapter
         tables = re.findall(r"CREATE TABLE IF NOT EXISTS (\w+)", source)
         assert len(tables) == len(set(tables)), (adapter, tables)
+
+
+# Modules that still compare a campaign command kind against a string literal,
+# with the number of registered kinds each names today. #635 moved dispatch into
+# `orchestration/commands.py`; what is left is a family deciding inside itself,
+# which #638 turns into a `CommandPlan`. An entry may shrink or disappear, it may
+# never grow, and no new name may be added.
+COMMAND_KIND_COMPARISONS: dict[str, int] = {
+    "combat/preflight.py": 1,
+    "director.py": 4,
+    "noncombat.py": 4,
+    "objectives.py": 2,
+    "party.py": 13,
+    "providers.py": 2,
+    "recovery.py": 2,
+}
+
+# Function-local `wayfarer` imports left under `orchestration/`, with the count
+# each module carries today. #635 promoted the two it names. The two left in
+# `npcs.py` reach `play`, which imports `npcs` for its checkpoint hooks that #646
+# moves into the engine; `party.py` and `recovery` flush each other. Shrink only:
+# an entry may shrink or disappear, it may never grow, and no name may be added.
+DEFERRED_ORCHESTRATION_IMPORTS: dict[str, int] = {"npcs.py": 2, "party.py": 1}
+
+
+def _literals(node: ast.Compare) -> set[str]:
+    values: set[str] = set()
+    for operand in (node.left, *node.comparators):
+        if isinstance(operand, ast.Constant) and isinstance(operand.value, str):
+            values.add(operand.value)
+        elif isinstance(operand, ast.Tuple | ast.List | ast.Set):
+            values.update(
+                element.value
+                for element in operand.elts
+                if isinstance(element, ast.Constant) and isinstance(element.value, str)
+            )
+    return values
+
+
+def test_campaign_commands_are_dispatched_by_the_registry() -> None:
+    """#635: the runtime looks a family up; it does not ask what kind a command is."""
+    from wayfarer.orchestration import commands
+
+    registered = set(commands.kinds()) | set(commands.UNGUARDED_ACTIONS)
+    package = Path(wayfarer.__file__).parent / "orchestration"
+    counts: dict[str, int] = {}
+    for path in sorted(package.rglob("*.py")):
+        if path.name == "commands.py":
+            continue
+        found = 0
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Compare):
+                found += len(_literals(node) & registered)
+        if found:
+            counts[str(path.relative_to(package))] = found
+    assert set(counts) <= set(COMMAND_KIND_COMPARISONS), sorted(
+        set(counts) - set(COMMAND_KIND_COMPARISONS)
+    )
+    for name, allowed in COMMAND_KIND_COMPARISONS.items():
+        assert counts.get(name, 0) <= allowed, (name, counts.get(name, 0), allowed)
+    # The runtime itself names no kind at all.
+    assert "runtime.py" not in counts
+
+
+def test_deferred_orchestration_imports_only_shrink() -> None:
+    """#635: the promoted deferrals stay promoted; the rest shrink toward none."""
+    package = Path(wayfarer.__file__).parent / "orchestration"
+    counts: dict[str, int] = {}
+    for path in sorted(package.rglob("*.py")):
+        tree = ast.parse(path.read_text())
+        inside = {
+            node
+            for parent in ast.walk(tree)
+            if isinstance(parent, ast.FunctionDef | ast.AsyncFunctionDef)
+            for node in ast.walk(parent)
+            if isinstance(node, ast.Import | ast.ImportFrom)
+        }
+        deferred = sum(
+            1
+            for node in inside
+            if isinstance(node, ast.ImportFrom)
+            and (node.module or "").startswith("wayfarer")
+            or isinstance(node, ast.Import)
+            and any(alias.name.startswith("wayfarer") for alias in node.names)
+        )
+        if deferred:
+            counts[str(path.relative_to(package))] = deferred
+    assert set(counts) <= set(DEFERRED_ORCHESTRATION_IMPORTS), sorted(
+        set(counts) - set(DEFERRED_ORCHESTRATION_IMPORTS)
+    )
+    for name, allowed in DEFERRED_ORCHESTRATION_IMPORTS.items():
+        assert counts.get(name, 0) <= allowed, (name, counts.get(name, 0), allowed)
+
+
+def test_command_registry_is_consistent() -> None:
+    """#635: one family per kind, each with a receipt, an authorizer and its guards."""
+    from wayfarer.contracts import EventAction
+    from wayfarer.orchestration import commands
+    from wayfarer.orchestration.providers import Intent
+
+    actions = set(get_args(EventAction))
+    seen: set[str] = set()
+    for family in commands.FAMILIES:
+        assert family.kinds, family
+        assert not (seen & set(family.kinds)), sorted(seen & set(family.kinds))
+        seen.update(family.kinds)
+        assert family.receipt in actions, family.receipt
+        assert callable(family.authorize) and callable(family.service)
+        assert all(callable(rule) for rule in family.preconditions)
+    assert commands.ACTIONS.receipt in actions
+    # Every kind the model may propose resolves to a family, typed actions included.
+    for kind in get_args(Intent.model_fields["kind"].annotation):
+        assert commands.family_for(kind) is not None
+    # The guard exemptions the ladder carried by name are now the families that
+    # do not list `recovery_guard`.
+    unguarded = {
+        kind
+        for family in commands.FAMILIES
+        if commands.recovery_guard not in family.preconditions
+        for kind in family.kinds
+    } | set(commands.UNGUARDED_ACTIONS)
+    assert unguarded == {
+        "gurps_recovery",
+        "care",
+        "panic-response",
+        "propose_fright_build",
+        "approve_fright_build",
+        "take_combat_turn",
+        "take_unarmed_turn",
+        "choose_defense",
+        "resume_interrupted_turn",
+    }
