@@ -301,6 +301,17 @@
       "owner": 524
     },
     {
+      "id": "basic-gadgeteering-project-variants",
+      "sha256": "99e3bc259722baa5a5bf0ba2a6e3f341e1a081fdec05bc71849caa1cf62d127f",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-gadgeteering.md",
+      "tests": [
+        "tests/test_invention_projects.py::test_quick_schedule_defects_and_improvised_parts_replay_exactly"
+      ],
+      "owner": 525
+    },
+    {
       "id": "basic-control-rating-legality",
       "sha256": "7e46c8dffa4099607946f7cfa794effefd940b78fe32d94e8c85ccb052236849",
       "status": "reviewed",

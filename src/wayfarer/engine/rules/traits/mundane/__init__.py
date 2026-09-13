@@ -220,12 +220,21 @@ EFFECT_OWNERS: Final = {
     ),
     "trait.voice": 335,
     "trait.appearance_resentment": 335,
+    "trait.gadgeteering": 525,
 }
 
 
 def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, ...]:
     vocabulary = Vocabulary.model_validate(vocabulary)
     entries = [
+        _entry(
+            "advantage:gadgeteer",
+            "Gadgeteer",
+            25,
+            56,
+            "trait.gadgeteering",
+            levels=2,
+        ),
         _entry("ambidexterity", "Ambidexterity", 5, 39, "trait.off_hand"),
         _entry("charisma", "Charisma", 5, 41, "trait.social_modifiers", levels=10),
         _entry("combat-reflexes", "Combat Reflexes", 15, 43, "trait.combat_reflexes"),
@@ -631,7 +640,7 @@ def candidate_package(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> RulesPacka
     entries = inventory(vocabulary)
     return RulesPackage(
         "package:gurps-mundane-trait-candidates",
-        "0.6.0",
+        "0.7.0",
         "gurps-4e",
         (SOURCE,),
         tuple(entry.definition(entries) for entry in entries),

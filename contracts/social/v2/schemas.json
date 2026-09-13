@@ -5192,6 +5192,117 @@
         "title": "FirearmSpec",
         "type": "object"
       },
+      "GadgetContext": {
+        "additionalProperties": false,
+        "description": "Authored physical context needed to interpret the B476 bug table.",
+        "properties": {
+          "powered": {
+            "default": false,
+            "title": "Powered",
+            "type": "boolean"
+          },
+          "weapon": {
+            "default": false,
+            "title": "Weapon",
+            "type": "boolean"
+          }
+        },
+        "title": "GadgetContext",
+        "type": "object"
+      },
+      "GadgetDefect": {
+        "additionalProperties": false,
+        "description": "A hidden, replayable device defect selected only from recorded entropy.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "ordinary-minor",
+              "unwanted-attention",
+              "oversized",
+              "resource-drain",
+              "side-effects",
+              "awkward",
+              "power-hungry",
+              "weapon-underperformance",
+              "overheating",
+              "unreliable",
+              "repair-after-use",
+              "recoil",
+              "preparation-required",
+              "critical-self-destruction"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "table_dice": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 3,
+            "minItems": 0,
+            "title": "Table Dice",
+            "type": "array"
+          },
+          "table_total": {
+            "anyOf": [
+              {
+                "maximum": 18,
+                "minimum": 3,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Table Total"
+          },
+          "magnitude": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Magnitude"
+          },
+          "discovered": {
+            "default": false,
+            "title": "Discovered",
+            "type": "boolean"
+          },
+          "discovered_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Discovered At"
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ],
+        "title": "GadgetDefect",
+        "type": "object"
+      },
       "GenerationBrief": {
         "additionalProperties": false,
         "properties": {
@@ -6693,7 +6804,7 @@
       },
       "InventionBlueprint": {
         "additionalProperties": false,
-        "description": "Trusted GM-authored concept, prerequisites, costs and ordinary work schedule.",
+        "description": "Trusted concept, prerequisites, resources and method-specific context.",
         "properties": {
           "id": {
             "maxLength": 200,
@@ -6853,10 +6964,89 @@
             "title": "Runtime Adapter Id"
           },
           "method": {
-            "const": "ordinary",
             "default": "ordinary",
+            "enum": [
+              "ordinary",
+              "gadgeteer",
+              "quick-gadgeteer"
+            ],
             "title": "Method",
             "type": "string"
+          },
+          "activity": {
+            "default": "invention",
+            "enum": [
+              "invention",
+              "analysis",
+              "modification"
+            ],
+            "title": "Activity",
+            "type": "string"
+          },
+          "subject_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subject Definition Id"
+          },
+          "campaign_tl": {
+            "anyOf": [
+              {
+                "maximum": 12,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Campaign Tl"
+          },
+          "retail_price": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Retail Price"
+          },
+          "similar_facility_available": {
+            "default": false,
+            "title": "Similar Facility Available",
+            "type": "boolean"
+          },
+          "gadget_context": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/GadgetContext"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "non_gadgeteer_access": {
+            "$ref": "#/$defs/NonGadgeteerAccess",
+            "default": {
+              "use": true,
+              "repair": true,
+              "reproduce": false
+            }
           }
         },
         "required": [
@@ -6896,6 +7086,16 @@
             "maxLength": 200,
             "minLength": 1,
             "title": "Blueprint Id",
+            "type": "string"
+          },
+          "method": {
+            "default": "ordinary",
+            "enum": [
+              "ordinary",
+              "gadgeteer",
+              "quick-gadgeteer"
+            ],
+            "title": "Method",
             "type": "string"
           },
           "phase": {
@@ -6980,6 +7180,14 @@
             },
             "title": "Lots",
             "type": "array"
+          },
+          "gadget_defects": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/GadgetDefect"
+            },
+            "title": "Gadget Defects",
+            "type": "array"
           }
         },
         "required": [
@@ -7016,6 +7224,21 @@
               "$ref": "#/$defs/InventionBlueprint"
             },
             "title": "Blueprints",
+            "type": "array"
+          },
+          "permitted_methods": {
+            "default": [
+              "ordinary"
+            ],
+            "items": {
+              "enum": [
+                "ordinary",
+                "gadgeteer",
+                "quick-gadgeteer"
+              ],
+              "type": "string"
+            },
+            "title": "Permitted Methods",
             "type": "array"
           }
         },
@@ -7075,6 +7298,46 @@
             "minimum": 1,
             "title": "Units",
             "type": "integer"
+          },
+          "status": {
+            "default": "running",
+            "enum": [
+              "running",
+              "paused"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "remaining_seconds": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Remaining Seconds"
+          },
+          "schedule_dice": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Schedule Dice",
+            "type": "array"
+          },
+          "schedule_kind": {
+            "default": "ordinary-full-time",
+            "enum": [
+              "ordinary-full-time",
+              "gadgeteer-interruptible",
+              "quick-random"
+            ],
+            "title": "Schedule Kind",
+            "type": "string"
           }
         },
         "required": [
@@ -8849,6 +9112,29 @@
         "title": "NPCSocialTrigger",
         "type": "object"
       },
+      "NonGadgeteerAccess": {
+        "additionalProperties": false,
+        "description": "The campaign's explicit access decision for completed gadgets.",
+        "properties": {
+          "use": {
+            "default": true,
+            "title": "Use",
+            "type": "boolean"
+          },
+          "repair": {
+            "default": true,
+            "title": "Repair",
+            "type": "boolean"
+          },
+          "reproduce": {
+            "default": false,
+            "title": "Reproduce",
+            "type": "boolean"
+          }
+        },
+        "title": "NonGadgeteerAccess",
+        "type": "object"
+      },
       "NoncombatRule": {
         "additionalProperties": false,
         "properties": {
@@ -10053,6 +10339,22 @@
             "default": false,
             "title": "Behavior Available",
             "type": "boolean"
+          },
+          "defects": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/GadgetDefect"
+            },
+            "title": "Defects",
+            "type": "array"
+          },
+          "non_gadgeteer_access": {
+            "$ref": "#/$defs/NonGadgeteerAccess",
+            "default": {
+              "use": true,
+              "repair": true,
+              "reproduce": false
+            }
           }
         },
         "required": [

@@ -122,6 +122,34 @@
       "provenance": "Independent phase and preflight boundary entered from the selected fourth printing."
     },
     {
+      "id": "basic-gadgeteering-project-variants",
+      "capability_id": "gurps.projects.invention",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B475-B477, Gadgeteering",
+      "input": {
+        "method": "quick-gadgeteer",
+        "complexity": "simple",
+        "concept_schedule_dice": [4],
+        "prototype_schedule_dice": [2, 3],
+        "prototype_check_dice": [3, 3, 3],
+        "bug_count_die": 4,
+        "bug_table_dice": [[3, 3, 3], [4, 4, 5]],
+        "improvised_parts": 2
+      },
+      "expected": {
+        "concept_seconds": 240,
+        "prototype_seconds": 300,
+        "bug_kinds": ["power-hungry", "unreliable"],
+        "improvised_parts_consumed": 2,
+        "replay_consumes_more": false
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "example",
+      "provenance": "Independent quick schedule, bug-table, and conservation expectations entered from the selected fourth printing."
+    },
+    {
       "id": "basic-enchanting-project-lifecycle",
       "capability_id": "gurps.magic.items",
       "profile": "gurps-basic-set-4e-2004",

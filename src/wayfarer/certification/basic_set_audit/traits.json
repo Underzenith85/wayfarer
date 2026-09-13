@@ -2682,21 +2682,24 @@
       "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Gadgeteer",
-      "printed_page": 50,
+      "printed_page": 56,
       "list_page": 297,
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-gadgeteering.md",
+        "tests/test_mundane_traits.py::test_independent_construction_costs",
+        "tests/test_invention_projects.py::test_compiled_capability_and_campaign_permission_gate_gadget_methods"
       ],
       "historical_owners": [
         113
       ],
-      "completion_owner": 496,
+      "completion_owner": 525,
       "capability_id": "gurps.character.traits",
       "runtime_binding": "trait:advantage:gadgeteer",
       "parent_id": null,
@@ -2704,7 +2707,7 @@
       "listed_value": "25 or",
       "construction_binding": "trait:advantage:gadgeteer",
       "cost_owner": "trait:advantage:gadgeteer",
-      "consequence_owner": 501,
+      "consequence_owner": 525,
       "source_review_owner": null
     },
     {

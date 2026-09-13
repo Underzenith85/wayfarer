@@ -15280,16 +15280,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-gadgeteering.md",
+        "tests/test_invention_projects.py::test_compiled_capability_and_campaign_permission_gate_gadget_methods"
       ],
       "historical_owners": [
         191
       ],
       "completion_owner": 525,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
       "classification": null,
@@ -15306,16 +15308,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-gadgeteering.md",
+        "tests/test_invention_projects.py::test_quick_schedule_defects_and_improvised_parts_replay_exactly"
       ],
       "historical_owners": [
         191
       ],
       "completion_owner": 525,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
       "classification": null,
@@ -15332,16 +15336,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-gadgeteering.md",
+        "tests/test_invention_projects.py::test_quick_schedule_defects_and_improvised_parts_replay_exactly"
       ],
       "historical_owners": [
         191
       ],
       "completion_owner": 525,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
       "classification": null,
@@ -15358,16 +15364,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-gadgeteering.md",
+        "tests/test_invention_projects.py::test_quick_schedule_defects_and_improvised_parts_replay_exactly"
       ],
       "historical_owners": [
         191
       ],
       "completion_owner": 525,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
       "classification": null,
@@ -15384,16 +15392,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-gadgeteering.md",
+        "tests/test_invention_projects.py::test_gadget_work_pauses_for_adventure_time_and_non_gadget_access_is_bounded"
       ],
       "historical_owners": [
         191
       ],
       "completion_owner": 525,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
       "classification": null,
@@ -15410,16 +15420,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-gadgeteering.md",
+        "tests/test_invention_projects.py::test_gadget_work_pauses_for_adventure_time_and_non_gadget_access_is_bounded"
       ],
       "historical_owners": [
         191
       ],
       "completion_owner": 525,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b475:gadgeteering",
       "classification": null,
