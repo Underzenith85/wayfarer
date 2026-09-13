@@ -19,10 +19,17 @@ must test its domain invariants and negative paths.
 CI runs Python 3.14 with frozen dependencies, Ruff, mypy strict, quality-gate
 probes, pytest, wheel build and an installed application smoke test.
 
-PostgreSQL transaction/replay work begins in #10. Its reproducible local service is
-reserved now with `docker compose -f compose.test.yml up -d --wait`; future tests
-marked `integration` will read their test-only connection setting. The current
-SQLite integration suite does not require Docker.
+PostgreSQL transaction, replay, snapshot, catalog and engine integration tests run
+against PostgreSQL 17 in CI. To reproduce them locally, start the service with
+`docker compose -f compose.test.yml up -d --wait`, then export the test-only
+connection setting:
+
+```bash
+export WAYFARER_TEST_DATABASE_URL='postgresql://wayfarer:wayfarer-test-only@127.0.0.1:55432/wayfarer_test'
+```
+
+Tests that require PostgreSQL skip when that variable is absent. The SQLite
+integration paths do not require Docker.
 
 The integrated [Wave 15 release gates](release-gates.md) publish mechanics coverage,
 require reference-adventure and multiplayer evidence, and distinguish engine checks

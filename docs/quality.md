@@ -1,8 +1,8 @@
 # Python quality contract
 
 The authoritative checker is **mypy strict**. Ruff owns linting, import ordering
-and formatting. Tool versions and transitive development dependencies are pinned
-by `uv.lock`; the runtime still has no third-party dependencies.
+and formatting. Runtime and development dependencies are declared in
+`pyproject.toml`, and their resolved versions are pinned by `uv.lock`.
 
 ## Scope and rules
 
@@ -14,7 +14,10 @@ behavior. The package ships `py.typed` for downstream users.
 Explicit `Any` is rejected by `scripts/check_no_any.py`; mypy rejects unfollowed-import Any. The separate source gate avoids a false positive from Pydantic Settings’ generated constructor while retaining the project rule. Do not hide errors with
 casts, blanket ignores, missing-import ignores, excluded modules or per-file
 checker overrides. An unavoidable targeted suppression requires its error code,
-an explanation and review; unused suppressions fail. None are currently needed.
+the narrowest possible scope and review; unused suppressions fail. A small number
+of targeted, error-coded suppressions currently bridge limitations in inferred
+Literal narrowing. New suppressions must satisfy the same policy rather than
+expanding those exceptions.
 
 Treat decoded JSON as `object`. `validation.py` checks primitive types and object
 shapes before returning domain contracts. In particular, booleans are not integer
