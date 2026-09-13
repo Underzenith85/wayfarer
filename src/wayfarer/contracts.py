@@ -73,6 +73,7 @@ EventAction = Literal[
     "director",
     "workshop",
     "setup",
+    "transformation",
 ]
 
 

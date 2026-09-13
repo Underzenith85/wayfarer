@@ -130,6 +130,16 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             ("disease:aging", "B20-B21/B444"),
         )
     )
+    rows.extend(
+        InventoryItem(identifier, reference, 500, "verified", "character-transformations")
+        for identifier, reference in (
+            ("transformation:campaign", "B294-B296"),
+            ("transformation:body-modification", "B294-B295"),
+            ("transformation:mind-transfer", "B296"),
+            ("transformation:supernatural-affliction", "B296"),
+            ("transformation:death-boundary", "B296"),
+        )
+    )
     # A bound runtime effect is reported as implemented; naming one is still partial.
     rows.extend(
         InventoryItem(
