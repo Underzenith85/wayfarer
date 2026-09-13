@@ -21,8 +21,9 @@ from wayfarer.engine.rules.catalog import (
     SourceReference,
 )
 from wayfarer.engine.rules.traits.background import BACKGROUND_BINDINGS, BACKGROUND_HOOKS
-from wayfarer.engine.rules.traits.base import TraitRules, validate_metadata
+from wayfarer.engine.rules.traits.base import TraitParameter, TraitRules, validate_metadata
 from wayfarer.engine.rules.traits.mental import CONSEQUENCES, MENTAL_BINDINGS, MENTAL_HOOKS
+from wayfarer.engine.rules.traits.mundane.complete import SPECS as COMPLETE_SPECS
 from wayfarer.engine.rules.traits.mundane.runtime import (
     APPEARANCE_BINDINGS,
     REACTION_BINDINGS,
@@ -86,6 +87,7 @@ class TraitEntry:
     identity: str | None = None
     prerequisites: tuple[str, ...] = ()
     followup_issues: tuple[int, ...] = (113, 122)
+    parameters: tuple[TraitParameter, ...] = ()
 
     @property
     def implemented(self) -> bool:
@@ -141,6 +143,7 @@ class TraitEntry:
                 PROFILE,
                 maximum_level=self.maximum_level,
                 self_control=self.self_control,
+                parameters=self.parameters,
                 runtime_hooks=(self.effect,),
             ),
         )
@@ -593,6 +596,21 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
         )
         for e in entries
     )
+    result += tuple(
+        TraitEntry(
+            id=spec.id,
+            name=spec.title,
+            points=spec.point_cost,
+            page=spec.page,
+            category=spec.kind,
+            effect=spec.hook,
+            maximum_level=spec.maximum_level,
+            self_control=spec.self_control,
+            followup_issues=(113, spec.owner_issue),
+            parameters=spec.parameters,
+        )
+        for spec in COMPLETE_SPECS
+    )
     if not REACTION_BINDINGS.keys() <= {entry.id for entry in result}:
         raise ValidationError("Runtime binding without a selected trait record")
     validate_inventory(result)
@@ -604,7 +622,7 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
     if len(identifiers) != len(entries):
         raise ValidationError("Duplicate mundane trait identifier")
     for entry in entries:
-        if not entry.effect or not entry.followup_issues or not 21 <= entry.page <= 165:
+        if not entry.effect or not entry.followup_issues or not 1 <= entry.page <= 165:
             raise ValidationError("Trait requires indexed provenance and an owned effect blocker")
         if not set(entry.prerequisites) <= identifiers or entry.id in entry.prerequisites:
             raise ValidationError("Unresolved trait prerequisite")

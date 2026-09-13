@@ -21,6 +21,7 @@ from wayfarer.engine.rules.traits import (
     world_travel,
 )
 from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mundane import complete as complete_mundane
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,6 +33,7 @@ class TraitFamily:
 
 
 FAMILIES: Final = (
+    TraitFamily(complete_mundane.HOOK_PREFIX, complete_mundane.validate_purchase),
     TraitFamily("movement-form:", movement_forms.validate_purchase),
     TraitFamily("physiology-trait:", physiology.validate_purchase),
     TraitFamily("sensory-trait:", sensory.validate_purchase),

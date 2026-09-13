@@ -1,0 +1,2142 @@
+{
+  "schema_version": 1,
+  "source": "Basic Set: Characters, Fourth Edition, third printing",
+  "rows": [
+    {
+      "id": "trait:advantage:3d-spatial-sense",
+      "title": "3D Spatial Sense",
+      "printed_page": 34,
+      "classification": "advantage|P|–",
+      "listed_value": "10",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:absolute-direction",
+      "title": "Absolute Direction",
+      "printed_page": 34,
+      "classification": "advantage|P|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:absolute-timing",
+      "title": "Absolute Timing",
+      "printed_page": 35,
+      "classification": "advantage|M|–",
+      "listed_value": "2",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:acute-hearing",
+      "title": "Acute Hearing",
+      "printed_page": 35,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:acute-taste-and-smell",
+      "title": "Acute Taste and Smell",
+      "printed_page": 35,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:acute-touch",
+      "title": "Acute Touch",
+      "printed_page": 35,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:acute-vision",
+      "title": "Acute Vision",
+      "printed_page": 35,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:administrative-rank",
+      "title": "Administrative Rank",
+      "printed_page": 30,
+      "classification": "advantage|Soc|– 5 or",
+      "listed_value": "or 10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:alcohol-tolerance",
+      "title": "Alcohol Tolerance",
+      "printed_page": 100,
+      "classification": "advantage|P|–",
+      "listed_value": "1",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:allies",
+      "title": "Allies",
+      "printed_page": 36,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:alternate-identity",
+      "title": "Alternate Identity",
+      "printed_page": 39,
+      "classification": "advantage|Soc|– 5",
+      "listed_value": "5 or 15",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:animal-friend",
+      "title": "Animal Friend",
+      "printed_page": 90,
+      "classification": "advantage|M|– 5/level",
+      "listed_value": "5/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:appearance",
+      "title": "Appearance",
+      "printed_page": 21,
+      "classification": "advantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:artificer",
+      "title": "Artificer",
+      "printed_page": 90,
+      "classification": "advantage|M|– 10/level",
+      "listed_value": "10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:autotrance",
+      "title": "Autotrance",
+      "printed_page": 101,
+      "classification": "advantage|M|–",
+      "listed_value": "1",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:business-acumen",
+      "title": "Business Acumen",
+      "printed_page": 90,
+      "classification": "advantage|M|– 10/level",
+      "listed_value": "10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:chronolocation",
+      "title": "Chronolocation",
+      "printed_page": 35,
+      "classification": "advantage|M|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:claim-to-hospitality",
+      "title": "Claim to Hospitality",
+      "printed_page": 41,
+      "classification": "advantage|Soc|– 1",
+      "listed_value": "1 to 10",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:clerical-investment",
+      "title": "Clerical Investment",
+      "printed_page": 43,
+      "classification": "advantage|Soc|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:common-sense",
+      "title": "Common Sense",
+      "printed_page": 43,
+      "classification": "advantage|M|–",
+      "listed_value": "10",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:contact-group",
+      "title": "Contact Group",
+      "printed_page": 44,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:contacts",
+      "title": "Contacts",
+      "printed_page": 44,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:courtesy-rank",
+      "title": "Courtesy Rank",
+      "printed_page": 29,
+      "classification": "advantage|Soc|– 1/level",
+      "listed_value": "1/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:cultural-adaptability",
+      "title": "Cultural Adaptability",
+      "printed_page": 46,
+      "classification": "advantage|M|–",
+      "listed_value": "10",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:cultural-familiarity",
+      "title": "Cultural Familiarity",
+      "printed_page": 23,
+      "classification": "advantage|Soc|– 1 or",
+      "listed_value": "or 2/culture",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:cybernetics",
+      "title": "Cybernetics",
+      "printed_page": 46,
+      "classification": "advantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:daredevil",
+      "title": "Daredevil",
+      "printed_page": 47,
+      "classification": "advantage|M|–",
+      "listed_value": "15",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:double-jointed",
+      "title": "Double-Jointed",
+      "printed_page": 56,
+      "classification": "advantage|P|–",
+      "listed_value": "15",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:enhanced-defenses",
+      "title": "Enhanced Defenses",
+      "printed_page": 51,
+      "classification": "advantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:extra-attack",
+      "title": "Extra Attack",
+      "printed_page": 53,
+      "classification": "advantage|P|– 25/attack",
+      "listed_value": "25/attack",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:fashion-sense",
+      "title": "Fashion Sense",
+      "printed_page": 21,
+      "classification": "advantage|M|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:favor",
+      "title": "Favor",
+      "printed_page": 55,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:fearlessness",
+      "title": "Fearlessness",
+      "printed_page": 55,
+      "classification": "advantage|M|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:flexibility",
+      "title": "Flexibility",
+      "printed_page": 56,
+      "classification": "advantage|P|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:g-experience",
+      "title": "G-Experience",
+      "printed_page": 57,
+      "classification": "advantage|M|– 1",
+      "listed_value": "1 to 10",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:gifted-artist",
+      "title": "Gifted Artist",
+      "printed_page": 90,
+      "classification": "advantage|M|– 5/level",
+      "listed_value": "5/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:gizmos",
+      "title": "Gizmos",
+      "printed_page": 57,
+      "classification": "advantage|M|– 5/gizmo",
+      "listed_value": "5/gizmo",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:green-thumb",
+      "title": "Green Thumb",
+      "printed_page": 90,
+      "classification": "advantage|M|– 5/level",
+      "listed_value": "5/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:gunslinger",
+      "title": "Gunslinger",
+      "printed_page": 58,
+      "classification": "advantage|M|–",
+      "listed_value": "25",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:hard-to-kill",
+      "title": "Hard to Kill",
+      "printed_page": 58,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:hard-to-subdue",
+      "title": "Hard to Subdue",
+      "printed_page": 59,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:healer",
+      "title": "Healer",
+      "printed_page": 90,
+      "classification": "advantage|M|– 10/level",
+      "listed_value": "10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:high-manual-dexterity",
+      "title": "High Manual Dexterity",
+      "printed_page": 59,
+      "classification": "advantage|P|– 5/level",
+      "listed_value": "5/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:high-tl",
+      "title": "High TL",
+      "printed_page": 23,
+      "classification": "advantage|M|– 5/level",
+      "listed_value": "5/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:honest-face",
+      "title": "Honest Face",
+      "printed_page": 101,
+      "classification": "advantage|P|–",
+      "listed_value": "1",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:improved-g-tolerance",
+      "title": "Improved G-Tolerance",
+      "printed_page": 60,
+      "classification": "advantage|P|– 5",
+      "listed_value": "5 to 25",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:independent-income",
+      "title": "Independent Income",
+      "printed_page": 26,
+      "classification": "advantage|Soc|– 1/level",
+      "listed_value": "1/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:intuition",
+      "title": "Intuition",
+      "printed_page": 63,
+      "classification": "advantage|M|–",
+      "listed_value": "15",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:intuitive-mathematician",
+      "title": "Intuitive Mathematician",
+      "printed_page": 66,
+      "classification": "advantage|M|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:legal-enforcement-powers",
+      "title": "Legal Enforcement Powers",
+      "printed_page": 15,
+      "classification": "advantage|Soc|– 5, 10,",
+      "listed_value": "10, or",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:legal-immunity",
+      "title": "Legal Immunity",
+      "printed_page": 65,
+      "classification": "advantage|Soc|– 5",
+      "listed_value": "5 to 20",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:less-sleep",
+      "title": "Less Sleep",
+      "printed_page": 65,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:lightning-calculator",
+      "title": "Lightning Calculator",
+      "printed_page": 66,
+      "classification": "advantage|M|–",
+      "listed_value": "2",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:longevity",
+      "title": "Longevity",
+      "printed_page": 66,
+      "classification": "advantage|P|–",
+      "listed_value": "2",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:luck",
+      "title": "Luck",
+      "printed_page": 66,
+      "classification": "advantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:mathematical-ability",
+      "title": "Mathematical Ability",
+      "printed_page": 90,
+      "classification": "advantage|M|– 10/level",
+      "listed_value": "10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:merchant-rank",
+      "title": "Merchant Rank",
+      "printed_page": 30,
+      "classification": "advantage|Soc|– 5 or",
+      "listed_value": "or 10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:military-rank",
+      "title": "Military Rank",
+      "printed_page": 30,
+      "classification": "advantage|Soc|– 5 or",
+      "listed_value": "or 10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:musical-ability",
+      "title": "Musical Ability",
+      "printed_page": 91,
+      "classification": "advantage|M|– 5/level",
+      "listed_value": "5/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:no-hangover",
+      "title": "No Hangover",
+      "printed_page": 101,
+      "classification": "advantage|P|–",
+      "listed_value": "1",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:outdoorsman",
+      "title": "Outdoorsman",
+      "printed_page": 91,
+      "classification": "advantage|M|– 10/level",
+      "listed_value": "10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:patrons",
+      "title": "Patrons",
+      "printed_page": 72,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:perfect-balance",
+      "title": "Perfect Balance",
+      "printed_page": 74,
+      "classification": "advantage|P|–",
+      "listed_value": "15",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:peripheral-vision",
+      "title": "Peripheral Vision",
+      "printed_page": 74,
+      "classification": "advantage|P|–",
+      "listed_value": "15",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:pitiable",
+      "title": "Pitiable",
+      "printed_page": 22,
+      "classification": "advantage|Soc|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:plant-empathy",
+      "title": "Plant Empathy",
+      "printed_page": 75,
+      "classification": "advantage|M|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:police-rank",
+      "title": "Police Rank",
+      "printed_page": 30,
+      "classification": "advantage|Soc|– 5 or",
+      "listed_value": "or 10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:rank",
+      "title": "Rank",
+      "printed_page": 29,
+      "classification": "advantage|Soc|– 5 or",
+      "listed_value": "or 10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:rapier-wit",
+      "title": "Rapier Wit",
+      "printed_page": 79,
+      "classification": "advantage|M|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:reduced-consumption",
+      "title": "Reduced Consumption",
+      "printed_page": 80,
+      "classification": "advantage|P|– 2/level",
+      "listed_value": "2/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:religious-rank",
+      "title": "Religious Rank",
+      "printed_page": 30,
+      "classification": "advantage|Soc|– 5 or",
+      "listed_value": "or 10/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:reputation",
+      "title": "Reputation",
+      "printed_page": 26,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:security-clearance",
+      "title": "Security Clearance",
+      "printed_page": 82,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:sensitive",
+      "title": "Sensitive",
+      "printed_page": 51,
+      "classification": "advantage|M|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:serendipity",
+      "title": "Serendipity",
+      "printed_page": 83,
+      "classification": "advantage|M|– 15/level",
+      "listed_value": "15/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:shtick",
+      "title": "Shtick",
+      "printed_page": 101,
+      "classification": "advantage|M/P|–",
+      "listed_value": "1",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:signature-gear",
+      "title": "Signature Gear",
+      "printed_page": 85,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:smooth-operator",
+      "title": "Smooth Operator",
+      "printed_page": 91,
+      "classification": "advantage|M|– 15/level",
+      "listed_value": "15/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:social-chameleon",
+      "title": "Social Chameleon",
+      "printed_page": 86,
+      "classification": "advantage|M|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:social-regard",
+      "title": "Social Regard",
+      "printed_page": 86,
+      "classification": "advantage|Soc|– 5/level",
+      "listed_value": "5/level",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:talent",
+      "title": "Talent",
+      "printed_page": 89,
+      "classification": "advantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:tenure",
+      "title": "Tenure",
+      "printed_page": 93,
+      "classification": "advantage|Soc|–",
+      "listed_value": "5",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:trained-by-a-master",
+      "title": "Trained By A Master",
+      "printed_page": 93,
+      "classification": "advantage|M|–",
+      "listed_value": "30",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:unfazeable",
+      "title": "Unfazeable",
+      "printed_page": 95,
+      "classification": "advantage|M|–",
+      "listed_value": "15",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:unusual-background",
+      "title": "Unusual Background",
+      "printed_page": 96,
+      "classification": "advantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:wealth",
+      "title": "Wealth",
+      "printed_page": 25,
+      "classification": "advantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:weapon-master",
+      "title": "Weapon Master",
+      "printed_page": 99,
+      "classification": "advantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:xeno-adaptability",
+      "title": "Xeno-Adaptability",
+      "printed_page": 46,
+      "classification": "advantage|M|–",
+      "listed_value": "20",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:advantage:zeroed",
+      "title": "Zeroed",
+      "printed_page": 100,
+      "classification": "advantage|Soc|–",
+      "listed_value": "10",
+      "owner_issue": 680
+    },
+    {
+      "id": "trait:disadvantage:absent-mindedness",
+      "title": "Absent-Mindedness",
+      "printed_page": 122,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:acceleration-weakness",
+      "title": "Acceleration Weakness",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:addiction",
+      "title": "Addiction",
+      "printed_page": 122,
+      "classification": "disadvantage|M/P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:alcohol-intolerance",
+      "title": "Alcohol Intolerance",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:alcoholism",
+      "title": "Alcoholism",
+      "printed_page": 122,
+      "classification": "disadvantage|P|– -15",
+      "listed_value": "-15 or -20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:amnesia",
+      "title": "Amnesia",
+      "printed_page": 123,
+      "classification": "disadvantage|M|– -10",
+      "listed_value": "-10 or -25",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:appearance",
+      "title": "Appearance",
+      "printed_page": 21,
+      "classification": "disadvantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:attentive",
+      "title": "Attentive",
+      "printed_page": 163,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:bad-back",
+      "title": "Bad Back",
+      "printed_page": 123,
+      "classification": "disadvantage|P|– -15",
+      "listed_value": "-15 or -25",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:bad-grip",
+      "title": "Bad Grip",
+      "printed_page": 123,
+      "classification": "disadvantage|P|– -5/level",
+      "listed_value": "-5/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:bad-sight",
+      "title": "Bad Sight",
+      "printed_page": 123,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-25",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:bad-smell",
+      "title": "Bad Smell",
+      "printed_page": 124,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:berserk",
+      "title": "Berserk",
+      "printed_page": 124,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:blindness",
+      "title": "Blindness",
+      "printed_page": 124,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-50",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:bloodlust",
+      "title": "Bloodlust",
+      "printed_page": 125,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:bowlegged",
+      "title": "Bowlegged",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:broad-minded",
+      "title": "Broad-Minded",
+      "printed_page": 163,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:bully",
+      "title": "Bully",
+      "printed_page": 125,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:callous",
+      "title": "Callous",
+      "printed_page": 125,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:cannot-float",
+      "title": "Cannot Float",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:cannot-learn",
+      "title": "Cannot Learn",
+      "printed_page": 125,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-30",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:cannot-speak",
+      "title": "Cannot Speak",
+      "printed_page": 125,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:charitable",
+      "title": "Charitable",
+      "printed_page": 125,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:chauvinistic",
+      "title": "Chauvinistic",
+      "printed_page": 163,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:chronic-depression",
+      "title": "Chronic Depression",
+      "printed_page": 126,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:chronic-pain",
+      "title": "Chronic Pain",
+      "printed_page": 126,
+      "classification": "disadvantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:chummy",
+      "title": "Chummy",
+      "printed_page": 126,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:clueless",
+      "title": "Clueless",
+      "printed_page": 126,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:code-of-honor",
+      "title": "Code of Honor",
+      "printed_page": 15,
+      "classification": "disadvantage|M|– -1 or",
+      "listed_value": "or -5 to",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:colorblindness",
+      "title": "Colorblindness",
+      "printed_page": 127,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:combat-paralysis",
+      "title": "Combat Paralysis",
+      "printed_page": 127,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:compulsive-behavior",
+      "title": "Compulsive Behavior",
+      "printed_page": 128,
+      "classification": "disadvantage|M|– -5",
+      "listed_value": "-5 to -15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:confused",
+      "title": "Confused",
+      "printed_page": 129,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:congenial",
+      "title": "Congenial",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:cowardice",
+      "title": "Cowardice",
+      "printed_page": 129,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:deafness",
+      "title": "Deafness",
+      "printed_page": 129,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:debt",
+      "title": "Debt",
+      "printed_page": 26,
+      "classification": "disadvantage|Soc|– -1/level",
+      "listed_value": "-1/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:delusions",
+      "title": "Delusions",
+      "printed_page": 15,
+      "classification": "disadvantage|M|– -1 or",
+      "listed_value": "or -5 to",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:dependents",
+      "title": "Dependents",
+      "printed_page": 131,
+      "classification": "disadvantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:disciplines-of-faith",
+      "title": "Disciplines of Faith",
+      "printed_page": 132,
+      "classification": "disadvantage|M|– -5",
+      "listed_value": "-5 to -15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:dislikes",
+      "title": "Dislikes",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:distinctive-features",
+      "title": "Distinctive Features",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:distractible",
+      "title": "Distractible",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:disturbing-voice",
+      "title": "Disturbing Voice",
+      "printed_page": 132,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:dreamer",
+      "title": "Dreamer",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:dull",
+      "title": "Dull",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:duty",
+      "title": "Duty",
+      "printed_page": 133,
+      "classification": "disadvantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:dwarfism",
+      "title": "Dwarfism",
+      "printed_page": 19,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:dyslexia",
+      "title": "Dyslexia",
+      "printed_page": 134,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:easy-to-kill",
+      "title": "Easy to Kill",
+      "printed_page": 134,
+      "classification": "disadvantage|P|– -2/level",
+      "listed_value": "-2/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:easy-to-read",
+      "title": "Easy to Read",
+      "printed_page": 134,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:enemies",
+      "title": "Enemies",
+      "printed_page": 135,
+      "classification": "disadvantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:epilepsy",
+      "title": "Epilepsy",
+      "printed_page": 136,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-30",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:extra-sleep",
+      "title": "Extra Sleep",
+      "printed_page": 136,
+      "classification": "disadvantage|P|– -2/level",
+      "listed_value": "-2/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:fanaticism",
+      "title": "Fanaticism",
+      "printed_page": 136,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:fat",
+      "title": "Fat",
+      "printed_page": 19,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-3",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:fearfulness",
+      "title": "Fearfulness",
+      "printed_page": 136,
+      "classification": "disadvantage|M|– -2/level",
+      "listed_value": "-2/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:flashbacks",
+      "title": "Flashbacks",
+      "printed_page": 136,
+      "classification": "disadvantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:g-intolerance",
+      "title": "G-Intolerance",
+      "printed_page": 20,
+      "classification": "disadvantage|P|– -10",
+      "listed_value": "-10 or",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:gigantism",
+      "title": "Gigantism",
+      "printed_page": 20,
+      "classification": "disadvantage|P|–",
+      "listed_value": "0",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:gluttony",
+      "title": "Gluttony",
+      "printed_page": 137,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:greed",
+      "title": "Greed",
+      "printed_page": 137,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:gregarious",
+      "title": "Gregarious",
+      "printed_page": 126,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:guilt-complex",
+      "title": "Guilt Complex",
+      "printed_page": 137,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:gullibility",
+      "title": "Gullibility",
+      "printed_page": 137,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:habits-or-expressions",
+      "title": "Habits or Expressions",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:ham-fisted",
+      "title": "Ham-Fisted",
+      "printed_page": 138,
+      "classification": "disadvantage|P|– -5",
+      "listed_value": "-5 or -10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:hard-of-hearing",
+      "title": "Hard of Hearing",
+      "printed_page": 138,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:hemophilia",
+      "title": "Hemophilia",
+      "printed_page": 138,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-30",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:hidebound",
+      "title": "Hidebound",
+      "printed_page": 138,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:horrible-hangovers",
+      "title": "Horrible Hangovers",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:humble",
+      "title": "Humble",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:hunchback",
+      "title": "Hunchback",
+      "printed_page": 139,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:imaginative",
+      "title": "Imaginative",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:impulsiveness",
+      "title": "Impulsiveness",
+      "printed_page": 139,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:incompetence",
+      "title": "Incompetence",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:increased-consumption",
+      "title": "Increased Consumption",
+      "printed_page": 139,
+      "classification": "disadvantage|P|– -10/level",
+      "listed_value": "-10/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:incurious",
+      "title": "Incurious",
+      "printed_page": 140,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:indecisive",
+      "title": "Indecisive",
+      "printed_page": 140,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:innumerate",
+      "title": "Innumerate",
+      "printed_page": 140,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:insomniac",
+      "title": "Insomniac",
+      "printed_page": 15,
+      "classification": "disadvantage|P|– -10",
+      "listed_value": "-10 or",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:intolerance",
+      "title": "Intolerance",
+      "printed_page": 140,
+      "classification": "disadvantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:jealousy",
+      "title": "Jealousy",
+      "printed_page": 140,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:killjoy",
+      "title": "Killjoy",
+      "printed_page": 140,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:kleptomania",
+      "title": "Kleptomania",
+      "printed_page": 141,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:klutz",
+      "title": "Klutz",
+      "printed_page": 141,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:lame",
+      "title": "Lame",
+      "printed_page": 30,
+      "classification": "disadvantage|P|– -10",
+      "listed_value": "-10 to",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:laziness",
+      "title": "Laziness",
+      "printed_page": 142,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:lecherousness",
+      "title": "Lecherousness",
+      "printed_page": 142,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:light-sleeper",
+      "title": "Light Sleeper",
+      "printed_page": 142,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:likes",
+      "title": "Likes",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:loner",
+      "title": "Loner",
+      "printed_page": 142,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:low-empathy",
+      "title": "Low Empathy",
+      "printed_page": 142,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:low-pain-threshold",
+      "title": "Low Pain Threshold",
+      "printed_page": 142,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:low-self-image",
+      "title": "Low Self-Image",
+      "printed_page": 143,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:low-tl",
+      "title": "Low TL",
+      "printed_page": 22,
+      "classification": "disadvantage|M|– -5/level",
+      "listed_value": "-5/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:lunacy",
+      "title": "Lunacy",
+      "printed_page": 143,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:maintenance",
+      "title": "Maintenance",
+      "printed_page": 143,
+      "classification": "disadvantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:manic-depressive",
+      "title": "Manic-Depressive",
+      "printed_page": 143,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:megalomania",
+      "title": "Megalomania",
+      "printed_page": 144,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:minor-handicaps",
+      "title": "Minor Handicaps",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:miserliness",
+      "title": "Miserliness",
+      "printed_page": 144,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:missing-digit",
+      "title": "Missing Digit",
+      "printed_page": 5,
+      "classification": "disadvantage|P|– -2",
+      "listed_value": "-2 or",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:mistaken-identity",
+      "title": "Mistaken Identity",
+      "printed_page": 21,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:motion-sickness",
+      "title": "Motion Sickness",
+      "printed_page": 144,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:mute",
+      "title": "Mute",
+      "printed_page": 125,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-25",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:nervous-stomach",
+      "title": "Nervous Stomach",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:neurological-disorder",
+      "title": "Neurological Disorder",
+      "printed_page": 144,
+      "classification": "disadvantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:neutered",
+      "title": "Neutered",
+      "printed_page": 165,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:night-blindness",
+      "title": "Night Blindness",
+      "printed_page": 144,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:nightmares",
+      "title": "Nightmares",
+      "printed_page": 144,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:no-depth-perception",
+      "title": "No Depth Perception",
+      "printed_page": 145,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:no-sense-of-humor",
+      "title": "No Sense of Humor",
+      "printed_page": 146,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:no-sense-of-smell-taste",
+      "title": "No Sense of Smell/Taste",
+      "printed_page": 146,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:noisy",
+      "title": "Noisy",
+      "printed_page": 146,
+      "classification": "disadvantage|P|– -2/level",
+      "listed_value": "-2/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:non-iconographic",
+      "title": "Non-Iconographic",
+      "printed_page": 146,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:nosy",
+      "title": "Nosy",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:numb",
+      "title": "Numb",
+      "printed_page": 146,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:oblivious",
+      "title": "Oblivious",
+      "printed_page": 146,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:obsession",
+      "title": "Obsession",
+      "printed_page": 146,
+      "classification": "disadvantage|M|– -1, -5,",
+      "listed_value": "-5, or -10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:odious-personal-habits",
+      "title": "Odious Personal Habits",
+      "printed_page": 15,
+      "classification": "disadvantage|M|– -5, -10,",
+      "listed_value": "-10, or",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:on-the-edge",
+      "title": "On the Edge",
+      "printed_page": 146,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:one-arm",
+      "title": "One Arm",
+      "printed_page": 147,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:one-eye",
+      "title": "One Eye",
+      "printed_page": 147,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:one-hand",
+      "title": "One Hand",
+      "printed_page": 147,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:overweight",
+      "title": "Overweight",
+      "printed_page": 19,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:pacifism",
+      "title": "Pacifism",
+      "printed_page": 148,
+      "classification": "disadvantage|M|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:paranoia",
+      "title": "Paranoia",
+      "printed_page": 148,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:personality-change",
+      "title": "Personality Change",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:phantom-voices",
+      "title": "Phantom Voices",
+      "printed_page": 148,
+      "classification": "disadvantage|M|– -5",
+      "listed_value": "-5 to -15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:phobias",
+      "title": "Phobias",
+      "printed_page": 148,
+      "classification": "disadvantage|M|– Variable*",
+      "listed_value": "Variable*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:post-combat-shakes",
+      "title": "Post-Combat Shakes",
+      "printed_page": 150,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:proud",
+      "title": "Proud",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:pyromania",
+      "title": "Pyromania",
+      "printed_page": 150,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:quadriplegic",
+      "title": "Quadriplegic",
+      "printed_page": 150,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-80",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:reputation",
+      "title": "Reputation",
+      "printed_page": 26,
+      "classification": "disadvantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:responsive",
+      "title": "Responsive",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:restricted-diet",
+      "title": "Restricted Diet",
+      "printed_page": 151,
+      "classification": "disadvantage|P|– -10",
+      "listed_value": "-10 to -40",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:restricted-vision",
+      "title": "Restricted Vision",
+      "printed_page": 151,
+      "classification": "disadvantage|P|– -15",
+      "listed_value": "-15 or -30",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:sadism",
+      "title": "Sadism",
+      "printed_page": 152,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:secret",
+      "title": "Secret",
+      "printed_page": 152,
+      "classification": "disadvantage|Soc|– -5",
+      "listed_value": "-5 to -30",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:secret-identity",
+      "title": "Secret Identity",
+      "printed_page": 153,
+      "classification": "disadvantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:selfish",
+      "title": "Selfish",
+      "printed_page": 153,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:selfless",
+      "title": "Selfless",
+      "printed_page": 153,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:sense-of-duty",
+      "title": "Sense of Duty",
+      "printed_page": 153,
+      "classification": "disadvantage|M|– -2",
+      "listed_value": "-2 to -20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:short-attention-span",
+      "title": "Short Attention Span",
+      "printed_page": 153,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:shyness",
+      "title": "Shyness",
+      "printed_page": 20,
+      "classification": "disadvantage|M|– -5, -10,",
+      "listed_value": "-10, or",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:skinny",
+      "title": "Skinny",
+      "printed_page": 18,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:slave-mentality",
+      "title": "Slave Mentality",
+      "printed_page": 154,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-40",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:sleepwalker",
+      "title": "Sleepwalker",
+      "printed_page": 154,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:slow-healing",
+      "title": "Slow Healing",
+      "printed_page": 155,
+      "classification": "disadvantage|P|– -5/level",
+      "listed_value": "-5/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:slow-riser",
+      "title": "Slow Riser",
+      "printed_page": 155,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:social-disease",
+      "title": "Social Disease",
+      "printed_page": 155,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:social-stigma",
+      "title": "Social Stigma",
+      "printed_page": 155,
+      "classification": "disadvantage|Soc|– -5",
+      "listed_value": "-5 to -20",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:space-sickness",
+      "title": "Space Sickness",
+      "printed_page": 156,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:split-personality",
+      "title": "Split Personality",
+      "printed_page": 156,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:squeamish",
+      "title": "Squeamish",
+      "printed_page": 156,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:staid",
+      "title": "Staid",
+      "printed_page": 164,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:status",
+      "title": "Status",
+      "printed_page": 28,
+      "classification": "disadvantage|Soc|– -5/level",
+      "listed_value": "-5/level",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:stubbornness",
+      "title": "Stubbornness",
+      "printed_page": 157,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:stuttering",
+      "title": "Stuttering",
+      "printed_page": 157,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:susceptible",
+      "title": "Susceptible",
+      "printed_page": 158,
+      "classification": "disadvantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:terminally-ill",
+      "title": "Terminally Ill",
+      "printed_page": 100,
+      "classification": "disadvantage|P|– -50, -75,",
+      "listed_value": "-75, or",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:timesickness",
+      "title": "Timesickness",
+      "printed_page": 158,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:total-klutz",
+      "title": "Total Klutz",
+      "printed_page": 141,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:trademark",
+      "title": "Trademark",
+      "printed_page": 15,
+      "classification": "disadvantage|M|– -1 or",
+      "listed_value": "or -5 to",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:trickster",
+      "title": "Trickster",
+      "printed_page": 159,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-15*",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:uncongenial",
+      "title": "Uncongenial",
+      "printed_page": 165,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-1",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:unfit",
+      "title": "Unfit",
+      "printed_page": 160,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:unluckiness",
+      "title": "Unluckiness",
+      "printed_page": 160,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:unnatural-features",
+      "title": "Unnatural Features",
+      "printed_page": 22,
+      "classification": "disadvantage|P|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:very-fat",
+      "title": "Very Fat",
+      "printed_page": 19,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:very-unfit",
+      "title": "Very Unfit",
+      "printed_page": 160,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-15",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:vow",
+      "title": "Vow",
+      "printed_page": 15,
+      "classification": "disadvantage|M|– -1 or",
+      "listed_value": "or -5 to",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:wealth",
+      "title": "Wealth",
+      "printed_page": 25,
+      "classification": "disadvantage|Soc|– Variable",
+      "listed_value": "Variable",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:workaholic",
+      "title": "Workaholic",
+      "printed_page": 162,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:wounded",
+      "title": "Wounded",
+      "printed_page": 162,
+      "classification": "disadvantage|P|–",
+      "listed_value": "-5",
+      "owner_issue": 681
+    },
+    {
+      "id": "trait:disadvantage:xenophilia",
+      "title": "Xenophilia",
+      "printed_page": 163,
+      "classification": "disadvantage|M|–",
+      "listed_value": "-10*",
+      "owner_issue": 681
+    }
+  ]
+}

@@ -35,6 +35,8 @@ from wayfarer.engine.rules.traits.mundane import (
     inventory,
     validate_inventory,
 )
+from wayfarer.engine.rules.traits.mundane.complete import POINT_COST_PARAMETER
+from wayfarer.engine.rules.traits.mundane.complete import SPECS as COMPLETE_SPECS
 from wayfarer.engine.rules.traits.mundane.runtime import (
     APPEARANCE_BINDINGS,
     REPUTATION_BINDINGS,
@@ -248,7 +250,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
         "trait:rank-watch",
         "trait:rank-replaces-status-watch",
         "trait:courtesy-rank-watch",
-    } | set(APPEARANCE_BINDINGS) | set(REPUTATION_BINDINGS)
+    } | set(APPEARANCE_BINDINGS) | set(REPUTATION_BINDINGS) | {spec.id for spec in COMPLETE_SPECS}
     assert report["available"] == len(implemented)
     assert all(
         d.status is ImplementationStatus.UNSUPPORTED
@@ -271,10 +273,20 @@ def test_inventory_package_and_audit_reconcile() -> None:
 def test_unbound_effects_never_activate_and_bound_ones_need_their_campaign_hooks() -> None:
     without_hooks, engine = compiler(), runtime_compiler()
     for entry in inventory():
+        parameters = (
+            ((POINT_COST_PARAMETER, entry.parameters[0].choices[0]),) if entry.parameters else ()
+        )
         draft = gurps_draft(
             Purchase(
                 definition_id=entry.id,
-                trait=TraitOptions(self_control=12) if entry.self_control else None,
+                trait=(
+                    TraitOptions(
+                        parameters=parameters,
+                        self_control=12 if entry.self_control else None,
+                    )
+                    if entry.self_control or parameters
+                    else None
+                ),
             )
         )
         unavailable = without_hooks.compile(draft)
