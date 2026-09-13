@@ -437,7 +437,7 @@ creating another package pin. #344 binds twelve ranged combat rows to a runtime 
 and transfers the rest of that group to #354, #355, #357, #359, #360, #361 and
 #362, so a blocker a procedure owner splits keeps naming the child that owns it.
 #345 binds sixteen social rows the same way in a further pin, transfers
-Fortune-Telling and Savoir-Faire to #366, Propaganda to #367 and the conditional
+Fortune-Telling and Savoir-Faire to #366, initially transferred Propaganda to #367, and the conditional
 defaults to #353, and declares the part of a *bound* entry it still does not
 carry — coercion (#368), advancement and group activity (#369), audience
 reactions and income (#370) — as `transferred_procedure_scope` in the report.
@@ -520,10 +520,10 @@ do not reveal other facts or change NPC beliefs.
 Each declares the shape that decides it — an unopposed success roll, a Quick
 Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
 it cannot proceed without, the modifiers it derives itself, and a named effect for
-every verdict that shape can reach. Sixteen rows are bound and reach a new package
-pin; Fortune-Telling and Savoir-Faire cannot be learned without their specialties
-(#366) and Propaganda still lacks its media-effect duration procedure (#367), so those
-three keep `runtime-procedure` and are absent from the pin.
+every verdict that shape can reach. Seventeen rows are now bound: Propaganda is
+introduced by #367's explicit revision-11/package-0.9.0 pin and requires a
+campaign-authored TL-keyed medium. Fortune-Telling and Savoir-Faire cannot be
+learned without their specialties (#366), so those two keep `runtime-procedure`.
 
 Nothing here is a second engine: rolls are scored by `rules.gurps_checks` and
 influence procedures call the existing `influence_roll`, so the Diplomacy
