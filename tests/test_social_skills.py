@@ -340,14 +340,10 @@ def test_unsupported_scope_is_published_with_an_owner() -> None:
     # A bound row can still leave part of its entry elsewhere; a transferred row
     # keeps a blocker instead, so it never appears here.
     assert set(scope) == {
-        "skill:carousing",
         "skill:interrogation",
-        "skill:panhandling",
-        "skill:performance",
-        "skill:public-speaking",
     }
     assert all(entry.owner_issue > 0 and entry.detail for entry in scope.values())
-    assert {entry.owner_issue for entry in scope.values()} == {368, 370}
+    assert {entry.owner_issue for entry in scope.values()} == {368}
     assert all(procedure(identifier).dispatchable for identifier in scope)
     transferred = {
         identifier
@@ -655,7 +651,7 @@ def test_the_registry_rejects_an_incoherent_procedure(
     with pytest.raises(ValidationError, match="Duplicate social procedure"):
         _validate((entry, entry))
     scope = replace(
-        entry, unsupported=(replace(procedure("skill:carousing").unsupported[0], detail=""),)
+        entry, unsupported=(replace(procedure("skill:interrogation").unsupported[0], detail=""),)
     )
     with pytest.raises(ValidationError, match="owner and detail"):
         _validate((scope,))

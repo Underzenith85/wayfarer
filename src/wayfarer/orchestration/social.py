@@ -20,6 +20,7 @@ from wayfarer.engine.rules.traits.mundane.runtime import Check
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.development import bind_teaching_outcome
+from wayfarer.engine.simulation.campaign.economics import bind_social_material_outcome
 from wayfarer.engine.simulation.campaign.party import bind_leadership_outcome
 from wayfarer.engine.simulation.health.fright import apply_effect, validate_subject
 from wayfarer.engine.simulation.social.social import (
@@ -30,6 +31,7 @@ from wayfarer.engine.simulation.social.social import (
     apply_interaction,
     apply_social,
 )
+from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
@@ -143,6 +145,7 @@ def dispatch(
         system=True,
     )
     development = before.development
+    economics = before.economics
     party = before.party
     if command.kind == "skill" and interaction.context.procedure_id == "skill:teaching":
         development = bind_teaching_outcome(
@@ -170,6 +173,43 @@ def dispatch(
                 for actor_id in member.actor_ids
             ),
         )
+    material_procedures = {
+        "skill:carousing",
+        "skill:panhandling",
+        "skill:performance",
+        "skill:public-speaking",
+    }
+    if command.kind == "skill" and interaction.context.procedure_id in material_procedures:
+        private = json.loads(resources.events[-1].kind)["private"]
+        check = private.get("check")
+        if not isinstance(check, dict) or type(check.get("margin")) is not int:
+            raise ValidationError("Social material outcome requires its recorded success margin")
+        actor = next((value for value in before.actors if value.actor_id == command.actor_id), None)
+        approved = (
+            build(play.rules_context, before, command.actor_id)
+            if actor is not None and actor.approval is not None
+            else None
+        )
+        economics, resources = bind_social_material_outcome(
+            economics,
+            resources,
+            play.engine.rules.economics,
+            command_id=command.id,
+            trigger_id=command.trigger_id,
+            procedure_id=interaction.context.procedure_id,
+            actor_id=command.actor_id,
+            margin=check["margin"],
+            outcome=outcome.outcome,
+            critical_success=check.get("outcome") == "critical-success",
+            ht=interaction.context.ht,
+            purchased_ids=frozenset(value.definition_id for value in approved.purchases)
+            if approved is not None
+            else frozenset(),
+            actor_ids=frozenset(
+                value.id for value in before.world.entities if value.kind is EntityKind.ACTOR
+            ),
+            rng=play.rng,
+        )
     if command.kind == "fright":
         raw = json.loads(resources.events[-1].kind)["private"]["effect"]
         if raw is not None:
@@ -191,6 +231,7 @@ def dispatch(
             "resources": resources,
             "world": world,
             "development": development,
+            "economics": economics,
             "party": party,
         }
     )
