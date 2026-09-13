@@ -132,6 +132,33 @@ def test_field_provenance_tracks_the_whole_equipment_schema() -> None:
     assert records["MeleeMode.hands"].gap is None
 
 
+def test_audit_rows_export_only_explicit_source_review_state() -> None:
+    exported = rows()
+    sections = [row for row in exported if row.scope == "equipment-sections"]
+    footnotes = {
+        row.id.removeprefix("equipment-footnote/"): row
+        for row in exported
+        if row.scope == "equipment-footnotes"
+    }
+    fields = [row for row in exported if row.scope == "equipment-field-provenance"]
+    bindings = {
+        row.id.removeprefix("equipment-binding/"): row
+        for row in exported
+        if row.scope == "equipment-package-binding"
+    }
+
+    assert sections and all(row.source_review == "reviewed" for row in sections)
+    for record in ledger().footnotes:
+        expected = "reviewed" if record.anchor == "inspected" else "pending"
+        assert footnotes[record.id].source_review == expected
+    assert fields and all(row.source_review == "pending" for row in fields)
+    assert bindings["basic-set-catalog"].source_review == "reviewed"
+    assert bindings["lite-catalog"].source_review == "pending"
+    assert all(
+        row.source_review == "pending" for row in exported if row.scope == "lite-equipment-gaps"
+    )
+
+
 def test_selection_rejects_unsupported_and_unknown_equipment() -> None:
     allowed = supported_equipment(BASIC)
     assert "equipment:broadsword" in allowed

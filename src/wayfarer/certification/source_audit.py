@@ -11,7 +11,12 @@ from typing import Literal
 from pydantic import ConfigDict, Field
 
 from wayfarer.certification.creature_audit import inventory as creatures
-from wayfarer.certification.equipment_audit import rows as equipment_audit_rows
+from wayfarer.certification.equipment_audit import (
+    ledger as equipment_audit_ledger,
+)
+from wayfarer.certification.equipment_audit import (
+    rows as equipment_audit_rows,
+)
 from wayfarer.certification.source_ledgers import (
     ledger_blockers,
     ledger_rollups,
@@ -26,6 +31,7 @@ from wayfarer.engine.rules.profiles import (
     GURPS_MAGIC_PACKAGE,
 )
 from wayfarer.engine.rules.skills.mundane import inventory as skills
+from wayfarer.engine.rules.skills.mundane import source_index as skill_source_index
 from wayfarer.engine.rules.supernatural import inventory as supernatural_inventory
 from wayfarer.engine.rules.traits.mundane import inventory as traits
 from wayfarer.engine.rules.types.vehicle_coverage import validate_coverage
@@ -97,6 +103,12 @@ class InventoryItem:
 
 def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
     """Read owner inventories; candidate counts never imply exhaustive source coverage."""
+    skill_index = skill_source_index()
+    reviewed_skills = (
+        {"skill:" + target for entry in skill_index.entries for target in entry.targets}
+        if skill_index.baseline_reconciled
+        else set()
+    )
     # Item-level skill blockers and certification state come from the owner
     # inventory; a blanket family status would hide unowned runtime coverage.
     rows = [
@@ -106,6 +118,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             112,
             e.implementation,
             "mundane-skills",
+            source_review="reviewed" if e.id in reviewed_skills else "pending",
             blockers=e.followup_issues,
             evidence=e.evidence,
         )
@@ -114,6 +127,13 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
     supernatural = supernatural_inventory()
     reconciled_sources = {
         source.id for source in supernatural.sources if source.baseline_reconciled
+    }
+    equipment_ledger = equipment_audit_ledger()
+    reviewed_equipment = {
+        "equipment:" + selected
+        for section in equipment_ledger.sections
+        if section.status in ("audited", "reconciled")
+        for selected in section.selected
     }
     rows.extend(
         InventoryItem(
@@ -211,6 +231,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             180,
             "partial" if not e.unsupported_mechanics else "unsupported",
             "equipment-catalog",
+            source_review="reviewed" if e.definition_id in reviewed_equipment else "pending",
             evidence=("tests/test_basic_equipment.py",),
         )
         for e in (*BASIC_EQUIPMENT.entries, *ULTRATECH_INDEX)
@@ -225,6 +246,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             e.implementation,
             e.scope,
             e.required_profiles,
+            e.source_review,
             blockers=e.blockers,
             evidence=e.evidence,
         )
@@ -282,13 +304,33 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
         for row in bundle.rows
         if row.runtime_binding is not None and row.source_review == "reviewed"
     }
-    return tuple(
+    joined = tuple(
         replace(row, source_review="reviewed")
         if row.id in reviewed_bindings
         and set(reviewed_bindings[row.id].profile_membership) <= set(row.required_profiles)
         else row
         for row in rows
     )
+    reviewed_inventory = {row.id: row for row in joined if row.source_review == "reviewed"}
+    result = []
+    for row in joined:
+        if row.scope != "registered-catalog" or row.source_review == "reviewed":
+            result.append(row)
+            continue
+        definition_id = row.id.partition("/")[2]
+        candidates = (definition_id, "supernatural/" + definition_id)
+        source = next(
+            (
+                reviewed_inventory[candidate]
+                for candidate in candidates
+                if candidate in reviewed_inventory
+                and set(row.required_profiles)
+                <= set(reviewed_inventory[candidate].required_profiles)
+            ),
+            None,
+        )
+        result.append(replace(row, source_review="reviewed") if source else row)
+    return tuple(result)
 
 
 def fingerprint(value: object) -> str:

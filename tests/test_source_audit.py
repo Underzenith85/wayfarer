@@ -201,6 +201,35 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)
 
 
+def test_owner_source_reviews_join_runtime_and_registered_catalog_rows() -> None:
+    rows = inventory(ROOT)
+    skills = [row for row in rows if row.scope == "mundane-skills"]
+    equipment = [row for row in rows if row.scope == "equipment-catalog"]
+    registered = [row for row in rows if row.scope == "registered-catalog"]
+
+    assert skills and all(row.source_review == "reviewed" for row in skills)
+    assert equipment and all(row.source_review == "reviewed" for row in equipment)
+    assert all(
+        row.source_review == "pending"
+        for row in registered
+        if row.required_profiles == ("gurps-lite-4e-2004",)
+    )
+    by_definition = {
+        (row.id.split("@", 1)[1].split("/", 1)[0], row.id.partition("/")[2]): row
+        for row in registered
+    }
+    assert by_definition[("0.3.0", "skill:broadsword")].source_review == "reviewed"
+    assert by_definition[("0.3.0", "equipment:broadsword")].source_review == "reviewed"
+    assert by_definition[("0.4.0", "spell:ignite-fire")].source_review == "reviewed"
+    # Package-only equipment skill references have no reviewed owner row to join.
+    assert by_definition[("0.3.0", "skill:guns-gyroc")].source_review == "pending"
+    assert all(
+        row.source_review == "pending"
+        for row in registered
+        if row.id.partition("/")[2].startswith(("attribute:", "secondary:"))
+    )
+
+
 @pytest.mark.parametrize("evidence", [(), ("tests/not-a-real-suite.py",)])
 def test_skill_and_equipment_rows_require_existing_item_evidence(
     evidence: tuple[str, ...], monkeypatch: pytest.MonkeyPatch

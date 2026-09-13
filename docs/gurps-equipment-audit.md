@@ -181,7 +181,10 @@ catalogs and Lite gaps all appear in the combined audit and in the Basic Set
 certification report with their owning issues. Five audit scopes
 (`equipment-sections`, `equipment-footnotes`, `equipment-field-provenance`,
 `equipment-package-binding`, `lite-equipment-gaps`) join the existing
-`equipment-catalog` scope and are all unreviewed.
+`equipment-catalog` scope. Inspected sections, selected catalog rows, inspected
+footnotes, and the bound Basic package export reviewed state into that inventory.
+Range-only footnotes, pending field comparisons, the unbound Lite package, and
+Lite gaps remain unreviewed.
 
 Editing the ledger invalidates its review. After independently rechecking the
 source, update the affected record's status and evidence; never regenerate an

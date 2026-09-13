@@ -249,6 +249,7 @@ class AuditRow:
     implementation: Literal["implemented", "partial", "unsupported", "omitted"]
     scope: str
     required_profiles: tuple[str, ...]
+    source_review: Literal["pending", "reviewed"]
     blockers: tuple[int, ...]
     evidence: tuple[str, ...]
 
@@ -399,6 +400,7 @@ def rows() -> tuple[AuditRow, ...]:
             else "partial",
             "equipment-sections",
             (current.profile_id,),
+            "reviewed" if section.status in ("audited", "reconciled") else "pending",
             ()
             if section.status in ("audited", "reconciled")
             else tuple(
@@ -423,6 +425,7 @@ def rows() -> tuple[AuditRow, ...]:
             "implemented" if footnote.disposition == "implemented" else "unsupported",
             "equipment-footnotes",
             (current.profile_id,),
+            "reviewed" if footnote.anchor == "inspected" else "pending",
             (),
             tuple(sorted({case.partition("::")[0] for case in footnote.tests}))
             or ("tests/test_equipment_audit.py",),
@@ -437,6 +440,7 @@ def rows() -> tuple[AuditRow, ...]:
             "partial" if record.tests else "omitted",
             "equipment-field-provenance",
             (current.profile_id, current.lite_profile_id),
+            "reviewed" if record.status == "reviewed" else "pending",
             () if record.gap is None else (PROFILE_FIELD_ISSUE,),
             tuple(sorted({case.partition("::")[0] for case in record.tests}))
             or ("tests/test_equipment_audit.py",),
@@ -451,6 +455,7 @@ def rows() -> tuple[AuditRow, ...]:
             "implemented" if binding.status == "bound" else "unsupported",
             "equipment-package-binding",
             (binding.catalog,),
+            "reviewed" if binding.status == "bound" else "pending",
             () if binding.status == "bound" else (binding.owner_issue,),
             tuple(sorted({case.partition("::")[0] for case in binding.tests})),
         )
@@ -464,6 +469,7 @@ def rows() -> tuple[AuditRow, ...]:
             "omitted",
             "lite-equipment-gaps",
             (current.lite_profile_id,),
+            "pending",
             (gap.owner_issue,),
             ("tests/test_equipment_audit.py",),
         )
