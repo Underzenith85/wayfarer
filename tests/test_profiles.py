@@ -431,9 +431,9 @@ async def test_new_campaigns_select_exact_profiles_and_old_ones_stay_unchanged(
         "title": EXTENDED_PROFILE.title,
         "supported": True,
     }
-    # The creation receipt for a profile-less command keeps its pre-profile payload bytes.
+    # The creation receipt is the command, profile selection included (#634).
     stored = await profiles.store.read(str(default["id"]))
-    assert "rules_profile" not in json.loads(SetupService.load(stored).creation_json)
+    assert json.loads(SetupService.load(stored).creation_json)["rules_profile"] is None
     with pytest.raises(ValidationError, match="not supported"):
         await setup.create(
             CreateSetup(id="gurps", brief=graph.brief, graph=graph, rules_profile=GURPS_LITE),

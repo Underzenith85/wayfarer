@@ -49,12 +49,6 @@
       "version": 1
     }
   ],
-  "commands": [
-    {
-      "kind": "command",
-      "version": 1
-    }
-  ],
   "folds": [
     {
       "version": 1,

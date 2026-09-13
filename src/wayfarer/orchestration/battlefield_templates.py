@@ -5,8 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
-from wayfarer import validation
-from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.advancement import MigrationEntry
 from wayfarer.engine.simulation.campaign.scenario_document import digest_json
@@ -16,7 +15,6 @@ from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.entropy import commit_command
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
@@ -30,30 +28,33 @@ def install_rules(campaign: Campaign, play: PlayService, combat: CombatRules) ->
         play.engine.resources,
         play.engine.rules.model_copy(update={"combat": combat}),
     )
-    if encoded := campaign.get("scenario_graph_json"):
-        graph = parse_graph(encoded)
-        graph = graph.model_copy(
-            update={"actions": graph.actions.model_copy(update={"combat": combat})}
-        )
-        campaign["scenario_graph_json"] = graph.model_dump_json()
-        pin = boundary(campaign)
-        if pin is not None:
-            digest = digest_json(graph.model_dump(mode="json"))
-            reference = pin.reference
-            if pin.published is None:
-                reference = reference.model_copy(
-                    update={"content_digest": digest, "engine_digest": engine.digest}
-                )
-            campaign["scenario_reference_json"] = pin.model_copy(
-                update={
-                    "graph_digest": digest,
-                    "runtime_digest": engine.digest,
-                    "reference": reference,
-                }
-            ).model_dump_json()
-    else:
-        # Pre-scenario typed campaigns retain a CombatRules fragment, never maps on encounters.
+    encoded = campaign.get("scenario_graph_json")
+    if encoded is None:
+        # A campaign seeded straight through PlayService.create has no graph to
+        # record against, so its migrated configuration lives on the envelope.
+        # #636 removes that shape by making creation a stream command.
         campaign["combat_rules_json"] = combat.model_dump_json()
+        return play.derived(engine, rng=play.rng, profiles=play.profiles)
+    graph = parse_graph(encoded)
+    graph = graph.model_copy(
+        update={"actions": graph.actions.model_copy(update={"combat": combat})}
+    )
+    campaign["scenario_graph_json"] = graph.model_dump_json()
+    pin = boundary(campaign)
+    if pin is not None:
+        digest = digest_json(graph.model_dump(mode="json"))
+        reference = pin.reference
+        if pin.published is None:
+            reference = reference.model_copy(
+                update={"content_digest": digest, "engine_digest": engine.digest}
+            )
+        campaign["scenario_reference_json"] = pin.model_copy(
+            update={
+                "graph_digest": digest,
+                "runtime_digest": engine.digest,
+                "reference": reference,
+            }
+        ).model_dump_json()
     return play.derived(engine, rng=play.rng, profiles=play.profiles)
 
 
@@ -124,115 +125,3 @@ def prepare(
         }
     )
     return rebound, state, command.model_copy(update={"battlefield": board})
-
-
-def lift_embedded(
-    campaign: Campaign,
-    play: PlayService,
-    *,
-    command_id: str,
-    actor_id: str,
-) -> tuple[PlayService, PlayState]:
-    """Upgrade a legacy checkpoint without ever constructing an Encounter with a map."""
-    import json
-
-    raw = validation.mapping(validation.decode(campaign.get("play_json", "null")))
-    rules = play.engine.rules.combat
-    if rules is None or raw.get("configuration_digest") != play.engine.digest:
-        raise ValidationError("Legacy map migration requires the recorded rules configuration")
-    encounters = validation.sequence(raw.get("encounters"))
-    templates = list(rules.battlefields)
-    lifted = False
-    normalized: list[dict[str, object]] = []
-    for item in encounters:
-        encounter = validation.mapping(item)
-        normalized.append(encounter)
-        embedded = encounter.pop("hex_battlefield", None)
-        if embedded is None:
-            continue
-        old = next((b for b in templates if b.id == encounter.get("battlefield_id")), None)
-        if old is None:
-            raise ValidationError("Legacy encounter references an unknown template")
-        board = HexBattlefield.model_validate_json(json.dumps(embedded))
-        if board.id != old.id or board.location_id not in ("unbound", old.location_id):
-            raise ValidationError("Embedded map differs from its recorded location or identity")
-        board = board.model_copy(
-            update={
-                "id": template_id(board, old.location_id),
-                "location_id": old.location_id,
-                "source_template_id": old.id,
-            }
-        )
-        existing = next((b for b in templates if b.id == board.id), None)
-        if existing is not None and existing != board:
-            raise ValidationError("Map template ID already has different geometry")
-        if existing is None:
-            templates.append(board)
-        encounter.update({"battlefield_id": board.id, "spatial_kind": "hex"})
-        lifted = True
-    if not lifted:
-        raise ValidationError("Campaign has no embedded maps to migrate")
-    rebound = install_rules(
-        campaign, play, rules.model_copy(update={"battlefields": tuple(templates)})
-    )
-    raw["encounters"] = normalized
-    raw["configuration_digest"] = rebound.engine.digest
-    state = PlayState.model_validate_json(json.dumps(raw))
-    entry = MigrationEntry(
-        id=command_id,
-        actor_id=actor_id,
-        revision=state.revision + 1,
-        from_digest=play.engine.digest,
-        to_digest=rebound.engine.digest,
-        reason="Lift legacy embedded hex maps into CombatRules",
-    )
-    return rebound, state.model_copy(update={"migrations": state.migrations + (entry,)})
-
-
-async def migrate_embedded_maps(
-    play: PlayService,
-    cid: str,
-    *,
-    command_id: str,
-    actor_id: str,
-    expected_revision: int,
-) -> Campaign:
-    import json
-
-    play = play.for_campaign(await play.store.read(cid))
-    if actor_id not in play.engine.reviewer.gm_ids:
-        raise ValidationError("Map migration requires GM authority")
-    payload = json.dumps(
-        {
-            "operation": "map-template-migration",
-            "command": {
-                "id": command_id,
-                "actor_id": actor_id,
-                "expected_revision": expected_revision,
-            },
-        },
-        sort_keys=True,
-    )
-
-    def resolve(campaign: Campaign) -> CommandReceipt:
-        bound, state = lift_embedded(campaign, play, command_id=command_id, actor_id=actor_id)
-        state = state.model_copy(
-            update={
-                "revision": state.revision + 1,
-                "resources": state.resources.model_copy(update={"revision": state.revision + 1}),
-            }
-        )
-        bound.commit(campaign, state)
-        return CommandReceipt(action="combat", outcome="Map templates migrated")
-
-    result = await commit_command(
-        play,
-        cid,
-        command_id,
-        expected_revision,
-        payload,
-        resolve,
-        actor_id=actor_id,
-        rng=play.rng,
-    )
-    return result["state"]

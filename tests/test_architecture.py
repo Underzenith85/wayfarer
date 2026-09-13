@@ -918,3 +918,31 @@ def test_prototype_resolver_and_legacy_paths_are_retired() -> None:
 
     for owner in (ScenarioStudio, ScenarioDocuments):
         assert not hasattr(owner, "activate"), owner.__name__
+
+
+def test_persistence_declares_each_schema_once_and_reads_no_older_shape() -> None:
+    """#634: no additive migration, no backfill, no reader for a retired schema."""
+    import re
+
+    from wayfarer.persistence import async_sqlite, events, postgres
+
+    package = Path(wayfarer.__file__).parent
+    retired = (
+        "_ensure_stream",
+        "_ensure_digests",
+        "_import_narration",
+        "upcast_command",
+        "retire_transcript",
+    )
+    for module in (async_sqlite, postgres, events):
+        for name in retired:
+            assert not hasattr(module, name), f"{module.__name__}.{name}"
+    for adapter in ("persistence/async_sqlite.py", "persistence/postgres.py"):
+        source = (package / adapter).read_text()
+        assert "ADD COLUMN" not in source, adapter
+        # Columns and tables that existed only to carry an older database forward.
+        for retired_column in ("engine_version", "state_after TEXT", "state_after JSONB"):
+            assert retired_column not in source, (adapter, retired_column)
+        assert "narration_migrations" not in source, adapter
+        tables = re.findall(r"CREATE TABLE IF NOT EXISTS (\w+)", source)
+        assert len(tables) == len(set(tables)), (adapter, tables)

@@ -27,14 +27,13 @@ effects within a command remain part of that command's receipt and RNG stream.
 `sha256-counter-v1` is a fixed SHA-256 counter stream with rejection sampling for
 arbitrary positive bounds, not Python's version-dependent random implementation.
 Its byte-level contract is frozen by a test vector. Engine code versioning is
-deferred during prerelease. The retired nullable database column is ignored on
-reads and written as null; existing databases need no destructive migration.
+deferred during prerelease; the retired `engine_version` column is gone (#634).
 
 `CommandRecord.reexecutable` requires a seed and a supported RNG algorithm.
-Additive SQLite/PostgreSQL migrations leave these fields
-null on old rows: no seed is fabricated. Existing explicit scripted RNG injection
-is retained for numeric fixtures, with `rng_algorithm="injected"`; those records
-are deliberately not claimed to support seed-only re-execution. Production
+Rows without one are not claimed to be re-executable and no seed is fabricated.
+Explicit scripted RNG injection is retained for numeric fixtures, with
+`rng_algorithm="injected"`; those records are deliberately not claimed to
+support seed-only re-execution. Production
 services use the seeded source by default. Production reads now fold events under
 #419; command re-execution remains a separate deterministic gate.
 
@@ -42,11 +41,9 @@ services use the seeded source by default. Production reads now fold events unde
 
 `commit_command` captures one `CommandInstant` before entering persistence, or
 accepts an explicitly supplied instant for recovery and replay. The command log
-stores its UTC Unix microseconds in `recorded_at_us` alongside the event and
-resulting state. Retries retain the winning command's timestamp. This private
-metadata does not change payload hashes or public event and campaign schemas.
-SQLite and PostgreSQL migrations leave historical timestamps null rather than
-inventing an original execution time.
+stores its UTC Unix microseconds in `recorded_at_us` alongside the event.
+Retries retain the winning command's timestamp. This private metadata does not
+change payload hashes or public event and campaign schemas.
 
 Invitation handling captures time at entry. Creation computes the deadline from
 that value; redemption checks the deadline against the supplied instant, accepting
@@ -82,7 +79,7 @@ attach the same origin without requesting another interpretation. Trusted NPC
 proposal callers use the same origin shape; authored NPC decisions have none.
 Draft-only provider operations do not commit commands and therefore create no
 command-origin rows. Replay consumes stored commands/state without calling a
-provider. SQLite/PostgreSQL migrations leave legacy origins null.
+provider. Commands with no provider behind them store a null origin.
 
 ## Dedicated event stream (#413)
 
@@ -113,17 +110,15 @@ version behavior remains unchanged; internal patches never cross the live wire.
 Adapters append the command, all event rows, checkpoint digest and any due snapshot in one transaction under
 the existing compare-and-set. Before append, folding must reproduce the candidate
 state. Failure rolls back everything; retries do not append again. Ordinals order
-multiple legacy fixture writes at the same revision. Live engine commands still
+multiple fixture writes at the same revision. Live engine commands still
 advance the revision. The architecture gate permits event-stream inserts only in
 the two persistence adapters and forbids update/delete statements.
 
-`stream_genesis` retains the earliest available checkpoint. Existing logs are
-converted once under the writer lock using their recorded transitions, without
-fabricating seeds. If an old database retains no revision-zero checkpoint, its
-earliest snapshot is the explicit reconstruction boundary. Pre-event-store
-databases without any snapshots use their current campaign row as that boundary. Subsequent stream
-reads no longer depend on command `state_after` columns or the snapshots table.
-General loads, history and retries now use stream materialisation under #419.
+`stream_genesis` holds the revision-zero checkpoint, written when the campaign
+is created. Every rebuild folds forward from it; there is no reconstruction
+boundary to infer and no conversion of an older log (#634). Stream reads depend
+on neither the snapshots table nor any per-command state column. General loads,
+history and retries use stream materialisation under #419.
 
 `contracts/v1/events.schema.json` links to the separately versioned
 `engine-events.schema.json`, defining the engine event union and schema-version-1
@@ -185,46 +180,43 @@ Production reads select the newest snapshot whose digest matches its committed
 stream checkpoint, then fold only the events after it, using the shared upcasters.
 Missing, malformed or incorrect caches fall back to genesis. Scenario references
 are verified before returning rebuilt state. Retries reconstruct the receipt's
-original revision; history returns derived state images. Neither trusts the legacy
-`command_log.state_after` column. New commands leave that obsolete column empty;
-it exists solely to bootstrap databases that predate the event stream.
+original revision; history returns derived state images. Both derive that image
+from the stream: `command_log` carries no per-command state column (#634).
 
 Both adapter constructors accept `snapshot_interval` (default 10, zero disables
 snapshotting). Periodic snapshot and campaign-row caches are written only when due.
 Genesis is persisted at creation even when snapshotting is disabled. Snapshot format
 2 splits `last_result`, `last_combat_result`, and `scene_events` into a separate cached
-event projection. `PlayCheckpoint` has no event-carrier fields; `PlayState` provides
-compatibility accessors over `PlayEventProjection` and reads legacy serialized views.
-The old bare-Campaign snapshot format remains readable. All cache formats must match
+event projection. `PlayCheckpoint` has no event-carrier fields; `PlayState` reads
+them through accessors over `PlayEventProjection`. All cache formats must match
 a committed digest, so deleting their contents cannot remove authoritative history.
 
-Legacy flavor text migrates once to `narration_stream`; subsequent narration writes
-only that table. Ordinary reads overlay it for display. `replay` and mechanical
-rebuilds never fetch or regenerate narration. Existing V1 narration storage remains
+Narration is written only to `narration_stream`. Ordinary reads overlay it for
+display. `replay` and mechanical rebuilds never fetch or regenerate narration. Existing V1 narration storage remains
 separate. Character state, workshop drafts and director turns are projections of
 campaign events; the scenario catalog remains a separate aggregate.
 
 | Table | Authority and role |
 | --- | --- |
-| `stream_genesis` | Retained initial state / explicit legacy reconstruction boundary |
+| `stream_genesis` | The initial state every rebuild folds forward from |
 | `command_log` | Command identity, inputs, entropy, time, origins and scenario boundary |
 | `event_stream` | Ordered typed engine events, upcast before folding |
 | `checkpoint_digests` | Atomic state hashes authenticating cached revisions |
 | `snapshots` | Optional format-2 checkpoint and event-projection caches |
 | `campaigns` | Stable identity/lock row and replaceable periodic cache |
-| `events` | Compatibility receipt index; new entries have only family and result |
-| `narration_stream` | Non-authoritative legacy-service narration keyed by message |
-| `narration_migrations` | One-time import markers for old flavor text |
+| `narration_stream` | Non-authoritative narration keyed by message |
 
-Checkpoint digests are backfilled from retained stream events on first use. They
+Each adapter declares these tables once: there is no additive-column migration
+and no backfill from an older shape (#634). Creation writes genesis and its
+digest; every commit writes the revision's digest. Digests
 allow reads to avoid decoding a covered prefix, so retirement of old readers obeys
 #427's snapshot-coverage policy. Losing a covering cache after a reader is retired
 requires restoring that cache or reader; retained fixtures continue to prevent
 accidental reader removal. Model calls remain outside write transactions.
 
 Set `WAYFARER_DATABASE_URL` to a PostgreSQL connection URL for the production
-adapter. Without it, Wayfarer retains the local SQLite adapter and migrates legacy
-databases in place by adding the new log and snapshot tables.
+adapter. Without it, Wayfarer uses the local SQLite adapter, creating its tables
+on first connect.
 
 Reusable scenarios use separate catalog and command-receipt tables in the same configured database.
 See [scenario catalog storage, export and restore](scenario-catalog.md) for authoring semantics and
@@ -238,14 +230,11 @@ The registry is keyed by event kind and the row's schema version; it rejects fut
 versions and missing intermediate migrations. Each pure migration takes and returns
 a JSON mapping, operates on a defensive copy, and belongs beside the event definition
 it migrates. Defaulted additions need no migration. Writers use each kind's current
-version; stream consumers receive its normalized current version. Command receipts
-use the same registry mechanism before being returned by `history`.
+version; stream consumers receive its normalized current version.
 
-Event schemas remain at version 1. Command schema 2 removes transcript input and
-roll fields from receipts. The v1-to-v2 reader retains the command input in its
-dedicated field and reads the remaining family/result metadata. New writes reject
-extra transcript fields. This is a storage shape migration, not engine code
-versioning. `tests/fixtures/retained_schemas.json` freezes the retained
+Event schemas remain at version 1. Command receipts are written at schema 2 —
+family and result, with the exact input in its own column — and no reader for
+schema 1 survives (#634). `tests/fixtures/retained_schemas.json` freezes the retained
 versions and a real fold checkpoint. Release evidence lists those versions and
 rejects any missing reader. Structural migration tests exercise ordered rename and
 restructure steps and both adapters through the shared registry.
@@ -285,6 +274,6 @@ published document. Both source and runtime digests are verified before engine b
 Continuation pins the prepared next graph and clears the preceding portable-source
 cache; old segments remain verifiable through their earlier stream checkpoints.
 
-Legacy campaigns without a reference remain explicit legacy boundaries; the loader
-does not invent a catalog identity. New references and boundaries have published
-schemas under `contracts/scenarios/v1`.
+A campaign without a reference is an explicit boundary; the loader does not
+invent a catalog identity. References and boundaries have published schemas under
+`contracts/scenarios/v1`.

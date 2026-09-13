@@ -4,8 +4,6 @@ import asyncio
 import json
 import os
 import secrets
-import sqlite3
-from contextlib import closing
 from dataclasses import replace
 from pathlib import Path
 
@@ -68,44 +66,6 @@ def test_seeded_random_v1_fixed_vector() -> None:
         125,
         61,
     ]
-
-
-async def test_legacy_command_metadata_migrates_without_inventing_a_seed(tmp_path: Path) -> None:
-    path = tmp_path / "legacy.sqlite"
-    initial = campaign(engine())
-    initial["revision"] = 1
-    event = CommandReceipt(action="legacy", outcome="old")
-    with closing(sqlite3.connect(path)) as db, db:
-        db.execute("CREATE TABLE campaigns (id TEXT PRIMARY KEY, state TEXT NOT NULL)")
-        db.execute("INSERT INTO campaigns VALUES (?, ?)", (initial["id"], json.dumps(initial)))
-        db.execute("""CREATE TABLE command_log (
-            campaign TEXT, command_id TEXT, actor_id TEXT, expected_revision INTEGER,
-            resulting_revision INTEGER, payload_hash TEXT, rules_version TEXT,
-            schema_version INTEGER, event TEXT, state_after TEXT,
-            PRIMARY KEY(campaign, command_id))""")
-        db.execute(
-            "INSERT INTO command_log VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (
-                initial["id"],
-                "old",
-                "a",
-                0,
-                1,
-                "old-hash",
-                initial["rules"],
-                1,
-                json.dumps(event),
-                json.dumps(initial),
-            ),
-        )
-    store = AsyncSQLiteStore(path)
-    histories = await asyncio.gather(*(store.history(initial["id"]) for _ in range(4)))
-    assert all(history == histories[0] for history in histories)
-    record = histories[0][0]
-    assert record.entropy_seed is None
-    assert record.rng_algorithm is None and not record.reexecutable
-    assert record.recorded_at_us is None
-    assert record.state_after == initial
 
 
 async def test_independent_campaigns_have_independent_streams(tmp_path: Path) -> None:

@@ -12,12 +12,11 @@ from wayfarer.engine.simulation.campaign.scenario_loading import ScenarioBoundar
 from wayfarer.engine.simulation.events import (
     EVENT_ADAPTER,
     EngineEvent,
-    StatePatched,
     command_events,
     digest,
     document,
 )
-from wayfarer.errors import ConflictError, NotFoundError, StorageError, ValidationError
+from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.persistence import snapshots
 from wayfarer.persistence.events import (
     COMMAND_SCHEMA_VERSION,
@@ -29,7 +28,6 @@ from wayfarer.persistence.events import (
     command_scenario,
     fold,
     payload_digest,
-    upcast_command,
 )
 from wayfarer.persistence.upcasters import EVENT_UPCASTERS, read_event
 
@@ -76,7 +74,12 @@ class AsyncPostgresStore:
                 rules_version TEXT NOT NULL,
                 schema_version INTEGER NOT NULL,
                 event JSONB NOT NULL,
-                state_after JSONB NOT NULL,
+                entropy_seed TEXT,
+                rng_algorithm TEXT,
+                recorded_at_us BIGINT,
+                origin_json TEXT,
+                command_input TEXT,
+                scenario_boundary_json TEXT,
                 PRIMARY KEY(campaign, command_id),
                 UNIQUE(campaign, resulting_revision)
             )"""
@@ -107,27 +110,6 @@ class AsyncPostgresStore:
         await db.execute(
             "CREATE TABLE IF NOT EXISTS checkpoint_digests (campaign TEXT NOT NULL, revision BIGINT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(campaign, revision))"
         )
-        await db.execute(
-            "CREATE TABLE IF NOT EXISTS narration_migrations (campaign TEXT PRIMARY KEY)"
-        )
-        cursor = await db.execute(
-            "SELECT attname FROM pg_attribute WHERE attrelid = 'command_log'::regclass AND NOT attisdropped"
-        )
-        columns = {row[0] for row in await cursor.fetchall()}
-        for column in (
-            "entropy_seed",
-            "engine_version",
-            "rng_algorithm",
-            "recorded_at_us",
-            "origin_json",
-            "command_input",
-            "scenario_boundary_json",
-        ):
-            if column not in columns:
-                kind = "BIGINT" if column == "recorded_at_us" else "TEXT"
-                await db.execute(
-                    f"ALTER TABLE command_log ADD COLUMN IF NOT EXISTS {column} {kind}"
-                )
         await db.commit()
 
     @staticmethod
@@ -173,30 +155,6 @@ class AsyncPostgresStore:
         finally:
             await db.close()
 
-    async def _ensure_digests(
-        self, db: psycopg.AsyncConnection[tuple[object, ...]], cid: str, initial: Campaign
-    ) -> None:
-        cursor = await db.execute(
-            "SELECT 1 FROM checkpoint_digests WHERE campaign=%s LIMIT 1", (cid,)
-        )
-        if await cursor.fetchone() is not None:
-            return
-        await db.execute(
-            "INSERT INTO checkpoint_digests (campaign, revision, digest) VALUES (%s, %s, %s) ON CONFLICT(campaign, revision) DO NOTHING",
-            (cid, initial["revision"], digest(document(initial))),
-        )
-        cursor = await db.execute(
-            "SELECT revision, schema_version, event FROM event_stream WHERE campaign=%s ORDER BY revision, ordinal",
-            (cid,),
-        )
-        for row in await cursor.fetchall():
-            event = read_event(validation.string(row[2]), validation.integer(row[1]))
-            if isinstance(event, StatePatched) and event.scope == "campaign":
-                await db.execute(
-                    "INSERT INTO checkpoint_digests (campaign, revision, digest) VALUES (%s, %s, %s) ON CONFLICT(campaign, revision) DO UPDATE SET digest=excluded.digest",
-                    (cid, row[0], event.after_digest),
-                )
-
     async def _read(
         self,
         db: psycopg.AsyncConnection[tuple[object, ...]],
@@ -210,12 +168,10 @@ class AsyncPostgresStore:
         )
         if await cursor.fetchone() is None:
             raise NotFoundError("Campaign not found")
-        await self._ensure_stream(db, cid)
         cursor = await db.execute("SELECT state FROM stream_genesis WHERE campaign=%s", (cid,))
         initial = await cursor.fetchone()
         assert initial is not None
         genesis = snapshots.decode(initial[0])
-        await self._ensure_digests(db, cid, genesis)
         cursor = await db.execute("SELECT revision, state FROM snapshots WHERE campaign=%s", (cid,))
         caches = [(validation.integer(row[0]), row[1]) for row in await cursor.fetchall()]
         cursor = await db.execute(
@@ -245,36 +201,10 @@ class AsyncPostgresStore:
             )
         return snapshots.materialize(checkpoint, events, [], through=through)
 
-    async def _import_narration(
-        self, db: psycopg.AsyncConnection[tuple[object, ...]], cid: str
-    ) -> None:
-        cursor = await db.execute("SELECT 1 FROM narration_migrations WHERE campaign=%s", (cid,))
-        if await cursor.fetchone() is not None:
-            return
-        cursor = await db.execute("SELECT state FROM campaigns WHERE id=%s", (cid,))
-        row = await cursor.fetchone()
-        if row is not None:
-            try:
-                cached = snapshots.decode(row[0])
-            except ValueError, KeyError, TypeError, ValidationError:
-                cached = None
-            if cached is not None:
-                for index, message in enumerate(cached["messages"]):
-                    if "flavor" in message:
-                        await db.execute(
-                            "INSERT INTO narration_stream (campaign, revision, message_index, text) VALUES (%s, %s, %s, %s) ON CONFLICT(campaign, message_index) DO NOTHING",
-                            (cid, 0, index, message["flavor"]),
-                        )
-        await db.execute(
-            "INSERT INTO narration_migrations (campaign) VALUES (%s) ON CONFLICT(campaign) DO NOTHING",
-            (cid,),
-        )
-
     async def read(self, cid: str) -> Campaign:
         db = await self._connect()
         try:
             state = await self._read(db, cid, lock=True)
-            await self._import_narration(db, cid)
             cursor = await db.execute(
                 "SELECT message_index, text FROM narration_stream WHERE campaign=%s AND revision<=%s ORDER BY revision",
                 (cid, state["revision"]),
@@ -339,13 +269,11 @@ class AsyncPostgresStore:
         try:
             async with db.transaction():
                 state = await self._read(db, cid, lock=True)
-                await self._import_narration(db, cid)
                 duplicate = await self._duplicate(db, cid, request_id, text)
                 if duplicate is not None:
                     return {"kind": "replayed", "state": duplicate}
                 if state["revision"] != revision:
                     raise ConflictError("Campaign changed. Refresh before retrying.")
-                await self._ensure_stream(db, cid)
                 before = deepcopy(state)
                 resolved = resolve(state)
                 event = resolved.receipt if isinstance(resolved, CommandResolution) else resolved
@@ -366,8 +294,8 @@ class AsyncPostgresStore:
                     """INSERT INTO command_log (
                         campaign, command_id, actor_id, expected_revision,
                         resulting_revision, payload_hash, rules_version,
-                        schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s, %s)""",
+                        schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s)""",
                     (
                         cid,
                         request_id,
@@ -378,9 +306,7 @@ class AsyncPostgresStore:
                         state["rules"],
                         COMMAND_SCHEMA_VERSION,
                         json.dumps(event),
-                        "{}",
                         entropy.seed if entropy else None,
-                        None,  # Retired engine_version column; retained for existing databases.
                         entropy.rng_algorithm if entropy else None,
                         recorded_at_us,
                         origin.model_dump_json() if origin else None,
@@ -423,16 +349,13 @@ class AsyncPostgresStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                          payload_hash, rules_version, schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
                    FROM command_log WHERE campaign=%s ORDER BY resulting_revision""",
                 (cid,),
             )
             rows = await cursor.fetchall()
             states = {state["revision"]: state for state, _ in await self.stream_states(cid)}
-            return [
-                upcast_command(self._stored(cid, row, states[validation.integer(row[3])]))
-                for row in rows
-            ]
+            return [self._stored(cid, row, states[validation.integer(row[3])]) for row in rows]
         finally:
             await db.close()
 
@@ -454,17 +377,15 @@ class AsyncPostgresStore:
             schema_version=validation.integer(row[6]),
             event=event,
             state_after=state,
-            entropy_seed=validation.string(row[9]) if row[9] is not None else None,
-            rng_algorithm=validation.string(row[11]) if row[11] is not None else None,
-            recorded_at_us=validation.integer(row[12]) if row[12] is not None else None,
-            command_input=validation.string(row[14])
-            if row[14] is not None
-            else (validation.string(event_data["input"]) if "input" in event_data else None),
-            scenario_boundary=ScenarioBoundary.model_validate_json(validation.string(row[15]))
-            if row[15] is not None
-            else None,
-            origin=CommandOrigin.model_validate_json(validation.string(row[13]))
+            entropy_seed=validation.string(row[8]) if row[8] is not None else None,
+            rng_algorithm=validation.string(row[9]) if row[9] is not None else None,
+            recorded_at_us=validation.integer(row[10]) if row[10] is not None else None,
+            command_input=validation.string(row[12]) if row[12] is not None else None,
+            scenario_boundary=ScenarioBoundary.model_validate_json(validation.string(row[13]))
             if row[13] is not None
+            else None,
+            origin=CommandOrigin.model_validate_json(validation.string(row[11]))
+            if row[11] is not None
             else None,
         )
 
@@ -505,40 +426,6 @@ class AsyncPostgresStore:
                 ),
             )
 
-    async def _ensure_stream(
-        self, db: psycopg.AsyncConnection[tuple[object, ...]], cid: str
-    ) -> None:
-        cursor = await db.execute("SELECT campaign FROM stream_genesis WHERE campaign=%s", (cid,))
-        if await cursor.fetchone() is not None:
-            return
-        cursor = await db.execute(
-            "SELECT revision, state FROM snapshots WHERE campaign=%s ORDER BY revision LIMIT 1",
-            (cid,),
-        )
-        initial = await cursor.fetchone()
-        if initial is None:
-            # Pre-event-store databases may have only their current campaign row.
-            # Preserve that explicit boundary; earlier state cannot be invented.
-            before = await self._cached(db, cid)
-            revision = before["revision"]
-        else:
-            revision = int(str(initial[0]))
-            before = snapshots.decode(initial[1])
-        await db.execute(
-            "INSERT INTO stream_genesis (campaign, revision, state) VALUES (%s, %s, %s)",
-            (cid, revision, json.dumps(before)),
-        )
-        cursor = await db.execute(
-            "SELECT command_id, actor_id, resulting_revision, event, state_after FROM command_log WHERE campaign=%s AND resulting_revision>%s ORDER BY resulting_revision",
-            (cid, revision),
-        )
-        for row in await cursor.fetchall():
-            after = self._campaign(row[4])
-            transcript = self._stream_transcript(row[3])
-            events = command_events(before, after, transcript["action"], str(row[1]))
-            await self._append_events(db, cid, str(row[0]), int(str(row[2])), events)
-            before = after
-
     async def stream_states(
         self, cid: str, *, through: int | None = None
     ) -> list[tuple[Campaign, tuple[StoredEvent, ...]]]:
@@ -546,7 +433,6 @@ class AsyncPostgresStore:
         db = await self._connect()
         try:
             await db.execute("SELECT id FROM campaigns WHERE id=%s FOR UPDATE", (cid,))
-            await self._ensure_stream(db, cid)
             cursor = await db.execute("SELECT state FROM stream_genesis WHERE campaign=%s", (cid,))
             initial = await cursor.fetchone()
             assert initial is not None

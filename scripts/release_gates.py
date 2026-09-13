@@ -89,11 +89,10 @@ def evaluate(report: Path) -> tuple[list[dict[str, object]], list[str]]:
             }
         )
     from wayfarer.errors import StorageError
-    from wayfarer.persistence.events import COMMAND_UPCASTERS
     from wayfarer.persistence.upcasters import EVENT_UPCASTERS
 
     retained = json.loads((ROOT / "tests/fixtures/retained_schemas.json").read_text())
-    for group, registry in [("events", EVENT_UPCASTERS), ("commands", COMMAND_UPCASTERS)]:
+    for group, registry in [("events", EVENT_UPCASTERS)]:
         for schema in retained[group]:
             try:
                 registry.check(schema["kind"], schema["version"])

@@ -193,13 +193,17 @@ The wheel includes the web assets under `wayfarer.transport.static`, accessed
 with `importlib.resources`. It has no dependency on a repository-relative static
 folder. Database paths remain caller-owned, never inside the installed package.
 
-## Compatibility and scope
+## Scope
 
-The frozen v1 routes and payloads are preserved. The obsolete prototype turn
-endpoint returns 410 after retirement in #426. `uv run --frozen python server.py`
-remains a compatibility launcher after syncing.
-The old root-level Python modules are internal implementation details and are
-replaced with explicit package imports. No full GURPS implementation is implied.
+The frozen v1 routes and payloads hold their published contracts. The obsolete
+prototype turn endpoint returns 410 after retirement in #426.
+`uv run --frozen python server.py` still launches the package after syncing.
+Root-level Python modules are internal implementation details reached through
+explicit package imports. No full GURPS implementation is implied.
+
+The product has not launched, so nothing here carries a legacy path: there are no
+aliases, importers, additive migrations or readers kept for databases an earlier
+release wrote (#634). A schema change is a fresh schema.
 
 Strict typing, Ruff, pytest, Hypothesis, validated configuration, async I/O and
 structured error handling are all part of the current package and CI gates. See
@@ -365,8 +369,8 @@ The #414 implementation also records an orchestration-captured UTC instant on
 each live command. Invitation claims persist and reuse that instant across
 recovery; ledger consumers receive one timestamp captured before the transaction.
 Simulation clock imports and resolver clock reads are prohibited by architecture
-tests. See [command time](persistence.md#command-time-414) for deadline boundaries,
-legacy receipts and operational clocks that remain outside simulation.
+tests. See [command time](persistence.md#command-time-414) for deadline boundaries
+and the operational clocks that remain outside simulation.
 
 The #413 implementation adds `event_stream` and `stream_genesis`, separates
 command receipts from stream rows, and makes the action resolver return an event
@@ -376,7 +380,7 @@ projections and outbox history read folded stream states. See
 [the event stream](persistence.md#dedicated-event-stream-413). Snapshots are derived
 caches under #419. The #418 replay module verifies each
 fixture revision against its event fold and repeats typed commands with recorded
-seeds and time, refusing mismatched rules pins and reporting legacy limitations.
+seeds and time, refusing mismatched rules pins and naming what it cannot repeat.
 
 **Events declare their audience.** Knowledge isolation is a release invariant
 (#1, #45): reunion does not share secrets and captives learn nothing of their
@@ -392,7 +396,7 @@ System-issued commands such as clock advances carry a system principal.
 
 **One engine.** The wave-1 resolver and the prototype `GameService` are gone (#634).
 All playable commands use the typed engine. Command receipts contain family and
-result; the transcript-shaped `Event` and legacy `Action` type are gone. New writes
+result; the transcript-shaped `Event` and `Action` types are gone and new writes
 reject transcript fields. The obsolete prototype turn endpoint returns 410; frozen
 v1 operations are unchanged.
 
@@ -436,9 +440,9 @@ load. Setup no longer has an exception to the play checkpoint writer rule.
 
 Snapshot implementation (#419): `stream_genesis`, `command_log`, `event_stream`
 and atomic `checkpoint_digests` are the durable reconstruction inputs. `campaigns`
-and `snapshots` are optional periodic caches; reads, retries and history never trust
-`state_after`. `PlayCheckpoint` excludes event-carrier fields; compatibility views
-use a separate `PlayEventProjection`, split from the format-2 snapshot checkpoint.
+and `snapshots` are optional periodic caches; reads, retries and history derive
+every state image from the stream. `PlayCheckpoint` excludes event-carrier fields;
+they live in a separate `PlayEventProjection`, split from the format-2 checkpoint.
 Narration is overlaid only for presentation and is never a rebuild input. See
 `docs/persistence.md` for the final table layout and retention conditions.
 
