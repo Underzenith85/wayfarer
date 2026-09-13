@@ -13,7 +13,7 @@ from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefens
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
-from wayfarer.engine.simulation.combat.objects.combat import target_modifier
+from wayfarer.engine.simulation.combat.objects.combat import target_geometry, target_modifier
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.hex_geometry import Hex
@@ -498,10 +498,12 @@ def _release_missile(
     )
 
     target = next(p for p in encounter.participants if p.actor_id == context.target_id)
+    ground_target = False
     if command.target_item_id:
         target_modifier(runtime, before, target.actor_id, command.target_item_id)
-        if next(i for i in before.resources.items if i.id == command.target_item_id).ground:
-            raise ValidationError("Ground spell targets require a dedicated geometry adapter")
+        ground_target = bool(
+            next(i for i in before.resources.items if i.id == command.target_item_id).ground
+        )
     allowed: list[Defense] = ["none"]
     for defense in ("dodge", "block"):
         try:
@@ -533,6 +535,17 @@ def _release_missile(
             )
         }
     )
+    if command.target_item_id:
+        encounter = target_geometry(runtime, before, encounter, command.target_item_id)
+        if ground_target:
+            assert encounter.pending_defense is not None
+            encounter = encounter.model_copy(
+                update={
+                    "pending_defense": encounter.pending_defense.model_copy(
+                        update={"allowed": ("none",)}
+                    )
+                }
+            )
     updated = updated.model_copy(
         update={
             "encounters": tuple(

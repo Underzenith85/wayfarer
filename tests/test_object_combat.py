@@ -7,7 +7,7 @@ import pytest
 from test_gurps_melee import attack, choice, setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.types.object import ObjectProfile
+from wayfarer.engine.rules.types.object import ObjectProfile, SalvageProfile
 from wayfarer.engine.simulation.combat.objects.combat import BreakageResult
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
@@ -354,6 +354,102 @@ async def test_major_repair_pins_parts_cost_and_locks_custody(tmp_path: Path) ->
     assert task.check and task.check.effective_target == 10 and task.restored_hp == 1
     repaired = next(i for i in state.resources.items if i.id == "sword-b")
     assert repaired.condition and repaired.condition.hp == 1
+
+
+async def test_salvage_pins_work_and_transfers_recovered_material(tmp_path: Path) -> None:
+    from wayfarer.engine.simulation.actions import Wait
+    from wayfarer.engine.simulation.equipment.salvage_state import tasks
+    from wayfarer.engine.simulation.resources import Transfer
+    from wayfarer.errors import ConflictError
+    from wayfarer.orchestration.combat import EndEncounter, SalvageEquipment
+
+    cid, play = await setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        durability=ObjectProfile(
+            construction="homogenous",
+            hp=12,
+            dr=6,
+            ht=12,
+            repair_skill_id="skill:armoury",
+            repair_tools_definition="equipment:armoury-tools",
+            repair_parts_definition="equipment:spare-parts",
+            salvage=SalvageProfile(
+                skill_id="skill:armoury",
+                tools_definition_id="equipment:armoury-tools",
+                recovered_definition_id="equipment:spare-parts",
+                seconds=600,
+                disabled_quantity=3,
+                destroyed_quantity=1,
+            ),
+        ),
+        object_hp=0,
+    )
+    service = CombatService(play)
+    await service.execute(
+        cid,
+        EndEncounter(
+            id="end",
+            actor_id="gm",
+            expected_revision=1,
+            encounter_id="fight",
+            reason="safe workshop",
+        ),
+        authenticated_actor_id="gm",
+    )
+    await service.execute(
+        cid,
+        SalvageEquipment(
+            id="salvage",
+            actor_id="b",
+            expected_revision=2,
+            encounter_id="fight",
+            item_id="sword-b",
+            stage="start",
+        ),
+        authenticated_actor_id="b",
+    )
+    state = play._load(await play.store.read(cid))
+    task = tasks(state.resources)[0]
+    assert task.due == 600 and task.condition.hp == 0
+    with pytest.raises(ConflictError, match="pending repair"):
+        play.engine.resources.apply(
+            state.resources,
+            Transfer(
+                id="steal-tool",
+                actor_id="b",
+                expected_revision=state.resources.revision,
+                item_id="tool-b",
+                quantity=1,
+                owner_id="a",
+            ),
+        )
+    await play.execute(
+        cid,
+        Wait(id="work", actor_id="b", expected_revision=3, ticks=600),
+        authenticated_actor_id="b",
+    )
+    state = play._load(await play.store.read(cid))
+    play.rng = RecordedDice([3, 3, 3])
+    await service.execute(
+        cid,
+        SalvageEquipment(
+            id="finish-salvage",
+            actor_id="b",
+            expected_revision=state.revision,
+            encounter_id="fight",
+            item_id="sword-b",
+            stage="finish",
+            task_id="salvage",
+        ),
+        authenticated_actor_id="b",
+    )
+    state = play._load(await play.store.read(cid))
+    task = tasks(state.resources)[0]
+    assert task.status == "completed" and task.recovered_quantity == 3
+    assert all(item.id != "sword-b" for item in state.resources.items)
+    recovered = next(item for item in state.resources.items if item.id == task.recovered_item_id)
+    assert recovered.owner_id == "b" and recovered.quantity == 3
 
 
 def test_reviewed_additive_requests_never_accept_damage_authority() -> None:

@@ -212,6 +212,32 @@ if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
 
 
+def _shield_side_effect(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    target_actor_id: str,
+    shield_id: str,
+    resistance: int,
+    effect_dice: tuple[int, ...],
+    hit_locations: list[HumanLocation | None],
+    hit_resistances: list[int],
+) -> tuple[int, ...]:
+    side_die = draw_dice(runtime.rng, 1)[0]
+    original = next(
+        p
+        for saved in state.encounters
+        if saved.id == encounter.id
+        for p in saved.participants
+        if p.actor_id == target_actor_id
+    )
+    hand = next((hand for item, hand in original.hand_bindings if item == shield_id), None)
+    if side_die <= 2 and hand:
+        hit_locations[-1] = "left-arm" if hand == "left-hand" else "right-arm"
+        hit_resistances[-1] = resistance
+    return effect_dice + (side_die,)
+
+
 def resolve(
     runtime: RulesContext,
     state: PlayState,
@@ -870,6 +896,17 @@ def resolve(
                 damages.append(0)
                 injuries.append(0)
                 continue
+            effect_dice = _shield_side_effect(
+                runtime,
+                state,
+                encounter,
+                target.actor_id,
+                shield_hit,
+                (armor_dr() + dr_bonus + vehicle_cover) * close_projectile_multiplier,
+                effect_dice,
+                hit_locations,
+                hit_resistances,
+            )
         resources, result = apply_injury(
             state.resources,
             Wound(

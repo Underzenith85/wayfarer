@@ -7,8 +7,6 @@ persisted table result rather than silently substituting ordinary damage.
 
 from __future__ import annotations
 
-import hashlib
-
 import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import Outcome, draw_dice
@@ -23,7 +21,7 @@ from wayfarer.engine.simulation.combat.critical import IncomingWound
 from wayfarer.engine.simulation.combat.criticals.context import capture_critical
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
-from wayfarer.engine.simulation.combat.equipment_effects import defense_stress, synchronize
+from wayfarer.engine.simulation.combat.equipment_effects import defense_stress
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
@@ -31,6 +29,7 @@ from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_pa
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.objects.combat import (
     critical_breakage,
+    damage_target,
     intercepting_shield,
     shield_damage,
     shock,
@@ -44,7 +43,6 @@ from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_flight
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
-from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
@@ -584,27 +582,23 @@ def resolve_melee(
         and (entries[i.definition_id].modes or entries[i.definition_id].shield)
     )
     if hit and pending.target_item_id:
-        resources, object_result = apply_object(
-            runtime.resources,
-            state.resources,
-            DamageObject.model_validate(
-                {
-                    "id": "target-object:" + hashlib.sha256(pending.id.encode()).hexdigest(),
-                    "actor_id": pending.attacker_id,
-                    "expected_revision": state.resources.revision,
-                    "item_id": pending.target_item_id,
-                    "basic_damage": basic,
-                    "damage_type": damage_type,
-                    "armor_divisor": weapon.damage.armor_divisor
-                    * (2 if half else 1)
-                    * (2 if pending.armor_chink else 1),
-                }
-            ),
-            system=True,
-            rng=runtime.rng,
+        object_damage = weapon.damage.model_copy(
+            update={
+                "armor_divisor": weapon.damage.armor_divisor
+                * (2 if half else 1)
+                * (2 if pending.armor_chink else 1)
+            }
         )
-        state = state.model_copy(update={"resources": resources})
-        encounter = synchronize(state, encounter)
+        state, encounter, object_result = damage_target(
+            runtime,
+            state,
+            encounter,
+            pending.target_item_id,
+            basic,
+            object_damage,
+            impact=0,
+        )
+        assert object_result is not None
         defender = next(p for p in encounter.participants if p.actor_id == defender.actor_id)
         resistance = object_result.effective_dr
         effect_dice += tuple(d for roll in object_result.checks for d in roll)

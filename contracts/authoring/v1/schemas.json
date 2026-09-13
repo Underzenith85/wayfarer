@@ -3219,6 +3219,37 @@
         "title": "Belief",
         "type": "object"
       },
+      "BrokenWeaponOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "retained_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Retained Definition Id"
+          },
+          "detached_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Detached Definition Id"
+          }
+        },
+        "title": "BrokenWeaponOutcome",
+        "type": "object"
+      },
       "CampaignRules": {
         "properties": {
           "edition": {
@@ -9023,6 +9054,20 @@
             ],
             "default": null
           },
+          "machine_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Machine Actor Id"
+          },
           "ground": {
             "anyOf": [
               {
@@ -10605,6 +10650,36 @@
             ],
             "default": null,
             "title": "Shock Until"
+          },
+          "burning": {
+            "default": false,
+            "title": "Burning",
+            "type": "boolean"
+          },
+          "last_burn_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Burn At"
+          },
+          "reduced_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reduced Definition Id"
           }
         },
         "required": [
@@ -10649,6 +10724,11 @@
           "high_pain_threshold": {
             "default": false,
             "title": "High Pain Threshold",
+            "type": "boolean"
+          },
+          "sentient": {
+            "default": false,
+            "title": "Sentient",
             "type": "boolean"
           },
           "size_modifier": {
@@ -10729,6 +10809,54 @@
             ],
             "default": null,
             "title": "Cover Kind"
+          },
+          "fragility": {
+            "default": [],
+            "items": {
+              "enum": [
+                "brittle",
+                "combustible",
+                "flammable",
+                "explosive"
+              ],
+              "type": "string"
+            },
+            "title": "Fragility",
+            "type": "array"
+          },
+          "broken_weapon_outcomes": {
+            "default": [],
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/BrokenWeaponOutcome"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Broken Weapon Outcomes",
+            "type": "array"
+          },
+          "reduced_effectiveness_definitions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reduced Effectiveness Definitions",
+            "type": "array"
+          },
+          "salvage": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SalvageProfile"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -10787,6 +10915,30 @@
             },
             "title": "Checks",
             "type": "array"
+          },
+          "damage_dice": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Damage Dice",
+            "type": "array"
+          },
+          "ignited": {
+            "default": false,
+            "title": "Ignited",
+            "type": "boolean"
+          },
+          "exploded": {
+            "default": false,
+            "title": "Exploded",
+            "type": "boolean"
+          },
+          "explosion_dice": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Explosion Dice",
+            "type": "integer"
           },
           "condition": {
             "$ref": "#/$defs/ObjectCondition"
@@ -13502,6 +13654,48 @@
           "alternatives"
         ],
         "title": "RulingPolicy",
+        "type": "object"
+      },
+      "SalvageProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "tools_definition_id": {
+            "title": "Tools Definition Id",
+            "type": "string"
+          },
+          "recovered_definition_id": {
+            "title": "Recovered Definition Id",
+            "type": "string"
+          },
+          "seconds": {
+            "exclusiveMinimum": 0,
+            "title": "Seconds",
+            "type": "integer"
+          },
+          "disabled_quantity": {
+            "default": 1,
+            "minimum": 0,
+            "title": "Disabled Quantity",
+            "type": "integer"
+          },
+          "destroyed_quantity": {
+            "default": 1,
+            "minimum": 0,
+            "title": "Destroyed Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "skill_id",
+          "tools_definition_id",
+          "recovered_definition_id",
+          "seconds"
+        ],
+        "title": "SalvageProfile",
         "type": "object"
       },
       "Scene": {

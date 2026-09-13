@@ -279,6 +279,14 @@ class RepairEquipment(CombatCommand):
     task_id: Id | None = None
 
 
+class SalvageEquipment(CombatCommand):
+    kind: Literal["salvage_equipment"] = "salvage_equipment"
+    encounter_id: Id
+    item_id: Id
+    stage: Literal["start", "finish", "cancel"]
+    task_id: Id | None = None
+
+
 class RetrieveEquipment(CombatCommand):
     kind: Literal["retrieve_equipment"] = "retrieve_equipment"
     encounter_id: Id
@@ -307,6 +315,7 @@ TypedCombatCommand = Annotated[
     | TakeUnarmedTurn
     | ResolveChokeEffects
     | RepairEquipment
+    | SalvageEquipment
     | RetrieveEquipment
     | ContinueCriticalMiss
     | DeclareThrownLanding

@@ -9,15 +9,18 @@ from wayfarer.engine.rules.tables.combat import (
     shield_defense_bonus,
     weapon_target_penalty,
 )
-from wayfarer.engine.rules.types.object import ObjectResult, residual_definition
+from wayfarer.engine.rules.types.explosion import ExplosionSpec
+from wayfarer.engine.rules.types.object import ObjectCondition, ObjectResult, residual_definition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import catalog
-from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.actors import build, catalog
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
+from wayfarer.engine.simulation.combat.explosions import BlastRecord
+from wayfarer.engine.simulation.combat.explosions import save as save_blast
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.locations import item_hands
 from wayfarer.engine.simulation.combat.tactical import attack_geometry
@@ -29,8 +32,9 @@ from wayfarer.engine.simulation.equipment.catalog import (
 )
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.hit_locations import disabled
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
-from wayfarer.engine.simulation.resources import ResourceEvent
+from wayfarer.engine.simulation.resources import Item, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -55,6 +59,8 @@ class BreakageResult(Record):
     residual_die: Die | None = None
     item_id: str
     broken: bool
+    retained_definition_id: str | None = None
+    detached_item_id: str | None = None
 
 
 def critical_breakage(
@@ -104,7 +110,16 @@ def critical_breakage(
     if entry.critical_breakage == "resistant":
         confirmation = draw_dice(runtime.rng, 3)
         broken = sum(confirmation) in (3, 4, 17, 18)
-    residual = draw_dice(runtime.rng, 1)[0] if broken and profile.residual_definitions else None
+    residual = (
+        draw_dice(runtime.rng, 1)[0]
+        if broken and (profile.residual_definitions or profile.broken_weapon_outcomes)
+        else None
+    )
+    outcome = (
+        profile.broken_weapon_outcomes[residual - 1]
+        if residual is not None and profile.broken_weapon_outcomes
+        else None
+    )
     condition = (
         item.condition.model_copy(update={"disabled": True, "residual_roll": residual})
         if broken
@@ -120,6 +135,17 @@ def critical_breakage(
             "ground": item.ground if broken else ground_position(encounter, subject),
         }
     )
+    detached = None
+    if broken and outcome and outcome.detached_definition_id:
+        detached_id = item.id + ":broken:" + str(residual)
+        detached_profile = runtime.resources.specs[outcome.detached_definition_id].durability
+        detached = Item(
+            id=detached_id,
+            definition_id=outcome.detached_definition_id,
+            owner_id=item.owner_id,
+            ground=ground_position(encounter, subject),
+            condition=ObjectCondition(hp=detached_profile.hp) if detached_profile else None,
+        )
     saved = BreakageResult.model_validate(
         {
             "table": table,
@@ -127,11 +153,14 @@ def critical_breakage(
             "residual_die": residual,
             "item_id": item.id,
             "broken": broken,
+            "retained_definition_id": residual_definition(profile, condition),
+            "detached_item_id": detached.id if detached else None,
         }
     )
     resources = state.resources.model_copy(
         update={
-            "items": tuple(updated if i.id == item.id else i for i in state.resources.items),
+            "items": tuple(updated if i.id == item.id else i for i in state.resources.items)
+            + ((detached,) if detached else ()),
             "events": state.resources.events
             + (
                 ResourceEvent(
@@ -219,7 +248,7 @@ def shield_damage(
     profile = runtime.resources.specs[item.definition_id].durability
     assert profile is not None
     damage = weapon if isinstance(weapon, Damage) else weapon.damage
-    resources, _ = apply_object(
+    resources, object_result = apply_object(
         runtime.resources,
         state.resources,
         DamageObject.model_validate(
@@ -237,7 +266,78 @@ def shield_damage(
         shield=True,
         rng=runtime.rng,
     )
+    if object_result.exploded:
+        owner = next(p for p in encounter.participants if p.actor_id == item.owner_id)
+        resources = save_blast(
+            resources,
+            BlastRecord(
+                id="fragile-object:" + object_result.command_id,
+                encounter_id=encounter.id,
+                source_item_id=item.id,
+                payload=ExplosionSpec(dice=object_result.explosion_dice),
+                due=resources.game_time,
+                center=item.ground or ground_position(encounter, owner),
+                evidence="B136/B484 Fragile (Explosive) object result",
+            ),
+            object_result.command_id,
+        )
     state = state.model_copy(update={"resources": resources})
+    if damage.damage_type == "cr":
+        attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+        defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+        compiled = build(runtime, state, defender.actor_id)
+        assert compiled.statistics is not None
+        yards = basic // max(1, compiled.statistics.st - 2)
+        current: GridPoint | Hex = defender.position
+        occupied = {p.position for p in encounter.participants if p.actor_id != defender.actor_id}
+        for _ in range(yards):
+            if isinstance(current, Hex) and isinstance(attacker.position, Hex):
+                dq, dr = current.q - attacker.position.q, current.r - attacker.position.r
+                direction = max(
+                    range(6),
+                    key=lambda index: (
+                        (2 * dq + dr) * DIRECTIONS[index][0] + (dq + 2 * dr) * DIRECTIONS[index][1]
+                    ),
+                )
+                hex_step = Hex(
+                    q=current.q + DIRECTIONS[direction][0],
+                    r=current.r + DIRECTIONS[direction][1],
+                )
+                hex_board = runtime.hex_map(encounter)
+                try:
+                    blocked = hex_board is None or hex_board.cell(hex_step).blocked
+                except ValidationError:
+                    break
+                if blocked or hex_step in occupied:
+                    break
+                current = hex_step
+            elif isinstance(current, GridPoint) and isinstance(attacker.position, GridPoint):
+                dx = (current.x > attacker.position.x) - (current.x < attacker.position.x)
+                dy = (current.y > attacker.position.y) - (current.y < attacker.position.y)
+                try:
+                    square_step = GridPoint(x=current.x + dx, y=current.y + dy)
+                except ValueError:
+                    break
+                combat_rules = runtime.rules.combat
+                assert combat_rules is not None
+                square_board = next(
+                    b for b in combat_rules.battlefields if b.id == encounter.battlefield_id
+                )
+                if (
+                    not isinstance(square_board, Battlefield)
+                    or square_step.x >= square_board.width
+                    or square_step.y >= square_board.height
+                    or square_step in square_board.blocked
+                    or square_step in occupied
+                ):
+                    break
+                current = square_step
+            else:
+                break
+        if current != defender.position:
+            encounter = CombatEngine._replace(
+                encounter, defender.model_copy(update={"position": current})
+            )
     cover = shield_cover_dr(profile.dr, profile.hp, damage.armor_divisor)
     return state, synchronize(state, encounter), max(0, basic - cover)
 
@@ -249,7 +349,10 @@ def target_modifier(runtime: RulesContext, state: PlayState, actor_id: str, item
     if item is None or item.owner_id != actor_id or (not item.equipped and not item.ground):
         raise ValidationError("Object target must be equipped or at a recorded ground position")
     entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
-    if entry.durability is None or item.condition is None or item.condition.destroyed:
+    sentient = bool(entry.durability and entry.durability.sentient and item.machine_actor_id)
+    if entry.durability is None or (
+        not sentient and (item.condition is None or item.condition.destroyed)
+    ):
         raise ValidationError(
             "Object target requires an initialized, non-destroyed durability profile"
         )
@@ -277,6 +380,53 @@ def damage_target(
     pending = encounter.pending_defense
     assert pending is not None
     item = next(i for i in state.resources.items if i.id == item_id)
+    profile = runtime.resources.specs[item.definition_id].durability
+    if profile and profile.sentient:
+        if item.machine_actor_id is None:
+            raise ValidationError("Sentient machine has no actor injury authority")
+        compiled = build(runtime, state, item.machine_actor_id)
+        assert compiled.statistics is not None
+        command_id = (
+            "target-object:" + hashlib.sha256(f"{pending.id}:{impact}".encode()).hexdigest()
+        )
+        resources, injury = apply_injury(
+            state.resources,
+            Wound(
+                id=command_id,
+                actor_id=item.machine_actor_id,
+                expected_revision=state.resources.revision,
+                basic_damage=basic,
+                resistance=profile.dr,
+                damage_type=damage.damage_type,
+                armor_divisor=damage.armor_divisor,
+                tight_beam=damage.tight_beam,
+            ),
+            ht=compiled.statistics.ht,
+            dx=compiled.statistics.dx,
+            rng=runtime.rng,
+            system=True,
+        )
+        pool = next(p for p in resources.pools if p.id == f"hp:{item.machine_actor_id}")
+        assert pool.injury is not None
+        result = ObjectResult(
+            command_id=command_id,
+            item_id=item.id,
+            injury=injury.injury,
+            effective_dr=injury.effective_resistance,
+            checks=tuple(check.check.dice for check in injury.checks),
+            condition=ObjectCondition(
+                hp=pool.current,
+                disabled=pool.injury.incapacitated,
+                destroyed=pool.injury.dead,
+                shock=pool.injury.shock,
+                shock_until=resources.game_time + 1 if pool.injury.shock else None,
+            ),
+        )
+        resources = resources.model_copy(
+            update={"object_results": resources.object_results + (result,)}
+        )
+        state = state.model_copy(update={"resources": resources})
+        return state, synchronize(state, encounter), result
     if item.condition and item.condition.destroyed:
         return state, encounter, None
     resources, result = apply_object(
@@ -297,6 +447,21 @@ def damage_target(
         system=True,
         rng=runtime.rng,
     )
+    if result.exploded:
+        owner = next(p for p in encounter.participants if p.actor_id == item.owner_id)
+        resources = save_blast(
+            resources,
+            BlastRecord(
+                id="fragile-object:" + result.command_id,
+                encounter_id=encounter.id,
+                source_item_id=item.id,
+                payload=ExplosionSpec(dice=result.explosion_dice),
+                due=resources.game_time,
+                center=item.ground or ground_position(encounter, owner),
+                evidence="B136/B484 Fragile (Explosive) object result",
+            ),
+            result.command_id,
+        )
     state = state.model_copy(update={"resources": resources})
     return state, synchronize(state, encounter), result
 
@@ -366,6 +531,43 @@ def target_positions(
         if entry
         else 0
     )
+    pending = encounter.pending_defense
+    if (
+        pending is not None
+        and owner.last_attack_item_id == item_id
+        and owner.last_maneuver in ("attack", "all_out_attack", "move_and_attack")
+    ):
+        attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+        distance = int(CombatEngine.distance(owner.position, attacker.position))
+        if distance in range(1, reach + 1):
+            # B400-401: a weapon that just attacked occupied the intervening reach.
+            # Expose the nearest intervening yard so an ordinary Reach 1 weapon can
+            # counterstrike the extended weapon without treating the actors as colocated.
+            if isinstance(owner.position, Hex) and isinstance(attacker.position, Hex):
+                dq = owner.position.q - attacker.position.q
+                dr = owner.position.r - attacker.position.r
+                direction = max(
+                    range(6),
+                    key=lambda index: (
+                        (2 * dq + dr) * DIRECTIONS[index][0] + (dq + 2 * dr) * DIRECTIONS[index][1]
+                    ),
+                )
+                delta = DIRECTIONS[direction]
+                recent: GridPoint | Hex = Hex(
+                    q=attacker.position.q + delta[0], r=attacker.position.r + delta[1]
+                )
+            elif isinstance(owner.position, GridPoint) and isinstance(attacker.position, GridPoint):
+                recent = GridPoint(
+                    x=attacker.position.x
+                    + (owner.position.x > attacker.position.x)
+                    - (owner.position.x < attacker.position.x),
+                    y=attacker.position.y
+                    + (owner.position.y > attacker.position.y)
+                    - (owner.position.y < attacker.position.y),
+                )
+            else:
+                recent = owner.position
+            return (owner.position, recent)
     if not isinstance(owner.position, Hex) or reach == 0:
         return (owner.position,)
     assert owner.hex_facing is not None

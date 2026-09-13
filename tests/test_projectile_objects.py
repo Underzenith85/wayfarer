@@ -107,7 +107,7 @@ async def test_burst_shield_interception_overpenetrates_separately(tmp_path: Pat
         cid, play, "a", "attack", item_id="sword-a", mode_id="ranged", target_id="b", shots=6
     )
     # Three hits, Dodge 9 succeeds only with DB 1: one shield hit, two body hits.
-    play.rng = RecordedDice([3, 3, 4, 3, 3, 3, 6, 1, 1])
+    play.rng = RecordedDice([3, 3, 4, 3, 3, 3, 6, 1, 1, 1])
     result = await defend(cid, play, "b", defense="dodge")
     assert result.injury
     assert result.injury.per_hit_damage == (3, 1, 1)

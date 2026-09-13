@@ -31,6 +31,7 @@ from wayfarer.engine.simulation.combat.commands import (
     ResumeInterruptedTurn as ResumeInterruptedTurn,
 )
 from wayfarer.engine.simulation.combat.commands import RetrieveEquipment as RetrieveEquipment
+from wayfarer.engine.simulation.combat.commands import SalvageEquipment as SalvageEquipment
 from wayfarer.engine.simulation.combat.commands import (
     SetEncounterOpposition as SetEncounterOpposition,
 )

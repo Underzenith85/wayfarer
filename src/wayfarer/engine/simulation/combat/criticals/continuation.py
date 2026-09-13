@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.critical import CriticalMiss, load_critical
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.equipment_effects import synchronize
+from wayfarer.engine.simulation.combat.thrown.flight import FlightResult, resolve_flight
 from wayfarer.engine.simulation.health.injury import (
     DisableLocation,
     Wound,
@@ -31,6 +32,7 @@ class Continuation(Record):
     dice: tuple[int, ...] = ()
     injury: int = 0
     incoming_injury: int = 0
+    flight: FlightResult | None = None
 
 
 def context(
@@ -46,7 +48,7 @@ def context(
         raise ValidationError("Critical context does not match this blocked encounter")
     if len(saved.weapons) != 1 or saved.anatomy != "human":
         raise ValidationError("Ambiguous legacy critical context cannot be migrated")
-    if saved.table_total not in (5, 6, 15):
+    if saved.table_total not in (5, 6, 14, 15):
         raise ValidationError("This critical table result requires another continuation adapter")
     if (
         saved.table_total in (5, 6)
@@ -100,14 +102,28 @@ def continue_critical(
         weapon = saved.weapons[0]
         dice: tuple[int, ...]
         injury = 0
-        if saved.table_total == 15:
+        flight = None
+        location: HumanLocation | None = None
+        if saved.table_total == 14:
+            state, encounter, dice = resolve_flight(
+                runtime, state, encounter, saved.table_rolls[-1]
+            )
+            event = next(
+                e
+                for e in reversed(state.resources.events)
+                if e.id.startswith("critical-flight:") and e.target_id == saved.item_id
+            )
+            flight = FlightResult.model_validate_json(event.kind)
+            location = None
+            resources = state.resources
+        elif saved.table_total == 15:
             hands = tuple(h for i, h in saved.hand_bindings if i == saved.item_id)
             die = draw_dice(runtime.rng, 1)[0] if len(hands) > 1 else None
             hand = hands[0 if die is None or die <= 3 else 1]
             arm: Literal["left-arm", "right-arm"] = (
                 "left-arm" if hand == "left-hand" else "right-arm"
             )
-            location: HumanLocation = arm
+            location = arm
             dice = (die,) if die else ()
             resources, _ = apply_location_effect(
                 state.resources,
@@ -226,6 +242,7 @@ def continue_critical(
             dice=dice,
             injury=injury,
             incoming_injury=incoming_injury,
+            flight=flight,
         )
     resources = state.resources.model_copy(
         update={

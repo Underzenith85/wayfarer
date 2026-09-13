@@ -876,6 +876,36 @@
             ],
             "default": null,
             "title": "Shock Until"
+          },
+          "burning": {
+            "default": false,
+            "title": "Burning",
+            "type": "boolean"
+          },
+          "last_burn_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Burn At"
+          },
+          "reduced_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reduced Definition Id"
           }
         },
         "required": [
