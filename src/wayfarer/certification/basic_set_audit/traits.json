@@ -296,7 +296,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -306,7 +307,7 @@
       "listed_value": "or 10/level",
       "construction_binding": "trait:advantage:administrative-rank",
       "cost_owner": "trait:advantage:administrative-rank",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -387,7 +388,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -397,7 +399,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:allies",
       "cost_owner": "trait:advantage:allies",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -479,7 +481,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -489,7 +492,7 @@
       "listed_value": "5 or 15",
       "construction_binding": "trait:advantage:alternate-identity",
       "cost_owner": "trait:advantage:alternate-identity",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -631,7 +634,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -641,7 +645,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:appearance",
       "cost_owner": "trait:advantage:appearance",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1090,7 +1094,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -1100,7 +1105,7 @@
       "listed_value": "1 to 10",
       "construction_binding": "trait:advantage:claim-to-hospitality",
       "cost_owner": "trait:advantage:claim-to-hospitality",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1182,7 +1187,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -1192,7 +1198,7 @@
       "listed_value": "5",
       "construction_binding": "trait:advantage:clerical-investment",
       "cost_owner": "trait:advantage:clerical-investment",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1365,7 +1371,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -1375,7 +1382,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:contact-group",
       "cost_owner": "trait:advantage:contact-group",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1395,7 +1402,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -1405,7 +1413,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:contacts",
       "cost_owner": "trait:advantage:contacts",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1425,7 +1433,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -1435,7 +1444,7 @@
       "listed_value": "1/level",
       "construction_binding": "trait:advantage:courtesy-rank",
       "cost_owner": "trait:advantage:courtesy-rank",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1485,7 +1494,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -1495,7 +1505,7 @@
       "listed_value": "or 2/culture",
       "construction_binding": "trait:advantage:cultural-familiarity",
       "cost_owner": "trait:advantage:cultural-familiarity",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -2439,7 +2449,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -2449,7 +2460,7 @@
       "listed_value": "5",
       "construction_binding": "trait:advantage:fashion-sense",
       "cost_owner": "trait:advantage:fashion-sense",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -2469,7 +2480,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -2479,7 +2491,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:favor",
       "cost_owner": "trait:advantage:favor",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3105,7 +3117,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -3115,7 +3128,7 @@
       "listed_value": "5/level",
       "construction_binding": "trait:advantage:high-tl",
       "cost_owner": "trait:advantage:high-tl",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3288,7 +3301,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -3298,7 +3312,7 @@
       "listed_value": "1/level",
       "construction_binding": "trait:advantage:independent-income",
       "cost_owner": "trait:advantage:independent-income",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3563,7 +3577,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -3573,7 +3588,7 @@
       "listed_value": "10, or",
       "construction_binding": "trait:advantage:legal-enforcement-powers",
       "cost_owner": "trait:advantage:legal-enforcement-powers",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3593,7 +3608,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -3603,7 +3619,7 @@
       "listed_value": "5 to 20",
       "construction_binding": "trait:advantage:legal-immunity",
       "cost_owner": "trait:advantage:legal-immunity",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3959,7 +3975,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -3969,7 +3986,7 @@
       "listed_value": "or 10/level",
       "construction_binding": "trait:advantage:merchant-rank",
       "cost_owner": "trait:advantage:merchant-rank",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -4051,7 +4068,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -4061,7 +4079,7 @@
       "listed_value": "or 10/level",
       "construction_binding": "trait:advantage:military-rank",
       "cost_owner": "trait:advantage:military-rank",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -4604,7 +4622,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -4614,7 +4633,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:patrons",
       "cost_owner": "trait:advantage:patrons",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -4847,7 +4866,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -4857,7 +4877,7 @@
       "listed_value": "5",
       "construction_binding": "trait:advantage:pitiable",
       "cost_owner": "trait:advantage:pitiable",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -4907,7 +4927,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -4917,7 +4938,7 @@
       "listed_value": "or 10/level",
       "construction_binding": "trait:advantage:police-rank",
       "cost_owner": "trait:advantage:police-rank",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -5247,7 +5268,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -5257,7 +5279,7 @@
       "listed_value": "or 10/level",
       "construction_binding": "trait:advantage:rank",
       "cost_owner": "trait:advantage:rank",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -5491,7 +5513,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -5501,7 +5524,7 @@
       "listed_value": "or 10/level",
       "construction_binding": "trait:advantage:religious-rank",
       "cost_owner": "trait:advantage:religious-rank",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -5521,7 +5544,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -5531,7 +5555,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:reputation",
       "cost_owner": "trait:advantage:reputation",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -5675,7 +5699,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -5685,7 +5710,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:security-clearance",
       "cost_owner": "trait:advantage:security-clearance",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -5950,7 +5975,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -5960,7 +5986,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:signature-gear",
       "cost_owner": "trait:advantage:signature-gear",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -6163,7 +6189,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -6173,7 +6200,7 @@
       "listed_value": "5/level",
       "construction_binding": "trait:advantage:social-regard",
       "cost_owner": "trait:advantage:social-regard",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -6934,7 +6961,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -6944,7 +6972,7 @@
       "listed_value": "5",
       "construction_binding": "trait:advantage:tenure",
       "cost_owner": "trait:advantage:tenure",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -7701,7 +7729,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -7711,7 +7740,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:wealth",
       "cost_owner": "trait:advantage:wealth",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -7822,7 +7851,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -7832,7 +7862,7 @@
       "listed_value": "10",
       "construction_binding": "trait:advantage:zeroed",
       "cost_owner": "trait:advantage:zeroed",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8032,7 +8062,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -8042,7 +8073,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:appearance",
       "cost_owner": "trait:disadvantage:appearance",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8783,7 +8814,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -8793,7 +8825,7 @@
       "listed_value": "or -5 to",
       "construction_binding": "trait:disadvantage:code-of-honor",
       "cost_owner": "trait:disadvantage:code-of-honor",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9115,7 +9147,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -9125,7 +9158,7 @@
       "listed_value": "-1/level",
       "construction_binding": "trait:disadvantage:debt",
       "cost_owner": "trait:disadvantage:debt",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9176,7 +9209,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -9186,7 +9220,7 @@
       "listed_value": "or -5 to",
       "construction_binding": "trait:disadvantage:delusions",
       "cost_owner": "trait:disadvantage:delusions",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9237,7 +9271,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -9247,7 +9282,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:dependents",
       "cost_owner": "trait:disadvantage:dependents",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9601,7 +9636,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -9611,7 +9647,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:duty",
       "cost_owner": "trait:disadvantage:duty",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9631,7 +9667,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -9641,7 +9678,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:dwarfism",
       "cost_owner": "trait:disadvantage:dwarfism",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9751,7 +9788,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -9761,7 +9799,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:enemies",
       "cost_owner": "trait:disadvantage:enemies",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9871,7 +9909,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -9881,7 +9920,7 @@
       "listed_value": "-3",
       "construction_binding": "trait:disadvantage:fat",
       "cost_owner": "trait:disadvantage:fat",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10023,7 +10062,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -10033,7 +10073,7 @@
       "listed_value": "-10 or",
       "construction_binding": "trait:disadvantage:g-intolerance",
       "cost_owner": "trait:disadvantage:g-intolerance",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10053,7 +10093,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -10063,7 +10104,7 @@
       "listed_value": "0",
       "construction_binding": "trait:disadvantage:gigantism",
       "cost_owner": "trait:disadvantage:gigantism",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10806,7 +10847,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -10816,7 +10858,7 @@
       "listed_value": "-10 or",
       "construction_binding": "trait:disadvantage:insomniac",
       "cost_owner": "trait:disadvantage:insomniac",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11017,7 +11059,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -11027,7 +11070,7 @@
       "listed_value": "-10 to",
       "construction_binding": "trait:disadvantage:lame",
       "cost_owner": "trait:disadvantage:lame",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11318,7 +11361,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -11328,7 +11372,7 @@
       "listed_value": "-5/level",
       "construction_binding": "trait:disadvantage:low-tl",
       "cost_owner": "trait:disadvantage:low-tl",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11559,7 +11603,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -11569,7 +11614,7 @@
       "listed_value": "-2 or",
       "construction_binding": "trait:disadvantage:missing-digit",
       "cost_owner": "trait:disadvantage:missing-digit",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11589,7 +11634,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -11599,7 +11645,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:mistaken-identity",
       "cost_owner": "trait:disadvantage:mistaken-identity",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12223,7 +12269,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -12233,7 +12280,7 @@
       "listed_value": "-10, or",
       "construction_binding": "trait:disadvantage:odious-personal-habits",
       "cost_owner": "trait:disadvantage:odious-personal-habits",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12403,7 +12450,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -12413,7 +12461,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:overweight",
       "cost_owner": "trait:disadvantage:overweight",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12734,7 +12782,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -12744,7 +12793,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:reputation",
       "cost_owner": "trait:disadvantage:reputation",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12915,7 +12964,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -12925,7 +12975,7 @@
       "listed_value": "-5 to -30",
       "construction_binding": "trait:disadvantage:secret",
       "cost_owner": "trait:disadvantage:secret",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12945,7 +12995,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -12955,7 +13006,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:secret-identity",
       "cost_owner": "trait:disadvantage:secret-identity",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13219,7 +13270,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -13229,7 +13281,7 @@
       "listed_value": "-10, or",
       "construction_binding": "trait:disadvantage:shyness",
       "cost_owner": "trait:disadvantage:shyness",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13249,7 +13301,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -13259,7 +13312,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:skinny",
       "cost_owner": "trait:disadvantage:skinny",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13491,7 +13544,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -13501,7 +13555,7 @@
       "listed_value": "-5 to -20",
       "construction_binding": "trait:disadvantage:social-stigma",
       "cost_owner": "trait:disadvantage:social-stigma",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13641,7 +13695,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -13651,7 +13706,7 @@
       "listed_value": "-5/level",
       "construction_binding": "trait:disadvantage:status",
       "cost_owner": "trait:disadvantage:status",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13944,7 +13999,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -13954,7 +14010,7 @@
       "listed_value": "or -5 to",
       "construction_binding": "trait:disadvantage:trademark",
       "cost_owner": "trait:disadvantage:trademark",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -14217,7 +14273,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -14227,7 +14284,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:unnatural-features",
       "cost_owner": "trait:disadvantage:unnatural-features",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -14278,7 +14335,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -14288,7 +14346,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:very-fat",
       "cost_owner": "trait:disadvantage:very-fat",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -14338,7 +14396,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -14348,7 +14407,7 @@
       "listed_value": "or -5 to",
       "construction_binding": "trait:disadvantage:vow",
       "cost_owner": "trait:disadvantage:vow",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -14461,7 +14520,8 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        113
+        113,
+        495
       ],
       "completion_owner": 496,
       "capability_id": "gurps.character.traits",
@@ -14471,7 +14531,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:wealth",
       "cost_owner": "trait:disadvantage:wealth",
-      "consequence_owner": 495,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
