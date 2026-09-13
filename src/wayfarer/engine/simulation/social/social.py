@@ -12,6 +12,7 @@ from pydantic import Field
 
 from wayfarer.engine.rules.checks import Modifier, RandomSource
 from wayfarer.engine.rules.skills.mundane.social.attempts import (
+    InterrogationCoercion,
     SocialSkillContext,
     SocialSkillTrace,
     resolve,
@@ -43,12 +44,14 @@ from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
 from wayfarer.engine.rules.traits.mundane.runtime import DEFAULT_AUDIENCE, Audience
 from wayfarer.engine.simulation.campaign.propaganda import PropagandaMediaContext
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.fright import recover
 from wayfarer.engine.simulation.health.fright_state import (
     aftermath_modifiers,
     blocked,
     requires_adjudication,
 )
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.engine.world import EntityKind, World
@@ -118,6 +121,8 @@ class SocialContext:
         medium_id: str | None = None,
         media: PropagandaMediaContext | None = None,
         campaign_specialties: CampaignSocialSpecialties | None = None,
+        coercion: InterrogationCoercion | None = None,
+        callous: bool = False,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
@@ -133,6 +138,7 @@ class SocialContext:
         self.partner_skill, self.conditions = partner_skill, conditions
         self.medium_id, self.media = medium_id, media
         self.campaign_specialties = campaign_specialties
+        self.coercion, self.callous = coercion, callous
 
     def bind_trait_modifiers(self, modifiers: tuple[ReactionModifier, ...]) -> None:
         """Attach server-derived trait modifiers; a resolver never supplies them."""
@@ -159,6 +165,121 @@ def _social_skill_details(
     if media is not None:
         details["media"] = media.model_dump(mode="json")
     return details
+
+
+def _lasting_reaction_modifiers(
+    state: ResourceState, actor_id: str, subject_id: str
+) -> tuple[ReactionModifier, ...]:
+    """Load B202 retribution known by this reacting subject from the ledger."""
+    modifiers = []
+    for event in state.events:
+        if not event.id.startswith("interrogation-retribution:") or event.target_id != subject_id:
+            continue
+        try:
+            payload = json.loads(event.kind)
+            if payload.get("interrogator_id") != actor_id:
+                continue
+            modifiers.append(ReactionModifier(**payload["modifier"]))
+        except json.JSONDecodeError, KeyError, TypeError, ValueError:
+            continue
+    return tuple(modifiers)
+
+
+def _interaction_modifiers(
+    state: ResourceState,
+    command: SocialCommand,
+    context: SocialContext,
+    *,
+    influenced: bool,
+) -> tuple[ReactionModifier, ...]:
+    if command.kind != "reaction" and not influenced:
+        return context.modifiers
+    return context.modifiers + _lasting_reaction_modifiers(
+        state, command.actor_id, command.subject_id
+    )
+
+
+def _validate_coercion_scope(
+    command: SocialCommand, context: SocialContext, actor_ids: set[str]
+) -> None:
+    coercion = context.coercion
+    if coercion is None:
+        if context.callous:
+            raise ValidationError("Callous modifies an explicit Interrogation coercion choice only")
+        return
+    if command.kind != "skill" or context.procedure_id != "skill:interrogation":
+        raise ValidationError("Coercion consequences belong to Interrogation only")
+    if not {(command.subject_id), *coercion.informed_actor_ids} <= actor_ids:
+        raise ValidationError("Coercion reaction audience must be a world actor")
+
+
+def _apply_interrogation_coercion(
+    state: ResourceState,
+    command: SocialCommand,
+    context: SocialContext,
+    *,
+    rng: RandomSource,
+) -> ResourceState:
+    """Commit explicit physical costs and B202/B494 retribution to the ledger."""
+    coercion = context.coercion
+    if coercion is None:
+        return state
+    if coercion.injury:
+        state, _ = apply_injury(
+            state,
+            Wound(
+                id=f"{command.id}:coercion-injury",
+                actor_id=command.subject_id,
+                expected_revision=state.revision,
+                basic_damage=coercion.injury,
+                resistance=0,
+                damage_type="cr",
+                injury_source="internal",
+            ),
+            ht=context.ht,
+            rng=rng,
+            system=True,
+        )
+    if coercion.fatigue:
+        state, _ = apply_fatigue(
+            state,
+            FatigueCost(
+                id=f"{command.id}:coercion-fatigue",
+                actor_id=command.subject_id,
+                expected_revision=state.revision,
+                amount=coercion.fatigue,
+            ),
+            ht=context.ht,
+            rng=rng,
+            system=True,
+        )
+    informed = tuple(dict.fromkeys((command.subject_id, *coercion.informed_actor_ids)))
+    consequence = {
+        "interrogator_id": command.actor_id,
+        "modifier": asdict(
+            ReactionModifier(
+                "situation",
+                coercion.reaction_penalty,
+                f"skill:interrogation:{command.id}",
+            )
+        ),
+        "reference": "B202/B494",
+    }
+    return state.model_copy(
+        update={
+            "revision": state.revision + 1,
+            "events": state.events
+            + tuple(
+                ResourceEvent(
+                    id=f"interrogation-retribution:{command.id}:{actor_id}",
+                    at=state.game_time,
+                    target_id=actor_id,
+                    kind=json.dumps(consequence),
+                )
+                for actor_id in informed
+            ),
+        }
+    )
 
 
 def apply_social(
@@ -199,6 +320,7 @@ def apply_social(
     actors = {e.id for e in world.entities if e.kind is EntityKind.ACTOR}
     if not {command.actor_id, command.subject_id} <= actors:
         raise ValidationError("Social checks require world actors")
+    _validate_coercion_scope(command, context, actors)
     known = {f.id for f in world.perspective(command.subject_id).facts}
     if not set(context.required_fact_ids) <= known:
         raise ValidationError("Subject lacks the evidence required for this social trigger")
@@ -222,7 +344,6 @@ def apply_social(
     # Derived standing is rolled and applied before the check that uses it, so a
     # replayed receipt consumes the same dice in the same order.
     standing = StandingTrace(())
-    modifiers = context.modifiers
     if command.kind == "influence":
         validate_influence(context.profile_id, context.skill, context.influence_conditions)
         if command.actor_id == command.subject_id:
@@ -237,6 +358,7 @@ def apply_social(
     influenced = command.kind == "influence" or (
         procedure is not None and procedure.resolution is Resolution.INFLUENCE
     )
+    modifiers = _interaction_modifiers(state, command, context, influenced=influenced)
     if (command.kind == "reaction" or influenced) and context.standing is not None:
         known_recognition: dict[str, RecognitionRoll] = {}
         for prior in state.events:
@@ -332,6 +454,8 @@ def apply_social(
                 command.subject_id,
                 modifiers if influenced else (),
                 context.influence_conditions if influenced else DEFAULT_INFLUENCE_CONDITIONS,
+                context.coercion,
+                context.callous,
             ),
             rng=rng,
             campaign_specialties=context.campaign_specialties,
@@ -416,13 +540,14 @@ def apply_social(
         target_id=command.subject_id,
         kind=json.dumps({"public": outcome.model_dump_json(), "private": details}),
     )
-    return state.model_copy(
+    state = state.model_copy(
         update={
             "revision": state.revision + 1,
             "receipts": state.receipts + (Receipt(command_id=command.id, digest=digest),),
             "events": state.events + (event,),
         }
-    ), outcome
+    )
+    return _apply_interrogation_coercion(state, command, context, rng=rng), outcome
 
 
 @dataclass(frozen=True)

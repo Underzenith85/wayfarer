@@ -115,6 +115,8 @@ def bind_skill_conditions(
     procedure = require_procedure(
         context.profile_id, context.procedure_id, context.campaign_specialties
     )
+    if procedure.id == "skill:interrogation" and context.callous:
+        raise ValidationError("Callous coercion is derived from the approved build")
     if procedure.id != "skill:propaganda" and context.medium_id is not None:
         raise ValidationError("Only Propaganda can select an authored medium")
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
@@ -123,6 +125,11 @@ def bind_skill_conditions(
         return
 
     approved = build(play.rules_context, state, command.actor_id)
+    if procedure.id == "skill:interrogation":
+        context.callous = any(
+            purchase.definition_id == "trait:disadvantage:callous"
+            for purchase in approved.trait_purchases
+        )
     if procedure.id == "skill:propaganda":
         npc_rules = play.engine.rules.npcs
         context.media = bind_media(

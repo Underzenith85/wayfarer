@@ -11,7 +11,11 @@ from support.runtime import build_runtime
 from wayfarer.engine.rules.checks import ModifierKind, RecordedDice
 from wayfarer.engine.rules.conformance import CAPABILITIES
 from wayfarer.engine.rules.skills.mundane import inventory
-from wayfarer.engine.rules.skills.mundane.social.attempts import SocialSkillContext, resolve
+from wayfarer.engine.rules.skills.mundane.social.attempts import (
+    InterrogationCoercion,
+    SocialSkillContext,
+    resolve,
+)
 from wayfarer.engine.rules.skills.mundane.social.inventory import (
     CONDITIONS,
     DISPATCH,
@@ -19,6 +23,7 @@ from wayfarer.engine.rules.skills.mundane.social.inventory import (
     VOICE,
     Resolution,
     SocialProcedure,
+    UnsupportedScope,
     Verdict,
     definitions,
     effect_ids,
@@ -42,6 +47,7 @@ from wayfarer.errors import ValidationError
 
 PROFILE = "gurps-basic-set-4e-2004"
 FIXTURE = Path(__file__).parent / "fixtures/gurps/social_skills.json"
+COERCION_FIXTURE = Path(__file__).parent / "fixtures/gurps/interrogation_coercion.json"
 
 # The exact inventory scope of #345, transcribed from the issue rather than read
 # back out of the registry the tests are checking.
@@ -348,17 +354,65 @@ def test_voice_is_a_declared_rule_not_a_supplied_number() -> None:
     assert silent.modifiers == () and silent.verdict is Verdict.FAILURE
 
 
+@pytest.mark.parametrize(
+    "case",
+    json.loads(COERCION_FIXTURE.read_text())["cases"],
+    ids=lambda case: str(case["name"]),
+)
+def test_b202_coercion_bonuses_are_rule_owned(case: dict[str, object]) -> None:
+    """Hand-entered B202 expectations; none are derived from the resolver."""
+    method = str(case["method"])
+    assert method in ("severe-threats", "torture")
+    callous = bool(case["callous"])
+    expected_bonus = number(case["expected_bonus"])
+    trace = resolve(
+        PROFILE,
+        "skill:interrogation",
+        SocialSkillContext(
+            12,
+            resistance=10,
+            conditions=frozenset({"subject-restrained", "shared-language"}),
+            coercion=InterrogationCoercion(method=method),  # type: ignore[arg-type]
+            callous=callous,
+        ),
+        rng=RecordedDice([4, 4, 4, 4, 4, 4]),
+    )
+    assert trace.effective_skill == 12 + expected_bonus
+    assert [modifier.source_id for modifier in trace.modifiers] == ["B202"] * (1 + callous)
+
+
+def test_coercion_fails_closed_outside_its_declared_scope() -> None:
+    with pytest.raises(ValidationError, match="Interrogation only"):
+        resolve(
+            PROFILE,
+            "skill:acting",
+            SocialSkillContext(
+                12,
+                conditions=frozenset({"audience-perceptible"}),
+                coercion=InterrogationCoercion(method="torture"),
+            ),
+            rng=RecordedDice([]),
+        )
+    with pytest.raises(ValidationError, match="explicit Interrogation coercion"):
+        resolve(
+            PROFILE,
+            "skill:interrogation",
+            SocialSkillContext(
+                12,
+                conditions=frozenset({"subject-restrained", "shared-language"}),
+                callous=True,
+            ),
+            rng=RecordedDice([]),
+        )
+
+
 def test_unsupported_scope_is_published_with_an_owner() -> None:
     """Transferred scope is visible to a validator, never silently missing."""
     scope = dict(unsupported_scope())
     # A bound row can still leave part of its entry elsewhere; a transferred row
     # keeps a blocker instead, so it never appears here.
-    assert set(scope) == {
-        "skill:interrogation",
-    }
-    assert all(entry.owner_issue > 0 and entry.detail for entry in scope.values())
-    assert {entry.owner_issue for entry in scope.values()} == {368}
-    assert all(procedure(identifier).dispatchable for identifier in scope)
+    assert scope == {}
+    assert procedure("skill:interrogation").complete
     transferred = {
         identifier
         for identifier, entry in PROCEDURES.items()
@@ -429,6 +483,19 @@ def test_authored_triggers_cannot_invent_a_procedure_or_a_circumstance() -> None
             NPCSocialTrigger.model_validate(trigger.model_dump() | changes)
     with pytest.raises(ValueError, match="belong to a social skill trigger"):
         NPCSocialTrigger(kind="reaction", subject_id="npc", conditions=("public-place",))
+    interrogation = NPCSocialTrigger(
+        kind="skill",
+        subject_id="npc",
+        skill_id="skill:interrogation",
+        conditions=("subject-restrained", "shared-language"),
+        coercion=InterrogationCoercion(method="torture", informed_actor_ids=("witness",)),
+    )
+    assert interrogation.coercion is not None
+    with pytest.raises(ValueError, match="Only Interrogation"):
+        NPCSocialTrigger.model_validate(
+            trigger.model_dump()
+            | {"coercion": {"method": "severe-threats", "reaction_penalty": -1}}
+        )
 
 
 def social_world() -> World:
@@ -441,6 +508,87 @@ def social_world() -> World:
         facts=(Fact("cellar", "npc", "route", "cellar"),),
         knowledge=(("npc", "cellar"),),
     )
+
+
+def test_coercion_uses_health_ledgers_and_persists_informed_retribution() -> None:
+    from wayfarer.engine.rules.types.injury import InjuryStatus
+    from wayfarer.engine.rules.types.recovery import FatigueStatus
+    from wayfarer.engine.simulation.resources import Pool
+
+    world = World(
+        entities=social_world().entities
+        + (Entity("witness", EntityKind.ACTOR, "Witness", location_id="tavern"),),
+        facts=social_world().facts,
+        knowledge=social_world().knowledge,
+    )
+    resources = ResourceState(
+        pools=(
+            Pool(
+                id="hp:npc",
+                current=10,
+                maximum=10,
+                injury=InjuryStatus(profile_id="gurps-basic-set-4e-2004"),
+            ),
+            Pool(
+                id="fp:npc",
+                current=10,
+                maximum=10,
+                fatigue=FatigueStatus(profile_id="gurps-basic-set-4e-2004"),
+            ),
+        )
+    )
+    context = SocialContext(
+        PROFILE,
+        0,
+        will=10,
+        ht=10,
+        procedure_id="skill:interrogation",
+        skill_level=12,
+        conditions=frozenset({"subject-restrained", "shared-language"}),
+        coercion=InterrogationCoercion(
+            method="torture", injury=2, fatigue=3, informed_actor_ids=("witness",)
+        ),
+    )
+    command = skill_command("coerced-question")
+    state, outcome = apply_social(
+        resources,
+        world,
+        command,
+        context,
+        rng=RecordedDice([4, 4, 4, 4, 4, 4]),
+        system=True,
+    )
+    pools = {pool.id: pool for pool in state.pools}
+    assert outcome.outcome == "interrogation-answered"
+    assert pools["hp:npc"].current == 8 and pools["fp:npc"].current == 7
+    assert {event.target_id for event in state.events if event.id.startswith("interrogation-")} == {
+        "npc",
+        "witness",
+    }
+    replayed, repeated = apply_social(
+        state, world, command, context, rng=RecordedDice([]), system=True
+    )
+    assert replayed is state and repeated == outcome
+
+    reaction, projected = apply_social(
+        state,
+        world,
+        SocialCommand(
+            id="later-meeting",
+            actor_id="a",
+            subject_id="witness",
+            kind="reaction",
+            trigger_id="witness-learned",
+            expected_revision=state.revision,
+        ),
+        SocialContext(PROFILE, 0),
+        rng=RecordedDice([4, 4, 3]),
+        system=True,
+    )
+    assert projected.outcome == "poor"
+    private = json.loads(reaction.events[-1].kind)["private"]
+    assert private["modifiers"][0]["value"] == -2
+    assert private["modifiers"][0]["source_id"] == "skill:interrogation:coerced-question"
 
 
 def skill_command(identifier: str = "ask-around") -> SocialCommand:
@@ -663,9 +811,7 @@ def test_the_registry_rejects_an_incoherent_procedure(
         _validate((replace(entry, **changes),))  # type: ignore[arg-type]
     with pytest.raises(ValidationError, match="Duplicate social procedure"):
         _validate((entry, entry))
-    scope = replace(
-        entry, unsupported=(replace(procedure("skill:interrogation").unsupported[0], detail=""),)
-    )
+    scope = replace(entry, unsupported=(UnsupportedScope("missing", "", 368),))
     with pytest.raises(ValidationError, match="owner and detail"):
         _validate((scope,))
 

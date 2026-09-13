@@ -184,9 +184,7 @@
         "shared-language"
       ],
       "modifiers": [],
-      "unsupported": [
-        368
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [

@@ -4,6 +4,7 @@ from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.rules.skills.mundane.social.attempts import InterrogationCoercion
 from wayfarer.engine.rules.skills.mundane.social.inventory import CONDITIONS, PROCEDURES
 from wayfarer.engine.rules.skills.mundane.social.specialties import is_open_specialty_id
 from wayfarer.engine.rules.social.gurps_social import influence_procedure
@@ -49,6 +50,7 @@ class NPCSocialTrigger(Record):
     modifier: int = Field(default=0, ge=-100, le=100)
     standing: NPCSocialStanding | None = None
     npc_will: int = Field(default=10, ge=1, le=100)
+    npc_ht: int = Field(default=10, ge=1, le=100)
     skill_id: Id = "skill:diplomacy"
     specious_intimidation: bool = False
     trait_id: Id | None = None
@@ -59,6 +61,7 @@ class NPCSocialTrigger(Record):
     # circumstance here and never a roll modifier.
     conditions: tuple[Id, ...] = Field(default=(), max_length=15)
     medium_id: Id | None = None
+    coercion: InterrogationCoercion | None = None
 
     @model_validator(mode="after")
     def standing_belongs_to_a_reaction(self) -> Self:
@@ -79,7 +82,7 @@ class NPCSocialTrigger(Record):
     def procedure_scope_is_declared(self) -> Self:
         """Reject an undeclared procedure or condition before any dice are drawn."""
         if self.kind != "skill":
-            if self.conditions or self.medium_id is not None:
+            if self.conditions or self.medium_id is not None or self.coercion is not None:
                 raise ValueError("Contextual conditions belong to a social skill trigger")
             return self
         if self.skill_id not in PROCEDURES and not is_open_specialty_id(self.skill_id):
@@ -97,6 +100,8 @@ class NPCSocialTrigger(Record):
             raise ValueError("A Savoir-Faire milieu match is derived from the selected specialty")
         if (self.medium_id is not None) != (self.skill_id == "skill:propaganda"):
             raise ValueError("Only Propaganda selects an authored medium, and it must select one")
+        if self.coercion is not None and self.skill_id != "skill:interrogation":
+            raise ValueError("Only Interrogation selects an explicit coercion consequence")
         return self
 
 
