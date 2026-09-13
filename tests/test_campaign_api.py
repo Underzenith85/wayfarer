@@ -38,7 +38,6 @@ async def api(tmp_path: Path) -> AsyncIterator[tuple[str, str]]:
     app = create_campaign_app(
         build_runtime(play),
         {"alice-secret": "alice", "bob-secret": "bob", "gm-secret": "gm"},
-        legacy_routes=True,
     )
     runner = web.AppRunner(app)
     await runner.setup()
@@ -79,7 +78,7 @@ async def test_auth_control_projection_and_cross_campaign_privacy(api: tuple[str
             assert response.status == 403
 
 
-async def test_command_retry_and_stream_reconnect_use_revision_cursor(api: tuple[str, str]) -> None:
+async def test_command_retry_returns_the_same_revision(api: tuple[str, str]) -> None:
     base, cid = api
     command = Wait(id="wait", actor_id="a", expected_revision=0, ticks=2).model_dump(mode="json")
     async with aiohttp.ClientSession() as client:
@@ -88,14 +87,5 @@ async def test_command_retry_and_stream_reconnect_use_revision_cursor(api: tuple
                 f"{base}/campaigns/{cid}/commands", headers=auth("alice-secret"), json=command
             ) as response:
                 assert response.status == 200 and (await response.json())["revision"] == 1
-        async with client.get(
-            f"{base}/campaigns/{cid}/events?after=0", headers=auth("alice-secret")
-        ) as response:
-            events = (await response.json())["events"]
-            assert len(events) == 1 and events[0]["cursor"] == 1
-        async with client.get(
-            f"{base}/campaigns/{cid}/events?after=1", headers=auth("alice-secret")
-        ) as response:
-            assert (await response.json())["events"] == []
         async with client.get(f"{base}/health") as response:
             assert response.status == 200

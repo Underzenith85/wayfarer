@@ -143,9 +143,7 @@ async def test_invalid_stale_and_duplicate_setup_preserve_draft(tmp_path: Path) 
 
 async def test_two_credentials_invite_join_and_private_preview(tmp_path: Path) -> None:
     setup = service(tmp_path)
-    app = create_campaign_app(
-        setup.access, {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
-    )
+    app = create_campaign_app(setup.access, {"alice-token": "alice", "bob-token": "bob"})
     async with TestClient(TestServer(app)) as client:
 
         async def post(
@@ -292,7 +290,6 @@ async def test_two_players_activate_and_resume_through_public_api(tmp_path: Path
                 setup.access,
                 {"alice-token": "alice", "bob-token": "bob"},
                 scenario_templates=(graph,),
-                legacy_routes=True,
             )
         )
     ) as client:
@@ -332,9 +329,7 @@ async def test_two_players_activate_and_resume_through_public_api(tmp_path: Path
     assert set(state.party.groups[0].actor_ids) == {"a", "b"}
     async with TestClient(
         TestServer(
-            create_campaign_app(
-                restarted.access, {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
-            )
+            create_campaign_app(restarted.access, {"alice-token": "alice", "bob-token": "bob"})
         )
     ) as client:
         for principal, actor in [("alice", "a"), ("bob", "b")]:

@@ -163,7 +163,6 @@ async def test_care_through_authenticated_http(tmp_path: Path) -> None:
         create_campaign_app(
             build_runtime(play),
             {"gm-token": "gm", "player-token": "alice"},
-            legacy_routes=True,
         )
     )
     await runner.setup()

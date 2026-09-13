@@ -36,12 +36,14 @@ async def application() -> web.Application:
         access,
         {"alice-token": "alice", "bob-token": "bob", "gm-token": "gm"},
         scenario_templates=(opening, sequel),
-        legacy_routes=True,
         v1_origins=frozenset({"http://127.0.0.1:4174"}),
+        engine_controls=True,
     )
     # The setup service binds its own scenario engine, but over the same store:
     # derive it so it shares this runtime's campaign locks and job worker.
-    app[SETUP_KEY] = SetupService(access.for_service(play.derived(configured()[0])))
+    app[SETUP_KEY] = SetupService(
+        access.for_service(play.derived(configured()[0])), engine_controls=True
+    )
     app[ORCHESTRATOR_KEY] = Orchestrator(access, FakeProvider())
     bind_provider(app[SERVICE], app[ORCHESTRATOR_KEY])
     app.router.add_post("/campaigns/{cid}/interpret", interpret)

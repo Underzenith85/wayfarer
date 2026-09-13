@@ -268,11 +268,7 @@ async def test_http_drafts_and_dashboard_are_private(tmp_path: Path) -> None:
 
     cid, play = await prepare(tmp_path)
     async with TestClient(
-        TestServer(
-            create_campaign_app(
-                build_runtime(play), {"a-token": "alice", "b-token": "bob"}, legacy_routes=True
-            )
-        )
+        TestServer(create_campaign_app(build_runtime(play), {"a-token": "alice", "b-token": "bob"}))
     ) as client:
         saved = await client.post(
             f"/campaigns/{cid}/drafts",

@@ -46,9 +46,7 @@ def test_profile_preview_compiles_service_totals_and_keeps_gates() -> None:
 
 async def test_http_workshop_metadata_and_profile_preview(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
-    app = create_campaign_app(
-        build_runtime(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
-    )
+    app = create_campaign_app(build_runtime(play), {"alice-token": "alice", "bob-token": "bob"})
     async with TestClient(TestServer(app)) as client:
         headers = {"Authorization": "Bearer alice-token"}
         response = await client.get(f"/campaigns/{cid}/workshop/a", headers=headers)
@@ -143,9 +141,7 @@ async def test_active_preview_is_read_only_authorized_and_rejects_client_costs(
     tmp_path: Path,
 ) -> None:
     cid, play = await prepare(tmp_path)
-    app = create_campaign_app(
-        build_runtime(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
-    )
+    app = create_campaign_app(build_runtime(play), {"alice-token": "alice", "bob-token": "bob"})
     proposal = CharacterProposal(
         draft=CharacterDraft(
             name="Preview hero",

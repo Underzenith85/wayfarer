@@ -40,7 +40,6 @@ async def api(
     app = create_campaign_app(
         build_runtime(play),
         principals,
-        legacy_routes=True,
     )
     runner = web.AppRunner(app)
     await runner.setup()

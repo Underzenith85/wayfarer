@@ -12,9 +12,7 @@ from wayfarer.transport.campaign_api import create_campaign_app
 
 async def test_review_submission_authority_stale_approval_and_retry(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
-    app = create_campaign_app(
-        build_runtime(play), {"alice": "alice", "bob": "bob", "gm": "gm"}, legacy_routes=True
-    )
+    app = create_campaign_app(build_runtime(play), {"alice": "alice", "bob": "bob", "gm": "gm"})
     async with TestClient(TestServer(app)) as client:
         alice = {"Authorization": "Bearer alice"}
         gm = {"Authorization": "Bearer gm"}

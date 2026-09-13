@@ -162,7 +162,6 @@ async def test_v2_http_executes_only_the_projected_controlled_withdrawal(
     app = create_campaign_app(
         build_runtime(play),
         {"actor-token": member.principal_id, "other-token": other.principal_id},
-        legacy_routes=True,
     )
     runner = web.AppRunner(app)
     await runner.setup()

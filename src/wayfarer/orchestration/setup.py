@@ -349,6 +349,7 @@ def reduce_setup(
 
 class SetupService:
     def __init__(self, access: CampaignRuntime, *, engine_controls: bool = False) -> None:
+        # Whether this deployment offers the browser the raw engine decision panel.
         self.engine_controls = engine_controls
         self.access = access
         self.play = access.play

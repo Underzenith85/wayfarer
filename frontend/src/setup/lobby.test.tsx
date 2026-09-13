@@ -50,7 +50,7 @@ it("loads joinable games without depending on scenario authoring", async () => {
         token: "secret",
         principal: "alice",
         generationAvailable: true,
-        legacyAvailable: false,
+        engineControls: false,
       }}
       onOpen={vi.fn()}
     />,
@@ -111,7 +111,7 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
           JSON.stringify({
             principal_id: "alice",
             generation_available: true,
-            legacy_available: false,
+            engine_controls: false,
           }),
         );
       if (path.endsWith("/api/v1/campaigns"))
@@ -187,7 +187,7 @@ it("renders seats as structured rows and lifecycle controls as actions", async (
         JSON.stringify({
           principal_id: "alice",
           generation_available: false,
-          legacy_available: false,
+          engine_controls: false,
         }),
       );
     if (path.endsWith("/api/v1/campaigns"))
@@ -294,7 +294,7 @@ describe("grounded ending journeys", () => {
             JSON.stringify({
               principal_id: "bob",
               generation_available: true,
-              legacy_available: false,
+              engine_controls: false,
             }),
           );
         if (path.endsWith("/api/v1/campaigns"))
@@ -384,7 +384,7 @@ describe("grounded ending journeys", () => {
             JSON.stringify({
               principal_id: "alice",
               generation_available: true,
-              legacy_available: false,
+              engine_controls: false,
             }),
           );
         if (path.endsWith("/api/v1/campaigns"))
@@ -518,7 +518,7 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
         JSON.stringify({
           principal_id: "alice",
           generation_available: false,
-          legacy_available: false,
+          engine_controls: false,
         }),
       );
     if (path.endsWith("/api/v1/campaigns"))
@@ -605,7 +605,7 @@ it("starts a game from the selected scenario without asking for its concept agai
         JSON.stringify({
           principal_id: "alice",
           generation_available: false,
-          legacy_available: false,
+          engine_controls: false,
         }),
       );
     if (path.endsWith("/api/v1/campaigns"))
@@ -684,7 +684,7 @@ it("walks the setup steps and creates the draft only from the review step", asyn
         JSON.stringify({
           principal_id: "alice",
           generation_available: false,
-          legacy_available: false,
+          engine_controls: false,
         }),
       );
     if (path.endsWith("/api/v1/campaigns"))
@@ -772,7 +772,7 @@ async function signedIn(lobbies: object[] = [], mode: "new" | "join" = "join") {
         JSON.stringify({
           principal_id: "alice",
           generation_available: true,
-          legacy_available: false,
+          engine_controls: false,
         }),
       );
     if (path.endsWith("/api/v1/campaigns"))
@@ -891,7 +891,7 @@ describe("campaign lifecycle safety (#163)", () => {
             JSON.stringify({
               principal_id: "alice",
               generation_available: false,
-              legacy_available: false,
+              engine_controls: false,
             }),
           );
         if (path.endsWith("/api/v1/campaigns"))
@@ -1047,7 +1047,7 @@ async function withAdventure() {
         JSON.stringify({
           principal_id: "alice",
           generation_available: true,
-          legacy_available: false,
+          engine_controls: false,
         }),
       );
     if (path.endsWith("/api/v1/campaigns"))

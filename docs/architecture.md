@@ -389,12 +389,11 @@ writer of play state today, and the event store gets the same single-writer
 test. Command record, event append and snapshot commit in one transaction.
 System-issued commands such as clock advances carry a system principal.
 
-**One engine.** The wave-1 resolver and `GameService.turn`/`interpret` are retired.
-`GameService` only creates and reads seed rows. All playable commands use the typed
-engine. Command receipts contain family and result; the transcript-shaped
-`Event` and legacy `Action` type are gone. New writes reject transcript fields.
-Retained v1 command receipts upcast to schema 2, preserving exact input separately.
-The obsolete prototype turn endpoint returns 410; frozen v1 operations are unchanged.
+**One engine.** The wave-1 resolver and the prototype `GameService` are gone (#634).
+All playable commands use the typed engine. Command receipts contain family and
+result; the transcript-shaped `Event` and legacy `Action` type are gone. New writes
+reject transcript fields. The obsolete prototype turn endpoint returns 410; frozen
+v1 operations are unchanged.
 
 **The orchestrator is real work.** A session registry holds one session per
 active campaign, with the engine compiled for its digest, a per-campaign lock

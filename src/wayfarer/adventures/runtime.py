@@ -25,8 +25,8 @@ def application(
         CampaignRuntime(PlayService(AsyncSQLiteStore(db), engine())),
         tokens,
         scenario_templates=(adventure(), adventure(sequel=True)),
-        legacy_routes=True,
         frontend_dir=frontend,
         settings=settings,
         v1_origins=origins,
+        engine_controls=True,
     )

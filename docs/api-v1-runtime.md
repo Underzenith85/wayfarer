@@ -1,12 +1,13 @@
 # Frozen v1 runtime (#50)
 
-`create_campaign_app` now serves the frozen `/api/v1` HTTP operations and
-`/api/v1/live`. Older raw engine routes require explicit `legacy_routes=True`
-for migration/testing and must not be exposed as part of a v1 deployment, because
-their global revision/history payloads do not implement the frozen privacy contract.
-The local demo
-in `transport/http.py` is still separate. No frontend fixture engine participates
-in real requests.
+`create_campaign_app` serves the frozen `/api/v1` HTTP operations and
+`/api/v1/live` alongside the raw engine routes the browser workshop, the review
+queue and the wave tests use; #634 removed the `legacy_routes` gate that hid
+them. The raw `/campaigns/{cid}/events` stream is gone with it: its global
+revision/history payload did not implement the frozen privacy contract, so
+`/api/v1/live` is the only event stream. `engine_controls=True` is a separate
+deployment choice that offers the browser the raw engine decision panel; it
+registers no routes. No frontend fixture engine participates in real requests.
 
 ## Deployment
 

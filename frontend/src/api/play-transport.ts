@@ -25,6 +25,19 @@ function data<T>(result: Result<T>): T {
     throw new TransportError("network", "No response data.");
   return result.data;
 }
+/**
+ * The raw engine channel behind a transport. The workshop, the review queue and
+ * the live controls speak to the engine routes directly; the network transport
+ * carries that channel alongside the frozen v1 client, and a bare LiveTransport
+ * is already one.
+ */
+export function engineChannel(
+  transport: PlayTransport,
+): LiveTransport | undefined {
+  if (transport instanceof NetworkPlayTransport)
+    return transport.engineTransport;
+  return transport instanceof LiveTransport ? transport : undefined;
+}
 export interface NetworkOptions {
   engineControls?: boolean;
   initialCampaignId?: string;
