@@ -8047,15 +8047,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-social-runtime.md",
+        "tests/fixtures/gurps/fright_consequences.json",
+        "tests/test_fright.py",
+        "tests/test_fright_runtime.py",
+        "tests/test_fright_conditions.py",
+        "tests/test_fright_builds.py",
+        "tests/test_fright_completion.py"
       ],
       "historical_owners": [
-        191
+        191,
+        137,
+        299,
+        520
       ],
-      "completion_owner": 501,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b360:will-rolls",
