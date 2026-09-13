@@ -84,6 +84,8 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.character.techniques",
         "gurps.vehicles.movement",
         "gurps.vehicles.combat",
+        "gurps.combat.mounted",
+        "gurps.combat.personal_flight",
         "gurps.campaign.administration",
         "gurps.campaign.knowledge",
         "gurps.campaign.time_use",
@@ -96,7 +98,7 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.campaign.hirelings",
     }
     assert all(
-        CAPABILITIES[identifier].owner_issue in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526)
+        CAPABILITIES[identifier].owner_issue in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528)
         for identifier in verified
     )
 
