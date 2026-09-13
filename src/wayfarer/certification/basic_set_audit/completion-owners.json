@@ -3,44 +3,365 @@
   "repository": "Underzenith85/wayfarer",
   "verified_at": "2026-09-13",
   "issues": [
-    {"issue": 94, "state": "open", "title": "Verified GURPS 4e mechanics roadmap"},
-    {"issue": 191, "state": "closed", "title": "Complete selected-source audit"},
-    {"issue": 492, "state": "closed", "title": "Import exhaustive Basic Set source ledgers"},
-    {"issue": 493, "state": "closed", "title": "Disposition every named Basic Set optional rule"},
-    {"issue": 494, "state": "closed", "title": "Decide and enforce the Infinite Worlds boundary"},
-    {"issue": 495, "state": "closed", "title": "Complete character creation and background construction"},
-    {"issue": 496, "state": "open", "title": "Reconcile every mundane trait"},
-    {"issue": 497, "state": "open", "title": "Catalog and execute trait modifiers"},
-    {"issue": 498, "state": "closed", "title": "Complete character and racial templates"},
-    {"issue": 499, "state": "open", "title": "Implement advancement"},
-    {"issue": 500, "state": "open", "title": "Implement character transformations"},
-    {"issue": 501, "state": "open", "title": "Complete campaign-time administration"},
-    {"issue": 502, "state": "open", "title": "Implement law and control rating"},
-    {"issue": 503, "state": "open", "title": "Implement economics and employment"},
-    {"issue": 504, "state": "open", "title": "Implement technology-level and world variation"},
-    {"issue": 505, "state": "closed", "title": "Complete Basic Combat turn sequence"},
-    {"issue": 506, "state": "closed", "title": "Complete Basic Combat resolution"},
-    {"issue": 507, "state": "open", "title": "Complete Tactical Combat"},
-    {"issue": 508, "state": "open", "title": "Implement close and multi-hex combat"},
-    {"issue": 509, "state": "open", "title": "Implement surprise and visibility"},
-    {"issue": 510, "state": "open", "title": "Complete special melee procedures"},
-    {"issue": 511, "state": "open", "title": "Complete special ranged procedures"},
-    {"issue": 512, "state": "open", "title": "Implement area attacks and explosions"},
-    {"issue": 513, "state": "open", "title": "Implement afflictions and penetration"},
-    {"issue": 514, "state": "closed", "title": "Complete wound and death transitions"},
-    {"issue": 515, "state": "open", "title": "Complete recovery and medical care"},
-    {"issue": 516, "state": "open", "title": "Complete fatigue and deprivation"},
-    {"issue": 517, "state": "open", "title": "Complete environmental hazards"},
-    {"issue": 518, "state": "open", "title": "Complete poisons and drugs"},
-    {"issue": 519, "state": "closed", "title": "Complete disease and aging"},
-    {"issue": 520, "state": "open", "title": "Complete Fright Check consequences"},
-    {"issue": 521, "state": "open", "title": "Implement animal and monster statistics"},
-    {"issue": 522, "state": "open", "title": "Implement animal and swarm combat"},
-    {"issue": 523, "state": "open", "title": "Implement communications and computers"},
-    {"issue": 524, "state": "open", "title": "Implement invention projects"},
-    {"issue": 525, "state": "open", "title": "Implement gadgeteering projects"},
-    {"issue": 526, "state": "open", "title": "Implement enchanting projects"},
-    {"issue": 527, "state": "open", "title": "Implement unusual artifact behavior"},
-    {"issue": 528, "state": "open", "title": "Complete flying and mounted combat"}
+    {
+      "issue": 94,
+      "state": "open",
+      "title": "Verified GURPS 4e mechanics roadmap"
+    },
+    {
+      "issue": 100,
+      "state": "closed",
+      "title": "Compile leveled traits, self-control and ability modifiers"
+    },
+    {
+      "issue": 101,
+      "state": "closed",
+      "title": "Add typed GURPS weapon, armor and equipment profiles"
+    },
+    {
+      "issue": 102,
+      "state": "closed",
+      "title": "Implement damage types, negative HP and injury thresholds"
+    },
+    {
+      "issue": 103,
+      "state": "closed",
+      "title": "Implement skill-based melee attacks and active defenses"
+    },
+    {
+      "issue": 104,
+      "state": "closed",
+      "title": "Implement complete Basic Set combat maneuvers and timing"
+    },
+    {
+      "issue": 105,
+      "state": "closed",
+      "title": "Implement GURPS tactical hex movement, facing and visibility"
+    },
+    {
+      "issue": 106,
+      "state": "open",
+      "title": "Implement ranged attacks, ammunition, aiming and rapid fire"
+    },
+    {
+      "issue": 107,
+      "state": "closed",
+      "title": "Implement hit locations, armor divisors and lasting wounds"
+    },
+    {
+      "issue": 108,
+      "state": "closed",
+      "title": "Implement Basic Set unarmed combat and grappling"
+    },
+    {
+      "issue": 109,
+      "state": "closed",
+      "title": "Implement GURPS fatigue, healing and medical treatment"
+    },
+    {
+      "issue": 110,
+      "state": "closed",
+      "title": "Implement physical feats and environmental hazards"
+    },
+    {
+      "issue": 111,
+      "state": "closed",
+      "title": "Implement reaction, influence, fright and self-control checks"
+    },
+    {
+      "issue": 112,
+      "state": "closed",
+      "title": "Populate and verify mundane Basic Set skill definitions"
+    },
+    {
+      "issue": 113,
+      "state": "closed",
+      "title": "Populate mundane trait, background and template definitions"
+    },
+    {
+      "issue": 114,
+      "state": "closed",
+      "title": "Populate Basic Set gear and object durability"
+    },
+    {
+      "issue": 117,
+      "state": "closed",
+      "title": "Implement Basic Set spellcasting lifecycle and representative spells"
+    },
+    {
+      "issue": 118,
+      "state": "closed",
+      "title": "Implement supernatural advantages and psionic ability execution"
+    },
+    {
+      "issue": 119,
+      "state": "closed",
+      "title": "Complete Basic Set spell and supernatural trait catalog audit"
+    },
+    {
+      "issue": 173,
+      "state": "closed",
+      "title": "Complete ranged critical consequences and advanced projectile handling"
+    },
+    {
+      "issue": 180,
+      "state": "closed",
+      "title": "Complete equipment table audit and special gear behavior"
+    },
+    {
+      "issue": 191,
+      "state": "closed",
+      "title": "Complete selected-source audit"
+    },
+    {
+      "issue": 207,
+      "state": "closed",
+      "title": "Audit remaining Basic Set vehicle locomotion and collision modes"
+    },
+    {
+      "issue": 333,
+      "state": "closed",
+      "title": "Execute mental, behavioral and relationship trait obligations"
+    },
+    {
+      "issue": 336,
+      "state": "closed",
+      "title": "Reconcile mundane skill source deltas and contextual catalog metadata"
+    },
+    {
+      "issue": 338,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: arts trades"
+    },
+    {
+      "issue": 339,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: combat"
+    },
+    {
+      "issue": 340,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: combat techniques"
+    },
+    {
+      "issue": 341,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: knowledge investigation"
+    },
+    {
+      "issue": 342,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: medicine mental"
+    },
+    {
+      "issue": 343,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: physical outdoors"
+    },
+    {
+      "issue": 344,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: ranged combat"
+    },
+    {
+      "issue": 345,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: social"
+    },
+    {
+      "issue": 346,
+      "state": "closed",
+      "title": "Complete mundane skill procedures: technology vehicles"
+    },
+    {
+      "issue": 384,
+      "state": "closed",
+      "title": "Supply technology-level context for TL-tagged skills and optional-rule selection"
+    },
+    {
+      "issue": 492,
+      "state": "closed",
+      "title": "Import exhaustive Basic Set source ledgers"
+    },
+    {
+      "issue": 493,
+      "state": "closed",
+      "title": "Disposition every named Basic Set optional rule"
+    },
+    {
+      "issue": 494,
+      "state": "closed",
+      "title": "Decide and enforce the Infinite Worlds boundary"
+    },
+    {
+      "issue": 495,
+      "state": "closed",
+      "title": "Complete character creation and background construction"
+    },
+    {
+      "issue": 496,
+      "state": "closed",
+      "title": "Reconcile every mundane trait"
+    },
+    {
+      "issue": 497,
+      "state": "closed",
+      "title": "Catalog and execute trait modifiers"
+    },
+    {
+      "issue": 498,
+      "state": "closed",
+      "title": "Complete character and racial templates"
+    },
+    {
+      "issue": 499,
+      "state": "closed",
+      "title": "Implement advancement"
+    },
+    {
+      "issue": 500,
+      "state": "closed",
+      "title": "Implement character transformations"
+    },
+    {
+      "issue": 501,
+      "state": "closed",
+      "title": "Complete campaign-time administration"
+    },
+    {
+      "issue": 502,
+      "state": "closed",
+      "title": "Implement law and control rating"
+    },
+    {
+      "issue": 503,
+      "state": "closed",
+      "title": "Implement economics and employment"
+    },
+    {
+      "issue": 504,
+      "state": "closed",
+      "title": "Implement technology-level and world variation"
+    },
+    {
+      "issue": 505,
+      "state": "closed",
+      "title": "Complete Basic Combat turn sequence"
+    },
+    {
+      "issue": 506,
+      "state": "closed",
+      "title": "Complete Basic Combat resolution"
+    },
+    {
+      "issue": 507,
+      "state": "closed",
+      "title": "Complete Tactical Combat"
+    },
+    {
+      "issue": 508,
+      "state": "closed",
+      "title": "Implement close and multi-hex combat"
+    },
+    {
+      "issue": 509,
+      "state": "closed",
+      "title": "Implement surprise and visibility"
+    },
+    {
+      "issue": 510,
+      "state": "closed",
+      "title": "Complete special melee procedures"
+    },
+    {
+      "issue": 511,
+      "state": "closed",
+      "title": "Complete special ranged procedures"
+    },
+    {
+      "issue": 512,
+      "state": "open",
+      "title": "Implement area attacks and explosions"
+    },
+    {
+      "issue": 513,
+      "state": "open",
+      "title": "Implement afflictions and penetration"
+    },
+    {
+      "issue": 514,
+      "state": "closed",
+      "title": "Complete wound and death transitions"
+    },
+    {
+      "issue": 515,
+      "state": "closed",
+      "title": "Complete recovery and medical care"
+    },
+    {
+      "issue": 516,
+      "state": "closed",
+      "title": "Complete fatigue and deprivation"
+    },
+    {
+      "issue": 517,
+      "state": "closed",
+      "title": "Complete environmental hazards"
+    },
+    {
+      "issue": 518,
+      "state": "closed",
+      "title": "Complete poisons and drugs"
+    },
+    {
+      "issue": 519,
+      "state": "closed",
+      "title": "Complete disease and aging"
+    },
+    {
+      "issue": 520,
+      "state": "closed",
+      "title": "Complete Fright Check consequences"
+    },
+    {
+      "issue": 521,
+      "state": "closed",
+      "title": "Implement animal and monster statistics"
+    },
+    {
+      "issue": 522,
+      "state": "closed",
+      "title": "Implement animal and swarm combat"
+    },
+    {
+      "issue": 523,
+      "state": "closed",
+      "title": "Implement communications and computers"
+    },
+    {
+      "issue": 524,
+      "state": "closed",
+      "title": "Implement invention projects"
+    },
+    {
+      "issue": 525,
+      "state": "closed",
+      "title": "Implement gadgeteering projects"
+    },
+    {
+      "issue": 526,
+      "state": "closed",
+      "title": "Implement enchanting projects"
+    },
+    {
+      "issue": 527,
+      "state": "closed",
+      "title": "Implement unusual artifact behavior"
+    },
+    {
+      "issue": 528,
+      "state": "closed",
+      "title": "Complete flying and mounted combat"
+    }
   ]
 }

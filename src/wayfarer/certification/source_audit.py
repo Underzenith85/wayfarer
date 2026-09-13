@@ -599,7 +599,7 @@ def validate(root: Path, manifest: Manifest) -> None:
     # hand, so the release pipeline checks that derivation here (#358).
     validate_coverage()
     source_ledgers = load_source_ledgers(root)
-    validate_source_ledgers(source_ledgers, inventory(root), frozenset(CAPABILITIES))
+    validate_source_ledgers(source_ledgers, inventory(root), frozenset(CAPABILITIES), root)
 
 
 def blockers(manifest: Manifest) -> tuple[str, ...]:

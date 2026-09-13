@@ -24,9 +24,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:accurate",
       "parent_id": null,
@@ -34,7 +35,7 @@
       "listed_value": "+5%/level",
       "construction_binding": "modifier:enhancement:accurate",
       "cost_owner": "modifier-catalog:modifier:enhancement:accurate",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -54,9 +55,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:affects-insubstantial",
       "parent_id": null,
@@ -64,7 +66,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:affects-insubstantial",
       "cost_owner": "modifier-catalog:modifier:enhancement:affects-insubstantial",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -84,9 +86,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:affects-substantial",
       "parent_id": null,
@@ -94,7 +97,7 @@
       "listed_value": "+40%",
       "construction_binding": "modifier:enhancement:affects-substantial",
       "cost_owner": "modifier-catalog:modifier:enhancement:affects-substantial",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -114,9 +117,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:area-effect",
       "parent_id": null,
@@ -124,7 +128,7 @@
       "listed_value": "+50%/level",
       "construction_binding": "modifier:enhancement:area-effect",
       "cost_owner": "modifier-catalog:modifier:enhancement:area-effect",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -144,9 +148,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:armor-divisor",
       "parent_id": null,
@@ -154,7 +159,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:armor-divisor",
       "cost_owner": "modifier-catalog:modifier:enhancement:armor-divisor",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -174,9 +179,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:aura",
       "parent_id": null,
@@ -184,7 +190,7 @@
       "listed_value": "+80%",
       "construction_binding": "modifier:enhancement:aura",
       "cost_owner": "modifier-catalog:modifier:enhancement:aura",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -204,9 +210,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:based-on-different-attribute",
       "parent_id": null,
@@ -214,7 +221,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:based-on-different-attribute",
       "cost_owner": "modifier-catalog:modifier:enhancement:based-on-different-attribute",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -234,9 +241,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:blood-agent",
       "parent_id": null,
@@ -244,7 +252,7 @@
       "listed_value": "+100%",
       "construction_binding": "modifier:enhancement:blood-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:blood-agent",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -264,9 +272,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:cone",
       "parent_id": null,
@@ -274,7 +283,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:cone",
       "cost_owner": "modifier-catalog:modifier:enhancement:cone",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -294,9 +303,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:contact-agent",
       "parent_id": null,
@@ -304,7 +314,7 @@
       "listed_value": "+150%",
       "construction_binding": "modifier:enhancement:contact-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:contact-agent",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -324,9 +334,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:cosmic",
       "parent_id": null,
@@ -334,7 +345,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:cosmic",
       "cost_owner": "modifier-catalog:modifier:enhancement:cosmic",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -354,9 +365,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:cyclic",
       "parent_id": null,
@@ -364,7 +376,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:cyclic",
       "cost_owner": "modifier-catalog:modifier:enhancement:cyclic",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -384,9 +396,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:damage-modifiers",
       "parent_id": null,
@@ -394,7 +407,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:damage-modifiers",
       "cost_owner": "modifier-catalog:modifier:enhancement:damage-modifiers",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -414,9 +427,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:delay",
       "parent_id": null,
@@ -424,7 +438,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:delay",
       "cost_owner": "modifier-catalog:modifier:enhancement:delay",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -444,9 +458,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:double-blunt-trauma-dbt",
       "parent_id": null,
@@ -454,7 +469,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:double-blunt-trauma-dbt",
       "cost_owner": "modifier-catalog:modifier:enhancement:double-blunt-trauma-dbt",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -474,9 +489,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:double-knockback-dkb",
       "parent_id": null,
@@ -484,7 +500,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:double-knockback-dkb",
       "cost_owner": "modifier-catalog:modifier:enhancement:double-knockback-dkb",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -504,9 +520,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:drifting",
       "parent_id": null,
@@ -514,7 +531,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:drifting",
       "cost_owner": "modifier-catalog:modifier:enhancement:drifting",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -534,9 +551,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:explosion-exp",
       "parent_id": null,
@@ -544,7 +562,7 @@
       "listed_value": "+50%/level",
       "construction_binding": "modifier:enhancement:explosion-exp",
       "cost_owner": "modifier-catalog:modifier:enhancement:explosion-exp",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -564,9 +582,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:extended-duration",
       "parent_id": null,
@@ -574,7 +593,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:extended-duration",
       "cost_owner": "modifier-catalog:modifier:enhancement:extended-duration",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -594,9 +613,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:follow-up",
       "parent_id": null,
@@ -604,7 +624,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:follow-up",
       "cost_owner": "modifier-catalog:modifier:enhancement:follow-up",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -624,9 +644,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:fragmentation-frag",
       "parent_id": null,
@@ -634,7 +655,7 @@
       "listed_value": "+15%/die",
       "construction_binding": "modifier:enhancement:fragmentation-frag",
       "cost_owner": "modifier-catalog:modifier:enhancement:fragmentation-frag",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -654,9 +675,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:guided",
       "parent_id": null,
@@ -664,7 +686,7 @@
       "listed_value": "+50%",
       "construction_binding": "modifier:enhancement:guided",
       "cost_owner": "modifier-catalog:modifier:enhancement:guided",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -684,9 +706,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:hazard",
       "parent_id": null,
@@ -694,7 +717,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:hazard",
       "cost_owner": "modifier-catalog:modifier:enhancement:hazard",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -714,9 +737,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:homing",
       "parent_id": null,
@@ -724,7 +748,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:homing",
       "cost_owner": "modifier-catalog:modifier:enhancement:homing",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -744,9 +768,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:incendiary-inc",
       "parent_id": null,
@@ -754,7 +779,7 @@
       "listed_value": "+10%",
       "construction_binding": "modifier:enhancement:incendiary-inc",
       "cost_owner": "modifier-catalog:modifier:enhancement:incendiary-inc",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -774,9 +799,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:increased-range",
       "parent_id": null,
@@ -784,7 +810,7 @@
       "listed_value": "+10%/level",
       "construction_binding": "modifier:enhancement:increased-range",
       "cost_owner": "modifier-catalog:modifier:enhancement:increased-range",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -804,9 +830,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:jet",
       "parent_id": null,
@@ -814,7 +841,7 @@
       "listed_value": "+0%",
       "construction_binding": "modifier:enhancement:jet",
       "cost_owner": "modifier-catalog:modifier:enhancement:jet",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -834,9 +861,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:link",
       "parent_id": null,
@@ -844,7 +872,7 @@
       "listed_value": "or +20%",
       "construction_binding": "modifier:enhancement:link",
       "cost_owner": "modifier-catalog:modifier:enhancement:link",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -864,9 +892,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:low-signature",
       "parent_id": null,
@@ -874,7 +903,7 @@
       "listed_value": "+10%",
       "construction_binding": "modifier:enhancement:low-signature",
       "cost_owner": "modifier-catalog:modifier:enhancement:low-signature",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -894,9 +923,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:malediction",
       "parent_id": null,
@@ -904,7 +934,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:malediction",
       "cost_owner": "modifier-catalog:modifier:enhancement:malediction",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -924,9 +954,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:mobile",
       "parent_id": null,
@@ -934,7 +965,7 @@
       "listed_value": "+40%/level",
       "construction_binding": "modifier:enhancement:mobile",
       "cost_owner": "modifier-catalog:modifier:enhancement:mobile",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -954,9 +985,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:no-signature",
       "parent_id": null,
@@ -964,7 +996,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:no-signature",
       "cost_owner": "modifier-catalog:modifier:enhancement:no-signature",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -984,9 +1016,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:overhead",
       "parent_id": null,
@@ -994,7 +1027,7 @@
       "listed_value": "+30%",
       "construction_binding": "modifier:enhancement:overhead",
       "cost_owner": "modifier-catalog:modifier:enhancement:overhead",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1014,9 +1047,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:persistent",
       "parent_id": null,
@@ -1024,7 +1058,7 @@
       "listed_value": "+40%",
       "construction_binding": "modifier:enhancement:persistent",
       "cost_owner": "modifier-catalog:modifier:enhancement:persistent",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1044,9 +1078,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:radiation-rad",
       "parent_id": null,
@@ -1054,7 +1089,7 @@
       "listed_value": "or +100%",
       "construction_binding": "modifier:enhancement:radiation-rad",
       "cost_owner": "modifier-catalog:modifier:enhancement:radiation-rad",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1074,9 +1109,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:ranged",
       "parent_id": null,
@@ -1084,7 +1120,7 @@
       "listed_value": "+40%",
       "construction_binding": "modifier:enhancement:ranged",
       "cost_owner": "modifier-catalog:modifier:enhancement:ranged",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1104,9 +1140,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:rapid-fire",
       "parent_id": null,
@@ -1114,7 +1151,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:rapid-fire",
       "cost_owner": "modifier-catalog:modifier:enhancement:rapid-fire",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1134,9 +1171,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:reduced-fatigue-cost",
       "parent_id": null,
@@ -1144,7 +1182,7 @@
       "listed_value": "+20%/level",
       "construction_binding": "modifier:enhancement:reduced-fatigue-cost",
       "cost_owner": "modifier-catalog:modifier:enhancement:reduced-fatigue-cost",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1164,9 +1202,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:reduced-time",
       "parent_id": null,
@@ -1174,7 +1213,7 @@
       "listed_value": "+20%/level",
       "construction_binding": "modifier:enhancement:reduced-time",
       "cost_owner": "modifier-catalog:modifier:enhancement:reduced-time",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1194,9 +1233,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:respiratory-agent",
       "parent_id": null,
@@ -1204,7 +1244,7 @@
       "listed_value": "+50%",
       "construction_binding": "modifier:enhancement:respiratory-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:respiratory-agent",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1224,9 +1264,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:selective-area",
       "parent_id": null,
@@ -1234,7 +1275,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:selective-area",
       "cost_owner": "modifier-catalog:modifier:enhancement:selective-area",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1254,9 +1295,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:selectivity",
       "parent_id": null,
@@ -1264,7 +1306,7 @@
       "listed_value": "+10%",
       "construction_binding": "modifier:enhancement:selectivity",
       "cost_owner": "modifier-catalog:modifier:enhancement:selectivity",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1284,9 +1326,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:sense-based",
       "parent_id": null,
@@ -1294,7 +1337,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:sense-based",
       "cost_owner": "modifier-catalog:modifier:enhancement:sense-based",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1314,9 +1357,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:side-effect",
       "parent_id": null,
@@ -1324,7 +1368,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:side-effect",
       "cost_owner": "modifier-catalog:modifier:enhancement:side-effect",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1344,9 +1388,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:surge-sur",
       "parent_id": null,
@@ -1354,7 +1399,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:surge-sur",
       "cost_owner": "modifier-catalog:modifier:enhancement:surge-sur",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1374,9 +1419,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:symptoms",
       "parent_id": null,
@@ -1384,7 +1430,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:symptoms",
       "cost_owner": "modifier-catalog:modifier:enhancement:symptoms",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1404,9 +1450,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:underwater",
       "parent_id": null,
@@ -1414,7 +1461,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:underwater",
       "cost_owner": "modifier-catalog:modifier:enhancement:underwater",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1434,9 +1481,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:variable",
       "parent_id": null,
@@ -1444,7 +1492,7 @@
       "listed_value": "+5%",
       "construction_binding": "modifier:enhancement:variable",
       "cost_owner": "modifier-catalog:modifier:enhancement:variable",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1464,9 +1512,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:wall",
       "parent_id": null,
@@ -1474,7 +1523,7 @@
       "listed_value": "or +60%",
       "construction_binding": "modifier:enhancement:wall",
       "cost_owner": "modifier-catalog:modifier:enhancement:wall",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1494,9 +1543,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:accessibility",
       "parent_id": null,
@@ -1504,7 +1554,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:accessibility",
       "cost_owner": "modifier-catalog:modifier:limitation:accessibility",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1524,9 +1574,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:always-on",
       "parent_id": null,
@@ -1534,7 +1585,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:always-on",
       "cost_owner": "modifier-catalog:modifier:limitation:always-on",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1554,9 +1605,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:armor-divisor",
       "parent_id": null,
@@ -1564,7 +1616,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:armor-divisor",
       "cost_owner": "modifier-catalog:modifier:limitation:armor-divisor",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1584,9 +1636,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:blood-agent",
       "parent_id": null,
@@ -1594,7 +1647,7 @@
       "listed_value": "-40%",
       "construction_binding": "modifier:limitation:blood-agent",
       "cost_owner": "modifier-catalog:modifier:limitation:blood-agent",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1614,9 +1667,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:bombardment",
       "parent_id": null,
@@ -1624,7 +1678,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:bombardment",
       "cost_owner": "modifier-catalog:modifier:limitation:bombardment",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1644,9 +1698,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:gadget-limitation:breakable",
       "parent_id": null,
@@ -1654,7 +1709,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:gadget-limitation:breakable",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:breakable",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1674,9 +1729,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:gadget-limitation:can-be-stolen",
       "parent_id": null,
@@ -1684,7 +1740,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:gadget-limitation:can-be-stolen",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:can-be-stolen",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1704,9 +1760,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:contact-agent",
       "parent_id": null,
@@ -1714,7 +1771,7 @@
       "listed_value": "-30%",
       "construction_binding": "modifier:limitation:contact-agent",
       "cost_owner": "modifier-catalog:modifier:limitation:contact-agent",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1734,9 +1791,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:costs-fatigue",
       "parent_id": null,
@@ -1744,7 +1802,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:costs-fatigue",
       "cost_owner": "modifier-catalog:modifier:limitation:costs-fatigue",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1764,9 +1822,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:damage-limitations",
       "parent_id": null,
@@ -1774,7 +1833,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:damage-limitations",
       "cost_owner": "modifier-catalog:modifier:limitation:damage-limitations",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1794,9 +1853,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:dissipation",
       "parent_id": null,
@@ -1804,7 +1864,7 @@
       "listed_value": "-50%",
       "construction_binding": "modifier:limitation:dissipation",
       "cost_owner": "modifier-catalog:modifier:limitation:dissipation",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1824,9 +1884,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:emanation",
       "parent_id": null,
@@ -1834,7 +1895,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:emanation",
       "cost_owner": "modifier-catalog:modifier:limitation:emanation",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1854,9 +1915,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:emergencies-only",
       "parent_id": null,
@@ -1864,7 +1926,7 @@
       "listed_value": "-30%",
       "construction_binding": "modifier:limitation:emergencies-only",
       "cost_owner": "modifier-catalog:modifier:limitation:emergencies-only",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1884,9 +1946,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:extra-recoil",
       "parent_id": null,
@@ -1894,7 +1957,7 @@
       "listed_value": "-10%/level",
       "construction_binding": "modifier:limitation:extra-recoil",
       "cost_owner": "modifier-catalog:modifier:limitation:extra-recoil",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1914,9 +1977,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:full-power-in-emergencies-only",
       "parent_id": null,
@@ -1924,7 +1988,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:full-power-in-emergencies-only",
       "cost_owner": "modifier-catalog:modifier:limitation:full-power-in-emergencies-only",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1944,9 +2008,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:inaccurate",
       "parent_id": null,
@@ -1954,7 +2019,7 @@
       "listed_value": "-5%/level",
       "construction_binding": "modifier:limitation:inaccurate",
       "cost_owner": "modifier-catalog:modifier:limitation:inaccurate",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -1974,9 +2039,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:limited-use",
       "parent_id": null,
@@ -1984,7 +2050,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:limited-use",
       "cost_owner": "modifier-catalog:modifier:limitation:limited-use",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2004,9 +2070,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:melee-attack",
       "parent_id": null,
@@ -2014,7 +2081,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:melee-attack",
       "cost_owner": "modifier-catalog:modifier:limitation:melee-attack",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2034,9 +2101,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:mitigator",
       "parent_id": null,
@@ -2044,7 +2112,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:mitigator",
       "cost_owner": "modifier-catalog:modifier:limitation:mitigator",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2064,9 +2132,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:no-blunt-trauma-nbt",
       "parent_id": null,
@@ -2074,7 +2143,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:no-blunt-trauma-nbt",
       "cost_owner": "modifier-catalog:modifier:limitation:no-blunt-trauma-nbt",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2094,9 +2163,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:no-knockback-nkb",
       "parent_id": null,
@@ -2104,7 +2174,7 @@
       "listed_value": "-10%",
       "construction_binding": "modifier:limitation:no-knockback-nkb",
       "cost_owner": "modifier-catalog:modifier:limitation:no-knockback-nkb",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2124,9 +2194,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:no-wounding-nw",
       "parent_id": null,
@@ -2134,7 +2205,7 @@
       "listed_value": "-50%",
       "construction_binding": "modifier:limitation:no-wounding-nw",
       "cost_owner": "modifier-catalog:modifier:limitation:no-wounding-nw",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2154,9 +2225,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:nuisance-effect",
       "parent_id": null,
@@ -2164,7 +2236,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:nuisance-effect",
       "cost_owner": "modifier-catalog:modifier:limitation:nuisance-effect",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2184,9 +2256,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:onset",
       "parent_id": null,
@@ -2194,7 +2267,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:onset",
       "cost_owner": "modifier-catalog:modifier:limitation:onset",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2214,9 +2287,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:pact",
       "parent_id": null,
@@ -2224,7 +2298,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:pact",
       "cost_owner": "modifier-catalog:modifier:limitation:pact",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2244,9 +2318,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:preparation-required",
       "parent_id": null,
@@ -2254,7 +2329,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:preparation-required",
       "cost_owner": "modifier-catalog:modifier:limitation:preparation-required",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2274,9 +2349,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:reduced-range",
       "parent_id": null,
@@ -2284,7 +2360,7 @@
       "listed_value": "-10%/level",
       "construction_binding": "modifier:limitation:reduced-range",
       "cost_owner": "modifier-catalog:modifier:limitation:reduced-range",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2304,9 +2380,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:resistible",
       "parent_id": null,
@@ -2314,7 +2391,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:resistible",
       "cost_owner": "modifier-catalog:modifier:limitation:resistible",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2334,9 +2411,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:sense-based",
       "parent_id": null,
@@ -2344,7 +2422,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:sense-based",
       "cost_owner": "modifier-catalog:modifier:limitation:sense-based",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2364,9 +2442,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:takes-extra-time",
       "parent_id": null,
@@ -2374,7 +2453,7 @@
       "listed_value": "-10%/level",
       "construction_binding": "modifier:limitation:takes-extra-time",
       "cost_owner": "modifier-catalog:modifier:limitation:takes-extra-time",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2394,9 +2473,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:takes-recharge",
       "parent_id": null,
@@ -2404,7 +2484,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:takes-recharge",
       "cost_owner": "modifier-catalog:modifier:limitation:takes-recharge",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2424,9 +2504,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:temporary-disadvantage",
       "parent_id": null,
@@ -2434,7 +2515,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:temporary-disadvantage",
       "cost_owner": "modifier-catalog:modifier:limitation:temporary-disadvantage",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2454,9 +2535,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:trigger",
       "parent_id": null,
@@ -2464,7 +2546,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:trigger",
       "cost_owner": "modifier-catalog:modifier:limitation:trigger",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2484,9 +2566,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:unconscious-only",
       "parent_id": null,
@@ -2494,7 +2577,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:unconscious-only",
       "cost_owner": "modifier-catalog:modifier:limitation:unconscious-only",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2514,9 +2597,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:uncontrollable",
       "parent_id": null,
@@ -2524,7 +2608,7 @@
       "listed_value": "or -30%",
       "construction_binding": "modifier:limitation:uncontrollable",
       "cost_owner": "modifier-catalog:modifier:limitation:uncontrollable",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2544,9 +2628,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:gadget-limitation:unique",
       "parent_id": null,
@@ -2554,7 +2639,7 @@
       "listed_value": "-25%",
       "construction_binding": "modifier:gadget-limitation:unique",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:unique",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2574,9 +2659,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:unreliable",
       "parent_id": null,
@@ -2584,7 +2670,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:unreliable",
       "cost_owner": "modifier-catalog:modifier:limitation:unreliable",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     },
     {
@@ -2604,9 +2690,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        100
+        100,
+        497
       ],
-      "completion_owner": 497,
+      "completion_owner": 94,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:untrainable",
       "parent_id": null,
@@ -2614,7 +2701,7 @@
       "listed_value": "-40%",
       "construction_binding": "modifier:limitation:untrainable",
       "cost_owner": "modifier-catalog:modifier:limitation:untrainable",
-      "consequence_owner": 497,
+      "consequence_owner": 94,
       "source_review_owner": null
     }
   ]

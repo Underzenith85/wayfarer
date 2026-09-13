@@ -7,6 +7,7 @@ never upgrades coverage because a generic hook or LLM fallback exists.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Final, Literal, cast
@@ -89,6 +90,21 @@ def _latest_registered_profile() -> RegisteredProfile:
 
 
 READY_IMPLEMENTATIONS: Final = frozenset({"implemented", "verified"})
+ROADMAP_OWNER: Final = 94
+
+
+def _active_owner(owner_states: Mapping[int, str], *candidates: int | None) -> int:
+    """Prefer an active specific owner and fall back to the open roadmap."""
+    issue_ids = tuple(issue for issue in candidates if issue is not None)
+    unknown = tuple(issue for issue in issue_ids if issue not in owner_states)
+    if unknown:
+        raise ValidationError(f"Unregistered certification owner: {unknown[0]}")
+    for issue in issue_ids:
+        if owner_states[issue] == "open":
+            return issue
+    if owner_states.get(ROADMAP_OWNER) != "open":
+        raise ValidationError("Certification roadmap owner is not open")
+    return ROADMAP_OWNER
 
 
 def _inventory_ready(item: InventoryItem, source_row: SourceLedgerRow | None) -> bool:
@@ -124,6 +140,7 @@ def evaluate(root: Path) -> CertificationReport:
     audit = source_audit_report(root, profile_id=PROFILE_ID)
     audit_blockers = cast(tuple[str, ...], audit["blockers"])
     source_ledgers = load_source_ledgers(root)
+    owner_states = {issue.issue: issue.state for issue in source_ledgers.owners.issues}
     ledger_by_id = {row.id: row for row in source_ledgers.rows}
     ledger_by_runtime_binding = {
         row.runtime_binding: row for row in source_ledgers.rows if row.runtime_binding is not None
@@ -143,7 +160,7 @@ def evaluate(root: Path) -> CertificationReport:
                         f"disposition={row.disposition}; implementation={row.implementation}; "
                         f"source_review={row.source_review}"
                     ),
-                    owner_issue=row.completion_owner,
+                    owner_issue=_active_owner(owner_states, row.completion_owner),
                 )
             )
             continue
@@ -152,7 +169,7 @@ def evaluate(root: Path) -> CertificationReport:
                 kind="source",
                 identifier=identifier,
                 detail="Frozen source, scope or fixture review is incomplete or stale",
-                owner_issue=191,
+                owner_issue=_active_owner(owner_states, 191),
             )
         )
 
@@ -165,7 +182,7 @@ def evaluate(root: Path) -> CertificationReport:
                     kind="capability",
                     identifier=identifier,
                     detail=f"Required capability is {capability.status.value}",
-                    owner_issue=capability.owner_issue,
+                    owner_issue=_active_owner(owner_states, capability.owner_issue),
                 )
             )
 
@@ -180,14 +197,15 @@ def evaluate(root: Path) -> CertificationReport:
                     kind="inventory",
                     identifier=item.id,
                     detail=_inventory_blocker_detail(item, source_row),
-                    owner_issue=(
-                        source_row.completion_owner
-                        if source_row is not None
-                        and source_row.implementation not in READY_IMPLEMENTATIONS
-                        and source_row.completion_owner is not None
-                        else item.blockers[0]
-                        if item.blockers
-                        else item.owner
+                    owner_issue=_active_owner(
+                        owner_states,
+                        *(
+                            (source_row.completion_owner,)
+                            if source_row is not None
+                            and source_row.implementation not in READY_IMPLEMENTATIONS
+                            and source_row.completion_owner is not None
+                            else (*item.blockers, item.owner)
+                        ),
                     ),
                 )
             )

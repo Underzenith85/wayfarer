@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _validate(bundle: LedgerBundle) -> None:
-    validate_source_ledgers(bundle, inventory(ROOT), frozenset(CAPABILITIES))
+    validate_source_ledgers(bundle, inventory(ROOT), frozenset(CAPABILITIES), ROOT)
 
 
 def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator() -> None:
@@ -33,7 +33,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 856
+    assert len(ledger_blockers(bundle.rows)) == 646
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -115,7 +115,7 @@ def test_every_trait_row_has_separate_construction_consequence_and_review_owners
     absent = next(row for row in named if row.source_row_id == "trait:advantage:absolute-direction")
     assert absent.construction == "source-value-recorded"
     assert not absent.available
-    assert absent.consequence_owner == 496
+    assert absent.consequence_owner == 94
 
 
 def test_duplicate_ids_invalid_pages_and_missing_or_closed_owners_are_rejected() -> None:
@@ -175,18 +175,18 @@ def test_runtime_inventory_joins_are_unique_profile_scoped_and_review_aware() ->
     runtime = inventory_rows[runtime_index]
 
     with pytest.raises(ValidationError, match="Duplicate runtime inventory identifier"):
-        validate_source_ledgers(bundle, (*inventory_rows, runtime), frozenset(CAPABILITIES))
+        validate_source_ledgers(bundle, (*inventory_rows, runtime), frozenset(CAPABILITIES), ROOT)
 
     wrong_profile = replace(runtime, required_profiles=("gurps-lite-4e-2004",))
     wrong_profile_rows = list(inventory_rows)
     wrong_profile_rows[runtime_index] = wrong_profile
     with pytest.raises(ValidationError, match="outside profile"):
-        validate_source_ledgers(bundle, tuple(wrong_profile_rows), frozenset(CAPABILITIES))
+        validate_source_ledgers(bundle, tuple(wrong_profile_rows), frozenset(CAPABILITIES), ROOT)
 
     unreviewed_inventory = list(inventory_rows)
     unreviewed_inventory[runtime_index] = replace(runtime, source_review="pending")
     with pytest.raises(ValidationError, match="review is not joined"):
-        validate_source_ledgers(bundle, tuple(unreviewed_inventory), frozenset(CAPABILITIES))
+        validate_source_ledgers(bundle, tuple(unreviewed_inventory), frozenset(CAPABILITIES), ROOT)
 
     reviewed_runtime = replace(runtime, source_review="reviewed", implementation="unsupported")
     reviewed_inventory = list(inventory_rows)
@@ -198,21 +198,37 @@ def test_runtime_inventory_joins_are_unique_profile_scoped_and_review_aware() ->
             replace(bundle, rows=implemented_rows),
             tuple(reviewed_inventory),
             frozenset(CAPABILITIES),
+            ROOT,
         )
 
 
 def test_implemented_or_reviewed_dispositions_require_evidence() -> None:
     bundle = load_source_ledgers(ROOT)
-    row = next(row for row in bundle.rows if row.disposition == "required")
-    changed = row.model_copy(
-        update={
-            "implementation": "implemented",
-            "source_review": "reviewed",
-            "evidence_paths": (),
-        }
+    row = next(
+        row
+        for row in bundle.rows
+        if row.disposition == "required" and row.implementation not in {"implemented", "verified"}
     )
+    changed = row.model_copy(update={"evidence_paths": ()})
     rows = tuple(changed if item.id == row.id else item for item in bundle.rows)
     with pytest.raises(ValidationError, match="lacks evidence"):
+        _validate(replace(bundle, rows=rows))
+
+
+def test_reviewed_runtime_and_source_implementation_are_bidirectionally_joined() -> None:
+    bundle = load_source_ledgers(ROOT)
+    row = next(row for row in bundle.rows if row.id == "trait:advantage:combat-reflexes")
+    assert row.implementation == "implemented"
+    downgraded = row.model_copy(update={"implementation": "partial", "completion_owner": 94})
+    rows = tuple(downgraded if item.id == row.id else item for item in bundle.rows)
+    with pytest.raises(ValidationError, match="Source-ledger implementation is not joined"):
+        _validate(replace(bundle, rows=rows))
+
+    undocumented = row.model_copy(
+        update={"evidence_paths": ("docs/gurps-basic-set-source-review.md",)}
+    )
+    rows = tuple(undocumented if item.id == row.id else item for item in bundle.rows)
+    with pytest.raises(ValidationError, match="lacks executable evidence"):
         _validate(replace(bundle, rows=rows))
 
 
@@ -232,7 +248,7 @@ def test_infinite_worlds_boundary_drift_is_rejected() -> None:
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 856
+    assert len(ledger) == 646
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
@@ -240,4 +256,9 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.source_ledger_rows == 1_285
     assert report.required_source_ledger_rows == 1_178
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
-    assert report.source_ledger_rollups["completion_owner"]["496"] == 513
+    assert report.source_ledger_rollups["completion_owner"] == {
+        "512": 5,
+        "513": 14,
+        "94": 627,
+        "none": 639,
+    }
