@@ -15446,10 +15446,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-artifacts.md",
+        "tests/test_artifacts.py::test_unknown_and_partial_artifacts_expose_only_authorized_properties"
       ],
       "historical_owners": [
         191
@@ -15472,10 +15474,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-artifacts.md",
+        "tests/test_artifacts.py::test_analysis_discovers_one_property_and_records_the_minute"
       ],
       "historical_owners": [
         191
@@ -15498,10 +15502,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-artifacts.md",
+        "tests/test_artifacts.py::test_anachronistic_tl_context_changes_procedures_without_catalog_mutation"
       ],
       "historical_owners": [
         191
@@ -15524,10 +15530,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-artifacts.md",
+        "tests/test_artifacts.py::test_missing_effect_family_rejects_before_check_side_effect_or_depletion"
       ],
       "historical_owners": [
         191
@@ -15550,10 +15558,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-artifacts.md",
+        "tests/test_artifacts.py::test_random_side_effect_is_recorded_once_and_replays_without_entropy"
       ],
       "historical_owners": [
         191

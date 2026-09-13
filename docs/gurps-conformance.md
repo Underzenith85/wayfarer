@@ -876,6 +876,16 @@ task support remain explicit. The B470-471 source-ledger rows are reviewed and
 bound to independent acceptance evidence; the prerelease engine version is
 unchanged.
 
+## Futuristic and anomalous artifacts (#527)
+
+Campaign-authored artifact definitions now separate apparent function from actual,
+property-scoped capability as documented in [`gurps-artifacts.md`](gurps-artifacts.md).
+Analysis reveals only one authorized property at a time. Operation consumes the #504
+realm and field TL context without mutating the equipment catalog, and registered typed
+adapters persist authored effects and recorded random side effects with idempotent
+receipts. Missing capabilities and effect families reject before entropy or depletion.
+The B478-B479 source-ledger rows are reviewed; the prerelease engine version is unchanged.
+
 ## Ordinary invention projects (#524)
 
 Concept/design, prototype, testing, and production now use the persisted project

@@ -71,6 +71,7 @@ from wayfarer.engine.simulation.campaign.transformations import validate_transfo
 from wayfarer.engine.simulation.campaign.world_context import validate_world_context
 from wayfarer.engine.simulation.combat.engine import CombatEngine, validate_consequences
 from wayfarer.engine.simulation.combat.firearms import validate_failures
+from wayfarer.engine.simulation.equipment.artifacts import validate_artifacts
 from wayfarer.engine.simulation.equipment.repairs import tasks
 from wayfarer.engine.simulation.events import (
     ActionResolved,
@@ -130,6 +131,7 @@ class ActionEngine:
             rules.economics,
             rules.development,
             rules.world_context,
+            rules.artifacts,
         )
         if rules.combat is not None:
             _validate_gurps_equipment(reviewer, resources, rules.combat)
@@ -187,6 +189,7 @@ class ActionEngine:
             frozenset(actor.actor_id for actor in state.actors),
         )
         validate_world_context(rules.world_context, state.world_context, state.world)
+        validate_artifacts(rules.artifacts, state.artifacts, state.resources)
         validate_law(rules.law, state.law, frozenset(fact.id for fact in state.world.facts))
         compiled: dict[str, ValidatedBuild | None] = {}
         if rules.economics is not None:
