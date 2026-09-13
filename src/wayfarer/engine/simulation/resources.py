@@ -14,6 +14,7 @@ from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.rules.magic.protocols import MagicItemInstance
+from wayfarer.engine.rules.types.affliction import AfflictionEffect
 from wayfarer.engine.rules.types.creature import Creature, Swarm
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.firearm import FirearmFailure
@@ -170,6 +171,7 @@ class ResourceState(Record):
     owners: tuple[Owner, ...] = ()
     pools: tuple[Pool, ...] = ()
     active_effect_ids: tuple[str, ...] = ()
+    afflictions: tuple[AfflictionEffect, ...] = Field(default=(), exclude_if=lambda v: not v)
     scheduled: tuple[Scheduled, ...] = ()
     fired: tuple[str, ...] = ()
     receipts: tuple[Receipt, ...] = ()
@@ -196,6 +198,16 @@ class ResourceState(Record):
     @model_validator(mode="after")
     def validate_recovery_tasks(self) -> ResourceState:
         validate_survival_records(self.survival, self.survival_tasks, self.game_time)
+        if len({effect.id for effect in self.afflictions}) != len(self.afflictions):
+            raise ValueError("Duplicate affliction effect ID")
+        if any(
+            effect.started_at > self.game_time
+            or effect.expires_at <= effect.started_at
+            or effect.id in self.active_effect_ids
+            and effect.expires_at <= self.game_time
+            for effect in self.afflictions
+        ):
+            raise ValueError("Invalid affliction timeline")
         if len({h.id for h in self.hazards}) != len(self.hazards):
             raise ValueError("Duplicate hazard schedule ID")
         if len({i.id for i in self.illnesses}) != len(self.illnesses):

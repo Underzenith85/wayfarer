@@ -115,6 +115,9 @@ def test_documentation_drift_rejected(tmp_path: Path) -> None:
     (tmp_path / "docs/gurps-equipment-source-review.md").symlink_to(
         ROOT / "docs/gurps-equipment-source-review.md"
     )
+    (tmp_path / "docs/gurps-afflictions-and-cinematic-combat.md").symlink_to(
+        ROOT / "docs/gurps-afflictions-and-cinematic-combat.md"
+    )
     docs = (ROOT / "docs/gurps-conformance.md").read_text()
     (tmp_path / "docs/gurps-conformance.md").write_text(
         docs.replace(

@@ -75,7 +75,8 @@ class ManeuverState(Record):
     second_attack_item_id: str | None = None
     second_attack_target_id: str | None = None
     second_attack_mode_id: str | None = None
-    second_attack_penalty: int = Field(default=0, ge=-4, le=0)
+    second_attack_penalty: int = Field(default=0, ge=-8, le=0)
+    dual_weapon_attack: bool = Field(default=False, exclude_if=lambda value: not value)
     stop_thrust_damage_bonus: int = Field(default=0, ge=0)
     concentrating: bool = False
     concentration_seconds: int = Field(default=0, ge=0)

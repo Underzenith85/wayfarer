@@ -209,8 +209,16 @@ def validate_command(
     if any(
         value is not None
         for value in (command.second_item_id, command.second_target_id, command.second_mode_id)
-    ) and not (command.maneuver == "all_out_attack" and command.attack_option == "double"):
-        raise ValidationError("Second attack choices require All-Out Attack (Double)")
+    ) and not (
+        command.maneuver == "all_out_attack"
+        and command.attack_option == "double"
+        or command.maneuver == "attack"
+        and runtime.combat is not None
+        and "gurps.techniques.dual-weapon-attack" in runtime.combat.rules.optional_rules
+    ):
+        raise ValidationError(
+            "Second attack choices require All-Out Attack (Double) or enabled Dual-Weapon Attack"
+        )
     if command.wait_trigger is not None and command.wait_trigger.unarmed is not None:
         declare_unarmed_wait(runtime, state, encounter, command.actor_id, command.wait_trigger)
     if command.wait_trigger is not None and command.wait_trigger.stop_thrust:

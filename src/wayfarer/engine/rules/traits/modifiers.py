@@ -18,6 +18,7 @@ from typing import Final, Literal, Self
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.rules.types.affliction import AfflictionDelivery, PenetrationModifier
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -132,6 +133,9 @@ class AttackProfile(Record):
     fatigue_cost: int = Field(default=0, ge=0)
     activation_seconds: int = Field(default=1, ge=0)
     damage_tags: tuple[str, ...] = ()
+    penetration_modifier: PenetrationModifier = "ordinary"
+    penetration_sense: str | None = None
+    affliction_delivery: AfflictionDelivery = "direct"
 
 
 class ModifierRuntimeReceipt(Record):
@@ -290,6 +294,9 @@ _PENETRATION = (
     "modifier:enhancement:contact-agent",
     "modifier:limitation:contact-agent",
     "modifier:enhancement:follow-up",
+    "modifier:enhancement:respiratory-agent",
+    "modifier:enhancement:sense-based",
+    "modifier:limitation:sense-based",
 )
 
 
@@ -658,11 +665,37 @@ def _deduplicate_and_patch() -> tuple[ModifierDefinition, ...]:
         if existing is None or existing.cost_kind is CostKind.CAMPAIGN_APPROVAL:
             result[definition.id] = definition
     result[CONE] = replace(result[CONE], allowed_subjects=_ATTACK, excludes=_CONE_EXCLUSIONS)
-    follow_up = "modifier:enhancement:follow-up"
-    result[follow_up] = replace(
-        result[follow_up],
-        allowed_subjects=_ATTACK,
-        excludes=tuple(item for item in _PENETRATION if item != follow_up),
+    for identifier in _PENETRATION:
+        result[identifier] = replace(
+            result[identifier],
+            allowed_subjects=_ATTACK,
+            excludes=tuple(item for item in _PENETRATION if item != identifier),
+        )
+    for identifier, hook in (
+        ("modifier:enhancement:blood-agent", "blood-agent"),
+        ("modifier:limitation:blood-agent", "blood-agent"),
+        ("modifier:enhancement:contact-agent", "contact-agent"),
+        ("modifier:limitation:contact-agent", "contact-agent"),
+        ("modifier:enhancement:follow-up", "follow-up"),
+        ("modifier:enhancement:respiratory-agent", "respiratory-agent"),
+        ("modifier:enhancement:sense-based", "sense-based"),
+        ("modifier:limitation:sense-based", "sense-based"),
+    ):
+        result[identifier] = replace(result[identifier], runtime_hook=hook)
+    side_effect = "modifier:enhancement:side-effect"
+    result[side_effect] = replace(
+        result[side_effect],
+        allowed_subjects=frozenset({"innate-attack"}),
+        excludes=tuple(
+            identifier
+            for identifier in _PENETRATION
+            if identifier
+            not in {
+                "modifier:enhancement:armor-divisor",
+                "modifier:limitation:armor-divisor",
+            }
+        ),
+        runtime_hook="side-effect",
     )
     bombardment = "modifier:limitation:bombardment"
     result[bombardment] = replace(result[bombardment], allowed_subjects=_ATTACK, requires=(AREA,))
@@ -953,6 +986,79 @@ def gadget_available(selections: tuple[ModifierSelection, ...], state: GadgetSta
     return state.held and not state.broken and not state.stolen
 
 
+def _apply_attack_modifier(
+    result: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+) -> AttackProfile:
+    range_multipliers = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000)
+    if definition.runtime_hook == "accuracy":
+        delta = selection.level * (
+            1 if definition.classification is ModifierClass.ENHANCEMENT else -1
+        )
+        if result.accuracy + delta < 0:
+            raise ValidationError("Inaccurate cannot reduce Accuracy below zero")
+        return result.model_copy(update={"accuracy": result.accuracy + delta})
+    if definition.runtime_hook == "range":
+        divisor_or_multiplier = range_multipliers[selection.level]
+        value = (
+            result.max_range * divisor_or_multiplier
+            if definition.classification is ModifierClass.ENHANCEMENT
+            else result.max_range // divisor_or_multiplier
+        )
+        return result.model_copy(update={"max_range": value})
+    if definition.runtime_hook == "area":
+        return result.model_copy(update={"area_radius": 2**selection.level})
+    if definition.runtime_hook == "duration":
+        multipliers = {"3x": 3, "10x": 10, "30x": 30, "100x": 100, "300x": 300, "1000x": 1000}
+        seconds = (
+            0
+            if selection.option == "permanent"
+            else result.duration_seconds * multipliers[selection.option or ""]
+        )
+        return result.model_copy(update={"duration_seconds": seconds})
+    if definition.runtime_hook == "armor-divisor":
+        return result.model_copy(
+            update={
+                "armor_divisor": Decimal(selection.option or "1"),
+                "penetration_modifier": "armor-divisor",
+            }
+        )
+    if definition.runtime_hook in {
+        "blood-agent",
+        "contact-agent",
+        "respiratory-agent",
+        "follow-up",
+    }:
+        return result.model_copy(update={"penetration_modifier": definition.runtime_hook})
+    if definition.runtime_hook == "sense-based":
+        if not selection.option:
+            raise ValidationError("Sense-Based requires an authored target sense")
+        return result.model_copy(
+            update={"penetration_modifier": "sense-based", "penetration_sense": selection.option}
+        )
+    if definition.runtime_hook == "side-effect":
+        return result.model_copy(update={"affliction_delivery": "side-effect"})
+    if definition.runtime_hook == "fatigue":
+        return result.model_copy(
+            update={"fatigue_cost": max(0, result.fatigue_cost - selection.level)}
+        )
+    if definition.runtime_hook == "fatigue-cost":
+        return result.model_copy(update={"fatigue_cost": result.fatigue_cost + selection.level})
+    if definition.runtime_hook == "activation-time":
+        seconds = (
+            max(0, result.activation_seconds // (2**selection.level))
+            if definition.classification is ModifierClass.ENHANCEMENT
+            else result.activation_seconds * (2**selection.level)
+        )
+        return result.model_copy(update={"activation_seconds": seconds})
+    if definition.runtime_hook in {"incendiary", "no-blunt-trauma", "no-knockback", "no-wounding"}:
+        return result.model_copy(
+            update={"damage_tags": result.damage_tags + (definition.runtime_hook,)}
+        )
+    return result
+
+
 def apply_attack_modifiers(
     profile: AttackProfile,
     subject: AbilityKind,
@@ -964,63 +1070,8 @@ def apply_attack_modifiers(
     if subject not in _ATTACK:
         raise ValidationError("Attack modifier projection requires an attack ability")
     result = profile
-    range_multipliers = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000)
     for selection in selections:
-        definition = MODIFIER_INDEX[selection.definition_id]
-        if definition.runtime_hook == "accuracy":
-            delta = selection.level * (
-                1 if definition.classification is ModifierClass.ENHANCEMENT else -1
-            )
-            if result.accuracy + delta < 0:
-                raise ValidationError("Inaccurate cannot reduce Accuracy below zero")
-            result = result.model_copy(update={"accuracy": result.accuracy + delta})
-        elif definition.runtime_hook == "range":
-            divisor_or_multiplier = range_multipliers[selection.level]
-            value = (
-                result.max_range * divisor_or_multiplier
-                if definition.classification is ModifierClass.ENHANCEMENT
-                else result.max_range // divisor_or_multiplier
-            )
-            result = result.model_copy(update={"max_range": value})
-        elif definition.runtime_hook == "area":
-            result = result.model_copy(update={"area_radius": 2**selection.level})
-        elif definition.runtime_hook == "duration":
-            multipliers = {"3x": 3, "10x": 10, "30x": 30, "100x": 100, "300x": 300, "1000x": 1000}
-            if selection.option == "permanent":
-                result = result.model_copy(update={"duration_seconds": 0})
-            else:
-                result = result.model_copy(
-                    update={
-                        "duration_seconds": result.duration_seconds
-                        * multipliers[selection.option or ""]
-                    }
-                )
-        elif definition.runtime_hook == "armor-divisor":
-            result = result.model_copy(update={"armor_divisor": Decimal(selection.option or "1")})
-        elif definition.runtime_hook == "fatigue":
-            result = result.model_copy(
-                update={"fatigue_cost": max(0, result.fatigue_cost - selection.level)}
-            )
-        elif definition.runtime_hook == "fatigue-cost":
-            result = result.model_copy(
-                update={"fatigue_cost": result.fatigue_cost + selection.level}
-            )
-        elif definition.runtime_hook == "activation-time":
-            seconds = (
-                max(0, result.activation_seconds // (2**selection.level))
-                if definition.classification is ModifierClass.ENHANCEMENT
-                else result.activation_seconds * (2**selection.level)
-            )
-            result = result.model_copy(update={"activation_seconds": seconds})
-        elif definition.runtime_hook in {
-            "incendiary",
-            "no-blunt-trauma",
-            "no-knockback",
-            "no-wounding",
-        }:
-            result = result.model_copy(
-                update={"damage_tags": result.damage_tags + (definition.runtime_hook,)}
-            )
+        result = _apply_attack_modifier(result, selection, MODIFIER_INDEX[selection.definition_id])
     return ModifierRuntimeReceipt(
         original=profile,
         modified=result,

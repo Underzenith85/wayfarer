@@ -16,6 +16,11 @@ from wayfarer.engine.character.traits.attack_defense import (
 )
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import RandomSource
+from wayfarer.engine.rules.types.affliction import AfflictionCondition, AfflictionEffect
+from wayfarer.engine.simulation.combat.special_damage import (
+    PenetrationContext,
+    resolve_affliction_penetration,
+)
 from wayfarer.engine.simulation.equipment.catalog import DamageType
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState, Scheduled
@@ -55,6 +60,8 @@ class AttackChannel(Record):
     resistance_roll: int | None = Field(default=None, ge=3, le=18)
     duration_seconds: int = Field(default=1, ge=1)
     effect_level: int = Field(default=1, ge=1)
+    condition: AfflictionCondition = "stun"
+    penetration: PenetrationContext = Field(default_factory=PenetrationContext)
 
 
 class TraitAttackCommand(Command):
@@ -63,7 +70,7 @@ class TraitAttackCommand(Command):
 
 
 class TraitAttackOutcome(Record):
-    outcome: Literal["injured", "applied", "resisted"]
+    outcome: Literal["injured", "applied", "resisted", "missed", "unaffected"]
     attacker_id: str
     target_id: str
     definition_id: str
@@ -71,6 +78,9 @@ class TraitAttackOutcome(Record):
     effect_id: str | None = None
     expires_at: int | None = Field(default=None, ge=0)
     healed: int = Field(default=0, ge=0)
+    condition: AfflictionCondition | None = None
+    resistance_target: int | None = None
+    penetration_reason: str | None = None
 
 
 class TraitAttackEvent(Record):
@@ -102,6 +112,43 @@ def _resisted(channel: AttackChannel) -> bool:
         channel.attack_score - channel.attack_roll
         <= channel.resistance_score - channel.resistance_roll
     )
+
+
+_INCAPACITATING = frozenset(
+    {
+        "agony",
+        "choking",
+        "coma",
+        "daze",
+        "ecstasy",
+        "hallucinating",
+        "paralysis",
+        "retching",
+        "seizure",
+        "sleep",
+        "unconsciousness",
+    }
+)
+
+
+def _require_affliction_condition(channel: AttackChannel, attacker: AttackDefenseTraits) -> None:
+    purchased = attacker.parameter("advantage:affliction", "effect")
+    compatible = (
+        channel.condition == "stun"
+        if purchased == "stun"
+        else channel.condition == "attribute-penalty"
+        if purchased == "attribute-penalty"
+        else channel.condition in _INCAPACITATING
+        if purchased == "incapacitation"
+        else False
+    )
+    if not compatible:
+        raise ValidationError("Affliction condition differs from the approved attack")
+
+
+def _roll_succeeds(total: int, target: int) -> bool:
+    """B343 success boundary for a stored 3d total (critical degree is immaterial here)."""
+    return total <= 4 or (total <= target and total not in (17, 18))
 
 
 def _heal_attacker(
@@ -171,6 +218,82 @@ def _apply_survival_traits(
             status = status.model_copy(update={"dead": True, "unconscious": True})
         pools.append(pool.model_copy(update={"injury": status}))
     return resources.model_copy(update={"pools": tuple(pools)})
+
+
+def _apply_affliction(
+    resources: ResourceState,
+    command: TraitAttackCommand,
+    channel: AttackChannel,
+    attacker: AttackDefenseTraits,
+    target: AttackDefenseTraits,
+    target_ht: int,
+) -> tuple[ResourceState, TraitAttackOutcome]:
+    _require_affliction_condition(channel, attacker)
+    if channel.basic_damage or channel.resistance_roll is None:
+        raise ValidationError("Affliction requires a resistance roll and no basic damage")
+    penetration = resolve_affliction_penetration(target.damage_resistance(), channel.penetration)
+    attack_hit = _roll_succeeds(channel.attack_roll, channel.attack_score)
+    homogeneous_choking = (
+        channel.condition == "choking" and target.injury_tolerance() == "homogeneous"
+    )
+    resistance_target = (
+        target_ht
+        - max(0, attacker.level("advantage:affliction") - 1)
+        + penetration.dr_bonus
+        + penetration.resistance_modifier
+    )
+    if channel.resistance_score is not None and channel.resistance_score != resistance_target:
+        raise ValidationError("Affliction resistance target differs from trusted target facts")
+    resisted = _roll_succeeds(channel.resistance_roll, resistance_target)
+    applies = attack_hit and penetration.applies and not homogeneous_choking and not resisted
+    effect_id = _id(channel.id, channel.kind)
+    expires = resources.game_time + channel.duration_seconds
+    result_kind: Literal["applied", "resisted", "missed", "unaffected"] = (
+        "missed"
+        if not attack_hit
+        else "unaffected"
+        if not penetration.applies or homogeneous_choking
+        else "resisted"
+        if resisted
+        else "applied"
+    )
+    outcome = TraitAttackOutcome(
+        outcome=result_kind,
+        attacker_id=channel.attacker_id,
+        target_id=channel.target_id,
+        definition_id=command.definition_id,
+        effect_id=effect_id if applies else None,
+        expires_at=expires if applies else None,
+        condition=channel.condition,
+        resistance_target=resistance_target,
+        penetration_reason=(
+            "injury-tolerance-homogeneous" if homogeneous_choking else penetration.reason
+        ),
+    )
+    update: dict[str, object] = {"revision": resources.revision + 1}
+    if applies:
+        update["active_effect_ids"] = tuple(sorted(set(resources.active_effect_ids) | {effect_id}))
+        update["afflictions"] = resources.afflictions + (
+            AfflictionEffect(
+                id=effect_id,
+                actor_id=channel.target_id,
+                source_id=command.definition_id,
+                condition=channel.condition,
+                started_at=resources.game_time,
+                expires_at=expires,
+                level=channel.effect_level,
+            ),
+        )
+        update["scheduled"] = resources.scheduled + (
+            Scheduled(
+                id=_id(channel.id, "expiry"),
+                due=expires,
+                kind="expire",
+                target_id=effect_id,
+                amount=channel.effect_level,
+            ),
+        )
+    return resources.model_copy(update=update), outcome
 
 
 def apply_trait_attack(
@@ -261,6 +384,8 @@ def apply_trait_attack(
             injury=result,
             healed=healed,
         )
+    elif channel.kind == "affliction":
+        state, outcome = _apply_affliction(resources, command, channel, attacker, target, target_ht)
     else:
         resisted = _resisted(channel)
         effect_id = _id(channel.id, channel.kind)
@@ -273,12 +398,12 @@ def apply_trait_attack(
             effect_id=None if resisted else effect_id,
             expires_at=None if resisted else expires,
         )
-        update: dict[str, object] = {"revision": resources.revision + 1}
+        binding_update: dict[str, object] = {"revision": resources.revision + 1}
         if not resisted:
-            update["active_effect_ids"] = tuple(
+            binding_update["active_effect_ids"] = tuple(
                 sorted(set(resources.active_effect_ids) | {effect_id})
             )
-            update["scheduled"] = resources.scheduled + (
+            binding_update["scheduled"] = resources.scheduled + (
                 Scheduled(
                     id=_id(channel.id, "expiry"),
                     due=expires,
@@ -287,7 +412,7 @@ def apply_trait_attack(
                     amount=channel.effect_level,
                 ),
             )
-        state = resources.model_copy(update=update)
+        state = resources.model_copy(update=binding_update)
 
     event = TraitAttackEvent(command_id=command.id, channel_id=channel.id, outcome=outcome)
     state = state.model_copy(

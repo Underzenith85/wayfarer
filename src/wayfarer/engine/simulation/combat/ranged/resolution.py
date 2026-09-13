@@ -399,8 +399,12 @@ def resolve(
         second_item_id,
         parry_mode_id=second_parry_mode_id,
     )
-    defense_value_ = _visibility_adjustment(defense_value_, pending.visibility_defense_penalty)
-    second_value = _visibility_adjustment(second_value, pending.visibility_defense_penalty)
+    defense_value_ = _visibility_adjustment(
+        defense_value_, pending.visibility_defense_penalty + pending.attention_defense_penalty
+    )
+    second_value = _visibility_adjustment(
+        second_value, pending.visibility_defense_penalty + pending.attention_defense_penalty
+    )
     if pending.laser_sight and scene.laser_visible_to_target:
         if selected == "dodge" and defense_value_ is not None:
             defense_value_ = DerivedValue(defense_value_.target, defense_value_.value + 1, ())

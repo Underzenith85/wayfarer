@@ -33,7 +33,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 641
+    assert len(ledger_blockers(bundle.rows)) == 625
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -248,7 +248,7 @@ def test_infinite_worlds_boundary_drift_is_rejected() -> None:
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 641
+    assert len(ledger) == 625
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
@@ -257,7 +257,6 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.required_source_ledger_rows == 1_178
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {
-        "513": 14,
-        "94": 627,
-        "none": 644,
+        "94": 625,
+        "none": 660,
     }

@@ -54,7 +54,7 @@ def test_all_87_source_rows_have_distinct_modifier_definitions() -> None:
     assert len(source) == len(MODIFIER_INDEX) == 87
     assert {row.id for row in source} == set(MODIFIER_INDEX)
     assert all(row.construction_binding == row.id for row in source)
-    assert all(row.cost_owner and row.consequence_owner == 94 for row in source)
+    assert all(row.cost_owner and row.consequence_owner in {94, 513} for row in source)
 
 
 def test_positive_negative_level_cost_and_final_rounding() -> None:
@@ -168,6 +168,7 @@ def test_modifier_runtime_changes_the_typed_attack_receipt() -> None:
         fatigue_cost=1,
         activation_seconds=2,
         damage_tags=("incendiary",),
+        penetration_modifier="armor-divisor",
     )
 
 

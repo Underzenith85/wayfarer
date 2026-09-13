@@ -33,6 +33,7 @@ from wayfarer.engine.rules.profiles import (
 from wayfarer.engine.rules.skills.mundane import inventory as skills
 from wayfarer.engine.rules.skills.mundane import source_index as skill_source_index
 from wayfarer.engine.rules.supernatural import inventory as supernatural_inventory
+from wayfarer.engine.rules.traits.modifiers import MODIFIER_INDEX
 from wayfarer.engine.rules.traits.mundane import inventory as traits
 from wayfarer.engine.rules.types.vehicle_coverage import validate_coverage
 from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
@@ -245,6 +246,22 @@ DIRECT_INVENTORY_SOURCE_REVIEWS: Final = frozenset(
     }
 )
 
+SPECIAL_PENETRATION_MODIFIER_IDS: Final = frozenset(
+    {
+        "modifier:enhancement:armor-divisor",
+        "modifier:enhancement:blood-agent",
+        "modifier:enhancement:contact-agent",
+        "modifier:enhancement:follow-up",
+        "modifier:enhancement:respiratory-agent",
+        "modifier:enhancement:sense-based",
+        "modifier:enhancement:side-effect",
+        "modifier:limitation:armor-divisor",
+        "modifier:limitation:blood-agent",
+        "modifier:limitation:contact-agent",
+        "modifier:limitation:sense-based",
+    }
+)
+
 
 def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
     """Read owner inventories; candidate counts never imply exhaustive source coverage."""
@@ -331,6 +348,18 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             blockers=e.followup_issues,
         )
         for e in traits()
+    )
+    rows.extend(
+        InventoryItem(
+            identifier,
+            f"B{MODIFIER_INDEX[identifier].page}",
+            513,
+            "verified",
+            "ability-modifier-ledger",
+            source_review="reviewed",
+            evidence=("tests/test_special_damage.py",),
+        )
+        for identifier in sorted(SPECIAL_PENETRATION_MODIFIER_IDS)
     )
     # Consume the owner inventory directly, including transferred skill exclusions.
     rows.extend(

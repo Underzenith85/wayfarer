@@ -14,7 +14,7 @@ from wayfarer.engine.simulation.combat.close_combat import (
     pair,
     stray_target_order,
 )
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
 from wayfarer.engine.simulation.combat.firearm_transitions import validate_attack
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
@@ -37,6 +37,11 @@ from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
+
+
+def _validate_dual_weapon(actor: Combatant, weapon: RangedMode) -> None:
+    if actor.maneuver_state.dual_weapon_attack and weapon.hands != 1:
+        raise ValidationError("Dual-Weapon Attack requires one-handed weapons")
 
 
 def _validate_penetration_targets(
@@ -142,6 +147,7 @@ def prepare(
     assert pending is not None
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    _validate_dual_weapon(actor, weapon)
     area_distance = _area_attack_distance(
         runtime,
         state,
@@ -324,6 +330,12 @@ def prepare(
                         0 if area_aim_point is not None else visibility.attack_penalty
                     ),
                     "visibility_defense_penalty": visibility.defense_penalty,
+                    "attention_defense_penalty": (
+                        -1
+                        if actor.maneuver_state.dual_weapon_attack
+                        and actor.maneuver_state.second_attack_target_id == target.actor_id
+                        else 0
+                    ),
                     "close_combat": close,
                     "defender_close_combat": defender_close,
                     "stray_target_order": stray_order,

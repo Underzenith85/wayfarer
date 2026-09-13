@@ -14,7 +14,7 @@ from wayfarer.engine.simulation.combat.close_combat import (
     pair,
     stray_target_order,
 )
-from wayfarer.engine.simulation.combat.encounter import Encounter, basic_distance
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, basic_distance
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
@@ -30,6 +30,37 @@ from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
+
+
+def _validate_dual_weapon_targets(
+    encounter: Encounter,
+    attacker: Combatant,
+    defender: Combatant,
+    selected: MeleeMode,
+) -> None:
+    if not attacker.maneuver_state.dual_weapon_attack:
+        return
+    if selected.hands != 1:
+        raise ValidationError("Dual-Weapon Attack requires one-handed weapons")
+    if attacker.maneuver_state.second_attack_target_id == defender.actor_id:
+        return
+    second_target = next(
+        (
+            participant
+            for participant in encounter.participants
+            if participant.actor_id == attacker.maneuver_state.second_attack_target_id
+        ),
+        None,
+    )
+    if second_target is None:
+        raise ValidationError("Dual-Weapon Attack requires a present second target")
+    target_distance = (
+        basic_distance(encounter, defender.actor_id, second_target.actor_id)
+        if isinstance(encounter.spatial, BasicSpatialContext)
+        else CombatEngine.distance(defender.position, second_target.position)
+    )
+    if target_distance > 1:
+        raise ValidationError("Dual melee targets must be adjacent")
 
 
 def prepare_attack(
@@ -52,6 +83,7 @@ def prepare_attack(
     pending = encounter.pending_defense
     assert pending is not None
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, mode_id)
+    attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     validate_special_attack(
         runtime,
         state,
@@ -95,8 +127,8 @@ def prepare_attack(
         raise ValidationError("Cover and overpenetration require a ranged mode")
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
-    attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    _validate_dual_weapon_targets(encounter, attacker, defender, selected)
     visibility = combat_visibility(encounter, attacker.actor_id, defender.actor_id)
     close = bool(opponents_in_close_combat(encounter, attacker.actor_id))
     defender_close = bool(opponents_in_close_combat(encounter, defender.actor_id))
@@ -187,6 +219,12 @@ def prepare_attack(
                     "target_item_id": target_item_id,
                     "visibility_attack_penalty": visibility.attack_penalty,
                     "visibility_defense_penalty": visibility.defense_penalty,
+                    "attention_defense_penalty": (
+                        -1
+                        if attacker.maneuver_state.dual_weapon_attack
+                        and attacker.maneuver_state.second_attack_target_id == defender.actor_id
+                        else 0
+                    ),
                     "close_combat": close,
                     "defender_close_combat": defender_close,
                     "stray_target_order": stray_order,
@@ -209,12 +247,13 @@ def waive_off_hand_penalty(
     if not any(p.definition_id == "trait:ambidexterity" for p in compiled.purchases):
         return encounter
     attacker = next(p for p in encounter.participants if p.actor_id == actor_id)
+    retained = -4 if attacker.maneuver_state.dual_weapon_attack else 0
     return CombatEngine._replace(
         encounter,
         attacker.model_copy(
             update={
                 "maneuver_state": attacker.maneuver_state.model_copy(
-                    update={"attack_bonus": 0, "second_attack_penalty": 0}
+                    update={"attack_bonus": retained, "second_attack_penalty": retained}
                 )
             }
         ),

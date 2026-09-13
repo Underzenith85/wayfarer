@@ -200,6 +200,9 @@ class PendingDefense(Record):
     visibility_defense_penalty: int = Field(
         default=0, ge=-4, le=0, exclude_if=lambda value: value == 0
     )
+    attention_defense_penalty: int = Field(
+        default=0, ge=-1, le=0, exclude_if=lambda value: value == 0
+    )
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()

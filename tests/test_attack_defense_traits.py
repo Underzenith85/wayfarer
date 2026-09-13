@@ -254,7 +254,7 @@ def test_affliction_resistance_duration_authority_and_cas() -> None:
         attack_score=14,
         attack_roll=10,
         resistance_score=12,
-        resistance_roll=11,
+        resistance_roll=13,
         duration_seconds=60,
     )
     state, result = apply_trait_attack(
@@ -271,6 +271,7 @@ def test_affliction_resistance_duration_authority_and_cas() -> None:
         system=True,
     )
     assert result.outcome == "applied" and result.effect_id in state.active_effect_ids
+    assert state.afflictions[0].condition == "stun"
     assert state.scheduled[0].due == 60 and history(state)[0].outcome == result
     with pytest.raises(ValidationError, match="authority"):
         apply_trait_attack(

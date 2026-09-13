@@ -142,16 +142,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:armor-divisor",
       "parent_id": null,
@@ -159,7 +162,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:armor-divisor",
       "cost_owner": "modifier-catalog:modifier:enhancement:armor-divisor",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -235,16 +238,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:blood-agent",
       "parent_id": null,
@@ -252,7 +258,7 @@
       "listed_value": "+100%",
       "construction_binding": "modifier:enhancement:blood-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:blood-agent",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -297,16 +303,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:contact-agent",
       "parent_id": null,
@@ -314,7 +323,7 @@
       "listed_value": "+150%",
       "construction_binding": "modifier:enhancement:contact-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:contact-agent",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -607,16 +616,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:follow-up",
       "parent_id": null,
@@ -624,7 +636,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:follow-up",
       "cost_owner": "modifier-catalog:modifier:enhancement:follow-up",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -1227,16 +1239,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:respiratory-agent",
       "parent_id": null,
@@ -1244,7 +1259,7 @@
       "listed_value": "+50%",
       "construction_binding": "modifier:enhancement:respiratory-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:respiratory-agent",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -1320,16 +1335,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:sense-based",
       "parent_id": null,
@@ -1337,7 +1355,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:sense-based",
       "cost_owner": "modifier-catalog:modifier:enhancement:sense-based",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -1351,16 +1369,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:side-effect",
       "parent_id": null,
@@ -1368,7 +1389,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:side-effect",
       "cost_owner": "modifier-catalog:modifier:enhancement:side-effect",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -1599,16 +1620,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:armor-divisor",
       "parent_id": null,
@@ -1616,7 +1640,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:armor-divisor",
       "cost_owner": "modifier-catalog:modifier:limitation:armor-divisor",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -1630,16 +1654,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:blood-agent",
       "parent_id": null,
@@ -1647,7 +1674,7 @@
       "listed_value": "-40%",
       "construction_binding": "modifier:limitation:blood-agent",
       "cost_owner": "modifier-catalog:modifier:limitation:blood-agent",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -1754,16 +1781,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:contact-agent",
       "parent_id": null,
@@ -1771,7 +1801,7 @@
       "listed_value": "-30%",
       "construction_binding": "modifier:limitation:contact-agent",
       "cost_owner": "modifier-catalog:modifier:limitation:contact-agent",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
@@ -2405,16 +2435,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        513
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:sense-based",
       "parent_id": null,
@@ -2422,7 +2455,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:sense-based",
       "cost_owner": "modifier-catalog:modifier:limitation:sense-based",
-      "consequence_owner": 94,
+      "consequence_owner": 513,
       "source_review_owner": null
     },
     {
