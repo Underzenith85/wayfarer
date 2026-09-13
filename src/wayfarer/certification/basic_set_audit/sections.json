@@ -5062,15 +5062,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
@@ -5088,15 +5092,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b258:7-templates",
@@ -5114,15 +5122,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b258:character-templates",
@@ -5140,15 +5152,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b258:character-templates",
@@ -5166,15 +5182,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b258:character-templates",
@@ -5192,15 +5212,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b258:character-templates",
@@ -5218,15 +5242,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b258:7-templates",
@@ -5244,15 +5272,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b260:racial-templates",
@@ -5270,15 +5302,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b260:racial-templates",
@@ -5296,15 +5332,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b260:racial-templates",
@@ -5322,15 +5362,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b258:7-templates",
@@ -6375,7 +6419,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b294:transformations",
@@ -6401,7 +6445,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b294:transformations",
@@ -6427,7 +6471,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b294:transformations",
@@ -6453,7 +6497,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
@@ -6479,7 +6523,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
@@ -6505,7 +6549,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
@@ -6531,7 +6575,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
@@ -6557,7 +6601,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
@@ -6583,7 +6627,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
@@ -6609,7 +6653,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
@@ -6635,7 +6679,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 498,
+      "completion_owner": 94,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
@@ -13249,15 +13293,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
@@ -13275,15 +13323,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:15-creating-templates",
@@ -13301,15 +13353,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13327,15 +13383,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13353,15 +13413,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13379,15 +13443,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13405,15 +13473,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13431,15 +13503,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13457,15 +13533,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13483,15 +13563,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13509,15 +13593,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13535,15 +13623,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13561,15 +13653,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13587,15 +13683,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13613,15 +13713,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:character-templates",
@@ -13639,15 +13743,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b445:15-creating-templates",
@@ -13665,15 +13773,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
@@ -13691,15 +13803,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
@@ -13717,15 +13833,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
@@ -13743,15 +13863,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
@@ -13769,15 +13893,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
@@ -13795,15 +13923,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
@@ -13821,15 +13953,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
@@ -13847,15 +13983,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-templates.md",
+        "tests/fixtures/gurps/template-construction.json",
+        "tests/test_mundane_traits.py"
       ],
       "historical_owners": [
-        191
+        191,
+        498
       ],
-      "completion_owner": 498,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b450:racial-templates",
