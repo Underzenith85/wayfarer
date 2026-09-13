@@ -275,6 +275,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
     # let source reconciliation and downstream blockers refer to the same item
     # without making catalog presence imply runtime support.
     audit_directory = Path(__file__).with_name("basic_set_audit")
+    executable_ids = {row.id for row in rows}
     for filename, scope in (
         ("traits.json", "mundane-trait-ledger"),
         ("modifiers.json", "ability-modifier-ledger"),
@@ -284,7 +285,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             if source_row["row_kind"] != "catalog-item":
                 continue
             binding = source_row["runtime_binding"]
-            if binding != source_row["id"]:
+            if binding != source_row["id"] or binding in executable_ids:
                 continue
             owner = int(source_row["consequence_owner"])
             rows.append(

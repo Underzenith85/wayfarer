@@ -207,7 +207,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.campaign.knowledge` | no | yes | verified | #501; [audience-scoped knowledge](gurps-campaign-administration.md) |
 | `gurps.campaign.time_use` | no | yes | verified | #501; [shared-clock Time Use settlement](gurps-campaign-administration.md) |
 | `gurps.campaign.traps` | no | yes | verified | #501; [authored trap branches](gurps-campaign-administration.md) |
-| `gurps.projects.invention` | no | yes | verified | #524; [ordinary persisted invention lifecycle](gurps-inventions.md) |
+| `gurps.projects.invention` | no | yes | verified | #524 ordinary lifecycle; #525 [gadgeteering variants](gurps-gadgeteering.md) |
 | `gurps.magic.items` | no | yes | verified | #526; [persisted enchanting and executable item lifecycle](gurps-enchanting.md) |
 | `gurps.world.law` | no | yes | verified | #502; [jurisdictions, legality, and enforcement](gurps-law.md) |
 | `gurps.campaign.economics` | no | yes | verified | #503; [conserved trade, exchange, and living costs](gurps-economics.md) |
@@ -894,9 +894,11 @@ state and receipt-idempotent transitions documented in
 TL, facility, funding, material, and work-time inputs remain explicit. Resource
 shortfalls reject before project time changes, active work participates in the
 shared activity guard, and produced lots remain mechanically unavailable without
-both a catalog definition and runtime adapter. Cinematic gadgeteering remains
-explicitly outside this ordinary adapter. The owned B472-473 source-ledger rows
-are reviewed; the prerelease engine version is unchanged.
+both a catalog definition and runtime adapter. Gadgeteer and Quick Gadgeteer now
+extend that same project model through the compiled capability, schedule,
+resource, defect, interruption, and access boundaries documented in
+[`gurps-gadgeteering.md`](gurps-gadgeteering.md). The owned B472-B477 source-ledger
+rows are reviewed; the prerelease engine version is unchanged.
 
 ## Enchanting projects and magic items (#526)
 

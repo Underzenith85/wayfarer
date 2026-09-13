@@ -31,6 +31,7 @@ Appearance = Literal[
 AppearanceOption = Literal["ordinary", "androgynous", "impressive"]
 Perception = Literal["perceptible", "audible", "status"]
 SELF_CONTROL_HOOK: Final = "trait.self_control"
+GADGETEERING_HOOK: Final = "trait.gadgeteering"
 
 
 @dataclass(frozen=True, slots=True)
@@ -170,7 +171,7 @@ REPUTATION_BINDINGS: Final = MappingProxyType(
 )
 STANDING_HOOKS: Final = frozenset({"trait.appearance", "trait.reputation"})
 SUPPORTED_HOOKS: Final = frozenset(
-    {SELF_CONTROL_HOOK}
+    {SELF_CONTROL_HOOK, GADGETEERING_HOOK}
     | BACKGROUND_HOOKS
     | {binding.hook for binding in REACTION_BINDINGS.values()}
     | STANDING_HOOKS
