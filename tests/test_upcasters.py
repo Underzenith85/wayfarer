@@ -10,7 +10,7 @@ from wayfarer import contracts, validation
 from wayfarer.engine.simulation.actions import Wait
 from wayfarer.engine.simulation.events import digest, document
 from wayfarer.errors import StorageError
-from wayfarer.persistence.events import COMMAND_UPCASTERS, fold
+from wayfarer.persistence.events import fold
 from wayfarer.persistence.upcasters import (
     EVENT_UPCASTERS,
     UpcasterRegistry,
@@ -23,9 +23,8 @@ FIXTURE = Path(__file__).parent / "fixtures/retained_schemas.json"
 
 def test_retained_schema_fixtures() -> None:
     data = json.loads(FIXTURE.read_text())
-    for key, registry in [("events", EVENT_UPCASTERS), ("commands", COMMAND_UPCASTERS)]:
-        for row in data[key]:
-            registry.check(row["kind"], row["version"])
+    for row in data["events"]:
+        EVENT_UPCASTERS.check(row["kind"], row["version"])
     for case in data["folds"]:
         initial = contracts.campaign(validation.decode(case["initial_json"]))
         events = [read_event(json.dumps(event), case["version"]) for event in case["events"]]
@@ -110,24 +109,3 @@ async def test_adapters_share_upcaster_registry(
     monkeypatch.delitem(EVENT_UPCASTERS.steps, ("state.patched", 1))
     with pytest.raises(StorageError, match="Missing upcaster"):
         await play.store.stream_states(cid)
-    monkeypatch.setitem(COMMAND_UPCASTERS.current, "command", 3)
-    with pytest.raises(StorageError, match="Missing upcaster"):
-        await play.store.history(cid)
-
-
-def test_retired_transcript_upcasts_to_receipt_without_losing_exact_input() -> None:
-    original: dict[str, object] = {
-        "event": {
-            "input": '{"kind":"wait"}',
-            "action": "typed-action",
-            "outcome": '{"status":"committed"}',
-            "roll": None,
-        },
-        "command_input": None,
-    }
-    migrated = COMMAND_UPCASTERS.read("command", 1, original)
-    assert migrated["command_input"] == '{"kind":"wait"}'
-    assert migrated["event"] == {"action": "typed-action", "outcome": '{"status":"committed"}'}
-    assert "input" in validation.mapping(
-        original["event"]
-    )  # Registry migrations do not mutate retained bytes.

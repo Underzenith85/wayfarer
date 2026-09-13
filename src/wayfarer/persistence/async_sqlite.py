@@ -14,12 +14,11 @@ from wayfarer.engine.simulation.campaign.scenario_loading import ScenarioBoundar
 from wayfarer.engine.simulation.events import (
     EVENT_ADAPTER,
     EngineEvent,
-    StatePatched,
     command_events,
     digest,
     document,
 )
-from wayfarer.errors import ConflictError, NotFoundError, StorageError, ValidationError
+from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.persistence import snapshots
 from wayfarer.persistence.events import (
     COMMAND_SCHEMA_VERSION,
@@ -31,7 +30,6 @@ from wayfarer.persistence.events import (
     command_scenario,
     fold,
     payload_digest,
-    upcast_command,
 )
 from wayfarer.persistence.upcasters import EVENT_UPCASTERS, read_event
 
@@ -56,9 +54,6 @@ class AsyncSQLiteStore:
             "CREATE TABLE IF NOT EXISTS campaigns (id TEXT PRIMARY KEY, state TEXT NOT NULL)"
         )
         await db.execute(
-            "CREATE TABLE IF NOT EXISTS events (campaign TEXT, request_id TEXT, payload TEXT, PRIMARY KEY(campaign, request_id))"
-        )
-        await db.execute(
             """CREATE TABLE IF NOT EXISTS command_log (
                 campaign TEXT NOT NULL,
                 command_id TEXT NOT NULL,
@@ -70,6 +65,12 @@ class AsyncSQLiteStore:
                 schema_version INTEGER NOT NULL,
                 event TEXT NOT NULL,
                 state_after TEXT NOT NULL,
+                entropy_seed TEXT,
+                rng_algorithm TEXT,
+                recorded_at_us INTEGER,
+                origin_json TEXT,
+                command_input TEXT,
+                scenario_boundary_json TEXT,
                 PRIMARY KEY(campaign, command_id)
             )"""
         )
@@ -99,31 +100,6 @@ class AsyncSQLiteStore:
         await db.execute(
             "CREATE TABLE IF NOT EXISTS checkpoint_digests (campaign TEXT NOT NULL, revision BIGINT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(campaign, revision))"
         )
-        await db.execute(
-            "CREATE TABLE IF NOT EXISTS narration_migrations (campaign TEXT PRIMARY KEY)"
-        )
-        cursor = await db.execute("PRAGMA table_info(command_log)")
-        columns = {row[1] for row in await cursor.fetchall()}
-        await cursor.close()
-        metadata = (
-            "entropy_seed",
-            "engine_version",
-            "rng_algorithm",
-            "recorded_at_us",
-            "origin_json",
-            "command_input",
-            "scenario_boundary_json",
-        )
-        if not set(metadata) <= columns:
-            # Recheck under the writer lock; normal reads need no migration lock.
-            await db.execute("BEGIN IMMEDIATE")
-            cursor = await db.execute("PRAGMA table_info(command_log)")
-            columns = {row[1] for row in await cursor.fetchall()}
-            await cursor.close()
-            for column in metadata:
-                if column not in columns:
-                    kind = "INTEGER" if column == "recorded_at_us" else "TEXT"
-                    await db.execute(f"ALTER TABLE command_log ADD COLUMN {column} {kind}")
         await db.commit()
         return db
 
@@ -162,40 +138,16 @@ class AsyncSQLiteStore:
         finally:
             await db.close()
 
-    async def _ensure_digests(self, db: aiosqlite.Connection, cid: str, initial: Campaign) -> None:
-        cursor = await db.execute(
-            "SELECT 1 FROM checkpoint_digests WHERE campaign=? LIMIT 1", (cid,)
-        )
-        if await cursor.fetchone() is not None:
-            return
-        await db.execute(
-            "INSERT INTO checkpoint_digests (campaign, revision, digest) VALUES (?, ?, ?) ON CONFLICT(campaign, revision) DO NOTHING",
-            (cid, initial["revision"], digest(document(initial))),
-        )
-        cursor = await db.execute(
-            "SELECT revision, schema_version, event FROM event_stream WHERE campaign=? ORDER BY revision, ordinal",
-            (cid,),
-        )
-        for row in await cursor.fetchall():
-            event = read_event(validation.string(row[2]), validation.integer(row[1]))
-            if isinstance(event, StatePatched) and event.scope == "campaign":
-                await db.execute(
-                    "INSERT INTO checkpoint_digests (campaign, revision, digest) VALUES (?, ?, ?) ON CONFLICT(campaign, revision) DO UPDATE SET digest=excluded.digest",
-                    (cid, row[0], event.after_digest),
-                )
-
     async def _read(
         self, db: aiosqlite.Connection, cid: str, *, lock: bool = False, through: int | None = None
     ) -> Campaign:
         cursor = await db.execute("SELECT id FROM campaigns WHERE id=?", (cid,))
         if await cursor.fetchone() is None:
             raise NotFoundError("Campaign not found")
-        await self._ensure_stream(db, cid)
         cursor = await db.execute("SELECT state FROM stream_genesis WHERE campaign=?", (cid,))
         initial = await cursor.fetchone()
         assert initial is not None
         genesis = snapshots.decode(initial[0])
-        await self._ensure_digests(db, cid, genesis)
         cursor = await db.execute("SELECT revision, state FROM snapshots WHERE campaign=?", (cid,))
         caches = [(validation.integer(row[0]), row[1]) for row in await cursor.fetchall()]
         cursor = await db.execute(
@@ -225,35 +177,11 @@ class AsyncSQLiteStore:
             )
         return snapshots.materialize(checkpoint, events, [], through=through)
 
-    async def _import_narration(self, db: aiosqlite.Connection, cid: str) -> None:
-        cursor = await db.execute("SELECT 1 FROM narration_migrations WHERE campaign=?", (cid,))
-        if await cursor.fetchone() is not None:
-            return
-        cursor = await db.execute("SELECT state FROM campaigns WHERE id=?", (cid,))
-        row = await cursor.fetchone()
-        if row is not None:
-            try:
-                cached = snapshots.decode(row[0])
-            except ValueError, KeyError, TypeError, ValidationError:
-                cached = None
-            if cached is not None:
-                for index, message in enumerate(cached["messages"]):
-                    if "flavor" in message:
-                        await db.execute(
-                            "INSERT INTO narration_stream (campaign, revision, message_index, text) VALUES (?, ?, ?, ?) ON CONFLICT(campaign, message_index) DO NOTHING",
-                            (cid, 0, index, message["flavor"]),
-                        )
-        await db.execute(
-            "INSERT INTO narration_migrations (campaign) VALUES (?) ON CONFLICT(campaign) DO NOTHING",
-            (cid,),
-        )
-
     async def read(self, cid: str) -> Campaign:
         db = await self._connect()
         try:
             await db.execute("BEGIN IMMEDIATE")
             state = await self._read(db, cid, lock=True)
-            await self._import_narration(db, cid)
             cursor = await db.execute(
                 "SELECT message_index, text FROM narration_stream WHERE campaign=? AND revision<=? ORDER BY revision",
                 (cid, state["revision"]),
@@ -291,20 +219,11 @@ class AsyncSQLiteStore:
         )
         row = await cursor.fetchone()
         await cursor.close()
-        if row is not None:
-            if row[0] != digest:
-                raise ConflictError("Request ID already used for different input")
-            return await self._read(db, cid, through=validation.integer(row[1]))
-        cursor = await db.execute(
-            "SELECT payload FROM events WHERE campaign=? AND request_id=?", (cid, request_id)
-        )
-        row = await cursor.fetchone()
-        await cursor.close()
         if row is None:
             return None
-        if validation.mapping(validation.decode(row[0])).get("input") != text:
+        if row[0] != digest:
             raise ConflictError("Request ID already used for different input")
-        return await self._read(db, cid)
+        return await self._read(db, cid, through=validation.integer(row[1]))
 
     async def duplicate(self, cid: str, request_id: str, text: str) -> Campaign | None:
         db = await self._connect()
@@ -333,14 +252,12 @@ class AsyncSQLiteStore:
         try:
             await db.execute("BEGIN IMMEDIATE")
             state = await self._read(db, cid)
-            await self._import_narration(db, cid)
             duplicate = await self._duplicate(db, cid, request_id, text)
             if duplicate is not None:
                 await db.rollback()
                 return {"kind": "replayed", "state": duplicate}
             if state["revision"] != revision:
                 raise ConflictError("Campaign changed. Refresh before retrying.")
-            await self._ensure_stream(db, cid)
             before = deepcopy(state)
             resolved = resolve(state)
             event = resolved.receipt if isinstance(resolved, CommandResolution) else resolved
@@ -357,16 +274,13 @@ class AsyncSQLiteStore:
                 "INSERT INTO checkpoint_digests (campaign, revision, digest) VALUES (?, ?, ?) ON CONFLICT(campaign, revision) DO UPDATE SET digest=excluded.digest",
                 (cid, state["revision"], digest(document(state))),
             )
-            await db.execute(
-                "INSERT INTO events VALUES (?,?,?)", (cid, request_id, json.dumps(event))
-            )
             input_digest = payload_digest({"input": text})
             await db.execute(
                 """INSERT INTO command_log (
                     campaign, command_id, actor_id, expected_revision,
                     resulting_revision, payload_hash, rules_version,
-                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    schema_version, event, state_after, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     cid,
                     request_id,
@@ -379,7 +293,6 @@ class AsyncSQLiteStore:
                     json.dumps(event),
                     "{}",
                     entropy.seed if entropy else None,
-                    None,  # Retired engine_version column; retained for existing databases.
                     entropy.rng_algorithm if entropy else None,
                     recorded_at_us,
                     origin.model_dump_json() if origin else None,
@@ -411,7 +324,7 @@ class AsyncSQLiteStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
                    FROM command_log WHERE campaign=? ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -419,42 +332,32 @@ class AsyncSQLiteStore:
             await cursor.close()
             states = {state["revision"]: state for state, _ in await self.stream_states(cid)}
             return [
-                upcast_command(
-                    CommandRecord(
-                        campaign_id=cid,
-                        command_id=row[0],
-                        actor_id=row[1],
-                        expected_revision=row[2],
-                        resulting_revision=row[3],
-                        payload_hash=row[4],
-                        rules_version=row[5],
-                        schema_version=row[6],
-                        event=self._event(row[7]),
-                        state_after=states[validation.integer(row[3])],
-                        entropy_seed=row[9],
-                        rng_algorithm=row[11],
-                        recorded_at_us=row[12],
-                        command_input=row[14]
-                        if row[14] is not None
-                        else self._legacy_input(row[7]),
-                        scenario_boundary=ScenarioBoundary.model_validate_json(row[15])
-                        if row[15]
-                        else None,
-                        origin=CommandOrigin.model_validate_json(row[13])
-                        if row[13] is not None
-                        else None,
-                    )
+                CommandRecord(
+                    campaign_id=cid,
+                    command_id=row[0],
+                    actor_id=row[1],
+                    expected_revision=row[2],
+                    resulting_revision=row[3],
+                    payload_hash=row[4],
+                    rules_version=row[5],
+                    schema_version=row[6],
+                    event=self._event(row[7]),
+                    state_after=states[validation.integer(row[3])],
+                    entropy_seed=row[9],
+                    rng_algorithm=row[10],
+                    recorded_at_us=row[11],
+                    command_input=row[13],
+                    scenario_boundary=ScenarioBoundary.model_validate_json(row[14])
+                    if row[14]
+                    else None,
+                    origin=CommandOrigin.model_validate_json(row[12])
+                    if row[12] is not None
+                    else None,
                 )
                 for row in rows
             ]
         finally:
             await db.close()
-
-    @staticmethod
-    def _legacy_input(raw: str) -> str | None:
-        data = validation.mapping(validation.decode(raw))
-        value = data.get("input")
-        return validation.string(value) if value is not None else None
 
     @staticmethod
     def _event(raw: str) -> CommandReceipt:
@@ -515,38 +418,6 @@ class AsyncSQLiteStore:
                 ),
             )
 
-    async def _ensure_stream(self, db: aiosqlite.Connection, cid: str) -> None:
-        cursor = await db.execute("SELECT campaign FROM stream_genesis WHERE campaign=?", (cid,))
-        if await cursor.fetchone() is not None:
-            return
-        cursor = await db.execute(
-            "SELECT revision, state FROM snapshots WHERE campaign=? ORDER BY revision LIMIT 1",
-            (cid,),
-        )
-        initial = await cursor.fetchone()
-        if initial is None:
-            # Pre-event-store databases may have only their current campaign row.
-            # Preserve that explicit boundary; earlier state cannot be invented.
-            before = await self._cached(db, cid)
-            revision = before["revision"]
-        else:
-            revision = int(str(initial[0]))
-            before = snapshots.decode(initial[1])
-        await db.execute(
-            "INSERT INTO stream_genesis (campaign, revision, state) VALUES (?, ?, ?)",
-            (cid, revision, json.dumps(before)),
-        )
-        cursor = await db.execute(
-            "SELECT command_id, actor_id, resulting_revision, event, state_after FROM command_log WHERE campaign=? AND resulting_revision>? ORDER BY resulting_revision",
-            (cid, revision),
-        )
-        for row in await cursor.fetchall():
-            after = contracts.campaign(validation.decode(row[4]))
-            transcript = self._event(row[3])
-            events = command_events(before, after, transcript["action"], str(row[1]))
-            await self._append_events(db, cid, str(row[0]), int(str(row[2])), events)
-            before = after
-
     async def stream_states(
         self, cid: str, *, through: int | None = None
     ) -> list[tuple[Campaign, tuple[StoredEvent, ...]]]:
@@ -554,7 +425,6 @@ class AsyncSQLiteStore:
         db = await self._connect()
         try:
             await db.execute("BEGIN IMMEDIATE")
-            await self._ensure_stream(db, cid)
             cursor = await db.execute("SELECT state FROM stream_genesis WHERE campaign=?", (cid,))
             initial = await cursor.fetchone()
             assert initial is not None

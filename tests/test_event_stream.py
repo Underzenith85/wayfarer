@@ -19,7 +19,6 @@ from wayfarer.engine.simulation.events import (
     visible,
 )
 from wayfarer.errors import StorageError, ValidationError
-from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import fold
 
@@ -75,50 +74,6 @@ async def test_stream_append_failure_rolls_back_everything(tmp_path: Path) -> No
     assert await play.store.read(cid) == before
     assert await play.store.history(cid) == []
     assert await play.store.stream(cid) == []
-
-
-async def test_retired_engine_version_does_not_gate_reexecution(tmp_path: Path) -> None:
-    cid, play = await prepare(tmp_path)
-    play = PlayService(play.store, play.engine)
-    assert isinstance(play.store, AsyncSQLiteStore)
-    await play.execute(
-        cid,
-        Wait(id="unversioned", actor_id="a", expected_revision=0, ticks=1),
-        authenticated_actor_id="a",
-    )
-    with sqlite3.connect(play.store.path) as db:
-        assert db.execute("SELECT engine_version FROM command_log").fetchone() == (None,)
-        db.execute("UPDATE command_log SET engine_version='retired'")
-    record = (await play.store.history(cid))[0]
-    assert record.reexecutable
-    from dataclasses import asdict
-
-    assert "engine_version" not in asdict(record)
-
-
-async def test_old_logs_backfill_once_and_fold_without_command_snapshots(tmp_path: Path) -> None:
-    cid, play = await prepare(tmp_path)
-    assert isinstance(play.store, AsyncSQLiteStore)
-    await play.execute(
-        cid, Wait(id="old", actor_id="a", expected_revision=0, ticks=1), authenticated_actor_id="a"
-    )
-    expected = await play.store.read(cid)
-    with sqlite3.connect(play.store.path) as db:
-        # Model a real pre-stream receipt: only legacy writers stored state_after.
-        db.execute("UPDATE command_log SET state_after=?", (json.dumps(expected),))
-        db.execute("DROP TABLE event_stream")
-        db.execute("DROP TABLE stream_genesis")
-        db.execute(
-            "UPDATE command_log SET entropy_seed=NULL, engine_version=NULL, rng_algorithm=NULL"
-        )
-    first = await play.store.stream(cid)
-    assert first == await play.store.stream(cid)
-    assert (await play.store.history(cid))[0].reexecutable is False
-    # Once migrated, the stream does not read the per-command snapshot column.
-    with sqlite3.connect(play.store.path) as db:
-        db.execute("UPDATE command_log SET state_after='{}'")
-        db.execute("DELETE FROM snapshots")
-    assert document((await play.store.stream_states(cid))[-1][0]) == document(expected)
 
 
 async def test_capture_and_rescuer_events_have_separate_audiences(tmp_path: Path) -> None:
@@ -178,7 +133,6 @@ async def test_action_engine_event_list_folds_without_a_persistence_callback(
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_new_receipts_never_write_transcript_fields(tmp_path: Path, backend: str) -> None:
-    from test_snapshot_cache import sql
 
     cid, play = await prepare(tmp_path, backend=backend)
     await play.execute(
@@ -196,12 +150,6 @@ async def test_new_receipts_never_write_transcript_fields(tmp_path: Path, backen
     saved = json.loads(payload) if isinstance(payload, str) else payload
     assert isinstance(saved, dict) and set(saved) == {"action", "outcome"}
     assert rows[0][1] == 2 and rows[0][2]
-    legacy = {**saved, "input": str(rows[0][2]), "roll": None}
-    await sql(
-        play.store,
-        "UPDATE command_log SET event=?, schema_version=1, command_input=NULL WHERE campaign=?",
-        (json.dumps(legacy), cid),
-    )
     record = (await play.store.history(cid))[0]
     assert record.schema_version == 2 and record.command_input == rows[0][2]
     assert set(record.event) == {"action", "outcome"}

@@ -6,16 +6,15 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Literal
 
-from pydantic import Field, JsonValue, TypeAdapter, model_validator
+from pydantic import Field, JsonValue, model_validator
 
-from wayfarer import contracts, validation
+from wayfarer import contracts
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM
 from wayfarer.engine.simulation.campaign.scenario_loading import ScenarioBoundary
 from wayfarer.engine.simulation.campaign.scenario_references import boundary
 from wayfarer.engine.simulation.events import EngineEvent, document, fold_document
 from wayfarer.models import Record
-from wayfarer.persistence.upcasters import UpcasterRegistry
 
 EVENT_SCHEMA_VERSION = 1
 COMMAND_SCHEMA_VERSION = 2
@@ -100,31 +99,6 @@ class StoredEvent:
 class CommandResolution:
     receipt: CommandReceipt
     events: list[EngineEvent]
-
-
-def retire_transcript(row: dict[str, object]) -> dict[str, object]:
-    """Read the retained v1 receipt without making a second source of input/dice."""
-    event = validation.mapping(row["event"])
-    if row.get("command_input") is None and "input" in event:
-        row["command_input"] = event["input"]
-    row["event"] = {
-        "action": contracts.event_action(event["action"]),
-        "outcome": validation.string(event["outcome"]),
-    }
-    return row
-
-
-COMMAND_UPCASTERS = UpcasterRegistry(
-    {"command": COMMAND_SCHEMA_VERSION}, {("command", 1): retire_transcript}
-)
-_COMMAND_ADAPTER = TypeAdapter(CommandRecord)
-
-
-def upcast_command(record: CommandRecord) -> CommandRecord:
-    raw = validation.mapping(validation.decode(_COMMAND_ADAPTER.dump_json(record).decode()))
-    row = COMMAND_UPCASTERS.read("command", record.schema_version, raw)
-    row["schema_version"] = COMMAND_UPCASTERS.current["command"]
-    return _COMMAND_ADAPTER.validate_json(json.dumps(row))
 
 
 def command_scenario(campaign: Campaign) -> str | None:
