@@ -11,6 +11,7 @@ import json
 import secrets
 
 from wayfarer.engine.simulation.events import visible
+from wayfarer.orchestration.providers import ProviderWork
 
 from .common import Fault, Obj, array, encoded, obj, uid
 from .ledger import Transaction
@@ -200,7 +201,7 @@ async def narrate(service: V1Service, principal: str, action: Obj, context: Obj)
             raise ValueError("Invalid narration")
         return json.dumps({"text": text})
 
-    job = await service.jobs.submit(
+    work = ProviderWork(
         cid=cid,
         revision=revision,
         principal=principal,
@@ -210,8 +211,9 @@ async def narrate(service: V1Service, principal: str, action: Obj, context: Obj)
         request_json=json.dumps(context),
         run=run,
     )
-    await service.jobs.result(job)
-    for published in await service.jobs.store.outbox(cid, principal, str(request["actor_id"])):
-        if published.id == job.id and published.result_json:
+    process = await service.processes.run(work.kind, work)
+    await service.processes.result(process)
+    for published in await service.processes.store.outbox(cid, principal, str(request["actor_id"])):
+        if published.id == process.id and published.result_json:
             return str(obj(json.loads(published.result_json))["text"])
     raise ValueError("Narration is not published")

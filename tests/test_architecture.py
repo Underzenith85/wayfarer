@@ -108,7 +108,7 @@ RETIRED_PRINCIPAL_SPELLINGS = frozenset(
 # The store handles belong to the runtime. ``persistence`` builds them, the three
 # composition roots wire them, and nothing else names a store constructor.
 STORE_CONSTRUCTORS = frozenset(
-    {"AsyncSQLiteStore", "AsyncPostgresStore", "CatalogStore", "JobStore"}
+    {"AsyncSQLiteStore", "AsyncPostgresStore", "CatalogStore", "ProcessStore"}
 )
 STORE_OWNERS = frozenset({"runtime.py", "adventures/runtime.py", "orchestration/runtime.py"})
 # Nothing outside persistence and the composition roots opens a store (#634 emptied
@@ -915,7 +915,7 @@ assert 'wayfarer.engine.simulation.rules_context' not in sys.modules
     def test_orchestration_holds_no_module_level_runtime_state(self) -> None:
         """#631: a registry or a worker belongs to a runtime, never to the process."""
         package = Path(wayfarer.__file__).parent
-        owned = {"SessionRegistry", "ProviderJobs", "WeakKeyDictionary"}
+        owned = {"SessionRegistry", "ProcessRegistry", "WeakKeyDictionary"}
         for source in sorted((package / "orchestration").rglob("*.py")):
             tree = ast.parse(source.read_text())
             # A constructor inside a function body runs per instance; one outside

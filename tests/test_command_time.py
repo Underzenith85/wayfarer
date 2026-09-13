@@ -91,7 +91,7 @@ async def test_saved_invitation_claim_resumes_after_expiry(
     _, cid, hosted = api
     now = [CommandInstant(1_000_000_000)]
     service = V1Service(
-        hosted.runtime, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now)
+        hosted.runtime, hosted.ledger.path, processes=hosted.processes, instants=scripted(now)
     )
     await service.start()
     async with service.ledger.transaction(instant=now[0]) as tx:
@@ -116,7 +116,10 @@ async def test_saved_invitation_claim_resumes_after_expiry(
         seeds=hosted.play.seeds,
     )
     broken = V1Service(
-        build_runtime(crashing), hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now)
+        build_runtime(crashing),
+        hosted.ledger.path,
+        processes=hosted.processes,
+        instants=scripted(now),
     )
     await broken.start()
     try:
@@ -126,7 +129,7 @@ async def test_saved_invitation_claim_resumes_after_expiry(
         await broken.close()
     now[0] = CommandInstant(2_000_000_000)
     restarted = V1Service(
-        hosted.runtime, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now)
+        hosted.runtime, hosted.ledger.path, processes=hosted.processes, instants=scripted(now)
     )
     await restarted.start()
     try:

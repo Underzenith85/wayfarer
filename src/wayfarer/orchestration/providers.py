@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import Field
@@ -25,6 +26,7 @@ from wayfarer.models import Record
 from wayfarer.orchestration.commands import parse as parse_command
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.orchestration.party import PartyCommand
+from wayfarer.orchestration.processes import Identity, Job, ProcessKind, Step
 from wayfarer.orchestration.provider_contracts import (
     CampaignContext,
     ProviderReply,
@@ -33,6 +35,68 @@ from wayfarer.orchestration.provider_contracts import (
     Usage,
 )
 from wayfarer.persistence.events import CommandOrigin
+from wayfarer.persistence.processes import Process
+
+
+@dataclass(frozen=True)
+class ProviderWork:
+    """One provider call, as the process that owns it sees it.
+
+    The callable is the work; the rest is what makes two submissions the same
+    call. A narration is one per campaign revision and audience, so its identity
+    ignores the request: a second attempt reads the first one's result. A proposal
+    keys on its own request, so reusing a key with different input is a conflict.
+    """
+
+    cid: str
+    revision: int
+    principal: str
+    actor: str
+    kind: Literal["narration", "proposal"]
+    key: str
+    request_json: str
+    run: Job
+
+
+def provider_identity(value: object) -> Identity:
+    if not isinstance(value, ProviderWork):
+        raise ValidationError("Provider process requires provider work")
+    named = json.dumps(
+        (
+            value.cid,
+            value.revision,
+            value.principal,
+            value.actor,
+            value.kind,
+            "narration" if value.kind == "narration" else value.key,
+        )
+    )
+    digest = hashlib.sha256(named.encode()).hexdigest()
+    return Identity(
+        id=digest,
+        scope=value.cid,
+        principal_id=value.principal,
+        actor_id=value.actor,
+        key=value.key,
+        input_digest=digest
+        if value.kind == "narration"
+        else hashlib.sha256(value.request_json.encode()).hexdigest(),
+    )
+
+
+async def provider_step(process: Process, value: object) -> Step:
+    """Call the provider once, then finish with what it returned."""
+    if isinstance(value, ProviderWork):
+        return Step(state=json.dumps({"stage": "calling"}), job=value.run)
+    if not isinstance(value, str):
+        raise ValidationError("Provider process expects a provider result")
+    return Step(state=json.dumps({"stage": "complete"}), done=True, result=value)
+
+
+PROVIDER_KINDS = (
+    ProcessKind(name="narration", identity=provider_identity, step=provider_step, steps=2),
+    ProcessKind(name="proposal", identity=provider_identity, step=provider_step, steps=2),
+)
 
 
 class ResponsesProvider:
@@ -194,7 +258,7 @@ class Orchestrator:
             raise ValueError("Invalid provider bounds")
 
         self.access, self.provider = access, provider
-        self.jobs = access.jobs
+        self.processes = access.processes
         self.timeout, self.attempts = timeout, attempts
         self.telemetry: list[ProviderTelemetry] = []
         # Usage is telemetry, not a lifetime cutoff for this long-running service.
@@ -213,7 +277,7 @@ class Orchestrator:
         async def run() -> str:
             return (await self._reply(request)).model_dump_json()
 
-        job = await self.jobs.submit(
+        work = ProviderWork(
             cid=cid,
             revision=revision,
             principal=principal,
@@ -223,7 +287,8 @@ class Orchestrator:
             request_json=request.model_dump_json(),
             run=run,
         )
-        return ProviderReply.model_validate_json(await self.jobs.result(job))
+        process = await self.processes.run(work.kind, work)
+        return ProviderReply.model_validate_json(await self.processes.result(process))
 
     async def queue_narration(
         self,
@@ -238,7 +303,7 @@ class Orchestrator:
         async def run() -> str:
             return Narration.model_validate_json(await self._call(request)).model_dump_json()
 
-        await self.jobs.submit(
+        work = ProviderWork(
             cid=cid,
             revision=revision,
             principal=principal,
@@ -248,6 +313,7 @@ class Orchestrator:
             request_json=request.model_dump_json(),
             run=run,
         )
+        await self.processes.run(work.kind, work)
 
     async def _call(self, request: ProviderRequest) -> str:
         return (await self._reply(request)).payload_json

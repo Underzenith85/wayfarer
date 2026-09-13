@@ -19,8 +19,9 @@ from wayfarer.errors import (
     provider_diagnostic,
 )
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
-from wayfarer.orchestration.jobs import ProviderJobs
 from wayfarer.orchestration.origins import origin_scope
+from wayfarer.orchestration.processes import ProcessRegistry
+from wayfarer.orchestration.providers import ProviderWork
 from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.scenes import SceneService
 from wayfarer.persistence.events import CommandOrigin
@@ -46,14 +47,14 @@ class V1Service:
         runtime: CampaignRuntime,
         path: Path,
         *,
-        jobs: ProviderJobs,
+        processes: ProcessRegistry,
         instants: Callable[[], CommandInstant] = capture_instant,
         tick_ms: int = 1000,
         weight_grams: int = 1,
     ) -> None:
         self.runtime, self.play, self.instants = runtime, runtime.play, instants
         self.ledger = Ledger(path, instants=instants)
-        self.jobs = jobs
+        self.processes = processes
         self.tick_ms, self.weight_grams = tick_ms, weight_grams
         self.projector: Projector
         self.interpret: Interpreter | None = None
@@ -61,7 +62,7 @@ class V1Service:
         self.tasks: set[asyncio.Task[None]] = set()
 
     async def start(self) -> None:
-        await self.jobs.start()
+        await self.processes.start()
         async with self.ledger.transaction() as tx:
             config = await tx.get("config")
             if config is None:
@@ -85,7 +86,7 @@ class V1Service:
         for task in self.tasks:
             task.cancel()
         await asyncio.gather(*self.tasks, return_exceptions=True)
-        await self.jobs.close()
+        await self.processes.close()
 
     def schedule(self, aid: str) -> None:
         task = asyncio.create_task(self.resolve(aid))
@@ -323,7 +324,7 @@ class V1Service:
                         )
                     return json.dumps({"intent": interpreted, "origin": None})
 
-                job = await self.jobs.submit(
+                work = ProviderWork(
                     cid=cid,
                     revision=view.state.revision,
                     principal=principal,
@@ -333,7 +334,8 @@ class V1Service:
                     request_json=json.dumps({"context": context, "prompt": prompt}),
                     run=propose,
                 )
-                proposal = obj(json.loads(await self.jobs.result(job)))
+                process = await self.processes.run(work.kind, work)
+                proposal = obj(json.loads(await self.processes.result(process)))
                 intent = obj(proposal["intent"])
                 origin = (
                     CommandOrigin.model_validate(proposal["origin"]) if proposal["origin"] else None

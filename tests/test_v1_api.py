@@ -189,7 +189,7 @@ async def test_concurrent_retry_stale_and_restart_receipts(api: tuple[str, str, 
             root + "/actions", json={**request, "command_id": uid()}
         ) as response:
             assert response.status == 409
-        restarted = V1Service(service.runtime, service.ledger.path, jobs=service.jobs)
+        restarted = V1Service(service.runtime, service.ledger.path, processes=service.processes)
         await restarted.start()
         try:
             replay = await restarted.submit(
@@ -448,7 +448,7 @@ async def test_recover_after_engine_commit_before_receipt_finalization(
             assert record is not None
             service.transition(record, "resolving", at=tx.instant.isoformat())
             await tx.put("action:" + aid, record)
-        restarted = V1Service(service.runtime, service.ledger.path, jobs=service.jobs)
+        restarted = V1Service(service.runtime, service.ledger.path, processes=service.processes)
         await restarted.start()
         try:
             restored = await finish(client, root, action)
@@ -609,7 +609,7 @@ async def test_configured_scene_travel_uses_scene_engine(tmp_path: Path) -> None
 
     cid, play, _ = await setup(tmp_path)
     service = V1Service(
-        build_runtime(play), tmp_path / "travel-v1.sqlite", jobs=job_worker(play.store)
+        build_runtime(play), tmp_path / "travel-v1.sqlite", processes=job_worker(play.store)
     )
     await service.start()
     try:

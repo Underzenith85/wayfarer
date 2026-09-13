@@ -26,9 +26,10 @@ from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import World
 from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.entropy import SeedSource
-from wayfarer.orchestration.jobs import ProviderJobs
 from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.process_kinds import registered
+from wayfarer.orchestration.processes import ProcessRegistry
 from wayfarer.orchestration.provider_contracts import StructuredProvider
 from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.runtime import CampaignRuntime, CampaignStores
@@ -67,9 +68,9 @@ def open_store(
     return AsyncSQLiteStore(tmp_path / filename, 10)
 
 
-def job_worker(store: Store, *, partition: str = "default") -> ProviderJobs:
+def job_worker(store: Store, *, partition: str = "default") -> ProcessRegistry:
     """A provider-job worker over its own handles; two of them model a restart."""
-    return ProviderJobs(CampaignStores.on(store).jobs, partition=partition)
+    return registered(ProcessRegistry(CampaignStores.on(store).processes, partition=partition))
 
 
 def build_play(

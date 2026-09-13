@@ -500,8 +500,8 @@ class DirectorService:
         cid = request.cid
         principal_id = request.principal_id
         narration, available = turn.narration, turn.narration_available
-        await self.llm.jobs.start()
-        for job in await self.llm.jobs.store.outbox(cid, principal_id, request.actor_id):
+        await self.llm.processes.start()
+        for job in await self.llm.processes.store.outbox(cid, principal_id, request.actor_id):
             if job.kind == "narration" and job.key == request.command_id and job.result_json:
                 narration, available = Narration.model_validate_json(job.result_json).text, True
         return TurnResponse(

@@ -53,6 +53,12 @@ class CatalogStore:
                 state_after TEXT NOT NULL, PRIMARY KEY(principal, command_id))""")
             await connection.query("""CREATE TABLE IF NOT EXISTS scenario_generation_jobs (
                 id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, state TEXT NOT NULL)""")
+            await connection.query("""CREATE TABLE IF NOT EXISTS processes (
+                id TEXT PRIMARY KEY, kind TEXT NOT NULL, scope TEXT NOT NULL,
+                principal_id TEXT NOT NULL, actor_id TEXT NOT NULL, state TEXT NOT NULL)""")
+            await connection.query("""CREATE TABLE IF NOT EXISTS provider_outbox (
+                job_id TEXT PRIMARY KEY, campaign_id TEXT NOT NULL,
+                principal_id TEXT NOT NULL, actor_id TEXT NOT NULL)""")
             yield connection
             await db.commit()
         except (aiosqlite.Error, psycopg.Error) as exc:
