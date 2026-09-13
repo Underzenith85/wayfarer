@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import wire_weight
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.runtime import CampaignRuntime
 
 from .common import Fault, Obj, encoded, validate
 
@@ -30,9 +31,9 @@ class View:
 
 class Projector:
     def __init__(
-        self, play: PlayService, secret: str, *, tick_ms: int = 1000, weight_grams: int = 1
+        self, runtime: CampaignRuntime, secret: str, *, tick_ms: int = 1000, weight_grams: int = 1
     ) -> None:
-        self.play, self.secret = play, secret.encode()
+        self.runtime, self.secret = runtime, secret.encode()
         self.tick_ms, self.weight_grams = tick_ms, weight_grams
         self.text_enabled = False
 
@@ -49,8 +50,8 @@ class Projector:
     ) -> View:
         if "play_json" not in raw:
             raise Fault(404, "not_found")
-        play = self.play.for_campaign(raw)
-        state = play._load(raw)
+        runtime = self.runtime.bound(raw)
+        play, state = runtime.play, runtime.load(raw)
         member = next((m for m in state.members if m.principal_id == principal), None)
         if member is None:
             raise Fault(404, "not_found")
@@ -148,7 +149,7 @@ class Projector:
                     },
                 ),
             )
-            build = play.engine.reviewer.review(actor.proposal).compilation.build
+            build = runtime.review(actor.proposal).compilation.build
             if build is None:
                 raise Fault(503, "service_unavailable")
             stats = [

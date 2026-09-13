@@ -18,7 +18,7 @@ from wayfarer.config import Settings
 from wayfarer.orchestration.catalog import GeneratedScenarioGraph
 from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 from wayfarer.runtime import create_runtime_app, starting_scenario
-from wayfarer.transport.common import ACCESS_KEY, ORCHESTRATOR_KEY
+from wayfarer.transport.common import ORCHESTRATOR_KEY, RUNTIME_KEY
 from wayfarer.transport.setup_api import SETUP_KEY
 
 PREFIX = "/authoring/v1/scenarios"
@@ -46,7 +46,7 @@ async def test_generation_publishes_safe_provider_diagnostic(tmp_path: Path) -> 
 
     config = settings(tmp_path)
     app = create_runtime_app(config, config.frontend_dir)
-    app[ORCHESTRATOR_KEY] = build_orchestrator(app[ACCESS_KEY], Unavailable(), attempts=1)
+    app[ORCHESTRATOR_KEY] = build_orchestrator(app[RUNTIME_KEY], Unavailable(), attempts=1)
     async with TestClient(TestServer(app)) as client:
         response = await client.post(
             PREFIX + "/generation-jobs",
@@ -172,7 +172,7 @@ async def test_catalog_restart_revisions_isolation(config: Settings) -> None:
         for game in (game1, game2):
             from wayfarer.engine.simulation.campaign.scenario_references import boundary, verify
 
-            saved = await client.app[ACCESS_KEY].play.store.read(str(game["id"]))
+            saved = await client.app[RUNTIME_KEY].play.store.read(str(game["id"]))
             pin = boundary(saved)
             assert pin is not None and pin.reference.catalog_id == cid
             assert pin.reference.revision == 1 and pin.published is not None
@@ -295,7 +295,7 @@ async def test_guided_generation_is_recoverable_and_never_overwrites_edits(
             return ProviderReply(payload_json=graph.model_dump_json(), usage=Usage())
 
     app = create_runtime_app(config, config.frontend_dir)
-    app[ORCHESTRATOR_KEY] = build_orchestrator(app[ACCESS_KEY], Provider())
+    app[ORCHESTRATOR_KEY] = build_orchestrator(app[RUNTIME_KEY], Provider())
     async with TestClient(TestServer(app)) as client:
         catalog_before_generation = await (await client.get(PREFIX, headers=HEADERS)).json()
         request = {
@@ -347,7 +347,7 @@ async def test_guided_generation_keeps_an_earlier_portable_candidate(config: Set
 
     provider = Provider()
     app = create_runtime_app(config, config.frontend_dir)
-    app[ORCHESTRATOR_KEY] = build_orchestrator(app[ACCESS_KEY], provider)
+    app[ORCHESTRATOR_KEY] = build_orchestrator(app[RUNTIME_KEY], provider)
     async with TestClient(TestServer(app)) as client:
         response = await client.post(
             PREFIX + "/generation-jobs",
@@ -385,7 +385,7 @@ async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -
             return ProviderReply(payload_json=starting_scenario().model_dump_json(), usage=Usage())
 
     app = create_runtime_app(config, config.frontend_dir)
-    app[ORCHESTRATOR_KEY] = build_orchestrator(app[ACCESS_KEY], Provider())
+    app[ORCHESTRATOR_KEY] = build_orchestrator(app[RUNTIME_KEY], Provider())
     async with TestClient(TestServer(app)) as client:
         response = await client.post(
             PREFIX + "/generation-jobs",

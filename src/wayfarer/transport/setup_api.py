@@ -7,11 +7,11 @@ from aiohttp import web
 from wayfarer.engine.simulation.campaign.profiles import ProfileSelection
 from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
-from wayfarer.errors import AuthorizationError, ValidationError
+from wayfarer.errors import ValidationError
 from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.profiles import ProfileMigrations
 from wayfarer.orchestration.setup import SetupService
-from wayfarer.orchestration.workshop_options import CharacterPreviewRequest, preview_character
+from wayfarer.orchestration.workshop_options import CharacterPreviewRequest
 from wayfarer.persistence.catalog import CatalogStore
 from wayfarer.transport.catalog_api import install as install_catalog
 from wayfarer.transport.common import (
@@ -88,17 +88,11 @@ async def profiles(request: web.Request) -> web.Response:
 async def character_preview(request: web.Request) -> web.Response:
 
     service = request.app[SETUP_KEY]
-    campaign = await service.play.store.read(request.match_info["cid"])
-    setup = service.load(campaign)
-    principal = _identity(request)
-    service.seat(setup, principal)
-    if setup.host_id != principal:
-        raise AuthorizationError("Only the host edits the setup party")
     body = CharacterPreviewRequest.model_validate_json(json.dumps(await _json(request)))
-    play = service.play.for_campaign(campaign)
-    return web.json_response(
-        preview_character(play.engine.reviewer, body.proposal).model_dump(mode="json")
+    result = await service.preview(
+        request.match_info["cid"], body.proposal, principal_id=_identity(request)
     )
+    return web.json_response(result.model_dump(mode="json"))
 
 
 def _migrations(request: web.Request) -> ProfileMigrations:

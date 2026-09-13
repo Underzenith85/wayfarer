@@ -189,7 +189,7 @@ async def test_concurrent_retry_stale_and_restart_receipts(api: tuple[str, str, 
             root + "/actions", json={**request, "command_id": uid()}
         ) as response:
             assert response.status == 409
-        restarted = V1Service(service.play, service.ledger.path, jobs=service.jobs)
+        restarted = V1Service(service.runtime, service.ledger.path, jobs=service.jobs)
         await restarted.start()
         try:
             replay = await restarted.submit(
@@ -448,7 +448,7 @@ async def test_recover_after_engine_commit_before_receipt_finalization(
             assert record is not None
             service.transition(record, "resolving", at=tx.instant.isoformat())
             await tx.put("action:" + aid, record)
-        restarted = V1Service(service.play, service.ledger.path, jobs=service.jobs)
+        restarted = V1Service(service.runtime, service.ledger.path, jobs=service.jobs)
         await restarted.start()
         try:
             restored = await finish(client, root, action)
@@ -608,7 +608,9 @@ async def test_configured_scene_travel_uses_scene_engine(tmp_path: Path) -> None
     from test_scenes import setup
 
     cid, play, _ = await setup(tmp_path)
-    service = V1Service(play, tmp_path / "travel-v1.sqlite", jobs=job_worker(play.store))
+    service = V1Service(
+        build_runtime(play), tmp_path / "travel-v1.sqlite", jobs=job_worker(play.store)
+    )
     await service.start()
     try:
         async with service.ledger.transaction() as tx:
@@ -737,7 +739,7 @@ async def test_capabilities_name_only_the_actions_the_engine_executes(
         (actor_setup(),),
         (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),),
     )
-    view = Projector(play, "secret").make(
+    view = Projector(build_runtime(play), "secret").make(
         await play.store.read(initial["id"]), "alice", "1970-01-01T00:00:00Z"
     )
     # Without authored checks or consumables both kinds answer unsupported_action.

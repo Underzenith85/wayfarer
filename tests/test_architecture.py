@@ -1110,3 +1110,31 @@ def test_genesis_is_written_only_by_commit_genesis() -> None:
                     owner = node.func.value
                     name = owner.attr if isinstance(owner, ast.Attribute) else owner.id
                     assert name != "store", f"{source}:{node.lineno}"
+
+
+# Transport modules that still reach past the runtime, with what each names today.
+# #637 moved every campaign read behind the projection registry; the v1 modules
+# keep their own ledger and lifecycle until #641 moves both. Shrink only.
+TRANSPORT_REACH_ALLOWLIST = frozenset(
+    {"v1/service.py", "v1/invitations.py", "v1/outbox.py", "v1/http.py"}
+)
+# Attribute names that mean a transport module is doing orchestration's work.
+TRANSPORT_FORBIDDEN = frozenset({"_load", "stream_states", "reviewer"})
+
+
+def test_transport_does_not_reach_past_the_runtime() -> None:
+    """#637: a route asks the runtime for a projection; it does not run the engine."""
+    package = Path(wayfarer.__file__).parent / "transport"
+    for source in sorted(package.rglob("*.py")):
+        relative = str(source.relative_to(package))
+        if relative in TRANSPORT_REACH_ALLOWLIST:
+            continue
+        tree = ast.parse(source.read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute):
+                assert node.attr not in TRANSPORT_FORBIDDEN, f"{relative}:{node.lineno}"
+                # The campaign store is the runtime's; a catalog or job store is not.
+                if node.attr == "store" and isinstance(node.value, ast.Attribute):
+                    assert node.value.attr != "play", f"{relative}:{node.lineno}"
+            if isinstance(node, ast.ImportFrom):
+                assert "commit_command" not in {a.name for a in node.names}, relative

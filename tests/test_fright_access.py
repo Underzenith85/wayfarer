@@ -13,8 +13,8 @@ from wayfarer.engine.simulation.health.fright import effects, public_id
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
+from wayfarer.orchestration.views import campaign_view
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
@@ -68,9 +68,7 @@ async def test_lasting_choice_visible_after_recovery_and_restart(tmp_path: Path)
     state = play._load(await play.store.read(cid))
     assert state.actors == before.actors
     assert (
-        CampaignRuntime.view(state, CampaignMember(principal_id="observer", role="spectator"))[
-            "fright"
-        ]
+        campaign_view(state, CampaignMember(principal_id="observer", role="spectator"))["fright"]
         == ()
     )
     events = await access.events(cid, principal_id="alice")

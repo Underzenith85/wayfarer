@@ -18,7 +18,7 @@ from wayfarer.engine.simulation.resources import Consume, ResourceState, Transfe
 from wayfarer.errors import ProviderError
 from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 from wayfarer.orchestration.providers import Orchestrator
-from wayfarer.transport.common import ACCESS_KEY
+from wayfarer.transport.common import RUNTIME_KEY
 
 
 @given(st.lists(st.integers(min_value=1, max_value=5), min_size=1, max_size=15))
@@ -165,7 +165,7 @@ async def test_reference_concurrent_writers_and_lost_response_replay(tmp_path: P
         await table.restart()
         await table.request(f"/campaigns/{table.cid}/commands", winner)
         assert await table.state() == after
-        store = table.client.app[ACCESS_KEY].play.store
+        store = table.client.app[RUNTIME_KEY].play.store
         assert await store.replay(table.cid) == await store.read(table.cid)
     finally:
         await table.close()

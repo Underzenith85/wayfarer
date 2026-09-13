@@ -18,7 +18,7 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.health.fright import TimedFright, effects, public_id, save
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.runtime import CampaignRuntime
+from wayfarer.orchestration.views import campaign_view
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
@@ -100,10 +100,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     assert projected["proposal_id"] and projected["build_approval_required"]
     state = play._load(await play.store.read(cid))
     assert (
-        CampaignRuntime.view(state, CampaignMember(principal_id="watch", role="spectator"))[
-            "fright"
-        ]
-        == ()
+        campaign_view(state, CampaignMember(principal_id="watch", role="spectator"))["fright"] == ()
     )
     approval = {
         "id": "approve",

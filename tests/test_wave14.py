@@ -14,7 +14,7 @@ from wayfarer.adventures.runtime import application
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.orchestration.setup import SetupService
-from wayfarer.transport.common import ACCESS_KEY
+from wayfarer.transport.common import RUNTIME_KEY
 from wayfarer.transport.setup_api import SETUP_KEY
 
 
@@ -37,7 +37,7 @@ class Table:
 
     async def open(self) -> None:
         app = application(self.path, {"alice-token": "alice", "bob-token": "bob", "gm-token": "gm"})
-        app[ACCESS_KEY].play.rng = self.dice
+        app[RUNTIME_KEY].play.rng = self.dice
         self.client = TestClient(TestServer(app))
         await self.client.start_server()
 
@@ -135,7 +135,7 @@ class Table:
 
     async def state(self) -> PlayState:
         assert self.client
-        campaign = await self.client.app[ACCESS_KEY].play.store.read(self.cid)
+        campaign = await self.client.app[RUNTIME_KEY].play.store.read(self.cid)
         return PlayState.model_validate_json(campaign["play_json"])
 
     async def finish(self, expected: str) -> None:
@@ -145,7 +145,7 @@ class Table:
         assert self.client
         snapshot = (
             self.client.app[SETUP_KEY]
-            .load(await self.client.app[ACCESS_KEY].play.store.read(self.cid))
+            .load(await self.client.app[RUNTIME_KEY].play.store.read(self.cid))
             .adventures[0]
         )
         assert snapshot.state.objectives.outcome == expected
@@ -164,9 +164,9 @@ class Table:
         assert after.advancement == rewards
         assert after.resources.pools == state.resources.pools
         assert self.client
-        campaign = await self.client.app[ACCESS_KEY].play.store.read(self.cid)
+        campaign = await self.client.app[RUNTIME_KEY].play.store.read(self.cid)
         assert SetupService.load(campaign).adventures == (snapshot,)
-        store = self.client.app[ACCESS_KEY].play.store
+        store = self.client.app[RUNTIME_KEY].play.store
         assert await store.replay(self.cid) == campaign
         from wayfarer.engine.simulation.events import document
 
@@ -236,8 +236,8 @@ async def test_reference_artifact_roundtrip_and_generated_validation(tmp_path: P
     try:
         assert table.client
         studio = ScenarioStudio(
-            table.client.app[ACCESS_KEY].play,
-            npc_reviewer=table.client.app[ACCESS_KEY].play.engine.reviewer,
+            table.client.app[RUNTIME_KEY].play,
+            npc_reviewer=table.client.app[RUNTIME_KEY].play.engine.reviewer,
         )
         graph = ScenarioGraph.model_validate_json(adventure().model_dump_json())
         assert graph == build_adventure()
@@ -475,7 +475,7 @@ async def test_reference_generated_fixture_uses_public_generation_and_persists(
 
     app = application(tmp_path / "generated.sqlite", {"alice-token": "alice"})
     provider = ReferenceProvider()
-    app[ORCHESTRATOR_KEY] = build_orchestrator(app[ACCESS_KEY], provider)
+    app[ORCHESTRATOR_KEY] = build_orchestrator(app[RUNTIME_KEY], provider)
     app.router.add_post("/setups/{cid}/generate", generate)
     async with TestClient(TestServer(app)) as client:
         headers = {"Authorization": "Bearer alice-token"}
@@ -491,6 +491,6 @@ async def test_reference_generated_fixture_uses_public_generation_and_persists(
         second = await client.post(f"/setups/{cid}/generate", json=body, headers=headers)
         assert await first.json() == await second.json()
         assert len(provider.requests) == 1
-        saved = await app[ACCESS_KEY].play.store.read(cid)
+        saved = await app[RUNTIME_KEY].play.store.read(cid)
         assert "play_json" not in saved
         assert SetupService.load(saved).graph == adventure()

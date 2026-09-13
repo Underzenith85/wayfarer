@@ -46,12 +46,11 @@ from wayfarer.orchestration.tactical_view import (
     TacticalSnapshot,
     project,
     snapshot,
-    visible_actors,
 )
 from wayfarer.orchestration.tactical_view import (
     choices as tactical_choices,
 )
-from wayfarer.transport.common import ACCESS_KEY, _identity, _json
+from wayfarer.transport.common import RUNTIME_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
 from wayfarer.transport.tactical_v1_commands import MigrateEncounterHex as MigrateEncounterHexV1
 from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1
@@ -92,14 +91,14 @@ class TacticalRequestV2(Record):
 
 async def read(request: web.Request) -> web.Response:
     result = await snapshot(
-        request.app[ACCESS_KEY],
+        request.app[RUNTIME_KEY],
         request.match_info["cid"],
         _identity(request),
         request.query.get("actor_id", ""),
     )
     if request.path.startswith("/api/tactical/v2/"):
-        runtime = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-        state = runtime.play._load(await runtime.play.store.read(request.match_info["cid"]))
+        runtime = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
+        state = await runtime.checkpoint(request.match_info["cid"])
         member = runtime.member(state, _identity(request))
         runtime.control(member, result.actor_id)
         result = enrich(
@@ -275,8 +274,8 @@ def enrich(
 
 async def execute(request: web.Request) -> web.Response:
     cid, principal = request.match_info["cid"], _identity(request)
-    access = await request.app[ACCESS_KEY].for_campaign(cid)
-    state = access.play._load(await access.play.store.read(cid))
+    access = await request.app[RUNTIME_KEY].for_campaign(cid)
+    state = await access.checkpoint(cid)
     member = access.member(state, principal)
     request_type = (
         TacticalRequestV2 if request.path.startswith("/api/tactical/v2/") else TacticalRequest
@@ -289,7 +288,7 @@ async def execute(request: web.Request) -> web.Response:
         sort_keys=True,
         separators=(",", ":"),
     )
-    duplicate = await access.play.store.duplicate(cid, command.id, payload)
+    duplicate = await access.duplicate(cid, command.id, payload)
     if duplicate is not None:
         result = project(
             access.play,
@@ -301,68 +300,7 @@ async def execute(request: web.Request) -> web.Response:
         if request_type is TacticalRequestV2:
             result = enrich(access.play, state, result, member)
         return web.json_response(result.model_dump(mode="json"))
-    if state.lifecycle != "active":
-        raise ValidationError("Resume the campaign before acting")
-    encounter = (
-        None
-        if isinstance(command, StartBasicEncounter)
-        else CombatService._encounter(state, command.encounter_id)
-    )
-    if isinstance(command, StartBasicEncounter):
-        if member.role != "gm":
-            raise ValidationError("Combat setup requires GM authority")
-    elif isinstance(
-        command,
-        (
-            MigrateEncounterHex,
-            MigrateEncounterBasic,
-            DeclareBasicSpatialFacts,
-            ContinueCriticalMiss,
-            DeclareThrownLanding,
-            ResolveWeaponExplosion,
-        ),
-    ):
-        if member.role != "gm":
-            raise ValidationError("GM combat workflow requires GM authority")
-    elif isinstance(command, WithdrawEncounter):
-        assert encounter is not None
-        if command.actor_id not in encounter.turn_order:
-            raise ValidationError("Combat withdrawal is unavailable")
-    elif isinstance(command, JoinEncounter):
-        assert encounter is not None
-        if command.joining_actor_id is not None and member.role != "gm":
-            raise ValidationError("GM admission requires GM authority")
-    else:
-        assert encounter is not None
-        if (
-            encounter.spatial_kind not in ("basic", "hex")
-            or command.actor_id not in encounter.turn_order
-        ):
-            raise ValidationError("Tactical encounter is unavailable")
-        if encounter.spatial_kind == "basic":
-            visible = frozenset(
-                participant.actor_id
-                for participant in encounter.participants
-                if participant.actor_id == command.actor_id
-                or _basic_visible(encounter, command.actor_id, participant.actor_id)
-            )
-        else:
-            visible = visible_actors(
-                state,
-                encounter,
-                command.actor_id,
-                board=access.play.rules_context.hex_map(encounter),
-            )
-        if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
-            if command.target_id is not None and command.target_id not in visible:
-                raise ValidationError("Target is unavailable")
-            if isinstance(command, TakeCombatTurn) and command.wait_trigger is not None:
-                trigger = command.wait_trigger
-                if any(
-                    a is not None and a not in visible
-                    for a in (trigger.actor_id, trigger.target_id, trigger.reaction_target_id)
-                ):
-                    raise ValidationError("Target is unavailable")
+    CombatService(access.play).precheck(state, member, command)
     try:
         await CombatService(access.play).execute(
             cid, command, authenticated_actor_id=command.actor_id
@@ -377,7 +315,7 @@ async def execute(request: web.Request) -> web.Response:
             status=exc.status,
         )
     access = await access.for_campaign(cid)
-    state = access.play._load(await access.play.store.read(cid))
+    state = await access.checkpoint(cid)
     result = project(
         access.play,
         state,

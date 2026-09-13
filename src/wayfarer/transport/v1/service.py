@@ -21,7 +21,7 @@ from wayfarer.errors import (
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.jobs import ProviderJobs
 from wayfarer.orchestration.origins import origin_scope
-from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.scenes import SceneService
 from wayfarer.persistence.events import CommandOrigin
 
@@ -43,7 +43,7 @@ Narrator = Callable[[Obj, Obj], Awaitable[str]]
 class V1Service:
     def __init__(
         self,
-        play: PlayService,
+        runtime: CampaignRuntime,
         path: Path,
         *,
         jobs: ProviderJobs,
@@ -51,7 +51,7 @@ class V1Service:
         tick_ms: int = 1000,
         weight_grams: int = 1,
     ) -> None:
-        self.play, self.instants = play, instants
+        self.runtime, self.play, self.instants = runtime, runtime.play, instants
         self.ledger = Ledger(path, instants=instants)
         self.jobs = jobs
         self.tick_ms, self.weight_grams = tick_ms, weight_grams
@@ -68,7 +68,7 @@ class V1Service:
                 config = {"secret": secrets.token_urlsafe(48)}
                 await tx.put("config", config)
             self.projector = Projector(
-                self.play,
+                self.runtime,
                 str(config["secret"]),
                 tick_ms=self.tick_ms,
                 weight_grams=self.weight_grams,

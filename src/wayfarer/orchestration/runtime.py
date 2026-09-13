@@ -10,16 +10,17 @@ runtimes in one process share no lock, no engine cache and no job partition.
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, replace
+from dataclasses import dataclass
+from pathlib import Path
 
 from wayfarer import contracts
 from wayfarer.contracts import Campaign
+from wayfarer.engine.character.compiler import CharacterCompiler
+from wayfarer.engine.character.power import CharacterProposal, PowerReview
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
-from wayfarer.engine.simulation.combat.engine import hex_template
 from wayfarer.engine.simulation.combat.profiles import CombatRules
-from wayfarer.engine.simulation.health.fright_state import projection as fright_projection
-from wayfarer.engine.simulation.resources import ResourceState, wire_weight
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.commands import Submission, family_for
@@ -28,10 +29,14 @@ from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.player_medical import choices as medical_choices
-from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
+from wayfarer.orchestration.projections import ViewRequest, project
 from wayfarer.orchestration.sessions import Store
-from wayfarer.orchestration.tactical_view import legacy_encounter
+from wayfarer.orchestration.views import campaign_view
+from wayfarer.orchestration.workshop_options import (
+    CharacterPreviewResult,
+    preview_character,
+)
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.catalog import CatalogStore
 from wayfarer.persistence.events import CommandOrigin, CommandRecord
 from wayfarer.persistence.jobs import JobStore
@@ -106,6 +111,46 @@ class CampaignRuntime:
     async def history(self, cid: str) -> list[CommandRecord]:
         return await self.play.store.history(cid)
 
+    @property
+    def compiler(self) -> CharacterCompiler:
+        """The character compiler this campaign's engine is pinned to."""
+        return self.play.engine.reviewer.compiler
+
+    def directs(self, principal_id: str) -> bool:
+        """Whether this principal holds the server's configured director authority.
+
+        Campaign membership says a principal plays the director's part; this says
+        the deployment trusts them with it. Both are needed to approve.
+        """
+        return principal_id in self.play.engine.reviewer.gm_ids
+
+    def preview(self, proposal: CharacterProposal) -> CharacterPreviewResult:
+        """Compile a draft without committing anything, for an editor's feedback."""
+        return preview_character(self.play.engine.reviewer, proposal)
+
+    def bound(self, campaign: Campaign) -> CampaignRuntime:
+        """This runtime on the engine the campaign is pinned to."""
+        play = self.play.for_campaign(campaign)
+        return self if play is self.play else self.for_service(play)
+
+    def load(self, campaign: Campaign) -> PlayState:
+        """The checkpoint this campaign carries, validated against its pinned engine."""
+        return self.play.for_campaign(campaign)._load(campaign)
+
+    def review(self, proposal: CharacterProposal) -> PowerReview:
+        """Compile and review a character against this campaign's power policy."""
+        return self.play.engine.reviewer.review(proposal)
+
+    def ledger_path(self) -> Path:
+        """Where the v1 receipt database sits beside a file-backed campaign store."""
+        if not isinstance(self.play.store, AsyncSQLiteStore):
+            raise ValueError("Configure v1_ledger_path for the durable API receipt database")
+        return self.play.store.path.with_suffix(".v1.sqlite3")
+
+    async def duplicate(self, cid: str, command_id: str, payload: str) -> Campaign | None:
+        """The receipt of an identical earlier command, if this one is a retry."""
+        return await self.play.store.duplicate(cid, command_id, payload)
+
     async def create(
         self, campaign: Campaign, *, command_id: str, text: str, principal_id: str = "system"
     ) -> Campaign:
@@ -149,293 +194,23 @@ class CampaignRuntime:
         )
         return state
 
-    @staticmethod
     def view(
-        state: PlayState, member: CampaignMember, rules: CombatRules | None = None
+        self, state: PlayState, member: CampaignMember, rules: CombatRules | None = None
     ) -> dict[str, object]:
-
-        if member.role == "gm":
-            return {
-                "campaign_id": state.campaign_id,
-                "lifecycle": state.lifecycle,
-                "revision": state.revision,
-                "game_time": state.resources.game_time,
-                "role": member.role,
-                "actors": tuple(actor.actor_id for actor in state.actors),
-                "world": asdict(state.world),
-                "fright": fright_projection(state.resources, (), director=True),
-            }
-        perspectives: dict[str, object] = {}
-        for actor_id in member.actor_ids:
-            own = next(e for e in state.world.entities if e.id == actor_id)
-            perspective = state.world.perspective(actor_id)
-            known = {f.id for f in perspective.facts}
-            perspective = replace(
-                perspective,
-                commitments=tuple(
-                    c
-                    for c in perspective.commitments
-                    if c.reveal_fact_id in known
-                    or (c.reveal_fact_id is None and actor_id in (c.debtor_id, c.creditor_id))
-                ),
-            )
-            perspective = replace(
-                perspective,
-                entities=tuple(
-                    e
-                    if e.id == actor_id or e.location_id == own.location_id
-                    else replace(e, location_id=None, owner_id=None)
-                    for e in perspective.entities
-                ),
-            )
-            perspectives[actor_id] = asdict(perspective)
-        groups = tuple(g for g in state.party.groups if set(g.actor_ids) & set(member.actor_ids))
-        visible_objectives = state.objectives.model_dump(
-            mode="json", exclude={"evidence", "settled_reward_ids"}
-        )
-        visible_objectives["progress"] = tuple(
-            {"objective_id": e.objective_id, "satisfied": e.satisfied}
-            for e in state.objectives.evidence
-            if not e.visible_to or set(e.visible_to) & set(member.actor_ids)
-        )
-        return {
-            "campaign_id": state.campaign_id,
-            "lifecycle": state.lifecycle,
-            "principal_id": member.principal_id,
-            "shared_time": len(state.party.groups) > 1,
-            "rulings": tuple(
-                r.model_dump(
-                    mode="json",
-                    include={"id", "actor_id", "status", "alternatives", "selected_id", "reason"},
-                )
-                for r in state.rulings
-                if r.actor_id in member.actor_ids
-            ),
-            "director": tuple(
-                t.model_dump(
-                    mode="json",
-                    exclude={
-                        "command_json",
-                        "request_json",
-                        "session_id",
-                        "principal_id",
-                        "outcome_json",
-                    },
-                )
-                for t in state.director
-                if t.actor_id in member.actor_ids
-            ),
-            "journal": tuple(
-                e.model_dump(mode="json") for e in state.journal if e.actor_id in member.actor_ids
-            ),
-            "scene_cursors": tuple(
-                e.model_dump(mode="json")
-                for e in state.actor_scenes
-                if e.actor_id in member.actor_ids
-            ),
-            "encounters": tuple(
-                legacy_encounter(
-                    state,
-                    e,
-                    member,
-                    board=hex_template(e, rules) if e.spatial_kind == "hex" else None,
-                )
-                for e in state.encounters
-                if set(e.turn_order) & set(member.actor_ids)
-            ),
-            "resolution": state.last_result.model_dump(mode="json")
-            if state.last_result
-            and any(
-                t.actor_id in member.actor_ids
-                and t.command_json
-                and json.loads(t.command_json).get("id") == state.last_result.command_id
-                for t in state.director
-            )
-            else None,
-            "revision": state.revision,
-            "game_time": state.resources.game_time,
-            "role": member.role,
-            "actors": member.actor_ids,
-            "fright": fright_projection(state.resources, member.actor_ids),
-            "inventory": tuple(
-                i.model_dump(mode="json")
-                for i in state.resources.items
-                if i.owner_id in member.actor_ids
-            ),
-            "status": tuple(
-                a.model_dump(mode="json", include={"actor_id", "conditions", "available_at"})
-                for a in state.actors
-                if a.actor_id in member.actor_ids
-            ),
-            "pools": tuple(
-                p.model_dump(mode="json")
-                for p in state.resources.pools
-                if any(p.id == f"{kind}:{a}" for a in member.actor_ids for kind in ("hp", "fp"))
-            ),
-            "perspectives": perspectives,
-            "subgroups": tuple(g.model_dump(mode="json") for g in groups),
-            "pending_activities": tuple(
-                q.model_dump(mode="json", exclude={"command_json"})
-                for q in state.party.queue
-                if q.actor_id in member.actor_ids
-            ),
-            "activity_receipts": tuple(
-                r.model_dump(mode="json")
-                for r in state.party.receipts
-                if r.actor_id in member.actor_ids
-            ),
-            "noncombat": tuple(
-                e.model_dump(mode="json") for e in state.noncombat if e.actor_id in member.actor_ids
-            ),
-            "objectives": visible_objectives,
-            "captivity": tuple(
-                c.model_dump(mode="json")
-                for c in state.recovery.captivity
-                if c.actor_id in member.actor_ids
-            ),
-            "recovery_decisions": tuple(
-                d.model_dump(mode="json")
-                for d in state.recovery.decisions
-                if d.actor_id in member.actor_ids
-            ),
-            "dead_actor_ids": tuple(
-                a for a in state.recovery.dead_actor_ids if a in member.actor_ids
-            ),
-        }
+        """The audience-filtered campaign view, built where every reader's is."""
+        return campaign_view(state, member, self.rules.combat if rules is None else rules)
 
     async def read(self, cid: str, *, principal_id: str) -> dict[str, object]:
+        return await self.project("campaign", cid, principal_id=principal_id)
+
+    async def project(self, name: str, cid: str, *, principal_id: str) -> dict[str, object]:
+        """Resolve one registered projection for this reader, on its pinned engine."""
         runtime = await self.for_campaign(cid)
         if runtime is not self:
-            return await runtime.read(cid, principal_id=principal_id)
+            return await runtime.project(name, cid, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
         member = self.member(state, principal_id)
-        projection = self.view(state, member, self.play.engine.rules.combat)
-        if member.role != "player":
-            return projection
-        compiler = self.play.engine.reviewer.compiler
-        projection["characters"] = tuple(
-            {
-                "actor_id": a.actor_id,
-                "name": a.proposal.draft.name,
-                "values": tuple(
-                    {"target": v.target, "value": str(v.value)} for v in build.sheet.values
-                ),
-                "spent": build.spent,
-            }
-            for a in state.actors
-            if a.actor_id in member.actor_ids
-            if (build := compiler.compile(a.proposal.draft).build) is not None
-        )
-        projection["equipment"] = tuple(
-            {
-                "id": i.id,
-                "name": compiler.definitions[i.definition_id].name,
-                "unit_weight": wire_weight(
-                    self.play.engine.resources.specs[i.definition_id].unit_weight
-                ),
-            }
-            for i in state.resources.items
-            if i.owner_id in member.actor_ids
-        )
-        projection["scenes"] = tuple(
-            {
-                "actor_id": cursor.actor_id,
-                "id": scene.id,
-                "title": scene.title,
-                "exits": tuple(
-                    {"id": e.id, "destination_id": e.destination_id}
-                    for e in scene.exits
-                    if set(e.required_fact_ids)
-                    <= {f.id for f in state.world.perspective(cursor.actor_id).facts}
-                ),
-            }
-            for cursor in state.actor_scenes
-            if cursor.actor_id in member.actor_ids
-            for scene in (
-                self.play.engine.rules.scenes.scenes if self.play.engine.rules.scenes else ()
-            )
-            if scene.id == cursor.scene_id
-        )
-
-        choices: list[dict[str, object]] = []
-        recovery = RecoveryService(self.play)
-        for option in (
-            self.play.engine.rules.recovery.options if self.play.engine.rules.recovery else ()
-        ):
-            for actor_id in member.actor_ids:
-                visible = {e.id for e in state.world.perspective(actor_id).entities}
-                for target_id in option.target_actor_ids:
-                    if target_id not in visible or not option.supported:
-                        continue
-                    candidate = RecoveryCommand(
-                        id="preview",
-                        actor_id=actor_id,
-                        expected_revision=state.revision,
-                        kind="choose_recovery",
-                        rule_id=option.id,
-                        target_actor_id=target_id,
-                    )
-                    try:
-                        recovery.assess(state, candidate)
-                    except ValidationError, ConflictError:
-                        continue
-                    choices.append(
-                        {
-                            "id": option.id,
-                            "kind": option.kind,
-                            "actor_id": actor_id,
-                            "target_actor_id": target_id,
-                        }
-                    )
-        projection["recovery_choices"] = choices
-
-        medical, medical_tasks, _private = medical_choices(
-            self.play, state, member.actor_ids, self.medical_environment
-        )
-        projection["gurps_recovery_choices"] = medical
-        projection["gurps_recovery_tasks"] = medical_tasks
-
-        scene_choices: list[dict[str, object]] = []
-        entities = {e.id: e for e in state.world.entities}
-        for actor in state.actors:
-            if actor.actor_id not in member.actor_ids:
-                continue
-            for check in self.play.engine.rules.checks:
-                target = entities[check.target_id]
-                if (
-                    check.action == "inspect"
-                    and check.target_id in actor.aware_of
-                    and target.location_id == entities[actor.actor_id].location_id
-                ):
-                    scene_choices.append(
-                        {
-                            "id": actor.actor_id + ":" + check.id,
-                            "actor_id": actor.actor_id,
-                            "label": "Inspect: " + target.name,
-                            "command": {"kind": "inspect", "target_id": target.id},
-                        }
-                    )
-            if self.play.engine.rules.noncombat:
-                cursor = next(c for c in state.actor_scenes if c.actor_id == actor.actor_id)
-                for rule in self.play.engine.rules.noncombat.encounters:
-                    encounter_id = actor.actor_id + ":" + rule.id
-                    if rule.scene_id == cursor.scene_id and not any(
-                        e.id == encounter_id for e in state.noncombat
-                    ):
-                        scene_choices.append(
-                            {
-                                "id": encounter_id,
-                                "actor_id": actor.actor_id,
-                                "label": "Begin: " + rule.id,
-                                "command": {
-                                    "kind": "start_noncombat",
-                                    "selection_id": rule.id,
-                                    "encounter_id": encounter_id,
-                                },
-                            }
-                        )
-        projection["scene_choices"] = scene_choices
-        return projection
+        return project(name, ViewRequest(runtime=self, state=state, member=member))
 
     async def submit_json(
         self, cid: str, value: object, *, principal_id: str, origin: CommandOrigin | None = None
@@ -517,7 +292,9 @@ class CampaignRuntime:
                         )
                         else ""
                     ),
-                    projection=self.view(state, member, self.play.engine.rules.combat),
+                    projection=project(
+                        "stream", ViewRequest(runtime=self, state=state, member=member)
+                    ),
                 )
             )
             if len(result) == limit:
