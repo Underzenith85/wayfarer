@@ -23,6 +23,12 @@ class AdvancementEntry(Record):
     build_before: str
     build_after: str
     reason: str = Field(min_length=1, max_length=2000)
+    # Empty means a discretionary award. Study and in-play awards name the
+    # definitions they may improve so campaign procedure code cannot silently
+    # turn a source-limited improvement into generic character points.
+    eligible_definition_ids: tuple[Id, ...] = ()
+    source_kind: Literal["discretionary", "adventure", "study", "quick-learning"] = "discretionary"
+    source_id: Id | None = None
 
 
 class MigrationEntry(Record):

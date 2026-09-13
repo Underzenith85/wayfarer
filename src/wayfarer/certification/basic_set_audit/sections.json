@@ -6122,17 +6122,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-character-development.md",
+        "tests/test_character_development.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 499,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "development:adventure",
       "parent_id": "section:characters:b290:9-character-development",
       "classification": null,
       "listed_value": null
@@ -6148,17 +6150,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-character-development.md",
+        "tests/test_character_development.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 499,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "development:gained-in-play",
       "parent_id": "section:characters:b290:improvement-through-adventure",
       "classification": null,
       "listed_value": null
@@ -6201,17 +6205,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-character-development.md",
+        "tests/test_character_development.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 499,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "development:quick-learning",
       "parent_id": "section:characters:b290:improvement-through-adventure",
       "classification": null,
       "listed_value": null
@@ -6227,17 +6233,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-character-development.md",
+        "tests/test_character_development.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 499,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "development:study",
       "parent_id": "section:characters:b290:9-character-development",
       "classification": null,
       "listed_value": null
@@ -6280,17 +6288,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-character-development.md",
+        "tests/test_character_development.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 499,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "development:teachers",
       "parent_id": "section:characters:b292:improvement-through-study",
       "classification": null,
       "listed_value": null
@@ -6333,17 +6343,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-character-development.md",
+        "tests/test_character_development.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 499,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "development:learnable-advantages",
       "parent_id": "section:characters:b292:improvement-through-study",
       "classification": null,
       "listed_value": null
