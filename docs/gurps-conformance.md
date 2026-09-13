@@ -618,6 +618,19 @@ turn start, and stun recovery after Do Nothing. Rebuilds preserve the full injur
 deficit, and ordinary healing retains injury status. Low-HP Move/Dodge uses
 ceiling division. Turn ordering rejects repeated phases with new command IDs.
 
+## Character transformations (#500)
+
+Campaign-authored transformation rules now govern body modification, mind
+transfer, supernatural affliction, and explicit death transformations. Typed
+proposal, approval, treatment, interruption, completion, reversal, cure, and
+expiry commands use the existing compiler, authority checks, CAS receipts, and
+replay boundary. Identity and history remain attached to the actor while rules
+route body traits, inventory, credentials, knowledge, relationships, and control;
+point adjustments, charges, and debt are recorded separately. Unsupported or
+incompletely mapped transformations reject, and death never triggers a rebuild or
+implicit healing. See [character transformations](gurps-transformations.md) for
+the supported lifecycle and deliberate exclusions.
+
 Coverage remains **partial** pending source verification and complete maneuver
 timing (#104). The profile-selected melee adapter now persists deferred injury,
 turn-start consciousness and end-turn stun recovery through the existing CAS
