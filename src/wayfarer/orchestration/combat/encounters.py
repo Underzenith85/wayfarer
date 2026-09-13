@@ -22,7 +22,7 @@ from wayfarer.engine.simulation.combat.ranged.situation import declare
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext, CoverSpatialFact
 from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
 from wayfarer.engine.simulation.combat.unarmed.fighters import guard_control
-from wayfarer.engine.simulation.combat.visibility import visible_actors
+from wayfarer.engine.simulation.combat.visibility import targetable, visible_actors
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
@@ -208,6 +208,20 @@ def _start_basic_encounter(
     )
 
 
+def _validate_basic_target(encounter: Encounter, observer_id: str, target_id: str) -> None:
+    spatial = encounter.spatial
+    assert isinstance(spatial, BasicSpatialContext)
+    if spatial.active("visibility", observer_id, target_id) is None:
+        raise ValidationError("Basic combat requires an authoritative visibility fact")
+    if not targetable(encounter, observer_id, target_id):
+        raise ValidationError("Target is unavailable")
+    cover = spatial.active("cover", observer_id, target_id)
+    if not isinstance(cover, CoverSpatialFact):
+        raise ValidationError("Basic combat requires an authoritative cover fact")
+    if cover.cover == "full":
+        raise ValidationError("Full cover blocks the target")
+
+
 def _prepare_encounter(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> Encounter:
@@ -243,16 +257,8 @@ def _prepare_encounter(
     elif encounter.spatial_kind == "basic" and isinstance(
         command, (TakeCombatTurn, TakeUnarmedTurn)
     ):
-        spatial = encounter.spatial
-        assert isinstance(spatial, BasicSpatialContext)
         if command.target_id is not None:
-            if not basic_visible(encounter, command.actor_id, command.target_id):
-                raise ValidationError("Target is unavailable")
-            cover = spatial.active("cover", command.actor_id, command.target_id)
-            if not isinstance(cover, CoverSpatialFact):
-                raise ValidationError("Basic combat requires an authoritative cover fact")
-            if cover.cover == "full":
-                raise ValidationError("Full cover blocks the target")
+            _validate_basic_target(encounter, command.actor_id, command.target_id)
         if isinstance(command, TakeCombatTurn) and command.wait_trigger is not None:
             for actor_id in (
                 command.wait_trigger.actor_id,

@@ -2031,6 +2031,11 @@
             "title": "Pop Up",
             "type": "boolean"
           },
+          "enter_high_speed": {
+            "default": false,
+            "title": "Enter High Speed",
+            "type": "boolean"
+          },
           "basic_move": {
             "anyOf": [
               {
@@ -4001,6 +4006,27 @@
           },
           "visible": {
             "title": "Visible",
+            "type": "boolean"
+          },
+          "obscuration": {
+            "default": "blocked",
+            "enum": [
+              "blocked",
+              "invisible",
+              "smoke",
+              "darkness"
+            ],
+            "title": "Obscuration",
+            "type": "string"
+          },
+          "location_known": {
+            "default": false,
+            "title": "Location Known",
+            "type": "boolean"
+          },
+          "aware_of_attack": {
+            "default": false,
+            "title": "Aware Of Attack",
             "type": "boolean"
           },
           "provenance": {

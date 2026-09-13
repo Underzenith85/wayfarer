@@ -17,6 +17,7 @@ from pydantic import (
 from wayfarer.engine.rules.types.entangle import Entanglement
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.rules.types.spray import Stream
+from wayfarer.engine.rules.types.tactical import EncounterSurprise, HighSpeedState
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState, WaitInterrupt
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
@@ -88,6 +89,7 @@ class Combatant(Record):
     entangled: Entanglement | None = Field(default=None, exclude_if=lambda v: v is None)
     stream: Stream | None = Field(default=None, exclude_if=lambda v: v is None)
     forced_do_nothing: bool = False
+    high_speed: HighSpeedState | None = Field(default=None, exclude_if=lambda value: value is None)
     maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
 
     @property
@@ -174,6 +176,12 @@ class PendingDefense(Record):
         default=None, exclude_if=lambda value: value is None
     )
     tactical_attack_pose: Pose | None = Field(default=None, exclude_if=lambda value: value is None)
+    visibility_attack_penalty: int = Field(
+        default=0, ge=-10, le=0, exclude_if=lambda value: value == 0
+    )
+    visibility_defense_penalty: int = Field(
+        default=0, ge=-4, le=0, exclude_if=lambda value: value == 0
+    )
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()
@@ -261,6 +269,7 @@ class Encounter(Record):
         default="legacy", exclude_if=lambda value: value == "legacy"
     )
     reinforcements_expected: bool = Field(default=False, exclude_if=lambda value: not value)
+    surprise: EncounterSurprise | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def validate_scene_version(self) -> Encounter:

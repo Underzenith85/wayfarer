@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.combat.objects.locations import validate_target
 from wayfarer.engine.simulation.combat.ranged.attack import prepare
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import attack_geometry, defense_adjustment
+from wayfarer.engine.simulation.combat.visibility import combat_visibility
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -67,6 +68,7 @@ def prepare_attack(
         raise ValidationError("Shot count requires a ranged mode")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    visibility = combat_visibility(encounter, attacker.actor_id, defender.actor_id)
     close = bool(opponents_in_close_combat(encounter, attacker.actor_id))
     defender_close = bool(opponents_in_close_combat(encounter, defender.actor_id))
     bystanders = tuple(
@@ -112,7 +114,10 @@ def prepare_attack(
     if selected_distance not in selected.reach:
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
-    for candidate in ("dodge", "parry", "block"):
+    candidates = tuple(
+        candidate for candidate in ("dodge", "parry", "block") if candidate in visibility.defenses
+    )
+    for candidate in candidates:
         if defender_close and candidate == "block":
             continue
         if (
@@ -145,6 +150,8 @@ def prepare_attack(
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
                     "target_item_id": target_item_id,
+                    "visibility_attack_penalty": visibility.attack_penalty,
+                    "visibility_defense_penalty": visibility.defense_penalty,
                     "close_combat": close,
                     "defender_close_combat": defender_close,
                     "stray_target_order": stray_order,

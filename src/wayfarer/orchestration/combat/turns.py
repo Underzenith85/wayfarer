@@ -217,6 +217,7 @@ def _preview_turn(
             hex_path=command.hex_path,
             hex_facing=command.hex_facing,
             pop_up=command.pop_up,
+            enter_high_speed=command.enter_high_speed,
             basic_move=command.basic_move,
             spatial_revision=(
                 command.expected_revision + 1 if command.basic_move is not None else None
@@ -377,6 +378,7 @@ def _begin_turn(
                 "hex_path": (),
                 "hex_facing": None,
                 "pop_up": False,
+                "enter_high_speed": False,
                 "facing": None,
                 "posture": None,
                 "crouch": None,
@@ -670,6 +672,7 @@ def _take_turn(
         hex_path=command_for_turn.hex_path,
         hex_facing=command_for_turn.hex_facing,
         pop_up=command_for_turn.pop_up,
+        enter_high_speed=command_for_turn.enter_high_speed,
         basic_move=command_for_turn.basic_move,
         spatial_revision=(
             command.expected_revision + 1 if command_for_turn.basic_move is not None else None

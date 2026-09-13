@@ -825,6 +825,11 @@ export interface components {
        * @default false
        */
       pop_up: boolean;
+      /**
+       * Enter High Speed
+       * @default false
+       */
+      enter_high_speed: boolean;
       /** @default null */
       basic_move: components["schemas"]["BasicMove"] | null;
       /**
@@ -1693,6 +1698,22 @@ export interface components {
       object_id: string;
       /** Visible */
       visible: boolean;
+      /**
+       * Obscuration
+       * @default blocked
+       * @enum {string}
+       */
+      obscuration: "blocked" | "invisible" | "smoke" | "darkness";
+      /**
+       * Location Known
+       * @default false
+       */
+      location_known: boolean;
+      /**
+       * Aware Of Attack
+       * @default false
+       */
+      aware_of_attack: boolean;
       provenance: components["schemas"]["SpatialProvenance"];
     };
     /** TacticalRequestV2 */

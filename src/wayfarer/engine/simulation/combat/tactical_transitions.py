@@ -231,6 +231,8 @@ def migrate_basic(
         )
     if encounter.wait_interrupt is not None:
         raise ConflictError("Resolve the interrupted Wait before Basic conversion")
+    if any(actor.high_speed is not None for actor in encounter.participants):
+        raise ValidationError("High-speed movement cannot be represented in Basic combat")
     pending = encounter.pending_defense
     if pending is not None and (
         pending.post_attack_hex_path or pending.post_attack_facing is not None
