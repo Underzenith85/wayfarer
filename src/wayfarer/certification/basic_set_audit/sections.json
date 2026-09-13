@@ -12568,15 +12568,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
@@ -12594,15 +12599,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12646,15 +12656,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12672,15 +12687,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12698,15 +12718,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12724,15 +12749,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12750,15 +12780,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12776,15 +12811,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12802,15 +12842,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12828,15 +12873,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12854,15 +12904,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12880,15 +12935,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12906,15 +12966,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12932,15 +12997,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12958,15 +13028,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12984,15 +13059,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -13010,15 +13090,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -13036,15 +13121,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-hazards.md",
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py"
       ],
       "historical_owners": [
-        191
+        191,
+        517
       ],
-      "completion_owner": 517,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",

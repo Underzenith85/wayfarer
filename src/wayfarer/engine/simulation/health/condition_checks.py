@@ -30,7 +30,10 @@ def check_modifiers(
         if hazard.actor_id != actor_id:
             continue
         penalty = 0
-        if hazard.affliction_until > state.game_time and hazard.spec.affliction == "coughing":
+        if (
+            hazard.affliction_until > state.game_time
+            and hazard.spec.affliction == "coughing"
+        ) or (hazard.active and "coughing" in hazard.conditions):
             penalty = -3 if attribute.lower() == "dx" else -1 if attribute.lower() == "iq" else 0
         if hazard.active and hazard.spec.variant == "cobra-venom" and attribute.lower() == "dx":
             fraction = hazard.symptoms * 6 // hazard.full_hp
@@ -77,3 +80,5 @@ def require_hazard_capacity(state: ResourceState, actor_id: str, kind: str) -> N
             raise ValidationError("Coughing prevents Stealth")
         if hazard.spec.affliction == "blindness" and kind == "vision":
             raise ValidationError("Toxin blindness prevents vision")
+        if "blindness" in hazard.conditions and kind == "vision":
+            raise ValidationError("Atmospheric injury prevents vision")

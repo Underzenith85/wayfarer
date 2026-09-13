@@ -23,6 +23,41 @@ class RecoveryRestriction(HazardRecord):
     blocks_rest: bool = False
 
 
+class HazardEnvironment(HazardRecord):
+    """Measured, scenario-authored exposure facts (Campaigns B428-B437)."""
+
+    medium: Literal[
+        "contact",
+        "air",
+        "water",
+        "fire",
+        "electric-current",
+        "acceleration",
+        "radiation",
+        "vacuum",
+        "vessel-motion",
+    ]
+    intensity: int = Field(ge=1, le=100000)
+    duration_seconds: int = Field(ge=1, le=31536000)
+    pressure_milli_atmospheres: int | None = Field(default=None, ge=0, le=1000000)
+    temperature_f: int | None = Field(default=None, ge=-1000, le=10000)
+    source_class: str = Field(min_length=1, max_length=120)
+
+
+class HazardProtection(HazardRecord):
+    """Protection is explicit; absence never means a safe seal or air supply."""
+
+    sealed: bool = False
+    breathing_supply: bool = False
+    eye_protection: bool = False
+    insulated: bool = False
+    pressure_support: int = Field(default=0, ge=0, le=3)
+    vacuum_support: bool = False
+    radiation_pf: int = Field(default=1, ge=1, le=1000000)
+    nonmetallic_dr: int = Field(default=0, ge=0, le=1000)
+    motion_stabilized: bool = False
+
+
 def blocked_hp(illnesses: tuple[RecoveryRestriction, ...], actor_id: str, kind: str) -> int:
     if kind in ("stabilize", "resuscitate"):
         return 0
@@ -51,12 +86,27 @@ class HazardSpec(HazardRecord):
     id: str = Field(min_length=1, max_length=120)
     profile_id: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
     kind: Literal[
-        "cold", "heat", "fire", "suffocation", "drowning", "pressure", "poison", "disease"
+        "cold",
+        "heat",
+        "fire",
+        "suffocation",
+        "drowning",
+        "pressure",
+        "poison",
+        "disease",
+        "acid",
+        "atmosphere",
+        "electricity",
+        "acceleration",
+        "radiation",
+        "seasickness",
+        "vacuum",
     ]
     scene_id: str
     delay: int = Field(default=0, ge=0, le=31536000)
     interval: int = Field(default=1, ge=1, le=31536000)
     cycles: int = Field(default=1, ge=1, le=100000)
+    cycles_dice: int = Field(default=0, ge=0, le=10)
     resistance_modifier: int = Field(default=0, ge=-30, le=30)
     damage_dice: int = Field(default=0, ge=0, le=100)
     damage_add: int = Field(default=1, ge=-10, le=1000)
@@ -71,11 +121,26 @@ class HazardSpec(HazardRecord):
     bacterial: bool = False
     drug_resistant: bool = False
     recovery_successes: int = Field(default=1, ge=1, le=100)
+    environment: HazardEnvironment | None = None
+    protection: HazardProtection | None = None
+    damage_type: Literal["burn", "cor", "cr", "tox"] | None = None
+    damage_from_margin: bool = False
+    critical_effect: Literal["none", "unconscious", "heart-attack", "death"] = "none"
+    radiation_rads: int = Field(default=0, ge=0, le=1000000)
 
     @model_validator(mode="after")
     def supported_variant(self) -> HazardSpec:
         if self.kind in ("cold", "heat") and (
-            self.interval not in ((600, 900, 1800) if self.kind == "cold" else (1800,))
+            self.interval
+            not in (
+                (60, 600, 900, 1800)
+                if self.kind == "cold" and self.variant == "thermal-shock"
+                else (600, 900, 1800)
+                if self.kind == "cold"
+                else (1, 1800)
+                if self.variant == "intense-heat"
+                else (1800,)
+            )
             or self.damage_dice
             or self.damage_add != 1
             or not self.resistible
@@ -90,6 +155,19 @@ class HazardSpec(HazardRecord):
             raise ValueError("Unsupported breathing hazard variant")
         if self.kind == "suffocation" and (self.delay != 1 or self.cycles < 240):
             raise ValueError("No-air exposure must cover the four-minute death deadline")
+        extended = {
+            "acid",
+            "atmosphere",
+            "electricity",
+            "acceleration",
+            "radiation",
+            "seasickness",
+            "vacuum",
+        }
+        if self.kind in extended and (self.environment is None or self.protection is None):
+            raise ValueError("Environmental variants require explicit exposure and protection facts")
+        if self.kind == "radiation" and self.radiation_rads < 1:
+            raise ValueError("Radiation exposure requires an authored positive dose")
         return self
 
 
@@ -131,6 +209,13 @@ class HazardSchedule(HazardRecord):
     combat_turn: CombatHazardTurn | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+    radiation_dose: int = Field(default=0, ge=0)
+    radiation_original: int = Field(default=0, ge=0)
+    radiation_received_at: int | None = Field(default=None, ge=0)
+    radiation_checked_at: int | None = Field(default=None, ge=0)
+    radiation_decayed_at: int | None = Field(default=None, ge=0)
+    adapted: bool = False
+    conditions: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def combat_timing(self) -> HazardSchedule:

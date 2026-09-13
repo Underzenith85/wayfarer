@@ -4719,6 +4719,140 @@
       "title": "GroundPosition",
       "type": "object"
     },
+    "HazardEnvironment": {
+      "additionalProperties": false,
+      "description": "Measured, scenario-authored exposure facts (Campaigns B428-B437).",
+      "properties": {
+        "medium": {
+          "enum": [
+            "contact",
+            "air",
+            "water",
+            "fire",
+            "electric-current",
+            "acceleration",
+            "radiation",
+            "vacuum",
+            "vessel-motion"
+          ],
+          "title": "Medium",
+          "type": "string"
+        },
+        "intensity": {
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Intensity",
+          "type": "integer"
+        },
+        "duration_seconds": {
+          "maximum": 31536000,
+          "minimum": 1,
+          "title": "Duration Seconds",
+          "type": "integer"
+        },
+        "pressure_milli_atmospheres": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pressure Milli Atmospheres"
+        },
+        "temperature_f": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": -1000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature F"
+        },
+        "source_class": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Source Class",
+          "type": "string"
+        }
+      },
+      "required": [
+        "medium",
+        "intensity",
+        "duration_seconds",
+        "source_class"
+      ],
+      "title": "HazardEnvironment",
+      "type": "object"
+    },
+    "HazardProtection": {
+      "additionalProperties": false,
+      "description": "Protection is explicit; absence never means a safe seal or air supply.",
+      "properties": {
+        "sealed": {
+          "default": false,
+          "title": "Sealed",
+          "type": "boolean"
+        },
+        "breathing_supply": {
+          "default": false,
+          "title": "Breathing Supply",
+          "type": "boolean"
+        },
+        "eye_protection": {
+          "default": false,
+          "title": "Eye Protection",
+          "type": "boolean"
+        },
+        "insulated": {
+          "default": false,
+          "title": "Insulated",
+          "type": "boolean"
+        },
+        "pressure_support": {
+          "default": 0,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Pressure Support",
+          "type": "integer"
+        },
+        "vacuum_support": {
+          "default": false,
+          "title": "Vacuum Support",
+          "type": "boolean"
+        },
+        "radiation_pf": {
+          "default": 1,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Radiation Pf",
+          "type": "integer"
+        },
+        "nonmetallic_dr": {
+          "default": 0,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Nonmetallic Dr",
+          "type": "integer"
+        },
+        "motion_stabilized": {
+          "default": false,
+          "title": "Motion Stabilized",
+          "type": "boolean"
+        }
+      },
+      "title": "HazardProtection",
+      "type": "object"
+    },
     "HazardSchedule": {
       "additionalProperties": false,
       "properties": {
@@ -4890,6 +5024,70 @@
             }
           ],
           "default": null
+        },
+        "radiation_dose": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Radiation Dose",
+          "type": "integer"
+        },
+        "radiation_original": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Radiation Original",
+          "type": "integer"
+        },
+        "radiation_received_at": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radiation Received At"
+        },
+        "radiation_checked_at": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radiation Checked At"
+        },
+        "radiation_decayed_at": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radiation Decayed At"
+        },
+        "adapted": {
+          "default": false,
+          "title": "Adapted",
+          "type": "boolean"
+        },
+        "conditions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Conditions",
+          "type": "array"
         }
       },
       "required": [
@@ -4931,7 +5129,14 @@
             "drowning",
             "pressure",
             "poison",
-            "disease"
+            "disease",
+            "acid",
+            "atmosphere",
+            "electricity",
+            "acceleration",
+            "radiation",
+            "seasickness",
+            "vacuum"
           ],
           "title": "Kind",
           "type": "string"
@@ -4959,6 +5164,13 @@
           "maximum": 100000,
           "minimum": 1,
           "title": "Cycles",
+          "type": "integer"
+        },
+        "cycles_dice": {
+          "default": 0,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Cycles Dice",
           "type": "integer"
         },
         "resistance_modifier": {
@@ -5044,6 +5256,69 @@
           "maximum": 100,
           "minimum": 1,
           "title": "Recovery Successes",
+          "type": "integer"
+        },
+        "environment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HazardEnvironment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "protection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HazardProtection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "damage_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "burn",
+                "cor",
+                "cr",
+                "tox"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Damage Type"
+        },
+        "damage_from_margin": {
+          "default": false,
+          "title": "Damage From Margin",
+          "type": "boolean"
+        },
+        "critical_effect": {
+          "default": "none",
+          "enum": [
+            "none",
+            "unconscious",
+            "heart-attack",
+            "death"
+          ],
+          "title": "Critical Effect",
+          "type": "string"
+        },
+        "radiation_rads": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Radiation Rads",
           "type": "integer"
         }
       },
