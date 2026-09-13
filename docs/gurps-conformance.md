@@ -447,9 +447,10 @@ twelve discipline-keyed rows to #356 and Motion-Picture Camera to #338; its boun
 vehicle rows additionally record `gurps.vehicles.movement` until #358 verifies
 that capability. #356 then binds 83 more, expanding seven discipline-keyed
 families into 46 concrete specialties and deriving 29 Mechanic machine types from
-the vehicle specialties #346 recorded rather than authoring them twice; the four
-families whose axis is a planet type, a species or a region record that axis and
-transfer their procedure to #390. Those definitions are not yet in a package pin:
+the vehicle specialties #346 recorded rather than authoring them twice. #390
+binds the remaining four families through campaign-authored subjects: only
+declared deterministic children become rollable and the source catalog remains
+unchanged. Those definitions are not yet in a package pin:
 two ids already exist in the pinned package on another hook, which is a
 deliberate migration.
 A bound row reports as `implemented` and stays blocked by the printing delta. Item-level owners and unsupported/listing-only states reach `source_audit`.

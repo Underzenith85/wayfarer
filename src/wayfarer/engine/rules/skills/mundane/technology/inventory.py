@@ -10,9 +10,10 @@ for vehicle control, `simulation/hazards` for sealed suits and ordnance,
 `simulation/object_repairs` for repair work, and `simulation/noncombat` for
 information tasks -- and scoring always goes through `rules/gurps_checks`, so no
 second engine exists here. Every other listed row keeps its recorded blockers and
-names the concrete open child that owns them: #356 the discipline-keyed specialty
-families, #338 the Photography parent of Motion-Picture Camera, #336 conditional
-defaults, alternative prerequisites and the frozen-source context.
+names the concrete open child that owns them: #338 the Photography parent of
+Motion-Picture Camera and #336 conditional defaults, alternative prerequisites
+and the frozen-source context. #390 supplies campaign-scoped children for the
+four open discipline families without adding them to this static catalog.
 
 Two modifiers belong to the procedure itself: the B168 technology-level
 difference and the B169 familiarity penalty. Handling reaches only a procedure
@@ -725,6 +726,16 @@ OPEN_FAMILIES: Final = {
 }
 
 
+OPEN_FAMILY_TASKS: Final = MappingProxyType(
+    {
+        "skill:biology": ANALYSIS,
+        "skill:disguise": _study("disguise-created", cap=1),
+        "skill:geography": ANALYSIS,
+        "skill:geology": ANALYSIS,
+    }
+)
+
+
 def _slug(label: str) -> str:
     """The identifier a machine-type label expands to, mirroring its own name."""
     return label.casefold().replace(" ", "-").replace("/", "-")
@@ -824,8 +835,9 @@ def _science_rows() -> tuple[TechnologyProcedure, ...]:
             {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
         )
     )
-    # An open family is expanded in the only way its axis allows: by recording
-    # what the player names. Nothing dispatches until #390 instantiates it.
+    # An open family remains a non-rollable selector.  Its task is nevertheless
+    # fixed here so campaign-authored children can inherit a real dispatch while
+    # supplying identity only; see ``technology.specialties``.
     rows.extend(
         TechnologyProcedure(
             f"skill:{family}",
@@ -834,11 +846,9 @@ def _science_rows() -> tuple[TechnologyProcedure, ...]:
             A.IQ,
             difficulty,
             defaults,
-            resolved=(SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-            transferred={
-                RUNTIME_PROCEDURE: (OPEN_SUBJECT_OWNER,),
-                CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
-            },
+            task=OPEN_FAMILY_TASKS[f"skill:{family}"],
+            resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+            transferred={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
             open_subject=subject,
         )
         for family, (title, page, difficulty, defaults, subject) in OPEN_FAMILIES.items()

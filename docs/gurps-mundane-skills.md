@@ -51,8 +51,8 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 14 | Unsupported; runtime or campaign-context blockers remain. |
-| Bound runtime procedures | 462 | Includes the executable arts/trades, combat, technique, knowledge/investigation, medicine/mental, and physical/outdoor rows from #338–#343. Open families remain nondispatchable until a concrete specialty is selected. |
+| Structured candidate definitions | 10 | Unsupported; runtime or campaign-context blockers remain. |
+| Bound runtime procedures | 466 | Includes the executable arts/trades, combat, technique, knowledge/investigation, medicine/mental, physical/outdoor, and open-subject technology rows. Open families remain nondispatchable until a campaign selects a concrete specialty. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
 | **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 427 inventory rows are available.** |
@@ -138,8 +138,8 @@ retained where previously recorded, but they do not replace the active owners.
 | #345 | Social skill procedures; see below for what it bound and what it transferred. |
 | #346 | Technology, science and vehicle procedures; see below for what it bound and what it transferred. |
 | #353 | Conditional and alternative mundane skill defaults and prerequisites. |
-| #356 | Complete. The discipline-keyed families are expanded and bound; the four whose axis is a world, a planet type or a species name #390 below. |
-| #390 | Procedures for the open-subject families, once a campaign names a subject. |
+| #356 | Complete. The finite discipline-keyed families are expanded and bound; the four campaign-subject axes are completed by #390 below. |
+| #390 | Complete. Campaign-authored Biology, Disguise, Geography and Geology subjects derive deterministic definitions and bind the existing technology procedure services. |
 | #358 | Vehicle movement and combat capability verification for the bound vehicle rows. |
 | #366 | Fortune-Telling and Savoir-Faire specialties. |
 | #367 | The Propaganda technology-level media context. |
@@ -383,8 +383,8 @@ The parent inventory is complete: all 83 rows retained under #346 are bound,
 implemented and blocker-free, and the family publishes the dedicated
 `gurps.skills.technology_vehicles` capability. Motion-Picture Camera is now
 implemented by #338, and #356 completed the finite discipline-keyed expansions;
-the four player-named Biology, Disguise, Geography and Geology families remain
-explicitly transferred to #390 rather than being invented here.
+the four player-named Biology, Disguise, Geography and Geology families are now
+bound by #390 without inventing a global subject list.
 
 `rules/mundane_skills/technology.py` is the only place a listed technology row
 becomes executable. A row is implemented when the module binds it to a service
@@ -416,7 +416,7 @@ this group are all refused before dice by `technology.require_task`.
 | `skill:electrician` | B189, IQ/A, IQ-5 | Implemented. Repair progress scales with the margin. |
 | `skill:no-landing-extraction` | B233 | Implemented. Bought against the concrete Piloting specialty flown, so it carries that control dispatch. |
 | `skill:motion-picture-camera` | B233 | Implemented by #338 against its Photography parent and noncombat approach dispatch. |
-| `skill:bioengineering` `skill:biology` `skill:current-affairs` `skill:disguise` `skill:electronics-operation` `skill:electronics-repair` `skill:engineer` `skill:geography` `skill:geology` `skill:hazardous-materials` `skill:mechanic` `skill:paleontology` | B180–B212 | Reconciled through #356. Finite discipline-keyed expansions are implemented; Biology, Disguise, Geography and Geology retain their player-named subject transfer to #390. |
+| `skill:bioengineering` `skill:biology` `skill:current-affairs` `skill:disguise` `skill:electronics-operation` `skill:electronics-repair` `skill:engineer` `skill:geography` `skill:geology` `skill:hazardous-materials` `skill:mechanic` `skill:paleontology` | B180–B212 | Reconciled through #356 and #390. Finite discipline-keyed expansions and campaign-authored Biology, Disguise, Geography and Geology children are implemented. |
 
 Two modifiers belong to the procedure: the B168 technology-level difference (one
 point of effective skill per level, either direction) and the B169 familiarity
@@ -463,7 +463,7 @@ no second engine exists, and a family row is still refused before dice.
 | `skill:hazardous-materials` | B199 | Family expanded into Biological, Chemical and Nuclear/Radiological. Containment is held rather than learned, so failure is hazardous and reaches the exposure service. |
 | `skill:paleontology` | B212 | Family expanded into three concrete disciplines; the margin decides how much is found. |
 | `skill:mechanic` | B207 | Family expanded into 29 machine types **derived** from the vehicle specialties #346 recorded, never authored a second time. Shiphandling is a command skill and contributes none; an unpowered hull carries no machinery. Repairing a machine needs no vehicle-movement capability of its own. |
-| `skill:biology` `skill:disguise` `skill:geography` `skill:geology` | B180, B187, B198 | Open families. Their axis is a planet type, a species or a region, so the row records the axis the player names instead of an invented list, and keeps its own fixed numbers. Transferred to #390, which must instantiate a named subject before anything dispatches. |
+| `skill:biology` `skill:disguise` `skill:geography` `skill:geology` | B180, B187, B198 | Implemented open families. Their axis is a planet type, a species or a region, so campaign setup admits named subjects and derives deterministic concrete IDs without mutating the catalog. The selectors remain non-rollable; only declared children dispatch. |
 
 The mechanics of a specialty are its family's: same attribute, same difficulty,
 same recorded defaults, same page. A specialty that rolled against different
@@ -476,6 +476,29 @@ group.
 Evidence is in `tests/test_technology_specialties.py`, with every effective
 target, margin, outcome and unit count pinned by hand in
 `tests/fixtures/gurps/technology_specialties.json`.
+
+## Campaign-authored technology specialties (#390)
+
+`CampaignTechnologySpecialties` is immutable campaign configuration. Each
+`CampaignTechnologySubject` names one of the four recorded open families and a
+setting subject such as `Earthlike`, `Human` or `The Inner Sea`. The engine
+derives the definition ID, display name and specialty key; campaign input cannot
+replace the family's attribute, difficulty, defaults, page, modifiers, outcome,
+retry policy or dispatch. It materializes the definition only when the selected
+package carries the exact source family, and the character compiler treats that
+operation as an explicit migration from the non-rollable selector.
+
+Biology, Geography and Geology produce findings through the existing noncombat
+approach service. Disguise produces a bounded disguise result through that same
+service. Technology-level difference, familiarity, prerequisites, check
+capabilities and receipt replay continue through the shared technology attempt
+path. Biology's cross-specialty default and Geology's matching Geography default
+are concrete campaign-selected edges; missing TL or specialty facts fail closed.
+An undeclared subject has neither a character definition nor a procedure.
+
+Independent B180/B187/B198 result cases live in
+`tests/fixtures/gurps/open_technology_specialties.json`; compilation, default,
+failure and replay evidence is in `tests/test_open_technology_specialties.py`.
 
 ## Contextual catalog metadata (#336)
 

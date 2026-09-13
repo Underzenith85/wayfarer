@@ -49,14 +49,8 @@ LISTED = (
     "nbc-suit no-landing-extraction paleontology physics physics-acoustics piloting research "
     "seamanship set-trap shiphandling spacer submarine submariner traps vacc-suit work-by-touch"
 ).split()
-# Rows this issue does not implement, and the concrete open child that owns them.
-# #356 expanded the discipline-keyed families; the four whose specialty axis is a
-# world, a planet type or a species record that axis but wait on #390 to name one.
+# Rows #346 transferred to another concrete procedure owner.
 TRANSFERRED = {
-    "skill:biology": 390,
-    "skill:disguise": 390,
-    "skill:geography": 390,
-    "skill:geology": 390,
     "skill:motion-picture-camera": 338,
 }
 # Families completed by their concrete specialties instead of a dispatch.
@@ -167,8 +161,6 @@ def test_listed_scope_is_completely_accounted_for() -> None:
                 # The receiving #338 catalog now supplies the real procedure.
                 assert entry.implementation == "implemented"
                 assert entry.dispatch == "noncombat.approach"
-            else:
-                assert entry.implementation == "unsupported"
         else:
             assert entry.implementation == "implemented"
             assert procedure.implemented
@@ -269,9 +261,7 @@ def test_a_technique_without_its_parent_level_cannot_be_rolled() -> None:
 @pytest.mark.parametrize(
     ("identifier", "expected"),
     [
-        ("skill:biology", "runtime-procedure (#390)"),
         ("skill:motion-picture-camera", "runtime-procedure (#338)"),
-        ("skill:geology", "runtime-procedure (#390)"),
     ],
 )
 def test_transferred_rows_fail_closed_naming_their_owner(identifier: str, expected: str) -> None:
@@ -403,7 +393,7 @@ def test_implemented_rows_reach_the_audit_report() -> None:
     report = audit_report()
     counts = cast(dict[str, int], report["implementation_counts"])
     # #343 adds 66 concrete physical and outdoor rows to the prior total.
-    assert counts["implemented"] == 462
+    assert counts["implemented"] == 466
     rows = {entry.id: entry for entry in inventory()}
     assert rows["skill:vacc-suit"].dispatch == "hazard.exposure"
     assert rows["skill:driving-automobile"].dispatch == "transport.vehicle-control"

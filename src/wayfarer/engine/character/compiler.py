@@ -33,6 +33,7 @@ from wayfarer.engine.rules.catalog import (
     CampaignRules,
     DefinitionKind,
     ImplementationStatus,
+    RuleDefinition,
     RulesCatalog,
 )
 from wayfarer.engine.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
@@ -41,6 +42,9 @@ from wayfarer.engine.rules.magic.gurps_magic import (
     PREREQUISITES,
     magery_level,
     validate_definitions,
+)
+from wayfarer.engine.rules.skills.mundane.technology.specialties import (
+    CampaignTechnologySpecialties,
 )
 from wayfarer.engine.rules.supernatural.abilities import validate_purchase as validate_ability
 from wayfarer.engine.rules.traits import registry as trait_registry
@@ -113,6 +117,13 @@ _PROTOTYPE_POOLS: Final = MappingProxyType({"hp": "attribute:st", "fp": "attribu
 _PROFILE_POOLS: Final = MappingProxyType({"hp": "secondary:hp", "fp": "secondary:fp"})
 
 
+def _definition_index(definitions: tuple[RuleDefinition, ...]) -> dict[str, RuleDefinition]:
+    indexed = {definition.id: definition for definition in definitions}
+    if len(indexed) != len(definitions):
+        raise ValidationError("Ambiguous definition IDs")
+    return indexed
+
+
 def pool_limits(build: ValidatedBuild) -> dict[str, int]:
     """Runtime pool maxima a build implies; the only place that mapping is decided.
 
@@ -166,6 +177,7 @@ class CharacterCompiler:
         effects: tuple[tuple[str, Effect], ...] = (),
         statistics_profile: str | None = None,
         trait_runtime_hooks: frozenset[str] = frozenset(),
+        campaign_skill_specialties: CampaignTechnologySpecialties | None = None,
     ) -> None:
         self.rules, self.policy = rules, policy
         self.trait_runtime_hooks = trait_runtime_hooks
@@ -178,11 +190,42 @@ class CharacterCompiler:
             raise ValidationError("Rules edition mismatch")
         if any(dep not in {p.id for p in packages} for p in packages for dep in p.dependencies):
             raise ValidationError("Missing pinned package dependency")
-        definitions = tuple(d for p in packages for d in p.definitions)
+        pinned_definitions = tuple(d for p in packages for d in p.definitions)
+        pinned_by_id = _definition_index(pinned_definitions)
+        campaign_definitions = (
+            ()
+            if campaign_skill_specialties is None
+            else campaign_skill_specialties.definitions(pinned_by_id)
+        )
+        campaign_families = (
+            frozenset()
+            if campaign_skill_specialties is None
+            else campaign_skill_specialties.migrated_families(pinned_by_id)
+        )
+        # A campaign specialty is an explicit migration from its non-rollable
+        # selector.  Keep the pinned package immutable, but do not feed the
+        # unsupported selector itself to the live skill compiler.
+        definitions = (
+            tuple(
+                definition
+                for definition in pinned_definitions
+                if definition.id not in campaign_families
+            )
+            + campaign_definitions
+        )
+        self.campaign_skill_specialties = campaign_skill_specialties
         self.definitions = {d.id: d for d in definitions}
         self.definition_packages = {
             d.id: (p.id, p.version) for p in packages for d in p.definitions
         }
+        pinned_definition_packages = dict(self.definition_packages)
+        for campaign_definition in campaign_definitions:
+            assert (
+                campaign_definition.skill is not None
+                and campaign_definition.skill.specialty is not None
+            )
+            family_id = f"skill:{campaign_definition.skill.specialty.family}"
+            self.definition_packages[campaign_definition.id] = pinned_definition_packages[family_id]
         if len(self.definitions) != len(definitions):
             raise ValidationError("Ambiguous definition IDs")
         # Exact profile selection: statistics never activate from a package name,
@@ -607,6 +650,9 @@ class CharacterCompiler:
                             )
                         ),
                         self.policy.technology_level,
+                        campaign_defaults=frozenset()
+                        if self.campaign_skill_specialties is None
+                        else self.campaign_skill_specialties.default_selections(),
                     ),
                 )
                 bases.update(
@@ -697,6 +743,11 @@ class CharacterCompiler:
                 payload["cost_provenance"] = [asdict(entry) for entry in cost_provenance]
             if projection is not None:
                 payload["statistics"] = asdict(projection)
+            payload.update(
+                {"campaign_skill_specialties": asdict(self.campaign_skill_specialties)}
+                if self.campaign_skill_specialties is not None
+                else {}
+            )
             revision = hashlib.sha256(
                 json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode()
             ).hexdigest()

@@ -404,8 +404,8 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert report["implementation_counts"] == {
         # #343 binds 66 concrete physical/outdoor rows and four templates.
         "contextual": 28,
-        "implemented": 462,
-        "unsupported": 14,
+        "implemented": 466,
+        "unsupported": 10,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
