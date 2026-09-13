@@ -4,7 +4,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
-from support.runtime import build_play, seed_campaign
+from support.runtime import build_play, played, seed_campaign
 from test_actions import campaign, engine
 
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -24,7 +24,7 @@ async def test_postgres_concurrent_retry_and_replay(tmp_path: Path) -> None:
     )
     assert all(result == results[0] for result in results)
     assert await play.store.replay(cid) == await play.store.read(cid)
-    assert len(await play.store.history(cid)) == 1
+    assert len(await played(play.store, cid)) == 1
 
 
 async def test_postgres_rolls_back_projection_and_event_together(tmp_path: Path) -> None:
