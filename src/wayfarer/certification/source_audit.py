@@ -352,6 +352,19 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
     rows.extend(
         InventoryItem(
             identifier,
+            f"B{definition.page}",
+            682,
+            "verified",
+            "ability-modifier-ledger",
+            source_review="reviewed",
+            evidence=("tests/test_advantage_enhancements.py",),
+        )
+        for identifier, definition in sorted(MODIFIER_INDEX.items())
+        if identifier.startswith("modifier:enhancement:")
+    )
+    rows.extend(
+        InventoryItem(
+            identifier,
             f"B{MODIFIER_INDEX[identifier].page}",
             513,
             "verified",
@@ -360,6 +373,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             evidence=("tests/test_special_damage.py",),
         )
         for identifier in sorted(SPECIAL_PENETRATION_MODIFIER_IDS)
+        if identifier.startswith("modifier:limitation:")
     )
     # Consume the owner inventory directly, including transferred skill exclusions.
     rows.extend(
