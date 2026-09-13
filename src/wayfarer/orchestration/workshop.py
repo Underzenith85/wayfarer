@@ -18,7 +18,8 @@ from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
+from wayfarer.orchestration.provider_contracts import ProviderRequest
+from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.runtime import CampaignRuntime
 
 
@@ -39,7 +40,7 @@ class WorkshopService:
         self.access, self.play = access, access.play
 
     def _get(self, state: PlayState, draft_id: str, principal_id: str) -> AuthorDraft:
-        member = self.access._member(state, principal_id)
+        member = self.access.member(state, principal_id)
         draft = next((d for d in state.drafts if d.id == draft_id), None)
         if draft is None or (
             draft.owner_id != principal_id
@@ -112,12 +113,12 @@ class WorkshopService:
         self, cid: str, command: DraftCommand, *, principal_id: str
     ) -> dict[str, object]:
         state = self.play._load(await self.play.store.read(cid))
-        member = self.access._member(state, principal_id)
+        member = self.access.member(state, principal_id)
         if command.operation == "approve":
             if member.role != "gm" or principal_id not in self.play.engine.reviewer.gm_ids:
                 raise AuthorizationError("Approval requires campaign GM")
         else:
-            self.access._control(member, command.actor_id)
+            self.access.control(member, command.actor_id)
         payload = json.dumps(
             {"principal_id": principal_id, "command": command.model_dump(mode="json")},
             sort_keys=True,
@@ -297,7 +298,7 @@ class WorkshopService:
         if command.operation != "save" or command.kind != "character":
             raise ValidationError("Character generation requires a save command")
         state = self.play._load(await self.play.store.read(cid))
-        self.access._control(self.access._member(state, principal_id), command.actor_id)
+        self.access.control(self.access.member(state, principal_id), command.actor_id)
         if state.revision != command.expected_revision:
             raise ConflictError("Generation context changed")
         compiler = self.play.engine.reviewer.compiler

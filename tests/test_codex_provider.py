@@ -35,12 +35,8 @@ from wayfarer.orchestration.codex import (
     codex_turn_failure,
     decode_codex_output,
 )
-from wayfarer.orchestration.providers import (
-    Intent,
-    ProviderReply,
-    ProviderRequest,
-    Usage,
-)
+from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.providers import Intent
 
 
 def request(session: str = "actor-session") -> ProviderRequest:

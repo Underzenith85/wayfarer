@@ -128,7 +128,7 @@ async def read_campaign(request: web.Request) -> web.Response:
 
 
 async def command(request: web.Request) -> web.Response:
-    result = await request.app[ACCESS_KEY].execute(
+    result = await request.app[ACCESS_KEY].submit_json(
         request.match_info["cid"], await _json(request), principal_id=_identity(request)
     )
     return web.json_response(result)
@@ -204,10 +204,10 @@ async def workshop_start(request: web.Request) -> web.Response:
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     actor_id = request.match_info["aid"]
-    member = access._member(state, _identity(request))
+    member = access.member(state, _identity(request))
     reviewing = member.role == "gm" and member.principal_id in access.play.engine.reviewer.gm_ids
     if not reviewing:
-        access._control(member, actor_id)
+        access.control(member, actor_id)
     actor = next((a for a in state.actors if a.actor_id == actor_id), None)
     if actor is None:
         raise AuthorizationError("Character unavailable")
@@ -254,7 +254,7 @@ async def workshop_start(request: web.Request) -> web.Response:
 async def workshop_reviews(request: web.Request) -> web.Response:
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
-    member = access._member(state, _identity(request))
+    member = access.member(state, _identity(request))
     if member.role != "gm" or member.principal_id not in access.play.engine.reviewer.gm_ids:
         raise AuthorizationError("Workshop review requires campaign GM")
 
@@ -289,7 +289,7 @@ async def workshop_grant(request: web.Request) -> web.Response:
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     cid, principal = request.match_info["cid"], _identity(request)
     state = access.play._load(await access.play.store.read(cid))
-    if access._member(state, principal).role != "gm":
+    if access.member(state, principal).role != "gm":
         raise AuthorizationError("Point grants require campaign GM")
     body = GrantPoints.model_validate_json(json.dumps(await _json(request)))
     result = await AdvancementService(access.play).grant(cid, body, authenticated_gm_id=principal)
@@ -299,7 +299,7 @@ async def workshop_grant(request: web.Request) -> web.Response:
 async def workshop_character_preview(request: web.Request) -> web.Response:
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
-    access._control(access._member(state, _identity(request)), request.match_info["aid"])
+    access.control(access.member(state, _identity(request)), request.match_info["aid"])
     body = CharacterPreviewRequest.model_validate_json(json.dumps(await _json(request)))
     return web.json_response(
         preview_character(access.play.engine.reviewer, body.proposal).model_dump(mode="json")
@@ -309,7 +309,7 @@ async def workshop_character_preview(request: web.Request) -> web.Response:
 async def workshop_profile_preview(request: web.Request) -> web.Response:
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
-    access._member(state, _identity(request))
+    access.member(state, _identity(request))
     body = ProfilePreviewRequest.model_validate_json(json.dumps(await _json(request)))
     return web.json_response(preview_profile(body).model_dump(mode="json"))
 
@@ -320,7 +320,7 @@ async def workshop_advance(request: web.Request) -> web.Response:
     cid = request.match_info["cid"]
     state = access.play._load(await access.play.store.read(cid))
     body = AdvanceCharacter.model_validate_json(json.dumps(await _json(request)))
-    access._control(access._member(state, _identity(request)), body.actor_id)
+    access.control(access.member(state, _identity(request)), body.actor_id)
     service = AdvancementService(access.play)
     if request.match_info["operation"] == "preview":
         result = await service.preview(cid, body, authenticated_actor_id=body.actor_id)
@@ -351,7 +351,7 @@ async def validate_scenario(request: web.Request) -> web.Response:
 
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
-    if access._member(state, _identity(request)).role != "gm":
+    if access.member(state, _identity(request)).role != "gm":
         raise AuthorizationError("Scenario authoring requires GM")
     graph = ScenarioGraph.model_validate_json(json.dumps(await _json(request)))
     report = ScenarioStudio(access.play).validate(graph)

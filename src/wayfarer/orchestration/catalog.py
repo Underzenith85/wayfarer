@@ -28,7 +28,8 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
 from wayfarer.engine.simulation.campaign.setup import CreateSetup
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph, StudioFinding
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
-from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
+from wayfarer.orchestration.provider_contracts import ProviderRequest
+from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.scenario_documents import (
     ScenarioDocuments,
     adapt_graph,

@@ -29,7 +29,7 @@ async def test_atomic_stream_fold_retry_and_schema(tmp_path: Path, backend: str)
     initial = await play.store.read(cid)
     access = build_runtime(play)
     command = Wait(id="stream", actor_id="a", expected_revision=0, ticks=1)
-    await access.execute(cid, command.model_dump(mode="json"), principal_id="alice")
+    await access.submit_json(cid, command.model_dump(mode="json"), principal_id="alice")
     stream = await play.store.stream(cid)
     assert stream and {e.command_id for e in stream} == {"stream"}
     assert [e.ordinal for e in stream] == list(range(len(stream)))
@@ -43,10 +43,10 @@ async def test_atomic_stream_fold_retry_and_schema(tmp_path: Path, backend: str)
     validator = Draft202012Validator(schema)
     for event in stream:
         validator.validate(json.loads(EVENT_ADAPTER.dump_json(event.event)))
-    await access.execute(cid, command.model_dump(mode="json"), principal_id="alice")
+    await access.submit_json(cid, command.model_dump(mode="json"), principal_id="alice")
     assert await play.store.stream(cid) == stream
     # Every retained command checkpoint is reconstructed from event operations.
-    await access.execute(
+    await access.submit_json(
         cid,
         Wait(id="second", actor_id="a", expected_revision=1, ticks=1).model_dump(mode="json"),
         principal_id="alice",

@@ -24,7 +24,8 @@ from wayfarer.engine.simulation.campaign.studio import (
 )
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
+from wayfarer.orchestration.provider_contracts import ProviderRequest
+from wayfarer.orchestration.providers import Orchestrator
 
 
 def _listed(values: Iterable[object]) -> str:

@@ -91,7 +91,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     )
     command = proposal(play, initial, item, purchases)
     access = build_runtime(play)
-    result = await access.execute(cid, command, principal_id="alice")
+    result = await access.submit_json(cid, command, principal_id="alice")
     assert isinstance(result["fright"], tuple)
     assert build(play.rules_context, play._load(await play.store.read(cid)), "a") == old
     assert "secret-monster" not in str(result) and "private-occurrence" not in str(result)
@@ -100,7 +100,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     assert projected["proposal_id"] and projected["build_approval_required"]
     state = play._load(await play.store.read(cid))
     assert (
-        CampaignRuntime._projection(state, CampaignMember(principal_id="watch", role="spectator"))[
+        CampaignRuntime.view(state, CampaignMember(principal_id="watch", role="spectator"))[
             "fright"
         ]
         == ()
@@ -116,15 +116,15 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     }
     saved = await play.store.read(cid)
     with pytest.raises(ValidationError, match="director authority"):
-        await access.execute(cid, approval, principal_id="alice")
+        await access.submit_json(cid, approval, principal_id="alice")
     with pytest.raises(ConflictError, match="stale"):
-        await access.execute(cid, approval | {"proposal_id": "obsolete"}, principal_id="gm")
+        await access.submit_json(cid, approval | {"proposal_id": "obsolete"}, principal_id="gm")
     assert await play.store.read(cid) == saved
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "social.sqlite", 10), play.engine, rng=RecordedDice([])
     )
     access = build_runtime(restarted)
-    result = await access.execute(cid, approval, principal_id="gm")
+    result = await access.submit_json(cid, approval, principal_id="gm")
     final = restarted._load(await restarted.store.read(cid))
     new = build(restarted.rules_context, final, "a")
     assert new.statistics is not None and getattr(new.statistics, attribute) == 9
@@ -136,10 +136,10 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     else:
         assert next(p for p in final.resources.pools if p.id == "fp:a").maximum == 9
     assert result["fright"] == ()
-    assert await access.execute(cid, approval, principal_id="gm") == result
+    assert await access.submit_json(cid, approval, principal_id="gm") == result
     assert await restarted.store.read(cid) == await restarted.store.replay(cid)
     with pytest.raises(ConflictError):
-        await access.execute(cid, approval | {"reason": "changed"}, principal_id="gm")
+        await access.submit_json(cid, approval | {"reason": "changed"}, principal_id="gm")
 
 
 async def test_self_control_worsens_one_step_and_rejects_unrelated_purchases(
@@ -169,16 +169,16 @@ async def test_self_control_worsens_one_step_and_rejects_unrelated_purchases(
     )
     saved = await play.store.read(cid)
     with pytest.raises(ValidationError, match="Only consequence traits"):
-        await access.execute(
+        await access.submit_json(
             cid,
             command
             | {"draft": draft.model_copy(update={"purchases": changed}).model_dump(mode="json")},
             principal_id="alice",
         )
     assert saved == await play.store.read(cid)
-    result = await access.execute(cid, command, principal_id="alice")
+    result = await access.submit_json(cid, command, principal_id="alice")
     assert isinstance(result["fright"], tuple)
-    await access.execute(
+    await access.submit_json(
         cid,
         {
             "id": "approve",
@@ -228,9 +228,11 @@ async def test_new_trait_requires_exact_cost_then_approved_catalog_purchase(
     state = play._load(await play.store.read(cid))
     purchases = state.actors[0].proposal.draft.purchases + (Purchase(definition_id=definition.id),)
     access = build_runtime(play)
-    result = await access.execute(cid, proposal(play, state, item, purchases), principal_id="alice")
+    result = await access.submit_json(
+        cid, proposal(play, state, item, purchases), principal_id="alice"
+    )
     assert isinstance(result["fright"], tuple)
-    await access.execute(
+    await access.submit_json(
         cid,
         {
             "id": "approve",

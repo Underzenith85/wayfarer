@@ -287,7 +287,7 @@ async def test_ambiguous_migration_is_explicit_authorized_atomic_and_retry_safe(
     )
     access = build_runtime(play)
     with pytest.raises(AuthorizationError):
-        await access.execute(cid, command.model_dump(mode="json"), principal_id="alice")
+        await access.submit_json(cid, command.model_dump(mode="json"), principal_id="alice")
     with pytest.raises(ValidationError):
         await EncounterSceneService(play).execute(
             cid,
@@ -301,9 +301,9 @@ async def test_ambiguous_migration_is_explicit_authorized_atomic_and_retry_safe(
             authenticated_gm_id="gm",
         )
     assert await play.store.read(cid) == before
-    await access.execute(cid, command.model_dump(mode="json"), principal_id="gm")
+    await access.submit_json(cid, command.model_dump(mode="json"), principal_id="gm")
     after = await play.store.read(cid)
-    await access.execute(cid, command.model_dump(mode="json"), principal_id="gm")
+    await access.submit_json(cid, command.model_dump(mode="json"), principal_id="gm")
     assert await play.store.read(cid) == after
     migrated = await load(play, cid)
     assert migrated.encounters[0].scene_id == "dock-scene"
@@ -344,7 +344,7 @@ async def test_spectator_split_preserves_combat_and_can_queue_independent_activi
         id="split", actor_id="c", kind="split_party", expected_revision=1, target_id="scouts"
     )
     access = build_runtime(play)
-    await access.execute(cid, split.model_dump(mode="json"), principal_id="scout")
+    await access.submit_json(cid, split.model_dump(mode="json"), principal_id="scout")
     after = await load(play, cid)
     assert after.encounters == state.encounters and after.world == state.world
     assert after.resources.game_time == 0
@@ -353,7 +353,7 @@ async def test_spectator_split_preserves_combat_and_can_queue_independent_activi
     assert remaining_group is not None and remaining_group.generation == 1
     assert activity_for(after, "c").scene_id == activity_for(after, "a").scene_id
     with pytest.raises(ConflictError):
-        await access.execute(
+        await access.submit_json(
             cid,
             split.model_copy(update={"id": "stale"}).model_dump(mode="json"),
             principal_id="scout",
@@ -367,7 +367,7 @@ async def test_spectator_split_preserves_combat_and_can_queue_independent_activi
             id="inner", actor_id="c", expected_revision=2, ticks=2
         ).model_dump_json(),
     )
-    await access.execute(cid, queued.model_dump(mode="json"), principal_id="scout")
+    await access.submit_json(cid, queued.model_dump(mode="json"), principal_id="scout")
     after = await load(play, cid)
     assert activity_for(after, "c").queued is not None
     assert after.resources.game_time == 0

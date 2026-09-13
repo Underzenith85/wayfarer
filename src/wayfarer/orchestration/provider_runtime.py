@@ -8,7 +8,8 @@ import aiohttp
 from wayfarer.config import Settings
 from wayfarer.orchestration.codex import CodexProvider, CodexSettings, ProviderStatus
 from wayfarer.orchestration.llm import LLMClient
-from wayfarer.orchestration.providers import ResponsesProvider, StructuredProvider
+from wayfarer.orchestration.provider_contracts import StructuredProvider
+from wayfarer.orchestration.providers import ResponsesProvider
 
 
 @asynccontextmanager

@@ -100,15 +100,15 @@ async def read(request: web.Request) -> web.Response:
     if request.path.startswith("/api/tactical/v2/"):
         runtime = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
         state = runtime.play._load(await runtime.play.store.read(request.match_info["cid"]))
-        member = runtime._member(state, _identity(request))
-        runtime._control(member, result.actor_id)
+        member = runtime.member(state, _identity(request))
+        runtime.control(member, result.actor_id)
         result = enrich(
             runtime.play,
             state,
             project(
                 runtime.play,
                 state,
-                runtime._member(state, _identity(request)),
+                runtime.member(state, _identity(request)),
                 result.actor_id,
                 include_object_choices=True,
             ),
@@ -277,13 +277,13 @@ async def execute(request: web.Request) -> web.Response:
     cid, principal = request.match_info["cid"], _identity(request)
     access = await request.app[ACCESS_KEY].for_campaign(cid)
     state = access.play._load(await access.play.store.read(cid))
-    member = access._member(state, principal)
+    member = access.member(state, principal)
     request_type = (
         TacticalRequestV2 if request.path.startswith("/api/tactical/v2/") else TacticalRequest
     )
     body = request_type.model_validate_json(json.dumps(await _json(request)))
     command = COMBAT_ADAPTER.validate_json(body.command.model_dump_json())
-    access._control(member, command.actor_id)
+    access.control(member, command.actor_id)
     payload = json.dumps(
         {"operation": "combat", "command": command.model_dump(mode="json")},
         sort_keys=True,

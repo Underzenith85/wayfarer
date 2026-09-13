@@ -16,7 +16,8 @@ from test_wave14 import Table
 
 from wayfarer.engine.simulation.resources import Consume, ResourceState, Transfer
 from wayfarer.errors import ProviderError
-from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.transport.common import ACCESS_KEY
 
 
@@ -198,7 +199,7 @@ async def test_process_death_rolls_back_projection_event_and_receipt(tmp_path: P
     assert await reopened.replay(cid) == before
     assert await reopened.history(cid) == []
     assert await reopened.duplicate(cid, "fault", "fault") is None
-    await build_runtime(play).execute(
+    await build_runtime(play).submit_json(
         cid,
         {"id": "fault", "actor_id": "a", "expected_revision": 0, "kind": "wait", "ticks": 1},
         principal_id="alice",

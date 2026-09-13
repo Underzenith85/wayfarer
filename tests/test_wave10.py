@@ -302,7 +302,7 @@ async def test_capture_captive_action_rescue_reunion_restart_and_custody(
     state = await wait(cid, play, "b")
     assert any(i.owner_id == "a" for i in state.resources.items)
     group = next(g for g in state.party.groups if "b" in g.actor_ids)
-    await access.execute(
+    await access.submit_json(
         cid,
         PartyCommand(
             kind="rejoin_party",
@@ -352,7 +352,7 @@ async def test_duplicate_concurrent_setback_and_illegal_captive_bypass(tmp_path:
             authenticated_actor_id="a",
         )
     with pytest.raises(AuthorizationError):
-        await build_runtime(play).execute(
+        await build_runtime(play).submit_json(
             cid, command.model_dump(mode="json"), principal_id="alice"
         )
     assert (await read(cid, play)).revision == 1

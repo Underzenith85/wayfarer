@@ -130,18 +130,9 @@ class FrightBuildService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def execute(self, cid: str, value: object, *, principal_id: str) -> None:
-        if not isinstance(value, dict):
-            raise ValidationError("Invalid fright build command")
-        model = (
-            ProposeFrightBuild
-            if value.get("kind") == "propose_fright_build"
-            else ApproveFrightBuild
-        )
-        try:
-            command = model.model_validate(value)
-        except ValueError as exc:
-            raise ValidationError("Invalid fright build command") from exc
+    async def execute(
+        self, cid: str, command: ProposeFrightBuild | ApproveFrightBuild, *, principal_id: str
+    ) -> None:
         play = self.play.for_campaign(await self.play.store.read(cid))
         member = member_for(play._load(await play.store.read(cid)), principal_id)
         if member.role != "gm":

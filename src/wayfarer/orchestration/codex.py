@@ -41,7 +41,7 @@ from wayfarer.errors import (
     ProviderTimeoutError,
 )
 from wayfarer.models import Record
-from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 
 
 def strict_schema(schema: dict[str, object]) -> JsonObject:

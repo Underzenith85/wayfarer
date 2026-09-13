@@ -87,7 +87,7 @@ async def test_atomic_activation_restart_and_lifecycle(tmp_path: Path) -> None:
         cid, SetupCommand(id="pause", expected_revision=4, operation="pause"), principal_id="alice"
     )
     with pytest.raises(ConflictError):
-        await access.execute(
+        await access.submit_json(
             cid,
             {"kind": "wait", "id": "wait", "actor_id": "a", "expected_revision": 5, "minutes": 1},
             principal_id="alice",
@@ -346,7 +346,7 @@ async def test_late_generation_and_provider_failure_preserve_newer_draft(tmp_pat
     from test_wave9 import FakeProvider
 
     from wayfarer.errors import ProviderError
-    from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+    from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 
     setup = service(tmp_path)
     cid = await ready(setup)
@@ -411,7 +411,7 @@ async def test_engine_ending_required_for_completion_and_archive(tmp_path: Path)
         principal_id="alice",
     )
     access = await setup.access.for_campaign(cid)
-    await access.execute(
+    await access.submit_json(
         cid,
         {
             "id": "travel",

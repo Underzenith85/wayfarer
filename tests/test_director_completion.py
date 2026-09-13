@@ -242,7 +242,7 @@ async def test_rejected_scheduled_action_is_not_narrated_as_success(tmp_path: Pa
 async def test_stalled_narration_never_blocks_committed_projection(tmp_path: Path) -> None:
     import asyncio
 
-    from wayfarer.orchestration.providers import ProviderRequest
+    from wayfarer.orchestration.provider_contracts import ProviderRequest
 
     cid, play = await prepare(tmp_path)
     entered, release = asyncio.Event(), asyncio.Event()

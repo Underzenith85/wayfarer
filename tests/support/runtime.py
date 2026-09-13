@@ -23,7 +23,8 @@ from wayfarer.orchestration.entropy import SeedSource
 from wayfarer.orchestration.jobs import ProviderJobs
 from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import Orchestrator, StructuredProvider
+from wayfarer.orchestration.provider_contracts import StructuredProvider
+from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.runtime import CampaignRuntime, CampaignStores
 from wayfarer.orchestration.sessions import EngineFactory, SessionRegistry, Store
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

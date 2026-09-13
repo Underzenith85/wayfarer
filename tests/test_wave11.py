@@ -237,7 +237,7 @@ async def test_generation_cannot_overwrite_concurrent_edit(tmp_path: Path) -> No
         expected_revision=0,
         expected_draft_revision=0,
     )
-    from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+    from wayfarer.orchestration.provider_contracts import ProviderReply, ProviderRequest, Usage
 
     class RacingProvider:
         async def complete(self, request: ProviderRequest) -> object:

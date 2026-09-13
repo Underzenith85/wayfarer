@@ -19,7 +19,9 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
     proposal = {"kind": "wait", "ticks": 1}
     origin = CommandOrigin.proposal("Intent", proposal, provider="fake", model="test-model")
     command = Wait(id="origin", actor_id="a", expected_revision=0, ticks=1)
-    await access.execute(cid, command.model_dump(mode="json"), principal_id="alice", origin=origin)
+    await access.submit_json(
+        cid, command.model_dump(mode="json"), principal_id="alice", origin=origin
+    )
     row = (await play.store.history(cid))[0]
     assert row.origin == origin
     assert origin.digest == payload_digest(proposal)
@@ -29,12 +31,12 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
         separators=(",", ":"),
     )
     assert row.payload_hash == payload_digest({"input": payload})
-    await access.execute(cid, command.model_dump(mode="json"), principal_id="alice")
+    await access.submit_json(cid, command.model_dump(mode="json"), principal_id="alice")
     assert (await play.store.history(cid))[0] == row
     assert "test-model" not in json.dumps(await access.read(cid, principal_id="alice"))
     assert "test-model" not in json.dumps(row.state_after)
     assert "test-model" not in repr(row)
-    await access.execute(
+    await access.submit_json(
         cid,
         Wait(id="direct", actor_id="a", expected_revision=1, ticks=1).model_dump(mode="json"),
         principal_id="alice",
@@ -104,5 +106,5 @@ async def test_npc_proposal_uses_same_origin_and_scope_resets_on_failure(tmp_pat
     await NPCService(play).propose(cid, command, authenticated_gm_id="gm", origin=origin)
     assert (await play.store.history(cid))[-1].origin == origin
     with pytest.raises(ValidationError):
-        await build_runtime(play).execute(cid, {}, principal_id="alice", origin=origin)
+        await build_runtime(play).submit_json(cid, {}, principal_id="alice", origin=origin)
     assert current_origin.get() is None

@@ -18,13 +18,8 @@ from wayfarer.engine.simulation.campaign.director import DirectorTurn
 from wayfarer.errors import AuthorizationError, ConflictError, ProviderError, ValidationError
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.party import PartyCommand
-from wayfarer.orchestration.providers import (
-    Intent,
-    Narration,
-    Orchestrator,
-    ProviderRequest,
-    TurnResponse,
-)
+from wayfarer.orchestration.provider_contracts import ProviderRequest
+from wayfarer.orchestration.providers import Intent, Narration, Orchestrator, TurnResponse
 from wayfarer.persistence.events import CommandOrigin
 
 
@@ -120,9 +115,9 @@ class DirectorService:
         }
         # Reload and reauthorize at every durable boundary, including retries.
         for _ in range(8):
-            state = self.play._load(await self.play.store.read(cid))
-            member = self.access._member(state, principal_id)
-            self.access._control(member, actor_id)
+            state = await self.access.checkpoint(cid)
+            member = self.access.member(state, principal_id)
+            self.access.control(member, actor_id)
             turn = next((t for t in state.director if t.id == command_id), None)
             if turn is not None and (turn.actor_id, turn.principal_id, turn.text) != (
                 actor_id,
@@ -323,7 +318,9 @@ class DirectorService:
                     ),
                     None,
                 )
-                await self.access.execute(cid, command, principal_id=principal_id, origin=origin)
+                await self.access.submit_json(
+                    cid, command, principal_id=principal_id, origin=origin
+                )
             except (ValidationError, ConflictError, AuthorizationError) as exc:
                 current = self.play._load(await self.play.store.read(cid))
                 turn = turn.model_copy(update={"phase": "clarification", "narration": str(exc)})

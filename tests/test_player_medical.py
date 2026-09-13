@@ -106,7 +106,7 @@ async def test_player_can_submit_only_server_authorized_opaque_choice(tmp_path: 
 
     rest = offered["rest"]
     with pytest.raises(ValidationError, match="Invalid typed campaign command"):
-        await access.execute(
+        await access.submit_json(
             cid,
             {
                 "id": "forged-values",
@@ -121,7 +121,7 @@ async def test_player_can_submit_only_server_authorized_opaque_choice(tmp_path: 
             principal_id="alice",
         )
     with pytest.raises(ValidationError, match="no longer authorized"):
-        await access.execute(
+        await access.submit_json(
             cid,
             {
                 "id": "forged-choice",
@@ -150,7 +150,7 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
         "kind": "gurps_recovery",
         "choice_id": rest["id"],
     }
-    started = await access.execute(cid, start, principal_id="alice")
+    started = await access.submit_json(cid, start, principal_id="alice")
     assert started["revision"] == 1
     assert started["gurps_recovery_tasks"] == [
         {
@@ -165,7 +165,7 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
         }
     ]
 
-    replayed = await access.execute(cid, start, principal_id="alice")
+    replayed = await access.submit_json(cid, start, principal_id="alice")
     assert replayed["revision"] == 1
     state = play._load(await play.store.read(cid))
     assert len(state.resources.recovery_tasks) == 1
@@ -177,7 +177,7 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
     restored = await restarted.read(cid, principal_id="alice")
     assert restored["gurps_recovery_tasks"] == started["gurps_recovery_tasks"]
 
-    after_wait = await restarted.execute(
+    after_wait = await restarted.submit_json(
         cid,
         {
             "id": "wait-rest",
@@ -200,12 +200,12 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
         "kind": "gurps_recovery",
         "choice_id": finish["id"],
     }
-    completed = await restarted.execute(cid, finish_command, principal_id="alice")
+    completed = await restarted.submit_json(cid, finish_command, principal_id="alice")
     assert completed["revision"] == 3
     fp = next(pool for pool in projected_list(completed, "pools") if pool["id"] == "fp:a")
     assert fp["current"] == 6
 
-    retried = await restarted.execute(cid, finish_command, principal_id="alice")
+    retried = await restarted.submit_json(cid, finish_command, principal_id="alice")
     assert retried["revision"] == 3
     fp = next(pool for pool in projected_list(retried, "pools") if pool["id"] == "fp:a")
     assert fp["current"] == 6
