@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
-from wayfarer.engine.rules.conformance import profile
+from wayfarer.engine.rules.conformance_vocabulary import BASIC_PROFILE_ID, require_profile_id
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -49,14 +49,14 @@ class TraitRules:
 
 
 def validate_metadata(rules: TraitRules) -> None:
-    selected = profile(rules.profile_id)
+    selected_id = require_profile_id(rules.profile_id)
     if type(rules.maximum_level) is not int or not 1 <= rules.maximum_level <= 10000:
         raise ValidationError("Invalid trait level bound")
     names = {p.name for p in rules.parameters}
     identifiers = {m.id for m in rules.modifiers}
     if len(names) != len(rules.parameters) or len(identifiers) != len(rules.modifiers):
         raise ValidationError("Duplicate trait metadata identifier")
-    if rules.modifiers and selected.id != "gurps-basic-set-4e-2004":
+    if rules.modifiers and selected_id != BASIC_PROFILE_ID:
         raise ValidationError("Ability modifiers require the Basic Set profile")
     kinds = {"text": str, "integer": int, "boolean": bool}
     for parameter in rules.parameters:

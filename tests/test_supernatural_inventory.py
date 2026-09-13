@@ -286,5 +286,6 @@ def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() 
     owned = [e for e in source_inventory() if e.id.startswith("supernatural/")]
     assert len(owned) == 334
     assert {e.id for e in owned} == {"supernatural/" + e.id for e in inventory().entries}
-    assert all(e.source_review == "pending" and e.owner == 119 for e in owned)
+    assert Counter(e.source_review for e in owned) == {"reviewed": 188, "pending": 146}
+    assert all(e.owner == 119 for e in owned)
     assert {n for e in owned for n in e.blockers} == set(coverage_blockers(PROFILE))

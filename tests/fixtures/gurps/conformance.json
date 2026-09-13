@@ -5663,6 +5663,78 @@
       "evidence_kind": "independent-sequence",
       "provenance": "Independent turn-order and clock expectations checked against Campaigns fourth printing.",
       "test": "tests/test_combat_timing.py::test_turn_order_uses_basic_speed_then_dx_and_stays_fixed"
+    },
+    {
+      "id": "basic-economics-conserved-exchange",
+      "capability_id": "gurps.campaign.economics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B513-B515",
+      "input": {
+        "source_currency": 7000,
+        "target_currency": 500,
+        "source_amount": 100,
+        "target_amount": 50,
+        "portable_only": true
+      },
+      "expected": {
+        "source_currency": 7000,
+        "target_currency": 500,
+        "player_target_balance": 50,
+        "retry_applies": 0
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-conservation-case",
+      "provenance": "Independent account totals and portable-wealth boundary checked against Campaigns fourth printing.",
+      "test": "tests/test_economics.py::test_cross_world_exchange_conserves_each_currency_and_survives_reload"
+    },
+    {
+      "id": "basic-employment-time-use-income",
+      "capability_id": "gurps.campaign.employment",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B515-B517",
+      "input": {
+        "monthly_pay": 1000,
+        "work_seconds": 100,
+        "authored_study_fraction": "1/4",
+        "job_roll": [1, 1, 1]
+      },
+      "expected": {
+        "income": 1000,
+        "study_seconds": 25,
+        "second_settlement": "rejected"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-period-case",
+      "provenance": "Independent fixed-income and work-time expectations checked against Characters third and Campaigns fourth printings.",
+      "test": "tests/test_economics.py::test_job_income_requires_one_authored_time_use_interval"
+    },
+    {
+      "id": "basic-hireling-private-loyalty",
+      "capability_id": "gurps.campaign.hirelings",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B516-B519",
+      "input": {
+        "initial_reaction": 9,
+        "normal_pay": 100,
+        "offered_pay": 120,
+        "loyalty_roll": [6, 6, 6]
+      },
+      "expected": {
+        "effective_loyalty": 11,
+        "result": "self-interest",
+        "persisted_loyalty": 8,
+        "private_motive_public": false
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-reaction-case",
+      "provenance": "Independent pay modifier, reaction total, and private-motive boundary checked against Campaigns fourth printing.",
+      "test": "tests/test_economics.py::test_hireling_loyalty_is_persisted_without_private_event_leakage"
     }
   ]
 }

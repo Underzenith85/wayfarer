@@ -350,11 +350,9 @@ def validate_source_ledgers(
             raise ValidationError(f"Source list page outside selected printing: {row.id}")
         if BASIC_PROFILE_ID not in row.profile_membership:
             raise ValidationError(f"Basic Set row missing profile membership: {row.id}")
-        needs_owner = row.disposition in {
-            "required",
-            "optional-unresolved",
-            "setting-unresolved",
-        }
+        needs_owner = row.disposition in {"optional-unresolved", "setting-unresolved"} or (
+            row.disposition == "required" and row.implementation not in {"implemented", "verified"}
+        )
         if needs_owner and row.completion_owner is None:
             raise ValidationError(f"Required row lacks completion owner: {row.id}")
         if row.completion_owner is not None and row.completion_owner not in open_owners:
@@ -368,8 +366,12 @@ def validate_source_ledgers(
                 raise ValidationError(
                     f"Catalog row lacks separate construction ownership: {row.id}"
                 )
-            if row.source_review_owner not in open_owners:
+            if row.source_review == "pending" and row.source_review_owner not in open_owners:
                 raise ValidationError(f"Catalog row lacks an open source-review owner: {row.id}")
+            if row.source_review == "reviewed" and row.source_review_owner is not None:
+                raise ValidationError(
+                    f"Reviewed catalog row retains a source-review owner: {row.id}"
+                )
             if row.runtime_binding == row.id and row.consequence_owner not in open_owners:
                 raise ValidationError(f"Catalog-only row lacks an open consequence owner: {row.id}")
         if row.runtime_binding is not None:
@@ -388,18 +390,9 @@ def validate_source_ledgers(
                 raise ValidationError(f"Runtime inventory implementation disagrees: {row.id}")
             bindings.append(row.runtime_binding)
         if row.implementation in {"implemented", "verified"}:
-            if row.source_review != "reviewed" or not row.evidence_paths:
+            if row.source_review != "reviewed":
                 raise ValidationError(f"Implemented row lacks reviewed evidence: {row.id}")
-        if (
-            row.source_review == "reviewed"
-            and row.disposition
-            in {
-                "optional-disabled",
-                "excluded",
-                "reference-only",
-            }
-            and not row.evidence_paths
-        ):
+        if row.source_review == "reviewed" and not row.evidence_paths:
             raise ValidationError(f"Reviewed disposition lacks evidence: {row.id}")
     if len(bindings) != len(set(bindings)):
         duplicates = sorted(key for key, count in Counter(bindings).items() if count > 1)

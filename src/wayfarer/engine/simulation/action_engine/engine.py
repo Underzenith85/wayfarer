@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.character.compiler import ValidatedBuild, pool_limits
 from wayfarer.engine.character.power import PowerReviewer
+from wayfarer.engine.character.traits.background import background_traits
 from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import SKILLS
 from wayfarer.engine.rules.checks import (
@@ -56,6 +57,7 @@ from wayfarer.engine.simulation.campaign.access import validate_members
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.administration import validate_administration
 from wayfarer.engine.simulation.campaign.advancement import validate_ledgers
+from wayfarer.engine.simulation.campaign.economics import validate_economics
 from wayfarer.engine.simulation.campaign.encounter_context import activity_for, validate_contexts
 from wayfarer.engine.simulation.campaign.law import validate_law
 from wayfarer.engine.simulation.campaign.lifecycle import validate_lifecycle
@@ -107,7 +109,7 @@ class ActionEngine:
         _validate_check_rules(reviewer, resources, rules)
         self.combat = CombatEngine(rules.combat, resources) if rules.combat is not None else None
         self.campaign = CampaignProcedureEngine(
-            resources, reviewer, rules.administration, rules.law
+            resources, reviewer, rules.administration, rules.law, rules.economics
         )
         if rules.combat is not None:
             _validate_gurps_equipment(reviewer, resources, rules.combat)
@@ -150,6 +152,32 @@ class ActionEngine:
             rules.administration, state.administration, state.world, state.advancement
         )
         validate_law(rules.law, state.law, frozenset(fact.id for fact in state.world.facts))
+        compiled: dict[str, ValidatedBuild | None] = {}
+        if rules.economics is not None:
+            compiled = {
+                actor.actor_id: self.reviewer.compiler.compile(actor.proposal.draft).build
+                for actor in state.actors
+            }
+            if any(value is None for value in compiled.values()):
+                raise ValidationError("Economics validation requires valid actor builds")
+        validate_economics(
+            rules.economics,
+            state.economics,
+            state.world,
+            state.resources,
+            rules.administration,
+            state.administration,
+            {
+                actor_id: background_traits(value, self.reviewer.compiler.definitions)
+                for actor_id, value in compiled.items()
+                if value is not None
+            },
+            {
+                actor_id: frozenset(entry.definition_id for entry in value.purchases)
+                for actor_id, value in compiled.items()
+                if value is not None
+            },
+        )
         validate_projects(state.resources.inventions, rules.inventions, state.resources.game_time)
         validate_enchantments(
             state.resources.enchantment_projects,
