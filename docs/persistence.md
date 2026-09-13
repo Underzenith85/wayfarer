@@ -99,7 +99,8 @@ for this migration. A private `StatePatched` event records explicit path changes
 and result digests, covering state that is not yet represented by a specialized
 fact. It does not contain a replacement campaign snapshot. Folding applies those
 changes; semantic facts can be consumed independently without applying effects a
-second time. Embedded event fields remain until #419.
+second time. Event-carrier fields are now a derived `PlayEventProjection`, not
+fields of the canonical `PlayCheckpoint` completed by #419.
 
 Each event declares a campaign, actor-set or GM audience. Scene discoveries and
 action results are private to their observer/actor. Full mechanical traces and
@@ -152,14 +153,15 @@ spells and authored recovery; callers can supply another typed executor to the
 verification API. Re-execution is a fixture guarantee, not a claim that every
 historical command family can run under current code.
 
-Five reviewed goldens under `tests/fixtures/replay/` cover the reference adventure,
-capture/rescue, hex combat, a spell and recovery. They retain their initial play
-checkpoint, exact command inputs, seeds, instants, typed events and independent
-snapshot digests. Fixtures begin at their explicit configured play checkpoint;
-setup/genesis migration remains #422. `test_release_invariants.py` verifies both
-checks at every fixture revision, with provider calls and fresh entropy/time
-capture forbidden. `scripts/release_gates.py` requires all five cases plus the
-SQLite/PostgreSQL durable replay and corruption tests.
+Seven reviewed goldens under `tests/fixtures/replay/` cover the reference
+adventure, capture/rescue, hex combat, a spell, recovery and two fatigue settlement
+paths. They retain their initial play checkpoint, exact command inputs, seeds,
+instants, typed events and independent snapshot digests. Fixtures begin at their
+explicit configured play checkpoint. Setup is now the pre-play segment of the
+same stream under #422. `test_release_invariants.py` verifies both checks at every
+fixture revision, with provider calls and fresh entropy/time capture forbidden.
+`scripts/release_gates.py` requires all seven cases plus the SQLite/PostgreSQL
+durable replay and corruption tests.
 
 To review a deliberate engine behavior change:
 
