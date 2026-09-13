@@ -604,7 +604,6 @@ async def test_configured_provider_http_path_and_scoped_status(
     app = create_campaign_app(
         build_runtime(play),
         {"alice-token": "alice", "bob-token": "bob"},
-        legacy_routes=True,
         settings=Settings(
             llm_provider="codex", codex_home=tmp_path / "codex", codex_sessions=tmp_path / "map.db"
         ),

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from support.runtime import build_orchestrator, build_runtime
+from support.setup import play_game
 from test_actions import actor_setup, campaign, resource_seed
 from test_scenes import configured
 from test_wave9 import FakeProvider, prepare
@@ -13,10 +14,12 @@ from test_wave9 import FakeProvider, prepare
 from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
 from wayfarer.engine.simulation.campaign.scenes import Discovery
+from wayfarer.engine.simulation.campaign.setup import SetupCommand
 from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.director import DirectorService
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -195,16 +198,19 @@ async def test_scenario_validates_and_activates_idempotently(tmp_path: Path) -> 
     engine, _ = configured()
     play = PlayService(AsyncSQLiteStore(tmp_path / "studio.sqlite", 10), engine)
     studio = ScenarioStudio(play)
+    setup = SetupService(build_runtime(play))
     graph = graph_fixture()
     report = studio.validate(graph)
     assert report.valid, report
-    from wayfarer.engine.simulation.campaign.access import CampaignMember
 
-    initial = campaign(studio.engine(graph))
-    members = (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),)
-    activated = await studio.activate(graph, initial, members, principal_id="gm")
-    await studio.activate(graph, initial, members, principal_id="gm")
-    view = await build_runtime(activated).read(initial["id"], principal_id="alice")
+    cid = await play_game(setup, graph)
+    # A retried activation is the same command id on the same setup, not a second game.
+    await setup.execute(
+        cid,
+        SetupCommand(id="activate", expected_revision=2, operation="activate"),
+        principal_id="alice",
+    )
+    view = await build_runtime(play).read(cid, principal_id="alice")
     assert "studio_graph" not in json.dumps(view)
     broken = graph.model_copy(
         update={
@@ -217,7 +223,7 @@ async def test_scenario_validates_and_activates_idempotently(tmp_path: Path) -> 
     )
     assert not studio.validate(broken).valid
     with pytest.raises(ValidationError):
-        await studio.activate(broken, initial, members, principal_id="gm")
+        await play_game(setup, broken, command_id="broken")
 
 
 async def test_generation_cannot_overwrite_concurrent_edit(tmp_path: Path) -> None:
@@ -262,11 +268,7 @@ async def test_http_drafts_and_dashboard_are_private(tmp_path: Path) -> None:
 
     cid, play = await prepare(tmp_path)
     async with TestClient(
-        TestServer(
-            create_campaign_app(
-                build_runtime(play), {"a-token": "alice", "b-token": "bob"}, legacy_routes=True
-            )
-        )
+        TestServer(create_campaign_app(build_runtime(play), {"a-token": "alice", "b-token": "bob"}))
     ) as client:
         saved = await client.post(
             f"/campaigns/{cid}/drafts",

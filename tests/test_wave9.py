@@ -1159,9 +1159,7 @@ async def test_two_bearer_players_concurrent_split_commands(tmp_path: Path) -> N
 
     cid, play = await prepare(tmp_path, party=True)
     runner = web.AppRunner(
-        create_campaign_app(
-            build_runtime(play), {"alice-key": "alice", "bob-key": "bob"}, legacy_routes=True
-        )
+        create_campaign_app(build_runtime(play), {"alice-key": "alice", "bob-key": "bob"})
     )
     await runner.setup()
     site = web.TCPSite(runner, "127.0.0.1", 0)

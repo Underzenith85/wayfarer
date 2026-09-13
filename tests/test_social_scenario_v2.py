@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from support.runtime import build_runtime
-from test_actions import campaign
+from support.setup import play_game
 from test_social_dispatch import prepare
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -35,6 +35,7 @@ from wayfarer.orchestration.scenario_documents import (
     bind_party,
     parse_document,
 )
+from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
@@ -100,7 +101,7 @@ async def test_import_publish_activate_and_restart_social_occurrence(tmp_path: P
             deadline=100,
         ),
     )
-    studio = ScenarioStudio(play)
+    studio = ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
     documents = ScenarioDocuments(studio)
     document = adapt_graph(
         graph,
@@ -122,23 +123,28 @@ async def test_import_publish_activate_and_restart_social_occurrence(tmp_path: P
     draft = documents.save_draft(document.canonical(), draft_id="draft", principal_id="gm")
     assert draft.report.status == "playable", draft.report
     published = documents.publish(draft, principal_id="gm")
-    initial = campaign(studio.engine(graph))
-    initial["id"] = "social-import"
-    activated = await documents.activate(published, initial, state.members, principal_id="gm")
+    cid = await play_game(
+        SetupService(build_runtime(play)),
+        bind_party(document),
+        command_id="social-import",
+        document_json=published.content_json,
+        published=published,
+    )
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "social.sqlite", 10),
         play.engine,
         rng=RecordedDice([4, 5, 5, 1, 1, 1]),
     )
-    restarted = restarted.for_campaign(await restarted.store.read(initial["id"]))
-    wait = Wait(id="alarm-clock", actor_id="a", expected_revision=0, ticks=1)
-    result = await restarted.execute(initial["id"], wait, authenticated_actor_id="a")
-    bound = restarted.for_campaign(await restarted.store.read(initial["id"]))
-    after = bound._load(await restarted.store.read(initial["id"]))
+    restarted = restarted.for_campaign(await restarted.store.read(cid))
+    started = restarted._load(await restarted.store.read(cid))
+    wait = Wait(id="alarm-clock", actor_id="a", expected_revision=started.revision, ticks=1)
+    result = await restarted.execute(cid, wait, authenticated_actor_id="a")
+    bound = restarted.for_campaign(await restarted.store.read(cid))
+    after = bound._load(await restarted.store.read(cid))
     assert len(effects(after.resources)) == 1 and effects(after.resources)[0].active
     assert after.npcs.decisions[0].status == "committed"
     restarted.rng = RecordedDice([])
-    assert await restarted.execute(initial["id"], wait, authenticated_actor_id="a") == result
-    assert await restarted.store.read(initial["id"]) == await restarted.store.replay(initial["id"])
-    visible = await build_runtime(activated).read(initial["id"], principal_id="alice")
+    assert await restarted.execute(cid, wait, authenticated_actor_id="a") == result
+    assert await restarted.store.read(cid) == await restarted.store.replay(cid)
+    visible = await build_runtime(play).read(cid, principal_id="alice")
     assert "alarm-plan" not in json.dumps(visible) and "private-plan" not in json.dumps(visible)

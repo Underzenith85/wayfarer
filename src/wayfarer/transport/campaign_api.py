@@ -17,11 +17,9 @@ from wayfarer.config import Settings
 from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY
-from wayfarer.engine.simulation.actions import ActorSetup
-from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import (
     AuthorizationError,
-    ConflictError,
     ValidationError,
     WayfarerError,
 )
@@ -56,7 +54,7 @@ from wayfarer.transport.common import (
     _identity,
     _json,
 )
-from wayfarer.transport.setup_api import LEGACY_KEY
+from wayfarer.transport.setup_api import ENGINE_CONTROLS_KEY
 from wayfarer.transport.setup_api import generate as generate_setup
 from wayfarer.transport.setup_api import install as install_setup
 from wayfarer.transport.tactical_api import install as install_tactical
@@ -136,14 +134,6 @@ async def command(request: web.Request) -> web.Response:
     return web.json_response(result)
 
 
-async def events(request: web.Request) -> web.Response:
-    after = int(request.query.get("after", "0"))
-    values = await request.app[ACCESS_KEY].events(
-        request.match_info["cid"], principal_id=_identity(request), after=after
-    )
-    return web.json_response({"events": [value.model_dump(mode="json") for value in values]})
-
-
 class InterpretRequest(Record):
     proposal: dict[str, object] | None = None
     actor_id: str = Field(min_length=1, max_length=100)
@@ -194,39 +184,6 @@ async def provider_status(request: web.Request) -> web.Response:
 class GenerateDraftRequest(Record):
     command: DraftCommand
     prompt: str = Field(min_length=1, max_length=4000)
-
-
-async def generate_scenario_draft(request: web.Request) -> web.Response:
-
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
-    principal = _identity(request)
-    if access._member(state, principal).role != "gm":
-        raise AuthorizationError("Scenario generation requires GM")
-    raw = await _json(request)
-    command = DraftCommand.model_validate_json(json.dumps(raw.get("command")))
-    if command.kind != "scenario" or command.operation != "save":
-        raise ValidationError("Scenario save command required")
-    brief = GenerationBrief.model_validate_json(json.dumps(raw.get("brief")))
-    controlled = {a for m in state.members if m.role == "player" for a in m.actor_ids}
-    graph, report = await ScenarioStudio(access.play).generate(
-        brief,
-        llm=request.app[ORCHESTRATOR_KEY],
-        principal_id=principal,
-        party=tuple(
-            ActorSetup(actor_id=a.actor_id, proposal=a.proposal)
-            for a in state.actors
-            if a.actor_id in controlled
-        ),
-    )
-    saved = await WorkshopService(access).execute(
-        request.match_info["cid"],
-        command.model_copy(update={"content_json": graph.model_dump_json()}),
-        principal_id=principal,
-    )
-    return web.json_response(
-        {"draft": saved, "validation": report.model_dump(mode="json"), "valid": report.valid}
-    )
 
 
 async def generate_draft(request: web.Request) -> web.Response:
@@ -390,41 +347,6 @@ async def save_draft(request: web.Request) -> web.Response:
     return web.json_response(result)
 
 
-class ActivateScenarioRequest(Record):
-    campaign_id: str = Field(min_length=1, max_length=100)
-    expected_draft_revision: int = Field(ge=1)
-
-
-async def activate_scenario(request: web.Request) -> web.Response:
-
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    cid = request.match_info["cid"]
-    state = access.play._load(await access.play.store.read(cid))
-    principal = _identity(request)
-    member = access._member(state, principal)
-    if member.role != "gm":
-        raise AuthorizationError("Scenario activation requires GM")
-    body = ActivateScenarioRequest.model_validate(await _json(request))
-    draft = WorkshopService(access)._get(state, request.match_info["did"], principal)
-    if draft.kind != "scenario" or draft.revision != body.expected_draft_revision:
-        raise ConflictError("Scenario draft changed")
-    graph = ScenarioGraph.model_validate_json(draft.content_json)
-    seed = (await access.play.store.read(cid)).copy()
-    seed.pop("play_json", None)
-    seed.pop("resources_json", None)
-    seed.pop("scenario_graph_json", None)
-    seed["id"], seed["revision"] = body.campaign_id, 0
-    activated = await ScenarioStudio(access.play).activate(
-        graph, seed, state.members, principal_id=principal
-    )
-    return web.json_response(
-        {
-            "campaign_id": body.campaign_id,
-            "revision": activated._load(await activated.store.read(body.campaign_id)).revision,
-        }
-    )
-
-
 async def validate_scenario(request: web.Request) -> web.Response:
 
     access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
@@ -444,7 +366,7 @@ def create_campaign_app(
     v1_ledger_path: Path | None = None,
     v1_origins: frozenset[str] = frozenset(),
     v1_allow_no_origin: bool = False,
-    legacy_routes: bool = False,
+    engine_controls: bool = False,
     frontend_dir: Path | None = None,
     scenario_templates: tuple[ScenarioGraph, ...] = (),
 ) -> web.Application:
@@ -457,11 +379,11 @@ def create_campaign_app(
     install_tactical(app)
     install_setup(
         app,
-        SetupService(runtime, engine_controls=legacy_routes),
+        SetupService(runtime, engine_controls=engine_controls),
         scenario_templates,
         catalog=runtime.stores.catalog,
     )
-    app[LEGACY_KEY] = legacy_routes
+    app[ENGINE_CONTROLS_KEY] = engine_controls
     if frontend_dir is not None:
 
         async def frontend(_: web.Request) -> web.FileResponse:
@@ -472,24 +394,21 @@ def create_campaign_app(
             app.router.add_get(path, frontend)
         app.router.add_static("/assets", frontend_dir / "assets")
     app.router.add_get("/health", health)
-    if legacy_routes:
-        app.add_routes(
-            [
-                web.get("/campaigns/{cid}", read_campaign),
-                web.post("/campaigns/{cid}/commands", command),
-                web.get("/campaigns/{cid}/events", events),
-                web.get("/campaigns/{cid}/drafts/{did}", read_draft),
-                web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
-                web.post("/campaigns/{cid}/workshop/{aid}/preview", workshop_character_preview),
-                web.get("/campaigns/{cid}/workshop-reviews", workshop_reviews),
-                web.post("/campaigns/{cid}/workshop-grants", workshop_grant),
-                web.post("/campaigns/{cid}/workshop-profile-preview", workshop_profile_preview),
-                web.post("/campaigns/{cid}/workshop-advancement/{operation}", workshop_advance),
-                web.post("/campaigns/{cid}/drafts", save_draft),
-                web.post("/campaigns/{cid}/scenario-validation", validate_scenario),
-                web.post("/campaigns/{cid}/drafts/{did}/activate-scenario", activate_scenario),
-            ]
-        )
+    app.add_routes(
+        [
+            web.get("/campaigns/{cid}", read_campaign),
+            web.post("/campaigns/{cid}/commands", command),
+            web.get("/campaigns/{cid}/drafts/{did}", read_draft),
+            web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
+            web.post("/campaigns/{cid}/workshop/{aid}/preview", workshop_character_preview),
+            web.get("/campaigns/{cid}/workshop-reviews", workshop_reviews),
+            web.post("/campaigns/{cid}/workshop-grants", workshop_grant),
+            web.post("/campaigns/{cid}/workshop-profile-preview", workshop_profile_preview),
+            web.post("/campaigns/{cid}/workshop-advancement/{operation}", workshop_advance),
+            web.post("/campaigns/{cid}/drafts", save_draft),
+            web.post("/campaigns/{cid}/scenario-validation", validate_scenario),
+        ]
+    )
 
     if v1_ledger_path is None:
         if not isinstance(runtime.play.store, AsyncSQLiteStore):
@@ -531,14 +450,12 @@ def create_campaign_app(
                 yield
 
         app.cleanup_ctx.append(lifespan)
-        if legacy_routes:
-            app.add_routes(
-                [
-                    web.post("/campaigns/{cid}/interpret", interpret),
-                    web.post("/campaigns/{cid}/generate-draft", generate_draft),
-                    web.post("/campaigns/{cid}/generate-scenario", generate_scenario_draft),
-                    web.get("/campaigns/{cid}/provider-status", provider_status),
-                ]
-            )
+        app.add_routes(
+            [
+                web.post("/campaigns/{cid}/interpret", interpret),
+                web.post("/campaigns/{cid}/generate-draft", generate_draft),
+                web.get("/campaigns/{cid}/provider-status", provider_status),
+            ]
+        )
     app.cleanup_ctx.append(v1_lifespan)
     return app

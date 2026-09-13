@@ -1,7 +1,7 @@
 """Opt-in server-authored v2 policy; frozen v1 scenario documents are unchanged."""
 
 import json
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -35,6 +35,10 @@ class SocialScenarioDocument(ScenarioDocumentBase):
 class SocialScenarioGraph(ScenarioGraph):
     actions: SocialActionRules
     npcs: NPCSocialRules
+
+
+# The saved discriminator lets one field carry either authored policy version.
+AnyScenarioGraph = Annotated[SocialScenarioGraph | ScenarioGraph, Field(union_mode="left_to_right")]
 
 
 def parse_graph(source: str) -> ScenarioGraph:

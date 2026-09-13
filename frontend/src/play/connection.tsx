@@ -54,13 +54,13 @@ async function restore(): Promise<{
   const auth = await new SetupClient(saved.credential).request<{
     principal_id: string;
     generation_available: boolean;
-    legacy_available: boolean;
+    engine_controls: boolean;
   }>("/session");
   const session: SetupSession = {
     token: saved.credential,
     principal: auth.principal_id,
     generationAvailable: auth.generation_available,
-    legacyAvailable: auth.legacy_available,
+    engineControls: auth.engine_controls,
   };
   const campaignId =
     parsePath(location.pathname)?.campaignId ?? saved.campaignId;
@@ -68,7 +68,7 @@ async function restore(): Promise<{
   rememberCampaign(campaignId);
   return {
     session,
-    transport: session.legacyAvailable
+    transport: session.engineControls
       ? new LiveTransport(session.principal, campaignId, session.token)
       : new NetworkPlayTransport({
           origin: location.origin,

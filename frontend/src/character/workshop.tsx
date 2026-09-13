@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "../play/use-play";
+import { engineChannel } from "../api/play-transport";
 import { LiveTransport } from "../play/live";
 import { orderStats, statLabel } from "../presentation/labels";
 import type { components } from "./workshop.generated";
@@ -36,7 +37,7 @@ interface Workshop {
 }
 export function CharacterWorkshop() {
   const { state, store } = usePlay();
-  const transport = store.transport,
+  const transport = engineChannel(store.transport),
     actor = state.actorId;
   const [profilePreview, setProfilePreview] = useState<ProfilePreview | null>(
     null,

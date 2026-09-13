@@ -34,7 +34,7 @@ async def test_normal_runtime_restart_and_opening_action(tmp_path: Path) -> None
         assert await response.json() == {
             "principal_id": "alice",
             "generation_available": False,
-            "legacy_available": False,
+            "engine_controls": False,
         }
         response = await client.get("/setups", headers=headers)
         assert await response.json() == []

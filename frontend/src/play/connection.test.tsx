@@ -36,7 +36,7 @@ vi.mock("../setup/lobby", () => ({
               token: "alice-token",
               principal: "alice",
               generationAvailable: false,
-              legacyAvailable: false,
+              engineControls: false,
             })
           }
         >
@@ -106,7 +106,7 @@ function authenticates(ok = true) {
             ? {
                 principal_id: "alice",
                 generation_available: false,
-                legacy_available: false,
+                engine_controls: false,
               }
             : { error: "Unknown access token" },
         ),

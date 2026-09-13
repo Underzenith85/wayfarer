@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 from support.runtime import build_orchestrator, build_runtime
-from test_actions import actor_setup, campaign
+from support.setup import play_game
+from test_actions import actor_setup
 from test_scenes import configured
 from test_wave9 import FakeProvider, prepare
 from test_wave11 import graph_fixture
 
-from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
 from wayfarer.engine.simulation.campaign.studio import ApproachSupport
 from wayfarer.engine.simulation.resources import Owner
@@ -19,6 +19,7 @@ from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule,
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import ProviderRequest
+from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -124,13 +125,10 @@ async def test_incompatible_required_objectives_cannot_activate(tmp_path: Path, 
         }
     )
     assert any(f.code == "ending.contradiction" for f in studio.validate(graph).findings)
-    with pytest.raises(ValidationError, match="playability"):
-        await studio.activate(
-            graph,
-            campaign(studio.engine(graph)),
-            (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),),
-            principal_id="gm",
-        )
+    # Hosting the same graph fails the identical hard check inside setup activation.
+    setup = SetupService(build_runtime(studio.play))
+    with pytest.raises(ValidationError):
+        await play_game(setup, graph, command_id="contradiction")
 
 
 def test_advertised_approach_requires_named_actor_equipment_and_scene(tmp_path: Path) -> None:

@@ -553,12 +553,14 @@ async def test_bound_paginated_snapshots_expire(api: tuple[str, str, V1Service])
             assert response.status == 410 and (await response.json())["code"] == "cursor_expired"
 
 
-async def test_legacy_routes_are_disabled_by_default(api: tuple[str, str, V1Service]) -> None:
+async def test_the_raw_event_stream_route_is_gone(api: tuple[str, str, V1Service]) -> None:
+    """#634: the v1 stream is the only way to read a campaign's events."""
     base, cid, _ = api
     async with aiohttp.ClientSession(headers={"Authorization": "Bearer alice-key"}) as client:
-        for path in (f"/campaigns/{cid}", f"/campaigns/{cid}/events"):
-            async with client.get(base + path) as response:
-                assert response.status == 404
+        async with client.get(base + f"/campaigns/{cid}/events") as response:
+            assert response.status == 404
+        async with client.get(base + f"/campaigns/{cid}") as response:
+            assert response.status != 404
 
 
 async def test_provider_bridge_uses_only_scoped_context(api: tuple[str, str, V1Service]) -> None:

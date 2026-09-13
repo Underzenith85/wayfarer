@@ -235,9 +235,7 @@ async def test_public_conclusion_authorization_and_reward_reuse(tmp_path: Path) 
 
     setup = service(tmp_path)
     cid = await finish(setup)
-    app = create_campaign_app(
-        setup.access, {"host": "alice", "outsider": "eve"}, legacy_routes=True
-    )
+    app = create_campaign_app(setup.access, {"host": "alice", "outsider": "eve"})
     async with TestClient(TestServer(app)) as client:
         response = await client.get(f"/setups/{cid}", headers={"Authorization": "Bearer host"})
         assert response.status == 200

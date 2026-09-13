@@ -448,7 +448,6 @@ async def test_two_authenticated_players_capture_rescue_and_private_stream(tmp_p
     app = create_campaign_app(
         build_runtime(play),
         {"alice-secret": "alice", "bob-secret": "bob", "gm-secret": "gm"},
-        legacy_routes=True,
     )
     runner = web.AppRunner(app)
     await runner.setup()

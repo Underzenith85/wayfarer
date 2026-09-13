@@ -1,4 +1,4 @@
-import { NetworkPlayTransport } from "../api/play-transport";
+import { engineChannel } from "../api/play-transport";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
@@ -9,10 +9,7 @@ export function LiveControls() {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [rejoin, setRejoin] = useState("");
-  const transport =
-    store.transport instanceof NetworkPlayTransport
-      ? store.transport.engineTransport
-      : store.transport;
+  const transport = engineChannel(store.transport);
   useEffect(() => {
     if (!(transport instanceof LiveTransport)) return;
     const controller = new AbortController();

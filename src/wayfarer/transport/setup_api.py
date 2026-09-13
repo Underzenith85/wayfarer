@@ -24,7 +24,7 @@ from wayfarer.transport.common import (
 
 SETUP_KEY = web.AppKey("setup-service", SetupService)
 MIGRATIONS_KEY = web.AppKey("profile-migrations", ProfileMigrations)
-LEGACY_KEY = web.AppKey("setup-legacy", bool)
+ENGINE_CONTROLS_KEY = web.AppKey("setup-engine-controls", bool)
 
 
 async def session(request: web.Request) -> web.Response:
@@ -33,7 +33,7 @@ async def session(request: web.Request) -> web.Response:
         {
             "principal_id": _identity(request),
             "generation_available": ORCHESTRATOR_KEY in request.app,
-            "legacy_available": request.app.get(LEGACY_KEY, False),
+            "engine_controls": request.app.get(ENGINE_CONTROLS_KEY, False),
         }
     )
 

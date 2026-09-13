@@ -47,7 +47,7 @@ export interface SetupSession {
   token: string;
   principal: string;
   generationAvailable: boolean;
-  legacyAvailable: boolean;
+  engineControls: boolean;
 }
 type PublishedScenario = {
   id: string;
@@ -526,13 +526,13 @@ export function SetupLobby({
               const auth = await new SetupClient(secret).request<{
                 principal_id: string;
                 generation_available: boolean;
-                legacy_available: boolean;
+                engine_controls: boolean;
               }>("/session");
               remember({
                 token: secret,
                 principal: auth.principal_id,
                 generationAvailable: auth.generation_available,
-                legacyAvailable: auth.legacy_available,
+                engineControls: auth.engine_controls,
               });
             });
           }}
@@ -641,7 +641,7 @@ export function SetupLobby({
                         data-resume-id={game.id}
                         onClick={() =>
                           onOpen(
-                            session.legacyAvailable
+                            session.engineControls
                               ? new LiveTransport(
                                   session.principal,
                                   game.id,
@@ -658,7 +658,7 @@ export function SetupLobby({
                       >
                         Continue {game.name}
                       </Button>
-                      {session.legacyAvailable &&
+                      {session.engineControls &&
                         game.membership.role === "gm" && (
                           <WorkshopReviewQueue
                             key={`${session.principal}:${game.id}`}

@@ -130,7 +130,6 @@ async def http(tmp_path: Path) -> AsyncIterator[tuple[str, str, PlayService]]:
     app = create_campaign_app(
         build_runtime(play),
         {f"{p}-token": p for p in ("alice", "bob", "charlie", "gm", "spectator")},
-        legacy_routes=True,
     )
     runner = web.AppRunner(app)
     await runner.setup()
@@ -148,7 +147,6 @@ async def unarmed_http(tmp_path: Path) -> AsyncIterator[tuple[str, str, PlayServ
     app = create_campaign_app(
         build_runtime(play),
         {f"{p}-token": p for p in ("alice", "bob", "charlie", "gm", "spectator")},
-        legacy_routes=True,
     )
     runner = web.AppRunner(app)
     await runner.setup()
@@ -757,9 +755,7 @@ async def test_v2_equipment_view_and_object_attack_use_authenticated_authority(
     cid, play = await setup(
         tmp_path, durability=ObjectProfile(construction="homogenous", hp=12, dr=2, ht=12)
     )
-    app = create_campaign_app(
-        build_runtime(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
-    )
+    app = create_campaign_app(build_runtime(play), {"alice-token": "alice", "bob-token": "bob"})
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "127.0.0.1", 0)
