@@ -3029,6 +3029,39 @@
         "tests/test_combat_timing.py::test_turn_order_uses_basic_speed_then_dx_and_stays_fixed"
       ],
       "owner": 505
+    },
+    {
+      "id": "basic-economics-conserved-exchange",
+      "sha256": "f5af2335d639d7296000fd66b0c3e828db34a3ad28b196f3178586637f9c1bb5",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-13",
+      "evidence": "Campaigns fourth printing, February 2008, B513-515; independently checked local currency, portable wealth, and independently conserved exchange legs.",
+      "tests": [
+        "tests/test_economics.py::test_cross_world_exchange_conserves_each_currency_and_survives_reload"
+      ],
+      "owner": 503
+    },
+    {
+      "id": "basic-employment-time-use-income",
+      "sha256": "c14f3cbd22e4b84c76514a4574a1c56f54f759c53781cdc2624a7735a8deebda",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-13",
+      "evidence": "Characters third printing, February 2008, B292-294 and Campaigns fourth printing, B515-517; independently checked fixed monthly pay and authored work/study time accounting.",
+      "tests": [
+        "tests/test_economics.py::test_job_income_requires_one_authored_time_use_interval"
+      ],
+      "owner": 503
+    },
+    {
+      "id": "basic-hireling-private-loyalty",
+      "sha256": "6cc4ecdb766f682d7dc0a183a95be1ed733642f52825a9f5017c81f6ee854aa5",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-13",
+      "evidence": "Campaigns fourth printing, February 2008, B516-519; independently checked reaction-based loyalty, extra-pay adjustment, and GM-private motives.",
+      "tests": [
+        "tests/test_economics.py::test_hireling_loyalty_is_persisted_without_private_event_leakage"
+      ],
+      "owner": 503
     }
   ]
 }

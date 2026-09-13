@@ -64,6 +64,9 @@ _CAPABILITIES: Final = (
     Capability("gurps.projects.invention", False, True, CoverageStatus.VERIFIED, 524),
     Capability("gurps.magic.items", False, True, CoverageStatus.VERIFIED, 526),
     Capability("gurps.world.law", False, True, CoverageStatus.VERIFIED, 502),
+    Capability("gurps.campaign.economics", False, True, CoverageStatus.VERIFIED, 503),
+    Capability("gurps.campaign.employment", False, True, CoverageStatus.VERIFIED, 503),
+    Capability("gurps.campaign.hirelings", False, True, CoverageStatus.VERIFIED, 503),
     # Whole-entry social skill procedures, separate from the shared reaction and
     # influence machinery: an implemented row dispatches its own resolution shape.
     Capability("gurps.social.skill_procedures", False, True, CoverageStatus.PARTIAL, 345),

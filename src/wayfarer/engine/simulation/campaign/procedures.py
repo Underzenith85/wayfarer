@@ -15,21 +15,27 @@ from wayfarer.engine.simulation.campaign.administration import (
     CampaignAdministrationCommand,
     apply_administration,
 )
+from wayfarer.engine.simulation.campaign.economics import (
+    EconomicCommand,
+    EconomicsOutcome,
+    EconomicsRules,
+    apply_economics,
+)
 from wayfarer.engine.simulation.campaign.law import (
     LawCommand,
     LawOutcome,
     LawRules,
     apply_law,
 )
-from wayfarer.engine.simulation.resources import Advance, ResourceState
+from wayfarer.engine.simulation.resources import Advance, ResourceState, Transfer
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
-CampaignOutcome = AdministrationOutcome | LawOutcome
-CampaignCommand = CampaignAdministrationCommand | LawCommand
+CampaignOutcome = AdministrationOutcome | LawOutcome | EconomicsOutcome
+CampaignCommand = CampaignAdministrationCommand | LawCommand | EconomicCommand
 
 
 class CampaignProcedureEngine:
@@ -41,11 +47,13 @@ class CampaignProcedureEngine:
         reviewer: PowerReviewer,
         administration: AdministrationRules | None,
         law: LawRules | None,
+        economics: EconomicsRules | None,
     ) -> None:
         self.resources = resources
         self.reviewer = reviewer
         self.administration = administration
         self.law = law
+        self.economics = economics
 
     def _advance(
         self, actor_id: str, rng: RandomSource
@@ -111,6 +119,81 @@ class CampaignProcedureEngine:
                 }
             )
             return updated, outcome
+        if command.kind in {
+            "trade",
+            "exchange",
+            "job-search",
+            "job-settlement",
+            "cost-of-living",
+            "hire",
+            "hireling-pay",
+            "loyalty",
+        }:
+            if self.economics is None:
+                raise ValidationError("Economics command is not enabled")
+            actor = next((item for item in state.actors if item.actor_id == command.actor_id), None)
+            if actor is None:
+                raise ValidationError("Economics actor is not a playable campaign actor")
+            compiled = self.reviewer.compiler.compile(actor.proposal.draft).build
+            if compiled is None:
+                raise ValidationError("Economics actor does not have a valid build")
+            values = {value.target: value.value for value in compiled.sheet.values}
+
+            def transfer(
+                current: ResourceState,
+                item_id: str,
+                quantity: int,
+                owner_id: str,
+                new_item_id: str | None,
+                parent_id: str,
+            ) -> ResourceState:
+                item = next((value for value in current.items if value.id == item_id), None)
+                if item is None:
+                    raise ValidationError("Trade item no longer exists")
+                identity = "economics-transfer:" + hashlib.sha256(parent_id.encode()).hexdigest()
+                return self.resources.apply(
+                    current,
+                    Transfer(
+                        id=identity,
+                        actor_id=item.owner_id,
+                        expected_revision=current.revision,
+                        item_id=item_id,
+                        quantity=quantity,
+                        owner_id=owner_id,
+                        new_item_id=new_item_id,
+                    ),
+                    system=True,
+                    rng=rng,
+                )
+
+            economics, resources, economics_outcome = apply_economics(
+                state.economics,
+                state.resources,
+                state.administration,
+                command,
+                self.economics,
+                world=state.world,
+                build_values=values,
+                purchased_ids=frozenset(value.definition_id for value in compiled.purchases),
+                rng=rng,
+                transfer=transfer,
+                system=system,
+            )
+            if resources is state.resources:
+                return state, economics_outcome
+            return (
+                state.model_copy(
+                    update={
+                        "revision": resources.revision,
+                        "resources": resources,
+                        "economics": economics,
+                        "rulings": expire_rulings(
+                            state.rulings, resources.revision, resources.game_time
+                        ),
+                    }
+                ),
+                economics_outcome,
+            )
         if self.law is None:
             raise ValidationError("Law command is not enabled")
         law_command = cast(LawCommand, command)
