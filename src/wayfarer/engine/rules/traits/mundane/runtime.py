@@ -13,6 +13,7 @@ from typing import Final, Literal
 
 from wayfarer.engine.rules.traits.background import BACKGROUND_HOOKS
 from wayfarer.engine.rules.traits.mental import MENTAL_HOOKS
+from wayfarer.engine.rules.traits.mundane.complete import HOOKS as COMPLETE_MUNDANE_HOOKS
 from wayfarer.engine.rules.traits.physical import PHYSICAL_HOOKS
 
 Check = Literal["reaction", "influence"]
@@ -177,4 +178,5 @@ SUPPORTED_HOOKS: Final = frozenset(
     | STANDING_HOOKS
     | MENTAL_HOOKS
     | PHYSICAL_HOOKS
+    | COMPLETE_MUNDANE_HOOKS
 )
