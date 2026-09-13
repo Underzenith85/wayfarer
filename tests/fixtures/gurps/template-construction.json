@@ -1,0 +1,27 @@
+{
+  "source": "GURPS Basic Set: Characters, third printing, B258-B263; Campaigns, fourth printing, B445-B454",
+  "cases": {
+    "optional-fit-allocation": {
+      "reference": "B259-B260",
+      "selected_points": 5
+    },
+    "stout-guardian": {
+      "reference": "B261-B263, B450-B454",
+      "components": {
+        "ST +2": 20,
+        "Fit": 5,
+        "Combat Reflexes": 15
+      },
+      "total_points": 40
+    },
+    "stout-guardian-without-fit": {
+      "reference": "B262",
+      "components": {
+        "ST +2": 20,
+        "Combat Reflexes": 15,
+        "No Fit": -5
+      },
+      "total_points": 30
+    }
+  }
+}
