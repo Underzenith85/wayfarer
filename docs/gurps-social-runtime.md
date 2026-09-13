@@ -112,8 +112,11 @@ rejects an undeclared identifier or circumstance before any dice are drawn. The
 initiator's level comes from the approved build and the subject's Will from
 theirs, so authoring selects a situation and never a roll target. Director
 dispatch through `SocialService` reaches the same procedures with a resolver-
-supplied level. `require_procedure` fails closed on Fortune-Telling and
-Savoir-Faire while they await their specialties (#366). Propaganda is bound by
+supplied level. Fortune-Telling's seven B196 traditions dispatch as concrete
+catalog skills; its family selector fails closed. Savoir-Faire materializes a
+concrete milieu only through the campaign specialty registry, and its family or
+an undeclared milieu fails closed. The audience's declared classes derive the
+`matching-milieu` prerequisite; scenario input cannot assert that match. Propaganda is bound by
 the campaign-authored, TL-keyed media policy described in
 `gurps-propaganda-media.md`; `supported` publishes the resulting bound set to the
 scenario, character and LLM validators.

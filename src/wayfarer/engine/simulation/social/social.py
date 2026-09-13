@@ -21,6 +21,7 @@ from wayfarer.engine.rules.skills.mundane.social.inventory import (
     effect_ids,
     require_procedure,
 )
+from wayfarer.engine.rules.skills.mundane.social.specialties import CampaignSocialSpecialties
 from wayfarer.engine.rules.social.gurps_social import (
     DEFAULT_INFLUENCE_CONDITIONS,
     InfluenceConditions,
@@ -116,6 +117,7 @@ class SocialContext:
         conditions: frozenset[str] = frozenset(),
         medium_id: str | None = None,
         media: PropagandaMediaContext | None = None,
+        campaign_specialties: CampaignSocialSpecialties | None = None,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
@@ -130,6 +132,7 @@ class SocialContext:
         self.procedure_id, self.skill_level = procedure_id, skill_level
         self.partner_skill, self.conditions = partner_skill, conditions
         self.medium_id, self.media = medium_id, media
+        self.campaign_specialties = campaign_specialties
 
     def bind_trait_modifiers(self, modifiers: tuple[ReactionModifier, ...]) -> None:
         """Attach server-derived trait modifiers; a resolver never supplies them."""
@@ -227,7 +230,7 @@ def apply_social(
     # A social skill procedure takes standing only when B359 influence decides it;
     # an unopposed procedure must not consume the recognition dice it cannot use.
     procedure = (
-        require_procedure(context.profile_id, context.procedure_id)
+        require_procedure(context.profile_id, context.procedure_id, context.campaign_specialties)
         if command.kind == "skill" and context.procedure_id is not None
         else None
     )
@@ -331,6 +334,7 @@ def apply_social(
                 context.influence_conditions if influenced else DEFAULT_INFLUENCE_CONDITIONS,
             ),
             rng=rng,
+            campaign_specialties=context.campaign_specialties,
         )
         outcome = SocialOutcome(
             kind=command.kind,

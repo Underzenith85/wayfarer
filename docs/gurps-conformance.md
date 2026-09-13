@@ -223,7 +223,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.campaign.employment` | no | yes | verified | #503; [job search and Time Use-bound income](gurps-economics.md) |
 | `gurps.campaign.hirelings` | no | yes | verified | #503; [contracts, pay, and private loyalty](gurps-economics.md) |
 | `gurps.character.development` | no | yes | partial | #499; [adventure, study, quick-learning, and gained-trait settlement](gurps-character-development.md) |
-| `gurps.social.skill_procedures` | no | yes | partial | #345 parent audit complete; [16 executable headline rows and explicit transfers](gurps-mundane-skills.md#social-procedures-345); residual #353, #366–#370 |
+| `gurps.social.skill_procedures` | no | yes | partial | #345 parent audit and #366 specialties complete; [17 executable headline rows, seven Fortune-Telling children, and campaign Savoir-Faire milieus](gurps-mundane-skills.md#social-procedures-345); residual #368–#370 |
 | `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.combat.melee_weapon_skills` | no | yes | partial | #339; [bound melee, unarmed, defense and tactical skill procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |
 | `gurps.combat.technique_procedures` | no | yes | partial | #340; [parent-specific combat technique procedures](gurps-mundane-skills.md#combat-technique-procedures-340) |
@@ -532,10 +532,10 @@ do not reveal other facts or change NPC beliefs.
 Each declares the shape that decides it — an unopposed success roll, a Quick
 Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
 it cannot proceed without, the modifiers it derives itself, and a named effect for
-every verdict that shape can reach. Seventeen rows are now bound: Propaganda is
-introduced by #367's explicit revision-11/package-0.9.0 pin and requires a
-campaign-authored TL-keyed medium. Fortune-Telling and Savoir-Faire cannot be
-learned without their specialties (#366), so those two keep `runtime-procedure`.
+every verdict that shape can reach. Propaganda requires a campaign-authored,
+TL-keyed medium. Under #366, Fortune-Telling dispatches through seven
+source-indexed B196 traditions and Savoir-Faire through campaign-materialized
+B218 milieu specialties. Both family selectors remain deliberately non-rollable.
 
 Nothing here is a second engine: rolls are scored by
 `wayfarer.engine.rules.gurps_checks` and

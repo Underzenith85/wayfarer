@@ -292,7 +292,8 @@ def social_occurrence(
     if profile_id is None:
         raise ValidationError("Authored social triggers require an exact GURPS profile")
     target, will, ht = 10, trigger.npc_will, 10
-    context = SocialContext(profile_id, target)
+    social_specialties = play.engine.reviewer.compiler.social_skill_specialties
+    context = SocialContext(profile_id, target, campaign_specialties=social_specialties)
     if trigger.kind in ("fright", "self-control"):
         if not any(a.actor_id == trigger.subject_id for a in state.actors):
             raise ValidationError("Social trigger subject requires an approved build")
@@ -340,7 +341,7 @@ def social_occurrence(
         # #345: the authored trigger names the procedure and the circumstances;
         # the initiator's approved level and the subject's Will come from builds.
 
-        procedure = require_procedure(profile_id, trigger.skill_id)
+        procedure = require_procedure(profile_id, trigger.skill_id, social_specialties)
         if not any(a.actor_id == actor_id for a in state.actors):
             raise ValidationError("Social skill initiator requires an approved build")
         compiled = build(play.rules_context, state, actor_id)

@@ -24,6 +24,7 @@ from wayfarer.engine.rules.skills.mundane.social.inventory import (
     Verdict,
     require_procedure,
 )
+from wayfarer.engine.rules.skills.mundane.social.specialties import CampaignSocialSpecialties
 from wayfarer.engine.rules.social.gurps_social import (
     DEFAULT_INFLUENCE_CONDITIONS,
     InfluenceConditions,
@@ -163,13 +164,14 @@ def resolve(
     context: SocialSkillContext,
     *,
     rng: RandomSource,
+    campaign_specialties: CampaignSocialSpecialties | None = None,
 ) -> SocialSkillTrace:
     """Run one attempt at a social skill procedure and record what decided it.
 
     Dice are drawn only from the caller's server-owned source, in the order the
     declared resolution consumes them, so a recorded receipt replays exactly.
     """
-    entry = require_procedure(profile_id, identifier)
+    entry = require_procedure(profile_id, identifier, campaign_specialties)
     _validate_context(entry, context)
     modifiers = derived_modifiers(entry, context)
     # B198: a gesture is only as clear as the less fluent of the two parties.

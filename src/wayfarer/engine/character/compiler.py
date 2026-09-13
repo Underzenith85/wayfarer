@@ -43,6 +43,8 @@ from wayfarer.engine.rules.magic.gurps_magic import (
     magery_level,
     validate_definitions,
 )
+from wayfarer.engine.rules.skills.mundane.social.specialties import CampaignSocialSpecialties
+from wayfarer.engine.rules.skills.mundane.specialties import CampaignSkillSpecialties
 from wayfarer.engine.rules.skills.mundane.technology.specialties import (
     CampaignTechnologySpecialties,
 )
@@ -177,7 +179,12 @@ class CharacterCompiler:
         effects: tuple[tuple[str, Effect], ...] = (),
         statistics_profile: str | None = None,
         trait_runtime_hooks: frozenset[str] = frozenset(),
-        campaign_skill_specialties: CampaignTechnologySpecialties | None = None,
+        campaign_skill_specialties: (
+            CampaignSkillSpecialties
+            | CampaignTechnologySpecialties
+            | CampaignSocialSpecialties
+            | None
+        ) = None,
     ) -> None:
         self.rules, self.policy = rules, policy
         self.trait_runtime_hooks = trait_runtime_hooks
@@ -214,6 +221,13 @@ class CharacterCompiler:
             + campaign_definitions
         )
         self.campaign_skill_specialties = campaign_skill_specialties
+        self.social_skill_specialties = (
+            campaign_skill_specialties
+            if isinstance(campaign_skill_specialties, CampaignSocialSpecialties)
+            else campaign_skill_specialties.registry(CampaignSocialSpecialties)
+            if isinstance(campaign_skill_specialties, CampaignSkillSpecialties)
+            else None
+        )
         self.definitions = {d.id: d for d in definitions}
         self.definition_packages = {
             d.id: (p.id, p.version) for p in packages for d in p.definitions

@@ -127,11 +127,27 @@ def context(case: dict[str, object]) -> SocialSkillContext:
 
 # Rows this issue binds; the rest keep `runtime-procedure` for a named child.
 BOUND = tuple(name for name in SCOPE if name not in ("fortune-telling", "savoir-faire"))
+FORTUNE_SPECIALTIES = (
+    "astrology",
+    "augury",
+    "crystal-gazing",
+    "dream-interpretation",
+    "feng-shui",
+    "palmistry",
+    "tarot",
+)
 
 
 def test_every_listed_row_is_accounted_for_and_only_bound_rows_dispatch() -> None:
-    assert {entry.id for entry in procedures()} == {f"skill:{name}" for name in SCOPE}
-    assert supported(PROFILE) == tuple(f"skill:{name}" for name in BOUND)
+    specialty_ids = {f"skill:fortune-telling-{name}" for name in FORTUNE_SPECIALTIES}
+    assert {entry.id for entry in procedures()} == {
+        *(f"skill:{name}" for name in SCOPE),
+        *specialty_ids,
+    }
+    assert set(supported(PROFILE)) == {
+        *(f"skill:{name}" for name in BOUND),
+        *specialty_ids,
+    }
     assert {d.id for d in definitions()} == set(supported(PROFILE))
     for entry in procedures():
         assert entry.reference.startswith("B")
@@ -141,6 +157,10 @@ def test_every_listed_row_is_accounted_for_and_only_bound_rows_dispatch() -> Non
             assert identifier in CAPABILITIES
         if entry.dispatchable:
             assert entry.definition().hooks == ("character.gurps-skill", DISPATCH)
+        elif entry.implemented:
+            assert entry.specialties or entry.open_subject
+            with pytest.raises(ValidationError, match="has no bound dispatch"):
+                entry.definition()
         else:
             assert "runtime-procedure" in entry.blockers and entry.owners
             with pytest.raises(ValidationError, match="has no bound dispatch"):
@@ -151,24 +171,19 @@ def test_every_listed_row_is_accounted_for_and_only_bound_rows_dispatch() -> Non
         procedure("skill:swimming")
     with pytest.raises(ValidationError, match="exact Basic Set profile"):
         require_procedure("gurps-lite-4e-2004", "skill:diplomacy")
-    with pytest.raises(ValidationError, match="procedure is unsupported"):
+    with pytest.raises(ValidationError, match="requires a campaign specialty"):
         require_procedure(PROFILE, "skill:savoir-faire")
 
 
 def test_issue_345_parent_scope_is_complete_or_explicitly_transferred() -> None:
     """Every headline row executes or names the bounded child that must finish it."""
     rows = {row.id: row for row in inventory()}
-    transferred = {
-        "skill:fortune-telling": 366,
-        "skill:savoir-faire": 366,
-    }
     for name in SCOPE:
         identifier = f"skill:{name}"
         row = rows[identifier]
-        if identifier in transferred:
-            assert row.blockers == ("runtime-procedure",)
-            assert transferred[identifier] in row.blocker_owners["runtime-procedure"]
-            assert not row.bound and row.implementation == "unsupported"
+        if identifier in {"skill:fortune-telling", "skill:savoir-faire"}:
+            assert not row.blockers and not row.available
+            assert row.bound and row.dispatch is None and row.implementation == "implemented"
         else:
             assert row.bound and not row.blockers
             assert row.implementation == "implemented"
@@ -178,7 +193,8 @@ def test_declared_table_matches_the_independent_fixture() -> None:
     """The source-indexed table is transcribed by hand, not read from the module."""
     declared = {str(row["id"]): row for row in rows()}
     assert set(declared) == {f"skill:{name}" for name in SCOPE}
-    for entry in procedures():
+    for identifier in SCOPE:
+        entry = procedure(f"skill:{identifier}")
         row = declared[entry.id]
         assert entry.reference == row["reference"]
         assert entry.attribute.value == row["attribute"]
@@ -188,7 +204,7 @@ def test_declared_table_matches_the_independent_fixture() -> None:
         assert [m.condition for m in entry.modifiers] == names(row["modifiers"])
         assert sorted({s.owner_issue for s in entry.unsupported}) == row["unsupported"]
         assert entry.dispatchable == row["dispatched"]
-        assert entry.complete == (row["dispatched"] and not row["unsupported"])
+        assert entry.complete == (entry.implemented and not row["unsupported"])
         # The procedure fixture predates the source-wide default transcription;
         # compare only procedure blockers and the original attribute anchor here.
         transferred_fixture = row["transferred"]
@@ -348,7 +364,7 @@ def test_unsupported_scope_is_published_with_an_owner() -> None:
         for identifier, entry in PROCEDURES.items()
         if "runtime-procedure" in entry.blockers
     }
-    assert transferred == {"skill:fortune-telling", "skill:savoir-faire"}
+    assert transferred == set()
 
 
 def test_inventory_rows_agree_with_the_procedure_registry() -> None:
@@ -360,13 +376,13 @@ def test_inventory_rows_agree_with_the_procedure_registry() -> None:
         recorded = set(row.blockers)
         assert set(entry.blockers) == recorded
         assert set(entry.owners) <= set(row.followup_issues), identifier
-        assert row.bound is entry.dispatchable
-        assert row.implementation == ("implemented" if entry.dispatchable else "unsupported")
+        assert row.bound is entry.implemented
+        assert row.implementation == ("implemented" if entry.implemented else "unsupported")
         assert row.dispatch == (DISPATCH if entry.dispatchable else None)
         assert row.available is (entry.dispatchable and not row.blockers)
     # A transferred row keeps its blocker and every blocker still names an owner.
-    assert "runtime-procedure" in rows["skill:savoir-faire"].blockers
-    assert rows["skill:savoir-faire"].blocker_owners["runtime-procedure"] == (345, 366)
+    assert not rows["skill:savoir-faire"].blockers
+    assert rows["skill:savoir-faire"].dispatch is None
     assert "runtime-procedure" not in rows["skill:teaching"].blockers
     assert not procedure("skill:teaching").unsupported
 
