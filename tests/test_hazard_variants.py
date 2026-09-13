@@ -9,7 +9,7 @@ from test_medical_service import setup
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.environment import ambient_spec, poison_spec
 from wayfarer.engine.rules.physical import contagion_modifier, falling_damage, falling_injury
-from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
+from wayfarer.engine.rules.types.hazard import HazardProtection, HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState, Wait
 from wayfarer.engine.simulation.health.condition_checks import (
     check_modifiers,
@@ -631,15 +631,26 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     spec = HazardSpec(
         id="sun", scene_id="dock", kind="heat", interval=1800, cycles=2, reference="B434"
     )
-    service = HazardService(play, lambda *_: HazardContext(spec, temperature_f=120))
     cid = initial["id"]
-    await service.execute(
-        cid,
-        HazardCommand(id="enter", actor_id="a", expected_revision=0, kind="enter", hazard_id="sun"),
-        authenticated_actor_id="a",
+    enter = HazardCommand(
+        id="enter", actor_id="a", expected_revision=0, kind="enter", hazard_id="sun"
     )
+    incomplete = HazardService(play, lambda *_: HazardContext(spec, temperature_f=120))
+    with pytest.raises(ValidationError, match="explicit protection"):
+        await incomplete.execute(cid, enter, authenticated_actor_id="a")
+
+    protection = HazardProtection()
+    service = HazardService(
+        play,
+        lambda *_: HazardContext(spec, temperature_f=120, protection=protection),
+    )
+    await service.execute(cid, enter, authenticated_actor_id="a")
     hazard = play._load(await play.store.read(cid)).resources.hazards[0]
     assert hazard.survival == 12 and hazard.spec.resistance_modifier == -1
+    assert hazard.spec.environment is not None
+    assert hazard.spec.environment.temperature_f == 120
+    assert hazard.spec.environment.source_class == "ambient-temperature"
+    assert hazard.spec.protection == protection
     await play.execute(
         cid,
         Wait(id="wait", actor_id="a", expected_revision=1, ticks=1800),

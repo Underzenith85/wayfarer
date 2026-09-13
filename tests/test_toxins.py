@@ -162,14 +162,18 @@ def test_resisted_failed_and_repeated_doses_are_independent() -> None:
     due = two.model_copy(update={"game_time": 3600})
     resisted, result = apply_toxin(
         due,
-        ToxinCommand(id="resist", actor_id="a", expected_revision=2, kind="resolve", exposure_id="one"),
+        ToxinCommand(
+            id="resist", actor_id="a", expected_revision=2, kind="resolve", exposure_id="one"
+        ),
         rng=RecordedDice([2, 2, 2]),
         system=True,
     )
     assert result.resisted and not result.active
     failed, result = apply_toxin(
         resisted,
-        ToxinCommand(id="fail", actor_id="a", expected_revision=3, kind="resolve", exposure_id="two"),
+        ToxinCommand(
+            id="fail", actor_id="a", expected_revision=3, kind="resolve", exposure_id="two"
+        ),
         rng=RecordedDice([6, 6, 6, 4]),
         system=True,
     )
@@ -180,7 +184,9 @@ def test_resisted_failed_and_repeated_doses_are_independent() -> None:
 def test_cyclic_settlement_replay_and_future_only_treatment() -> None:
     exposed, _ = apply_toxin(
         state(),
-        ToxinCommand(id="start", actor_id="a", expected_revision=0, kind="expose", exposure_id="dose"),
+        ToxinCommand(
+            id="start", actor_id="a", expected_revision=0, kind="expose", exposure_id="dose"
+        ),
         profile=arsenic(),
         evidence=DeliveryEvidence(swallowed=True),
         ht=10,
@@ -191,18 +197,16 @@ def test_cyclic_settlement_replay_and_future_only_treatment() -> None:
     command = ToxinCommand(
         id="cycle-1", actor_id="a", expected_revision=1, kind="resolve", exposure_id="dose"
     )
-    damaged, result = apply_toxin(
-        exposed, command, rng=RecordedDice([6, 6, 6, 3]), system=True
-    )
+    damaged, result = apply_toxin(exposed, command, rng=RecordedDice([6, 6, 6, 3]), system=True)
     assert result.hp_lost == 3
     checkpoint = ResourceState.model_validate_json(damaged.model_dump_json())
-    replay, repeated = apply_toxin(
-        checkpoint, command, rng=RecordedDice([]), system=True
-    )
+    replay, repeated = apply_toxin(checkpoint, command, rng=RecordedDice([]), system=True)
     assert replay == checkpoint and repeated == result
     treated, _ = apply_toxin(
         checkpoint,
-        ToxinCommand(id="care", actor_id="a", expected_revision=2, kind="treat", exposure_id="dose"),
+        ToxinCommand(
+            id="care", actor_id="a", expected_revision=2, kind="treat", exposure_id="dose"
+        ),
         treatment_bonus=3,
         rng=RecordedDice([]),
         system=True,
@@ -211,7 +215,9 @@ def test_cyclic_settlement_replay_and_future_only_treatment() -> None:
     treated = treated.model_copy(update={"game_time": 7200})
     treated, result = apply_toxin(
         treated,
-        ToxinCommand(id="cycle-2", actor_id="a", expected_revision=3, kind="resolve", exposure_id="dose"),
+        ToxinCommand(
+            id="cycle-2", actor_id="a", expected_revision=3, kind="resolve", exposure_id="dose"
+        ),
         rng=RecordedDice([3, 3, 3]),
         system=True,
     )
@@ -223,7 +229,9 @@ def test_double_depressant_overdose_is_persistent() -> None:
     profile = profile.model_copy(update={"resistance_modifier": -2})
     exposed, _ = apply_toxin(
         state(),
-        ToxinCommand(id="overdose", actor_id="a", expected_revision=0, kind="expose", exposure_id="od"),
+        ToxinCommand(
+            id="overdose", actor_id="a", expected_revision=0, kind="expose", exposure_id="od"
+        ),
         profile=profile,
         evidence=DeliveryEvidence(swallowed=True),
         ht=10,
@@ -233,7 +241,9 @@ def test_double_depressant_overdose_is_persistent() -> None:
     )
     exposed, result = apply_toxin(
         exposed,
-        ToxinCommand(id="od-cycle", actor_id="a", expected_revision=1, kind="resolve", exposure_id="od"),
+        ToxinCommand(
+            id="od-cycle", actor_id="a", expected_revision=1, kind="resolve", exposure_id="od"
+        ),
         rng=RecordedDice([6, 6, 6]),
         system=True,
     )
@@ -256,7 +266,11 @@ def test_intoxication_and_withdrawal_are_durable() -> None:
     withdrawing, _ = apply_withdrawal(
         drank,
         WithdrawalCommand(
-            id="begin", actor_id="a", expected_revision=1, kind="begin-withdrawal", dependency_id="dep"
+            id="begin",
+            actor_id="a",
+            expected_revision=1,
+            kind="begin-withdrawal",
+            dependency_id="dep",
         ),
         substance_id="stimulant",
         dependency_kind="physiological",
@@ -269,7 +283,11 @@ def test_intoxication_and_withdrawal_are_durable() -> None:
     hurt, withdrawal_result = apply_withdrawal(
         withdrawing,
         WithdrawalCommand(
-            id="day-1", actor_id="a", expected_revision=2, kind="resolve-withdrawal", dependency_id="dep"
+            id="day-1",
+            actor_id="a",
+            expected_revision=2,
+            kind="resolve-withdrawal",
+            dependency_id="dep",
         ),
         ht=10,
         will=10,
@@ -283,7 +301,11 @@ def test_intoxication_and_withdrawal_are_durable() -> None:
         apply_withdrawal(
             hurt,
             WithdrawalCommand(
-                id="early", actor_id="a", expected_revision=3, kind="resolve-withdrawal", dependency_id="dep"
+                id="early",
+                actor_id="a",
+                expected_revision=3,
+                kind="resolve-withdrawal",
+                dependency_id="dep",
             ),
             ht=10,
             will=10,

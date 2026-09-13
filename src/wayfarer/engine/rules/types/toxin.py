@@ -28,7 +28,16 @@ class ToxinProfile(Record):
     fp_dice: int = Field(default=0, ge=0, le=100)
     fp_add: int = Field(default=0, ge=0, le=1000)
     condition: Literal[
-        "none", "coughing", "blindness", "drowsy", "ecstasy", "hallucinating", "unconscious", "paralysis", "retching", "seizure"
+        "none",
+        "coughing",
+        "blindness",
+        "drowsy",
+        "ecstasy",
+        "hallucinating",
+        "unconscious",
+        "paralysis",
+        "retching",
+        "seizure",
     ] = "none"
     condition_seconds: int = Field(default=0, ge=0)
     duration_per_margin: int = Field(default=0, ge=0)

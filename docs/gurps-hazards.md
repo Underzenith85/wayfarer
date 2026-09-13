@@ -1,4 +1,4 @@
-# Physical travel and environmental hazards (#110, #154)
+# Physical travel and environmental hazards (#110, #154, #517)
 
 These services select the exact Basic Set profile. Numeric evidence uses the
 supplied Campaigns fourth printing B349-355/B430-443 and Characters third
@@ -88,7 +88,51 @@ must be bound by the scenario. Heat/cold/disease debts and existing suffocation,
 fire, mortality and subgroup deadlines continue to use the shared resource
 checkpoint and receipt ledger.
 
+## Audited environmental families
+
+Issue #517 reconciles the earlier #154 schedules against Campaigns fourth
+printing B428-B437. `HazardEnvironment` records the measured medium, intensity,
+duration, source class, pressure and temperature where applicable;
+`HazardProtection` independently records seals, breathing and eye protection,
+insulation, pressure/vacuum support, radiation PF and nonmetallic electrical DR.
+The absence of one of those facts never means that an atmosphere is breathable
+or that a character has working protection. Extended variants reject unless both
+records are present.
+
+The pinned constructors and their reducer routes are:
+
+| Family | Authored variants and reducer | Source |
+| --- | --- | --- |
+| Acid | splash and immersion corrosion; swallowed acid rolls its total injury once, then schedules one-point delayed ticks; all HP uses `apply_injury` | B428 |
+| Atmosphere | trace corrosive, pollutant, lethal and dense toxic gas, plus unbreathable composition; seals and air supplies are separate facts | B429 |
+| Pressure | measured native-pressure crushing by failure margin and rapid-decompression illness; Pressure Support is explicit | B429, B435 |
+| Cold and heat | the reconciled ambient procedure, icy-water thermal shock, and intense-heat delay based on authored DR; FP uses `apply_fatigue` | B430, B434 |
+| Electricity | nonlethal, lethal and localized current with strength and insulation; stun, unconsciousness and cardiac consequences enter existing health state | B432-433 |
+| Fire and objects | the existing actor fire schedule plus material-class ignition from the same burning damage command and object receipt | B433 |
+| Acceleration | measured home-gravity ratio and posture; failure-margin FP and critical blackout use existing reducers | B434 |
+| Radiation | dated per-source effective dose after PF, the full dose/outcome table, and thirty-day delayed decay to the retained fraction | B435-436 |
+| Seasickness | one first-day shipboard HT+5 check and the existing nausea/retching condition runtime | B436 |
+| Suffocation and vacuum | the reconciled one-second FP and four-minute fatal deadline; vacuum protection and blood-oxygen delay are explicit, and explosive decompression adds its immediate injury | B436-437 |
+
+Leaving an exposure retires only future ticks and cannot skip a tick already due.
+Changing intensity or protection requires a new trusted binding; an existing
+schedule is immutable and command replay returns its original receipt. Hazard
+results intentionally omit source class and scene. Folded `hazard.resolved`
+events are visible only to the affected actor and the GM, so a hidden source or
+location is not disclosed to other members.
+
+`CombustionFacts` covers the five flammable material classes and nonflammable
+materials. Tight-beam thresholds are scaled before `apply_burning_object`
+composes the result with `apply_object`; it never creates a parallel object-HP
+ledger. Prolonged-contact ignition beyond the single-roll thresholds remains an
+explicit unsupported adjacent variant. The optional random hit-location rule for
+falls is also disabled; the general collision/falling procedure remains the
+reconciled #154 implementation.
+
 `tests/test_hazard_variants.py` includes independent numeric expectations,
 compiled trait/Survival use, real SQLite travel/group/rescue/diagnosis/antibiotic
 transactions, inventory consumption and replay. `tests/test_gurps_hazards.py`
 retains the original hazard barriers and concurrent retry evidence.
+`tests/test_environmental_hazards.py` supplies protected and unprotected
+boundaries for every #517 family, independently entered table outcomes, durable
+radiation decay, object-reducer composition, replay and audience evidence.

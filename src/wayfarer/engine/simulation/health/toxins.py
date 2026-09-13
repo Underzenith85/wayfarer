@@ -76,7 +76,9 @@ def _digest(command: Command) -> str:
     return hashlib.sha256(command.model_dump_json().encode()).hexdigest()
 
 
-def _replay(state: ResourceState, command: Command, prefix: str, cls: type[Record]) -> Record | None:
+def _replay(
+    state: ResourceState, command: Command, prefix: str, cls: type[Record]
+) -> Record | None:
     receipt = next((r for r in state.receipts if r.command_id == command.id), None)
     if receipt is None:
         return None
@@ -91,7 +93,8 @@ def _commit(state: ResourceState, command: Command, prefix: str, result: Record)
         state.model_copy(
             update={
                 "revision": command.expected_revision + 1,
-                "receipts": state.receipts + (Receipt(command_id=command.id, digest=_digest(command)),),
+                "receipts": state.receipts
+                + (Receipt(command_id=command.id, digest=_digest(command)),),
                 "events": state.events
                 + (
                     ResourceEvent(
@@ -261,10 +264,16 @@ def apply_toxin(
         if exposure is None or exposure.actor_id != command.actor_id:
             raise ValidationError("Unknown toxin exposure")
         if command.kind == "discover":
-            if discoverer_id is None or not (exposure.hp_lost or exposure.fp_lost or exposure.condition_until):
-                raise ValidationError("Discovery requires an authorized procedure and observable symptoms")
+            if discoverer_id is None or not (
+                exposure.hp_lost or exposure.fp_lost or exposure.condition_until
+            ):
+                raise ValidationError(
+                    "Discovery requires an authorized procedure and observable symptoms"
+                )
             exposure = exposure.model_copy(
-                update={"discovered_by": tuple(sorted(set(exposure.discovered_by) | {discoverer_id}))}
+                update={
+                    "discovered_by": tuple(sorted(set(exposure.discovered_by) | {discoverer_id}))
+                }
             )
         elif command.kind == "treat":
             if exposure.profile.treatment_owner == "none" or treatment_bonus < 1:
@@ -282,7 +291,13 @@ def apply_toxin(
             check = (
                 success_roll(
                     profile.profile_id,
-                    max(1, exposure.ht + profile.resistance_modifier - 2 * steps + exposure.treatment_bonus),
+                    max(
+                        1,
+                        exposure.ht
+                        + profile.resistance_modifier
+                        - 2 * steps
+                        + exposure.treatment_bonus,
+                    ),
                     rng=rng,
                 )
                 if profile.resistible
@@ -321,7 +336,9 @@ def apply_toxin(
                 check=check,
             )
             state = state.model_copy(
-                update={"toxins": tuple(exposure if t.id == exposure.id else t for t in state.toxins)}
+                update={
+                    "toxins": tuple(exposure if t.id == exposure.id else t for t in state.toxins)
+                }
             )
             state = _commit(state, command, "toxin:", result)
             return state, result
@@ -397,22 +414,36 @@ def apply_drinking(
         total = item.total_session_drinks + command.drinks
         level = item.level
         if drinks > st // 4:
-            target = max(ht, carousing) - (drinks - st // 4) + (1 if recently_ate else 0) - (2 if empty_stomach else 0) + tolerance
+            target = (
+                max(ht, carousing)
+                - (drinks - st // 4)
+                + (1 if recently_ate else 0)
+                - (2 if empty_stomach else 0)
+                + tolerance
+            )
             check = success_roll("gurps-basic-set-4e-2004", max(1, target), rng=rng)
             if not check.outcome.succeeded:
-                level, hallucinating, retching = _failed_drinking_check(
-                    item, check, ht=ht, rng=rng
-                )
-        item = item.model_copy(update={"drinks": drinks, "total_session_drinks": total, "level": level})
+                level, hallucinating, retching = _failed_drinking_check(item, check, ht=ht, rng=rng)
+        item = item.model_copy(
+            update={"drinks": drinks, "total_session_drinks": total, "level": level}
+        )
     elif command.kind == "stop-drinking":
         if item.stopped_at is not None or item.total_session_drinks == 0:
             raise ConflictError("Drinking session already stopped or empty")
         hours = max(1, item.total_session_drinks // 2)
         penalty = -4 if item.level == "unconscious" else -2 if item.level == "drunk" else 0
         hangover = success_roll("gurps-basic-set-4e-2004", max(1, ht + penalty), rng=rng)
-        hangover_due = state.game_time + sum(rng.randbelow(6) + 1 for _ in range(1)) * 3600 if not hangover.outcome.succeeded else None
+        hangover_due = (
+            state.game_time + sum(rng.randbelow(6) + 1 for _ in range(1)) * 3600
+            if not hangover.outcome.succeeded
+            else None
+        )
         item = item.model_copy(
-            update={"stopped_at": state.game_time, "sober_due": state.game_time + hours * 3600, "hangover_due": hangover_due}
+            update={
+                "stopped_at": state.game_time,
+                "sober_due": state.game_time + hours * 3600,
+                "hangover_due": hangover_due,
+            }
         )
     else:
         if item.sober_due is None or state.game_time != item.sober_due:
@@ -422,14 +453,30 @@ def apply_drinking(
         check = success_roll("gurps-basic-set-4e-2004", ht, rng=rng)
         level = _LEVELS[max(0, _LEVELS.index(item.level) - int(check.outcome.succeeded))]
         hours = max(1, item.total_session_drinks // 2)
-        item = item.model_copy(update={"level": level, "sober_due": None if level == "sober" else state.game_time + hours * 3600})
+        item = item.model_copy(
+            update={
+                "level": level,
+                "sober_due": None if level == "sober" else state.game_time + hours * 3600,
+            }
+        )
     if item.hangover_due is not None and state.game_time >= item.hangover_due:
         margin = max(1, -(check.margin if check is not None else -1))
-        item = item.model_copy(update={"hangover_until": state.game_time + margin * 3600, "hangover_due": None})
+        item = item.model_copy(
+            update={"hangover_until": state.game_time + margin * 3600, "hangover_due": None}
+        )
     state = state.model_copy(
-        update={"intoxications": tuple(i for i in state.intoxications if i.actor_id != item.actor_id) + (item,)}
+        update={
+            "intoxications": tuple(i for i in state.intoxications if i.actor_id != item.actor_id)
+            + (item,)
+        }
     )
-    result = IntoxicationResult(level=item.level, check=check, hallucinating=hallucinating, retching=retching, hangover_until=item.hangover_until)
+    result = IntoxicationResult(
+        level=item.level,
+        check=check,
+        hallucinating=hallucinating,
+        retching=retching,
+        hangover_until=item.hangover_until,
+    )
     return _commit(state, command, "intoxication:", result), result
 
 
@@ -516,13 +563,21 @@ def apply_withdrawal(
                     blocks_natural_healing=True,
                 )
                 state = state.model_copy(
-                    update={"illnesses": tuple(i for i in state.illnesses if i.id != dependency.id) + (restriction,)}
+                    update={
+                        "illnesses": tuple(i for i in state.illnesses if i.id != dependency.id)
+                        + (restriction,)
+                    }
                 )
             else:
                 quirks += 1
             completed = successes >= 14
             dependency = dependency.model_copy(
-                update={"successes": successes, "quirks": quirks, "active": not completed, "due": state.game_time + 86400}
+                update={
+                    "successes": successes,
+                    "quirks": quirks,
+                    "active": not completed,
+                    "due": state.game_time + 86400,
+                }
             )
             if completed:
                 state = state.model_copy(
@@ -534,7 +589,11 @@ def apply_withdrawal(
                     }
                 )
         state = state.model_copy(
-            update={"dependencies": tuple(dependency if d.id == dependency.id else d for d in state.dependencies)}
+            update={
+                "dependencies": tuple(
+                    dependency if d.id == dependency.id else d for d in state.dependencies
+                )
+            }
         )
     result = WithdrawalResult(
         active=dependency.active,
@@ -547,7 +606,9 @@ def apply_withdrawal(
     return _commit(state, command, "withdrawal:", result), result
 
 
-def overdose_profile(id: str, *, vector: Literal["digestive", "follow-up"] = "digestive") -> ToxinProfile:
+def overdose_profile(
+    id: str, *, vector: Literal["digestive", "follow-up"] = "digestive"
+) -> ToxinProfile:
     """B441's fixed 24-cycle toxic consequence; the triggering drug supplies HT modifier."""
 
     return ToxinProfile(

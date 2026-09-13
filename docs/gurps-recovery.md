@@ -1,6 +1,6 @@
-# GURPS fatigue and medical recovery (#109, #515)
+# GURPS fatigue and medical recovery (#109, #515, #516)
 
-The implementation remains **partial**. It adds deterministic mechanics and an
+The profile as a whole remains **partial**. It adds deterministic mechanics and an
 internal authoritative service; it does not certify or enable a GURPS profile in
 the campaign selector. Existing prototype rules and saved profile pins remain
 unchanged. The coverage ledger is [GURPS conformance](gurps-conformance.md).
@@ -86,9 +86,10 @@ Advanced resuscitation and stabilization are described in
 permanent-crippling surgery details and non-healing ultra-tech drug effects.
 First-aid and
 Physician commands require an available approved skill definition; the separate
-catalog coverage gates are not bypassed. Exact Lite-specific source certification,
-complete combat exertion dispatch, and player-facing GURPS recovery controls are
-not claimed by this implementation.
+catalog coverage gates are not bypassed. Exact Lite-specific source certification
+and player-facing GURPS recovery controls are not claimed by this implementation.
+Basic Set deprivation, sleep, and foraging are described in
+[survival procedures](gurps-survival.md).
 
 ### One medical procedure API
 
