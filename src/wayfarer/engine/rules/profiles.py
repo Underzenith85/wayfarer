@@ -67,6 +67,23 @@ class OptionalRuleSelection:
     enabled: bool
 
 
+@dataclass(frozen=True, slots=True)
+class ContentBoundaryDefinition:
+    """Stable identity and runtime availability for selected-source content."""
+
+    id: str
+    source_ref: str
+    available: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ContentBoundarySelection:
+    """One explicit included/excluded content decision in an immutable profile."""
+
+    id: str
+    included: bool
+
+
 BASIC_SET_OPTIONAL_RULE_DEFINITIONS: Final = (
     OptionalRuleDefinition("gurps.optional.limited-enhancements", "B111"),
     OptionalRuleDefinition("gurps.optional.wildcard-skills", "B175"),
@@ -86,6 +103,18 @@ BASIC_SET_OPTIONAL_RULES: Final = MappingProxyType(
 BASIC_SET_OPTIONAL_RULE_SELECTIONS: Final = tuple(
     OptionalRuleSelection(definition.id, False)
     for definition in BASIC_SET_OPTIONAL_RULE_DEFINITIONS
+)
+
+INFINITE_WORLDS_CONTENT_ID: Final = "gurps.content.infinite-worlds"
+BASIC_SET_CONTENT_BOUNDARY_DEFINITIONS: Final = (
+    ContentBoundaryDefinition(INFINITE_WORLDS_CONTENT_ID, "B523-B546"),
+)
+BASIC_SET_CONTENT_BOUNDARIES: Final = MappingProxyType(
+    {definition.id: definition for definition in BASIC_SET_CONTENT_BOUNDARY_DEFINITIONS}
+)
+BASIC_SET_CONTENT_BOUNDARY_SELECTIONS: Final = tuple(
+    ContentBoundarySelection(definition.id, False)
+    for definition in BASIC_SET_CONTENT_BOUNDARY_DEFINITIONS
 )
 
 GURPS_BASIC_EQUIPMENT_DEFINITIONS: Final = tuple(
@@ -147,6 +176,7 @@ class RegisteredProfile:
     required_capabilities: frozenset[str] = frozenset()
     optional_rules: tuple[str, ...] = ()
     named_optional_rules: tuple[OptionalRuleSelection, ...] = ()
+    content_boundaries: tuple[ContentBoundarySelection, ...] = ()
 
     @property
     def catalog(self) -> RulesCatalog:
@@ -166,7 +196,11 @@ class RegisteredProfile:
 
     @property
     def supported(self) -> bool:
-        return not self.unverified_capabilities and not self.unavailable_optional_rules
+        return (
+            not self.unverified_capabilities
+            and not self.unavailable_optional_rules
+            and not self.unavailable_content
+        )
 
     @property
     def unavailable_optional_rules(self) -> tuple[str, ...]:
@@ -193,6 +227,30 @@ class RegisteredProfile:
             raise ValidationError(f"Optional rule is not implemented: {identifier}")
 
     @property
+    def unavailable_content(self) -> tuple[str, ...]:
+        return tuple(
+            selection.id
+            for selection in self.content_boundaries
+            if selection.included and not BASIC_SET_CONTENT_BOUNDARIES[selection.id].available
+        )
+
+    def require_content(self, identifier: str) -> None:
+        """Fail closed unless this exact profile includes executable content."""
+        definition = BASIC_SET_CONTENT_BOUNDARIES.get(identifier)
+        if definition is None:
+            raise ValidationError(f"Unknown content boundary: {identifier}")
+        selection = next(
+            (selection for selection in self.content_boundaries if selection.id == identifier),
+            None,
+        )
+        if selection is None:
+            raise ValidationError(f"Content boundary is not explicitly selected: {identifier}")
+        if not selection.included:
+            raise ValidationError(f"Content is excluded: {identifier}")
+        if not definition.available:
+            raise ValidationError(f"Content is not implemented: {identifier}")
+
+    @property
     def digest(self) -> str:
         payload = {
             "id": self.id,
@@ -208,13 +266,15 @@ class RegisteredProfile:
             "optional_rules": list(self.optional_rules),
             "named_optional_rules": [asdict(selection) for selection in self.named_optional_rules],
         }
+        if self.content_boundaries:
+            payload["content_boundaries"] = [
+                asdict(selection) for selection in self.content_boundaries
+            ]
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(encoded.encode()).hexdigest()
 
 
-def _validate(profile: RegisteredProfile) -> None:
-    if profile.version < 1:
-        raise ValidationError(f"Profile version must be positive: {profile.id}")
+def _validate_optional_rule_selections(profile: RegisteredProfile) -> None:
     if (
         len(set(profile.optional_rules)) != len(profile.optional_rules)
         or not set(profile.optional_rules) <= OPTIONAL_RULES
@@ -228,6 +288,26 @@ def _validate(profile: RegisteredProfile) -> None:
             raise ValidationError(
                 f"Basic Set profile lacks exact optional-rule dispositions: {profile.id}"
             )
+
+
+def _validate_content_boundary_selections(profile: RegisteredProfile) -> None:
+    boundary_ids = tuple(selection.id for selection in profile.content_boundaries)
+    if len(boundary_ids) != len(set(boundary_ids)) or not set(boundary_ids) <= set(
+        BASIC_SET_CONTENT_BOUNDARIES
+    ):
+        raise ValidationError(f"Invalid content boundaries for profile: {profile.id}")
+    if profile.id == "profile:gurps-basic-set-4e-2004" and profile.version >= 10:
+        if boundary_ids != tuple(BASIC_SET_CONTENT_BOUNDARIES):
+            raise ValidationError(
+                f"Basic Set profile lacks exact content-boundary dispositions: {profile.id}"
+            )
+
+
+def _validate(profile: RegisteredProfile) -> None:
+    if profile.version < 1:
+        raise ValidationError(f"Profile version must be positive: {profile.id}")
+    _validate_optional_rule_selections(profile)
+    _validate_content_boundary_selections(profile)
     rules, policy = profile.rules, profile.policy
     if (rules.policy_id, rules.policy_version) != (policy.id, policy.version):
         raise ValidationError(f"Profile policy pin does not resolve: {profile.id}")
@@ -298,12 +378,15 @@ class ProfileRegistry:
         profile = self.get(profile_id, version)
         unverified = profile.unverified_capabilities
         unavailable = profile.unavailable_optional_rules
-        if unverified or unavailable:
+        unavailable_content = profile.unavailable_content
+        if unverified or unavailable or unavailable_content:
             details = []
             if unverified:
                 details.append(f"unverified capabilities: {', '.join(unverified)}")
             if unavailable:
                 details.append(f"unavailable optional rules: {', '.join(unavailable)}")
+            if unavailable_content:
+                details.append(f"unavailable content: {', '.join(unavailable_content)}")
             raise ValidationError(
                 f"Rules profile is not supported: {profile_id}@{version} ({'; '.join(details)})"
             )
@@ -570,6 +653,16 @@ GURPS_OPTIONAL_RULES_PROFILE: Final = replace(
     named_optional_rules=BASIC_SET_OPTIONAL_RULE_SELECTIONS,
 )
 
+# #494 excludes the setting-specific Infinite Worlds chapter from the generic
+# Basic Set profile. The boundary is digest-bearing selection metadata; no
+# parachronic package, operation, or prerelease engine version is introduced.
+GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE: Final = replace(
+    GURPS_OPTIONAL_RULES_PROFILE,
+    version=10,
+    title="GURPS Basic Set, Fourth Edition (Infinite Worlds excluded)",
+    content_boundaries=BASIC_SET_CONTENT_BOUNDARY_SELECTIONS,
+)
+
 # Keep the new pin opt-in while the overall Basic Set profile still has unrelated
 # unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
@@ -580,12 +673,12 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_LITE_PROFILE,
         GURPS_BASIC_PROFILE,
         GURPS_MAGIC_PROFILE,
-        GURPS_OPTIONAL_RULES_PROFILE,
+        GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(
     {
         GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
-        GURPS_OPTIONAL_RULES_PROFILE.id: GURPS_OPTIONAL_RULES_PROFILE,
+        GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE.id: GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE,
     }
 )

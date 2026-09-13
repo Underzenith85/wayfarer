@@ -17549,21 +17549,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reviewed-exclusion",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b524:the-campaign",
@@ -17575,21 +17576,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-separate-profile-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b524:infinite-worlds-glossary",
@@ -17601,21 +17603,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "reference-only",
+      "disposition": "excluded",
       "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b524:the-campaign",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reviewed-exclusion",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b525:the-interworld-treaty",
@@ -17627,21 +17630,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b524:the-campaign",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b525:dark-infinity",
@@ -17653,21 +17657,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b524:the-campaign",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-separate-profile-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b526:an-infinity-of-worlds",
@@ -17679,21 +17684,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b526:classes-of-alternate-worlds",
@@ -17705,21 +17711,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b526:close-parallels",
@@ -17731,21 +17738,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b527:farther-parallels",
@@ -17757,21 +17765,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b527:weird-parallels",
@@ -17783,21 +17792,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b527:myth-parallels",
@@ -17809,21 +17819,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b528:hell-parallels",
@@ -17835,21 +17846,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b528:worlds-that-break-the-rules",
@@ -17861,21 +17873,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b529:pocket-multiverses",
@@ -17887,21 +17900,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b526:an-infinity-of-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b529:interdimensional-travel",
@@ -17913,21 +17927,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b529:parachronic-conveyors",
@@ -17939,21 +17954,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b530:parachronic-projectors",
@@ -17965,21 +17981,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b530:parachronic-coordinates",
@@ -17991,21 +18008,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b531:operations-and-accidents",
@@ -18017,21 +18035,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b532:parachronic-detectors",
@@ -18043,21 +18062,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b533:natural-parachronic-phenomena",
@@ -18069,21 +18089,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b534:dimensional-highways",
@@ -18095,21 +18116,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b535:infinity-s-world-classes",
@@ -18121,21 +18143,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b529:interdimensional-travel",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b535:infinity-unlimited",
@@ -18147,21 +18170,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b536:infinity-development",
@@ -18173,21 +18197,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b535:infinity-unlimited",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b536:infinity-patrol",
@@ -18199,21 +18224,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b535:infinity-unlimited",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b536:crosstime-recruitment",
@@ -18225,21 +18251,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b535:infinity-unlimited",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b536:iswat",
@@ -18251,21 +18278,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b535:infinity-unlimited",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b538:miracle-workers",
@@ -18277,21 +18305,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b535:infinity-unlimited",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b538:parachronic-laboratories",
@@ -18303,21 +18332,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b535:infinity-unlimited",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b538:outside-organizations",
@@ -18329,21 +18359,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b538:the-united-nations",
@@ -18355,21 +18386,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b538:governments",
@@ -18381,21 +18413,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b539:research-foundations",
@@ -18407,21 +18440,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b539:crosstime-bounty-hunters",
@@ -18433,21 +18467,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b539:corporations",
@@ -18459,21 +18494,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b540:keeping-the-secret",
@@ -18485,21 +18521,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b540:the-very-rich",
@@ -18511,21 +18548,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b541:crosstime-colonies",
@@ -18537,21 +18575,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b538:outside-organizations",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b541:adversaries",
@@ -18563,21 +18602,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b541:centrum",
@@ -18589,21 +18629,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b541:adversaries",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b542:crosstime-bandits",
@@ -18615,21 +18656,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b541:adversaries",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b543:reality-liberation-force",
@@ -18641,21 +18683,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b541:adversaries",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b543:the-cabal-masters-of-infinity",
@@ -18667,21 +18710,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b541:adversaries",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b543:reich-5",
@@ -18693,21 +18737,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b541:adversaries",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b544:parachronozoids",
@@ -18719,21 +18764,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-setting-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b544:world-jumpers",
@@ -18745,21 +18791,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b544:parachronozoids",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b544:timeline-shifts",
@@ -18771,21 +18818,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b545:centran-intervention",
@@ -18797,21 +18845,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b544:timeline-shifts",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-separate-profile-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b545:mysteries",
@@ -18823,21 +18872,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b544:timeline-shifts",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-separate-profile-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b546:effects-of-tampering-with-echoes",
@@ -18849,21 +18899,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b544:timeline-shifts",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b546:marooned",
@@ -18875,21 +18926,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b544:timeline-shifts",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-separate-profile-content",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b546:locating-a-shifted-timeline",
@@ -18901,21 +18953,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "excluded",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-infinite-worlds-boundary.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b544:timeline-shifts",
-      "classification": null,
-      "listed_value": null
+      "classification": "infinite-worlds-reusable-mechanic-excluded",
+      "listed_value": "excluded-from-generic-profile"
     },
     {
       "id": "section:campaigns:b547:tables",
@@ -18934,9 +18987,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
@@ -18960,9 +19014,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -18986,9 +19041,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19012,9 +19068,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19038,9 +19095,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19064,9 +19122,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19090,9 +19149,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19116,9 +19176,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19142,9 +19203,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19168,9 +19230,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
@@ -19194,9 +19257,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
@@ -19220,9 +19284,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
@@ -19246,9 +19311,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
@@ -19272,9 +19338,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
@@ -19298,9 +19365,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
@@ -19324,9 +19392,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": 94,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
@@ -19350,9 +19419,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        494
       ],
-      "completion_owner": 494,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,

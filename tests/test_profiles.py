@@ -26,6 +26,7 @@ from wayfarer.engine.rules.catalog import (
     reference,
 )
 from wayfarer.engine.rules.profiles import (
+    BASIC_SET_CONTENT_BOUNDARY_SELECTIONS,
     BASIC_SET_OPTIONAL_RULE_SELECTIONS,
     DEFAULT_REGISTRY,
     GURPS_BASIC_EQUIPMENT_DEFINITIONS,
@@ -116,6 +117,7 @@ EXTENDED_PROFILE = RegisteredProfile(
     policy=EXTENDED_POLICY,
     packages=(PROTOTYPE_PACKAGE, EXTRA_PACKAGE),
     named_optional_rules=BASIC_SET_OPTIONAL_RULE_SELECTIONS,
+    content_boundaries=BASIC_SET_CONTENT_BOUNDARY_SELECTIONS,
 )
 REGISTRY = ProfileRegistry((PROTOTYPE_PROFILE, EXTENDED_PROFILE, GURPS_LITE_PROFILE))
 EXTENDED = ProfileSelection(id=EXTENDED_PROFILE.id, version=1)
@@ -611,6 +613,10 @@ async def test_migration_is_explicit_authorized_atomic_and_idempotent(
     assert [m.id for m in state.migrations] == ["m"]
     assert state.configuration_digest == access.play.engine.digest
     assert access.play.engine.reviewer.compiler.rules == EXTENDED_PROFILE.rules
+    assert (
+        profiles.registry.get(EXTENDED_PROFILE.id, EXTENDED_PROFILE.version).content_boundaries
+        == BASIC_SET_CONTENT_BOUNDARY_SELECTIONS
+    )
     # Play continues under the new profile after a resume.
     await setup.execute(
         cid,

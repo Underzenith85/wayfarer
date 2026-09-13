@@ -25,6 +25,14 @@ SOURCE_DIGESTS: Final = {
     "characters-third": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
     "campaigns-fourth": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80",
 }
+INFINITE_WORLDS_CLASSIFICATIONS: Final = frozenset(
+    {
+        "infinite-worlds-setting-content",
+        "infinite-worlds-reusable-mechanic-excluded",
+        "infinite-worlds-separate-profile-content",
+        "infinite-worlds-reviewed-exclusion",
+    }
+)
 
 
 class AuditRecord(Record):
@@ -350,6 +358,18 @@ def validate_source_ledgers(
             raise ValidationError(f"Source list page outside selected printing: {row.id}")
         if BASIC_PROFILE_ID not in row.profile_membership:
             raise ValidationError(f"Basic Set row missing profile membership: {row.id}")
+        if (
+            row.source_id == "campaigns-fourth"
+            and 523 <= row.printed_page <= 546
+            and (
+                row.disposition != "excluded"
+                or row.implementation != "not-applicable"
+                or row.completion_owner is not None
+                or row.classification not in INFINITE_WORLDS_CLASSIFICATIONS
+                or row.listed_value != "excluded-from-generic-profile"
+            )
+        ):
+            raise ValidationError(f"Infinite Worlds boundary disposition drift: {row.id}")
         needs_owner = row.disposition in {"optional-unresolved", "setting-unresolved"} or (
             row.disposition == "required" and row.implementation not in {"implemented", "verified"}
         )
