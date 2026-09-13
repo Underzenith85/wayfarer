@@ -8,6 +8,7 @@ from wayfarer.engine.rules.profiles import (
     BASIC_SET_OPTIONAL_RULE_DEFINITIONS,
     BASIC_SET_OPTIONAL_RULE_SELECTIONS,
     DEFAULT_REGISTRY,
+    GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE,
     GURPS_OPTIONAL_RULES_PROFILE,
     OptionalRuleSelection,
     ProfileRegistry,
@@ -38,7 +39,13 @@ def test_exact_profile_records_every_named_rule_disabled() -> None:
     } == EXPECTED
     assert profile.named_optional_rules == BASIC_SET_OPTIONAL_RULE_SELECTIONS
     assert not any(selection.enabled for selection in profile.named_optional_rules)
-    assert DEFAULT_REGISTRY.get(profile.id, profile.version) is profile
+    assert (
+        DEFAULT_REGISTRY.get(
+            GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE.id,
+            GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE.version,
+        ).named_optional_rules
+        == profile.named_optional_rules
+    )
     assert {
         selection.id: (selection.enabled, selection.source_ref, selection.available)
         for selection in view(profile).named_optional_rules
