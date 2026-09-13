@@ -2043,21 +2043,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.limited-enhancements",
+      "listed_value": "disabled"
     },
     {
       "id": "section:characters:b114:examples-of-modified-attacks",
@@ -3187,21 +3188,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.wildcard-skills",
+      "listed_value": "disabled"
     },
     {
       "id": "section:characters:b176:geographical-and-temporal-scope",
@@ -5675,21 +5677,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.modifying-dice-adds",
+      "listed_value": "disabled"
     },
     {
       "id": "section:characters:b271:melee-weapons",
@@ -5883,21 +5886,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.malfunction",
+      "listed_value": "disabled"
     },
     {
       "id": "section:characters:b281:heavy-weapons",
@@ -6301,21 +6305,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:characters:b292:improvement-through-study",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.maintaining-skills",
+      "listed_value": "disabled"
     },
     {
       "id": "section:characters:b294:learnable-advantages",
@@ -7267,21 +7272,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.influencing-success-rolls",
+      "listed_value": "disabled"
     },
     {
       "id": "section:campaigns:b348:repeated-attempts",
@@ -7597,7 +7603,7 @@
     },
     {
       "id": "section:campaigns:b352:optional-jumping-rules",
-      "row_kind": "mechanic",
+      "row_kind": "optional-rule",
       "source_id": "campaigns-fourth",
       "title": "Optional Jumping Rules",
       "printed_page": 352,
@@ -7605,21 +7611,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "completion_owner": null,
+      "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.detailed-jumping",
+      "listed_value": "disabled"
     },
     {
       "id": "section:campaigns:b353:lifting-and-moving-things",
@@ -10761,21 +10768,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b394:special-movement",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.posture-in-armor",
+      "listed_value": "disabled"
     },
     {
       "id": "section:campaigns:b396:mounted-combat",
@@ -11905,21 +11913,22 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "optional-unresolved",
-      "implementation": "absent",
+      "disposition": "optional-disabled",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-optional-rules.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 493,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.optional.injury.bleeding|gurps.optional.injury.accumulated-wounds|gurps.optional.injury.last-wounds",
+      "listed_value": "disabled"
     },
     {
       "id": "section:campaigns:b421:patient-status",
