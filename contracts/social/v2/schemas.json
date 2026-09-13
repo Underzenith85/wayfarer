@@ -2392,6 +2392,605 @@
         "title": "Connection",
         "type": "object"
       },
+      "Creature": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "template_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Template Id",
+            "type": "string"
+          },
+          "template_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Template Digest",
+            "type": "string"
+          },
+          "individual_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Individual Digest",
+            "type": "string"
+          },
+          "build_revision": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Build Revision",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "source_id": {
+            "const": "gurps-basic-set-campaigns-4e-fourth-printing",
+            "default": "gurps-basic-set-campaigns-4e-fourth-printing",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "animal",
+              "monster"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "mentality": {
+            "enum": [
+              "domestic",
+              "wild"
+            ],
+            "title": "Mentality",
+            "type": "string"
+          },
+          "statistics": {
+            "$ref": "#/$defs/CreatureStatistics"
+          },
+          "traits": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CreatureTrait"
+            },
+            "title": "Traits",
+            "type": "array"
+          },
+          "skills": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CreatureSkill"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "attacks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CreatureAttack"
+            },
+            "title": "Attacks",
+            "type": "array"
+          },
+          "commands": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/TrainableCommand"
+            },
+            "title": "Commands",
+            "type": "array"
+          },
+          "mount": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/MountCapabilities"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "point_total": {
+            "title": "Point Total",
+            "type": "integer"
+          },
+          "point_provenance": {
+            "items": {
+              "$ref": "#/$defs/PointProvenance"
+            },
+            "title": "Point Provenance",
+            "type": "array"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Owner Id"
+          },
+          "handler_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Handler Id"
+          },
+          "training_level": {
+            "anyOf": [
+              {
+                "maximum": 5,
+                "minimum": 2,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Training Level"
+          },
+          "learned_commands": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/LearnedCommand"
+            },
+            "title": "Learned Commands",
+            "type": "array"
+          },
+          "training": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CreatureTraining"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "last_command_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Command Id"
+          }
+        },
+        "required": [
+          "actor_id",
+          "name",
+          "template_id",
+          "template_digest",
+          "individual_digest",
+          "build_revision",
+          "reference",
+          "kind",
+          "mentality",
+          "statistics",
+          "point_total",
+          "point_provenance"
+        ],
+        "title": "Creature",
+        "type": "object"
+      },
+      "CreatureAttack": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "form": {
+            "enum": [
+              "bite",
+              "claw",
+              "kick",
+              "striker",
+              "gaze",
+              "special"
+            ],
+            "title": "Form",
+            "type": "string"
+          },
+          "damage_basis": {
+            "enum": [
+              "thrust-1",
+              "thrust",
+              "special"
+            ],
+            "title": "Damage Basis",
+            "type": "string"
+          },
+          "damage_type": {
+            "enum": [
+              "crushing",
+              "cutting",
+              "impaling",
+              "toxic",
+              "special"
+            ],
+            "title": "Damage Type",
+            "type": "string"
+          },
+          "reach": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Reach",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "form",
+          "damage_basis",
+          "damage_type"
+        ],
+        "title": "CreatureAttack",
+        "type": "object"
+      },
+      "CreatureMovement": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "ground",
+              "air",
+              "water"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "ordinary_move": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Ordinary Move",
+            "type": "integer"
+          },
+          "enhanced_move": {
+            "anyOf": [
+              {
+                "maximum": 10000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Enhanced Move"
+          }
+        },
+        "required": [
+          "mode",
+          "ordinary_move"
+        ],
+        "title": "CreatureMovement",
+        "type": "object"
+      },
+      "CreatureSkill": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "level"
+        ],
+        "title": "CreatureSkill",
+        "type": "object"
+      },
+      "CreatureStatistics": {
+        "additionalProperties": false,
+        "properties": {
+          "st": {
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "St",
+            "type": "integer"
+          },
+          "dx": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Dx",
+            "type": "integer"
+          },
+          "iq": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Iq",
+            "type": "integer"
+          },
+          "ht": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Ht",
+            "type": "integer"
+          },
+          "hp": {
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Hp",
+            "type": "integer"
+          },
+          "will": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Will",
+            "type": "integer"
+          },
+          "per": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Per",
+            "type": "integer"
+          },
+          "fp": {
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Fp",
+            "type": "integer"
+          },
+          "basic_speed_quarters": {
+            "maximum": 400,
+            "minimum": 0,
+            "title": "Basic Speed Quarters",
+            "type": "integer"
+          },
+          "dodge": {
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Dodge",
+            "type": "integer"
+          },
+          "size_modifier": {
+            "maximum": 20,
+            "minimum": -10,
+            "title": "Size Modifier",
+            "type": "integer"
+          },
+          "weight_lb": {
+            "maximum": 10000000,
+            "minimum": 0,
+            "title": "Weight Lb",
+            "type": "integer"
+          },
+          "hexes": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Hexes",
+            "type": "integer"
+          },
+          "dr": {
+            "default": 0,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Dr",
+            "type": "integer"
+          },
+          "movement": {
+            "items": {
+              "$ref": "#/$defs/CreatureMovement"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Movement",
+            "type": "array"
+          }
+        },
+        "required": [
+          "st",
+          "dx",
+          "iq",
+          "ht",
+          "hp",
+          "will",
+          "per",
+          "fp",
+          "basic_speed_quarters",
+          "dodge",
+          "size_modifier",
+          "weight_lb",
+          "movement"
+        ],
+        "title": "CreatureStatistics",
+        "type": "object"
+      },
+      "CreatureTraining": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "general",
+              "command",
+              "war-mount"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "handler_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Handler Id",
+            "type": "string"
+          },
+          "handler_skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Handler Skill Id",
+            "type": "string"
+          },
+          "competence": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Competence",
+            "type": "integer"
+          },
+          "handling_modifier": {
+            "enum": [
+              -5,
+              0
+            ],
+            "title": "Handling Modifier",
+            "type": "integer"
+          },
+          "started_at": {
+            "minimum": 0,
+            "title": "Started At",
+            "type": "integer"
+          },
+          "due_at": {
+            "minimum": 1,
+            "title": "Due At",
+            "type": "integer"
+          },
+          "required_days": {
+            "minimum": 1,
+            "title": "Required Days",
+            "type": "integer"
+          },
+          "target_level": {
+            "anyOf": [
+              {
+                "maximum": 5,
+                "minimum": 2,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Level"
+          },
+          "command_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Command Id"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "handler_id",
+          "handler_skill_id",
+          "competence",
+          "handling_modifier",
+          "started_at",
+          "due_at",
+          "required_days"
+        ],
+        "title": "CreatureTraining",
+        "type": "object"
+      },
+      "CreatureTrait": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "levels": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Levels",
+            "type": "integer"
+          },
+          "parameters": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Parameters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "CreatureTrait",
+        "type": "object"
+      },
       "CrimeRule": {
         "additionalProperties": false,
         "properties": {
@@ -4687,6 +5286,14 @@
             "title": "Illnesses",
             "type": "array"
           },
+          "creatures": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Creature"
+            },
+            "title": "Creatures",
+            "type": "array"
+          },
           "object_results": {
             "default": [],
             "items": {
@@ -5753,6 +6360,43 @@
         "title": "LawRules",
         "type": "object"
       },
+      "LearnedCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "required_training_level": {
+            "maximum": 5,
+            "minimum": 2,
+            "title": "Required Training Level",
+            "type": "integer"
+          },
+          "competence": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Competence",
+            "type": "integer"
+          },
+          "learned_from_handler_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Learned From Handler Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "required_training_level",
+          "competence",
+          "learned_from_handler_id"
+        ],
+        "title": "LearnedCommand",
+        "type": "object"
+      },
       "LegalityRule": {
         "additionalProperties": false,
         "properties": {
@@ -6171,6 +6815,35 @@
         ],
         "title": "ModifierKind",
         "type": "string"
+      },
+      "MountCapabilities": {
+        "additionalProperties": false,
+        "properties": {
+          "riding": {
+            "default": false,
+            "title": "Riding",
+            "type": "boolean"
+          },
+          "draft": {
+            "default": false,
+            "title": "Draft",
+            "type": "boolean"
+          },
+          "war_trained": {
+            "default": false,
+            "title": "War Trained",
+            "type": "boolean"
+          },
+          "combat_training_years": {
+            "default": 0,
+            "maximum": 4,
+            "minimum": 0,
+            "title": "Combat Training Years",
+            "type": "integer"
+          }
+        },
+        "title": "MountCapabilities",
+        "type": "object"
       },
       "MountSpec": {
         "additionalProperties": false,
@@ -7662,6 +8335,58 @@
           }
         },
         "title": "PhysicalTraits",
+        "type": "object"
+      },
+      "PointProvenance": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "point_cost": {
+            "title": "Point Cost",
+            "type": "integer"
+          },
+          "origin": {
+            "enum": [
+              "template",
+              "individual"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "rules_package_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Rules Package Id",
+            "type": "string"
+          },
+          "rules_package_version": {
+            "title": "Rules Package Version",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "definition_id",
+          "amount",
+          "point_cost",
+          "origin",
+          "rules_package_id",
+          "rules_package_version",
+          "reference"
+        ],
+        "title": "PointProvenance",
         "type": "object"
       },
       "Pool": {
@@ -10522,6 +11247,48 @@
           "partial"
         ],
         "title": "SurpriseState",
+        "type": "object"
+      },
+      "TrainableCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "required_training_level": {
+            "maximum": 5,
+            "minimum": 2,
+            "title": "Required Training Level",
+            "type": "integer"
+          },
+          "task": {
+            "enum": [
+              "recall",
+              "tolerance",
+              "riding",
+              "draft",
+              "hunt",
+              "guard",
+              "trick"
+            ],
+            "title": "Task",
+            "type": "string"
+          },
+          "included_in_general_training": {
+            "default": true,
+            "title": "Included In General Training",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "required_training_level",
+          "task"
+        ],
+        "title": "TrainableCommand",
         "type": "object"
       },
       "TraitOptions": {

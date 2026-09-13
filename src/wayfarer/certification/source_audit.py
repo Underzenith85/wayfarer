@@ -10,6 +10,7 @@ from typing import Literal
 
 from pydantic import ConfigDict, Field
 
+from wayfarer.certification.creature_audit import inventory as creatures
 from wayfarer.certification.equipment_audit import rows as equipment_audit_rows
 from wayfarer.certification.source_ledgers import (
     ledger_blockers,
@@ -180,6 +181,19 @@ def inventory() -> tuple[InventoryItem, ...]:
     rows.extend(
         InventoryItem(e.definition_id, f"B{e.page}", 207, "listing-only", "vehicle-catalog")
         for e in VEHICLE_INDEX
+    )
+    rows.extend(
+        InventoryItem(
+            entry.id,
+            entry.reference,
+            entry.owner,
+            entry.implementation,
+            entry.scope,
+            entry.required_profiles,
+            entry.source_review,
+            entry.blockers,
+        )
+        for entry in creatures()
     )
     # Exhaustive source-list records that do not yet have an executable
     # RuleDefinition still exist as unavailable catalog rows.  Their stable IDs
