@@ -7,23 +7,17 @@ not reproduce rules text or implement a second mechanics engine.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
 from types import MappingProxyType
 from typing import Final
 
+from wayfarer.engine.rules.conformance_vocabulary import BASELINE_ID as BASELINE_ID
+from wayfarer.engine.rules.conformance_vocabulary import (
+    BASIC_PROFILE_ID,
+    LITE_PROFILE_ID,
+)
+from wayfarer.engine.rules.conformance_vocabulary import CoverageStatus as CoverageStatus
+from wayfarer.engine.rules.supernatural import require_family
 from wayfarer.errors import ValidationError
-
-BASELINE_ID: Final = "gurps-4e-characters-3p-2008+campaigns-4p-2008"
-"""Selected source baseline recorded in tests/fixtures/gurps/conformance.json."""
-
-
-class CoverageStatus(StrEnum):
-    """Evidence state for one declared rules capability."""
-
-    ABSENT = "absent"
-    PARTIAL = "partial"
-    MANUAL = "manual"
-    VERIFIED = "verified"
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,12 +134,6 @@ def require_verified(capability_id: str) -> Capability:
             f"Rules capability is not verified: {capability_id} ({result.status.value})"
         )
     if capability_id in ("gurps.magic.spellcasting", "gurps.supernatural.abilities"):
-        # deferred: conformance -> supernatural -> catalog -> traits.base -> conformance.
-        # require_verified must apply the family check itself: test_supernatural_inventory
-        # asserts conformance.require_verified(family) rejects a promoted family flag, and
-        # the supernatural audit needs this module's coverage vocabulary to describe itself.
-        from wayfarer.engine.rules.supernatural import require_family
-
         require_family(capability_id)
     return result
 
@@ -162,13 +150,13 @@ class RulesProfile:
 
 PROFILES: Final = MappingProxyType(
     {
-        "gurps-lite-4e-2004": RulesProfile(
-            "gurps-lite-4e-2004",
+        LITE_PROFILE_ID: RulesProfile(
+            LITE_PROFILE_ID,
             ("sjg:gurps-lite-4e-2004",),
             frozenset(entry.id for entry in _CAPABILITIES if entry.lite_required),
         ),
-        "gurps-basic-set-4e-2004": RulesProfile(
-            "gurps-basic-set-4e-2004",
+        BASIC_PROFILE_ID: RulesProfile(
+            BASIC_PROFILE_ID,
             ("sjg:basic-set-characters-4e-2004", "sjg:basic-set-campaigns-4e-2004"),
             frozenset(entry.id for entry in _CAPABILITIES if entry.basic_required),
         ),
