@@ -12,11 +12,16 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.engine.rules.conformance import BASELINE_ID, CoverageStatus, profile
+from wayfarer.engine.rules.conformance_vocabulary import (
+    BASELINE_ID,
+    BASIC_PROFILE_ID,
+    CoverageStatus,
+    require_profile_id,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
-PROFILE = "gurps-basic-set-4e-2004"
+PROFILE = BASIC_PROFILE_ID
 
 
 class AuditModel(Record):
@@ -136,7 +141,7 @@ def require_entries(profile_id: str, identifiers: tuple[str, ...]) -> tuple[Entr
     bindings continue to use the exact approved package and channel validators.
     This inventory neither publishes those bindings nor migrates a campaign.
     """
-    profile(profile_id)
+    require_profile_id(profile_id)
     if profile_id != PROFILE:
         raise ValidationError("Supernatural inventory is outside the selected profile")
     result = tuple(lookup(identifier) for identifier in identifiers)
@@ -170,7 +175,7 @@ def definition(identifier: str) -> RuleDefinition:
 
 def coverage_blockers(profile_id: str) -> tuple[int, ...]:
     """Aggregate explicit item blockers for certification and authoring reports."""
-    profile(profile_id)
+    require_profile_id(profile_id)
     if profile_id != PROFILE:
         raise ValidationError("Supernatural inventory is outside the selected profile")
     return tuple(sorted({issue for entry in inventory().entries for issue in entry.blockers}))
