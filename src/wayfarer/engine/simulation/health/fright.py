@@ -284,7 +284,12 @@ def advance(
             break
         item = due[0]
         assert item.due is not None
-        step_id = hashlib.sha256(json.dumps([command.id, item.id, item.due]).encode()).hexdigest()
+        # The occurrence belongs to the consequence and deadline, not to the
+        # particular outer Advance command that happened to cross it.  This
+        # keeps internal receipts stable across equivalent retries/restarts.
+        step_id = hashlib.sha256(
+            json.dumps(["fright-recovery", item.id, item.due]).encode()
+        ).hexdigest()
         state = engine.apply(
             state,
             Advance(

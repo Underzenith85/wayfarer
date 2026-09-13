@@ -201,7 +201,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.resistance` | yes | yes | verified | #99 |
 | `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
 | `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
-| `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
+| `gurps.social.fright` | no | yes | partial | #111; complete B360-361 consequence runtime #520 |
 | `gurps.campaign.administration` | no | yes | verified | #501; [authoritative reactions and exact-once awards](gurps-campaign-administration.md) |
 | `gurps.campaign.knowledge` | no | yes | verified | #501; [audience-scoped knowledge](gurps-campaign-administration.md) |
 | `gurps.campaign.time_use` | no | yes | verified | #501; [shared-clock Time Use settlement](gurps-campaign-administration.md) |
@@ -536,8 +536,9 @@ expected result by hand; `tests/test_social_skills.py` runs them.
 
 Reaction/influence/fright coverage remains **partial**, and runtime self-control
 is partial: these are server-only procedures, with full NPC play dispatch and
-timed consequence execution in #137. The complete numeric fright table is
-represented by typed FrightEffect records: durations, recovery attributes and
+timed consequence execution in #137. The #520 completion pass source-reviewed
+the complete numeric fright table and reconciled the earlier #137/#299 runtime.
+It is represented by typed FrightEffect records: durations, recovery attributes and
 intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
 explicit GM trait/panic choices. Each row has executable tests. Table effects
 are persisted in the private receipt. The #137 runtime adapter now applies HP/FP
@@ -548,7 +549,7 @@ Will recovery retains the original trigger target, without the Fright Check's
 Rule-of-14 cap. Build HT/Will and explicit profile pools are validated before dice.
 
 Choice-bearing results expose owner-scoped proposals and director approvals.
-#299 applies the exact lasting trait/self-control/HT/IQ change through the pinned
+#520 preserves #299's exact lasting trait/self-control/HT/IQ change through the pinned
 compiler and power reviewer, recalculates dependent values, preserves resource
 deficits and grants no spendable refund. Unapproved permanent losses remain
 blockers. Authoritative clock adapters automatically settle successive fright
@@ -573,7 +574,7 @@ use compiled skills, and self-control uses its rating plus situation modifiers.
 Campaign commands expose care/panic decisions and owner-proposed, GM-approved
 lasting changes. See [runtime details](gurps-social-runtime.md) and the
 `test_fright_builds`, `test_fright_conditions`, and `test_social_scenario_v2`
-suites for executable #299 evidence. Coverage remains partial for the separate
+suites for executable #520 evidence. Coverage remains partial for the separate
 source/errata and catalog certification gates; these are not waived by this PR.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
@@ -587,7 +588,7 @@ subjects. Persisted retries do not re-run the resolver or recheck changed world
 knowledge. Colon-bearing trigger identities cannot alias, and legacy receipts
 remain readable. Player projections and event streams omit private traces.
 Fright dispatch applies the timed runtime adapter and the approval-aware lasting
-consequence workflow from #299. Independent
+consequence workflow completed by #520. Independent
 SQLite restart, stale command, failed disclosure, authority, and projection tests
 cover this boundary. The profile registry remains gated pending certification.
 

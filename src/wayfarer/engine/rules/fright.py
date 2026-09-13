@@ -28,6 +28,10 @@ class FrightEffect(Record):
     fp_loss: int = Field(default=0, ge=0)
     permanent_ht_loss: int = Field(default=0, ge=0)
     permanent_iq_loss: int = Field(default=0, ge=0)
+    # A collapse is distinct from injury knockdown: fainting, coma, seizure and
+    # the row-32 internal injury all put an encountered subject on the ground
+    # even when the HP loss is too small to trigger a major-wound check.
+    collapse: bool = False
     trait_choice: Literal[
         "none", "quirk", "delusion", "mental", "physical", "worsen-self-control"
     ] = "none"
@@ -113,6 +117,7 @@ def fright_effect(
                 "recovery_interval_seconds": 60,
                 "hp_loss": loss,
                 "fp_loss": roll(1) if total == 20 else 0,
+                "collapse": True,
                 "trait_choice": "delusion" if total == 26 else "mental" if total == 27 else "none",
                 "trait_points": -10 if total in (26, 27) else 0,
             }
@@ -141,6 +146,7 @@ def fright_effect(
                 "trait_choice": "delusion" if total == 38 else "mental" if total >= 39 else "none",
                 "trait_points": -15 if total >= 38 else 0,
                 "permanent_iq_loss": 1 if total >= 40 else 0,
+                "collapse": True,
             }
         )
     elif total == 30:
@@ -167,10 +173,11 @@ def fright_effect(
                 "fp_loss": fatigue,
                 "hp_loss": roll(1) if not trace.outcome.succeeded else 0,
                 "permanent_ht_loss": int(trace.outcome is Outcome.CRITICAL_FAILURE),
+                "collapse": True,
             }
         )
     elif total == 32:
-        effect = effect.model_copy(update={"hp_loss": roll(2)})
+        effect = effect.model_copy(update={"hp_loss": roll(2), "collapse": True})
     elif total == 33:
         effect = effect.model_copy(
             update={"condition": "panic", "panic_severity": roll(3), "recovery_attribute": "will"}

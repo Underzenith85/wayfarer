@@ -946,6 +946,11 @@
           "title": "Permanent Iq Loss",
           "type": "integer"
         },
+        "collapse": {
+          "default": false,
+          "title": "Collapse",
+          "type": "boolean"
+        },
         "trait_choice": {
           "default": "none",
           "enum": [

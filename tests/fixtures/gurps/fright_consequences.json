@@ -1,0 +1,46 @@
+{
+  "source": "GURPS Basic Set: Campaigns 4e, fourth printing (April 2008), B360-B361",
+  "cases": [
+    {
+      "name": "low automatic stun",
+      "total": 5,
+      "ht": 10,
+      "dice": [],
+      "expected": {
+        "condition": "stunned",
+        "duration_seconds": 1,
+        "recovery_attribute": "none",
+        "collapse": false
+      }
+    },
+    {
+      "name": "middle shock faint",
+      "total": 20,
+      "ht": 10,
+      "dice": [1, 2, 3, 4, 5],
+      "expected": {
+        "condition": "unconscious",
+        "duration_seconds": 600,
+        "fp_loss": 5,
+        "recovery_attribute": "ht",
+        "collapse": true
+      }
+    },
+    {
+      "name": "severe coma and permanent loss",
+      "total": 40,
+      "ht": 10,
+      "dice": [2],
+      "expected": {
+        "condition": "unconscious",
+        "duration_seconds": 7200,
+        "trait_choice": "mental",
+        "trait_points": -15,
+        "permanent_iq_loss": 1,
+        "aftermath_penalty": -2,
+        "aftermath_seconds": 21600,
+        "collapse": true
+      }
+    }
+  ]
+}

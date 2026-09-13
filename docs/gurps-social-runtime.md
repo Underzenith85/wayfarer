@@ -1,4 +1,4 @@
-# Social runtime integration (#137 / #299)
+# Social runtime integration (#137 / #299 / #520)
 
 Numeric references: Basic Set Campaigns, Fourth Edition, fourth printing,
 B360-361 (fright consequences), B420-421 (stun and temporary attributes), B428 (retching), and Characters B120-121
@@ -125,6 +125,8 @@ Advancement visits each fright deadline in stable time/ID order and resolves new
 deadlines from failed checks before reaching the requested frontier. Original
 command receipts preserve one external revision. Other hazard, injury and
 recovery deadlines still fail closed; fright cannot bypass their settlement.
+Each automatic recovery occurrence is identified from the fright episode and
+exact deadline, independent of the outer clock command that crossed it.
 Advancement without an RNG retains the explicit-deadline behavior for callers
 that cannot authoritatively roll. Very long recovery runs are bounded to 10,000
 iterations and must use shorter advances if that budget is exceeded.
@@ -150,6 +152,9 @@ normal paths. Stun permits Do Nothing and defenses at -4; unconsciousness,
 catatonia and seizures permit no active defense. Panic permits player-selected
 movement or Do Nothing; ordinary attack maneuvers are unavailable. When retching
 ends, B428's 1 FP loss commits once through fatigue in the recovery receipt.
+Fainting, coma, seizure and the table's internal stroke/heart-attack result also
+set an encountered subject prone through the encounter aggregate; this does not
+depend on taking enough HP loss to trigger ordinary injury knockdown.
 
 For row-33 panic, `FrightDecision(kind="panic-response")` records a response
 already adjudicated with the player, then checks recovery. A failed Will check
@@ -203,6 +208,7 @@ activates and restarts a real social scenario before resolving its NPC occurrenc
 once. Existing live-social suites cover automatic recovery, catatonia care and
 neglect, timed aftermath, panic decisions and private traces.
 
-These runtime integrations complete #299. Social capability certification stays
+These runtime integrations, source-reconciled and completed by #520, cover the
+entire B360-361 consequence table. Social capability certification stays
 partial: the separate frozen-source/errata review and broader catalog population
 are not promoted by runtime tests.
