@@ -1913,6 +1913,34 @@
             "default": null,
             "title": "Target Item Id"
           },
+          "cover_item_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cover Item Id"
+          },
+          "overpenetration_target_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Overpenetration Target Id"
+          },
           "ready_hand": {
             "anyOf": [
               {

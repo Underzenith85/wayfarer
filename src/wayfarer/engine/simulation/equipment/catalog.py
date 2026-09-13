@@ -34,6 +34,7 @@ from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.rules.types.mount import MountSpec
 from wayfarer.engine.rules.types.object import ObjectProfile
 from wayfarer.engine.rules.types.readiness import ProjectileReadiness
+from wayfarer.engine.rules.types.special_ranged import GuidanceSpec
 from wayfarer.engine.rules.types.spray import SprayerSpec
 from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
@@ -188,6 +189,16 @@ class RangedMode(Record):
     )
     smartgun: SmartgunSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     beam_environment_dr: bool = Field(default=False, exclude_if=lambda value: not value)
+    guidance: GuidanceSpec | None = Field(default=None, exclude_if=lambda value: value is None)
+
+    @model_validator(mode="after")
+    def guidance_adapter(self) -> Self:
+        if self.guidance is not None:
+            if self.thrown or self.range_basis != "yards" or self.half_damage_range is None:
+                raise ValueError("Guidance requires a ranged projectile with explicit speed")
+            if self.rate_of_fire != 1:
+                raise ValueError("Guidance does not duplicate special rapid-fire weapon families")
+        return self
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:

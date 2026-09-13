@@ -35,6 +35,7 @@ from wayfarer.engine.rules.types.firearm import FirearmSpec
 from wayfarer.engine.rules.types.launcher import LauncherSpec
 from wayfarer.engine.rules.types.mount import MountSpec
 from wayfarer.engine.rules.types.readiness import ProjectileReadiness
+from wayfarer.engine.rules.types.special_ranged import GuidanceSpec
 from wayfarer.engine.rules.types.spray import SprayerSpec
 from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
 from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
@@ -73,6 +74,7 @@ AUDITED_MODELS = (
     RatedStrength,
     RocketAcceleration,
     SmartgunSpec,
+    GuidanceSpec,
     FirearmSpec,
     ExplosionSpec,
     ProjectileReadiness,

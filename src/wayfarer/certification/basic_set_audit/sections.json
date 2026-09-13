@@ -11372,15 +11372,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-ranged-procedures.md",
+        "tests/test_special_ranged_procedures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        511
       ],
-      "completion_owner": 511,
+      "completion_owner": null,
       "capability_id": "gurps.combat.ranged_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
@@ -11450,15 +11452,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-ranged-procedures.md",
+        "tests/test_special_ranged_procedures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        511
       ],
-      "completion_owner": 511,
+      "completion_owner": null,
       "capability_id": "gurps.combat.ranged_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11476,15 +11480,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-ranged-procedures.md",
+        "tests/test_special_ranged_procedures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        511
       ],
-      "completion_owner": 511,
+      "completion_owner": null,
       "capability_id": "gurps.combat.ranged_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11528,15 +11534,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-ranged-procedures.md",
+        "tests/test_special_ranged_procedures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        511
       ],
-      "completion_owner": 511,
+      "completion_owner": null,
       "capability_id": "gurps.combat.ranged_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11580,15 +11588,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-special-ranged-procedures.md",
+        "tests/test_special_ranged_procedures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        511
       ],
-      "completion_owner": 511,
+      "completion_owner": null,
       "capability_id": "gurps.combat.ranged_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
