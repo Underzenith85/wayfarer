@@ -33,6 +33,11 @@ from wayfarer.engine.rules.types.recovery import (
     FatigueStatus,
     RecoveryTask,
 )
+from wayfarer.engine.rules.types.survival import (
+    SurvivalStatus,
+    SurvivalTask,
+    validate_survival_records,
+)
 from wayfarer.engine.rules.types.transport import Transport
 from wayfarer.engine.simulation.magic.enchanting import EnchantmentProject
 from wayfarer.engine.simulation.projects.inventions import InventionProject
@@ -170,6 +175,8 @@ class ResourceState(Record):
     ammunition_loads: tuple[AmmunitionLoad, ...] = ()
     expended_items: tuple[Item, ...] = ()
     recovery_tasks: tuple[RecoveryTask, ...] = ()
+    survival: tuple[SurvivalStatus, ...] = Field(default=(), exclude_if=lambda value: not value)
+    survival_tasks: tuple[SurvivalTask, ...] = Field(default=(), exclude_if=lambda value: not value)
     hazards: tuple[HazardSchedule, ...] = ()
     illnesses: tuple[RecoveryRestriction, ...] = ()
     transports: tuple[Transport, ...] = Field(default=(), exclude_if=lambda v: not v)
@@ -182,6 +189,7 @@ class ResourceState(Record):
 
     @model_validator(mode="after")
     def validate_recovery_tasks(self) -> ResourceState:
+        validate_survival_records(self.survival, self.survival_tasks, self.game_time)
         if len({h.id for h in self.hazards}) != len(self.hazards):
             raise ValueError("Duplicate hazard schedule ID")
         if len({i.id for i in self.illnesses}) != len(self.illnesses):

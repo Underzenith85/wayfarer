@@ -94,8 +94,14 @@ def _radiation_effect(dose: int, outcome: Outcome) -> str:
 
 
 def _set_injury_condition(
-    state: ResourceState, actor_id: str, *, ht: int, stunned: bool = False, unconscious: bool = False,
-    heart_attack: bool = False, dead: bool = False,
+    state: ResourceState,
+    actor_id: str,
+    *,
+    ht: int,
+    stunned: bool = False,
+    unconscious: bool = False,
+    heart_attack: bool = False,
+    dead: bool = False,
 ) -> ResourceState:
     hp = next(p for p in state.pools if p.id == "hp:" + actor_id)
     fp = next(p for p in state.pools if p.id == "fp:" + actor_id)
@@ -127,7 +133,9 @@ def _set_injury_condition(
         }
     )
     return state.model_copy(
-        update={"pools": tuple(hp if p.id == hp.id else fp if p.id == fp.id else p for p in state.pools)}
+        update={
+            "pools": tuple(hp if p.id == hp.id else fp if p.id == fp.id else p for p in state.pools)
+        }
     )
 
 
@@ -290,9 +298,7 @@ def apply_hazard(
         if schedule.spec.cycles_dice:
             schedule = schedule.model_copy(
                 update={
-                    "remaining": sum(
-                        rng.randbelow(6) + 1 for _ in range(schedule.spec.cycles_dice)
-                    )
+                    "remaining": sum(rng.randbelow(6) + 1 for _ in range(schedule.spec.cycles_dice))
                 }
             )
     else:
@@ -357,7 +363,11 @@ def apply_hazard(
                                         + max(
                                             0,
                                             spec.radiation_rads
-                                            // (spec.protection.radiation_pf if spec.protection else 1),
+                                            // (
+                                                spec.protection.radiation_pf
+                                                if spec.protection
+                                                else 1
+                                            ),
                                         )
                                     )
                                     if spec.kind == "radiation"
@@ -377,21 +387,24 @@ def apply_hazard(
                         rng=rng,
                     )
                 )
-            damage = _hazard_damage(
-                schedule, check, rng, checking=checking, protected=protected
-            )
+            damage = _hazard_damage(schedule, check, rng, checking=checking, protected=protected)
             initial_disease = spec.kind == "disease" and schedule.stage == "exposure"
             if initial_disease or schedule.stage == "rescued":
                 damage = 0
             internal = hashlib.sha256(command.id.encode()).hexdigest()
-            if damage and spec.kind in (
-                "cold",
-                "heat",
-                "suffocation",
-                "drowning",
-                "acceleration",
-                "vacuum",
-            ) and not (spec.kind == "vacuum" and spec.damage_dice and schedule.cycle == 0):
+            if (
+                damage
+                and spec.kind
+                in (
+                    "cold",
+                    "heat",
+                    "suffocation",
+                    "drowning",
+                    "acceleration",
+                    "vacuum",
+                )
+                and not (spec.kind == "vacuum" and spec.damage_dice and schedule.cycle == 0)
+            ):
                 state, fatigue = apply_fatigue(
                     state,
                     FatigueCost(

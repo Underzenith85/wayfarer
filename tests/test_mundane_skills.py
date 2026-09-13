@@ -412,15 +412,16 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     scope = report["transferred_procedure_scope"]
     assert isinstance(scope, list)
     published = {str(row["skill"]) for row in scope}
-    assert {
-        "skill:carousing",
-        "skill:interrogation",
-        "skill:leadership",
-        "skill:panhandling",
-        "skill:performance",
-        "skill:public-speaking",
-        "skill:teaching",
-    } <= published
+    assert "skill:interrogation" in published
+    assert (
+        not {
+            "skill:carousing",
+            "skill:panhandling",
+            "skill:performance",
+            "skill:public-speaking",
+        }
+        & published
+    )
     assert all(row["owner_issue"] in (362, 368, 369, 370, 398) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 28

@@ -69,9 +69,7 @@ async def _resolve(
     ("variant", "interval", "dice", "add"),
     [("splash", 1, 1, -3), ("immersion", 1, 1, -1), ("swallowed", 900, 0, 1)],
 )
-def test_acid_profiles_are_pinned(
-    variant: str, interval: int, dice: int, add: int
-) -> None:
+def test_acid_profiles_are_pinned(variant: str, interval: int, dice: int, add: int) -> None:
     spec = acid_spec(
         variant,  # type: ignore[arg-type]
         id="acid",
@@ -88,9 +86,7 @@ def test_acid_profiles_are_pinned(
 
 
 async def test_acid_and_corrosive_air_protection_boundaries(tmp_path: Path) -> None:
-    exposed = acid_spec(
-        "splash", id="acid", scene_id="lab", protection=HazardProtection()
-    )
+    exposed = acid_spec("splash", id="acid", scene_id="lab", protection=HazardProtection())
     _, result = await _resolve(tmp_path, exposed, [4])
     assert result.hp_lost == 1
     sealed = exposed.model_copy(update={"protection": HazardProtection(sealed=True)})
@@ -286,9 +282,7 @@ async def test_seasickness_and_vacuum_protection_boundaries(tmp_path: Path) -> N
     )
     _, result = await _resolve(tmp_path, seasick, [6, 6, 6])
     assert result.check is not None and result.conditions == ("retching",)
-    stable = seasick.model_copy(
-        update={"protection": HazardProtection(motion_stabilized=True)}
-    )
+    stable = seasick.model_copy(update={"protection": HazardProtection(motion_stabilized=True)})
     _, result = await _resolve(tmp_path, stable, [])
     assert result.check is None and not result.active
     vacuum = vacuum_spec(
@@ -326,4 +320,7 @@ async def test_hazard_event_is_scoped_to_affected_actor(tmp_path: Path) -> None:
     events = play_facts(before, after, "a")
     hazard = next(event for event in events if event.kind == "hazard.resolved")
     assert hazard.audience == ActorAudience(actor_ids=("a",))
-    assert "secret-lab" not in hazard.model_dump_json() and "hidden-source" not in hazard.model_dump_json()
+    assert (
+        "secret-lab" not in hazard.model_dump_json()
+        and "hidden-source" not in hazard.model_dump_json()
+    )

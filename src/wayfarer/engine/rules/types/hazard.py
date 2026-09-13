@@ -165,7 +165,9 @@ class HazardSpec(HazardRecord):
             "vacuum",
         }
         if self.kind in extended and (self.environment is None or self.protection is None):
-            raise ValueError("Environmental variants require explicit exposure and protection facts")
+            raise ValueError(
+                "Environmental variants require explicit exposure and protection facts"
+            )
         if self.kind == "radiation" and self.radiation_rads < 1:
             raise ValueError("Radiation exposure requires an authored positive dose")
         return self

@@ -223,9 +223,7 @@ def pressure_spec(
     )
 
 
-def thermal_shock_spec(
-    *, id: str, scene_id: str, duration: int, dry_suit: bool
-) -> HazardSpec:
+def thermal_shock_spec(*, id: str, scene_id: str, duration: int, dry_suit: bool) -> HazardSpec:
     """B430: sudden icy immersion ignores ordinary clothing; a dry suit diverts to cold."""
     protection = HazardProtection(sealed=dry_suit, insulated=dry_suit)
     return HazardSpec(
@@ -237,9 +235,7 @@ def thermal_shock_spec(
         cycles=max(1, (duration + 59) // 60),
         damage_add=1,
         damage_from_margin=True,
-        environment=_environment(
-            "water", intensity=1, duration=duration, source="icy-immersion"
-        ),
+        environment=_environment("water", intensity=1, duration=duration, source="icy-immersion"),
         protection=protection,
         reference="B430",
     )
@@ -434,9 +430,7 @@ def vacuum_spec(
         damage_add=0 if explosive else 1,
         resistible=False,
         damage_type="cr" if explosive else None,
-        environment=_environment(
-            "vacuum", intensity=1, duration=240, source="vacuum", pressure=0
-        ),
+        environment=_environment("vacuum", intensity=1, duration=240, source="vacuum", pressure=0),
         protection=protection,
         reference="B437",
     )
@@ -453,7 +447,12 @@ _IGNITION = {
 
 def ignition_threshold(
     material: Literal[
-        "super-flammable", "highly-flammable", "flammable", "resistant", "highly-resistant", "nonflammable"
+        "super-flammable",
+        "highly-flammable",
+        "flammable",
+        "resistant",
+        "highly-resistant",
+        "nonflammable",
     ],
     *,
     tight_beam: bool = False,

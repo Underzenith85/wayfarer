@@ -6979,15 +6979,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -11724,15 +11729,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.fatigue",
       "runtime_binding": null,
       "parent_id": null,
@@ -12386,15 +12396,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.fatigue",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
@@ -12412,15 +12427,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.fatigue",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b426:fatigue",
@@ -12438,15 +12458,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.fatigue",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b426:fatigue",
@@ -12464,15 +12489,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.fatigue",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b426:fatigue",
@@ -12490,15 +12520,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.fatigue",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b426:fatigue",
@@ -12516,15 +12551,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        516
       ],
-      "completion_owner": 516,
+      "completion_owner": null,
       "capability_id": "gurps.recovery.fatigue",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b426:fatigue",
@@ -12542,15 +12582,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-recovery.md",
+        "docs/gurps-survival.md",
+        "tests/test_gurps-recovery.py",
+        "tests/test_survival.py"
       ],
       "historical_owners": [
-        191
+        191,
+        519,
+        516
       ],
-      "completion_owner": 519,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b426:fatigue",
