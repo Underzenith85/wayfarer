@@ -2664,6 +2664,67 @@
         "title": "CampaignRules",
         "type": "object"
       },
+      "CarousingOutcomeRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "trigger_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Trigger Id",
+            "type": "string"
+          },
+          "actor_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Account Id",
+            "type": "string"
+          },
+          "venue_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Venue Account Id",
+            "type": "string"
+          },
+          "outlay": {
+            "minimum": 0,
+            "title": "Outlay",
+            "type": "integer"
+          },
+          "duration_seconds": {
+            "maximum": 86400,
+            "minimum": 3600,
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "intoxication": {
+            "default": "sober",
+            "enum": [
+              "sober",
+              "tipsy",
+              "drunk",
+              "unconscious"
+            ],
+            "title": "Intoxication",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger_id",
+          "actor_account_id",
+          "venue_account_id",
+          "outlay",
+          "duration_seconds"
+        ],
+        "title": "CarousingOutcomeRule",
+        "type": "object"
+      },
       "Cell": {
         "additionalProperties": false,
         "properties": {
@@ -4449,6 +4510,38 @@
               "$ref": "#/$defs/LoyaltyCircumstance"
             },
             "title": "Loyalty",
+            "type": "array"
+          },
+          "carousing": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CarousingOutcomeRule"
+            },
+            "title": "Carousing",
+            "type": "array"
+          },
+          "panhandling": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PanhandlingOutcomeRule"
+            },
+            "title": "Panhandling",
+            "type": "array"
+          },
+          "performances": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PerformanceOutcomeRule"
+            },
+            "title": "Performances",
+            "type": "array"
+          },
+          "public_speaking": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PublicSpeakingOutcomeRule"
+            },
+            "title": "Public Speaking",
             "type": "array"
           }
         },
@@ -9423,6 +9516,43 @@
         "title": "PackagePin",
         "type": "object"
       },
+      "PanhandlingOutcomeRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "trigger_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Trigger Id",
+            "type": "string"
+          },
+          "donor_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Donor Account Id",
+            "type": "string"
+          },
+          "actor_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Account Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger_id",
+          "donor_account_id",
+          "actor_account_id"
+        ],
+        "title": "PanhandlingOutcomeRule",
+        "type": "object"
+      },
       "Parry": {
         "additionalProperties": false,
         "properties": {
@@ -9569,6 +9699,66 @@
           "role"
         ],
         "title": "PartySlot",
+        "type": "object"
+      },
+      "PerformanceOutcomeRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "trigger_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Trigger Id",
+            "type": "string"
+          },
+          "payer_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Payer Account Id",
+            "type": "string"
+          },
+          "actor_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Account Id",
+            "type": "string"
+          },
+          "base_pay": {
+            "minimum": 0,
+            "title": "Base Pay",
+            "type": "integer"
+          },
+          "pay_per_margin": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Pay Per Margin",
+            "type": "integer"
+          },
+          "audience_actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Audience Actor Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "trigger_id",
+          "payer_account_id",
+          "actor_account_id",
+          "base_pay",
+          "audience_actor_ids"
+        ],
+        "title": "PerformanceOutcomeRule",
         "type": "object"
       },
       "PermitRule": {
@@ -10339,6 +10529,40 @@
           "opening_prompt"
         ],
         "title": "PublicBrief",
+        "type": "object"
+      },
+      "PublicSpeakingOutcomeRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "trigger_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Trigger Id",
+            "type": "string"
+          },
+          "audience_actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Audience Actor Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "trigger_id",
+          "audience_actor_ids"
+        ],
+        "title": "PublicSpeakingOutcomeRule",
         "type": "object"
       },
       "Purchase": {
