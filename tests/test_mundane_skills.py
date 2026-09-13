@@ -415,11 +415,9 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert {
         "skill:carousing",
         "skill:interrogation",
-        "skill:leadership",
         "skill:panhandling",
         "skill:performance",
         "skill:public-speaking",
-        "skill:teaching",
     } <= published
     assert all(row["owner_issue"] in (362, 368, 369, 370, 398) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]

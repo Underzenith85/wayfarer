@@ -243,9 +243,7 @@
       "modifiers": [
         "audible-voice-trait"
       ],
-      "unsupported": [
-        369
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {},
       "defaults": [
@@ -500,9 +498,7 @@
         "shared-language"
       ],
       "modifiers": [],
-      "unsupported": [
-        369
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {},
       "defaults": [

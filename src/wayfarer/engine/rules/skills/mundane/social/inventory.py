@@ -81,9 +81,6 @@ TECHNOLOGY_LEVEL_ISSUE: Final = 367
 COERCION_ISSUE: Final = 368
 
 
-ACTIVITY_ISSUE: Final = 369
-
-
 AUDIENCE_ISSUE: Final = 370
 
 
@@ -473,13 +470,6 @@ _DECLARED_ROWS: Final = (
         required_conditions=("followers-present", "audience-audible"),
         modifiers=(VOICE,),
         resolved=(RUNTIME_PROCEDURE,),
-        unsupported=(
-            UnsupportedScope(
-                "leadership-group-activity",
-                "Group-size modifiers and followed-group activity are not bound",
-                ACTIVITY_ISSUE,
-            ),
-        ),
     ),
     SocialProcedure(
         "skill:lip-reading",
@@ -652,13 +642,6 @@ _DECLARED_ROWS: Final = (
         (SkillDefault(A.IQ, -5),),
         required_conditions=("student-attentive", "shared-language"),
         resolved=(RUNTIME_PROCEDURE,),
-        unsupported=(
-            UnsupportedScope(
-                "teaching-advancement",
-                "The study time a successful lesson grants is not bound to advancement",
-                ACTIVITY_ISSUE,
-            ),
-        ),
     ),
 )
 
