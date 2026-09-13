@@ -14344,16 +14344,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-creatures.md",
-        "tests/test_creatures.py"
+        "src/wayfarer/engine/simulation/creature_combat.py",
+        "tests/test_creature_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        522
       ],
-      "completion_owner": 522,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b460:fantasy-monsters",
@@ -14371,15 +14373,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-creatures.md",
+        "src/wayfarer/engine/simulation/creature_combat.py",
+        "tests/test_creature_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        522
       ],
-      "completion_owner": 522,
+      "completion_owner": null,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b455:16-animals-and-monsters",
@@ -14400,12 +14405,15 @@
       "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-creatures.md"
+        "docs/gurps-creatures.md",
+        "src/wayfarer/engine/rules/creatures.py",
+        "tests/test_creature_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        522
       ],
-      "completion_owner": 522,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b461:animals-in-combat",

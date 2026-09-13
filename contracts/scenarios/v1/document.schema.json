@@ -2193,6 +2193,17 @@
           "title": "Attacks",
           "type": "array"
         },
+        "combat_behavior": {
+          "$ref": "#/$defs/CreatureCombatBehavior",
+          "default": {
+            "maneuvers": [
+              "move",
+              "do-nothing"
+            ],
+            "attack_motivations": [],
+            "preferred_attack_ids": []
+          }
+        },
         "commands": {
           "default": [],
           "items": {
@@ -2358,7 +2369,7 @@
           "type": "string"
         },
         "reach": {
-          "default": 1,
+          "default": 0,
           "maximum": 100,
           "minimum": 0,
           "title": "Reach",
@@ -2372,6 +2383,57 @@
         "damage_type"
       ],
       "title": "CreatureAttack",
+      "type": "object"
+    },
+    "CreatureCombatBehavior": {
+      "additionalProperties": false,
+      "description": "Trusted limits on proposals; these are species facts, not AI narration.",
+      "properties": {
+        "maneuvers": {
+          "default": [
+            "move",
+            "do-nothing"
+          ],
+          "items": {
+            "enum": [
+              "attack",
+              "all-out-attack",
+              "move",
+              "move-and-attack",
+              "do-nothing"
+            ],
+            "type": "string"
+          },
+          "title": "Maneuvers",
+          "type": "array"
+        },
+        "attack_motivations": {
+          "default": [],
+          "items": {
+            "enum": [
+              "predatory",
+              "defensive",
+              "territorial",
+              "commanded",
+              "panic"
+            ],
+            "type": "string"
+          },
+          "title": "Attack Motivations",
+          "type": "array"
+        },
+        "preferred_attack_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Preferred Attack Ids",
+          "type": "array"
+        }
+      },
+      "title": "CreatureCombatBehavior",
       "type": "object"
     },
     "CreatureMovement": {
@@ -5412,6 +5474,14 @@
           "title": "Creatures",
           "type": "array"
         },
+        "swarms": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Swarm"
+          },
+          "title": "Swarms",
+          "type": "array"
+        },
         "object_results": {
           "default": [],
           "items": {
@@ -5553,7 +5623,11 @@
         "anatomy": {
           "anyOf": [
             {
-              "const": "human",
+              "enum": [
+                "human",
+                "creature",
+                "swarm"
+              ],
               "type": "string"
             },
             {
@@ -11182,6 +11256,317 @@
         "partial"
       ],
       "title": "SurpriseState",
+      "type": "object"
+    },
+    "Swarm": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "spec": {
+          "$ref": "#/$defs/SwarmSpec"
+        },
+        "area": {
+          "items": {
+            "$ref": "#/$defs/SwarmCell"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Area",
+          "type": "array"
+        },
+        "occupants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SwarmOccupant"
+          },
+          "title": "Occupants",
+          "type": "array"
+        },
+        "remaining_hp": {
+          "minimum": 0,
+          "title": "Remaining Hp",
+          "type": "integer"
+        },
+        "next_attack_at": {
+          "minimum": 0,
+          "title": "Next Attack At",
+          "type": "integer"
+        },
+        "active": {
+          "default": true,
+          "title": "Active",
+          "type": "boolean"
+        },
+        "dispersed_by_command_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dispersed By Command Id"
+        }
+      },
+      "required": [
+        "id",
+        "actor_id",
+        "spec",
+        "area",
+        "remaining_hp",
+        "next_attack_at"
+      ],
+      "title": "Swarm",
+      "type": "object"
+    },
+    "SwarmAttack": {
+      "additionalProperties": false,
+      "description": "One source-backed automatic attack cadence for a swarm (B461).",
+      "properties": {
+        "cadence_seconds": {
+          "default": 1,
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Cadence Seconds",
+          "type": "integer"
+        },
+        "dice": {
+          "default": 0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Dice",
+          "type": "integer"
+        },
+        "adds": {
+          "default": 0,
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Adds",
+          "type": "integer"
+        },
+        "fixed_injury": {
+          "default": 0,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Fixed Injury",
+          "type": "integer"
+        },
+        "damage_type": {
+          "enum": [
+            "cr",
+            "cut",
+            "imp",
+            "tox"
+          ],
+          "title": "Damage Type",
+          "type": "string"
+        },
+        "armor": {
+          "enum": [
+            "normal-dr",
+            "sealed-only"
+          ],
+          "title": "Armor",
+          "type": "string"
+        }
+      },
+      "required": [
+        "damage_type",
+        "armor"
+      ],
+      "title": "SwarmAttack",
+      "type": "object"
+    },
+    "SwarmCell": {
+      "additionalProperties": false,
+      "description": "Persisted axial cell; converted to the shared Hex geometry by reducers.",
+      "properties": {
+        "q": {
+          "maximum": 1000,
+          "minimum": -1000,
+          "title": "Q",
+          "type": "integer"
+        },
+        "r": {
+          "maximum": 1000,
+          "minimum": -1000,
+          "title": "R",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "q",
+        "r"
+      ],
+      "title": "SwarmCell",
+      "type": "object"
+    },
+    "SwarmOccupant": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/SwarmCell"
+        },
+        "entered_at": {
+          "minimum": 0,
+          "title": "Entered At",
+          "type": "integer"
+        },
+        "protection": {
+          "default": "none",
+          "enum": [
+            "none",
+            "ordinary-clothing",
+            "low-tech-armor",
+            "sealed"
+          ],
+          "title": "Protection",
+          "type": "string"
+        },
+        "armor_dr": {
+          "default": 0,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Armor Dr",
+          "type": "integer"
+        },
+        "ht": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Ht",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "actor_id",
+        "position",
+        "entered_at",
+        "ht"
+      ],
+      "title": "SwarmOccupant",
+      "type": "object"
+    },
+    "SwarmSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "bats",
+            "bees",
+            "rats",
+            "other"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "airborne": {
+          "title": "Airborne",
+          "type": "boolean"
+        },
+        "move": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Move",
+          "type": "integer"
+        },
+        "dispersal_hp": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Dispersal Hp",
+          "type": "integer"
+        },
+        "attack": {
+          "$ref": "#/$defs/SwarmAttack"
+        },
+        "immune_countermeasures": {
+          "default": [],
+          "items": {
+            "enum": [
+              "ordinary-attack",
+              "area-attack",
+              "shield",
+              "stomp",
+              "insecticide",
+              "immersion"
+            ],
+            "type": "string"
+          },
+          "title": "Immune Countermeasures",
+          "type": "array"
+        },
+        "vulnerable_countermeasures": {
+          "default": [],
+          "items": {
+            "enum": [
+              "ordinary-attack",
+              "area-attack",
+              "shield",
+              "stomp",
+              "insecticide",
+              "immersion"
+            ],
+            "type": "string"
+          },
+          "title": "Vulnerable Countermeasures",
+          "type": "array"
+        },
+        "ordinary_clothing_seconds": {
+          "default": 0,
+          "maximum": 3600,
+          "minimum": 0,
+          "title": "Ordinary Clothing Seconds",
+          "type": "integer"
+        },
+        "low_tech_armor_seconds": {
+          "default": 0,
+          "maximum": 3600,
+          "minimum": 0,
+          "title": "Low Tech Armor Seconds",
+          "type": "integer"
+        },
+        "reference": {
+          "const": "B461",
+          "default": "B461",
+          "title": "Reference",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "airborne",
+        "move",
+        "dispersal_hp",
+        "attack"
+      ],
+      "title": "SwarmSpec",
       "type": "object"
     },
     "TradeOffer": {

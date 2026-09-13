@@ -1,8 +1,8 @@
-"""Bounded item ledger for the #521 creature catalog."""
+"""Bounded item ledger for the #521 creatures and #522 swarm examples."""
 
 from dataclasses import dataclass
 
-from wayfarer.engine.rules.creatures import representative_creatures
+from wayfarer.engine.rules.creatures import representative_creatures, representative_swarms
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,7 +19,17 @@ class CreatureInventoryRow:
 
 def inventory() -> tuple[CreatureInventoryRow, ...]:
     """Return every claimed row; absence is intentional, not a bestiary claim."""
-    return tuple(
+    creatures = tuple(
         CreatureInventoryRow(template.id, template.reference)
         for template in representative_creatures()
     )
+    swarms = tuple(
+        CreatureInventoryRow(
+            spec.id,
+            spec.reference,
+            owner=522,
+            scope="creature-combat",
+        )
+        for spec in representative_swarms()
+    )
+    return creatures + swarms

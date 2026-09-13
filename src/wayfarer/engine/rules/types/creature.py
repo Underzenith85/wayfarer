@@ -76,7 +76,37 @@ class CreatureAttack(Record):
     form: Literal["bite", "claw", "kick", "striker", "gaze", "special"]
     damage_basis: Literal["thrust-1", "thrust", "special"]
     damage_type: Literal["crushing", "cutting", "impaling", "toxic", "special"]
-    reach: int = Field(default=1, ge=0, le=100)
+    # B461: an unqualified beast attack is close-combat only.
+    reach: int = Field(default=0, ge=0, le=100)
+
+
+CreatureManeuver = Literal[
+    "attack", "all-out-attack", "move", "move-and-attack", "do-nothing"
+]
+CreatureMotivation = Literal[
+    "predatory", "defensive", "territorial", "commanded", "panic"
+]
+
+
+class CreatureCombatBehavior(Record):
+    """Trusted limits on proposals; these are species facts, not AI narration."""
+
+    maneuvers: tuple[CreatureManeuver, ...] = ("move", "do-nothing")
+    attack_motivations: tuple[CreatureMotivation, ...] = ()
+    preferred_attack_ids: tuple[Id, ...] = ()
+
+    @model_validator(mode="after")
+    def unique_choices(self) -> Self:
+        if len(set(self.maneuvers)) != len(self.maneuvers):
+            raise ValueError("Creature combat maneuvers must be unique")
+        if len(set(self.attack_motivations)) != len(self.attack_motivations):
+            raise ValueError("Creature attack motivations must be unique")
+        if len(set(self.preferred_attack_ids)) != len(self.preferred_attack_ids):
+            raise ValueError("Creature preferred attacks must be unique")
+        attacking = {"attack", "all-out-attack", "move-and-attack"} & set(self.maneuvers)
+        if bool(attacking) != bool(self.preferred_attack_ids):
+            raise ValueError("Creature attack maneuvers and preferred attacks must agree")
+        return self
 
 
 class TrainableCommand(Record):
@@ -113,6 +143,7 @@ class CreatureTemplate(Record):
     traits: tuple[CreatureTrait, ...] = ()
     skills: tuple[CreatureSkill, ...] = ()
     attacks: tuple[CreatureAttack, ...] = ()
+    combat_behavior: CreatureCombatBehavior = CreatureCombatBehavior()
     commands: tuple[TrainableCommand, ...] = ()
     mount: MountCapabilities | None = None
 
@@ -121,6 +152,10 @@ class CreatureTemplate(Record):
         for values in (self.traits, self.skills, self.attacks, self.commands):
             if len({entry.id for entry in values}) != len(values):
                 raise ValueError("Creature fact identifiers must be unique within their family")
+        if not set(self.combat_behavior.preferred_attack_ids) <= {
+            attack.id for attack in self.attacks
+        }:
+            raise ValueError("Creature behavior names an unavailable natural attack")
         if self.mount is not None and self.mount.riding:
             ground = next((m for m in self.statistics.movement if m.mode == "ground"), None)
             if ground is None or ground.ordinary_move <= 0:
@@ -218,6 +253,7 @@ class Creature(Record):
     traits: tuple[CreatureTrait, ...] = ()
     skills: tuple[CreatureSkill, ...] = ()
     attacks: tuple[CreatureAttack, ...] = ()
+    combat_behavior: CreatureCombatBehavior = CreatureCombatBehavior()
     commands: tuple[TrainableCommand, ...] = ()
     mount: MountCapabilities | None = None
     point_total: int
@@ -237,4 +273,95 @@ class Creature(Record):
             raise ValueError("Creature learned commands must be unique")
         if self.training is not None and self.handler_id != self.training.handler_id:
             raise ValueError("Active creature training belongs to the current handler")
+        return self
+
+
+class SwarmAttack(Record):
+    """One source-backed automatic attack cadence for a swarm (B461)."""
+
+    cadence_seconds: int = Field(default=1, ge=1, le=86400)
+    dice: int = Field(default=0, ge=0, le=100)
+    adds: int = Field(default=0, ge=-100, le=100)
+    fixed_injury: int = Field(default=0, ge=0, le=1000)
+    damage_type: Literal["cr", "cut", "imp", "tox"]
+    armor: Literal["normal-dr", "sealed-only"]
+
+    @model_validator(mode="after")
+    def one_damage_expression(self) -> Self:
+        if (self.dice > 0) == (self.fixed_injury > 0):
+            raise ValueError("Swarm attack requires exactly one dice or fixed-injury expression")
+        if self.fixed_injury and self.adds:
+            raise ValueError("Fixed swarm injury cannot have dice adds")
+        return self
+
+
+SwarmCountermeasure = Literal[
+    "ordinary-attack", "area-attack", "shield", "stomp", "insecticide", "immersion"
+]
+SwarmProtection = Literal["none", "ordinary-clothing", "low-tech-armor", "sealed"]
+
+
+class SwarmSpec(Record):
+    id: Id
+    kind: Literal["bats", "bees", "rats", "other"]
+    airborne: bool
+    move: int = Field(ge=0, le=1000)
+    dispersal_hp: int = Field(ge=1, le=10000)
+    attack: SwarmAttack
+    immune_countermeasures: tuple[SwarmCountermeasure, ...] = ()
+    vulnerable_countermeasures: tuple[SwarmCountermeasure, ...] = ()
+    ordinary_clothing_seconds: int = Field(default=0, ge=0, le=3600)
+    low_tech_armor_seconds: int = Field(default=0, ge=0, le=3600)
+    reference: Literal["B461"] = "B461"
+
+    @model_validator(mode="after")
+    def countermeasure_sets_do_not_overlap(self) -> Self:
+        if len(set(self.immune_countermeasures)) != len(self.immune_countermeasures) or len(
+            set(self.vulnerable_countermeasures)
+        ) != len(self.vulnerable_countermeasures):
+            raise ValueError("Swarm countermeasures must be unique")
+        if set(self.immune_countermeasures) & set(self.vulnerable_countermeasures):
+            raise ValueError("A swarm countermeasure cannot be both immune and vulnerable")
+        return self
+
+
+class SwarmCell(Record):
+    """Persisted axial cell; converted to the shared Hex geometry by reducers."""
+
+    q: int = Field(ge=-1000, le=1000)
+    r: int = Field(ge=-1000, le=1000)
+
+
+class SwarmOccupant(Record):
+    actor_id: Id
+    position: SwarmCell
+    entered_at: int = Field(ge=0)
+    protection: SwarmProtection = "none"
+    armor_dr: int = Field(default=0, ge=0, le=1000)
+    ht: int = Field(ge=1, le=100)
+
+
+class Swarm(Record):
+    id: Id
+    actor_id: Id
+    spec: SwarmSpec
+    area: tuple[SwarmCell, ...] = Field(min_length=1, max_length=100)
+    occupants: tuple[SwarmOccupant, ...] = ()
+    remaining_hp: int = Field(ge=0)
+    next_attack_at: int = Field(ge=0)
+    active: bool = True
+    dispersed_by_command_id: Id | None = None
+
+    @model_validator(mode="after")
+    def coherent_occupancy_and_dispersal(self) -> Self:
+        if len(set(self.area)) != len(self.area):
+            raise ValueError("Swarm area cells must be unique")
+        if len({entry.actor_id for entry in self.occupants}) != len(self.occupants):
+            raise ValueError("Swarm occupants must be unique")
+        if any(entry.position not in self.area for entry in self.occupants):
+            raise ValueError("Swarm occupants must be inside its authoritative area")
+        if self.remaining_hp > self.spec.dispersal_hp:
+            raise ValueError("Swarm HP exceeds its dispersal threshold")
+        if self.active != (self.remaining_hp > 0 and self.dispersed_by_command_id is None):
+            raise ValueError("Swarm active state and dispersal facts disagree")
         return self

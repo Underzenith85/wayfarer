@@ -200,6 +200,7 @@ class CreatureCatalog:
             traits=tuple(base_traits.values()),
             skills=tuple(sorted(skills.values(), key=lambda entry: entry.id)),
             attacks=template.attacks,
+            combat_behavior=template.combat_behavior,
             commands=template.commands,
             mount=template.mount,
             point_total=compilation.build.spent,
