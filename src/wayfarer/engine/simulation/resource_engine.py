@@ -33,6 +33,10 @@ from wayfarer.engine.rules.types.toxin import require_toxins_settled
 from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
+from wayfarer.engine.simulation.health.disease import (
+    require_health_settled,
+    require_no_health_deadline_before,
+)
 from wayfarer.engine.simulation.health.fright import advance
 from wayfarer.engine.simulation.health.fright_state import effects as fright_effects
 from wayfarer.engine.simulation.health.medical.rest import accrue_rest
@@ -380,6 +384,7 @@ class ResourceEngine:
             blast_guard(state)
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
+            require_health_settled(state, frozenset({command.actor_id}), state.game_time)
             require_toxins_settled(
                 state.toxins, state.dependencies, frozenset({command.actor_id}), state.game_time
             )
@@ -521,6 +526,7 @@ class ResourceEngine:
             living = {
                 p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
             }
+            require_no_health_deadline_before(state, frozenset(living), command.to)
             if (
                 any(
                     h.active

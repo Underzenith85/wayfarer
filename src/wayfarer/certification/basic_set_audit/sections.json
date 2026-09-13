@@ -13430,17 +13430,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-disease-aging.md",
+        "tests/test_disease_aging.py"
       ],
       "historical_owners": [
-        191
+        191,
+        519
       ],
-      "completion_owner": 519,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
-      "runtime_binding": null,
+      "runtime_binding": "disease:illness",
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
       "classification": null,
       "listed_value": null
@@ -13456,17 +13459,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-disease-aging.md",
+        "tests/test_disease_aging.py"
       ],
       "historical_owners": [
-        191
+        191,
+        519
       ],
-      "completion_owner": 519,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
-      "runtime_binding": null,
+      "runtime_binding": "disease:profiles",
       "parent_id": "section:campaigns:b442:illness",
       "classification": null,
       "listed_value": null
@@ -13482,17 +13488,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-disease-aging.md",
+        "tests/test_disease_aging.py"
       ],
       "historical_owners": [
-        191
+        191,
+        519
       ],
-      "completion_owner": 519,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
-      "runtime_binding": null,
+      "runtime_binding": "disease:contagion",
       "parent_id": "section:campaigns:b442:illness",
       "classification": null,
       "listed_value": null
@@ -13508,17 +13517,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-disease-aging.md",
+        "tests/test_disease_aging.py"
       ],
       "historical_owners": [
-        191
+        191,
+        519
       ],
-      "completion_owner": 519,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
-      "runtime_binding": null,
+      "runtime_binding": "disease:infection",
       "parent_id": "section:campaigns:b442:illness",
       "classification": null,
       "listed_value": null
@@ -13534,17 +13546,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-disease-aging.md",
+        "tests/test_disease_aging.py"
       ],
       "historical_owners": [
-        191
+        191,
+        519
       ],
-      "completion_owner": 519,
+      "completion_owner": null,
       "capability_id": "gurps.world.environmental_hazards",
-      "runtime_binding": null,
+      "runtime_binding": "disease:aging",
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
       "classification": null,
       "listed_value": null

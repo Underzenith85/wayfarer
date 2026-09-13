@@ -173,6 +173,10 @@ slice described in [creature construction and training](gurps-creatures.md).
 Its seven-item ledger deliberately does not claim an unlimited bestiary. Animal
 combat, natural-attack resolution and swarms remain owned by #522.
 
+Issue #519 supplies authored disease/contact profiles, private incubation,
+wound-linked infection schedules, chronological aging, and the approved lasting
+attribute-loss boundary described in [disease, infection, and aging](gurps-disease-aging.md).
+
 ## Mechanics-family coverage matrix
 
 Status and implementation ownership mirror `CAPABILITIES`. None is certified. References name source sections without reproducing prose; precise item/page verification remains part of the source audit above.
