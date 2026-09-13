@@ -41,7 +41,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.character.techniques", False, True, CoverageStatus.VERIFIED, 98),
     Capability("gurps.character.traits", True, True, CoverageStatus.PARTIAL, 100),
     Capability("gurps.character.self_control", True, True, CoverageStatus.PARTIAL, 100),
-    Capability("gurps.character.ability_modifiers", False, True, CoverageStatus.PARTIAL, 100),
+    Capability("gurps.character.ability_modifiers", False, True, CoverageStatus.VERIFIED, 683),
     Capability("gurps.check.success", True, True, CoverageStatus.VERIFIED, 99),
     Capability("gurps.check.margin", True, True, CoverageStatus.VERIFIED, 99),
     Capability("gurps.check.critical", True, True, CoverageStatus.VERIFIED, 99),

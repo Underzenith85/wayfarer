@@ -366,14 +366,14 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
         InventoryItem(
             identifier,
             f"B{MODIFIER_INDEX[identifier].page}",
-            513,
+            683,
             "verified",
             "ability-modifier-ledger",
             source_review="reviewed",
-            evidence=("tests/test_special_damage.py",),
+            evidence=("tests/test_advantage_limitations.py",),
         )
-        for identifier in sorted(SPECIAL_PENETRATION_MODIFIER_IDS)
-        if identifier.startswith("modifier:limitation:")
+        for identifier in sorted(MODIFIER_INDEX)
+        if not identifier.startswith("modifier:enhancement:")
     )
     # Consume the owner inventory directly, including transferred skill exclusions.
     rows.extend(
