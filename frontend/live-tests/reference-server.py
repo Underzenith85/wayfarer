@@ -8,7 +8,7 @@ from reference_provider import ReferenceProvider
 
 from wayfarer.adventures.runtime import application
 from wayfarer.orchestration.providers import Orchestrator
-from wayfarer.transport.campaign_api import RUNTIME_KEY, ORCHESTRATOR_KEY, interpret
+from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, RUNTIME_KEY, interpret
 from wayfarer.transport.setup_api import generate
 from wayfarer.transport.v1.http import SERVICE
 from wayfarer.transport.v1.provider import bind_provider
