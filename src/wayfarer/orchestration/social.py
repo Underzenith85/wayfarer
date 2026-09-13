@@ -19,6 +19,8 @@ from wayfarer.engine.rules.skills.mundane.social.inventory import Resolution, re
 from wayfarer.engine.rules.traits.mundane.runtime import Check
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.campaign.development import bind_teaching_outcome
+from wayfarer.engine.simulation.campaign.party import bind_leadership_outcome
 from wayfarer.engine.simulation.health.fright import apply_effect, validate_subject
 from wayfarer.engine.simulation.social.social import (
     SocialCommand,
@@ -140,6 +142,34 @@ def dispatch(
         rng=play.rng,
         system=True,
     )
+    development = before.development
+    party = before.party
+    if command.kind == "skill" and interaction.context.procedure_id == "skill:teaching":
+        development = bind_teaching_outcome(
+            development,
+            play.engine.rules.development,
+            command_id=command.id,
+            trigger_id=command.trigger_id,
+            teacher_id=command.actor_id,
+            student_id=command.subject_id,
+            outcome=outcome.outcome,
+        )
+    if command.kind == "skill" and interaction.context.procedure_id == "skill:leadership":
+        party = bind_leadership_outcome(
+            play.engine.rules.party,
+            party,
+            command_id=command.id,
+            trigger_id=command.trigger_id,
+            leader_actor_id=command.actor_id,
+            subject_id=command.subject_id,
+            outcome=outcome.outcome,
+            player_actor_ids=frozenset(
+                actor_id
+                for member in before.members
+                if member.role == "player"
+                for actor_id in member.actor_ids
+            ),
+        )
     if command.kind == "fright":
         raw = json.loads(resources.events[-1].kind)["private"]["effect"]
         if raw is not None:
@@ -156,7 +186,13 @@ def dispatch(
             )
             resources = resources.model_copy(update={"revision": before.revision + 1})
     updated = before.model_copy(
-        update={"revision": resources.revision, "resources": resources, "world": world}
+        update={
+            "revision": resources.revision,
+            "resources": resources,
+            "world": world,
+            "development": development,
+            "party": party,
+        }
     )
     return updated, outcome
 
