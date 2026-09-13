@@ -4,9 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
+from wayfarer.engine.simulation.combat.close_combat import (
+    opponents_in_close_combat,
+    pair,
+    stray_target_order,
+)
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
 from wayfarer.engine.simulation.combat.firearm_transitions import validate_attack
@@ -42,6 +48,16 @@ def prepare(
     assert pending is not None
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    close = bool(opponents_in_close_combat(encounter, actor.actor_id))
+    defender_close = bool(opponents_in_close_combat(encounter, target.actor_id))
+    bystanders = tuple(
+        participant.actor_id
+        for participant in encounter.participants
+        if participant.actor_id not in (actor.actor_id, target.actor_id)
+        and pair(participant.actor_id, target.actor_id) in encounter.close_pairs
+    )
+    selectors = draw_dice(runtime.rng, len(bystanders)) if bystanders else ()
+    stray_order = stray_target_order(bystanders, selectors) if bystanders else ()
     geometry = encounter
     if target_item_id:
         geometry = target_geometry(runtime, state, encounter, target_item_id)
@@ -140,7 +156,7 @@ def prepare(
             not weapon.thrown or catalog(runtime).profile_id != "gurps-basic-set-4e-2004"
         ):
             continue
-        if candidate == "block" and not (weapon.thrown or weapon.blockable):
+        if candidate == "block" and (defender_close or not (weapon.thrown or weapon.blockable)):
             continue
         try:
             defense_adjustment(encounter, actor, target, approach=pending.tactical_approach)
@@ -169,6 +185,9 @@ def prepare(
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
                     "target_item_id": target_item_id,
+                    "close_combat": close,
+                    "defender_close_combat": defender_close,
+                    "stray_target_order": stray_order,
                 }
             )
         }

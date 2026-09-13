@@ -51,6 +51,7 @@ class Declaration:
     target_id: str | None = None
     basic_move: BasicMove | None = None
     hex_path: tuple[Hex, ...] = ()
+    enter_close_combat: bool = False
 
 
 Outcome = tuple[Combatant, ResourceState]
@@ -84,7 +85,9 @@ def _taken(declared: Declaration, **update: object) -> Outcome:
 
 
 def move_hex(declared: Declaration) -> Outcome:
-    if any(v is not None for v in (declared.posture, declared.item_id, declared.target_id)):
+    if any(v is not None for v in (declared.posture, declared.item_id)) or (
+        declared.target_id is not None and not declared.enter_close_combat
+    ):
         raise ValidationError("Move accepts only a path and facing")
     return _taken(declared)
 

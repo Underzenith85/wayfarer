@@ -166,9 +166,11 @@ def grapple_ready(
     encounter: Encounter,
     command: TakeCombatTurn,
 ) -> tuple[PlayState, Encounter]:
-    """B371: drawing with a free hand requires DX; failure drops that item only."""
+    """B371/B391: readying while controlled or sharing an enemy hex requires DX."""
 
-    if not any(g.target_id == command.actor_id for g in encounter.grips):
+    controlled = any(g.target_id == command.actor_id for g in encounter.grips)
+    close = any(command.actor_id in relation for relation in encounter.close_pairs)
+    if not controlled and not close:
         return state, encounter
     actor = fighter(encounter, command.actor_id)
     hp = next(p for p in state.resources.pools if p.id == f"hp:{command.actor_id}")
@@ -183,7 +185,8 @@ def grapple_ready(
             "events": state.resources.events
             + (
                 ResourceEvent(
-                    id="grapple-ready:" + hashlib.sha256(command.id.encode()).hexdigest(),
+                    id=("grapple-ready:" if controlled else "close-ready:")
+                    + hashlib.sha256(command.id.encode()).hexdigest(),
                     at=state.resources.game_time,
                     target_id=command.actor_id,
                     kind=TypeAdapter(CheckTrace).dump_json(check).decode(),

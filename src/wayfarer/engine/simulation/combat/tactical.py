@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from wayfarer.engine.rules.tables.combat import maneuver_permission
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.combat.combat_height import HeightEffect, melee_height
+from wayfarer.engine.simulation.combat.spatial import HexActorPlacement
 from wayfarer.engine.simulation.hex_geometry import (
     Hex,
     HexBattlefield,
@@ -15,6 +16,7 @@ from wayfarer.engine.simulation.hex_geometry import (
     Pose,
     SightPoint,
     arc,
+    distance,
     in_reach,
     line_of_sight,
     movement,
@@ -52,7 +54,9 @@ def pose(actor: Combatant) -> Pose:
 
 def occupants(encounter: Encounter) -> tuple[Occupant, ...]:
     return tuple(
-        Occupant(actor_id=p.actor_id, position=pose(p).position) for p in encounter.participants
+        Occupant(actor_id=p.actor_id, position=position)
+        for p in encounter.participants
+        for position in encounter.occupied_hexes(p.actor_id)
     )
 
 
@@ -60,11 +64,12 @@ def movement_blockers(encounter: Encounter, actor_id: str) -> tuple[Occupant, ..
     return tuple(
         Occupant(
             actor_id=p.actor_id,
-            position=pose(p).position,
+            position=position,
             relation="enemy" if encounter.blocks_passage(actor_id, p.actor_id) else "ally",
         )
         for p in encounter.participants
         if p.actor_id != actor_id
+        for position in encounter.occupied_hexes(p.actor_id)
     )
 
 
@@ -81,8 +86,9 @@ def validate_hex_encounter(
     ):
         raise ValidationError("Hex battlefield must match the exact saved combat profile and map")
     for actor in encounter.participants:
-        if board.cell(pose(actor).position).blocked:
-            raise ValidationError("Combatant occupies blocked terrain")
+        for position in encounter.occupied_hexes(actor.actor_id):
+            if board.cell(position).blocked:
+                raise ValidationError("Combatant occupies blocked terrain")
 
 
 def sight(
@@ -116,18 +122,18 @@ def attack_geometry(
         raise ValidationError("Hex encounter requires its configured template")
     if board is None:
         return
+    target_hexes = encounter.occupied_hexes(target.actor_id)
+    target_position = min(target_hexes, key=lambda point: distance(pose(actor).position, point))
     if reaches is not None:
         height_effect(encounter, actor, target, reach=max(reaches), location=location, board=board)
     if not sight(encounter, actor, target, board=board) or arc(
-        pose(actor), pose(target).position
+        pose(actor), target_position
     ) not in (
         "front",
         "close",
     ):
         raise ValidationError("Target is unavailable")
-    if reaches is not None and not in_reach(
-        board, pose(actor), pose(target).position, reaches=reaches
-    ):
+    if reaches is not None and not in_reach(board, pose(actor), target_position, reaches=reaches):
         raise ValidationError("Target is outside selected weapon reach")
 
 
@@ -189,6 +195,7 @@ def move_hex(
     path: tuple[Hex, ...],
     facing: HexFacing | None,
     defense_option: DefenseOption | None,
+    enter_close_combat: bool = False,
     *,
     board: HexBattlefield | None,
 ) -> Combatant:
@@ -222,11 +229,12 @@ def move_hex(
                 raise ValidationError("All-Out Attack movement must be forward")
             current = current.model_copy(update={"position": point})
     occupied_destinations = {
-        pose(participant).position
+        position
         for participant in encounter.participants
         if participant.actor_id != actor.actor_id
+        for position in encounter.occupied_hexes(participant.actor_id)
     }
-    if path and path[-1] in occupied_destinations:
+    if path and path[-1] in occupied_destinations and not enter_close_combat:
         raise ValidationError("Movement cannot end in an occupied position")
     result = movement(
         board,
@@ -236,12 +244,20 @@ def move_hex(
         step=step,
         occupants=movement_blockers(encounter, actor.actor_id),
         actor_id=actor.actor_id,
+        enter_close_combat=enter_close_combat,
         final_facing=facing,
         final_turn_policy="one"
         if maneuver == "all_out_attack"
         else "any"
         if maneuver == "all_out_defense" and defense_option == "dodge"
         else "move",
+    )
+    _validate_multi_hex_destination(
+        encounter,
+        actor.actor_id,
+        result.destination,
+        board,
+        enter_close_combat=enter_close_combat,
     )
     return actor.model_copy(
         update={"position": result.destination.position, "hex_facing": result.destination.facing}
@@ -277,3 +293,47 @@ def pop_up_hex(
         ),
         result.exposure,
     )
+
+
+def _rotate_offset(q: int, r: int, turns: int) -> tuple[int, int]:
+    for _ in range(turns % 6):
+        q, r = -r, q + r
+    return q, r
+
+
+def transformed_footprint(
+    encounter: Encounter, actor_id: str, destination: Pose
+) -> tuple[Hex, ...]:
+    """Rotate and translate a body footprint around its head as one identity (B392)."""
+    placement = encounter.placement(actor_id)
+    if not isinstance(placement, HexActorPlacement):
+        raise ValidationError("Multi-hex movement requires a hex placement")
+    turns = (destination.facing - placement.facing) % 6
+    result = []
+    for point in placement.occupied:
+        q, r = _rotate_offset(point.q - placement.position.q, point.r - placement.position.r, turns)
+        result.append(Hex(q=destination.position.q + q, r=destination.position.r + r))
+    return tuple(result)
+
+
+def _validate_multi_hex_destination(
+    encounter: Encounter,
+    actor_id: str,
+    destination: Pose,
+    board: HexBattlefield,
+    *,
+    enter_close_combat: bool,
+) -> None:
+    occupied = transformed_footprint(encounter, actor_id, destination)
+    if enter_close_combat and len(occupied) > 1:
+        raise ValidationError("Multi-hex close-combat entry requires explicit body placement")
+    blockers = {
+        point
+        for participant in encounter.participants
+        if participant.actor_id != actor_id
+        and encounter.blocks_passage(actor_id, participant.actor_id)
+        for point in encounter.occupied_hexes(participant.actor_id)
+    }
+    for point in occupied:
+        if board.cell(point).blocked or (point in blockers and not enter_close_combat):
+            raise ValidationError("Multi-hex movement destination is blocked")

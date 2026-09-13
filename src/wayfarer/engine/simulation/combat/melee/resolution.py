@@ -160,6 +160,7 @@ def resolve_melee(
     attack_target -= (
         4 if attacker.posture == "prone" else 2 if attacker.posture == "kneeling" else 0
     )
+    attack_target -= 2 * bool(pending.stray_target_order)
 
     eyes = disabled(state.resources, pending.attacker_id) & {"left-eye", "right-eye"}
     attack_target -= 6 if len(eyes) == 2 else 1 if eyes else 0

@@ -155,7 +155,7 @@
           "distance_yards": {
             "anyOf": [
               {
-                "exclusiveMinimum": 0,
+                "minimum": 0,
                 "type": "number"
               },
               {

@@ -12,6 +12,15 @@ from wayfarer.engine.rules.tables.combat import (
 )
 from wayfarer.engine.simulation.combat import maneuver_rules
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.close_combat import (
+    enter as enter_close,
+)
+from wayfarer.engine.simulation.combat.close_combat import (
+    leave as leave_close,
+)
+from wayfarer.engine.simulation.combat.close_combat import (
+    remove_departed_pairs,
+)
 from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
     CombatResult,
@@ -308,6 +317,7 @@ def take_turn(
     basic_move: BasicMove | None = None,
     spatial_revision: int | None = None,
     suppression_fire: bool = False,
+    enter_close_combat: bool = False,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     original, original_resources = encounter, resources
     interrupt = encounter.wait_interrupt
@@ -365,6 +375,7 @@ def take_turn(
         pop_up=pop_up,
         basic_move=basic_move,
         suppression_fire=suppression_fire,
+        enter_close_combat=enter_close_combat,
     )
     if engine.rules.gurps_equipment is not None and interrupt is None and command_json:
         interrupted = _wait_interruption(
@@ -401,11 +412,13 @@ def _apply_hex_movement(
     hex_facing: HexFacing | None,
     pop_up: bool,
     basic_move: BasicMove | None,
+    enter_close_combat: bool,
 ) -> tuple[Combatant, Pose | None]:
     """Select one mapped movement transaction without growing turn dispatch."""
     if pop_up:
         if (
-            maneuver != "attack"
+            enter_close_combat
+            or maneuver != "attack"
             or posture is not None
             or crouch is not None
             or destination is not None
@@ -436,9 +449,30 @@ def _apply_hex_movement(
             hex_facing,
             defense_option,
             board=engine.hex_map(encounter),
+            enter_close_combat=enter_close_combat,
         ),
         None,
     )
+
+
+def _validate_close_entry(
+    encounter: Encounter,
+    maneuver: Maneuver,
+    target_id: str | None,
+    hex_path: tuple[Hex, ...],
+    pop_up: bool,
+    step_timing: Literal["before", "after"],
+    enter_close_combat: bool,
+) -> None:
+    if enter_close_combat and (
+        encounter.spatial_kind != "hex"
+        or target_id is None
+        or not hex_path
+        or pop_up
+        or step_timing == "after"
+        or maneuver not in ("move", "attack", "move_and_attack", "all_out_attack")
+    ):
+        raise ValidationError("Close-combat entry requires a legal mapped maneuver and target")
 
 
 def apply_turn(
@@ -468,6 +502,7 @@ def apply_turn(
     pop_up: bool = False,
     basic_move: BasicMove | None = None,
     suppression_fire: bool = False,
+    enter_close_combat: bool = False,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     if engine.rules.gurps_equipment is not None:
         command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -482,6 +517,17 @@ def apply_turn(
     if maneuver == "concentrate" and engine.rules.gurps_equipment is None:
         raise ValidationError("Concentration requires a bound ability command")
     participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+    _validate_close_entry(
+        encounter,
+        maneuver,
+        target_id,
+        hex_path,
+        pop_up,
+        step_timing,
+        enter_close_combat,
+    )
+    if encounter.spatial_kind == "hex" and hex_path and not enter_close_combat:
+        leave_close(encounter, participant, hex_path)
     encounter, participant = _apply_crouch(
         engine, encounter, participant, maneuver, posture, crouch
     )
@@ -569,8 +615,13 @@ def apply_turn(
             hex_facing=hex_facing,
             pop_up=pop_up,
             basic_move=basic_move,
+            enter_close_combat=enter_close_combat,
         )
         encounter = engine._replace(encounter, participant)
+        if enter_close_combat:
+            encounter = enter_close(encounter, participant, target_id or "")
+        else:
+            encounter = remove_departed_pairs(encounter, actor_id)
     elif (hex_path or hex_facing is not None) and not deferred_step:
         raise ValidationError("Hex movement requires explicit battlefield migration")
     if basic_move is not None:
@@ -715,6 +766,7 @@ def apply_turn(
         target_id=target_id,
         basic_move=basic_move,
         hex_path=hex_path,
+        enter_close_combat=enter_close_combat,
     )
     if selected == "attack":
         if (

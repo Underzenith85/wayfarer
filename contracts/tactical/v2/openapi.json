@@ -2041,6 +2041,11 @@
               }
             ],
             "default": null
+          },
+          "enter_close_combat": {
+            "default": false,
+            "title": "Enter Close Combat",
+            "type": "boolean"
           }
         },
         "required": [
@@ -3441,7 +3446,7 @@
           "distance_yards": {
             "anyOf": [
               {
-                "exclusiveMinimum": 0,
+                "minimum": 0,
                 "type": "number"
               },
               {

@@ -248,7 +248,14 @@ def validate_control(encounter: Encounter, resources: ResourceState, *, basic: b
             or pair[0] == pair[1]
             or not set(pair) <= participants.keys()
             or not mapless
-            and participants[pair[0]].position != participants[pair[1]].position
+            and (
+                not (
+                    participants[pair[0]].position in encounter.occupied_hexes(pair[1])
+                    or participants[pair[1]].position in encounter.occupied_hexes(pair[0])
+                )
+                if encounter.spatial_kind == "hex"
+                else participants[pair[0]].position != participants[pair[1]].position
+            )
         ):
             raise ValidationError("Invalid close-combat relationship")
     occupied: set[tuple[str, Hand]] = set()

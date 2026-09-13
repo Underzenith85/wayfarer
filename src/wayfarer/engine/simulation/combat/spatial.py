@@ -39,6 +39,25 @@ class HexActorPlacement(Record):
     actor_id: Id
     position: Hex
     facing: HexFacing
+    occupied_hexes: tuple[Hex, ...] = Field(default=(), max_length=100)
+
+    @model_validator(mode="after")
+    def validate_footprint(self) -> HexActorPlacement:
+        occupied = self.occupied
+        if len(set(occupied)) != len(occupied) or self.position not in occupied:
+            raise ValueError("A multi-hex footprint must contain its head exactly once")
+        if any(
+            not any(point_distance(point, other) == 1 for other in occupied if other != point)
+            for point in occupied
+            if len(occupied) > 1
+        ):
+            raise ValueError("A multi-hex footprint must be contiguous")
+        return self
+
+    @property
+    def occupied(self) -> tuple[Hex, ...]:
+        """Every occupied hex; the one-hex wire form remains compact."""
+        return self.occupied_hexes or (self.position,)
 
 
 class SpatialProvenance(Record):

@@ -7,6 +7,7 @@ from decimal import Decimal
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import exertion
+from wayfarer.engine.simulation.combat.close_combat import validate_defense
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_effects import defense_stress, worn_stress
@@ -14,7 +15,7 @@ from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.melee.values import defense_selection, score_defense
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.vocabulary import Defense
-from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -60,7 +61,7 @@ def defense_value(
         )
         assert bare_value is not None
         return DerivedValue("defense:parry", Decimal(bare_value), ()), hand
-    return score_defense(
+    result = score_defense(
         runtime,
         state,
         participant,
@@ -71,6 +72,24 @@ def defense_value(
         incoming_item_id=incoming_item_id,
         incoming_mode_id=incoming_mode_id,
     )
+    encounter = next(
+        (
+            value
+            for value in state.encounters
+            if value.pending_defense
+            and value.pending_defense.defender_id == participant.actor_id
+            and value.pending_defense.defender_close_combat
+        ),
+        None,
+    )
+    if encounter is not None:
+        _, used = result
+        reaches: tuple[int, ...] = (0,) if used in ("left-hand", "right-hand") else ()
+        if selected == "parry" and used is not None and not reaches:
+            selected_mode = mode(runtime, state, participant.actor_id, used, parry_mode_id)
+            reaches = selected_mode.reach if isinstance(selected_mode, MeleeMode) else ()
+        validate_defense(defense=selected, parry_reaches=reaches)
+    return result
 
 
 def exert_defense(

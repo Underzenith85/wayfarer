@@ -125,6 +125,7 @@ class TakeCombatTurn(CombatCommand):
     hex_facing: HexFacing | None = None
     pop_up: bool = Field(default=False, exclude_if=lambda value: not value)
     basic_move: BasicMove | None = Field(default=None, exclude_if=lambda value: value is None)
+    enter_close_combat: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class TakeUnarmedTurn(CombatCommand):

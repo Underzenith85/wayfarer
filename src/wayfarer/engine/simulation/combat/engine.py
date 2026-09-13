@@ -46,11 +46,14 @@ from wayfarer.engine.simulation.combat.suppression import (
     ActiveSuppressionZone,
     PendingSuppressionAttack,
 )
-from wayfarer.engine.simulation.combat.tactical import validate_hex_encounter
+from wayfarer.engine.simulation.combat.tactical import (
+    transformed_footprint,
+    validate_hex_encounter,
+)
 from wayfarer.engine.simulation.combat.turns import apply_turn, take_turn
 from wayfarer.engine.simulation.combat.unarmed.records import validate_control
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
-from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, HexFacing
+from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, HexFacing, Pose
 from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import EntityKind, World
@@ -227,7 +230,7 @@ class CombatEngine:
                         )
                         if reach.relation != expected:
                             raise ValidationError("Basic distance and reach facts conflict")
-        occupied: set[GridPoint | Hex] = set()
+        occupied: dict[GridPoint | Hex, set[str]] = {}
         blocked = set(battlefield.blocked) if isinstance(battlefield, Battlefield) else set()
         if battlefield is not None:
             self.hex_map(encounter)
@@ -243,6 +246,11 @@ class CombatEngine:
                 placement = placements[participant.actor_id]
                 if encounter.status == "active" and entity.location_id != battlefield.location_id:
                     raise ValidationError("Combatant is not at the battlefield location")
+                positions = (
+                    placement.occupied
+                    if isinstance(placement, HexActorPlacement)
+                    else (placement.position,)
+                )
                 if (
                     (
                         isinstance(placement.position, GridPoint)
@@ -255,26 +263,26 @@ class CombatEngine:
                         )
                     )
                     or (encounter.spatial_kind != "hex" and isinstance(placement.position, Hex))
-                    or placement.position in blocked
-                    or (
-                        placement.position in occupied
+                    or any(position in blocked for position in positions)
+                    or any(
+                        position in occupied
                         and not (
                             self.rules.gurps_equipment is not None
                             and self.rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
                             and all(
-                                tuple(sorted((other.actor_id, participant.actor_id)))
+                                tuple(sorted((other_id, participant.actor_id)))
                                 in encounter.close_pairs
-                                for other in encounter.participants
-                                if other.actor_id != participant.actor_id
-                                and placements[other.actor_id].position == placement.position
+                                for other_id in occupied[position]
                             )
                         )
+                        for position in positions
                     )
                 ):
                     raise ValidationError(
                         "Combatant position is blocked, occupied or out of bounds"
                     )
-                occupied.add(placement.position)
+                for position in positions:
+                    occupied.setdefault(position, set()).add(participant.actor_id)
             if (
                 self.rules.gurps_equipment is None
                 and participant.movement_allowance != self.rules.movement_allowance
@@ -610,11 +618,19 @@ class CombatEngine:
         if isinstance(context, HexSpatialContext):
             if not isinstance(participant.position, Hex) or participant.hex_facing is None:
                 raise ValidationError("Hex context requires hex coordinates and facing")
+            existing = updated.placement(participant.actor_id)
+            assert isinstance(existing, HexActorPlacement)
+            occupied = transformed_footprint(
+                updated,
+                participant.actor_id,
+                Pose(position=participant.position, facing=participant.hex_facing),
+            )
             return updated.replace_placement(
                 HexActorPlacement(
                     actor_id=participant.actor_id,
                     position=participant.position,
                     facing=participant.hex_facing,
+                    occupied_hexes=occupied if len(existing.occupied) > 1 else (),
                 )
             )
         return updated
@@ -729,6 +745,7 @@ class CombatEngine:
         basic_move: BasicMove | None = None,
         spatial_revision: int | None = None,
         suppression_fire: bool = False,
+        enter_close_combat: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
 
         return take_turn(
@@ -758,6 +775,7 @@ class CombatEngine:
             basic_move=basic_move,
             spatial_revision=spatial_revision,
             suppression_fire=suppression_fire,
+            enter_close_combat=enter_close_combat,
         )
 
     def _take_turn(
@@ -787,6 +805,7 @@ class CombatEngine:
         pop_up: bool = False,
         basic_move: BasicMove | None = None,
         suppression_fire: bool = False,
+        enter_close_combat: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
 
         return apply_turn(
@@ -815,6 +834,7 @@ class CombatEngine:
             pop_up=pop_up,
             basic_move=basic_move,
             suppression_fire=suppression_fire,
+            enter_close_combat=enter_close_combat,
         )
 
     def choose_defense(

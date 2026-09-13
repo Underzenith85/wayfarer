@@ -71,7 +71,10 @@ def validate_target(
         else float(CombatEngine.distance(attacker.position, defender.position))
     )
     if isinstance(selected, RangedMode):
-        if distance == 0 or any(attacker_id in (g.holder_id, g.target_id) for g in encounter.grips):
+        close = tuple(sorted((attacker_id, defender_id))) in encounter.close_pairs
+        if (distance == 0 and not close) or any(
+            attacker_id in (g.holder_id, g.target_id) for g in encounter.grips
+        ):
             raise ValidationError(
                 "Ranged attacks while in close combat require further integration"
             )
