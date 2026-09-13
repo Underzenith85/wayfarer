@@ -153,7 +153,7 @@ class PhysicalCheckService:
             return CommandReceipt(action="noncombat", outcome=json.dumps(trace.outcome.succeeded))
 
         committed = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

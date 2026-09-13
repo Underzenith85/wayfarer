@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.runtime import build_runtime
 from test_encounter_context import load, setup
 
 from wayfarer.engine.simulation.combat.encounter import RangedSituation, basic_distance
@@ -20,7 +21,6 @@ from wayfarer.engine.simulation.combat.spatial import (
     VisibilitySpatialFact,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     BasicMove,
     ChooseDefense,
@@ -102,7 +102,7 @@ async def test_mapless_approach_step_reach_restart_and_retry(tmp_path: Path) -> 
     assert all("position" not in actor for actor in encoded["participants"])
     assert encounter.ranged_situations[0].distance_yards is None
     assert situation(play.rules_context, encounter, "a", "b").distance == 5
-    projection = await CampaignAccess(play).read(cid, principal_id="alice")
+    projection = await build_runtime(play).read(cid, principal_id="alice")
     projected_encounters = projection["encounters"]
     assert isinstance(projected_encounters, tuple)
     projected_encounter = projected_encounters[0]

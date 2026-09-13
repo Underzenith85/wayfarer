@@ -10,6 +10,13 @@ tests because SQLite and loopback HTTP are deterministic and inexpensive. Tests
 use temporary databases, injected random sources and local provider fakes. They
 never require credentials or public network access.
 
+Composition goes through `tests/support/runtime.py`: `open_store`, `build_play`,
+`build_runtime`, `build_orchestrator` and `job_worker` build the production objects
+with fakes passed as constructor arguments — a temporary store, a scripted command
+clock, a counting seed source, an injected engine factory, a named job partition.
+Do not patch a module to reach a seam; add the constructor argument instead. Ruff
+bans `unittest.mock`, and #631 removes the remaining `monkeypatch` uses step by step.
+
 Coverage is branch-aware and fails below 65% for the package. This initial floor
 covers the inherited prototype while emphasizing rules, transactions, runtime
 validation and failure boundaries. Raise it as production modules replace demo

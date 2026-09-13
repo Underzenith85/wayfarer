@@ -23,13 +23,12 @@ from wayfarer.errors import (
     ValidationError,
 )
 from wayfarer.models import Record
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import COMBAT_ADAPTER
-from wayfarer.orchestration.jobs import jobs_for
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.orchestration.noncombat import NoncombatCommand
 from wayfarer.orchestration.party import PartyCommand
 from wayfarer.orchestration.recovery import RecoveryCommand
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.scenes import SCENE_ADAPTER
 from wayfarer.persistence.events import CommandOrigin
 
@@ -218,7 +217,7 @@ class ProviderTelemetry(Record):
 class Orchestrator:
     def __init__(
         self,
-        access: CampaignAccess,
+        access: CampaignRuntime,
         provider: StructuredProvider,
         *,
         timeout: float = 20,
@@ -228,7 +227,7 @@ class Orchestrator:
             raise ValueError("Invalid provider bounds")
 
         self.access, self.provider = access, provider
-        self.jobs = jobs_for(access.play.store)
+        self.jobs = access.jobs
         self.timeout, self.attempts = timeout, attempts
         self.telemetry: list[ProviderTelemetry] = []
         # Usage is telemetry, not a lifetime cutoff for this long-running service.

@@ -1,20 +1,30 @@
 """Recorded time, invitation deadline boundaries and recovery after a saved claim."""
 
 import asyncio
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from support.runtime import build_play
 from test_actions import campaign, engine
 from test_v1_api import api as api
 
 from wayfarer.contracts import Campaign, CommandReceipt, TurnResult
-from wayfarer.orchestration import entropy
 from wayfarer.orchestration.clock import CommandInstant
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.transport.v1 import invitations
 from wayfarer.transport.v1.common import Fault, Obj, obj
 from wayfarer.transport.v1.ledger import Ledger
 from wayfarer.transport.v1.service import V1Service
+
+
+class CommitCrash(AsyncSQLiteStore):
+    """A second handle on the same database that dies where the claim is saved."""
+
+    async def commit_turn(self, *args: object, **kwargs: object) -> TurnResult:
+        raise RuntimeError("after claim commit")
 
 
 def test_claim_deadline_uses_supplied_instant() -> None:
@@ -31,14 +41,11 @@ def test_claim_deadline_uses_supplied_instant() -> None:
     assert CommandInstant(1_000_001).isoformat() == "1970-01-01T00:00:01.000Z"
 
 
-async def test_clock_captured_before_callback_and_retry_keeps_original(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    store = AsyncSQLiteStore(tmp_path / "time.sqlite")
-    initial = campaign(engine())
-    await store.insert(initial)
+async def test_clock_captured_before_callback_and_retry_keeps_original(tmp_path: Path) -> None:
     instants = iter((CommandInstant(10), CommandInstant(20)))
-    monkeypatch.setattr(entropy, "capture_instant", lambda: next(instants))
+    play = build_play(tmp_path, engine(), instants=lambda: next(instants), filename="time.sqlite")
+    initial = campaign(play.engine)
+    await play.store.insert(initial)
     calls = []
 
     def reduce(state: Campaign) -> CommandReceipt:
@@ -46,31 +53,24 @@ async def test_clock_captured_before_callback_and_retry_keeps_original(
         state["revision"] += 1
         return CommandReceipt(action="legacy", outcome="done")
 
-    await entropy.commit_command(store, initial["id"], "clock", 0, "clock", reduce)
-    await entropy.commit_command(store, initial["id"], "clock", 0, "clock", reduce)
+    await commit_command(play, initial["id"], "clock", 0, "clock", reduce)
+    await commit_command(play, initial["id"], "clock", 0, "clock", reduce)
     assert calls == [0]
-    row = (await store.history(initial["id"]))[0]
+    row = (await play.store.history(initial["id"]))[0]
     assert row.recorded_at_us == 10
     # An explicit replay instant never consults the clock (the iterator is exhausted).
-    await entropy.commit_command(
-        store, initial["id"], "next", 1, "next", reduce, instant=CommandInstant(30)
-    )
-    assert (await store.history(initial["id"]))[-1].recorded_at_us == 30
+    await commit_command(play, initial["id"], "next", 1, "next", reduce, instant=CommandInstant(30))
+    assert (await play.store.history(initial["id"]))[-1].recorded_at_us == 30
 
 
-async def test_ledger_uses_one_captured_or_supplied_instant(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    from wayfarer.transport.v1 import ledger
-
+async def test_ledger_uses_one_captured_or_supplied_instant(tmp_path: Path) -> None:
     captures: list[int] = []
 
     def capture() -> CommandInstant:
         captures.append(77)
         return CommandInstant(77)
 
-    monkeypatch.setattr(ledger, "capture_instant", capture)
-    store = Ledger(tmp_path / "boundary.sqlite")
+    store = Ledger(tmp_path / "boundary.sqlite", instants=capture)
     async with store.transaction() as tx:
         assert captures == [77]
         await asyncio.sleep(0)
@@ -81,12 +81,17 @@ async def test_ledger_uses_one_captured_or_supplied_instant(
         assert await tx.get("saved") == {"at": 77}
 
 
+def scripted(now: list[CommandInstant]) -> Callable[[], CommandInstant]:
+    return lambda: now[0]
+
+
 async def test_saved_invitation_claim_resumes_after_expiry(
-    api: tuple[str, str, V1Service], monkeypatch: pytest.MonkeyPatch
+    api: tuple[str, str, V1Service],
 ) -> None:
-    _, cid, service = api
+    _, cid, hosted = api
     now = [CommandInstant(1_000_000_000)]
-    monkeypatch.setattr(invitations, "capture_instant", lambda: now[0])
+    service = V1Service(hosted.play, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now))
+    await service.start()
     async with service.ledger.transaction(instant=now[0]) as tx:
         version = obj((await service.view(tx, cid, "gm")).campaign["membership"])["version"]
     request: Obj = {
@@ -97,17 +102,26 @@ async def test_saved_invitation_claim_resumes_after_expiry(
     }
     invite = await invitations.invitation(service, "gm", cid, "/invitations", request, redeem=False)
     redeem: Obj = {"command_id": "claim-clock", "token": invite["token"]}
-    original = entropy.commit_command
 
-    async def crash(*args: object, **kwargs: object) -> TurnResult:
-        raise RuntimeError("after claim commit")
-
-    monkeypatch.setattr(invitations, "commit_command", crash)
-    with pytest.raises(RuntimeError, match="after claim"):
-        await invitations.invitation(service, "new", cid, "/redeem", redeem, redeem=True)
+    # The claim is saved by a worker whose store dies before the domain commit.
+    assert isinstance(hosted.play.store, AsyncSQLiteStore)
+    crashing = PlayService(
+        CommitCrash(hosted.play.store.path),
+        hosted.play.engine,
+        rng=hosted.play.rng,
+        sessions=hosted.play.sessions,
+        instants=scripted(now),
+        seeds=hosted.play.seeds,
+    )
+    broken = V1Service(crashing, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now))
+    await broken.start()
+    try:
+        with pytest.raises(RuntimeError, match="after claim"):
+            await invitations.invitation(broken, "new", cid, "/redeem", redeem, redeem=True)
+    finally:
+        await broken.close()
     now[0] = CommandInstant(2_000_000_000)
-    monkeypatch.setattr(invitations, "commit_command", original)
-    restarted = V1Service(service.play, service.ledger.path)
+    restarted = V1Service(hosted.play, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now))
     await restarted.start()
     try:
         membership = await invitations.invitation(
@@ -139,3 +153,4 @@ async def test_saved_invitation_claim_resumes_after_expiry(
         )
     finally:
         await restarted.close()
+        await service.close()

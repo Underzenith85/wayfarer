@@ -25,11 +25,11 @@ from wayfarer.errors import (
     StorageError,
     ValidationError,
 )
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.continuation import prepare
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import ProviderRequest
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.scenario_documents import ScenarioDocuments
 from wayfarer.orchestration.scenario_references import pin_scenario
 from wayfarer.orchestration.studio import ScenarioStudio
@@ -171,7 +171,7 @@ def _continue_setup(
         command_id="setup:" + command.id,
         campaign_revision=command.expected_revision + 1,
     )
-    PlayService(play.store, configured, rng=play.rng).commit(campaign, state)
+    play.derived(configured, rng=play.rng).commit(campaign, state)
     campaign["scenario"]["title"] = graph.title
     setup = setup.model_copy(
         update={
@@ -210,7 +210,7 @@ def _activate_setup(
     } - set(graph.npc_actor_ids):
         raise ValidationError("Every player character needs exactly one controller")
     studio = ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
-    activated = PlayService(play.store, studio.engine(graph), rng=play.rng, profiles=play.profiles)
+    activated = play.derived(studio.engine(graph), rng=play.rng, profiles=play.profiles)
     seed = campaign.copy()
     seed["revision"] = 0
     members = tuple(
@@ -348,7 +348,7 @@ def reduce_setup(
 
 
 class SetupService:
-    def __init__(self, access: CampaignAccess, *, engine_controls: bool = False) -> None:
+    def __init__(self, access: CampaignRuntime, *, engine_controls: bool = False) -> None:
         self.engine_controls = engine_controls
         self.access = access
         self.play = access.play
@@ -540,7 +540,7 @@ class SetupService:
             return CommandReceipt(action="setup", outcome=setup.phase)
 
         await commit_command(
-            self.play.store,
+            self.play,
             cid,
             key,
             command.expected_revision,

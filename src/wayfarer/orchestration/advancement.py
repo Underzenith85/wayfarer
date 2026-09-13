@@ -189,7 +189,7 @@ class AdvancementService:
             return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
         committed = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,
@@ -311,7 +311,7 @@ class AdvancementService:
             return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
         committed = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,
@@ -511,7 +511,7 @@ class MigrationService:
             return CommandReceipt(action="rules-migration", outcome=entry.model_dump_json())
 
         committed = await commit_command(
-            self.current.store,
+            self.current,
             cid,
             command.id,
             command.expected_revision,

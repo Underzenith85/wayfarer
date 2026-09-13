@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 
 from wayfarer.engine.rules.checks import ModifierKind, RecordedDice
 from wayfarer.engine.rules.conformance import CAPABILITIES
@@ -520,7 +521,6 @@ async def test_a_procedure_runs_in_a_live_authorized_transaction(tmp_path: Path)
     from test_social_dispatch import prepare
 
     from wayfarer.engine.simulation.actions import PlayState
-    from wayfarer.orchestration.access import CampaignAccess
     from wayfarer.orchestration.play import PlayService
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 
@@ -536,7 +536,7 @@ async def test_a_procedure_runs_in_a_live_authorized_transaction(tmp_path: Path)
     assert outcome.kind == "skill" and outcome.outcome == "streetwise-vouched"
     with pytest.raises(ValidationError, match="trusted director authority"):
         await service.execute(cid, skill_command("again"), authenticated_gm_id="alice")
-    projection = str(await CampaignAccess(play).read(cid, principal_id="alice"))
+    projection = str(await build_runtime(play).read(cid, principal_id="alice"))
     for secret in ("criminal-milieu", "contest", "dice", "victory_margin"):
         assert secret not in projection
 

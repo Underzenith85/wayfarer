@@ -10,6 +10,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import build_play, build_runtime
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 from test_tactical import setup as hex_setup
 from test_wave14 import Table
@@ -20,14 +21,13 @@ from wayfarer.engine.rules.randomness import RNG_ALGORITHM, SeededRandom
 from wayfarer.engine.simulation.actions import Inspect, Wait
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     CombatContext,
     CombatService,
     TakeCombatTurn,
     reduce_combat,
 )
-from wayfarer.orchestration.entropy import CommandRandom, commit_command
+from wayfarer.orchestration.entropy import CommandRandom, commit_command, token_seed
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import CommandEntropy
@@ -109,7 +109,8 @@ async def test_legacy_command_metadata_migrates_without_inventing_a_seed(tmp_pat
 
 
 async def test_independent_campaigns_have_independent_streams(tmp_path: Path) -> None:
-    store = AsyncSQLiteStore(tmp_path / "independent.sqlite")
+    play = build_play(tmp_path, engine(), seeds=token_seed, filename="independent.sqlite")
+    store = play.store
     initial = campaign(engine())
     other = initial.copy()
     other["id"] = initial["id"] + "-other"
@@ -124,7 +125,7 @@ async def test_independent_campaigns_have_independent_streams(tmp_path: Path) ->
 
     await asyncio.gather(
         *(
-            commit_command(store, cid, "same-id", 0, "draws", reduce)
+            commit_command(play, cid, "same-id", 0, "draws", reduce)
             for cid in (initial["id"], other["id"])
         )
     )
@@ -224,7 +225,7 @@ async def test_reference_adventure_seed_replays_checkpoint_and_is_private(tmp_pa
         replayed = action_result(resolved_events)
         state = replay.checkpoint(state, before=before)
         assert replayed == result and state == play._load(record.state_after)
-        access = CampaignAccess(play)
+        access = build_runtime(play)
         for principal in ("alice", "bob", "gm"):
             encoded = json.dumps(await access.read(table.cid, principal_id=principal))
             assert record.entropy_seed not in encoded
@@ -254,7 +255,7 @@ async def test_hex_combat_reexecutes_from_seed(tmp_path: Path) -> None:
     state, replayed = reduce_combat(before, command, CombatContext(replay, before))
     state = replay.checkpoint(state, before=before)
     assert replayed == result and state == play._load(record.state_after)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     for principal in ("alice", "bob", "gm", "spectator"):
         events = await access.events(cid, principal_id=principal, after=before.revision)
         encoded = json.dumps([event.model_dump(mode="json") for event in events])
@@ -265,7 +266,8 @@ async def test_hex_combat_reexecutes_from_seed(tmp_path: Path) -> None:
 async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
     tmp_path: Path,
 ) -> None:
-    store = AsyncSQLiteStore(tmp_path / "scope.sqlite")
+    play = build_play(tmp_path, engine(), filename="scope.sqlite")
+    store = play.store
     initial = campaign(engine())
     await store.insert(initial)
     handle = CommandRandom()
@@ -275,7 +277,7 @@ async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
         raise ValidationError("injected failure")
 
     with pytest.raises(ValidationError, match="injected failure"):
-        await commit_command(store, initial["id"], "failed", 0, "failed", fail)
+        await commit_command(play, initial["id"], "failed", 0, "failed", fail)
     assert await store.history(initial["id"]) == []
     with pytest.raises(ValidationError, match="command scope"):
         draw_dice(handle)
@@ -286,7 +288,7 @@ async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
         return CommandReceipt(action="legacy", outcome="done")
 
     await commit_command(
-        store, initial["id"], "succeeded", 0, "succeeded", succeed, rng=RecordedDice((1, 2, 3))
+        play, initial["id"], "succeeded", 0, "succeeded", succeed, rng=RecordedDice((1, 2, 3))
     )
     record = (await store.history(initial["id"]))[0]
     assert record.actor_id == "system" and not record.reexecutable

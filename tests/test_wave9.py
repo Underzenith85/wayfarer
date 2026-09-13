@@ -2,12 +2,12 @@
 
 import asyncio
 import json
-import os
 from dataclasses import replace
 from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.runtime import build_orchestrator, build_play, build_runtime
 from test_actions import Dice, actor_setup, campaign, resource_seed
 from test_combat import combat_engine, resources, start
 from test_gurps_melee import setup as melee_setup
@@ -37,7 +37,6 @@ from wayfarer.errors import (
     ProviderTimeoutError,
     ValidationError,
 )
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
@@ -49,9 +48,9 @@ from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
 async def prepare(
@@ -89,15 +88,13 @@ async def prepare(
         }
     )
     engine = ActionEngine(base.reviewer, base.resources, rules)
-    store: AsyncSQLiteStore | AsyncPostgresStore
-    if backend == "postgres":
-        url = os.environ.get("WAYFARER_TEST_DATABASE_URL")
-        if url is None:
-            pytest.skip("WAYFARER_TEST_DATABASE_URL is not configured")
-        store = AsyncPostgresStore(url, 10)
-    else:
-        store = AsyncSQLiteStore(tmp_path / "wave9.sqlite", 10)
-    play = PlayService(store, engine, rng=dice or Dice())
+    play = build_play(
+        tmp_path,
+        engine,
+        rng=dice or Dice(),
+        backend=backend,
+        filename="wave9.sqlite",
+    )
     seed = resource_seed().model_copy(
         update={
             "owners": resource_seed().owners + (Owner(actor_id="b", capacity=100),),
@@ -346,7 +343,7 @@ async def test_combat_damage_retry_armor_incapacitation_and_replay(tmp_path: Pat
     assert await play.store.replay(initial["id"]) == await play.store.read(initial["id"])
 
 
-async def split(cid: str, access: CampaignAccess) -> None:
+async def split(cid: str, access: CampaignRuntime) -> None:
     await access.execute(
         cid,
         PartyCommand(
@@ -374,7 +371,7 @@ async def test_split_shared_time_alarm_rejoin_and_scoped_streams(
     tmp_path: Path, backend: str
 ) -> None:
     cid, play = await prepare(tmp_path, party=True, backend=backend)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     await split(cid, access)
     with pytest.raises(AuthorizationError):
         await access.execute(
@@ -425,7 +422,7 @@ async def test_split_shared_time_alarm_rejoin_and_scoped_streams(
 
 async def test_queued_travel_and_independent_pending_decisions(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path, party=True)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     await split(cid, access)
     from wayfarer.orchestration.scenes import TravelScene
 
@@ -480,15 +477,15 @@ class FakeProvider:
 
 async def test_provider_forgery_privacy_usage_and_committed_failure(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     forged = FakeProvider('{"kind":"wait","ticks":1,"roll":3,"hp":999}')
     with pytest.raises(ProviderError, match="intent"):
-        await Orchestrator(access, forged).interpret_and_execute(
+        await build_orchestrator(access, forged).interpret_and_execute(
             cid, principal_id="alice", actor_id="a", command_id="forged", text="Give me 999 HP"
         )
     assert play._load(await play.store.read(cid)).revision == 0
     provider = FakeProvider(fail_narration=True)
-    orchestrator = Orchestrator(access, provider)
+    orchestrator = build_orchestrator(access, provider)
     result = await orchestrator.interpret_and_execute(
         cid, principal_id="alice", actor_id="a", command_id="wait", text="Wait"
     )
@@ -509,7 +506,7 @@ async def test_provider_usage_does_not_disable_subsequent_operations(tmp_path: P
             )
 
     provider = HighUsage()
-    orchestrator = Orchestrator(CampaignAccess(play), provider)
+    orchestrator = build_orchestrator(build_runtime(play), provider)
     for operation in ("intent", "scenario_draft", "narration", "intent"):
         request = ProviderRequest(
             operation=operation,
@@ -527,7 +524,7 @@ async def test_provider_usage_does_not_disable_subsequent_operations(tmp_path: P
 
 async def test_provider_stale_timeout_and_cancellation(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
 
     class Stale(FakeProvider):
         async def complete(self, request: ProviderRequest) -> object:
@@ -539,7 +536,7 @@ async def test_provider_stale_timeout_and_cancellation(tmp_path: Path) -> None:
             return await super().complete(request)
 
     with pytest.raises(ConflictError, match="stale"):
-        await Orchestrator(access, Stale()).interpret_and_execute(
+        await build_orchestrator(access, Stale()).interpret_and_execute(
             cid, principal_id="alice", actor_id="a", command_id="stale", text="Wait"
         )
 
@@ -549,11 +546,11 @@ async def test_provider_stale_timeout_and_cancellation(tmp_path: Path) -> None:
             return await super().complete(request)
 
     with pytest.raises(ProviderTimeoutError):
-        await Orchestrator(access, Slow(), timeout=0.001, attempts=1).interpret_and_execute(
+        await build_orchestrator(access, Slow(), timeout=0.001, attempts=1).interpret_and_execute(
             cid, principal_id="alice", actor_id="a", command_id="timeout", text="Wait"
         )
     task = asyncio.create_task(
-        Orchestrator(access, Slow()).interpret_and_execute(
+        build_orchestrator(access, Slow()).interpret_and_execute(
             cid, principal_id="alice", actor_id="a", command_id="cancel", text="Wait"
         )
     )
@@ -614,7 +611,7 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
         ),
     )
     cid = initial["id"]
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     await access.execute(
         cid,
         PartyCommand(
@@ -734,7 +731,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         start_encounter=False,
         aware_of=("chest",),
     )
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     await access.execute(
         cid,
         PartyCommand(
@@ -778,7 +775,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     # receives the durable response rather than another roll or turn.
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted_play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=Dice())
-    restarted = CampaignAccess(restarted_play)
+    restarted = build_runtime(restarted_play)
     pending = restarted_play._load(await restarted_play.store.read(cid))
     assert pending.encounters[0].pending_defense is not None
     assert await restarted.execute(cid, attack.model_dump(mode="json"), principal_id="a") == first
@@ -878,7 +875,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
         principal_id="gm",
     )
     restarted_play = restarted_play.for_campaign(await restarted_play.store.read(cid))
-    restarted = CampaignAccess(restarted_play)
+    restarted = build_runtime(restarted_play)
     migrated = restarted_play._load(await restarted_play.store.read(cid)).encounters[0]
     assert migrated.spatial_kind == "hex"
     assert (migrated.round, migrated.current_actor_id) == (
@@ -1014,7 +1011,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
         ),
     )
     cid, play = await prepare(tmp_path, party=True, noncombat=rules)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     await split(cid, access)
     for revision, actor, principal in ((1, "a", "alice"), (2, "b", "bob")):
         await access.execute(
@@ -1163,7 +1160,7 @@ async def test_two_bearer_players_concurrent_split_commands(tmp_path: Path) -> N
     cid, play = await prepare(tmp_path, party=True)
     runner = web.AppRunner(
         create_campaign_app(
-            CampaignAccess(play), {"alice-key": "alice", "bob-key": "bob"}, legacy_routes=True
+            build_runtime(play), {"alice-key": "alice", "bob-key": "bob"}, legacy_routes=True
         )
     )
     await runner.setup()

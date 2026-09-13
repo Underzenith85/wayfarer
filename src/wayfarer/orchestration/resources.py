@@ -1,6 +1,7 @@
 """Atomic resource commands using the existing SQLite/PostgreSQL event stores."""
 
 import secrets
+from collections.abc import Callable
 
 from pydantic import TypeAdapter
 
@@ -20,16 +21,26 @@ from wayfarer.engine.simulation.resources import (
     Schedule,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.entropy import CommandRandom, commit_command
+from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.entropy import CommandRandom, SeedSource, commit_command, token_seed
+from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
 class ResourceService:
     def __init__(
-        self, store: AsyncSQLiteStore | AsyncPostgresStore, engine: ResourceEngine
+        self,
+        store: AsyncSQLiteStore | AsyncPostgresStore,
+        engine: ResourceEngine,
+        *,
+        sessions: SessionRegistry | None = None,
+        instants: Callable[[], CommandInstant] = capture_instant,
+        seeds: SeedSource = token_seed,
     ) -> None:
         self.store, self.engine = store, engine
+        self.sessions = SessionRegistry() if sessions is None else sessions
+        self.instants, self.seeds = instants, seeds
 
     async def create(self, campaign: Campaign, resources: ResourceState) -> None:
         """Trusted scenario activation; cannot overwrite an existing campaign."""
@@ -71,7 +82,7 @@ class ResourceService:
             return CommandReceipt(action="resource", outcome=command.kind)
 
         result = await commit_command(
-            self.store,
+            self,
             cid,
             command.id,
             command.expected_revision,
@@ -117,7 +128,7 @@ class ResourceService:
             return CommandReceipt(action="resource", outcome=command.kind)
 
         result = await commit_command(
-            self.store,
+            self,
             cid,
             command.id,
             command.expected_revision,
@@ -175,7 +186,7 @@ class ResourceService:
             return CommandReceipt(action="resource", outcome=command.kind)
 
         result = await commit_command(
-            self.store,
+            self,
             cid,
             command.id,
             command.expected_revision,

@@ -37,8 +37,8 @@ from wayfarer.engine.simulation.social.social import (
 )
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.play import PlayService
 
 
@@ -314,7 +314,7 @@ class SocialService:
             raise ValidationError("Invalid social command") from exc
         play = self.play.for_campaign(await self.play.store.read(cid))
         state = play._load(await play.store.read(cid))
-        member = CampaignAccess(play)._member(state, authenticated_gm_id)
+        member = member_for(state, authenticated_gm_id)
         if member.role != "gm" or authenticated_gm_id not in play.engine.reviewer.gm_ids:
             raise ValidationError("Social dispatch requires trusted director authority")
         profile_id = play.engine.reviewer.compiler.statistics_profile
@@ -338,7 +338,7 @@ class SocialService:
             return CommandReceipt(action="npc", outcome=outcome.model_dump_json())
 
         result = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

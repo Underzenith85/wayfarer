@@ -6,6 +6,7 @@ from pathlib import Path
 
 import aiohttp
 from aiohttp import web
+from support.runtime import build_runtime
 from test_basic_combat import provenance, start_basic
 from test_encounter_context import setup
 from test_reinforcements import board, reinforcement_facts, setup_profiled_basic
@@ -13,7 +14,6 @@ from test_reinforcements import board, reinforcement_facts, setup_profiled_basic
 from wayfarer.engine.simulation.combat.spatial import VisibilitySpatialFact
 from wayfarer.engine.simulation.hex_geometry import Hex, Pose
 from wayfarer.models import Record
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     BasicJoinPlacement,
     DeclareBasicSpatialFacts,
@@ -38,7 +38,7 @@ async def api(
         else {f"{principal}-token": principal for principal in ("alice", "scout", "gm")}
     )
     app = create_campaign_app(
-        CampaignAccess(play),
+        build_runtime(play),
         principals,
         legacy_routes=True,
     )

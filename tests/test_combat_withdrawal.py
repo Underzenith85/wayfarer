@@ -5,6 +5,7 @@ from pathlib import Path
 import aiohttp
 import pytest
 from aiohttp import web
+from support.runtime import build_runtime
 from test_reinforcements import (
     board,
     escalation,
@@ -22,7 +23,6 @@ from wayfarer.engine.simulation.combat.spatial import (
 )
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     BasicJoinPlacement,
     CombatService,
@@ -160,7 +160,7 @@ async def test_v2_http_executes_only_the_projected_controlled_withdrawal(
     other = next(m for m in state.members if "b" in m.actor_ids)
     command = enrich(play, state, project(play, state, member, "a"), member).withdrawals[0].command
     app = create_campaign_app(
-        CampaignAccess(play),
+        build_runtime(play),
         {"actor-token": member.principal_id, "other-token": other.principal_id},
         legacy_routes=True,
     )

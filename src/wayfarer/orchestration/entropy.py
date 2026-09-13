@@ -1,29 +1,52 @@
 """Command-scoped entropy at the transaction boundary, never on shared engines."""
 
+from __future__ import annotations
+
 import secrets
 from collections.abc import Callable
 from contextvars import ContextVar
 from copy import deepcopy
+from typing import Protocol
 
 from wayfarer.contracts import Campaign, CommandReceipt, TurnResult
 from wayfarer.engine.rules.checks import RandomSource, draw_index
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM, SeededRandom
 from wayfarer.engine.simulation.events import command_events
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.origins import current_origin
 from wayfarer.orchestration.replay_inputs import recorded_command
-from wayfarer.orchestration.sessions import REGISTRY
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.orchestration.sessions import SessionRegistry, Store
 from wayfarer.persistence.events import (
     CommandEntropy,
     CommandOrigin,
     CommandResolution,
     payload_digest,
 )
-from wayfarer.persistence.postgres import AsyncPostgresStore
+
+SeedSource = Callable[[], str]
+
+
+class CommandBoundary(Protocol):
+    """What a command needs from the service that owns it, and nothing more.
+
+    ``PlayService`` is the boundary in production. Declaring it structurally keeps
+    the entropy module below the services and lets the narrower resource service
+    commit through the same lock, clock and seed source.
+    """
+
+    store: Store
+    sessions: SessionRegistry
+    instants: Callable[[], CommandInstant]
+    seeds: SeedSource
+
 
 _active: ContextVar[RandomSource | None] = ContextVar("command_random", default=None)
+
+
+def token_seed() -> str:
+    """The production seed source; a runtime injects a scripted one in tests."""
+    return secrets.token_hex(32)
 
 
 class CommandRandom:
@@ -47,7 +70,7 @@ class CommandRandom:
 
 
 async def commit_command(
-    store: AsyncSQLiteStore | AsyncPostgresStore,
+    play: CommandBoundary,
     cid: str,
     request_id: str,
     revision: int,
@@ -60,9 +83,9 @@ async def commit_command(
     origin: CommandOrigin | None = None,
 ) -> TurnResult:
 
-    async with REGISTRY.serialized(store, cid):
+    async with play.sessions.serialized(cid):
         return await _commit_serialized(
-            store,
+            play,
             cid,
             request_id,
             revision,
@@ -76,7 +99,7 @@ async def commit_command(
 
 
 async def _commit_serialized(
-    store: AsyncSQLiteStore | AsyncPostgresStore,
+    play: CommandBoundary,
     cid: str,
     request_id: str,
     revision: int,
@@ -90,8 +113,10 @@ async def _commit_serialized(
 ) -> TurnResult:
     """Capture entropy and time before storage; retries return the winning receipt.
 
-    Explicit scripted sources remain useful for rule fixtures. Such records carry
-    an injected algorithm marker and never claim seed-only re-executability.
+    The instant and seed sources belong to the runtime that built this service, so a
+    test scripts them by construction. Explicit scripted RNG sources remain useful
+    for rule fixtures. Such records carry an injected algorithm marker and never
+    claim seed-only re-executability.
     """
     if not actor_id:
         raise ValidationError("Command requires a principal")
@@ -113,9 +138,9 @@ async def _commit_serialized(
         entropy = CommandEntropy(replay.entropy_seed, replay.rng_algorithm)
         origin = replay.origin
     else:
-        instant = instant if instant is not None else capture_instant()
+        instant = instant if instant is not None else play.instants()
         entropy = CommandEntropy(
-            seed=secrets.token_hex(32),
+            seed=play.seeds(),
             rng_algorithm="injected" if handle.injected is not None else RNG_ALGORITHM,
         )
     source = handle.injected or SeededRandom(entropy.seed)
@@ -130,7 +155,7 @@ async def _commit_serialized(
         finally:
             _active.reset(token)
 
-    return await store.commit_turn(
+    return await play.store.commit_turn(
         cid,
         request_id,
         revision,

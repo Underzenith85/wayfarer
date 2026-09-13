@@ -7,8 +7,8 @@ from aiohttp import web
 
 from wayfarer.adventures.lantern import adventure, engine
 from wayfarer.config import Settings
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.transport.campaign_api import create_campaign_app
 
@@ -22,7 +22,7 @@ def application(
     origins: frozenset[str] = frozenset({"http://127.0.0.1:8000"}),
 ) -> web.Application:
     return create_campaign_app(
-        CampaignAccess(PlayService(AsyncSQLiteStore(db), engine())),
+        CampaignRuntime(PlayService(AsyncSQLiteStore(db), engine())),
         tokens,
         scenario_templates=(adventure(), adventure(sequel=True)),
         legacy_routes=True,

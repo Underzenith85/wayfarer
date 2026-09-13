@@ -506,7 +506,7 @@ class PartyService:
             return CommandReceipt(action="party", outcome=command.kind)
 
         committed = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,

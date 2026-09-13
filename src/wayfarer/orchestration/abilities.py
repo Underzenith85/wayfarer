@@ -23,8 +23,8 @@ from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
 
@@ -302,7 +302,7 @@ class AbilityService:
         play = self.play.for_campaign(await self.play.store.read(cid))
         service = AbilityService(play)
         state = play._load(await play.store.read(cid))
-        member = CampaignAccess(play)._member(state, principal_id)
+        member = member_for(state, principal_id)
         if member.role != "player" or command.actor_id not in member.actor_ids:
             raise AuthorizationError("Ability actor is not controlled by principal")
         payload = principal_id + ":" + command.model_dump_json()
@@ -315,7 +315,7 @@ class AbilityService:
             return CommandReceipt(action="resource", outcome="ability")
 
         committed = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

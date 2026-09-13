@@ -6,7 +6,6 @@ import os
 from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from typing import cast
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -14,6 +13,7 @@ from openai_codex import ApprovalMode, AsyncCodex, Sandbox
 from openai_codex.generated.v2_all import GetAccountResponse, ItemCompletedNotification
 from openai_codex.models import Notification
 from openai_codex.types import TurnCompletedNotification
+from support.runtime import build_orchestrator, build_runtime
 from test_wave9 import prepare
 
 from wayfarer.errors import (
@@ -23,7 +23,6 @@ from wayfarer.errors import (
     ProviderTimeoutError,
     provider_diagnostic,
 )
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.codex import (
     CodexAuthenticationError,
     CodexCancelledError,
@@ -38,7 +37,6 @@ from wayfarer.orchestration.codex import (
 )
 from wayfarer.orchestration.providers import (
     Intent,
-    Orchestrator,
     ProviderReply,
     ProviderRequest,
     Usage,
@@ -151,7 +149,7 @@ async def test_codex_proposals_cannot_forge_rolls_and_narration_failure_keeps_co
     cid, play = await prepare(tmp_path)
     backend = FakeBackend()
     provider = CodexProvider(CodexSettings(sessions=tmp_path / "map.db"), backend=backend)
-    orchestrator = Orchestrator(CampaignAccess(play), provider, attempts=1)
+    orchestrator = build_orchestrator(build_runtime(play), provider, attempts=1)
     backend.reply = ProviderReply(payload_json='{"kind":"wait","ticks":1,"roll":3}', usage=Usage())
     with pytest.raises(ProviderError):
         await orchestrator.interpret_and_execute(
@@ -166,56 +164,107 @@ async def test_codex_proposals_cannot_forge_rolls_and_narration_failure_keeps_co
     assert (await play.store.read(cid))["revision"] == 1
 
 
-def sdk_fake(status: str = "completed", info: str | None = None) -> MagicMock:
-    client = MagicMock(spec=AsyncCodex)
-    client.account = AsyncMock(
-        return_value=GetAccountResponse.model_validate(
+class FakeTurn:
+    """One Codex turn: it records its interrupts and yields a scripted stream."""
+
+    def __init__(self, stream: Callable[[], AsyncIterator[Notification]]) -> None:
+        self.id = "turn-1"
+        self.stream = stream
+        self.interrupts = 0
+
+    async def interrupt(self) -> None:
+        self.interrupts += 1
+
+
+class FakeThread:
+    def __init__(self, turn: FakeTurn) -> None:
+        self.id = "sdk-thread"
+        self.handle = turn
+        self.turn_calls: list[dict[str, object]] = []
+        self.turn_failure: Exception | None = None
+
+    async def turn(self, _prompt: str, **kwargs: object) -> FakeTurn:
+        self.turn_calls.append(kwargs)
+        if self.turn_failure is not None:
+            raise self.turn_failure
+        return self.handle
+
+
+class FakeCodex:
+    """A hand-written stand-in for the Codex SDK client; every call is recorded.
+
+    The seam is the backend's ``client`` attribute, so a test injects this instead
+    of patching the SDK. Failures are scripted per stage rather than per method.
+    """
+
+    def __init__(self, status: str = "completed", info: str | None = None) -> None:
+        self.account_response = GetAccountResponse.model_validate(
             {
                 "account": {"type": "chatgpt", "email": None, "planType": "plus"},
                 "requiresOpenaiAuth": True,
             }
         )
-    )
-    thread = MagicMock()
-    thread.id = "sdk-thread"
-    client.thread_start = AsyncMock(return_value=thread)
-    client.thread_resume = AsyncMock(return_value=thread)
-    client.close = AsyncMock()
-    turn = MagicMock()
-    turn.id = "turn-1"
-    turn.interrupt = AsyncMock()
-    thread.turn = AsyncMock(return_value=turn)
+        self.failures: dict[str, Exception] = {}
+        self.starts: list[dict[str, object]] = []
+        self.resumes: list[str] = []
+        self.closes = 0
 
-    async def stream() -> AsyncIterator[Notification]:
-        item = ItemCompletedNotification.model_validate(
-            {
-                "threadId": "sdk-thread",
-                "turnId": "turn-1",
-                "completedAtMs": 1,
-                "item": {
-                    "id": "message",
-                    "type": "agentMessage",
-                    "phase": "final_answer",
-                    "text": '{"result":{"kind":"wait","ticks":1}}',
-                },
-            }
-        )
-        yield Notification(method="item/completed", payload=item)
-        completed = TurnCompletedNotification.model_validate(
-            {
-                "threadId": "sdk-thread",
-                "turn": {
-                    "id": "turn-1",
-                    "status": status,
-                    "items": [],
-                    "error": {"message": "SECRET_TOKEN", "codexErrorInfo": info} if info else None,
-                },
-            }
-        )
-        yield Notification(method="turn/completed", payload=completed)
+        async def stream() -> AsyncIterator[Notification]:
+            item = ItemCompletedNotification.model_validate(
+                {
+                    "threadId": "sdk-thread",
+                    "turnId": "turn-1",
+                    "completedAtMs": 1,
+                    "item": {
+                        "id": "message",
+                        "type": "agentMessage",
+                        "phase": "final_answer",
+                        "text": '{"result":{"kind":"wait","ticks":1}}',
+                    },
+                }
+            )
+            yield Notification(method="item/completed", payload=item)
+            completed = TurnCompletedNotification.model_validate(
+                {
+                    "threadId": "sdk-thread",
+                    "turn": {
+                        "id": "turn-1",
+                        "status": status,
+                        "items": [],
+                        "error": (
+                            {"message": "SECRET_TOKEN", "codexErrorInfo": info} if info else None
+                        ),
+                    },
+                }
+            )
+            yield Notification(method="turn/completed", payload=completed)
 
-    turn.stream = stream
-    return client
+        self.thread = FakeThread(FakeTurn(stream))
+
+    def fail(self, stage: str, error: Exception) -> None:
+        self.failures[stage] = error
+
+    def _check(self, stage: str) -> None:
+        error = self.failures.get(stage)
+        if error is not None:
+            raise error
+
+    async def account(self, *, refresh_token: bool = False) -> GetAccountResponse:
+        self._check("account")
+        return self.account_response
+
+    async def thread_start(self, **kwargs: object) -> FakeThread:
+        self._check("thread_start")
+        self.starts.append(kwargs)
+        return self.thread
+
+    async def thread_resume(self, thread_id: str, **kwargs: object) -> FakeThread:
+        self._check("thread_resume")
+        self.resumes.append(thread_id)
+        return self.thread
+
+    async def close(self) -> None:
+        self.closes += 1
 
 
 @pytest.mark.parametrize(
@@ -233,7 +282,7 @@ async def test_sdk_structured_stream_and_failure_mapping(
     tmp_path: Path, state: str, info: str | None, error: type[ProviderError] | None
 ) -> None:
     backend = SDKBackend(CodexSettings(home=tmp_path / "codex"))
-    fake = sdk_fake(state, info)
+    fake = FakeCodex(state, info)
     backend.client = cast(AsyncCodex, fake)
     bound: list[str] = []
 
@@ -244,18 +293,18 @@ async def test_sdk_structured_stream_and_failure_mapping(
         with pytest.raises(error) as caught:
             await backend.generate(request(), None, bind, lambda _: None)
         assert "SECRET_TOKEN" not in str(caught.value)
-        fake.thread_start.return_value.turn.return_value.interrupt.assert_awaited_once()
+        assert fake.thread.handle.interrupts == 1
     else:
         thread_id, reply = await backend.generate(request(), None, bind, lambda _: None)
         assert thread_id == "sdk-thread" and json.loads(reply.payload_json)["kind"] == "wait"
         await backend.generate(request(), thread_id, bind, lambda _: None)
-        fake.thread_resume.assert_awaited_once()
+        assert fake.resumes == [thread_id]
     assert bound[0] == "sdk-thread"
-    assert fake.thread_start.call_args.kwargs["sandbox"] is Sandbox.read_only
-    assert fake.thread_start.call_args.kwargs["approval_mode"] is ApprovalMode.deny_all
-    assert fake.thread_start.return_value.turn.call_args.kwargs[
-        "output_schema"
-    ] == codex_output_schema(Intent.model_json_schema())
+    assert fake.starts[0]["sandbox"] is Sandbox.read_only
+    assert fake.starts[0]["approval_mode"] is ApprovalMode.deny_all
+    assert fake.thread.turn_calls[0]["output_schema"] == codex_output_schema(
+        Intent.model_json_schema()
+    )
 
 
 async def test_sdk_missing_authentication_and_safe_runtime_config(tmp_path: Path) -> None:
@@ -265,11 +314,9 @@ async def test_sdk_missing_authentication_and_safe_runtime_config(tmp_path: Path
     assert "features.shell_tool=false" in config.config_overrides
     assert "features.view_image=false" in config.config_overrides
     assert "features.plugins=false" in config.config_overrides
-    fake = sdk_fake()
-    fake.account = AsyncMock(
-        return_value=GetAccountResponse.model_validate(
-            {"account": None, "requiresOpenaiAuth": True}
-        )
+    fake = FakeCodex()
+    fake.account_response = GetAccountResponse.model_validate(
+        {"account": None, "requiresOpenaiAuth": True}
     )
     backend.client = cast(AsyncCodex, fake)
 
@@ -278,7 +325,7 @@ async def test_sdk_missing_authentication_and_safe_runtime_config(tmp_path: Path
 
     with pytest.raises(CodexAuthenticationError, match="codex login"):
         await backend.generate(request(), None, bind, lambda _: None)
-    fake.thread_start.assert_not_called()
+    assert fake.starts == []
 
 
 @pytest.mark.parametrize(
@@ -288,11 +335,11 @@ async def test_sdk_failure_stage_is_public_but_raw_details_are_not(
     tmp_path: Path, stage: str
 ) -> None:
     backend = SDKBackend(CodexSettings(home=tmp_path / "profile"))
-    fake = sdk_fake()
+    fake = FakeCodex()
     backend.client = cast(AsyncCodex, fake)
     failure = RuntimeError("SECRET_TOKEN private prompt /private/profile")
     if stage == "turn_start":
-        fake.thread_start.return_value.turn.side_effect = failure
+        fake.thread.turn_failure = failure
     elif stage == "turn_stream":
 
         async def broken_stream() -> AsyncIterator[Notification]:
@@ -309,9 +356,9 @@ async def test_sdk_failure_stage_is_public_but_raw_details_are_not(
             )
             raise failure
 
-        fake.thread_start.return_value.turn.return_value.stream = broken_stream
+        fake.thread.handle.stream = broken_stream
     else:
-        getattr(fake, stage).side_effect = failure
+        fake.fail(stage, failure)
     provider = CodexProvider(CodexSettings(sessions=tmp_path / "map.db"), backend=backend)
     if stage == "thread_resume":
         await provider.sessions.get("actor-session")
@@ -489,7 +536,7 @@ async def test_sdk_uses_actual_play_schema_and_unwraps_response(tmp_path: Path) 
     from wayfarer.transport.v1.provider import interpretation_schema
 
     backend = SDKBackend(CodexSettings(home=tmp_path / "profile"))
-    fake = sdk_fake()
+    fake = FakeCodex()
     backend.client = cast(AsyncCodex, fake)
     provider = CodexProvider(CodexSettings(sessions=tmp_path / "map.db"), backend=backend)
     reply = ProviderReply.model_validate(
@@ -498,7 +545,7 @@ async def test_sdk_uses_actual_play_schema_and_unwraps_response(tmp_path: Path) 
         )
     )
     assert json.loads(reply.payload_json) == {"kind": "wait", "ticks": 1}
-    schema = fake.thread_start.return_value.turn.call_args.kwargs["output_schema"]
+    schema = cast(dict[str, object], fake.thread.turn_calls[0]["output_schema"])
     Draft202012Validator(schema).validate({"result": json.loads(reply.payload_json)})
 
 
@@ -555,7 +602,7 @@ async def test_configured_provider_http_path_and_scoped_status(
     monkeypatch.setattr("wayfarer.orchestration.provider_runtime.CodexProvider", factory)
     cid, play = await prepare(tmp_path)
     app = create_campaign_app(
-        CampaignAccess(play),
+        build_runtime(play),
         {"alice-token": "alice", "bob-token": "bob"},
         legacy_routes=True,
         settings=Settings(

@@ -288,7 +288,7 @@ class MedicalService:
             )
 
         committed = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

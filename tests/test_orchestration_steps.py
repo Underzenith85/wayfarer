@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from pathlib import Path
-from unittest.mock import patch
+from typing import NoReturn
 
 from test_combat import setup as combat_setup
 from test_combat import start
@@ -22,8 +22,32 @@ from wayfarer.orchestration.physical import (
     PhysicalRoute,
     reduce_physical,
 )
+from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.setup import SetupContext, reduce_setup
 from wayfarer.orchestration.spells import SpellExecutionContext, reduce_spell
+
+
+class NoTransaction(PlayService):
+    """A play handle whose transaction seams trip; a reducer must not use them."""
+
+    def checkpoint(self, *args: object, **kwargs: object) -> NoReturn:
+        raise AssertionError("reducer checkpointed")
+
+    def commit(self, *args: object, **kwargs: object) -> NoReturn:
+        raise AssertionError("reducer committed")
+
+
+def guarded(play: PlayService) -> NoTransaction:
+    """The same store, engine, lock and sources, minus the transaction verbs."""
+    return NoTransaction(
+        play.store,
+        play.engine,
+        rng=play.rng,
+        profiles=play.profiles,
+        sessions=play.sessions,
+        instants=play.instants,
+        seeds=play.seeds,
+    )
 
 
 async def test_physical_step_preserves_check_order_without_committing(tmp_path: Path) -> None:
@@ -39,12 +63,8 @@ async def test_physical_step_preserves_check_order_without_committing(tmp_path: 
     )
     dice = RecordedDice([1, 2, 3, 4, 3, 2])
     play.rng = dice
-    context = PhysicalContext(play.rules_context, lambda *_: route, dice)
-    with (
-        patch.object(play, "checkpoint", side_effect=AssertionError("reducer checkpointed")),
-        patch.object(play, "commit", side_effect=AssertionError("reducer committed")),
-    ):
-        updated, result = reduce_physical(before, command, context)
+    context = PhysicalContext(guarded(play).rules_context, lambda *_: route, dice)
+    updated, result = reduce_physical(before, command, context)
     assert before.model_dump_json() == encoded
     assert await play.store.read(cid) == campaign
     assert updated.revision == 1 and updated.resources.game_time == 60
@@ -58,22 +78,19 @@ async def test_combat_steps_compose_without_a_transaction(tmp_path: Path) -> Non
     campaign = await play.store.read(cid)
     before = play._load(campaign)
     encoded = before.model_dump_json()
-    with (
-        patch.object(play, "checkpoint", side_effect=AssertionError("reducer checkpointed")),
-        patch.object(play, "commit", side_effect=AssertionError("reducer committed")),
-    ):
-        started, result = reduce_combat(before, start(), CombatContext(play, before))
-        assert result.code == "combat.started"
-        started_json = started.model_dump_json()
-        command = TakeCombatTurn(
-            id="move",
-            actor_id="a",
-            expected_revision=1,
-            encounter_id="fight",
-            maneuver="move",
-            destination=GridPoint(x=1, y=0),
-        )
-        moved, result = reduce_combat(started, command, CombatContext(play, started))
+    fenced = guarded(play)
+    started, result = reduce_combat(before, start(), CombatContext(fenced, before))
+    assert result.code == "combat.started"
+    started_json = started.model_dump_json()
+    command = TakeCombatTurn(
+        id="move",
+        actor_id="a",
+        expected_revision=1,
+        encounter_id="fight",
+        maneuver="move",
+        destination=GridPoint(x=1, y=0),
+    )
+    moved, result = reduce_combat(started, command, CombatContext(fenced, started))
     assert before.model_dump_json() == encoded
     assert started.model_dump_json() == started_json
     assert await play.store.read(cid) == campaign
@@ -87,7 +104,7 @@ async def test_setup_activation_returns_an_independent_campaign(tmp_path: Path) 
     campaign = await setup.play.store.read(cid)
     original = deepcopy(campaign)
     command = SetupCommand(id="activate", expected_revision=3, operation="activate")
-    updated, result = reduce_setup(campaign, command, SetupContext(setup.play, "alice"))
+    updated, result = reduce_setup(campaign, command, SetupContext(guarded(setup.play), "alice"))
     assert result.phase == "active" and updated["revision"] == 4
     assert "play_json" in updated and "play_json" not in campaign
     assert campaign == original == await setup.play.store.read(cid)
@@ -103,7 +120,7 @@ async def test_spell_step_returns_the_completed_maneuver_result(tmp_path: Path) 
     dice = RecordedDice([3, 3, 3])
     play.rng = dice
     updated, result = reduce_spell(
-        before, spell_command(1), SpellExecutionContext(play.rules_context)
+        before, spell_command(1), SpellExecutionContext(guarded(play).rules_context)
     )
     assert result.outcome == "active"
     assert updated.encounters[0].current_actor_id == "b"

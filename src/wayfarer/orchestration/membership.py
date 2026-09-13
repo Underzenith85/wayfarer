@@ -1,7 +1,7 @@
 """Who a principal is in a campaign, and whether they may act for an actor.
 
 Membership is read before any authorized command runs, so it sits below the
-services that ask.  ``CampaignAccess`` keeps the two staticmethods its callers
+services that ask.  ``CampaignRuntime`` keeps the two staticmethods its callers
 already use and delegates here.
 """
 

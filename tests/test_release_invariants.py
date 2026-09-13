@@ -2,12 +2,13 @@
 
 import asyncio
 import json
-import secrets
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
+from support.runtime import build_orchestrator, build_runtime
 from test_compiler import compiler, draft
 from test_resources import engine, seed
 from test_wave9 import FakeProvider, prepare
@@ -15,7 +16,6 @@ from test_wave14 import Table
 
 from wayfarer.engine.simulation.resources import Consume, ResourceState, Transfer
 from wayfarer.errors import ProviderError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
 from wayfarer.transport.common import ACCESS_KEY
 
@@ -87,7 +87,7 @@ async def test_prompt_attacks_cannot_authorize_engine_mutations(
     before = await play.store.read(cid)
     provider = FakeProvider(payload)
     with pytest.raises(ProviderError):
-        await Orchestrator(CampaignAccess(play), provider).interpret_and_execute(
+        await build_orchestrator(build_runtime(play), provider).interpret_and_execute(
             cid,
             principal_id="alice",
             actor_id="a",
@@ -112,7 +112,7 @@ async def test_divergent_narration_never_changes_committed_state(tmp_path: Path)
 
     cid, play = await prepare(tmp_path)
     before = play._load(await play.store.read(cid))
-    result = await Orchestrator(CampaignAccess(play), Liar()).interpret_and_execute(
+    result = await build_orchestrator(build_runtime(play), Liar()).interpret_and_execute(
         cid,
         principal_id="alice",
         actor_id="a",
@@ -198,7 +198,7 @@ async def test_process_death_rolls_back_projection_event_and_receipt(tmp_path: P
     assert await reopened.replay(cid) == before
     assert await reopened.history(cid) == []
     assert await reopened.duplicate(cid, "fault", "fault") is None
-    await CampaignAccess(play).execute(
+    await build_runtime(play).execute(
         cid,
         {"id": "fault", "actor_id": "a", "expected_revision": 0, "kind": "wait", "ticks": 1},
         principal_id="alice",
@@ -232,14 +232,17 @@ async def test_fixture_fold_and_reexecution(
 
     monkeypatch.setattr(Orchestrator, "_call", forbidden)
     monkeypatch.setattr(Orchestrator, "_reply", forbidden)
-    from wayfarer.orchestration import entropy
 
-    def no_new_input(*args: object) -> None:
+    def no_new_input() -> NoReturn:
         raise AssertionError("Replay must use recorded entropy and time")
 
-    monkeypatch.setattr(entropy, "capture_instant", no_new_input)
-    monkeypatch.setattr(secrets, "token_hex", no_new_input)
-    checks = await verify_fixture(fixture, engine, tmp_path / "verify")
+    checks = await verify_fixture(
+        fixture,
+        engine,
+        tmp_path / "verify",
+        instants=no_new_input,
+        seeds=no_new_input,
+    )
     assert len(checks) == len(fixture.commands)
     assert all(check.folded and check.reexecuted and check.reason is None for check in checks)
 

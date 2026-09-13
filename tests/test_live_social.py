@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_social_dispatch import prepare
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -20,7 +21,6 @@ from wayfarer.engine.simulation.campaign.npcs import (
 from wayfarer.engine.simulation.health.fright import apply_effect, effects
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.fright import FrightDecision, FrightService
 from wayfarer.orchestration.npcs import checkpoint
 from wayfarer.orchestration.play import PlayService
@@ -189,7 +189,7 @@ async def test_npc_fright_and_failed_recovery_run_in_live_wait_transactions(tmp_
     )
     assert await restarted.execute(cid, second, authenticated_actor_id="a") == result
     assert saved == await restarted.store.replay(cid)
-    projection = await CampaignAccess(restarted).read(cid, principal_id="alice")
+    projection = await build_runtime(restarted).read(cid, principal_id="alice")
     assert "recovery_checks" not in str(projection) and "guard-alarm" not in str(projection)
 
 
@@ -252,7 +252,7 @@ async def test_authored_standing_drives_a_live_reaction_without_leaking_it(
         "reputation",
         "situation",
     ]
-    projection = str(await CampaignAccess(play).read(cid, principal_id="alice"))
+    projection = str(await build_runtime(play).read(cid, principal_id="alice"))
     for secret in ("informer", "recognition", "appearance", "handsome"):
         assert secret not in projection
 

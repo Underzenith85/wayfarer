@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from aiohttp.test_utils import TestClient, TestServer
+from support.runtime import build_runtime
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
 from wayfarer.engine.character.power import PowerPolicy, PowerReviewer
@@ -46,7 +47,6 @@ from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import EquipmentSpec, Item
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.profiles import ProfileMigrations, ProfileRuntime
 from wayfarer.orchestration.setup import SetupService
@@ -408,7 +408,7 @@ async def test_new_campaigns_select_exact_profiles_and_old_ones_stay_unchanged(
     tmp_path: Path,
 ) -> None:
     profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
+    setup = SetupService(build_runtime(profiles.play))
     graph = starting_scenario()
     default = await setup.create(
         CreateSetup(id="default", brief=graph.brief, graph=graph), principal_id="alice"
@@ -451,7 +451,7 @@ async def test_new_campaigns_select_exact_profiles_and_old_ones_stay_unchanged(
         )
     assert {c["id"] for c in await setup.play.store.listing()} == {default["id"], chosen["id"]}
     # A service composed without a registry cannot honour selections.
-    bare = SetupService(CampaignAccess(PlayService(profiles.store, build(PROTOTYPE_PROFILE))))
+    bare = SetupService(build_runtime(PlayService(profiles.store, build(PROTOTYPE_PROFILE))))
     with pytest.raises(ValidationError, match="unavailable"):
         await bare.create(
             CreateSetup(id="bare", brief=graph.brief, graph=graph, rules_profile=EXTENDED),
@@ -461,7 +461,7 @@ async def test_new_campaigns_select_exact_profiles_and_old_ones_stay_unchanged(
 
 async def test_dispatch_binds_each_campaign_to_its_own_profile(tmp_path: Path) -> None:
     profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
+    setup = SetupService(build_runtime(profiles.play))
     extended = await activated(setup, extended_graph(item=True, trait=True), EXTENDED)
     default = await activated(setup, starting_scenario(), None)
     # The extended character is illegal under the prototype profile...
@@ -474,14 +474,14 @@ async def test_dispatch_binds_each_campaign_to_its_own_profile(tmp_path: Path) -
         .valid
     )
     # ...yet dispatch loads each campaign through the service pinned to its own profile.
-    access = CampaignAccess(profiles.play)
-    bound = await access.runtime(extended)
+    access = build_runtime(profiles.play)
+    bound = await access.for_campaign(extended)
     assert bound.play.engine.reviewer.compiler.rules == EXTENDED_PROFILE.rules
     state = bound.play._load(await profiles.store.read(extended))
     assert state.resources.items[0].definition_id == "equipment:test-lantern"
-    assert (await access.runtime(default)).play.engine.reviewer.compiler.rules == DEFAULT_RULES
+    assert (await access.for_campaign(default)).play.engine.reviewer.compiler.rules == DEFAULT_RULES
     restarted = runtime(tmp_path)
-    again = await CampaignAccess(restarted.play).runtime(extended)
+    again = await build_runtime(restarted.play).for_campaign(extended)
     assert again.play.engine.digest == bound.play.engine.digest
     # Without a registry, a differently pinned campaign fails closed as before.
     bare = PlayService(profiles.store, build(PROTOTYPE_PROFILE))
@@ -495,7 +495,7 @@ async def test_migration_previews_incompatibilities_and_blocks_atomically(
     tmp_path: Path,
 ) -> None:
     profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
+    setup = SetupService(build_runtime(profiles.play))
     migrations = ProfileMigrations(profiles)
     cid = await activated(setup, extended_graph(item=True, trait=True), EXTENDED)
     preview = await migrations.preview(cid, PROTOTYPE, principal_id="alice")
@@ -530,7 +530,7 @@ async def test_migration_is_explicit_authorized_atomic_and_idempotent(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
+    setup = SetupService(build_runtime(profiles.play))
     migrations = ProfileMigrations(profiles)
     cid = await activated(setup, starting_scenario(), None)
     preview = await migrations.preview(cid, EXTENDED, principal_id="alice")
@@ -609,7 +609,7 @@ async def test_migration_is_explicit_authorized_atomic_and_idempotent(
         "title": EXTENDED_PROFILE.title,
         "supported": True,
     }
-    access = await CampaignAccess(profiles.play).runtime(cid)
+    access = await build_runtime(profiles.play).for_campaign(cid)
     state = access.play._load(migrated)
     assert [m.id for m in state.migrations] == ["m"]
     assert state.configuration_digest == access.play.engine.digest
@@ -635,7 +635,7 @@ async def test_migration_is_explicit_authorized_atomic_and_idempotent(
 
 async def test_only_the_host_migrates_a_shared_table(tmp_path: Path) -> None:
     profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
+    setup = SetupService(build_runtime(profiles.play))
     graph = starting_scenario(2)
     created = await setup.create(
         CreateSetup(id="shared", brief=graph.brief, graph=graph), principal_id="alice"
@@ -683,7 +683,7 @@ async def test_only_the_host_migrates_a_shared_table(tmp_path: Path) -> None:
     with pytest.raises(AuthorizationError, match="Only the host"):
         await migrations.apply(cid, approval, principal_id="bob")
     entry = await migrations.apply(cid, approval, principal_id="alice")
-    state = (await CampaignAccess(profiles.play).runtime(cid)).play._load(
+    state = (await build_runtime(profiles.play).for_campaign(cid)).play._load(
         await profiles.store.read(cid)
     )
     assert [a.approval.decision for a in state.actors if a.approval] == ["automatic", "automatic"]
@@ -693,7 +693,7 @@ async def test_only_the_host_migrates_a_shared_table(tmp_path: Path) -> None:
 async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> None:
     profiles = runtime(tmp_path)
     app = create_campaign_app(
-        CampaignAccess(profiles.play), TOKENS, scenario_templates=(starting_scenario(),)
+        build_runtime(profiles.play), TOKENS, scenario_templates=(starting_scenario(),)
     )
     graph = starting_scenario().model_dump(mode="json")
     async with TestClient(TestServer(app)) as client:
@@ -781,13 +781,13 @@ async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> N
         assert response.status == 200 and (await response.json())["entry"] == result["entry"]
         response = await client.get(f"/setups/{cid}", headers=ALICE)
         assert (await response.json())["rules"] == EXTENDED_PROFILE.reference
-        access = await client.app[SETUP_KEY].access.runtime(cid)
+        access = await client.app[SETUP_KEY].access.for_campaign(cid)
         assert access.play.engine.reviewer.compiler.rules == EXTENDED_PROFILE.rules
 
 
 async def test_servers_without_a_registry_expose_no_profiles(tmp_path: Path) -> None:
     play = PlayService(AsyncSQLiteStore(tmp_path / "bare.sqlite", 10), build(PROTOTYPE_PROFILE))
-    app = create_campaign_app(CampaignAccess(play), TOKENS)
+    app = create_campaign_app(build_runtime(play), TOKENS)
     async with TestClient(TestServer(app)) as client:
         response = await client.get("/setups/profiles", headers=ALICE)
         assert await response.json() == []

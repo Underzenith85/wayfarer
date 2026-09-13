@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_social_dispatch import prepare
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -11,8 +12,8 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.health.fright import effects, public_id
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
@@ -42,7 +43,7 @@ async def test_lasting_choice_visible_after_recovery_and_restart(tmp_path: Path)
     before = play._load(await play.store.read(cid))
     # Failure by 4, table dice 12 -> row 16: one quirk and timed stun.
     await fright(cid, play, [4, 5, 5, 4, 4, 4, 1])
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     initial = await access.read(cid, principal_id="alice")
     assert isinstance(initial["fright"], tuple)
     requirement = initial["fright"][0]
@@ -58,7 +59,7 @@ async def test_lasting_choice_visible_after_recovery_and_restart(tmp_path: Path)
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "social.sqlite", 10), play.engine, rng=RecordedDice([])
     )
-    access = CampaignAccess(restarted)
+    access = build_runtime(restarted)
     current = await access.read(cid, principal_id="alice")
     assert isinstance(current["fright"], tuple)
     assert current["fright"][0]["choices"] == requirement["choices"]
@@ -67,7 +68,7 @@ async def test_lasting_choice_visible_after_recovery_and_restart(tmp_path: Path)
     state = play._load(await play.store.read(cid))
     assert state.actors == before.actors
     assert (
-        CampaignAccess._projection(
+        CampaignRuntime._projection(
             state, CampaignMember(principal_id="observer", role="spectator")
         )["fright"]
         == ()
@@ -106,7 +107,7 @@ async def test_campaign_panic_decision_authority_replay_and_player_privacy(tmp_p
         ),
         authenticated_gm_id="gm",
     )
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     state = play._load(await play.store.read(cid))
     command: dict[str, object] = {
         "id": "decision",
@@ -160,7 +161,7 @@ async def test_care_through_authenticated_http(tmp_path: Path) -> None:
     )
     runner = web.AppRunner(
         create_campaign_app(
-            CampaignAccess(play),
+            build_runtime(play),
             {"gm-token": "gm", "player-token": "alice"},
             legacy_routes=True,
         )
