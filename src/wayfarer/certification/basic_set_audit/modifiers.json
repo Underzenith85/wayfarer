@@ -18,16 +18,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:accurate",
       "parent_id": null,
@@ -35,7 +37,7 @@
       "listed_value": "+5%/level",
       "construction_binding": "modifier:enhancement:accurate",
       "cost_owner": "modifier-catalog:modifier:enhancement:accurate",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -49,16 +51,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:affects-insubstantial",
       "parent_id": null,
@@ -66,7 +70,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:affects-insubstantial",
       "cost_owner": "modifier-catalog:modifier:enhancement:affects-insubstantial",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -80,16 +84,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:affects-substantial",
       "parent_id": null,
@@ -97,7 +103,7 @@
       "listed_value": "+40%",
       "construction_binding": "modifier:enhancement:affects-substantial",
       "cost_owner": "modifier-catalog:modifier:enhancement:affects-substantial",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -111,16 +117,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:area-effect",
       "parent_id": null,
@@ -128,7 +136,7 @@
       "listed_value": "+50%/level",
       "construction_binding": "modifier:enhancement:area-effect",
       "cost_owner": "modifier-catalog:modifier:enhancement:area-effect",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -147,12 +155,14 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        682
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -162,7 +172,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:armor-divisor",
       "cost_owner": "modifier-catalog:modifier:enhancement:armor-divisor",
-      "consequence_owner": 513,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -176,16 +186,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:aura",
       "parent_id": null,
@@ -193,7 +205,7 @@
       "listed_value": "+80%",
       "construction_binding": "modifier:enhancement:aura",
       "cost_owner": "modifier-catalog:modifier:enhancement:aura",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -207,16 +219,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:based-on-different-attribute",
       "parent_id": null,
@@ -224,7 +238,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:based-on-different-attribute",
       "cost_owner": "modifier-catalog:modifier:enhancement:based-on-different-attribute",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -243,12 +257,14 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        682
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -258,7 +274,7 @@
       "listed_value": "+100%",
       "construction_binding": "modifier:enhancement:blood-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:blood-agent",
-      "consequence_owner": 513,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -272,16 +288,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:cone",
       "parent_id": null,
@@ -289,7 +307,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:cone",
       "cost_owner": "modifier-catalog:modifier:enhancement:cone",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -308,12 +326,14 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        682
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -323,7 +343,7 @@
       "listed_value": "+150%",
       "construction_binding": "modifier:enhancement:contact-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:contact-agent",
-      "consequence_owner": 513,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -337,16 +357,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:cosmic",
       "parent_id": null,
@@ -354,7 +376,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:cosmic",
       "cost_owner": "modifier-catalog:modifier:enhancement:cosmic",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -368,16 +390,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:cyclic",
       "parent_id": null,
@@ -385,7 +409,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:cyclic",
       "cost_owner": "modifier-catalog:modifier:enhancement:cyclic",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -399,16 +423,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:damage-modifiers",
       "parent_id": null,
@@ -416,7 +442,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:damage-modifiers",
       "cost_owner": "modifier-catalog:modifier:enhancement:damage-modifiers",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -430,16 +456,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:delay",
       "parent_id": null,
@@ -447,7 +475,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:delay",
       "cost_owner": "modifier-catalog:modifier:enhancement:delay",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -461,16 +489,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:double-blunt-trauma-dbt",
       "parent_id": null,
@@ -478,7 +508,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:double-blunt-trauma-dbt",
       "cost_owner": "modifier-catalog:modifier:enhancement:double-blunt-trauma-dbt",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -492,16 +522,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:double-knockback-dkb",
       "parent_id": null,
@@ -509,7 +541,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:double-knockback-dkb",
       "cost_owner": "modifier-catalog:modifier:enhancement:double-knockback-dkb",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -523,16 +555,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:drifting",
       "parent_id": null,
@@ -540,7 +574,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:drifting",
       "cost_owner": "modifier-catalog:modifier:enhancement:drifting",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -554,16 +588,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:explosion-exp",
       "parent_id": null,
@@ -571,7 +607,7 @@
       "listed_value": "+50%/level",
       "construction_binding": "modifier:enhancement:explosion-exp",
       "cost_owner": "modifier-catalog:modifier:enhancement:explosion-exp",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -585,16 +621,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:extended-duration",
       "parent_id": null,
@@ -602,7 +640,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:extended-duration",
       "cost_owner": "modifier-catalog:modifier:enhancement:extended-duration",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -621,12 +659,14 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        682
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -636,7 +676,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:follow-up",
       "cost_owner": "modifier-catalog:modifier:enhancement:follow-up",
-      "consequence_owner": 513,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -650,16 +690,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:fragmentation-frag",
       "parent_id": null,
@@ -667,7 +709,7 @@
       "listed_value": "+15%/die",
       "construction_binding": "modifier:enhancement:fragmentation-frag",
       "cost_owner": "modifier-catalog:modifier:enhancement:fragmentation-frag",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -681,16 +723,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:guided",
       "parent_id": null,
@@ -698,7 +742,7 @@
       "listed_value": "+50%",
       "construction_binding": "modifier:enhancement:guided",
       "cost_owner": "modifier-catalog:modifier:enhancement:guided",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -712,16 +756,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:hazard",
       "parent_id": null,
@@ -729,7 +775,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:hazard",
       "cost_owner": "modifier-catalog:modifier:enhancement:hazard",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -743,16 +789,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:homing",
       "parent_id": null,
@@ -760,7 +808,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:homing",
       "cost_owner": "modifier-catalog:modifier:enhancement:homing",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -774,16 +822,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:incendiary-inc",
       "parent_id": null,
@@ -791,7 +841,7 @@
       "listed_value": "+10%",
       "construction_binding": "modifier:enhancement:incendiary-inc",
       "cost_owner": "modifier-catalog:modifier:enhancement:incendiary-inc",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -805,16 +855,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:increased-range",
       "parent_id": null,
@@ -822,7 +874,7 @@
       "listed_value": "+10%/level",
       "construction_binding": "modifier:enhancement:increased-range",
       "cost_owner": "modifier-catalog:modifier:enhancement:increased-range",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -836,16 +888,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:jet",
       "parent_id": null,
@@ -853,7 +907,7 @@
       "listed_value": "+0%",
       "construction_binding": "modifier:enhancement:jet",
       "cost_owner": "modifier-catalog:modifier:enhancement:jet",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -867,16 +921,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:link",
       "parent_id": null,
@@ -884,7 +940,7 @@
       "listed_value": "or +20%",
       "construction_binding": "modifier:enhancement:link",
       "cost_owner": "modifier-catalog:modifier:enhancement:link",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -898,16 +954,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:low-signature",
       "parent_id": null,
@@ -915,7 +973,7 @@
       "listed_value": "+10%",
       "construction_binding": "modifier:enhancement:low-signature",
       "cost_owner": "modifier-catalog:modifier:enhancement:low-signature",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -929,16 +987,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:malediction",
       "parent_id": null,
@@ -946,7 +1006,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:malediction",
       "cost_owner": "modifier-catalog:modifier:enhancement:malediction",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -960,16 +1020,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:mobile",
       "parent_id": null,
@@ -977,7 +1039,7 @@
       "listed_value": "+40%/level",
       "construction_binding": "modifier:enhancement:mobile",
       "cost_owner": "modifier-catalog:modifier:enhancement:mobile",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -991,16 +1053,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:no-signature",
       "parent_id": null,
@@ -1008,7 +1072,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:no-signature",
       "cost_owner": "modifier-catalog:modifier:enhancement:no-signature",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1022,16 +1086,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:overhead",
       "parent_id": null,
@@ -1039,7 +1105,7 @@
       "listed_value": "+30%",
       "construction_binding": "modifier:enhancement:overhead",
       "cost_owner": "modifier-catalog:modifier:enhancement:overhead",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1053,16 +1119,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:persistent",
       "parent_id": null,
@@ -1070,7 +1138,7 @@
       "listed_value": "+40%",
       "construction_binding": "modifier:enhancement:persistent",
       "cost_owner": "modifier-catalog:modifier:enhancement:persistent",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1084,16 +1152,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:radiation-rad",
       "parent_id": null,
@@ -1101,7 +1171,7 @@
       "listed_value": "or +100%",
       "construction_binding": "modifier:enhancement:radiation-rad",
       "cost_owner": "modifier-catalog:modifier:enhancement:radiation-rad",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1115,16 +1185,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:ranged",
       "parent_id": null,
@@ -1132,7 +1204,7 @@
       "listed_value": "+40%",
       "construction_binding": "modifier:enhancement:ranged",
       "cost_owner": "modifier-catalog:modifier:enhancement:ranged",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1146,16 +1218,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:rapid-fire",
       "parent_id": null,
@@ -1163,7 +1237,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:rapid-fire",
       "cost_owner": "modifier-catalog:modifier:enhancement:rapid-fire",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1177,16 +1251,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:reduced-fatigue-cost",
       "parent_id": null,
@@ -1194,7 +1270,7 @@
       "listed_value": "+20%/level",
       "construction_binding": "modifier:enhancement:reduced-fatigue-cost",
       "cost_owner": "modifier-catalog:modifier:enhancement:reduced-fatigue-cost",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1208,16 +1284,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:reduced-time",
       "parent_id": null,
@@ -1225,7 +1303,7 @@
       "listed_value": "+20%/level",
       "construction_binding": "modifier:enhancement:reduced-time",
       "cost_owner": "modifier-catalog:modifier:enhancement:reduced-time",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1244,12 +1322,14 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        682
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -1259,7 +1339,7 @@
       "listed_value": "+50%",
       "construction_binding": "modifier:enhancement:respiratory-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:respiratory-agent",
-      "consequence_owner": 513,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1273,16 +1353,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:selective-area",
       "parent_id": null,
@@ -1290,7 +1372,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:selective-area",
       "cost_owner": "modifier-catalog:modifier:enhancement:selective-area",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1304,16 +1386,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:selectivity",
       "parent_id": null,
@@ -1321,7 +1405,7 @@
       "listed_value": "+10%",
       "construction_binding": "modifier:enhancement:selectivity",
       "cost_owner": "modifier-catalog:modifier:enhancement:selectivity",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1340,12 +1424,14 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        682
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -1355,7 +1441,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:sense-based",
       "cost_owner": "modifier-catalog:modifier:enhancement:sense-based",
-      "consequence_owner": 513,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1374,12 +1460,14 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        682
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -1389,7 +1477,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:side-effect",
       "cost_owner": "modifier-catalog:modifier:enhancement:side-effect",
-      "consequence_owner": 513,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1403,16 +1491,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:surge-sur",
       "parent_id": null,
@@ -1420,7 +1510,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:surge-sur",
       "cost_owner": "modifier-catalog:modifier:enhancement:surge-sur",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1434,16 +1524,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:symptoms",
       "parent_id": null,
@@ -1451,7 +1543,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:symptoms",
       "cost_owner": "modifier-catalog:modifier:enhancement:symptoms",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1465,16 +1557,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:underwater",
       "parent_id": null,
@@ -1482,7 +1576,7 @@
       "listed_value": "+20%",
       "construction_binding": "modifier:enhancement:underwater",
       "cost_owner": "modifier-catalog:modifier:enhancement:underwater",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1496,16 +1590,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:variable",
       "parent_id": null,
@@ -1513,7 +1609,7 @@
       "listed_value": "+5%",
       "construction_binding": "modifier:enhancement:variable",
       "cost_owner": "modifier-catalog:modifier:enhancement:variable",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {
@@ -1527,16 +1623,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        682
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:wall",
       "parent_id": null,
@@ -1544,7 +1642,7 @@
       "listed_value": "or +60%",
       "construction_binding": "modifier:enhancement:wall",
       "cost_owner": "modifier-catalog:modifier:enhancement:wall",
-      "consequence_owner": 94,
+      "consequence_owner": 682,
       "source_review_owner": null
     },
     {

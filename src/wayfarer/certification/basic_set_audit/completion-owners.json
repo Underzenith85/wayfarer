@@ -14,6 +14,11 @@
       "title": "Compile leveled traits, self-control and ability modifiers"
     },
     {
+      "issue": 682,
+      "state": "open",
+      "title": "Execute all remaining advantage enhancements"
+    },
+    {
       "issue": 101,
       "state": "closed",
       "title": "Add typed GURPS weapon, armor and equipment profiles"

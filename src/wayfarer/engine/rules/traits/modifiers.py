@@ -72,6 +72,7 @@ class ModifierDefinition:
     excludes: tuple[str, ...] = ()
     runtime_hook: str | None = None
     campaign_permission: bool = False
+    selectable: bool = True
 
 
 class GadgetConstruction(Record):
@@ -91,12 +92,68 @@ class ModifierSelection(Record):
     option: str | None = None
     limited_by: ModifierSelection | None = None
     gadget: GadgetConstruction | None = None
+    parameters: EnhancementParameters | None = None
 
     @model_validator(mode="after")
     def nested_scope(self) -> Self:
         if self.limited_by is not None and self.limited_by.limited_by is not None:
             raise ValueError("Limited enhancements may contain only one limitation")
         return self
+
+
+class EnhancementParameters(Record):
+    """Source-bounded authored facts for variable enhancement consequences.
+
+    Cost approval and runtime meaning are intentionally separate.  In particular,
+    approving a percentage never grants an unnamed Cosmic bypass or an arbitrary
+    scheduled effect.
+    """
+
+    width_yards: int | None = Field(default=None, ge=1, le=1000)
+    cosmic_effect: (
+        Literal[
+            "remove-built-in-restriction",
+            "cosmic-defense",
+            "enduring-effect",
+            "irresistible-attack",
+        ]
+        | None
+    ) = None
+    interval_seconds: int | None = Field(default=None, ge=1, le=86_400)
+    cycles: int | None = Field(default=None, ge=2, le=1000)
+    contagious: Literal["none", "mild", "high"] | None = None
+    stop_condition: str | None = Field(default=None, min_length=1, max_length=200)
+    delay_seconds: int | None = Field(default=None, ge=0, le=31_536_000)
+    variable_delay_max_seconds: int | None = Field(default=None, ge=1, le=31_536_000)
+    trigger: str | None = Field(default=None, min_length=1, max_length=200)
+    carrier_id: str | None = Field(default=None, min_length=1, max_length=100)
+    homing_sense: str | None = Field(default=None, min_length=1, max_length=100)
+    linked_ability_id: str | None = Field(default=None, min_length=1, max_length=100)
+    rate_of_fire: int | None = Field(default=None, ge=2, le=300)
+    selective_fire: bool = False
+    resistance_attribute: Literal["st", "dx", "iq", "ht", "per", "will"] | None = None
+    hazard: (
+        Literal["dehydration", "drowning", "freezing", "missed-sleep", "starvation", "suffocation"]
+        | None
+    ) = None
+    symptom: str | None = Field(default=None, min_length=1, max_length=100)
+    symptom_threshold: Literal["one-third", "one-half", "two-thirds"] | None = None
+    permanent_end_condition: str | None = Field(default=None, min_length=1, max_length=200)
+    disabled_enhancements: tuple[str, ...] = ()
+    damage_fraction: Decimal | None = Field(default=None, gt=0, le=1)
+    damage_kind: (
+        Literal[
+            "burning",
+            "corrosion",
+            "crushing",
+            "cutting",
+            "fatigue",
+            "impaling",
+            "piercing",
+            "toxic",
+        ]
+        | None
+    ) = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,10 +182,14 @@ class ModifiedCost:
 
 
 class AttackProfile(Record):
+    damage_kind: Literal[
+        "burning", "corrosion", "crushing", "cutting", "fatigue", "impaling", "piercing", "toxic"
+    ] = "crushing"
     accuracy: int = Field(default=0, ge=0)
     max_range: int = Field(default=100, ge=0)
     area_radius: int = Field(default=0, ge=0)
     duration_seconds: int = Field(default=10, ge=0)
+    duration_end_condition: str | None = None
     armor_divisor: Decimal = Field(default=Decimal(1), gt=0)
     fatigue_cost: int = Field(default=0, ge=0)
     activation_seconds: int = Field(default=1, ge=0)
@@ -136,6 +197,54 @@ class AttackProfile(Record):
     penetration_modifier: PenetrationModifier = "ordinary"
     penetration_sense: str | None = None
     affliction_delivery: AfflictionDelivery = "direct"
+    half_damage_range: int = Field(default=10, ge=0)
+    affects_substantial: bool = True
+    affects_insubstantial: bool = False
+    usable_while_insubstantial: bool = False
+    is_ranged: bool = True
+    cone_width_yards: int | None = Field(default=None, ge=1)
+    aura: bool = False
+    resistance_attribute: Literal["st", "dx", "iq", "ht", "per", "will"] = "ht"
+    cosmic_effect: str | None = None
+    cyclic_interval_seconds: int | None = Field(default=None, ge=1)
+    cyclic_cycles: int = Field(default=1, ge=1)
+    cyclic_stop_condition: str | None = None
+    contagious: Literal["none", "mild", "high"] = "none"
+    delay_seconds: int = Field(default=0, ge=0)
+    delay_trigger: str | None = None
+    variable_delay_max_seconds: int | None = Field(default=None, ge=1)
+    blunt_trauma_multiplier: int = Field(default=1, ge=1)
+    knockback_multiplier: int = Field(default=1, ge=1)
+    explosion_divisor: int | None = Field(default=None, ge=1, le=3)
+    fragmentation_dice: int = Field(default=0, ge=0, le=12)
+    guidance: Literal["none", "guided", "homing"] = "none"
+    homing_sense: str | None = None
+    hazard: str | None = None
+    carrier_id: str | None = None
+    jet: bool = False
+    linked_ability_id: str | None = None
+    link_selectable: bool = False
+    signature: Literal["normal", "low", "none"] = "normal"
+    malediction_range: Literal["none", "yards", "speed-range", "long-distance"] = "none"
+    mobile_move: int = Field(default=0, ge=0)
+    overhead: bool = False
+    persistent: bool = False
+    drifting: bool = False
+    radiation_mode: Literal["none", "instead-of-damage", "additional"] = "none"
+    rate_of_fire: int = Field(default=1, ge=1, le=300)
+    selective_fire: bool = False
+    selective_area: bool = False
+    switchable_enhancements: bool = False
+    disabled_enhancements: tuple[str, ...] = ()
+    surge: bool = False
+    symptom: str | None = None
+    symptom_threshold: str | None = None
+    underwater_range_divisor: int | None = Field(default=None, ge=1)
+    variable_damage_fraction: Decimal = Field(default=Decimal(1), gt=0, le=1)
+    wall: Literal["none", "rigid", "permeable"] = "none"
+    wall_shape_flexible: bool = False
+    wall_dr_per_die: int = Field(default=0, ge=0)
+    wall_hp_per_die: Decimal = Field(default=Decimal(0), ge=0)
 
 
 class ModifierRuntimeReceipt(Record):
@@ -449,7 +558,7 @@ _DEFINITIONS: Final = (
         "modifier:enhancement:radiation-rad",
         "Radiation (rad)",
         105,
-        (("burn-only", 25), ("fatigue-only", 100)),
+        (("toxic", 25), ("burning", 100)),
         subjects=_ATTACK,
     ),
     _fixed("modifier:enhancement:ranged", "Ranged", 107, 40),
@@ -665,6 +774,9 @@ def _deduplicate_and_patch() -> tuple[ModifierDefinition, ...]:
         if existing is None or existing.cost_kind is CostKind.CAMPAIGN_APPROVAL:
             result[definition.id] = definition
     result[CONE] = replace(result[CONE], allowed_subjects=_ATTACK, excludes=_CONE_EXCLUSIONS)
+    result[JET] = replace(
+        result[JET], excludes=tuple(item for item in _CONE_EXCLUSIONS if item != JET)
+    )
     for identifier in _PENETRATION:
         result[identifier] = replace(
             result[identifier],
@@ -682,6 +794,125 @@ def _deduplicate_and_patch() -> tuple[ModifierDefinition, ...]:
         ("modifier:limitation:sense-based", "sense-based"),
     ):
         result[identifier] = replace(result[identifier], runtime_hook=hook)
+    enhancement_hooks = {
+        "modifier:enhancement:affects-insubstantial": "affects-insubstantial",
+        "modifier:enhancement:affects-substantial": "affects-substantial",
+        AURA: "aura",
+        "modifier:enhancement:based-on-different-attribute": "resistance-attribute",
+        CONE: "cone",
+        "modifier:enhancement:cosmic": "cosmic",
+        "modifier:enhancement:cyclic": "cyclic",
+        "modifier:enhancement:delay": "delay",
+        "modifier:enhancement:double-blunt-trauma-dbt": "double-blunt-trauma",
+        "modifier:enhancement:double-knockback-dkb": "double-knockback",
+        "modifier:enhancement:drifting": "drifting",
+        "modifier:enhancement:explosion-exp": "explosion",
+        "modifier:enhancement:fragmentation-frag": "fragmentation",
+        "modifier:enhancement:guided": "guided",
+        "modifier:enhancement:hazard": "hazard",
+        "modifier:enhancement:homing": "homing",
+        JET: "jet",
+        "modifier:enhancement:link": "link",
+        "modifier:enhancement:low-signature": "low-signature",
+        "modifier:enhancement:malediction": "malediction",
+        "modifier:enhancement:mobile": "mobile",
+        "modifier:enhancement:no-signature": "no-signature",
+        "modifier:enhancement:overhead": "overhead",
+        "modifier:enhancement:persistent": "persistent",
+        "modifier:enhancement:radiation-rad": "radiation",
+        "modifier:enhancement:ranged": "ranged",
+        RAPID_FIRE: "rapid-fire",
+        "modifier:enhancement:selective-area": "selective-area",
+        "modifier:enhancement:selectivity": "selectivity",
+        "modifier:enhancement:surge-sur": "surge",
+        "modifier:enhancement:symptoms": "symptoms",
+        "modifier:enhancement:underwater": "underwater",
+        "modifier:enhancement:variable": "variable",
+        "modifier:enhancement:wall": "wall",
+    }
+    for identifier, hook in enhancement_hooks.items():
+        result[identifier] = replace(result[identifier], runtime_hook=hook)
+    result["modifier:enhancement:damage-modifiers"] = replace(
+        result["modifier:enhancement:damage-modifiers"],
+        cost_kind=CostKind.FIXED,
+        percent=0,
+        campaign_permission=False,
+        runtime_hook="damage-modifier-family",
+        selectable=False,
+    )
+    result["modifier:enhancement:cyclic"] = replace(
+        result["modifier:enhancement:cyclic"],
+        allowed_subjects=frozenset({"innate-attack"}),
+    )
+    result["modifier:enhancement:hazard"] = replace(
+        result["modifier:enhancement:hazard"],
+        allowed_subjects=frozenset({"innate-attack"}),
+    )
+    result["modifier:enhancement:homing"] = replace(
+        result["modifier:enhancement:homing"],
+        allowed_subjects=_RANGED,
+        excludes=("modifier:enhancement:guided",),
+    )
+    result["modifier:enhancement:guided"] = replace(
+        result["modifier:enhancement:guided"], excludes=("modifier:enhancement:homing",)
+    )
+    result["modifier:enhancement:mobile"] = replace(
+        result["modifier:enhancement:mobile"],
+        requires=(AREA, "modifier:enhancement:persistent"),
+        excludes=("modifier:enhancement:drifting",),
+    )
+    result["modifier:enhancement:persistent"] = replace(
+        result["modifier:enhancement:persistent"], requires=(AREA,)
+    )
+    result["modifier:enhancement:wall"] = replace(
+        result["modifier:enhancement:wall"],
+        requires=(AREA, "modifier:enhancement:persistent"),
+    )
+    result["modifier:enhancement:symptoms"] = replace(
+        result["modifier:enhancement:symptoms"],
+        allowed_subjects=frozenset({"innate-attack"}),
+    )
+    result["modifier:enhancement:drifting"] = replace(
+        result["modifier:enhancement:drifting"], requires=()
+    )
+    result["modifier:enhancement:selective-area"] = replace(
+        result["modifier:enhancement:selective-area"], requires=()
+    )
+    result["modifier:enhancement:ranged"] = replace(
+        result["modifier:enhancement:ranged"], allowed_subjects=frozenset({"advantage"})
+    )
+    result["modifier:enhancement:reduced-time"] = replace(
+        result["modifier:enhancement:reduced-time"],
+        allowed_subjects=frozenset({"advantage", "defense"}),
+    )
+    result[INCREASED_RANGE] = replace(
+        result[INCREASED_RANGE], allowed_subjects=_RANGED | frozenset({"advantage"})
+    )
+    result["modifier:enhancement:low-signature"] = replace(
+        result["modifier:enhancement:low-signature"],
+        excludes=("modifier:enhancement:no-signature",),
+    )
+    result["modifier:enhancement:no-signature"] = replace(
+        result["modifier:enhancement:no-signature"],
+        excludes=("modifier:enhancement:low-signature",),
+    )
+    for identifier in (
+        "modifier:enhancement:blood-agent",
+        "modifier:enhancement:contact-agent",
+        "modifier:enhancement:respiratory-agent",
+    ):
+        result[identifier] = replace(result[identifier], requires=())
+    result["modifier:enhancement:explosion-exp"] = replace(
+        result["modifier:enhancement:explosion-exp"], maximum_level=3
+    )
+    result["modifier:enhancement:fragmentation-frag"] = replace(
+        result["modifier:enhancement:fragmentation-frag"], maximum_level=12
+    )
+    result["modifier:enhancement:radiation-rad"] = replace(
+        result["modifier:enhancement:radiation-rad"],
+        options=(CostOption("toxic", 25), CostOption("burning", 100)),
+        allowed_subjects=frozenset({"innate-attack"}),
+    )
     side_effect = "modifier:enhancement:side-effect"
     result[side_effect] = replace(
         result[side_effect],
@@ -758,7 +989,10 @@ def _table_percentage(
     options = {option.id: option.percent for option in definition.options}
     if selection.level != 1 or selection.option not in options:
         raise ValidationError("Modifier requires one trusted table option")
-    return options[selection.option]
+    value = options[selection.option]
+    if selection.definition_id == RAPID_FIRE and selection.parameters is not None:
+        value += 10 if selection.parameters.selective_fire else 0
+    return value
 
 
 def _breakable_percentage(gadget: GadgetConstruction) -> int:
@@ -832,6 +1066,62 @@ def _approved_percentage(
     if selection.level != 1 or len(matches) != 1:
         raise ValidationError("Modifier requires an exact campaign approval")
     value = matches[0].percent
+    if selection.definition_id == "modifier:enhancement:cosmic":
+        params = selection.parameters
+        cosmic_values = {
+            "remove-built-in-restriction": 50,
+            "cosmic-defense": 50,
+            "enduring-effect": 100,
+            "irresistible-attack": 300,
+        }
+        expected = (
+            None
+            if params is None or params.cosmic_effect is None
+            else cosmic_values[params.cosmic_effect]
+        )
+        if value != expected:
+            raise ValidationError("Cosmic approval percentage does not match its named effect")
+    params = selection.parameters
+    if selection.definition_id == CONE and params is not None:
+        expected = 50 + 10 * (params.width_yards or 0)
+        if selection.option != f"width-{params.width_yards}" or value != expected:
+            raise ValidationError("Cone approval does not match its authored width")
+    if selection.definition_id == "modifier:enhancement:cyclic" and params is not None:
+        intervals = {1: 100, 10: 50, 60: 40, 3600: 20, 86_400: 10}
+        base = None if params.interval_seconds is None else intervals.get(params.interval_seconds)
+        contagious = {"none": 0, "mild": 20, "high": 50}.get(params.contagious or "none", 0)
+        expected = (
+            None
+            if base is None or params.cycles is None
+            else base * (params.cycles - 1) + contagious
+        )
+        if value != expected:
+            raise ValidationError("Cyclic approval does not match interval, cycles, and contagion")
+    if selection.definition_id == "modifier:enhancement:delay" and params is not None:
+        expected = (
+            50
+            if params.trigger is not None
+            else 10
+            if params.variable_delay_max_seconds is not None
+            and params.variable_delay_max_seconds <= 10
+            else 20
+            if params.variable_delay_max_seconds is not None
+            else 0
+        )
+        if value != expected:
+            raise ValidationError("Delay approval does not match its authored mode")
+    if selection.definition_id == "modifier:enhancement:hazard" and params is not None:
+        hazard_values = {
+            "dehydration": 20,
+            "drowning": 0,
+            "freezing": 20,
+            "missed-sleep": 50,
+            "starvation": 40,
+            "suffocation": 0,
+        }
+        expected = None if params.hazard is None else hazard_values[params.hazard]
+        if value != expected or selection.option != params.hazard:
+            raise ValidationError("Hazard approval does not match its named effect")
     if definition.classification is ModifierClass.ENHANCEMENT and value < 0:
         raise ValidationError("Enhancement approval cannot reduce cost")
     if definition.classification is not ModifierClass.ENHANCEMENT and value > 0:
@@ -891,6 +1181,104 @@ def _percentage(
     return _limited_percentage(selection, definition, approvals, value)
 
 
+def _validate_modifier_definition(
+    subject: AbilityKind, selection: ModifierSelection, selected: set[str]
+) -> None:
+    definition = MODIFIER_INDEX.get(selection.definition_id)
+    if definition is None or subject not in definition.allowed_subjects:
+        raise ValidationError("Modifier is unavailable for this ability kind")
+    if not definition.selectable:
+        raise ValidationError("Modifier catalog grouping is not directly selectable")
+    if not set(definition.requires) <= selected:
+        raise ValidationError("Modifier prerequisite is absent")
+    if set(definition.excludes) & selected:
+        raise ValidationError("Incompatible ability modifiers")
+
+
+def _validate_unique_selection(
+    selection: ModifierSelection,
+    selections: tuple[ModifierSelection, ...],
+    selected: set[str],
+) -> None:
+    if selection.definition_id != UNIQUE:
+        return
+    if not {BREAKABLE, STOLEN} & selected:
+        raise ValidationError("Unique requires Breakable or Can Be Stolen")
+    facts = tuple(
+        candidate.gadget
+        for candidate in selections
+        if candidate.definition_id in {BREAKABLE, STOLEN} and candidate.gadget is not None
+    )
+    if not facts or not all(item.unique for item in facts):
+        raise ValidationError("Unique requires gadget facts marked unique")
+
+
+def _validate_spatial_relationships(
+    subject: AbilityKind,
+    selection: ModifierSelection,
+    selections: tuple[ModifierSelection, ...],
+    selected: set[str],
+) -> None:
+    if selection.definition_id == AURA:
+        melee = next(candidate for candidate in selections if candidate.definition_id == MELEE)
+        if melee.option != "reach-c":
+            raise ValidationError("Aura requires Melee Attack at reach C")
+    if selection.definition_id == "modifier:enhancement:drifting" and not selected & {
+        "modifier:enhancement:delay",
+        "modifier:enhancement:persistent",
+    }:
+        raise ValidationError("Drifting requires Delay or Persistent")
+    if selection.definition_id == "modifier:enhancement:selective-area" and not selected & {
+        AREA,
+        CONE,
+    }:
+        raise ValidationError("Selective Area requires Area Effect or Cone")
+    if selection.definition_id == "modifier:enhancement:extended-duration" and subject in _ATTACK:
+        if not selected & {AURA, "modifier:enhancement:persistent", "modifier:enhancement:wall"}:
+            raise ValidationError("Attack Extended Duration requires Aura, Persistent, or Wall")
+
+
+def _validate_delivery_relationships(selection: ModifierSelection, selected: set[str]) -> None:
+    if selection.definition_id in {
+        "modifier:enhancement:blood-agent",
+        "modifier:enhancement:contact-agent",
+    } and not selected & {AREA, CONE}:
+        raise ValidationError("Agent enhancement requires Area Effect or Cone")
+    if selection.definition_id == "modifier:enhancement:respiratory-agent" and not selected & {
+        AREA,
+        CONE,
+        JET,
+    }:
+        raise ValidationError("Respiratory Agent requires Area Effect, Cone, or Jet")
+    if selection.definition_id == "modifier:enhancement:malediction":
+        conventional = set(_PENETRATION) - {"modifier:enhancement:sense-based"}
+        if conventional & selected:
+            raise ValidationError("Malediction is incompatible with this penetration modifier")
+    params = selection.parameters
+    if (
+        selection.definition_id == "modifier:enhancement:cosmic"
+        and params is not None
+        and params.cosmic_effect == "irresistible-attack"
+        and set(_PENETRATION) & selected
+    ):
+        raise ValidationError("Irresistible Cosmic attack cannot add penetration modifiers")
+
+
+def _validate_selectivity(selection: ModifierSelection, selected: set[str]) -> None:
+    if selection.definition_id != "modifier:enhancement:selectivity":
+        return
+    disabled = set(selection.parameters.disabled_enhancements if selection.parameters else ())
+    if (
+        not disabled
+        or not disabled < selected
+        or any(
+            MODIFIER_INDEX[item].classification is not ModifierClass.ENHANCEMENT
+            for item in disabled
+        )
+    ):
+        raise ValidationError("Selectivity must name selected enhancements it can disable")
+
+
 def validate_selections(
     subject: AbilityKind,
     selections: tuple[ModifierSelection, ...],
@@ -900,28 +1288,17 @@ def validate_selections(
     if len(identifiers) != len(set(identifiers)):
         raise ValidationError("Duplicate ability modifier")
     selected = set(identifiers)
-    costs: list[ModifierCost] = []
     approval_index = {(approval.modifier_id, approval.option): approval for approval in approvals}
     if len(approval_index) != len(approvals):
         raise ValidationError("Duplicate campaign modifier approval")
+    costs: list[ModifierCost] = []
     for selection in selections:
-        definition = MODIFIER_INDEX.get(selection.definition_id)
-        if definition is None or subject not in definition.allowed_subjects:
-            raise ValidationError("Modifier is unavailable for this ability kind")
-        if not set(definition.requires) <= selected:
-            raise ValidationError("Modifier prerequisite is absent")
-        if set(definition.excludes) & selected:
-            raise ValidationError("Incompatible ability modifiers")
-        if selection.definition_id == UNIQUE and not {BREAKABLE, STOLEN} & selected:
-            raise ValidationError("Unique requires Breakable or Can Be Stolen")
-        if selection.definition_id == UNIQUE:
-            gadget_facts = tuple(
-                candidate.gadget
-                for candidate in selections
-                if candidate.definition_id in {BREAKABLE, STOLEN} and candidate.gadget is not None
-            )
-            if not gadget_facts or not all(facts.unique for facts in gadget_facts):
-                raise ValidationError("Unique requires gadget facts marked unique")
+        _validate_modifier_definition(subject, selection, selected)
+        _validate_unique_selection(selection, selections, selected)
+        _validate_runtime_parameters(selection)
+        _validate_spatial_relationships(subject, selection, selections, selected)
+        _validate_delivery_relationships(selection, selected)
+        _validate_selectivity(selection, selected)
         approval = approval_index.get((selection.definition_id, selection.option or ""))
         if approval is not None and subject not in approval.allowed_subjects:
             raise ValidationError("Campaign approval does not allow this ability kind")
@@ -933,6 +1310,144 @@ def validate_selections(
             )
         )
     return tuple(costs)
+
+
+_PARAMETER_FIELDS: Final[dict[str, frozenset[str]]] = {
+    CONE: frozenset({"width_yards"}),
+    "modifier:enhancement:cosmic": frozenset({"cosmic_effect"}),
+    "modifier:enhancement:cyclic": frozenset(
+        {"interval_seconds", "cycles", "contagious", "stop_condition", "damage_kind"}
+    ),
+    "modifier:enhancement:delay": frozenset(
+        {"delay_seconds", "variable_delay_max_seconds", "trigger"}
+    ),
+    "modifier:enhancement:follow-up": frozenset({"carrier_id"}),
+    "modifier:enhancement:homing": frozenset({"homing_sense"}),
+    "modifier:enhancement:link": frozenset({"linked_ability_id"}),
+    RAPID_FIRE: frozenset({"rate_of_fire", "selective_fire"}),
+    "modifier:enhancement:based-on-different-attribute": frozenset({"resistance_attribute"}),
+    "modifier:enhancement:hazard": frozenset({"hazard", "damage_kind"}),
+    "modifier:enhancement:radiation-rad": frozenset({"damage_kind"}),
+    "modifier:enhancement:extended-duration": frozenset({"permanent_end_condition"}),
+    "modifier:enhancement:selectivity": frozenset({"disabled_enhancements"}),
+    "modifier:enhancement:symptoms": frozenset({"symptom", "symptom_threshold", "damage_kind"}),
+    "modifier:enhancement:variable": frozenset({"damage_fraction"}),
+}
+
+
+def _provided_parameter_fields(parameters: EnhancementParameters | None) -> frozenset[str]:
+    if parameters is None:
+        return frozenset()
+    return frozenset(parameters.model_fields_set)
+
+
+def _validate_cosmic_parameters(
+    selection: ModifierSelection, params: EnhancementParameters
+) -> None:
+    if (
+        selection.definition_id == "modifier:enhancement:cosmic"
+        and selection.option != params.cosmic_effect
+    ):
+        raise ValidationError("Cosmic approval must name the exact supported effect")
+
+
+def _validate_cyclic_parameters(
+    selection: ModifierSelection, params: EnhancementParameters
+) -> None:
+    if selection.definition_id != "modifier:enhancement:cyclic":
+        return
+    if params.interval_seconds not in {1, 10, 60, 3600, 86_400}:
+        raise ValidationError("Cyclic interval is outside the Basic Set table")
+    if params.damage_kind not in {"burning", "corrosion", "fatigue", "toxic"}:
+        raise ValidationError("Cyclic requires burning, corrosion, fatigue, or toxic damage")
+    if params.damage_kind in {"burning", "corrosion"} and params.interval_seconds > 10:
+        raise ValidationError("Burning and corrosion cycles cannot exceed 10 seconds")
+
+
+def _validate_timing_parameters(
+    selection: ModifierSelection, params: EnhancementParameters
+) -> None:
+    if selection.definition_id == "modifier:enhancement:delay":
+        modes = sum(
+            value is not None
+            for value in (params.delay_seconds, params.variable_delay_max_seconds, params.trigger)
+        )
+        if modes != 1:
+            raise ValidationError("Delay requires exactly one fixed delay or named trigger")
+    if (
+        selection.definition_id == "modifier:enhancement:extended-duration"
+        and selection.option == "permanent"
+        and params.permanent_end_condition is None
+    ):
+        raise ValidationError("Permanent duration requires a named ending condition")
+
+
+def _validate_damage_parameters(
+    selection: ModifierSelection, params: EnhancementParameters
+) -> None:
+    if selection.definition_id == "modifier:enhancement:hazard" and params.damage_kind != "fatigue":
+        raise ValidationError("Hazard is only available for fatigue damage")
+    if selection.definition_id == "modifier:enhancement:radiation-rad":
+        if params.damage_kind not in {"burning", "toxic"}:
+            raise ValidationError("Radiation requires burning or toxic damage")
+        if selection.option != params.damage_kind:
+            raise ValidationError("Radiation cost option must match its damage type")
+
+
+def _validate_rapid_fire_parameters(
+    selection: ModifierSelection, params: EnhancementParameters
+) -> None:
+    if selection.definition_id != RAPID_FIRE:
+        return
+    rof = params.rate_of_fire or 0
+    bands = {
+        "rof-2": range(2, 3),
+        "rof-3": range(3, 4),
+        "rof-4-7": range(4, 8),
+        "rof-8-15": range(8, 16),
+        "rof-16-30": range(16, 31),
+        "rof-31-70": range(31, 71),
+        "rof-71-150": range(71, 151),
+        "rof-151-300": range(151, 301),
+    }
+    if selection.option not in bands or rof not in bands[selection.option]:
+        raise ValidationError("Rapid Fire rate does not match its Basic Set cost band")
+    if params.selective_fire and rof < 5:
+        raise ValidationError("Selective Fire requires Rate of Fire 5 or higher")
+
+
+def _validate_runtime_parameters(selection: ModifierSelection) -> None:
+    """Reject unnamed, irrelevant, or internally inconsistent runtime effects."""
+    allowed = _PARAMETER_FIELDS.get(selection.definition_id, frozenset())
+    provided = _provided_parameter_fields(selection.parameters)
+    if provided - allowed:
+        raise ValidationError("Enhancement has unsupported runtime parameters")
+    required: dict[str, frozenset[str]] = {
+        CONE: frozenset({"width_yards"}),
+        "modifier:enhancement:cosmic": frozenset({"cosmic_effect"}),
+        "modifier:enhancement:cyclic": frozenset(
+            {"interval_seconds", "cycles", "stop_condition", "damage_kind"}
+        ),
+        "modifier:enhancement:follow-up": frozenset({"carrier_id"}),
+        "modifier:enhancement:homing": frozenset({"homing_sense"}),
+        "modifier:enhancement:link": frozenset({"linked_ability_id"}),
+        RAPID_FIRE: frozenset({"rate_of_fire"}),
+        "modifier:enhancement:based-on-different-attribute": frozenset({"resistance_attribute"}),
+        "modifier:enhancement:hazard": frozenset({"hazard", "damage_kind"}),
+        "modifier:enhancement:radiation-rad": frozenset({"damage_kind"}),
+        "modifier:enhancement:symptoms": frozenset({"symptom", "symptom_threshold", "damage_kind"}),
+        "modifier:enhancement:variable": frozenset({"damage_fraction"}),
+    }
+    if not required.get(selection.definition_id, frozenset()) <= provided:
+        raise ValidationError("Enhancement requires explicit runtime parameters")
+    params = selection.parameters
+    if params is None:
+        return
+    _validate_cosmic_parameters(selection, params)
+    _validate_cyclic_parameters(selection, params)
+    _validate_timing_parameters(selection, params)
+    _validate_damage_parameters(selection, params)
+    _validate_rapid_fire_parameters(selection, params)
 
 
 def modified_cost(
@@ -986,77 +1501,420 @@ def gadget_available(selections: tuple[ModifierSelection, ...], state: GadgetSta
     return state.held and not state.broken and not state.stolen
 
 
+RuntimeAdapter = Callable[
+    [AttackProfile, ModifierSelection, ModifierDefinition, EnhancementParameters], AttackProfile
+]
+
+
+def _accuracy_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del parameters
+    delta = selection.level * (1 if definition.classification is ModifierClass.ENHANCEMENT else -1)
+    if profile.accuracy + delta < 0:
+        raise ValidationError("Inaccurate cannot reduce Accuracy below zero")
+    return profile.model_copy(update={"accuracy": profile.accuracy + delta})
+
+
+def _range_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del parameters
+    multiplier = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000)[selection.level]
+    value = (
+        profile.max_range * multiplier
+        if definition.classification is ModifierClass.ENHANCEMENT
+        else profile.max_range // multiplier
+    )
+    return profile.model_copy(update={"max_range": value})
+
+
+def _duration_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del definition
+    multipliers = {
+        "3x": 3,
+        "10x": 10,
+        "30x": 30,
+        "100x": 100,
+        "300x": 300,
+        "1000x": 1000,
+    }
+    permanent = selection.option == "permanent"
+    seconds = 0 if permanent else profile.duration_seconds * multipliers[selection.option or ""]
+    return profile.model_copy(
+        update={
+            "duration_seconds": seconds,
+            "duration_end_condition": parameters.permanent_end_condition if permanent else None,
+        }
+    )
+
+
+def _penetration_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del selection
+    update: dict[str, object] = {"penetration_modifier": definition.runtime_hook}
+    if definition.runtime_hook == "follow-up":
+        update["carrier_id"] = parameters.carrier_id
+    return profile.model_copy(update=update)
+
+
+def _sense_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del definition, parameters
+    if not selection.option:
+        raise ValidationError("Sense-Based requires an authored target sense")
+    return profile.model_copy(
+        update={"penetration_modifier": "sense-based", "penetration_sense": selection.option}
+    )
+
+
+def _activation_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del parameters
+    seconds = (
+        max(0, profile.activation_seconds // (2**selection.level))
+        if definition.classification is ModifierClass.ENHANCEMENT
+        else profile.activation_seconds * (2**selection.level)
+    )
+    return profile.model_copy(update={"activation_seconds": seconds})
+
+
+def _wall_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del definition, parameters
+    rigid = selection.option == "rigid"
+    return profile.model_copy(
+        update={
+            "wall": selection.option,
+            "wall_shape_flexible": selection.option == "permeable",
+            "wall_dr_per_die": 3 if rigid else 0,
+            "wall_hp_per_die": Decimal("0.5") if rigid else Decimal(0),
+        }
+    )
+
+
+_STATIC_RUNTIME_UPDATES: Final[dict[str, dict[str, object]]] = {
+    "affects-insubstantial": {"affects_insubstantial": True},
+    "affects-substantial": {
+        "affects_substantial": True,
+        "affects_insubstantial": True,
+        "usable_while_insubstantial": True,
+    },
+    "aura": {"aura": True, "is_ranged": False, "max_range": 0},
+    "double-blunt-trauma": {"blunt_trauma_multiplier": 2},
+    "double-knockback": {"knockback_multiplier": 2},
+    "drifting": {"drifting": True},
+    "guided": {"guidance": "guided"},
+    "jet": {"jet": True, "accuracy": 0, "half_damage_range": 0, "rate_of_fire": 1},
+    "low-signature": {"signature": "low"},
+    "no-signature": {"signature": "none"},
+    "overhead": {"overhead": True},
+    "persistent": {"persistent": True, "duration_seconds": 10},
+    "ranged": {
+        "is_ranged": True,
+        "half_damage_range": 10,
+        "max_range": 100,
+        "accuracy": 3,
+        "rate_of_fire": 1,
+        "duration_seconds": 10,
+    },
+    "selective-area": {"selective_area": True},
+    "side-effect": {"affliction_delivery": "side-effect"},
+    "surge": {"surge": True},
+    "underwater": {"underwater_range_divisor": 10},
+}
+
+
+_RUNTIME_ADAPTERS: Final[dict[str, RuntimeAdapter]] = {
+    "accuracy": _accuracy_adapter,
+    "range": _range_adapter,
+    "area": lambda p, s, d, x: p.model_copy(update={"area_radius": 2**s.level}),
+    "resistance-attribute": lambda p, s, d, x: p.model_copy(
+        update={"resistance_attribute": x.resistance_attribute}
+    ),
+    "cone": lambda p, s, d, x: p.model_copy(update={"cone_width_yards": x.width_yards}),
+    "cosmic": lambda p, s, d, x: p.model_copy(update={"cosmic_effect": x.cosmic_effect}),
+    "cyclic": lambda p, s, d, x: p.model_copy(
+        update={
+            "cyclic_interval_seconds": x.interval_seconds,
+            "cyclic_cycles": x.cycles,
+            "cyclic_stop_condition": x.stop_condition,
+            "contagious": x.contagious or "none",
+        }
+    ),
+    "duration": _duration_adapter,
+    "delay": lambda p, s, d, x: p.model_copy(
+        update={
+            "delay_seconds": x.delay_seconds or 0,
+            "variable_delay_max_seconds": x.variable_delay_max_seconds,
+            "delay_trigger": x.trigger,
+        }
+    ),
+    "armor-divisor": lambda p, s, d, x: p.model_copy(
+        update={
+            "armor_divisor": Decimal(s.option or "1"),
+            "penetration_modifier": "armor-divisor",
+        }
+    ),
+    "blood-agent": _penetration_adapter,
+    "contact-agent": _penetration_adapter,
+    "respiratory-agent": _penetration_adapter,
+    "follow-up": _penetration_adapter,
+    "sense-based": _sense_adapter,
+    "fatigue": lambda p, s, d, x: p.model_copy(
+        update={"fatigue_cost": max(0, p.fatigue_cost - s.level)}
+    ),
+    "fatigue-cost": lambda p, s, d, x: p.model_copy(
+        update={"fatigue_cost": p.fatigue_cost + s.level}
+    ),
+    "activation-time": _activation_adapter,
+    "explosion": lambda p, s, d, x: p.model_copy(update={"explosion_divisor": 4 - s.level}),
+    "fragmentation": lambda p, s, d, x: p.model_copy(update={"fragmentation_dice": s.level}),
+    "homing": lambda p, s, d, x: p.model_copy(
+        update={"guidance": "homing", "homing_sense": x.homing_sense}
+    ),
+    "hazard": lambda p, s, d, x: p.model_copy(update={"hazard": x.hazard}),
+    "link": lambda p, s, d, x: p.model_copy(
+        update={
+            "linked_ability_id": x.linked_ability_id,
+            "link_selectable": s.option == "selectable",
+        }
+    ),
+    "malediction": lambda p, s, d, x: p.model_copy(
+        update={
+            "malediction_range": {
+                "1": "yards",
+                "2": "speed-range",
+                "3": "long-distance",
+            }[s.option or ""],
+            "armor_divisor": Decimal("1000000"),
+        }
+    ),
+    "mobile": lambda p, s, d, x: p.model_copy(update={"mobile_move": s.level}),
+    "radiation": lambda p, s, d, x: p.model_copy(
+        update={
+            "radiation_mode": ("instead-of-damage" if x.damage_kind == "toxic" else "additional")
+        }
+    ),
+    "rapid-fire": lambda p, s, d, x: p.model_copy(
+        update={"rate_of_fire": x.rate_of_fire, "selective_fire": x.selective_fire}
+    ),
+    "selectivity": lambda p, s, d, x: p.model_copy(
+        update={
+            "switchable_enhancements": True,
+            "disabled_enhancements": x.disabled_enhancements,
+        }
+    ),
+    "symptoms": lambda p, s, d, x: p.model_copy(
+        update={"symptom": x.symptom, "symptom_threshold": x.symptom_threshold}
+    ),
+    "variable": lambda p, s, d, x: p.model_copy(
+        update={"variable_damage_fraction": x.damage_fraction}
+    ),
+    "wall": _wall_adapter,
+}
+
+
 def _apply_attack_modifier(
     result: AttackProfile,
     selection: ModifierSelection,
     definition: ModifierDefinition,
 ) -> AttackProfile:
-    range_multipliers = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000)
-    if definition.runtime_hook == "accuracy":
-        delta = selection.level * (
-            1 if definition.classification is ModifierClass.ENHANCEMENT else -1
-        )
-        if result.accuracy + delta < 0:
-            raise ValidationError("Inaccurate cannot reduce Accuracy below zero")
-        return result.model_copy(update={"accuracy": result.accuracy + delta})
-    if definition.runtime_hook == "range":
-        divisor_or_multiplier = range_multipliers[selection.level]
-        value = (
-            result.max_range * divisor_or_multiplier
-            if definition.classification is ModifierClass.ENHANCEMENT
-            else result.max_range // divisor_or_multiplier
-        )
-        return result.model_copy(update={"max_range": value})
-    if definition.runtime_hook == "area":
-        return result.model_copy(update={"area_radius": 2**selection.level})
-    if definition.runtime_hook == "duration":
-        multipliers = {"3x": 3, "10x": 10, "30x": 30, "100x": 100, "300x": 300, "1000x": 1000}
-        seconds = (
-            0
-            if selection.option == "permanent"
-            else result.duration_seconds * multipliers[selection.option or ""]
-        )
-        return result.model_copy(update={"duration_seconds": seconds})
-    if definition.runtime_hook == "armor-divisor":
-        return result.model_copy(
-            update={
-                "armor_divisor": Decimal(selection.option or "1"),
-                "penetration_modifier": "armor-divisor",
-            }
-        )
-    if definition.runtime_hook in {
-        "blood-agent",
-        "contact-agent",
-        "respiratory-agent",
-        "follow-up",
-    }:
-        return result.model_copy(update={"penetration_modifier": definition.runtime_hook})
-    if definition.runtime_hook == "sense-based":
-        if not selection.option:
-            raise ValidationError("Sense-Based requires an authored target sense")
-        return result.model_copy(
-            update={"penetration_modifier": "sense-based", "penetration_sense": selection.option}
-        )
-    if definition.runtime_hook == "side-effect":
-        return result.model_copy(update={"affliction_delivery": "side-effect"})
-    if definition.runtime_hook == "fatigue":
-        return result.model_copy(
-            update={"fatigue_cost": max(0, result.fatigue_cost - selection.level)}
-        )
-    if definition.runtime_hook == "fatigue-cost":
-        return result.model_copy(update={"fatigue_cost": result.fatigue_cost + selection.level})
-    if definition.runtime_hook == "activation-time":
-        seconds = (
-            max(0, result.activation_seconds // (2**selection.level))
-            if definition.classification is ModifierClass.ENHANCEMENT
-            else result.activation_seconds * (2**selection.level)
-        )
-        return result.model_copy(update={"activation_seconds": seconds})
-    if definition.runtime_hook in {"incendiary", "no-blunt-trauma", "no-knockback", "no-wounding"}:
-        return result.model_copy(
-            update={"damage_tags": result.damage_tags + (definition.runtime_hook,)}
-        )
+    hook = definition.runtime_hook or ""
+    static_update = _STATIC_RUNTIME_UPDATES.get(hook)
+    if static_update is not None:
+        return result.model_copy(update=static_update)
+    adapter = _RUNTIME_ADAPTERS.get(hook)
+    if adapter is not None:
+        parameters = selection.parameters or EnhancementParameters()
+        return adapter(result, selection, definition, parameters)
+    if hook in {"incendiary", "no-blunt-trauma", "no-knockback", "no-wounding"}:
+        return result.model_copy(update={"damage_tags": result.damage_tags + (hook,)})
     return result
+
+
+_RUNTIME_HOOK_ORDER: Final = (
+    "affects-insubstantial",
+    "affects-substantial",
+    "ranged",
+    "range",
+    "underwater",
+    "accuracy",
+    "area",
+    "cone",
+    "aura",
+    "persistent",
+    "duration",
+    "delay",
+    "drifting",
+    "mobile",
+    "wall",
+    "resistance-attribute",
+    "malediction",
+    "armor-divisor",
+    "blood-agent",
+    "contact-agent",
+    "respiratory-agent",
+    "follow-up",
+    "sense-based",
+    "cosmic",
+    "double-blunt-trauma",
+    "double-knockback",
+    "explosion",
+    "fragmentation",
+    "incendiary",
+    "radiation",
+    "surge",
+    "hazard",
+    "cyclic",
+    "symptoms",
+    "side-effect",
+    "guided",
+    "homing",
+    "jet",
+    "overhead",
+    "rapid-fire",
+    "low-signature",
+    "no-signature",
+    "selective-area",
+    "selectivity",
+    "variable",
+    "link",
+    "fatigue",
+    "fatigue-cost",
+    "activation-time",
+    "no-blunt-trauma",
+    "no-knockback",
+    "no-wounding",
+)
+_RUNTIME_ORDER_INDEX: Final = {hook: index for index, hook in enumerate(_RUNTIME_HOOK_ORDER)}
+
+
+def _runtime_order(selection: ModifierSelection) -> tuple[int, str]:
+    definition = MODIFIER_INDEX[selection.definition_id]
+    return (
+        _RUNTIME_ORDER_INDEX.get(definition.runtime_hook or "", len(_RUNTIME_HOOK_ORDER)),
+        definition.id,
+    )
+
+
+def _validate_profile_compatibility(
+    profile: AttackProfile, selections: tuple[ModifierSelection, ...]
+) -> None:
+    selected = {selection.definition_id: selection for selection in selections}
+    if "modifier:enhancement:double-blunt-trauma-dbt" in selected and profile.damage_kind not in {
+        "burning",
+        "corrosion",
+        "cutting",
+        "impaling",
+        "piercing",
+    }:
+        raise ValidationError("Double Blunt Trauma is unavailable for this damage type")
+    if "modifier:enhancement:double-knockback-dkb" in selected and profile.damage_kind not in {
+        "crushing",
+        "cutting",
+    }:
+        raise ValidationError("Double Knockback requires crushing or cutting damage")
+    if "modifier:enhancement:explosion-exp" in selected and profile.damage_kind not in {
+        "crushing",
+        "burning",
+    }:
+        raise ValidationError("Explosion requires crushing or burning damage")
+    if "modifier:enhancement:incendiary-inc" in selected and profile.damage_kind == "burning":
+        raise ValidationError("A burning attack cannot add Incendiary")
+    for identifier in (
+        "modifier:enhancement:cyclic",
+        "modifier:enhancement:hazard",
+        "modifier:enhancement:radiation-rad",
+        "modifier:enhancement:symptoms",
+    ):
+        selection = selected.get(identifier)
+        if (
+            selection is not None
+            and selection.parameters is not None
+            and selection.parameters.damage_kind != profile.damage_kind
+        ):
+            raise ValidationError("Enhancement damage type does not match the attack profile")
+    wall = selected.get("modifier:enhancement:wall")
+    if (
+        wall is not None
+        and wall.option == "rigid"
+        and profile.damage_kind
+        not in {
+            "crushing",
+            "cutting",
+            "impaling",
+            "piercing",
+        }
+    ):
+        raise ValidationError("Rigid Wall requires physical damage")
+    if "modifier:enhancement:reduced-fatigue-cost" in selected:
+        level = selected["modifier:enhancement:reduced-fatigue-cost"].level
+        if profile.fatigue_cost == 0 or level > profile.fatigue_cost:
+            raise ValidationError("Reduced Fatigue Cost requires enough existing FP cost")
+    if "modifier:enhancement:ranged" in selected and profile.is_ranged:
+        raise ValidationError("Ranged cannot modify an ability that already has range")
+    if "modifier:enhancement:malediction" in selected:
+        forbidden = {
+            ACCURATE,
+            INCREASED_RANGE,
+            "modifier:enhancement:guided",
+            "modifier:enhancement:homing",
+            "modifier:enhancement:overhead",
+            RAPID_FIRE,
+        }
+        if forbidden & selected.keys():
+            raise ValidationError("Malediction cannot use conventional ranged attack modifiers")
+
+
+def apply_ability_modifiers(
+    profile: AttackProfile,
+    subject: AbilityKind,
+    selections: tuple[ModifierSelection, ...],
+    approvals: tuple[ModifierApproval, ...] = (),
+) -> ModifierRuntimeReceipt:
+    """Apply runtime consequences in a stable, source-independent phase order."""
+    validate_selections(subject, selections, approvals)
+    _validate_profile_compatibility(profile, selections)
+    ordered = tuple(sorted(selections, key=_runtime_order))
+    result = profile
+    for selection in ordered:
+        definition = MODIFIER_INDEX[selection.definition_id]
+        if definition.runtime_hook == "fatigue" and result.fatigue_cost == 0:
+            raise ValidationError("Reduced Fatigue Cost requires an ability with an FP cost")
+        result = _apply_attack_modifier(result, selection, definition)
+    return ModifierRuntimeReceipt(
+        original=profile,
+        modified=result,
+        applied_modifier_ids=tuple(selection.definition_id for selection in ordered),
+    )
 
 
 def apply_attack_modifiers(
@@ -1066,17 +1924,9 @@ def apply_attack_modifiers(
     approvals: tuple[ModifierApproval, ...] = (),
 ) -> ModifierRuntimeReceipt:
     """Project selected executable modifiers into authoritative attack facts."""
-    validate_selections(subject, selections, approvals)
     if subject not in _ATTACK:
         raise ValidationError("Attack modifier projection requires an attack ability")
-    result = profile
-    for selection in selections:
-        result = _apply_attack_modifier(result, selection, MODIFIER_INDEX[selection.definition_id])
-    return ModifierRuntimeReceipt(
-        original=profile,
-        modified=result,
-        applied_modifier_ids=tuple(selection.definition_id for selection in selections),
-    )
+    return apply_ability_modifiers(profile, subject, selections, approvals)
 
 
 def validate_catalog() -> None:
