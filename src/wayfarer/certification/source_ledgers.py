@@ -378,9 +378,7 @@ def validate_source_ledgers(
 
     inventory = _inventory_index(inventory_rows)
     campaigns_audit = tuple(
-        row
-        for row in bundle.rows
-        if CAMPAIGNS_SECTION_AUDIT_OWNER in row.historical_owners
+        row for row in bundle.rows if CAMPAIGNS_SECTION_AUDIT_OWNER in row.historical_owners
     )
     if len(campaigns_audit) != 119:
         raise ValidationError("Campaigns section-audit denominator drift")
