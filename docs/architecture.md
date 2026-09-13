@@ -356,6 +356,22 @@ require deliberately regenerated and reviewed fixtures. Schema versions, RNG
 algorithm identifiers and rules configuration digests retain their separate
 meanings. `MigrationEntry` continues to record rules-data changes.
 
+**The command pipeline.** A command family says what it wants written and never
+writes it (#638). `CommandPlan` carries the command's identity, the revision it
+expects, the payload its retries are matched against, the rules that say who may
+submit it, and the pure reduction that produces the receipt.
+`orchestration.pipeline.submit` runs the same named stages around every plan:
+apply the declared control rules, answer a retry from the command log, capture the
+instant, seed and origin, and commit the reduction in one transaction.
+
+**Command control.** Control rules are registered objects, not checks. `ActsAs`
+says a principal may submit only as the actor a command names; `Trusted` says the
+deployment accepts the principal in the director's seat; an empty tuple says
+campaign membership already decided it. A family composes the rules it needs, so no service compares a
+command's actor to the principal that sent it. The architecture gate holds the
+fourteen converted families to that, and holds the families step 7 still owns to
+the older `commit_command` shape.
+
 `orchestration.entropy.commit_command` owns the
 entropy boundary; task-local command RNG handles keep all checkpoint draws on the
 same stream without putting mutable entropy on cached engines. The architecture

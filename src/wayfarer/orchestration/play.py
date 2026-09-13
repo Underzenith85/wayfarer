@@ -48,15 +48,11 @@ from wayfarer.engine.world import World
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
-from wayfarer.orchestration.entropy import (
-    CommandRandom,
-    SeedSource,
-    commit_command,
-    token_seed,
-)
+from wayfarer.orchestration.entropy import CommandRandom, SeedSource, token_seed
 from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
 from wayfarer.orchestration.npcs import initialize
 from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
 from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -407,51 +403,32 @@ class PlayService:
         except SchemaError as exc:
             raise ValidationError("Invalid typed action proposal") from exc
 
-    @staticmethod
-    def _authorize(command: TypedAction, authenticated_actor_id: str) -> None:
-        if command.actor_id != authenticated_actor_id:
-            raise ValidationError("Command actor is not authorized")
-
     async def preview(
         self, cid: str, value: object, *, authenticated_actor_id: str
     ) -> ActionResult:
         command = self.propose(value)
-        self._authorize(command, authenticated_actor_id)
+        ActsAs(command.actor_id)(authenticated_actor_id)
         return self.engine.assess(self._load(await self.store.read(cid)), command)
 
-    async def execute(
-        self,
-        cid: str,
-        value: object,
-        *,
-        authenticated_actor_id: str,
-        authorize: Callable[[Campaign], None] | None = None,
-    ) -> ActionResult:
-        command = self.propose(value)
-        self._authorize(command, authenticated_actor_id)
+    def plan(self, command: TypedAction, checkpoint: Campaign) -> CommandPlan[ActionResult]:
+        """What a typed action writes; the pipeline decides whether it runs.
+
+        The checkpoint is read before the pipeline looks for a receipt. If an
+        identical command commits during either read, the retry lookup or the
+        transaction returns its result; assessment must not observe the newer
+        revision after a receipt miss.
+        """
         payload = json.dumps(
             {"operation": "typed-action", "command": command.model_dump(mode="json")},
             sort_keys=True,
             separators=(",", ":"),
         )
-        # Read the checkpoint before checking the receipt. If an identical command
-        # commits during either read, duplicate() or commit_turn() returns its result;
-        # assessment must not observe the newer revision after a receipt miss.
-        checkpoint = await self.store.read(cid)
-        duplicate = await self.store.duplicate(cid, command.id, payload)
-        if duplicate is not None:
-            result = self._load(duplicate).last_result
-            if result is None:
-                raise ValidationError("Missing committed action result")
-            return result
-        feasible = self.engine.assess(self._load(checkpoint), command)
-        if feasible.status != "feasible":
-            return feasible
+
+        def assess() -> ActionResult | None:
+            feasible = self.engine.assess(self._load(checkpoint), command)
+            return None if feasible.status == "feasible" else feasible
 
         def resolve(campaign: Campaign) -> CommandReceipt:
-
-            if authorize is not None:
-                authorize(campaign)
             current = self._load(campaign)
             synchronous(current, command.actor_id)
             state, resolved_events = self.engine.resolve(current, command, rng=self.rng)
@@ -462,31 +439,43 @@ class PlayService:
             self.commit(campaign, state)
             return CommandReceipt(action="typed-action", outcome=result.model_dump_json())
 
-        committed = await commit_command(
-            self,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> ActionResult:
+            result = self._load(campaign).last_result
+            if result is None:
+                raise ValidationError("Missing committed action result")
+            return result
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            assess=assess,
             rng=self.rng,
         )
-        result = self._load(committed["state"]).last_result
-        if result is None:
-            raise ValidationError("Missing committed action result")
-        return result
 
-    async def approve(self, cid: str, value: object, *, authenticated_gm_id: str) -> Approval:
-        try:
-            command = ApproveCharacter.model_validate(value)
-        except SchemaError as exc:
-            raise ValidationError("Invalid approval command") from exc
-        if (
-            command.actor_id != authenticated_gm_id
-            or authenticated_gm_id not in self.engine.reviewer.gm_ids
-        ):
-            raise ValidationError("Approval requires GM authority")
+    async def execute(
+        self,
+        cid: str,
+        value: object,
+        *,
+        authenticated_actor_id: str,
+        authorize: Callable[[Campaign], None] | None = None,
+    ) -> ActionResult:
+        command = self.propose(value)
+        return await submit(
+            self,
+            cid,
+            self.plan(command, await self.store.read(cid)),
+            principal_id=authenticated_actor_id,
+            authorize=authorize,
+        )
+
+    def approval_plan(self, cid: str, command: ApproveCharacter) -> CommandPlan[Approval]:
+        """What a power approval writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"operation": "power-approval", "command": command.model_dump(mode="json")},
             sort_keys=True,
@@ -503,7 +492,7 @@ class PlayService:
                 campaign_id=cid,
                 actor_id=actor.actor_id,
                 revision=state.revision + 1,
-                approver_id=authenticated_gm_id,
+                approver_id=command.actor_id,
                 reason=command.reason,
             )
             updated = state.model_copy(
@@ -527,21 +516,34 @@ class PlayService:
             self.commit(campaign, updated)
             return CommandReceipt(action="power-approval", outcome=approval.model_dump_json())
 
-        committed = await commit_command(
-            self,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id=authenticated_gm_id,
+        async def outcome(campaign: Campaign) -> Approval:
+            state = self._load(campaign)
+            approval = next(
+                a.approval for a in state.actors if a.actor_id == command.target_actor_id
+            )
+            if approval is None:
+                raise ValidationError("Missing committed approval")
+            return approval
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=command.actor_id,
+            outcome=outcome,
+            control=(Trusted(self.engine.reviewer.gm_ids), ActsAs(command.actor_id)),
             rng=self.rng,
         )
-        state = self._load(committed["state"])
-        approval = next(a.approval for a in state.actors if a.actor_id == command.target_actor_id)
-        if approval is None:
-            raise ValidationError("Missing committed approval")
-        return approval
+
+    async def approve(self, cid: str, value: object, *, authenticated_gm_id: str) -> Approval:
+        try:
+            command = ApproveCharacter.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid approval command") from exc
+        return await submit(
+            self, cid, self.approval_plan(cid, command), principal_id=authenticated_gm_id
+        )
 
 
 def record_play_state(campaign: Campaign, state: PlayState) -> None:

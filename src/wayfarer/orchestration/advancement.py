@@ -36,7 +36,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.builds import canonical_build as _build
 from wayfarer.orchestration.builds import spendable_points as _spendable
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -126,7 +126,11 @@ class AdvancementService:
     async def preview(
         self, cid: str, value: object, *, authenticated_actor_id: str
     ) -> AdvancementPreview:
-        command = self._advance(value, authenticated_actor_id)
+        try:
+            command = AdvanceCharacter.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid advancement") from exc
+        ActsAs(command.actor_id)(authenticated_actor_id)
         state = self.play._load(await self.play.store.read(cid))
         before = _build(self.play, state, command.actor_id)
         if (
@@ -158,16 +162,8 @@ class AdvancementService:
             diff=_diff(command.actor_id, before, after),
         )
 
-    async def grant(self, cid: str, value: object, *, authenticated_gm_id: str) -> AdvancementEntry:
-        try:
-            command = GrantPoints.model_validate(value)
-        except SchemaError as exc:
-            raise ValidationError("Invalid point grant") from exc
-        if (
-            command.actor_id != authenticated_gm_id
-            or authenticated_gm_id not in self.play.engine.reviewer.gm_ids
-        ):
-            raise ValidationError("Point grants require GM authority")
+    def grant_plan(self, command: GrantPoints) -> CommandPlan[AdvancementEntry]:
+        """What a point grant writes; the pipeline decides whether it runs."""
         payload = self._payload("grant", command.model_dump(mode="json"))
 
         def resolve(campaign: Campaign) -> CommandReceipt:
@@ -188,17 +184,28 @@ class AdvancementService:
             self.play.commit(campaign, updated)
             return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> AdvancementEntry:
+            return PlayState.model_validate_json(campaign["play_json"]).advancement[-1]
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(Trusted(self.play.engine.reviewer.gm_ids), ActsAs(command.actor_id)),
             rng=self.play.rng,
         )
-        return PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
+
+    async def grant(self, cid: str, value: object, *, authenticated_gm_id: str) -> AdvancementEntry:
+        try:
+            command = GrantPoints.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid point grant") from exc
+        return await submit(
+            self.play, cid, self.grant_plan(command), principal_id=authenticated_gm_id
+        )
 
     def reduce_purchase(
         self, state: PlayState, command: AdvanceCharacter, *, revision: int
@@ -295,11 +302,12 @@ class AdvancementService:
             }
         )
 
-    async def advance(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> AdvancementEntry:
-        command = self._advance(value, authenticated_actor_id)
-        # Validate inside the transaction so a committed retry reaches its receipt first.
+    def advance_plan(self, command: AdvanceCharacter) -> CommandPlan[AdvancementEntry]:
+        """What an advancement writes; the pipeline decides whether it runs.
+
+        Validation happens inside the transaction so a committed retry reaches its
+        receipt first.
+        """
         payload = self._payload("advance", command.model_dump(mode="json"))
 
         def resolve(campaign: Campaign) -> CommandReceipt:
@@ -310,30 +318,33 @@ class AdvancementService:
             self.play.commit(campaign, updated)
             return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> AdvancementEntry:
+            result = PlayState.model_validate_json(campaign["play_json"]).advancement[-1]
+            if result.id != command.id:
+                raise ConflictError("Command ID belongs to another ledger entry")
+            return result
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
             rng=self.play.rng,
         )
-        result = PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
-        if result.id != command.id:
-            raise ConflictError("Command ID belongs to another ledger entry")
-        return result
 
-    @staticmethod
-    def _advance(value: object, identity: str) -> AdvanceCharacter:
+    async def advance(
+        self, cid: str, value: object, *, authenticated_actor_id: str
+    ) -> AdvancementEntry:
         try:
             command = AdvanceCharacter.model_validate(value)
         except SchemaError as exc:
             raise ValidationError("Invalid advancement") from exc
-        if command.actor_id != identity:
-            raise ValidationError("Advancement actor is not authorized")
-        return command
+        return await submit(
+            self.play, cid, self.advance_plan(command), principal_id=authenticated_actor_id
+        )
 
     @staticmethod
     def _payload(operation: str, command: object) -> str:
@@ -372,8 +383,8 @@ class MigrationService:
         self.authority = current.engine.reviewer.gm_ids if authority is None else authority
         self.from_profile, self.to_profile = from_profile, to_profile
 
-    async def preview(self, cid: str) -> MigrationPreview:
-        state = self.current._load(await self.current.store.read(cid))
+    def _diffs(self, state: PlayState) -> tuple[BuildDiff, ...]:
+        """Every actor rebuilt under the target rules, or a refusal naming neither."""
         diffs: list[BuildDiff] = []
         for actor in state.actors:
             before = _build(self.current, state, actor.actor_id)
@@ -382,42 +393,33 @@ class MigrationService:
             if after is None or review.status in ("illegal", "blocked"):
                 raise ValidationError("Target rules invalidate a character")
             diffs.append(_diff(actor.actor_id, before, after))
+        return tuple(diffs)
+
+    async def preview(self, cid: str) -> MigrationPreview:
         return MigrationPreview(
             from_digest=self.current.engine.digest,
             to_digest=self.target.engine.digest,
-            actor_diffs=tuple(diffs),
+            actor_diffs=self._diffs(self.current._load(await self.current.store.read(cid))),
         )
 
-    async def apply(
-        self, cid: str, value: object, *, authenticated_gm_id: str, payload: str | None = None
-    ) -> MigrationEntry:
-        try:
-            command = ApplyMigration.model_validate(value)
-        except SchemaError as exc:
-            raise ValidationError("Invalid migration approval") from exc
-        if command.actor_id != authenticated_gm_id or authenticated_gm_id not in self.authority:
-            raise ValidationError("Rules migration requires GM authority")
+    def plan(
+        self, cid: str, command: ApplyMigration, *, payload: str | None = None
+    ) -> CommandPlan[MigrationEntry]:
+        """What a rules migration writes; the pipeline decides whether it runs."""
         if command.expected_from_digest != self.current.engine.digest:
             raise ConflictError("Migration source configuration changed")
         if payload is None:
             payload = AdvancementService._payload(
                 "rules-migration", command.model_dump(mode="json")
             )
-        duplicate = await self.current.store.duplicate(cid, command.id, payload)
-        if duplicate is not None:
-            state = PlayState.model_validate_json(duplicate["play_json"])
-            entry = next((value for value in state.migrations if value.id == command.id), None)
-            if entry is None:
-                raise ConflictError("Command ID belongs to another operation")
-            return entry
-        preview = await self.preview(cid)
-
         # A configured GM records GM approvals; any other authorized approver (the
         # setup host) can only carry characters that stay within automatic limits.
-        gm = authenticated_gm_id in self.target.engine.reviewer.gm_ids
+        gm = command.actor_id in self.target.engine.reviewer.gm_ids
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.current._load(campaign)
+            # The target rules must still accept every character under the lock.
+            self._diffs(state)
             approvals = []
             actors = []
             for actor in state.actors:
@@ -426,7 +428,7 @@ class MigrationService:
                     campaign_id=cid,
                     actor_id=actor.actor_id,
                     revision=state.revision + 1,
-                    approver_id=authenticated_gm_id if gm else None,
+                    approver_id=command.actor_id if gm else None,
                     reason=command.reason if gm else "",
                 )
                 approvals.append(approval)
@@ -435,8 +437,8 @@ class MigrationService:
                 id=command.id,
                 actor_id=command.actor_id,
                 revision=state.revision + 1,
-                from_digest=preview.from_digest,
-                to_digest=preview.to_digest,
+                from_digest=self.current.engine.digest,
+                to_digest=self.target.engine.digest,
                 reason=command.reason,
                 from_profile=self.from_profile,
                 to_profile=self.to_profile,
@@ -510,14 +512,38 @@ class MigrationService:
             self.target.commit(campaign, updated)
             return CommandReceipt(action="rules-migration", outcome=entry.model_dump_json())
 
-        committed = await commit_command(
-            self.current,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> MigrationEntry:
+            return PlayState.model_validate_json(campaign["play_json"]).migrations[-1]
+
+        async def replayed(campaign: Campaign) -> MigrationEntry:
+            state = PlayState.model_validate_json(campaign["play_json"])
+            entry = next((value for value in state.migrations if value.id == command.id), None)
+            if entry is None:
+                raise ConflictError("Command ID belongs to another operation")
+            return entry
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            replayed=replayed,
+            control=(Trusted(self.authority), ActsAs(command.actor_id)),
             rng=self.current.rng,
         )
-        return PlayState.model_validate_json(committed["state"]["play_json"]).migrations[-1]
+
+    async def apply(
+        self, cid: str, value: object, *, authenticated_gm_id: str, payload: str | None = None
+    ) -> MigrationEntry:
+        try:
+            command = ApplyMigration.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid migration approval") from exc
+        return await submit(
+            self.current,
+            cid,
+            self.plan(cid, command, payload=payload),
+            principal_id=authenticated_gm_id,
+        )

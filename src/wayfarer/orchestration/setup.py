@@ -25,7 +25,7 @@ from wayfarer.errors import (
     ValidationError,
 )
 from wayfarer.orchestration.continuation import prepare
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.runtime import CampaignRuntime
@@ -520,11 +520,8 @@ class SetupService:
             else None,
         }
 
-    async def execute(
-        self, cid: str, command: SetupCommand, *, principal_id: str
-    ) -> dict[str, object]:
-        current = await self.play.store.read(cid)
-        self.seat(self.load(current), principal_id)
+    def plan(self, command: SetupCommand, *, principal_id: str) -> CommandPlan[None]:
+        """What a lobby command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {
                 "principal": principal_id,
@@ -537,7 +534,6 @@ class SetupService:
             },
             sort_keys=True,
         )
-        key = "setup:" + command.id
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             context = SetupContext(self.play.for_campaign(campaign), principal_id)
@@ -545,15 +541,30 @@ class SetupService:
             campaign.update(updated)
             return CommandReceipt(action="setup", outcome=setup.phase)
 
-        await commit_command(
+        async def outcome(campaign: Campaign) -> None:
+            return None
+
+        return CommandPlan(
+            command_id="setup:" + command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=principal_id,
+            outcome=outcome,
+            # A lobby command is the principal's own; the seat decided it may act.
+            rng=self.play.rng,
+        )
+
+    async def execute(
+        self, cid: str, command: SetupCommand, *, principal_id: str
+    ) -> dict[str, object]:
+        # A seat is the lobby's membership; the plan's rules run inside the pipeline.
+        self.seat(self.load(await self.play.store.read(cid)), principal_id)
+        await submit(
             self.play,
             cid,
-            key,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id=principal_id,
-            rng=self.play.rng,
+            self.plan(command, principal_id=principal_id),
+            principal_id=principal_id,
         )
         return await self.read(cid, principal_id=principal_id)
 

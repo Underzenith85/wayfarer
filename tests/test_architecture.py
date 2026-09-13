@@ -63,13 +63,54 @@ ORCHESTRATION_BRANCHING: dict[tuple[str, str], int] = {
     ("orchestration/tactical_view/preview.py", "preview"): 18,
     ("orchestration/transformations.py", "execute"): 28,
     ("orchestration/transformations.py", "reduce"): 21,
-    ("orchestration/workshop.py", "execute"): 18,
+    ("orchestration/workshop.py", "plan"): 16,
     ("orchestration/workshop.py", "resolve"): 16,
     ("transport/tactical_api.py", "execute"): 18,
     ("transport/v1/http.py", "route"): 28,
     ("transport/v1/live.py", "live"): 62,
     ("transport/v1/service.py", "resolve"): 20,
 }
+
+# The orchestration modules that still commit for themselves. #638 converted the
+# fourteen play-side families onto ``CommandPlan``; step 7 (#639) empties the rest.
+# An entry may disappear; no module may be added.
+UNCONVERTED_COMMITTERS = frozenset(
+    {
+        "orchestration/abilities.py",
+        "orchestration/director.py",
+        "orchestration/fright.py",
+        "orchestration/fright_builds.py",
+        "orchestration/hazard_care.py",
+        "orchestration/hazards.py",
+        "orchestration/medical.py",
+        "orchestration/npcs.py",
+        "orchestration/physical.py",
+        "orchestration/physical_checks.py",
+        "orchestration/resources.py",
+        "orchestration/social.py",
+        "orchestration/spell_backfires.py",
+        "orchestration/spells.py",
+        "orchestration/surprise.py",
+        "orchestration/transformations.py",
+    }
+)
+
+# The families whose authorization now lives on the plan rather than in the service.
+PLANNED_FAMILIES = frozenset(
+    {
+        "orchestration/adjudication.py",
+        "orchestration/advancement.py",
+        "orchestration/combat/service.py",
+        "orchestration/encounter_scenes.py",
+        "orchestration/noncombat.py",
+        "orchestration/objectives.py",
+        "orchestration/party.py",
+        "orchestration/play.py",
+        "orchestration/recovery.py",
+        "orchestration/scenes.py",
+    }
+)
+PRINCIPAL_NAMES = frozenset({"authenticated_actor_id", "authenticated_gm_id", "principal_id"})
 
 # The store handles belong to the runtime. ``persistence`` builds them, the three
 # composition roots wire them, and nothing else names a store constructor.
@@ -308,20 +349,79 @@ class ArchitectureTests(unittest.TestCase):
                             pending.append(functions[called])
 
     def test_live_commands_use_the_entropy_boundary(self) -> None:
+        """A write is planned or committed through the boundary, never for itself.
+
+        #638 moved the play-side families onto ``CommandPlan``; the families step 7
+        still owns keep committing through ``commit_command``. Both shapes must name
+        their entropy and their actor, and neither may reach ``commit_turn``.
+        """
         package = Path(wayfarer.__file__).parent
-        boundary = package / "orchestration" / "entropy.py"
+        boundaries = {
+            package / "orchestration" / "entropy.py",
+            package / "orchestration" / "pipeline.py",
+        }
         for domain in ("orchestration", "transport"):
             for source in (package / domain).rglob("*.py"):
-                if source == boundary:
+                if source in boundaries:
                     continue
                 for node in ast.walk(ast.parse(source.read_text())):
                     if not isinstance(node, ast.Call):
                         continue
                     if isinstance(node.func, ast.Attribute):
                         self.assertNotEqual(node.func.attr, "commit_turn", str(source))
-                    if isinstance(node.func, ast.Name) and node.func.id == "commit_command":
-                        self.assertIn("rng", {kw.arg for kw in node.keywords}, str(source))
-                        self.assertIn("actor_id", {kw.arg for kw in node.keywords}, str(source))
+                    if not isinstance(node.func, ast.Name):
+                        continue
+                    named = {kw.arg for kw in node.keywords}
+                    if node.func.id == "commit_command":
+                        self.assertIn("rng", named, str(source))
+                        self.assertIn("actor_id", named, str(source))
+                    if node.func.id == "CommandPlan":
+                        for field in ("resolve", "actor_id", "outcome", "rng"):
+                            self.assertIn(field, named, str(source))
+
+    def test_command_families_plan_instead_of_committing(self) -> None:
+        """Fourteen families stopped committing for themselves (#638).
+
+        ``UNCONVERTED_COMMITTERS`` is the remainder step 7 (#639) empties. It may
+        shrink; no module may be added to it.
+        """
+        package = Path(wayfarer.__file__).parent
+        committers = set()
+        for source in sorted((package / "orchestration").rglob("*.py")):
+            name = source.relative_to(package).as_posix()
+            if name in ("orchestration/entropy.py", "orchestration/pipeline.py"):
+                continue
+            for node in ast.walk(ast.parse(source.read_text())):
+                if (
+                    isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Name)
+                    and node.func.id == "commit_command"
+                ):
+                    committers.add(name)
+        self.assertEqual(
+            sorted(committers - UNCONVERTED_COMMITTERS),
+            [],
+            "plan the write instead: build a CommandPlan and submit it",
+        )
+
+    def test_converted_families_declare_control_instead_of_checking_it(self) -> None:
+        """Authorization left the converted services (#638).
+
+        A plan names its rules — ``ActsAs``, ``Trusted`` — and the pipeline applies
+        them. None of these modules may compare a command's actor to the principal
+        that submitted it.
+        """
+        package = Path(wayfarer.__file__).parent
+        for name in sorted(PLANNED_FAMILIES):
+            source = package / name
+            for node in ast.walk(ast.parse(source.read_text())):
+                if not isinstance(node, ast.Compare):
+                    continue
+                names = {n.id for n in ast.walk(node) if isinstance(n, ast.Name)}
+                self.assertFalse(
+                    names & PRINCIPAL_NAMES,
+                    f"{name}: declare the rule on the plan instead of comparing a principal",
+                )
 
     def test_engine_branching_only_shrinks(self) -> None:
         """A rule is read one branch at a time; the long ladders may only get shorter."""
