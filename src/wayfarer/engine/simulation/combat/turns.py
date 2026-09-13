@@ -414,9 +414,7 @@ def _apply_hex_movement(
         ):
             raise ValidationError("Pop-up attack requires one mapped Attack transaction")
         target = next((p for p in encounter.participants if p.actor_id == target_id), None)
-        if target is None or sight(
-            encounter, participant, target, board=engine.hex_map(encounter)
-        ):
+        if target is None or sight(encounter, participant, target, board=engine.hex_map(encounter)):
             raise ValidationError("Pop-up attack must begin out of sight behind cover")
         return pop_up_hex(
             encounter,
@@ -761,9 +759,7 @@ def apply_turn(
                 if pop_up
                 else "runaround"
                 if start_hex_pose is not None
-                and attack_approach(
-                    pose(target), pose(participant), origin=start_hex_pose
-                )
+                and attack_approach(pose(target), pose(participant), origin=start_hex_pose)
                 == "runaround"
                 else None
             ),

@@ -238,9 +238,7 @@ def movement(
         stair = battlefield.stairway(pose.position, target)
         if cell.ground != battlefield.cell(pose.position).ground and not stair:
             raise ValidationError("Elevation transition requires physical-feat resolution")
-        present = tuple(
-            o for o in occupants if o.position == target and o.actor_id != actor_id
-        )
+        present = tuple(o for o in occupants if o.position == target and o.actor_id != actor_id)
         enemies = tuple(o for o in present if o.relation == "enemy")
         if enemies and not (enter_close_combat and index == len(path) - 1):
             raise ValidationError("Occupied hex requires explicit close-combat entry")

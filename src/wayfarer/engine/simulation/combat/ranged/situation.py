@@ -120,9 +120,7 @@ def _validate_pop_up(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> None:
     if command.pop_up:
-        selected = mode(
-            runtime, state, command.actor_id, command.item_id or "", command.mode_id
-        )
+        selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
         if (
             command.maneuver != "attack"
             or encounter.spatial_kind != "hex"

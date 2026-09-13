@@ -40,9 +40,7 @@ def test_b387_allied_hex_is_an_obstruction_but_not_a_barrier() -> None:
 
 def test_b390_pop_up_is_one_atomic_exposure_and_return() -> None:
     origin = Pose(position=h(0, 0), facing=0)
-    result = pop_up_movement(
-        board(), origin, (h(1, 0), h(0, 0)), move=5, exposure_facing=5
-    )
+    result = pop_up_movement(board(), origin, (h(1, 0), h(0, 0)), move=5, exposure_facing=5)
     assert result.exposure == Pose(position=h(1, 0), facing=5)
     assert result.destination == Pose(position=h(0, 0), facing=5)
     with pytest.raises(ValidationError, match="exposed hex"):
@@ -126,9 +124,7 @@ async def test_pop_up_uses_exposure_geometry_returns_to_cover_and_applies_penalt
     battlefield = command.battlefield.model_copy(
         update={
             "cells": tuple(
-                cell.model_copy(update={"opaque_height": 2})
-                if cell.position == h(1, -1)
-                else cell
+                cell.model_copy(update={"opaque_height": 2}) if cell.position == h(1, -1) else cell
                 for cell in command.battlefield.cells
             )
         }

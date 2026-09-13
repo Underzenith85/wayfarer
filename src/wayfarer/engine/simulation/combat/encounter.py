@@ -170,9 +170,7 @@ class PendingDefense(Record):
     tactical_approach: TacticalApproach | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
-    tactical_attack_pose: Pose | None = Field(
-        default=None, exclude_if=lambda value: value is None
-    )
+    tactical_attack_pose: Pose | None = Field(default=None, exclude_if=lambda value: value is None)
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()
