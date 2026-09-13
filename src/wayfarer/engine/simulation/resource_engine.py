@@ -67,6 +67,11 @@ def _require_splittable(item: Item) -> None:
         raise ValidationError("Enchanted items cannot be split")
 
 
+def _validate_swarms(state: ResourceState, actors: frozenset[str]) -> None:
+    if not {swarm.actor_id for swarm in state.swarms} <= actors:
+        raise ValidationError("Swarm is not a world actor")
+
+
 def _survival_before_command(state: ResourceState, command: ResourceCommand) -> ResourceState:
     require_survival_settled(
         state.survival,
@@ -174,6 +179,8 @@ class ResourceEngine:
         unique(tuple(s.id for s in state.scheduled))
         unique(tuple(r.command_id for r in state.receipts))
         unique(tuple(creature.actor_id for creature in state.creatures))
+        unique(tuple(swarm.id for swarm in state.swarms))
+        _validate_swarms(state, self.actors)
         unique(tuple(r.command_id for r in state.object_results))
         if not {r.command_id for r in state.object_results} <= {
             r.command_id for r in state.receipts

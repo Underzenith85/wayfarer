@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from wayfarer.engine.rules.types.creature import (
     CreatureAttack,
+    CreatureCombatBehavior,
     CreatureMovement,
     CreatureSkill,
     CreatureStatistics,
     CreatureTemplate,
     CreatureTrait,
     MountCapabilities,
+    SwarmAttack,
+    SwarmSpec,
     TrainableCommand,
 )
 from wayfarer.errors import ValidationError
@@ -35,6 +38,42 @@ def command_training_days(animal_iq: int) -> int:
         return {3: 90, 4: 30, 5: 14}[animal_iq]
     except KeyError as exc:
         raise ValidationError("This creature cannot learn a separate trained command") from exc
+
+
+def representative_swarms() -> tuple[SwarmSpec, ...]:
+    """The three finite B461 examples, with explicit protection/countermeasure facts."""
+    return (
+        SwarmSpec(
+            id="swarm:bats",
+            kind="bats",
+            airborne=True,
+            move=8,
+            dispersal_hp=8,
+            attack=SwarmAttack(dice=1, damage_type="cut", armor="normal-dr"),
+            immune_countermeasures=("stomp",),
+        ),
+        SwarmSpec(
+            id="swarm:bees",
+            kind="bees",
+            airborne=True,
+            move=6,
+            dispersal_hp=12,
+            attack=SwarmAttack(fixed_injury=1, damage_type="tox", armor="sealed-only"),
+            immune_countermeasures=("stomp",),
+            vulnerable_countermeasures=("insecticide", "immersion"),
+            ordinary_clothing_seconds=2,
+            low_tech_armor_seconds=5,
+        ),
+        SwarmSpec(
+            id="swarm:rats",
+            kind="rats",
+            airborne=False,
+            move=4,
+            dispersal_hp=6,
+            attack=SwarmAttack(dice=1, damage_type="cut", armor="normal-dr"),
+            vulnerable_countermeasures=("stomp",),
+        ),
+    )
 
 
 def _stats(
@@ -94,6 +133,11 @@ def representative_creatures() -> tuple[CreatureTemplate, ...]:
                     id="bite", form="bite", damage_basis="thrust-1", damage_type="cutting"
                 ),
             ),
+            combat_behavior=CreatureCombatBehavior(
+                maneuvers=("attack", "move", "move-and-attack", "do-nothing"),
+                attack_motivations=("defensive", "panic"),
+                preferred_attack_ids=("bite",),
+            ),
             commands=(
                 TrainableCommand(
                     id="trick",
@@ -120,6 +164,11 @@ def representative_creatures() -> tuple[CreatureTemplate, ...]:
                     id="bite", form="bite", damage_basis="thrust-1", damage_type="cutting"
                 ),
             ),
+            combat_behavior=CreatureCombatBehavior(
+                maneuvers=("attack", "all-out-attack", "move", "move-and-attack", "do-nothing"),
+                attack_motivations=("defensive", "territorial", "commanded"),
+                preferred_attack_ids=("bite",),
+            ),
             commands=(
                 recall,
                 TrainableCommand(id="guard", required_training_level=4, task="guard"),
@@ -142,6 +191,11 @@ def representative_creatures() -> tuple[CreatureTemplate, ...]:
                     id="bite", form="bite", damage_basis="thrust-1", damage_type="cutting"
                 ),
             ),
+            combat_behavior=CreatureCombatBehavior(
+                maneuvers=("attack", "all-out-attack", "move", "move-and-attack", "do-nothing"),
+                attack_motivations=("predatory", "defensive", "territorial"),
+                preferred_attack_ids=("bite",),
+            ),
             commands=(recall,),
         ),
         CreatureTemplate(
@@ -160,6 +214,11 @@ def representative_creatures() -> tuple[CreatureTemplate, ...]:
                 CreatureAttack(
                     id="kick", form="kick", damage_basis="thrust", damage_type="crushing"
                 ),
+            ),
+            combat_behavior=CreatureCombatBehavior(
+                maneuvers=("attack", "move", "move-and-attack", "do-nothing"),
+                attack_motivations=("defensive", "commanded", "panic"),
+                preferred_attack_ids=("kick",),
             ),
             commands=(
                 recall,
@@ -180,6 +239,11 @@ def representative_creatures() -> tuple[CreatureTemplate, ...]:
                     id="kick", form="kick", damage_basis="thrust", damage_type="crushing"
                 ),
             ),
+            combat_behavior=CreatureCombatBehavior(
+                maneuvers=("attack", "move", "do-nothing"),
+                attack_motivations=("defensive", "panic"),
+                preferred_attack_ids=("kick",),
+            ),
             commands=(
                 recall,
                 TrainableCommand(id="pull", required_training_level=3, task="draft"),
@@ -198,6 +262,11 @@ def representative_creatures() -> tuple[CreatureTemplate, ...]:
                 CreatureAttack(
                     id="death-gaze", form="gaze", damage_basis="special", damage_type="toxic"
                 ),
+            ),
+            combat_behavior=CreatureCombatBehavior(
+                maneuvers=("attack", "all-out-attack", "move", "do-nothing"),
+                attack_motivations=("predatory", "defensive"),
+                preferred_attack_ids=("death-gaze",),
             ),
         ),
         CreatureTemplate(
@@ -232,6 +301,11 @@ def representative_creatures() -> tuple[CreatureTemplate, ...]:
                 CreatureAttack(
                     id="claw", form="claw", damage_basis="thrust-1", damage_type="cutting"
                 ),
+            ),
+            combat_behavior=CreatureCombatBehavior(
+                maneuvers=("attack", "all-out-attack", "move", "move-and-attack", "do-nothing"),
+                attack_motivations=("predatory", "defensive", "territorial", "commanded"),
+                preferred_attack_ids=("claw",),
             ),
             commands=(recall,),
         ),

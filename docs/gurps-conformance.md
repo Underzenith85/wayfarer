@@ -168,10 +168,11 @@ The following matrix is a **mechanics-family inventory**, not an exhaustive cata
 
 The existing catalog work in #112 (traits), #113 (skills), #114 (equipment), and #119 (creatures/templates) must supply item-level inventories; those cannot be replaced by a generic family row. Missing item identifiers fail closed today. Source-artifact review and the exhaustive inventory are outstanding prerequisites for marking #95 complete, not deferred certification work.
 
-Issue #521 supplies the bounded B455-460 creature construction and training
-slice described in [creature construction and training](gurps-creatures.md).
-Its seven-item ledger deliberately does not claim an unlimited bestiary. Animal
-combat, natural-attack resolution and swarms remain owned by #522.
+Issues #521 and #522 supply the bounded B455-461 creature construction,
+training, natural-attack and swarm slice described in
+[creature construction and training](gurps-creatures.md). Its seven creatures
+and three source example swarms deliberately do not claim an unlimited
+bestiary. All bodily damage converges on the existing injury reducer.
 
 Issue #519 supplies authored disease/contact profiles, private incubation,
 wound-linked infection schedules, chronological aging, and the approved lasting

@@ -26,7 +26,7 @@ class InjuryStatus(Record):
     turn: int = Field(default=0, ge=0)
     phase: Literal["between", "acting"] = "between"
     shock_expires: int = Field(default=0, ge=0)
-    anatomy: Literal["human"] | None = None
+    anatomy: Literal["human", "creature", "swarm"] | None = None
     male_groin: bool = False
     tolerance: InjuryTolerance | None = Field(default=None, exclude_if=lambda v: v is None)
     lasting_injuries: tuple[LastingInjury, ...] = ()
@@ -39,7 +39,7 @@ class InjuryStatus(Record):
         ):
             raise ValueError("Physical traits require their exact Basic Set profile")
         if self.tolerance is not None and (
-            self.anatomy != "human" or self.profile_id != "gurps-basic-set-4e-2004"
+            self.anatomy is None or self.profile_id != "gurps-basic-set-4e-2004"
         ):
             raise ValueError("Injury Tolerance requires explicit Basic Set anatomy")
         if self.lasting_injuries and (

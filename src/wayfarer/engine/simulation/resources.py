@@ -14,7 +14,7 @@ from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.rules.magic.protocols import MagicItemInstance
-from wayfarer.engine.rules.types.creature import Creature
+from wayfarer.engine.rules.types.creature import Creature, Swarm
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.hazard import (
@@ -185,6 +185,7 @@ class ResourceState(Record):
     dependencies: tuple[DrugDependency, ...] = Field(default=(), exclude_if=lambda v: not v)
     transports: tuple[Transport, ...] = Field(default=(), exclude_if=lambda v: not v)
     creatures: tuple[Creature, ...] = Field(default=(), exclude_if=lambda v: not v)
+    swarms: tuple[Swarm, ...] = Field(default=(), exclude_if=lambda v: not v)
     object_results: tuple[ObjectResult, ...] = Field(default=(), exclude_if=lambda v: not v)
     inventions: tuple[InventionProject, ...] = Field(default=(), exclude_if=lambda v: not v)
     enchantment_projects: tuple[EnchantmentProject, ...] = Field(
@@ -242,6 +243,25 @@ class ResourceState(Record):
                 raise ValueError("Interrupted recovery requires its interruption time")
             if task.status == "completed" and (not task.settled or task.due > self.game_time):
                 raise ValueError("Completed recovery must be due and settled")
+        return self
+
+    @model_validator(mode="after")
+    def validate_swarms(self) -> ResourceState:
+        if len({swarm.id for swarm in self.swarms}) != len(self.swarms):
+            raise ValueError("Duplicate swarm ID")
+        if len({swarm.actor_id for swarm in self.swarms}) != len(self.swarms):
+            raise ValueError("Duplicate swarm actor ID")
+        if {creature.actor_id for creature in self.creatures} & {
+            swarm.actor_id for swarm in self.swarms
+        }:
+            raise ValueError("A world actor cannot be both one creature and one swarm")
+        pools = {pool.id: pool for pool in self.pools}
+        for swarm in self.swarms:
+            hp = pools.get("hp:" + swarm.actor_id)
+            if hp is None or hp.injury is None or hp.injury.profile_id != "gurps-basic-set-4e-2004":
+                raise ValueError("Swarm requires a canonical Basic Set injury pool")
+            if hp.maximum != swarm.spec.dispersal_hp or hp.current != swarm.remaining_hp:
+                raise ValueError("Swarm HP pool must match its dispersal state")
         return self
 
 

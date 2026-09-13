@@ -32,6 +32,8 @@ def test_owner_inventory_exclusions_are_not_profile_exclusions() -> None:
     assert any(r.source_review == "pending" for r in rows)
     creatures = [r for r in rows if r.scope == "creature-catalog"]
     assert len(creatures) == 7 and all(r.source_review == "reviewed" for r in creatures)
+    swarms = [r for r in rows if r.scope == "creature-combat"]
+    assert len(swarms) == 3 and all(r.owner == 522 for r in swarms)
 
 
 def test_missing_fixture_review_rejected() -> None:
