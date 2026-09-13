@@ -113,10 +113,11 @@ rejects an undeclared identifier or circumstance before any dice are drawn. The
 initiator's level comes from the approved build and the subject's Will from
 theirs, so authoring selects a situation and never a roll target. Director
 dispatch through `SocialService` reaches the same procedures with a resolver-
-supplied level. `require_procedure` fails closed on the three rows that are not
-bound — Fortune-Telling and Savoir-Faire await their specialties (#366) and
-Propaganda its technology level (#367) — naming the child that owns each, and
-`supported` publishes the bound set to the scenario, character and LLM validators.
+supplied level. `require_procedure` fails closed on Fortune-Telling and
+Savoir-Faire while they await their specialties (#366). Propaganda is bound by
+the campaign-authored, TL-keyed media policy described in
+`gurps-propaganda-media.md`; `supported` publishes the resulting bound set to the
+scenario, character and LLM validators.
 
 ## Time and decisions
 
