@@ -1,6 +1,8 @@
-"""Basic Set melee weapon rows (B271-274, B283)."""
+"""Basic Set melee weapon rows (B271-276, B283)."""
 
-from wayfarer.engine.simulation.equipment.basic.rows import melee, weapon
+from decimal import Decimal
+
+from wayfarer.engine.simulation.equipment.basic.rows import melee, thrown, weapon
 
 # B271-274. Natural attacks and table rows without physical item cost/weight are
 # accounted for in the ledger rather than invented as equipment. Superscience,
@@ -42,7 +44,18 @@ WEAPONS = (
         40,
         2000,
         melee("axe-mace-swing", "axe-mace", 8, "swing", 0, "cut", (1,)),
-        unsupported=("alternate-thrown-mode",),
+        thrown(
+            "thrown",
+            "thrown-weapon-axe-mace",
+            8,
+            "swing",
+            0,
+            "cut",
+            1,
+            Decimal("1.5"),
+            Decimal("2.5"),
+            -2,
+        ),
     ),
     weapon(
         "throwing-axe",
@@ -51,7 +64,7 @@ WEAPONS = (
         60,
         4000,
         melee("axe-mace-swing", "axe-mace", 11, "swing", 2, "cut", (1,), unbalanced=True),
-        unsupported=("alternate-thrown-mode",),
+        thrown("thrown", "thrown-weapon-axe-mace", 11, "swing", 2, "cut", 2, 1, Decimal("1.5"), -3),
     ),
     weapon(
         "mace",
@@ -60,7 +73,7 @@ WEAPONS = (
         50,
         5000,
         melee("axe-mace-swing", "axe-mace", 12, "swing", 3, "cr", (1,), unbalanced=True),
-        unsupported=("alternate-thrown-mode",),
+        thrown("thrown", "thrown-weapon-axe-mace", 12, "swing", 3, "cr", 1, Decimal("0.5"), 1, -4),
     ),
     weapon(
         "small-mace",
@@ -69,7 +82,7 @@ WEAPONS = (
         35,
         3000,
         melee("axe-mace-swing", "axe-mace", 10, "swing", 2, "cr", (1,), unbalanced=True),
-        unsupported=("alternate-thrown-mode",),
+        thrown("thrown", "thrown-weapon-axe-mace", 10, "swing", 2, "cr", 1, 1, Decimal("1.5"), -3),
     ),
     weapon(
         "pick",
@@ -146,7 +159,6 @@ WEAPONS = (
         80,
         6000,
         melee("flail-swing", "flail", 12, "swing", 3, "cr", (1,), unbalanced=True),
-        unsupported=("flail-defense-penalties",),
     ),
     weapon(
         "nunchaku",
@@ -155,7 +167,6 @@ WEAPONS = (
         20,
         2000,
         melee("flail-swing", "flail", 7, "swing", 1, "cr", (1,), unbalanced=True),
-        unsupported=("flail-defense-penalties",),
     ),
     weapon(
         "large-knife",
@@ -165,7 +176,18 @@ WEAPONS = (
         1000,
         melee("knife-swing", "knife", 6, "swing", -2, "cut", (0, 1), parry=-1),
         melee("knife-thrust", "knife", 6, "thrust", 0, "imp", (0,), parry=-1),
-        unsupported=("alternate-thrown-mode",),
+        thrown(
+            "thrown",
+            "thrown-weapon-knife",
+            6,
+            "thrust",
+            0,
+            "imp",
+            0,
+            Decimal("0.8"),
+            Decimal("1.5"),
+            -2,
+        ),
     ),
     weapon(
         "small-knife",
@@ -175,7 +197,7 @@ WEAPONS = (
         500,
         melee("knife-swing", "knife", 5, "swing", -3, "cut", (0, 1), parry=-1),
         melee("knife-thrust", "knife", 5, "thrust", -1, "imp", (0,), parry=-1),
-        unsupported=("alternate-thrown-mode",),
+        thrown("thrown", "thrown-weapon-knife", 5, "thrust", -1, "imp", 0, Decimal("0.5"), 1, -1),
     ),
     weapon(
         "wooden-stake",
@@ -184,7 +206,19 @@ WEAPONS = (
         4,
         500,
         melee("knife-thrust", "knife", 5, "thrust", 0, "imp", (0,), parry=-1, divisor="0.5"),
-        unsupported=("alternate-thrown-mode",),
+        thrown(
+            "thrown",
+            "thrown-weapon-knife",
+            5,
+            "thrust",
+            0,
+            "imp",
+            0,
+            Decimal("0.5"),
+            1,
+            -2,
+            armor_divisor=Decimal("0.5"),
+        ),
     ),
     weapon(
         "dagger",
@@ -193,7 +227,7 @@ WEAPONS = (
         20,
         250,
         melee("knife-thrust", "knife", 5, "thrust", -1, "imp", (0,), parry=-1),
-        unsupported=("alternate-thrown-mode",),
+        thrown("thrown", "thrown-weapon-knife", 5, "thrust", -1, "imp", 0, Decimal("0.5"), 1, -1),
     ),
     weapon(
         "kusari",
@@ -204,7 +238,7 @@ WEAPONS = (
         melee(
             "kusari-swing", "kusari", 11, "swing", 2, "cr", (1, 2, 3, 4), parry=-2, unbalanced=True
         ),
-        unsupported=("flail-defense-penalties", "variable-reach-ready"),
+        unsupported=("variable-reach-ready",),
     ),
     weapon(
         "lance",
@@ -408,7 +442,8 @@ WEAPONS = (
         4000,
         melee("spear-one-hand", "spear", 9, "thrust", 2, "imp", (1,), hands=1),
         melee("spear-two-hands", "spear", 9, "thrust", 3, "imp", (1, 2), hands=2),
-        unsupported=("alternate-thrown-mode", "variable-reach-ready"),
+        thrown("thrown", "thrown-weapon-spear", 9, "thrust", 3, "imp", 2, 1, Decimal("1.5"), -6),
+        unsupported=("variable-reach-ready",),
     ),
     weapon(
         "javelin",
@@ -417,7 +452,18 @@ WEAPONS = (
         30,
         2000,
         melee("spear-thrust", "spear", 6, "thrust", 1, "imp", (1,)),
-        unsupported=("alternate-thrown-mode",),
+        thrown(
+            "thrown",
+            "thrown-weapon-spear",
+            6,
+            "thrust",
+            1,
+            "imp",
+            3,
+            Decimal("1.5"),
+            Decimal("2.5"),
+            -4,
+        ),
     ),
     weapon(
         "long-spear",
@@ -549,7 +595,7 @@ WEAPONS = (
             hands=2,
             unbalanced=True,
         ),
-        unsupported=("flail-defense-penalties", "variable-reach-ready"),
+        unsupported=("variable-reach-ready",),
     ),
     weapon(
         "greatsword",

@@ -439,7 +439,11 @@ def rows() -> tuple[AuditRow, ...]:
             "equipment-field/" + record.id,
             record.reference,
             PROFILE_FIELD_ISSUE,
-            "partial" if record.tests else "omitted",
+            "implemented"
+            if record.status == "reviewed" and record.tests and record.gap is None
+            else "partial"
+            if record.tests
+            else "omitted",
             "equipment-field-provenance",
             (current.profile_id, current.lite_profile_id),
             "reviewed" if record.status == "reviewed" else "pending",

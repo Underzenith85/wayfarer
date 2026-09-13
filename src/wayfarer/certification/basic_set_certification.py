@@ -7,6 +7,7 @@ never upgrades coverage because a generic hook or LLM fallback exists.
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -49,6 +50,7 @@ class CertificationReport:
     required_capabilities: int
     verified_capabilities: int
     required_inventory_items: int
+    inventory_obligation_rollups: dict[str, int]
     source_ledger_rows: int
     required_source_ledger_rows: int
     source_ledger_rollups: dict[str, dict[str, int]]
@@ -69,6 +71,7 @@ class CertificationReport:
             "required_capabilities": self.required_capabilities,
             "verified_capabilities": self.verified_capabilities,
             "required_inventory_items": self.required_inventory_items,
+            "inventory_obligation_rollups": self.inventory_obligation_rollups,
             "source_ledger_rows": self.source_ledger_rows,
             "required_source_ledger_rows": self.required_source_ledger_rows,
             "source_ledger_rollups": self.source_ledger_rollups,
@@ -109,7 +112,31 @@ def _active_owner(owner_states: Mapping[int, str], *candidates: int | None) -> i
 
 def _inventory_ready(item: InventoryItem, source_row: SourceLedgerRow | None) -> bool:
     """Require runtime and bound source evidence to agree before promotion."""
-    if item.source_review != "reviewed" or item.implementation not in READY_IMPLEMENTATIONS:
+    if item.source_review != "reviewed":
+        return False
+    if item.obligation == "unsupported-required":
+        return False
+    if item.obligation == "executable-mechanic":
+        implementation_ready = item.implementation in READY_IMPLEMENTATIONS
+    elif item.obligation == "construction-catalog":
+        implementation_ready = bool(item.evidence) and item.implementation in {
+            "implemented",
+            "verified",
+            "partial",
+            "manual-adjudication",
+            "listing-only",
+        }
+    elif item.obligation == "reference-only":
+        implementation_ready = bool(item.evidence) and item.implementation in {
+            "implemented",
+            "verified",
+            "contextual",
+            "listing-only",
+            "omitted",
+        }
+    else:
+        implementation_ready = item.implementation in {"implemented", "verified", "disabled"}
+    if not implementation_ready:
         return False
     if source_row is None:
         return True
@@ -121,7 +148,10 @@ def _inventory_ready(item: InventoryItem, source_row: SourceLedgerRow | None) ->
 
 
 def _inventory_blocker_detail(item: InventoryItem, source_row: SourceLedgerRow | None) -> str:
-    detail = f"implementation={item.implementation}; source_review={item.source_review}"
+    detail = (
+        f"obligation={item.obligation}; implementation={item.implementation}; "
+        f"source_review={item.source_review}"
+    )
     if item.gaps:
         detail += "; gaps=" + ",".join(item.gaps)
     if source_row is None:
@@ -273,6 +303,9 @@ def evaluate(root: Path) -> CertificationReport:
             for identifier in required_capabilities
         ),
         required_inventory_items=len(required_inventory),
+        inventory_obligation_rollups=dict(
+            sorted(Counter(item.obligation for item in required_inventory).items())
+        ),
         source_ledger_rows=len(source_ledgers.rows),
         required_source_ledger_rows=sum(
             row.disposition == "required" for row in source_ledgers.rows
