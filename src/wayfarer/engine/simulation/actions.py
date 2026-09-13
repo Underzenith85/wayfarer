@@ -20,6 +20,7 @@ from pydantic import (
     model_serializer,
     model_validator,
 )
+from pydantic.json_schema import SkipJsonSchema
 
 from wayfarer import validation
 from wayfarer.engine.character.power import Approval, CharacterProposal
@@ -46,6 +47,10 @@ from wayfarer.engine.simulation.campaign.scenes import (
     JournalEntry,
     SceneEvent,
     SceneRules,
+)
+from wayfarer.engine.simulation.campaign.transformations import (
+    TransformationRules,
+    TransformationState,
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.profiles import CombatRules
@@ -170,6 +175,8 @@ class ActionRules(Record):
     development: DevelopmentRules | None = Field(default=None, exclude=True)
     inventions: InventionRules | None = Field(default=None, exclude=True)
     enchanting: EnchantingRules | None = Field(default=None, exclude=True)
+    # Engine-only until a dedicated authoring/API contract is designed.
+    transformations: SkipJsonSchema[TransformationRules | None] = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -234,6 +241,9 @@ class PlayCheckpoint(Record):
     )
     development: DevelopmentState = Field(
         default=DevelopmentState(), exclude_if=lambda value: value == DevelopmentState()
+    )
+    transformations: TransformationState = Field(
+        default=TransformationState(), exclude_if=lambda value: value == TransformationState()
     )
 
 

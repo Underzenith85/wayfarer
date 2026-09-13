@@ -6371,17 +6371,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-transformations.md",
+        "tests/test_transformations.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 500,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "transformation:campaign",
       "parent_id": "section:characters:b290:9-character-development",
       "classification": null,
       "listed_value": null
@@ -6397,17 +6399,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-transformations.md",
+        "tests/test_transformations.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
-      "runtime_binding": null,
+      "completion_owner": 500,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "transformation:body-modification",
       "parent_id": "section:characters:b294:transformations",
       "classification": null,
       "listed_value": null
@@ -6423,17 +6427,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-transformations.md",
+        "tests/test_transformations.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 94,
-      "capability_id": "gurps.character.traits",
-      "runtime_binding": null,
+      "completion_owner": 500,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "transformation:mind-transfer",
       "parent_id": "section:characters:b294:transformations",
       "classification": null,
       "listed_value": null
@@ -6449,17 +6455,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-transformations.md",
+        "tests/test_transformations.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 94,
-      "capability_id": "gurps.character.traits",
-      "runtime_binding": null,
+      "completion_owner": 500,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "transformation:supernatural-affliction",
       "parent_id": "section:characters:b294:transformations",
       "classification": null,
       "listed_value": null
@@ -6475,17 +6483,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-transformations.md",
+        "tests/test_transformations.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 94,
-      "capability_id": "gurps.character.traits",
-      "runtime_binding": null,
+      "completion_owner": 500,
+      "capability_id": "gurps.character.development",
+      "runtime_binding": "transformation:death-boundary",
       "parent_id": "section:characters:b294:transformations",
       "classification": null,
       "listed_value": null
