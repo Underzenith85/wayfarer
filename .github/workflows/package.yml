@@ -15,21 +15,9 @@ on:
       - ".python-version"
       - "docs/product-release.json"
       - ".github/workflows/package.yml"
-  pull_request:
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "scripts/**"
-      - "contracts/**"
-      - "server.py"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".python-version"
-      - "docs/product-release.json"
-      - ".github/workflows/package.yml"
 
 concurrency:
-  group: python-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: python-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

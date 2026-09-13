@@ -1,6 +1,7 @@
 """Selected mundane mental and relationship rules (Characters 4e, B31-159)."""
 
 from dataclasses import dataclass
+from fractions import Fraction
 from types import MappingProxyType
 from typing import Final, Literal
 
@@ -98,6 +99,10 @@ class Relationship(Record):
     frequency: Frequency = 9
     character_points_percent: int | None = Field(default=None, ge=25, le=150)
     contact_skill: int | None = Field(default=None, ge=1)
+    reliability: Literal[
+        "unreliable", "somewhat-reliable", "usually-reliable", "completely-reliable"
+    ] = "usually-reliable"
+    patron_power: Literal["wealthy", "powerful", "very-powerful", "ultra-powerful"] | None = None
 
     @model_validator(mode="after")
     def exact_shape(self) -> Relationship:
@@ -107,6 +112,12 @@ class Relationship(Record):
             raise ValueError("Ally and Dependent require relative point totals")
         if self.kind == "contact" and self.contact_skill is None:
             raise ValueError("Contact requires its authoritative skill level")
+        if self.kind == "patron" and self.patron_power is None:
+            raise ValueError("Patron requires an authoritative power class")
+        if self.kind != "contact" and self.reliability != "usually-reliable":
+            raise ValueError("Reliability applies only to Contacts")
+        if self.kind != "patron" and self.patron_power is not None:
+            raise ValueError("Patron power applies only to Patrons")
         return self
 
 
@@ -140,3 +151,60 @@ def validate_relationships(values: tuple[Relationship, ...]) -> tuple[Relationsh
         elif len(group) > 1:
             raise ValidationError("One person cannot supply duplicate associated-NPC traits")
     return values
+
+
+def relationship_cost(value: Relationship) -> int:
+    """Price a typed associated-NPC construction (Characters B36, B44, B72, B131, B135)."""
+    availability = {
+        6: Fraction(1, 2),
+        9: Fraction(1),
+        12: Fraction(2),
+        15: Fraction(3),
+        18: Fraction(4),
+    }[value.frequency]
+    if value.kind == "ally":
+        assert value.character_points_percent is not None
+        base = next(
+            Fraction(points)
+            for maximum, points in ((25, 1), (50, 2), (75, 3), (100, 5), (150, 10))
+            if value.character_points_percent <= maximum
+        )
+    elif value.kind == "dependent":
+        assert value.character_points_percent is not None
+        base = next(
+            Fraction(points)
+            for maximum, points in ((25, -10), (50, -5), (75, -2), (150, -1))
+            if value.character_points_percent <= maximum
+        )
+    elif value.kind == "contact":
+        assert value.contact_skill is not None
+        skill = (
+            1
+            if value.contact_skill <= 12
+            else 2
+            if value.contact_skill <= 15
+            else 3
+            if value.contact_skill <= 18
+            else 4
+        )
+        reliability = {
+            "unreliable": Fraction(1, 2),
+            "somewhat-reliable": Fraction(1),
+            "usually-reliable": Fraction(2),
+            "completely-reliable": Fraction(3),
+        }[value.reliability]
+        base = skill * reliability
+    elif value.kind == "patron":
+        assert value.patron_power is not None
+        base = Fraction(
+            {"wealthy": 10, "powerful": 15, "very-powerful": 20, "ultra-powerful": 30}[
+                value.patron_power
+            ]
+        )
+    else:
+        assert value.kind == "enemy"
+        base = Fraction(-10)
+    # Every table product in this construction is integral or half-integral;
+    # Basic Set point costs round toward positive infinity.
+    result = base * availability
+    return -(-result.numerator // result.denominator)
