@@ -76,7 +76,15 @@ class CampaignRuntime:
         self.jobs = ProviderJobs(self.stores.jobs, partition=partition) if jobs is None else jobs
         self.partition = self.jobs.partition
 
-    def _for(self, play: PlayService) -> CampaignRuntime:
+    def for_service(self, play: PlayService) -> CampaignRuntime:
+        """The same runtime around another service over these stores.
+
+        A composition that binds a second engine to one store — a setup service on
+        its own scenario, a rebound campaign — must reuse this runtime's stores and
+        worker, and the service must come from ``PlayService.derived`` so it shares
+        the session registry. Two runtimes over one store would mean two locks on a
+        campaign and two workers on a partition.
+        """
         return CampaignRuntime(
             play,
             self.medical_environment,
@@ -88,7 +96,7 @@ class CampaignRuntime:
         """Reconstruct an activated scenario's pinned runtime after restart."""
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
-        return self if play is self.play else self._for(play)
+        return self if play is self.play else self.for_service(play)
 
     @staticmethod
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
