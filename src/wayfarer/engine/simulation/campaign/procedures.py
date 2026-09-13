@@ -41,6 +41,13 @@ from wayfarer.engine.simulation.campaign.world_context import (
     WorldContextRules,
     apply_world_context,
 )
+from wayfarer.engine.simulation.equipment.artifacts import (
+    ARTIFACT_COMMAND_KINDS,
+    ArtifactCommandUnion,
+    ArtifactOutcome,
+    ArtifactRules,
+    apply_artifact,
+)
 from wayfarer.engine.simulation.resources import Advance, Consume, ResourceState, Transfer
 from wayfarer.errors import ValidationError
 
@@ -49,7 +56,12 @@ if TYPE_CHECKING:
     from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 CampaignOutcome = (
-    AdministrationOutcome | LawOutcome | EconomicsOutcome | DevelopmentOutcome | WorldContextOutcome
+    AdministrationOutcome
+    | LawOutcome
+    | EconomicsOutcome
+    | DevelopmentOutcome
+    | WorldContextOutcome
+    | ArtifactOutcome
 )
 CampaignCommand = (
     CampaignAdministrationCommand
@@ -57,6 +69,7 @@ CampaignCommand = (
     | EconomicCommand
     | CharacterDevelopmentCommand
     | WorldCommand
+    | ArtifactCommandUnion
 )
 
 
@@ -72,6 +85,7 @@ class CampaignProcedureEngine:
         economics: EconomicsRules | None,
         development: DevelopmentRules | None,
         world_context: WorldContextRules | None,
+        artifacts: ArtifactRules | None,
     ) -> None:
         self.resources = resources
         self.reviewer = reviewer
@@ -80,6 +94,7 @@ class CampaignProcedureEngine:
         self.economics = economics
         self.development = development
         self.world_context = world_context
+        self.artifacts = artifacts
 
     def _advance(
         self, actor_id: str, rng: RandomSource
@@ -208,6 +223,50 @@ class CampaignProcedureEngine:
             outcome,
         )
 
+    def _apply_artifact(
+        self,
+        state: PlayState,
+        command: ArtifactCommandUnion,
+        *,
+        rng: RandomSource,
+    ) -> tuple[PlayState, ArtifactOutcome]:
+        if self.artifacts is None or self.world_context is None:
+            raise ValidationError("Artifact commands require artifact and world-context rules")
+        builds = {}
+        for actor in state.actors:
+            compiled = self.reviewer.compiler.compile(actor.proposal.draft).build
+            if compiled is None:
+                raise ValidationError("Artifact procedures require valid actor builds")
+            builds[actor.actor_id] = compiled
+        artifact_state, resources, outcome = apply_artifact(
+            state.artifacts,
+            state.resources,
+            state.world,
+            command,
+            self.artifacts,
+            self.world_context,
+            state.world_context,
+            builds=builds,
+            resource_engine=self.resources,
+            advance=self._advance(command.actor_id, rng),
+            rng=rng,
+        )
+        if resources is state.resources:
+            return state, outcome
+        return (
+            state.model_copy(
+                update={
+                    "revision": resources.revision,
+                    "resources": resources,
+                    "artifacts": artifact_state,
+                    "rulings": expire_rulings(
+                        state.rulings, resources.revision, resources.game_time
+                    ),
+                }
+            ),
+            outcome,
+        )
+
     def apply(
         self,
         state: PlayState,
@@ -216,6 +275,8 @@ class CampaignProcedureEngine:
         rng: RandomSource,
         system: bool = False,
     ) -> tuple[PlayState, CampaignOutcome]:
+        if command.kind in ARTIFACT_COMMAND_KINDS:
+            return self._apply_artifact(state, cast(ArtifactCommandUnion, command), rng=rng)
         if command.kind in WORLD_COMMAND_KINDS:
             return self._apply_world_context(
                 state, cast(WorldCommand, command), rng=rng, system=system
