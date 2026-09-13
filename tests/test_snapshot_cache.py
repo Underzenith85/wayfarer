@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
-from support.runtime import build_play
+from support.runtime import build_play, seed_campaign
 from test_actions import campaign, engine
 from test_wave9 import prepare
 
@@ -121,7 +121,7 @@ async def test_narration_survives_cache_rebuild_without_becoming_state(tmp_path:
     initial = campaign(play.engine)
     initial["messages"] = [{"role": "gm", "text": "You arrive at the dock."}]
     cid = initial["id"]
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
 
     def retained(state: Campaign) -> CommandReceipt:
         state["revision"] += 1

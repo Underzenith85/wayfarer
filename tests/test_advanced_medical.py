@@ -5,6 +5,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
+from support.runtime import seed_campaign
 from test_gurps_recovery import PROFILE, seed
 from test_resources import engine
 
@@ -291,7 +292,7 @@ async def test_survival_authority_sqlite_reconnect_and_no_reroll(tmp_path: Path)
         }
     )
     campaign["play_json"] = state.model_dump_json()
-    await play.store.insert(campaign)
+    await seed_campaign(play.store, campaign)
     command = BeginRecovery(
         id="survive", actor_id="a", target_id="a", kind="mortal-check", expected_revision=0
     )

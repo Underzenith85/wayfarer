@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from support.runtime import seed_campaign
 from test_actions import campaign, world
 from test_statistics import gurps_draft, profile_compiler
 
@@ -69,7 +70,7 @@ async def setup(
     )
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     return (
         initial["id"],
         play,

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.runtime import seed_play
 from test_actions import campaign
 
 from wayfarer.engine.character.compiler import (
@@ -360,7 +361,8 @@ async def test_live_dispatch_derives_policy_tl_and_advances_the_shared_clock(
             + (Purchase(definition_id="skill:propaganda", amount=4, technology_level=8),),
         )
     )
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world(),
         ResourceState(owners=(Owner(actor_id="actor", capacity=100),)),

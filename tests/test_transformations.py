@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.runtime import seed_play
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 from test_wave10 import prepare as prepare_recovery
 from test_wave10 import setback
@@ -85,7 +86,7 @@ async def setup(tmp_path: Path, rule: TransformationRule) -> tuple[str, PlayServ
     )
     play = PlayService(AsyncSQLiteStore(tmp_path / "transformations.sqlite", 10), reducer)
     initial = campaign(reducer)
-    await play.create(initial, world(), resource_seed(), (actor_setup(),))
+    await seed_play(play, initial, world(), resource_seed(), (actor_setup(),))
     return initial["id"], play
 
 
@@ -348,7 +349,7 @@ async def test_missing_campaign_permission_and_incomplete_mapping_fail_closed(
     base = engine()
     play = PlayService(AsyncSQLiteStore(tmp_path / "disabled.sqlite", 10), base)
     initial = campaign(base)
-    await play.create(initial, world(), resource_seed(), (actor_setup(),))
+    await seed_play(play, initial, world(), resource_seed(), (actor_setup(),))
     state = play._load(await play.store.read(initial["id"]))
     build = play.engine.reviewer.review(state.actors[0].proposal).compilation.build
     assert build is not None

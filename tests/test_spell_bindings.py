@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.runtime import seed_campaign
 from test_abilities import resources, world
 from test_actions import campaign
 from test_statistics import gurps_draft, profile_compiler, profile_package
@@ -231,7 +232,7 @@ async def setup(
         }
     )
     initial["play_json"] = initial_state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     return initial["id"], play
 
 

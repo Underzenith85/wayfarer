@@ -10,6 +10,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import seed_play
 from test_actions import campaign
 from test_mundane_traits import combined_package, runtime_compiler
 from test_social_dispatch import command, world
@@ -197,7 +198,8 @@ async def prepare(
             + purchases,
         )
     )
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world(),
         ResourceState(owners=(Owner(actor_id="a", capacity=100),)),

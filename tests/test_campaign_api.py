@@ -7,7 +7,7 @@ import aiohttp
 import pytest
 import pytest_asyncio
 from aiohttp import web
-from support.runtime import build_runtime
+from support.runtime import build_runtime, seed_play
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 
 from wayfarer.engine.simulation.actions import Wait
@@ -24,7 +24,8 @@ async def api(tmp_path: Path) -> AsyncIterator[tuple[str, str]]:
     reducer = engine()
     play = PlayService(AsyncSQLiteStore(tmp_path / "api.sqlite", 10), reducer)
     initial = campaign(reducer)
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world(),
         resource_seed(),

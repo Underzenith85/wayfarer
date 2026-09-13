@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from support.runtime import build_orchestrator, build_runtime
+from support.runtime import build_orchestrator, build_runtime, played
 from test_wave9 import FakeProvider, prepare
 
 from wayfarer.engine.simulation.actions import Wait
@@ -22,7 +22,7 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
     await access.submit_json(
         cid, command.model_dump(mode="json"), principal_id="alice", origin=origin
     )
-    row = (await play.store.history(cid))[0]
+    row = (await played(play.store, cid))[0]
     assert row.origin == origin
     assert origin.digest == payload_digest(proposal)
     payload = json.dumps(
@@ -32,7 +32,7 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
     )
     assert row.payload_hash == payload_digest({"input": payload})
     await access.submit_json(cid, command.model_dump(mode="json"), principal_id="alice")
-    assert (await play.store.history(cid))[0] == row
+    assert (await played(play.store, cid))[0] == row
     assert "test-model" not in json.dumps(await access.read(cid, principal_id="alice"))
     assert "test-model" not in json.dumps(row.state_after)
     assert "test-model" not in repr(row)
@@ -41,7 +41,7 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
         Wait(id="direct", actor_id="a", expected_revision=1, ticks=1).model_dump(mode="json"),
         principal_id="alice",
     )
-    assert (await play.store.history(cid))[-1].origin is None
+    assert (await played(play.store, cid))[-1].origin is None
 
 
 async def test_provider_origin_and_replay_never_call_provider(tmp_path: Path) -> None:
@@ -50,7 +50,7 @@ async def test_provider_origin_and_replay_never_call_provider(tmp_path: Path) ->
     await build_orchestrator(build_runtime(play), provider).interpret_and_execute(
         cid, principal_id="alice", actor_id="a", command_id="wait", text="Wait"
     )
-    row = (await play.store.history(cid))[0]
+    row = (await played(play.store, cid))[0]
     assert row.origin is not None and row.origin.proposal_type == "Intent"
     assert json.loads(row.origin.proposal_json)["ticks"] == 1
     calls = len(provider.requests)
@@ -75,12 +75,12 @@ async def test_director_origin_survives_restart_before_resolution(tmp_path: Path
             text="wait",
             checkpoint=crash,
         )
-    saved = (await play.store.history(cid))[-1].origin
+    saved = (await played(play.store, cid))[-1].origin
     assert saved is not None
     await DirectorService(build_orchestrator(build_runtime(play), provider)).run(
         cid, principal_id="alice", actor_id="a", command_id="turn", text="wait"
     )
-    domain = next(e for e in await play.store.history(cid) if e.event["action"] == "typed-action")
+    domain = next(e for e in await played(play.store, cid) if e.event["action"] == "typed-action")
     assert domain.origin == saved
     assert sum(r.operation == "intent" for r in provider.requests) == 1
 
@@ -104,7 +104,7 @@ async def test_npc_proposal_uses_same_origin_and_scope_resets_on_failure(tmp_pat
     )
     origin = CommandOrigin.proposal("NPCProposal", command.model_dump(mode="json"), provider="fake")
     await NPCService(play).propose(cid, command, authenticated_gm_id="gm", origin=origin)
-    assert (await play.store.history(cid))[-1].origin == origin
+    assert (await played(play.store, cid))[-1].origin == origin
     with pytest.raises(ValidationError):
         await build_runtime(play).submit_json(cid, {}, principal_id="alice", origin=origin)
     assert current_origin.get() is None

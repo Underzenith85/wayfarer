@@ -11,6 +11,7 @@ from typing import Literal
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
+from support.runtime import played, seed_play
 
 from wayfarer.contracts import Campaign
 from wayfarer.engine.character import builder
@@ -463,7 +464,7 @@ async def test_receipt_miss_racing_an_identical_commit_returns_original_result(
     reducer, dice = engine(), Dice()
     service = PlayService(store, reducer, rng=dice)
     initial = campaign(reducer)
-    await service.create(initial, world(), resource_seed(), (actor_setup(),))
+    await seed_play(service, initial, world(), resource_seed(), (actor_setup(),))
     command = Inspect(id="same-request", actor_id="a", expected_revision=0, target_id="chest")
     original_duplicate = store.duplicate
     raced = False
@@ -480,7 +481,7 @@ async def test_receipt_miss_racing_an_identical_commit_returns_original_result(
     monkeypatch.setattr(store, "duplicate", racing_duplicate)
     result = await service.execute(initial["id"], command, authenticated_actor_id="a")
     assert result.status == "committed" and result.revision == 1
-    assert dice.calls == 3 and len(await store.history(initial["id"])) == 1
+    assert dice.calls == 3 and len(await played(store, initial["id"])) == 1
     assert await service.execute(initial["id"], command, authenticated_actor_id="a") == result
     with pytest.raises(ConflictError):
         await service.execute(
@@ -505,7 +506,7 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     reducer, dice = engine(), Dice()
     service = PlayService(store, reducer, rng=dice)
     initial = campaign(reducer)
-    await service.create(initial, world(), resource_seed(), (actor_setup(),))
+    await seed_play(service, initial, world(), resource_seed(), (actor_setup(),))
     raw_before = await store.read(initial["id"])
     command = Inspect(id="inspect", actor_id="a", expected_revision=0, target_id="chest")
     assert (
@@ -518,12 +519,12 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     assert (
         await service.execute(initial["id"], question, authenticated_actor_id="a")
     ).status == "question"
-    assert await store.history(initial["id"]) == []
+    assert await played(store, initial["id"]) == []
     results = await asyncio.gather(
         *(service.execute(initial["id"], command, authenticated_actor_id="a") for _ in range(8))
     )
     assert all(r == results[0] for r in results) and dice.calls == 3
-    assert len(await store.history(initial["id"])) == 1
+    assert len(await played(store, initial["id"])) == 1
     competing = await asyncio.gather(
         *(
             service.execute(
@@ -552,7 +553,7 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
             authenticated_actor_id="a",
         )
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
-    history = await store.history(initial["id"])
+    history = await played(store, initial["id"])
     assert (
         len(history) == 12
         and history[0].actor_id == "a"
@@ -569,7 +570,7 @@ async def test_pending_approval_is_durable_authorized_and_revalidated(tmp_path: 
     reducer = engine(automatic=False)
     initial = campaign(reducer)
     service = PlayService(store, reducer)
-    state = await service.create(initial, world(), resource_seed(), (actor_setup(),))
+    state = await seed_play(service, initial, world(), resource_seed(), (actor_setup(),))
     assert state.actors[0].approval is None
     blocked = await service.execute(
         initial["id"],
@@ -577,7 +578,7 @@ async def test_pending_approval_is_durable_authorized_and_revalidated(tmp_path: 
         authenticated_actor_id="a",
     )
     assert (
-        blocked.code == "character.approval_required" and await store.history(initial["id"]) == []
+        blocked.code == "character.approval_required" and await played(store, initial["id"]) == []
     )
     approval = ApproveCharacter(
         id="approval",
@@ -599,7 +600,7 @@ async def test_pending_approval_is_durable_authorized_and_revalidated(tmp_path: 
     )
     assert result.status == "committed"
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
-    assert (await store.history(initial["id"]))[0].event["action"] == "power-approval"
+    assert (await played(store, initial["id"]))[0].event["action"] == "power-approval"
     with pytest.raises(ConflictError):
         await restarted.approve(
             initial["id"], approval.model_copy(update={"id": "stale"}), authenticated_gm_id="gm"

@@ -5,6 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import played
 from test_wave9 import prepare
 
 from scripts.replay_fixtures import FixtureExecutor
@@ -26,7 +27,7 @@ async def test_durable_replay_reports_legacy_and_detects_tampering(
         Inspect(id="replay", actor_id="a", expected_revision=0, target_id="chest"),
         authenticated_actor_id="a",
     )
-    records = await play.store.history(cid)
+    records = await played(play.store, cid)
     assert len(records) == 1 and records[0].command_input is not None
     stream = await play.store.stream(cid)
     after, checks = await verify_commands(

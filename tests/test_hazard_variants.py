@@ -4,6 +4,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from support.runtime import seed_campaign
 from test_medical_service import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -34,7 +35,7 @@ async def seed(play: PlayService, cid: str, state: PlayState, path: Path) -> Non
     campaign = await play.store.read(cid)
     campaign["play_json"] = state.model_dump_json()
     play.store = AsyncSQLiteStore(path, 10)
-    await play.store.insert(campaign)
+    await seed_campaign(play.store, campaign)
 
 
 def schedule(spec: HazardSpec, *, stage: str = "cycles") -> HazardSchedule:
@@ -357,7 +358,7 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
     )
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     return initial["id"], play
 
 
@@ -548,7 +549,7 @@ async def test_antibiotics_consume_one_bound_dose_and_never_stack(
     )
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     cid = initial["id"]
     service = HazardCareService(
         play,
@@ -627,7 +628,7 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
         (ActorSetup(actor_id="a", proposal=CharacterProposal(draft=draft)),),
     )
     initial["play_json"] = state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     spec = HazardSpec(
         id="sun", scene_id="dock", kind="heat", interval=1800, cycles=2, reference="B434"
     )

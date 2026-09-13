@@ -5,7 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from support.runtime import build_runtime
+from support.runtime import build_runtime, played, seed_play
 from test_actions import campaign
 
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
@@ -212,7 +212,8 @@ async def prepare(path: Path, npcs: NPCSocialRules | None = None) -> tuple[str, 
             ),
         )
     )
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world(),
         ResourceState(owners=(Owner(actor_id="a", capacity=100),)),
@@ -306,4 +307,4 @@ async def test_unknown_disclosure_foreign_profile_and_unavailable_fright_do_not_
             cid, command().model_copy(update={"kind": "fright"}), authenticated_gm_id="gm"
         )
     assert await play.store.read(cid) == before
-    assert await play.store.history(cid) == []
+    assert await played(play.store, cid) == []

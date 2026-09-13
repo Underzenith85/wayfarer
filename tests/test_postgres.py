@@ -4,7 +4,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
-from support.runtime import build_play
+from support.runtime import build_play, seed_campaign
 from test_actions import campaign, engine
 
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -31,7 +31,7 @@ async def test_postgres_rolls_back_projection_and_event_together(tmp_path: Path)
     play = build_play(tmp_path, engine(), backend="postgres")
     assert isinstance(play.store, AsyncPostgresStore)
     initial = campaign(play.engine)
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
 
     def crash(state: Campaign) -> CommandReceipt:
         state["revision"] = 99
@@ -40,4 +40,4 @@ async def test_postgres_rolls_back_projection_and_event_together(tmp_path: Path)
     with pytest.raises(RuntimeError, match="simulated crash"):
         await play.store.commit_turn(initial["id"], "crash", 0, "Rest", crash)
     assert (await play.store.read(initial["id"]))["revision"] == 0
-    assert await play.store.history(initial["id"]) == []
+    assert [r.command_id for r in await play.store.history(initial["id"])] == ["setup:seed"]

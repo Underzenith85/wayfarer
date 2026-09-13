@@ -53,7 +53,9 @@ async def test_atomic_stream_fold_retry_and_schema(tmp_path: Path, backend: str)
     )
     states = await play.store.stream_states(cid)
     history = await play.store.history(cid)
-    assert [document(s) for s, _ in states[1:]] == [document(row.state_after) for row in history]
+    assert [document(s) for s, _ in states[1:]] == [
+        document(row.state_after) for row in history[1:]
+    ]
 
 
 async def test_stream_append_failure_rolls_back_everything(tmp_path: Path) -> None:
@@ -72,7 +74,7 @@ async def test_stream_append_failure_rolls_back_everything(tmp_path: Path) -> No
             authenticated_actor_id="a",
         )
     assert await play.store.read(cid) == before
-    assert await play.store.history(cid) == []
+    assert [r.command_id for r in await play.store.history(cid)] == ["setup:seed"]
     assert await play.store.stream(cid) == []
 
 
@@ -144,12 +146,14 @@ async def test_new_receipts_never_write_transcript_fields(tmp_path: Path, backen
 
     async with CatalogStore(play.store).transaction() as db:
         rows = await db.query(
-            "SELECT event, schema_version, command_input FROM command_log WHERE campaign=?", (cid,)
+            "SELECT event, schema_version, command_input FROM command_log WHERE campaign=? "
+            "ORDER BY resulting_revision DESC",
+            (cid,),
         )
     payload = rows[0][0]
     saved = json.loads(payload) if isinstance(payload, str) else payload
     assert isinstance(saved, dict) and set(saved) == {"action", "outcome"}
     assert rows[0][1] == 2 and rows[0][2]
-    record = (await play.store.history(cid))[0]
+    record = (await play.store.history(cid))[-1]
     assert record.schema_version == 2 and record.command_input == rows[0][2]
     assert set(record.event) == {"action", "outcome"}

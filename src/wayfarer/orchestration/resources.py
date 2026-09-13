@@ -1,5 +1,6 @@
 """Atomic resource commands using the existing SQLite/PostgreSQL event stores."""
 
+import json
 import secrets
 from collections.abc import Callable
 
@@ -53,7 +54,13 @@ class ResourceService:
             validate_transport(self.engine, resources, transport)
         state = campaign.copy()
         state["resources_json"] = resources.model_dump_json()
-        await self.store.insert(state)
+        async with self.sessions.serialized(campaign["id"]):
+            await self.store.commit_genesis(
+                state,
+                command_id="setup:resources",
+                text=json.dumps({"operation": "seed", "campaign": campaign["id"]}, sort_keys=True),
+                recorded_at_us=self.instants().unix_microseconds,
+            )
 
     async def execute(
         self, cid: str, value: object, *, authenticated_actor_id: str, system: bool = False

@@ -11,6 +11,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError as SchemaError
+from support.runtime import played
 
 from wayfarer.contracts import Campaign
 from wayfarer.engine.character import builder
@@ -431,7 +432,7 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
     restarted = ResourceService(store, reducer)
     assert await restarted.execute(initial["id"], command, authenticated_actor_id="a") == results[0]
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
-    history = await store.history(initial["id"])
+    history = await played(store, initial["id"])
     assert (
         len(history) == 2
         and history[0].actor_id == "a"
@@ -441,7 +442,7 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
         await restarted.execute(
             initial["id"], second.model_copy(update={"id": "stale"}), authenticated_actor_id="a"
         )
-    assert len(await store.history(initial["id"])) == 2
+    assert len(await played(store, initial["id"])) == 2
     competing = await asyncio.gather(
         *(
             restarted.execute(
@@ -474,7 +475,7 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
     )
     assert expired.active_effect_ids == () and expired.fired == ("poison-expiry",)
     clock_record = next(
-        row for row in await store.history(initial["id"]) if row.command_id == "clock"
+        row for row in await played(store, initial["id"]) if row.command_id == "clock"
     )
     assert clock_record.actor_id == "system" and clock_record.reexecutable
     assert clock_record.entropy_seed is not None

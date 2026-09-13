@@ -5,7 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from support.runtime import build_orchestrator, build_runtime
+from support.runtime import build_orchestrator, build_runtime, seed_play
 from support.setup import play_game
 from test_actions import actor_setup, campaign, resource_seed
 from test_scenes import configured
@@ -362,7 +362,8 @@ async def test_director_combat_defense_survives_restart(tmp_path: Path) -> None:
     engine = combat_engine()
     play = PlayService(AsyncSQLiteStore(tmp_path / "combat.sqlite", 10), engine, rng=Dice())
     initial = campaign(engine)
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world(),
         resources(),
