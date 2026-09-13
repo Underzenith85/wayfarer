@@ -241,15 +241,32 @@ def knockdown_penalty(location: HumanLocation, *, major: bool, male_groin: bool)
 
 
 def armor_resistance(
-    armors: Iterable[Armor], location: HumanLocation, *, rigid_only: bool = False
+    armors: Iterable[Armor],
+    location: HumanLocation,
+    *,
+    rigid_only: bool = False,
+    damage_type: DamageType | None = None,
+    attack_from_front: bool = True,
 ) -> int:
-    """B282/B400: select covering armor before injury applies bone DR and divisors."""
-    return max(
-        (
-            armor.dr
-            for armor in armors
-            if (location in armor.locations or part(location) + "s" in armor.locations)
-            and not (rigid_only and armor.flexible)
-        ),
-        default=0,
-    )
+    """B282/B400: select coverage, then combine explicitly authored armor layers."""
+    layers: dict[int, int] = {}
+    for armor in armors:
+        if (
+            location not in armor.locations
+            and part(location) + "s" not in armor.locations
+            or rigid_only
+            and armor.flexible
+            or armor.front_only
+            and not attack_from_front
+        ):
+            continue
+        resistance = (
+            armor.dr if damage_type is None else dict(armor.split_dr).get(damage_type, armor.dr)
+        )
+        layers[armor.layer] = max(layers.get(armor.layer, 0), resistance)
+    return sum(layers.values())
+
+
+def armor_concealment_penalty(armors: Iterable[Armor]) -> int:
+    """Combine only authored concealment penalties for worn armor."""
+    return sum(armor.concealment_penalty for armor in armors)

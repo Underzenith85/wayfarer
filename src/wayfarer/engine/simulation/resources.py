@@ -18,6 +18,7 @@ from wayfarer.engine.rules.types.affliction import AfflictionEffect
 from wayfarer.engine.rules.types.creature import Creature, Swarm
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.firearm import FirearmFailure
+from wayfarer.engine.rules.types.general_equipment import GeneralEquipmentFeature
 from wayfarer.engine.rules.types.hazard import (
     HazardSchedule,
     RecoveryRestriction,
@@ -78,6 +79,10 @@ class EquipmentSpec(Record):
     electronics: ElectronicsSuite | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+    general: tuple[GeneralEquipmentFeature, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    minimum_technology_level: int = Field(default=0, ge=0)
 
 
 class Item(Record):

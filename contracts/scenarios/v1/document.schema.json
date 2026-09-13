@@ -1055,6 +1055,55 @@
           "default": false,
           "title": "Flexible",
           "type": "boolean"
+        },
+        "layer": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Layer",
+          "type": "integer"
+        },
+        "front_only": {
+          "default": false,
+          "title": "Front Only",
+          "type": "boolean"
+        },
+        "split_dr": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "enum": [
+                  "cr",
+                  "cut",
+                  "imp",
+                  "pi-",
+                  "pi",
+                  "pi+",
+                  "pi++",
+                  "burn",
+                  "cor",
+                  "tox",
+                  "fat"
+                ],
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Split Dr",
+          "type": "array"
+        },
+        "concealment_penalty": {
+          "default": 0,
+          "maximum": 0,
+          "title": "Concealment Penalty",
+          "type": "integer"
         }
       },
       "required": [
@@ -1950,6 +1999,97 @@
         "value"
       ],
       "title": "Belief",
+      "type": "object"
+    },
+    "BondedLaborRule": {
+      "additionalProperties": false,
+      "description": "A B518 legal context; its subject is an actor and never inventory.",
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "subject_actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Subject Actor Id",
+          "type": "string"
+        },
+        "seller_account_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Seller Account Id",
+          "type": "string"
+        },
+        "buyer_account_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Buyer Account Id",
+          "type": "string"
+        },
+        "monthly_pay": {
+          "exclusiveMinimum": 0,
+          "title": "Monthly Pay",
+          "type": "integer"
+        },
+        "jurisdiction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Jurisdiction Id",
+          "type": "string"
+        },
+        "legal": {
+          "title": "Legal",
+          "type": "boolean"
+        },
+        "kind_of_slavery": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Kind Of Slavery",
+          "type": "string"
+        },
+        "initial_loyalty": {
+          "default": 10,
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Initial Loyalty",
+          "type": "integer"
+        },
+        "kind_treatment": {
+          "default": false,
+          "title": "Kind Treatment",
+          "type": "boolean"
+        },
+        "private_disposition": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Private Disposition",
+          "type": "string"
+        },
+        "visible_to_actor_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Visible To Actor Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "subject_actor_id",
+        "seller_account_id",
+        "buyer_account_id",
+        "monthly_pay",
+        "jurisdiction_id",
+        "legal",
+        "kind_of_slavery"
+      ],
+      "title": "BondedLaborRule",
       "type": "object"
     },
     "BrokenWeaponOutcome": {
@@ -2854,6 +2994,87 @@
         "label"
       ],
       "title": "Connection",
+      "type": "object"
+    },
+    "CraftRule": {
+      "additionalProperties": false,
+      "description": "One B515 recipe with an exact parts-to-finished-price binding.",
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "output_definition_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Output Definition Id",
+          "type": "string"
+        },
+        "output_price": {
+          "exclusiveMinimum": 0,
+          "title": "Output Price",
+          "type": "integer"
+        },
+        "work_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Work Seconds",
+          "type": "integer"
+        },
+        "materials": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 1,
+          "title": "Materials",
+          "type": "array"
+        },
+        "material_value": {
+          "exclusiveMinimum": 0,
+          "title": "Material Value",
+          "type": "integer"
+        },
+        "required_tool_definition_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Required Tool Definition Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "target_id",
+        "output_definition_id",
+        "output_price",
+        "work_seconds",
+        "materials",
+        "material_value",
+        "required_tool_definition_ids"
+      ],
+      "title": "CraftRule",
       "type": "object"
     },
     "Creature": {
@@ -4042,6 +4263,22 @@
           },
           "title": "Public Speaking",
           "type": "array"
+        },
+        "crafts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CraftRule"
+          },
+          "title": "Crafts",
+          "type": "array"
+        },
+        "bonded_labor": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/BondedLaborRule"
+          },
+          "title": "Bonded Labor",
+          "type": "array"
         }
       },
       "required": [
@@ -5048,6 +5285,14 @@
           ],
           "default": null,
           "title": "Container Capacity Millipounds"
+        },
+        "general": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/GeneralEquipmentFeature"
+          },
+          "title": "General",
+          "type": "array"
         }
       },
       "required": [
@@ -5652,6 +5897,158 @@
         "kind"
       ],
       "title": "GadgetDefect",
+      "type": "object"
+    },
+    "GeneralEquipmentFeature": {
+      "additionalProperties": false,
+      "description": "One source-defined behavior; fields are interpreted only by its kind.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "accessory",
+            "breathing",
+            "communication",
+            "container",
+            "fuel",
+            "light",
+            "medical",
+            "mount",
+            "protection",
+            "recording",
+            "restraint",
+            "sensor",
+            "support",
+            "tool"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "skill_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Skill Id"
+        },
+        "modifier": {
+          "default": 0,
+          "maximum": 10,
+          "minimum": -10,
+          "title": "Modifier",
+          "type": "integer"
+        },
+        "capacity": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capacity"
+        },
+        "duration_seconds": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Seconds"
+        },
+        "range_yards": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range Yards"
+        },
+        "consumable_definition_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Consumable Definition Id"
+        },
+        "consumable_units": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Consumable Units",
+          "type": "integer"
+        },
+        "target": {
+          "default": "actor",
+          "enum": [
+            "actor",
+            "weapon",
+            "mount",
+            "environment"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "trait_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trait Id"
+        },
+        "grants_holdout": {
+          "default": false,
+          "title": "Grants Holdout",
+          "type": "boolean"
+        },
+        "note": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Note",
+          "type": "string"
+        },
+        "technology_relative": {
+          "default": false,
+          "title": "Technology Relative",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "GeneralEquipmentFeature",
       "type": "object"
     },
     "GenerationBrief": {

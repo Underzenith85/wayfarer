@@ -154,7 +154,7 @@ def test_audit_rows_export_only_explicit_source_review_state() -> None:
         assert footnotes[record.id].source_review == expected
     assert fields and all(row.source_review == "reviewed" for row in fields)
     assert all("docs/gurps-equipment-source-review.md" in row.evidence for row in fields)
-    assert sum(row.implementation == "implemented" for row in fields) == 129
+    assert sum(row.implementation == "implemented" for row in fields) == 134
     assert sum(row.implementation == "omitted" for row in fields) == 2
     assert bindings["basic-set-catalog"].source_review == "reviewed"
     assert bindings["lite-catalog"].source_review == "pending"
@@ -203,8 +203,9 @@ def test_crossbow_catalog_binds_the_executable_cocking_aid() -> None:
         validate_selection(BASIC, ("equipment:invented-blade",))
     assert require_supported("equipment:broadsword").definition_id == "equipment:broadsword"
     assert require_supported("equipment:laptop").electronics is not None
-    with pytest.raises(ValidationError, match="battery-and-computer-operation"):
-        require_supported("equipment:heavy-flashlight")
+    flashlight = require_supported("equipment:heavy-flashlight")
+    assert flashlight.general[0].kind == "light"
+    assert flashlight.general[0].duration_seconds == 5 * 3600
 
 
 def test_lite_equipment_gaps_are_recorded_separately_and_block_lite_selection() -> None:
@@ -249,7 +250,7 @@ def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
     assert report["selected_rows"] == 285
-    assert report["supported_rows"] == 146
+    assert report["supported_rows"] == 240
     assert report["sections_audited"] == 0
     assert report["sections_reconciled"] == 14
     assert report["workstream_complete"] is True

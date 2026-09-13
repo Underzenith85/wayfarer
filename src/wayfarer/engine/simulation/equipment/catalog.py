@@ -29,6 +29,7 @@ from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.entangle import EntangleSpec
 from wayfarer.engine.rules.types.explosion import ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmSpec
+from wayfarer.engine.rules.types.general_equipment import GeneralEquipmentFeature
 from wayfarer.engine.rules.types.launcher import LauncherSpec
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.rules.types.mount import MountSpec
@@ -400,11 +401,17 @@ class Armor(Record):
     locations: tuple[Location, ...] = Field(min_length=1)
     dr: Nonnegative
     flexible: bool = False
+    layer: Nonnegative = 0
+    front_only: bool = False
+    split_dr: tuple[tuple[DamageType, Nonnegative], ...] = ()
+    concealment_penalty: int = Field(default=0, le=0)
 
     @model_validator(mode="after")
     def unique_locations(self) -> Self:
         if len(set(self.locations)) != len(self.locations):
             raise ValueError("Duplicate armor location")
+        if len({kind for kind, _ in self.split_dr}) != len(self.split_dr):
+            raise ValueError("Duplicate split-DR damage type")
         return self
 
 
@@ -439,10 +446,16 @@ class EquipmentProfile(Record):
     container_capacity_millipounds: Nonnegative | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
+    general: tuple[GeneralEquipmentFeature, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
-        if not isinstance(self.technology_level, int) and not self.unsupported_mechanics:
+        relative = any(feature.technology_relative for feature in self.general)
+        if not isinstance(self.technology_level, int) and not (
+            self.unsupported_mechanics or relative
+        ):
             raise ValueError("Non-numeric technology levels must remain explicitly unsupported")
         if self.power_cell_capacity is not None and (not self.ammunition or self.warhead):
             raise ValueError("Power cell requires nonexplosive ammunition metadata")
@@ -471,12 +484,13 @@ class EquipmentProfile(Record):
             raise ValidationError(
                 "Equipment has unsupported mechanics: " + ", ".join(self.unsupported_mechanics)
             )
-        if not isinstance(self.technology_level, int):
+        relative = any(feature.technology_relative for feature in self.general)
+        if not isinstance(self.technology_level, int) and not relative:
             raise ValidationError("Supported equipment requires a concrete technology level")
         return EquipmentSpec(
             definition_id=self.definition_id,
             unit_weight=self.weight_millipounds,
-            technology_level=self.technology_level,
+            technology_level=self.technology_level if isinstance(self.technology_level, int) else 0,
             stackable=not bool(
                 self.modes
                 or self.armor
@@ -487,6 +501,10 @@ class EquipmentProfile(Record):
             ),
             power_cell_capacity=self.power_cell_capacity,
             electronics=self.electronics,
+            general=self.general,
+            minimum_technology_level=(
+                self.technology_level if isinstance(self.technology_level, int) else 0
+            ),
             smartgun=any(
                 isinstance(mode, RangedMode) and mode.smartgun is not None for mode in self.modes
             ),

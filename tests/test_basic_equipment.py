@@ -931,9 +931,21 @@ def test_non_numeric_technology_levels_fail_closed() -> None:
         "equipment:suitcase-lab": "skill-relative",
     }
     assert {identifier: entries[identifier].technology_level for identifier in expected} == expected
-    for identifier in expected:
+    for identifier in (
+        "equipment:force-sword",
+        "equipment:monowire-whip",
+        "equipment:force-shield",
+    ):
         with pytest.raises(ValidationError, match="unsupported"):
             entries[identifier].inventory_spec()
+    for identifier in set(expected) - {
+        "equipment:force-sword",
+        "equipment:monowire-whip",
+        "equipment:force-shield",
+    }:
+        spec = entries[identifier].inventory_spec()
+        assert spec.minimum_technology_level == 0
+        assert any(feature.technology_relative for feature in spec.general)
 
     force_sword = entries["equipment:force-sword"]
     assert (force_sword.price, force_sword.weight_millipounds) == (10000, 2000)

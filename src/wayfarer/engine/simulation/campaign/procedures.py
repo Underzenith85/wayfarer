@@ -336,6 +336,10 @@ class CampaignProcedureEngine:
             "hire",
             "hireling-pay",
             "loyalty",
+            "make-goods",
+            "acquire-bonded-labor",
+            "release-bonded-labor",
+            "escape-bonded-labor",
         }:
             if self.economics is None:
                 raise ValidationError("Economics command is not enabled")
@@ -387,6 +391,7 @@ class CampaignProcedureEngine:
                 purchased_ids=frozenset(value.definition_id for value in compiled.purchases),
                 rng=rng,
                 transfer=transfer,
+                advance=self._advance(command.actor_id, rng),
                 system=system,
             )
             if resources is state.resources:
