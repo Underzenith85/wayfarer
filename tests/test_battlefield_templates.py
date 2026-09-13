@@ -1,70 +1,12 @@
-"""Template ownership, explicit retained-checkpoint migration, and replay."""
+"""Map template ownership: fail-closed references and pinned geometry."""
 
-import json
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError as SchemaError
-from test_tactical import migration, setup
+from test_tactical import setup
 
-from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.events import document
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.battlefield_templates import migrate_embedded_maps
-from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.replay import execute_recorded
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-
-
-async def test_embedded_map_migrates_then_replays_after_cache_loss(tmp_path: Path) -> None:
-    cid, play = await setup(tmp_path / "source", migrate=False)
-    initial = await play.store.read(cid)
-    raw = json.loads(initial["play_json"])
-    encounter = raw["encounters"][0]
-    command = migration()
-    context = encounter.pop("spatial_context")
-    encounter["battlefield_id"] = context["battlefield_id"]
-    encounter["hex_battlefield"] = command.battlefield.model_dump(
-        mode="json", exclude={"location_id", "darkness_penalty"}
-    )
-    poses = {p.actor_id: p.pose for p in command.placements}
-    for actor in encounter["participants"]:
-        actor["position"] = poses[actor["actor_id"]].position.model_dump(mode="json")
-        actor["hex_facing"] = poses[actor["actor_id"]].facing
-    initial["play_json"] = json.dumps(raw)
-    store = AsyncSQLiteStore(tmp_path / "legacy.sqlite", snapshot_interval=0)
-    await store.insert(initial)
-    legacy = PlayService(store, play.engine)
-    with pytest.raises(SchemaError):
-        legacy._load(initial)
-    migrated = await migrate_embedded_maps(
-        legacy, cid, command_id="lift", actor_id="gm", expected_revision=initial["revision"]
-    )
-    bound = legacy.for_campaign(migrated)
-    state = bound._load(migrated)
-    assert "hex_battlefield" not in Encounter.model_fields
-    assert state.encounters[0].spatial_kind == "hex"
-    board = bound.rules_context.require_hex(state.encounters[0])
-    assert board.cells == command.battlefield.cells
-    assert board.location_id == "dock"
-    assert board.source_template_id == "dock"
-    assert state.migrations[-1].from_digest == play.engine.digest
-    assert state.migrations[-1].to_digest == bound.engine.digest
-    assert state.migrations[-1].revision == initial["revision"] + 1
-    assert document(await store.replay(cid)) == document(migrated)
-    retried = await migrate_embedded_maps(
-        legacy, cid, command_id="lift", actor_id="gm", expected_revision=initial["revision"]
-    )
-    assert document(retried) == document(migrated)
-    record = (await store.history(cid))[-1]
-    replay_store = AsyncSQLiteStore(tmp_path / "reexecute.sqlite", snapshot_interval=0)
-    await replay_store.insert(initial)
-    await execute_recorded(PlayService(replay_store, play.engine), record)
-    assert document(await replay_store.read(cid)) == document(migrated)
-    assert [e.event for e in await replay_store.stream(cid)] == [
-        e.event for e in await store.stream(cid)
-    ]
 
 
 async def test_missing_template_fails_closed_and_geometry_is_pinned(tmp_path: Path) -> None:

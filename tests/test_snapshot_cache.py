@@ -70,7 +70,6 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
     assert document(decode(encode(expected))) == document(expected)
     await sql(store, "DELETE FROM snapshots WHERE campaign=?", (cid,))
     await sql(store, "UPDATE campaigns SET state='{}' WHERE id=?", (cid,))
-    await sql(store, "UPDATE command_log SET state_after='{}' WHERE campaign=?", (cid,))
     reopened = (
         AsyncSQLiteStore(store.path, snapshot_interval=interval)
         if isinstance(store, AsyncSQLiteStore)

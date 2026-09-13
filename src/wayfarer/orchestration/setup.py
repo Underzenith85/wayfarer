@@ -379,10 +379,7 @@ class SetupService:
         catalog_id: str | None = None,
     ) -> dict[str, object]:
         cid = str(uuid5(NAMESPACE_URL, json.dumps([principal_id, command.id])))
-        # Existing creation receipts predate profile selection; keep their payload bytes.
-        payload = command.model_dump_json(
-            exclude={"rules_profile"} if command.rules_profile is None else None
-        )
+        payload = command.model_dump_json()
         if document_json is not None:
             payload = json.dumps([payload, document_json])
         if command.rules_profile is not None and self.profiles is None:

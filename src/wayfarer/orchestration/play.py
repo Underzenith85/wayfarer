@@ -143,10 +143,10 @@ class PlayService:
 
         encoded = campaign.get("scenario_graph_json")
         if encoded is None:
+            # No pinned scenario: only a migrated map configuration can rebind.
             override = campaign.get("combat_rules_json")
             if override is None:
                 return self
-
             original = self.engine.rules.combat
             if original is None:
                 raise ValidationError("Map migration requires configured combat rules")

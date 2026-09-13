@@ -64,7 +64,6 @@ class AsyncSQLiteStore:
                 rules_version TEXT NOT NULL,
                 schema_version INTEGER NOT NULL,
                 event TEXT NOT NULL,
-                state_after TEXT NOT NULL,
                 entropy_seed TEXT,
                 rng_algorithm TEXT,
                 recorded_at_us INTEGER,
@@ -279,8 +278,8 @@ class AsyncSQLiteStore:
                 """INSERT INTO command_log (
                     campaign, command_id, actor_id, expected_revision,
                     resulting_revision, payload_hash, rules_version,
-                    schema_version, event, state_after, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     cid,
                     request_id,
@@ -291,7 +290,6 @@ class AsyncSQLiteStore:
                     state["rules"],
                     COMMAND_SCHEMA_VERSION,
                     json.dumps(event),
-                    "{}",
                     entropy.seed if entropy else None,
                     entropy.rng_algorithm if entropy else None,
                     recorded_at_us,
@@ -324,7 +322,7 @@ class AsyncSQLiteStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                          payload_hash, rules_version, schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
                    FROM command_log WHERE campaign=? ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -343,15 +341,15 @@ class AsyncSQLiteStore:
                     schema_version=row[6],
                     event=self._event(row[7]),
                     state_after=states[validation.integer(row[3])],
-                    entropy_seed=row[9],
-                    rng_algorithm=row[10],
-                    recorded_at_us=row[11],
-                    command_input=row[13],
-                    scenario_boundary=ScenarioBoundary.model_validate_json(row[14])
-                    if row[14]
+                    entropy_seed=row[8],
+                    rng_algorithm=row[9],
+                    recorded_at_us=row[10],
+                    command_input=row[12],
+                    scenario_boundary=ScenarioBoundary.model_validate_json(row[13])
+                    if row[13]
                     else None,
-                    origin=CommandOrigin.model_validate_json(row[12])
-                    if row[12] is not None
+                    origin=CommandOrigin.model_validate_json(row[11])
+                    if row[11] is not None
                     else None,
                 )
                 for row in rows

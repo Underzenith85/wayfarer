@@ -74,7 +74,6 @@ class AsyncPostgresStore:
                 rules_version TEXT NOT NULL,
                 schema_version INTEGER NOT NULL,
                 event JSONB NOT NULL,
-                state_after JSONB NOT NULL,
                 entropy_seed TEXT,
                 rng_algorithm TEXT,
                 recorded_at_us BIGINT,
@@ -295,8 +294,8 @@ class AsyncPostgresStore:
                     """INSERT INTO command_log (
                         campaign, command_id, actor_id, expected_revision,
                         resulting_revision, payload_hash, rules_version,
-                        schema_version, event, state_after, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s, %s)""",
+                        schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s)""",
                     (
                         cid,
                         request_id,
@@ -307,7 +306,6 @@ class AsyncPostgresStore:
                         state["rules"],
                         COMMAND_SCHEMA_VERSION,
                         json.dumps(event),
-                        "{}",
                         entropy.seed if entropy else None,
                         entropy.rng_algorithm if entropy else None,
                         recorded_at_us,
@@ -351,7 +349,7 @@ class AsyncPostgresStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                          payload_hash, rules_version, schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
                    FROM command_log WHERE campaign=%s ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -379,15 +377,15 @@ class AsyncPostgresStore:
             schema_version=validation.integer(row[6]),
             event=event,
             state_after=state,
-            entropy_seed=validation.string(row[9]) if row[9] is not None else None,
-            rng_algorithm=validation.string(row[10]) if row[10] is not None else None,
-            recorded_at_us=validation.integer(row[11]) if row[11] is not None else None,
-            command_input=validation.string(row[13]) if row[13] is not None else None,
-            scenario_boundary=ScenarioBoundary.model_validate_json(validation.string(row[14]))
-            if row[14] is not None
+            entropy_seed=validation.string(row[8]) if row[8] is not None else None,
+            rng_algorithm=validation.string(row[9]) if row[9] is not None else None,
+            recorded_at_us=validation.integer(row[10]) if row[10] is not None else None,
+            command_input=validation.string(row[12]) if row[12] is not None else None,
+            scenario_boundary=ScenarioBoundary.model_validate_json(validation.string(row[13]))
+            if row[13] is not None
             else None,
-            origin=CommandOrigin.model_validate_json(validation.string(row[12]))
-            if row[12] is not None
+            origin=CommandOrigin.model_validate_json(validation.string(row[11]))
+            if row[11] is not None
             else None,
         )
 
