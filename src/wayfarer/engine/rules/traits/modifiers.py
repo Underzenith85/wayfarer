@@ -18,6 +18,7 @@ from typing import Final, Literal, Self
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.rules.checks import NO_RANDOM, CheckTrace, RandomSource, success_check
 from wayfarer.engine.rules.types.affliction import AfflictionDelivery, PenetrationModifier
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
@@ -93,6 +94,7 @@ class ModifierSelection(Record):
     limited_by: ModifierSelection | None = None
     gadget: GadgetConstruction | None = None
     parameters: EnhancementParameters | None = None
+    limitation: LimitationParameters | None = None
 
     @model_validator(mode="after")
     def nested_scope(self) -> Self:
@@ -156,6 +158,27 @@ class EnhancementParameters(Record):
     ) = None
 
 
+class LimitationParameters(Record):
+    """Authored facts which give a variable limitation exact runtime meaning."""
+
+    condition_id: str | None = Field(default=None, min_length=1, max_length=200)
+    always_on_severity: Literal["cosmetic", "inconvenient", "dangerous"] | None = None
+    bombardment_skill: Literal[8, 10, 12, 14] | None = None
+    mitigator_id: str | None = Field(default=None, min_length=1, max_length=100)
+    nuisance_effect_id: str | None = Field(default=None, min_length=1, max_length=200)
+    pact_id: str | None = Field(default=None, min_length=1, max_length=100)
+    preparation_weakened: bool = False
+    resistance_modifier: int | None = Field(default=None, ge=-5, le=4)
+    sense: str | None = Field(default=None, min_length=1, max_length=100)
+    temporary_disadvantage_ids: tuple[str, ...] = ()
+    trigger_id: str | None = Field(default=None, min_length=1, max_length=100)
+    trigger_dangerous: bool = False
+    exposure_time: bool = False
+    half_damage_range_only: bool = False
+    limited_use_reload: Literal["none", "fast", "slow"] = "none"
+    uncontrollable_harmful: bool = False
+
+
 @dataclass(frozen=True, slots=True)
 class ModifierApproval:
     """Trusted campaign data for a source rule whose value is GM-defined."""
@@ -213,8 +236,8 @@ class AttackProfile(Record):
     delay_seconds: int = Field(default=0, ge=0)
     delay_trigger: str | None = None
     variable_delay_max_seconds: int | None = Field(default=None, ge=1)
-    blunt_trauma_multiplier: int = Field(default=1, ge=1)
-    knockback_multiplier: int = Field(default=1, ge=1)
+    blunt_trauma_multiplier: int = Field(default=1, ge=0)
+    knockback_multiplier: int = Field(default=1, ge=0)
     explosion_divisor: int | None = Field(default=None, ge=1, le=3)
     fragmentation_dice: int = Field(default=0, ge=0, le=12)
     guidance: Literal["none", "guided", "homing"] = "none"
@@ -245,6 +268,20 @@ class AttackProfile(Record):
     wall_shape_flexible: bool = False
     wall_dr_per_die: int = Field(default=0, ge=0)
     wall_hp_per_die: Decimal = Field(default=Decimal(0), ge=0)
+    recoil: int = Field(default=1, ge=1, le=5)
+    reach: str | None = None
+    parry_allowed: bool = True
+    wounding: bool = True
+    preparation_seconds: int = Field(default=0, ge=0)
+    recharge_seconds: int = Field(default=0, ge=0)
+    uses_per_day: int | None = Field(default=None, ge=1, le=10)
+    onset_seconds: int = Field(default=0, ge=0)
+    onset_requires_continuous_exposure: bool = False
+    resistance_modifier: int | None = Field(default=None, ge=-5, le=4)
+    bombardment_skill: int | None = Field(default=None, ge=8, le=14)
+    dissipates_with_distance: bool = False
+    always_on: bool = False
+    trained_control_allowed: bool = True
 
 
 class ModifierRuntimeReceipt(Record):
@@ -258,6 +295,44 @@ class GadgetState(Record):
     held: bool = True
     broken: bool = False
     stolen: bool = False
+
+
+class LimitationContext(Record):
+    """Complete authoritative facts for one attempted ability use."""
+
+    profile_id: Literal["gurps-basic-set-4e-2004"] = PROFILE
+    actor_id: str = Field(min_length=1, max_length=200)
+    ability_id: str = Field(min_length=1, max_length=200)
+    now: int = Field(ge=0)
+    fp_available: int = Field(default=0, ge=0)
+    will: int = Field(default=10, ge=1, le=30)
+    conscious: bool = True
+    emergency: bool = False
+    satisfied_condition_ids: tuple[str, ...] = ()
+    available_mitigator_ids: tuple[str, ...] = ()
+    observed_pact_ids: tuple[str, ...] = ()
+    supplied_trigger_ids: tuple[str, ...] = ()
+    prepared_ability_id: str | None = None
+    prepared_at: int | None = Field(default=None, ge=0)
+    last_used_at: int | None = Field(default=None, ge=0)
+    uses_today: int = Field(default=0, ge=0)
+    gadget: GadgetState | None = None
+
+
+class LimitationRuntimeReceipt(Record):
+    profile_id: Literal["gurps-basic-set-4e-2004"] = PROFILE
+    actor_id: str
+    ability_id: str
+    at: int
+    available: bool
+    controlled: bool = True
+    power_fraction: Decimal = Decimal(1)
+    fatigue_cost: int = 0
+    next_available_at: int | None = None
+    temporary_disadvantage_ids: tuple[str, ...] = ()
+    runtime_effect_ids: tuple[str, ...] = ()
+    checks: tuple[CheckTrace, ...] = ()
+    applied_modifier_ids: tuple[str, ...] = ()
 
 
 _ALL: Final[frozenset[AbilityKind]] = frozenset(
@@ -947,6 +1022,98 @@ def _deduplicate_and_patch() -> tuple[ModifierDefinition, ...]:
     # Unique is valid with either gadget-loss route; cross-row OR
     # prerequisites are checked explicitly in ``validate_selections``.
     result[UNIQUE] = replace(result[UNIQUE], requires=())
+    limitation_hooks = {
+        "modifier:limitation:accessibility": "accessibility",
+        "modifier:limitation:always-on": "always-on",
+        "modifier:limitation:bombardment": "bombardment",
+        "modifier:limitation:dissipation": "dissipation",
+        EMANATION: "emanation",
+        "modifier:limitation:emergencies-only": "emergencies-only",
+        "modifier:limitation:extra-recoil": "extra-recoil",
+        "modifier:limitation:full-power-in-emergencies-only": "emergency-power",
+        "modifier:limitation:limited-use": "limited-use",
+        MELEE: "melee",
+        "modifier:limitation:mitigator": "mitigator",
+        "modifier:limitation:nuisance-effect": "nuisance",
+        "modifier:limitation:onset": "onset",
+        "modifier:limitation:pact": "pact",
+        "modifier:limitation:preparation-required": "preparation",
+        "modifier:limitation:resistible": "resistible",
+        "modifier:limitation:takes-recharge": "recharge",
+        "modifier:limitation:temporary-disadvantage": "temporary-disadvantage",
+        "modifier:limitation:trigger": "trigger",
+        "modifier:limitation:unconscious-only": "unconscious-only",
+        "modifier:limitation:uncontrollable": "uncontrollable",
+        "modifier:limitation:unreliable": "unreliable",
+        "modifier:limitation:untrainable": "untrainable",
+        BREAKABLE: "gadget",
+        STOLEN: "gadget",
+        UNIQUE: "gadget",
+    }
+    for identifier, hook in limitation_hooks.items():
+        result[identifier] = replace(result[identifier], runtime_hook=hook)
+    result["modifier:limitation:bombardment"] = replace(
+        result["modifier:limitation:bombardment"],
+        cost_kind=CostKind.TABLE,
+        options=tuple(
+            CostOption(str(skill), value)
+            for skill, value in ((14, -5), (12, -10), (10, -15), (8, -20))
+        ),
+        campaign_permission=False,
+    )
+    result["modifier:limitation:always-on"] = replace(
+        result["modifier:limitation:always-on"],
+        cost_kind=CostKind.TABLE,
+        options=(
+            CostOption("cosmetic", -10),
+            CostOption("inconvenient", -20),
+            CostOption("dangerous", -40),
+        ),
+        campaign_permission=False,
+    )
+    result["modifier:limitation:resistible"] = replace(
+        result["modifier:limitation:resistible"],
+        cost_kind=CostKind.TABLE,
+        options=tuple(
+            CostOption(f"ht{modifier:+d}", -5 * (modifier + 6)) for modifier in range(-5, 5)
+        ),
+        campaign_permission=False,
+        allowed_subjects=frozenset({"innate-attack"}),
+    )
+    result["modifier:limitation:trigger"] = replace(
+        result["modifier:limitation:trigger"],
+        cost_kind=CostKind.TABLE,
+        options=tuple(
+            CostOption(option, value)
+            for option, value in (
+                ("very-common", -10),
+                ("common", -20),
+                ("occasional", -30),
+                ("rare", -40),
+                ("very-common-dangerous", -15),
+                ("common-dangerous", -30),
+                ("occasional-dangerous", -45),
+                ("rare-dangerous", -60),
+            )
+        ),
+        campaign_permission=False,
+    )
+    result["modifier:limitation:damage-limitations"] = replace(
+        result["modifier:limitation:damage-limitations"],
+        cost_kind=CostKind.FIXED,
+        percent=0,
+        campaign_permission=False,
+        runtime_hook="damage-limitation-family",
+        selectable=False,
+    )
+    result["modifier:limitation:unconscious-only"] = replace(
+        result["modifier:limitation:unconscious-only"],
+        requires=("modifier:limitation:uncontrollable",),
+    )
+    result["modifier:limitation:onset"] = replace(
+        result["modifier:limitation:onset"],
+        requires=(),
+    )
     return tuple(result.values())
 
 
@@ -1178,6 +1345,22 @@ def _percentage(
     ):
         raise ValidationError("Gadget facts are not applicable to this modifier")
     value = _COST_PERCENTAGES[definition.cost_kind](selection, definition, approvals)
+    params = selection.limitation
+    if params is not None:
+        if selection.definition_id == "modifier:limitation:onset" and params.exposure_time:
+            value -= 20
+        elif selection.definition_id == "modifier:limitation:limited-use":
+            if params.limited_use_reload == "fast":
+                value = int(Decimal(value) / 2)
+            elif params.limited_use_reload == "slow":
+                value += 5
+        elif (
+            selection.definition_id == "modifier:limitation:preparation-required"
+            and params.preparation_weakened
+        ):
+            value = int(Decimal(value) / 2)
+        elif selection.definition_id == REDUCED_RANGE and params.half_damage_range_only:
+            value = int(Decimal(value) / 2)
     return _limited_percentage(selection, definition, approvals, value)
 
 
@@ -1262,6 +1445,24 @@ def _validate_delivery_relationships(selection: ModifierSelection, selected: set
         and set(_PENETRATION) & selected
     ):
         raise ValidationError("Irresistible Cosmic attack cannot add penetration modifiers")
+    if selection.definition_id == "modifier:limitation:onset" and not selected & {
+        "modifier:limitation:blood-agent",
+        "modifier:limitation:contact-agent",
+        "modifier:enhancement:follow-up",
+        "modifier:enhancement:malediction",
+        "modifier:enhancement:respiratory-agent",
+    }:
+        raise ValidationError("Onset requires an eligible delivery modifier")
+    if selection.definition_id == "modifier:limitation:resistible" and not selected & {
+        "modifier:limitation:blood-agent",
+        "modifier:limitation:contact-agent",
+        "modifier:enhancement:follow-up",
+        "modifier:enhancement:respiratory-agent",
+        "modifier:limitation:sense-based",
+    }:
+        raise ValidationError("Resistible requires an eligible delivery modifier")
+    if selection.definition_id == "modifier:limitation:extra-recoil" and RAPID_FIRE not in selected:
+        raise ValidationError("Extra Recoil requires Rapid Fire")
 
 
 def _validate_selectivity(selection: ModifierSelection, selected: set[str]) -> None:
@@ -1299,6 +1500,7 @@ def validate_selections(
         _validate_spatial_relationships(subject, selection, selections, selected)
         _validate_delivery_relationships(selection, selected)
         _validate_selectivity(selection, selected)
+        _validate_limitation_parameters(selection)
         approval = approval_index.get((selection.definition_id, selection.option or ""))
         if approval is not None and subject not in approval.allowed_subjects:
             raise ValidationError("Campaign approval does not allow this ability kind")
@@ -1333,6 +1535,68 @@ _PARAMETER_FIELDS: Final[dict[str, frozenset[str]]] = {
     "modifier:enhancement:symptoms": frozenset({"symptom", "symptom_threshold", "damage_kind"}),
     "modifier:enhancement:variable": frozenset({"damage_fraction"}),
 }
+
+
+_LIMITATION_PARAMETER_FIELDS: Final[dict[str, frozenset[str]]] = {
+    "modifier:limitation:accessibility": frozenset({"condition_id"}),
+    "modifier:limitation:always-on": frozenset({"always_on_severity"}),
+    "modifier:limitation:bombardment": frozenset({"bombardment_skill"}),
+    "modifier:limitation:limited-use": frozenset({"limited_use_reload"}),
+    "modifier:limitation:mitigator": frozenset({"mitigator_id"}),
+    "modifier:limitation:nuisance-effect": frozenset({"nuisance_effect_id"}),
+    "modifier:limitation:onset": frozenset({"exposure_time"}),
+    "modifier:limitation:pact": frozenset({"pact_id"}),
+    "modifier:limitation:preparation-required": frozenset({"preparation_weakened"}),
+    "modifier:limitation:reduced-range": frozenset({"half_damage_range_only"}),
+    "modifier:limitation:resistible": frozenset({"resistance_modifier"}),
+    "modifier:limitation:sense-based": frozenset({"sense"}),
+    "modifier:limitation:temporary-disadvantage": frozenset({"temporary_disadvantage_ids"}),
+    "modifier:limitation:trigger": frozenset({"trigger_id", "trigger_dangerous"}),
+    "modifier:limitation:uncontrollable": frozenset({"uncontrollable_harmful"}),
+}
+
+
+def _validate_limitation_parameters(selection: ModifierSelection) -> None:
+    params = selection.limitation
+    provided = frozenset() if params is None else frozenset(params.model_fields_set)
+    allowed = _LIMITATION_PARAMETER_FIELDS.get(selection.definition_id, frozenset())
+    if provided - allowed:
+        raise ValidationError("Limitation has unsupported runtime parameters")
+    required = {
+        "modifier:limitation:always-on": frozenset({"always_on_severity"}),
+        "modifier:limitation:bombardment": frozenset({"bombardment_skill"}),
+        "modifier:limitation:resistible": frozenset({"resistance_modifier"}),
+        "modifier:limitation:sense-based": frozenset({"sense"}),
+        "modifier:limitation:trigger": frozenset({"trigger_id"}),
+    }
+    if not required.get(selection.definition_id, frozenset()) <= provided:
+        raise ValidationError("Limitation requires explicit runtime parameters")
+    if params is None:
+        return
+    if (
+        selection.definition_id == "modifier:limitation:always-on"
+        and selection.option != params.always_on_severity
+    ):
+        raise ValidationError("Always On option must match its authored severity")
+    if selection.definition_id == "modifier:limitation:bombardment" and selection.option != str(
+        params.bombardment_skill
+    ):
+        raise ValidationError("Bombardment option must match its effective skill")
+    if selection.definition_id == "modifier:limitation:resistible":
+        expected = (
+            None if params.resistance_modifier is None else f"ht{params.resistance_modifier:+d}"
+        )
+        if selection.option != expected:
+            raise ValidationError("Resistible option must match its HT modifier")
+    if selection.definition_id == "modifier:limitation:trigger":
+        dangerous = bool(params.trigger_dangerous)
+        if dangerous != bool(selection.option and selection.option.endswith("-dangerous")):
+            raise ValidationError("Trigger option must match its dangerous status")
+    if (
+        selection.definition_id == "modifier:limitation:temporary-disadvantage"
+        and not params.temporary_disadvantage_ids
+    ):
+        raise ValidationError("Temporary Disadvantage requires at least one exact trait")
 
 
 def _provided_parameter_fields(parameters: EnhancementParameters | None) -> frozenset[str]:
@@ -1532,7 +1796,87 @@ def _range_adapter(
         if definition.classification is ModifierClass.ENHANCEMENT
         else profile.max_range // multiplier
     )
-    return profile.model_copy(update={"max_range": value})
+    update = {"max_range": value}
+    if definition.classification is ModifierClass.LIMITATION:
+        params = selection.limitation
+        if params is None or not params.half_damage_range_only:
+            update["half_damage_range"] = profile.half_damage_range // multiplier
+        else:
+            update = {"half_damage_range": profile.half_damage_range // multiplier}
+    return profile.model_copy(update=update)
+
+
+def _limitation_profile_adapter(
+    profile: AttackProfile,
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    parameters: EnhancementParameters,
+) -> AttackProfile:
+    del definition, parameters
+    params = selection.limitation or LimitationParameters()
+    hook = MODIFIER_INDEX[selection.definition_id].runtime_hook
+    if hook == "extra-recoil":
+        return profile.model_copy(update={"recoil": min(5, profile.recoil + selection.level)})
+    if hook == "melee":
+        reaches = {
+            "reach-c": "C",
+            "reach-1-2": "1-2",
+            "reach-variable": "C,1 or 1,2 or 2,3",
+            "reach-1-4": "1-4",
+        }
+        return profile.model_copy(
+            update={
+                "is_ranged": False,
+                "max_range": 0,
+                "half_damage_range": 0,
+                "accuracy": 0,
+                "rate_of_fire": 1,
+                "recoil": 1,
+                "reach": reaches[selection.option or ""],
+            }
+        )
+    if hook == "bombardment":
+        return profile.model_copy(update={"bombardment_skill": params.bombardment_skill})
+    if hook == "dissipation":
+        return profile.model_copy(update={"dissipates_with_distance": True})
+    if hook == "emanation":
+        return profile.model_copy(
+            update={"is_ranged": False, "max_range": 0, "half_damage_range": 0, "accuracy": 0}
+        )
+    if hook == "limited-use":
+        uses = {"1-per-day": 1, "2-per-day": 2, "3-4-per-day": 4, "5-10-per-day": 10}
+        return profile.model_copy(update={"uses_per_day": uses[selection.option or ""]})
+    if hook == "onset":
+        seconds = {
+            "1-minute": 60,
+            "1-hour": 3600,
+            "1-day": 86400,
+            "1-week": 604800,
+        }[selection.option or ""]
+        return profile.model_copy(
+            update={
+                "onset_seconds": seconds,
+                "onset_requires_continuous_exposure": params.exposure_time,
+            }
+        )
+    if hook == "preparation":
+        seconds = {
+            "1-minute": 60,
+            "10-minutes": 600,
+            "1-hour": 3600,
+            "8-hours": 28800,
+        }[selection.option or ""]
+        return profile.model_copy(update={"preparation_seconds": seconds})
+    if hook == "recharge":
+        seconds = {"5-seconds": 5, "15-seconds": 15, "1-hour": 3600}[selection.option or ""]
+        return profile.model_copy(update={"recharge_seconds": seconds})
+    if hook == "resistible":
+        return profile.model_copy(update={"resistance_modifier": params.resistance_modifier})
+    if hook == "always-on":
+        return profile.model_copy(update={"always_on": True})
+    if hook == "untrainable":
+        return profile.model_copy(update={"trained_control_allowed": False})
+    return profile
 
 
 def _duration_adapter(
@@ -1649,6 +1993,9 @@ _STATIC_RUNTIME_UPDATES: Final[dict[str, dict[str, object]]] = {
     "side-effect": {"affliction_delivery": "side-effect"},
     "surge": {"surge": True},
     "underwater": {"underwater_range_divisor": 10},
+    "no-blunt-trauma": {"blunt_trauma_multiplier": 0},
+    "no-knockback": {"knockback_multiplier": 0},
+    "no-wounding": {"wounding": False},
 }
 
 
@@ -1739,6 +2086,18 @@ _RUNTIME_ADAPTERS: Final[dict[str, RuntimeAdapter]] = {
         update={"variable_damage_fraction": x.damage_fraction}
     ),
     "wall": _wall_adapter,
+    "bombardment": _limitation_profile_adapter,
+    "dissipation": _limitation_profile_adapter,
+    "emanation": _limitation_profile_adapter,
+    "extra-recoil": _limitation_profile_adapter,
+    "limited-use": _limitation_profile_adapter,
+    "melee": _limitation_profile_adapter,
+    "onset": _limitation_profile_adapter,
+    "preparation": _limitation_profile_adapter,
+    "recharge": _limitation_profile_adapter,
+    "resistible": _limitation_profile_adapter,
+    "always-on": _limitation_profile_adapter,
+    "untrainable": _limitation_profile_adapter,
 }
 
 
@@ -1755,7 +2114,7 @@ def _apply_attack_modifier(
     if adapter is not None:
         parameters = selection.parameters or EnhancementParameters()
         return adapter(result, selection, definition, parameters)
-    if hook in {"incendiary", "no-blunt-trauma", "no-knockback", "no-wounding"}:
+    if hook == "incendiary":
         return result.model_copy(update={"damage_tags": result.damage_tags + (hook,)})
     return result
 
@@ -1813,6 +2172,18 @@ _RUNTIME_HOOK_ORDER: Final = (
     "no-blunt-trauma",
     "no-knockback",
     "no-wounding",
+    "bombardment",
+    "dissipation",
+    "emanation",
+    "extra-recoil",
+    "limited-use",
+    "melee",
+    "onset",
+    "preparation",
+    "recharge",
+    "resistible",
+    "always-on",
+    "untrainable",
 )
 _RUNTIME_ORDER_INDEX: Final = {hook: index for index, hook in enumerate(_RUNTIME_HOOK_ORDER)}
 
@@ -1927,6 +2298,167 @@ def apply_attack_modifiers(
     if subject not in _ATTACK:
         raise ValidationError("Attack modifier projection requires an attack ability")
     return apply_ability_modifiers(profile, subject, selections, approvals)
+
+
+@dataclass(slots=True)
+class _LimitationResolution:
+    available: bool = True
+    controlled: bool = True
+    power: Decimal = Decimal(1)
+    checks: tuple[CheckTrace, ...] = ()
+    effects: tuple[str, ...] = ()
+    temporary: tuple[str, ...] = ()
+
+
+def _resolve_access_constraint(
+    resolution: _LimitationResolution,
+    selection: ModifierSelection,
+    hook: str | None,
+    projected: AttackProfile,
+    context: LimitationContext,
+) -> None:
+    params = selection.limitation
+    if hook == "accessibility":
+        if params is None or params.condition_id is None:
+            raise ValidationError("Accessibility execution requires an authored condition")
+        resolution.available &= params.condition_id in context.satisfied_condition_ids
+    elif hook == "emergencies-only":
+        resolution.available &= context.emergency
+    elif hook == "emergency-power" and not context.emergency:
+        resolution.power = min(resolution.power, Decimal("0.5"))
+    elif hook == "limited-use":
+        resolution.available &= context.uses_today < (projected.uses_per_day or 0)
+    elif hook == "mitigator":
+        if params is None or params.mitigator_id is None:
+            raise ValidationError("Mitigator execution requires an authoritative item")
+        resolution.available &= params.mitigator_id not in context.available_mitigator_ids
+    elif hook == "nuisance":
+        if params is None or params.nuisance_effect_id is None:
+            raise ValidationError("Nuisance Effect requires an executable effect adapter")
+        resolution.effects += (params.nuisance_effect_id,)
+    elif hook == "pact":
+        if params is None or params.pact_id is None:
+            raise ValidationError("Pact execution requires an authored code")
+        resolution.available &= params.pact_id in context.observed_pact_ids
+
+
+def _resolve_time_constraint(
+    resolution: _LimitationResolution,
+    selection: ModifierSelection,
+    hook: str | None,
+    profile: AttackProfile,
+    projected: AttackProfile,
+    context: LimitationContext,
+) -> None:
+    params = selection.limitation
+    if hook == "preparation":
+        prepared = (
+            context.prepared_ability_id == context.ability_id
+            and context.prepared_at is not None
+            and context.prepared_at + projected.preparation_seconds <= context.now
+        )
+        if not prepared and params is not None and params.preparation_weakened:
+            resolution.power = min(resolution.power, Decimal("0.5"))
+        else:
+            resolution.available &= prepared
+    elif hook == "recharge" and context.last_used_at is not None:
+        multiplier = {"5-seconds": 2, "15-seconds": 5, "1-hour": 10}[selection.option or ""]
+        recharge = max(projected.recharge_seconds, profile.activation_seconds * multiplier)
+        resolution.available &= context.now >= context.last_used_at + recharge
+    elif hook == "temporary-disadvantage":
+        if params is None or not params.temporary_disadvantage_ids:
+            raise ValidationError("Temporary Disadvantage requires exact trait adapters")
+        resolution.temporary += params.temporary_disadvantage_ids
+    elif hook == "trigger":
+        if params is None or params.trigger_id is None:
+            raise ValidationError("Trigger execution requires an authored trigger")
+        resolution.available &= params.trigger_id in context.supplied_trigger_ids
+    elif hook == "unconscious-only":
+        resolution.available &= not context.conscious
+
+
+def _resolve_control_constraint(
+    resolution: _LimitationResolution,
+    selection: ModifierSelection,
+    hook: str | None,
+    selections: tuple[ModifierSelection, ...],
+    context: LimitationContext,
+    rng: RandomSource,
+) -> None:
+    if hook == "uncontrollable" and context.emergency:
+        trace = success_check(
+            context.will,
+            rng=rng,
+            rules_package=PROFILE,
+            rules_version="characters-third-2008",
+        )
+        resolution.checks += (trace,)
+        resolution.controlled &= trace.outcome.succeeded
+    elif hook == "unreliable":
+        option = selection.option or ""
+        if option.startswith("activation-"):
+            trace = success_check(
+                int(option.removeprefix("activation-")),
+                rng=rng,
+                rules_package=PROFILE,
+                rules_version="characters-third-2008",
+            )
+            resolution.checks += (trace,)
+            resolution.available &= trace.outcome.succeeded
+    elif hook == "gadget":
+        if context.gadget is None:
+            raise ValidationError("Gadget execution requires authoritative equipment state")
+        resolution.available &= gadget_available(selections, context.gadget)
+
+
+def resolve_limitations(
+    profile: AttackProfile,
+    subject: AbilityKind,
+    selections: tuple[ModifierSelection, ...],
+    context: LimitationContext,
+    approvals: tuple[ModifierApproval, ...] = (),
+    *,
+    rng: RandomSource = NO_RANDOM,
+) -> LimitationRuntimeReceipt:
+    """Resolve one use against authored facts; random checks are retained for replay."""
+    projected = apply_ability_modifiers(profile, subject, selections, approvals).modified
+    resolution = _LimitationResolution()
+    selected_ids = tuple(selection.definition_id for selection in selections)
+
+    for selection in sorted(selections, key=_runtime_order):
+        definition = MODIFIER_INDEX[selection.definition_id]
+        if definition.classification is ModifierClass.ENHANCEMENT:
+            continue
+        hook = definition.runtime_hook
+        _resolve_access_constraint(resolution, selection, hook, projected, context)
+        _resolve_time_constraint(resolution, selection, hook, profile, projected, context)
+        _resolve_control_constraint(resolution, selection, hook, selections, context, rng)
+
+    fatigue = projected.fatigue_cost
+    resolution.available &= context.fp_available >= fatigue
+    next_available = (
+        None
+        if projected.recharge_seconds == 0
+        else context.now
+        + max(
+            projected.recharge_seconds,
+            profile.activation_seconds * 2,
+        )
+    )
+    return LimitationRuntimeReceipt(
+        actor_id=context.actor_id,
+        ability_id=context.ability_id,
+        at=context.now,
+        available=resolution.available,
+        controlled=resolution.controlled,
+        power_fraction=resolution.power,
+        fatigue_cost=fatigue,
+        next_available_at=next_available,
+        temporary_disadvantage_ids=resolution.temporary,
+        runtime_effect_ids=resolution.effects,
+        checks=resolution.checks,
+        applied_modifier_ids=selected_ids,
+    )
 
 
 def validate_catalog() -> None:

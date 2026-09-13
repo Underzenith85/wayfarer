@@ -1656,16 +1656,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:accessibility",
       "parent_id": null,
@@ -1673,7 +1675,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:accessibility",
       "cost_owner": "modifier-catalog:modifier:limitation:accessibility",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -1687,16 +1689,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:always-on",
       "parent_id": null,
@@ -1704,7 +1708,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:always-on",
       "cost_owner": "modifier-catalog:modifier:limitation:always-on",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -1786,16 +1790,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:bombardment",
       "parent_id": null,
@@ -1803,7 +1809,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:bombardment",
       "cost_owner": "modifier-catalog:modifier:limitation:bombardment",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -1817,16 +1823,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:gadget-limitation:breakable",
       "parent_id": null,
@@ -1834,7 +1842,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:gadget-limitation:breakable",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:breakable",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -1848,16 +1856,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:gadget-limitation:can-be-stolen",
       "parent_id": null,
@@ -1865,7 +1875,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:gadget-limitation:can-be-stolen",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:can-be-stolen",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -1913,16 +1923,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:costs-fatigue",
       "parent_id": null,
@@ -1930,7 +1942,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:costs-fatigue",
       "cost_owner": "modifier-catalog:modifier:limitation:costs-fatigue",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -1944,16 +1956,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:damage-limitations",
       "parent_id": null,
@@ -1961,7 +1975,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:damage-limitations",
       "cost_owner": "modifier-catalog:modifier:limitation:damage-limitations",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -1975,16 +1989,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:dissipation",
       "parent_id": null,
@@ -1992,7 +2008,7 @@
       "listed_value": "-50%",
       "construction_binding": "modifier:limitation:dissipation",
       "cost_owner": "modifier-catalog:modifier:limitation:dissipation",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2006,16 +2022,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:emanation",
       "parent_id": null,
@@ -2023,7 +2041,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:emanation",
       "cost_owner": "modifier-catalog:modifier:limitation:emanation",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2037,16 +2055,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:emergencies-only",
       "parent_id": null,
@@ -2054,7 +2074,7 @@
       "listed_value": "-30%",
       "construction_binding": "modifier:limitation:emergencies-only",
       "cost_owner": "modifier-catalog:modifier:limitation:emergencies-only",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2068,16 +2088,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:extra-recoil",
       "parent_id": null,
@@ -2085,7 +2107,7 @@
       "listed_value": "-10%/level",
       "construction_binding": "modifier:limitation:extra-recoil",
       "cost_owner": "modifier-catalog:modifier:limitation:extra-recoil",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2099,16 +2121,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:full-power-in-emergencies-only",
       "parent_id": null,
@@ -2116,7 +2140,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:full-power-in-emergencies-only",
       "cost_owner": "modifier-catalog:modifier:limitation:full-power-in-emergencies-only",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2130,16 +2154,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:inaccurate",
       "parent_id": null,
@@ -2147,7 +2173,7 @@
       "listed_value": "-5%/level",
       "construction_binding": "modifier:limitation:inaccurate",
       "cost_owner": "modifier-catalog:modifier:limitation:inaccurate",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2161,16 +2187,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:limited-use",
       "parent_id": null,
@@ -2178,7 +2206,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:limited-use",
       "cost_owner": "modifier-catalog:modifier:limitation:limited-use",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2192,16 +2220,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:melee-attack",
       "parent_id": null,
@@ -2209,7 +2239,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:melee-attack",
       "cost_owner": "modifier-catalog:modifier:limitation:melee-attack",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2223,16 +2253,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:mitigator",
       "parent_id": null,
@@ -2240,7 +2272,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:mitigator",
       "cost_owner": "modifier-catalog:modifier:limitation:mitigator",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2254,16 +2286,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:no-blunt-trauma-nbt",
       "parent_id": null,
@@ -2271,7 +2305,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:no-blunt-trauma-nbt",
       "cost_owner": "modifier-catalog:modifier:limitation:no-blunt-trauma-nbt",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2285,16 +2319,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:no-knockback-nkb",
       "parent_id": null,
@@ -2302,7 +2338,7 @@
       "listed_value": "-10%",
       "construction_binding": "modifier:limitation:no-knockback-nkb",
       "cost_owner": "modifier-catalog:modifier:limitation:no-knockback-nkb",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2316,16 +2352,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:no-wounding-nw",
       "parent_id": null,
@@ -2333,7 +2371,7 @@
       "listed_value": "-50%",
       "construction_binding": "modifier:limitation:no-wounding-nw",
       "cost_owner": "modifier-catalog:modifier:limitation:no-wounding-nw",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2347,16 +2385,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:nuisance-effect",
       "parent_id": null,
@@ -2364,7 +2404,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:nuisance-effect",
       "cost_owner": "modifier-catalog:modifier:limitation:nuisance-effect",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2378,16 +2418,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:onset",
       "parent_id": null,
@@ -2395,7 +2437,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:onset",
       "cost_owner": "modifier-catalog:modifier:limitation:onset",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2409,16 +2451,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:pact",
       "parent_id": null,
@@ -2426,7 +2470,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:pact",
       "cost_owner": "modifier-catalog:modifier:limitation:pact",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2440,16 +2484,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:preparation-required",
       "parent_id": null,
@@ -2457,7 +2503,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:preparation-required",
       "cost_owner": "modifier-catalog:modifier:limitation:preparation-required",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2471,16 +2517,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:reduced-range",
       "parent_id": null,
@@ -2488,7 +2536,7 @@
       "listed_value": "-10%/level",
       "construction_binding": "modifier:limitation:reduced-range",
       "cost_owner": "modifier-catalog:modifier:limitation:reduced-range",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2502,16 +2550,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:resistible",
       "parent_id": null,
@@ -2519,7 +2569,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:resistible",
       "cost_owner": "modifier-catalog:modifier:limitation:resistible",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2567,16 +2617,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:takes-extra-time",
       "parent_id": null,
@@ -2584,7 +2636,7 @@
       "listed_value": "-10%/level",
       "construction_binding": "modifier:limitation:takes-extra-time",
       "cost_owner": "modifier-catalog:modifier:limitation:takes-extra-time",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2598,16 +2650,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:takes-recharge",
       "parent_id": null,
@@ -2615,7 +2669,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:takes-recharge",
       "cost_owner": "modifier-catalog:modifier:limitation:takes-recharge",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2629,16 +2683,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:temporary-disadvantage",
       "parent_id": null,
@@ -2646,7 +2702,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:temporary-disadvantage",
       "cost_owner": "modifier-catalog:modifier:limitation:temporary-disadvantage",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2660,16 +2716,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:trigger",
       "parent_id": null,
@@ -2677,7 +2735,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:trigger",
       "cost_owner": "modifier-catalog:modifier:limitation:trigger",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2691,16 +2749,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:unconscious-only",
       "parent_id": null,
@@ -2708,7 +2768,7 @@
       "listed_value": "-20%",
       "construction_binding": "modifier:limitation:unconscious-only",
       "cost_owner": "modifier-catalog:modifier:limitation:unconscious-only",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2722,16 +2782,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:uncontrollable",
       "parent_id": null,
@@ -2739,7 +2801,7 @@
       "listed_value": "or -30%",
       "construction_binding": "modifier:limitation:uncontrollable",
       "cost_owner": "modifier-catalog:modifier:limitation:uncontrollable",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2753,16 +2815,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:gadget-limitation:unique",
       "parent_id": null,
@@ -2770,7 +2834,7 @@
       "listed_value": "-25%",
       "construction_binding": "modifier:gadget-limitation:unique",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:unique",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2784,16 +2848,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:unreliable",
       "parent_id": null,
@@ -2801,7 +2867,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:limitation:unreliable",
       "cost_owner": "modifier-catalog:modifier:limitation:unreliable",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     },
     {
@@ -2815,16 +2881,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_advantage_limitations.py"
       ],
       "historical_owners": [
         100,
-        497
+        497,
+        683
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:limitation:untrainable",
       "parent_id": null,
@@ -2832,7 +2900,7 @@
       "listed_value": "-40%",
       "construction_binding": "modifier:limitation:untrainable",
       "cost_owner": "modifier-catalog:modifier:limitation:untrainable",
-      "consequence_owner": 94,
+      "consequence_owner": 683,
       "source_review_owner": null
     }
   ]

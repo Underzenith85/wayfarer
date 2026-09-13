@@ -30,6 +30,7 @@ from wayfarer.errors import ValidationError
 
 FIXTURE = Path("tests/fixtures/gurps/conformance.json")
 SIZE_FIXTURE = Path("tests/fixtures/gurps/size_modifier_costs.json")
+LIMITATIONS_FIXTURE = Path("tests/fixtures/gurps/advantage-limitations.json")
 CHECK_CAPABILITIES = {
     "gurps.check.success",
     "gurps.check.margin",
@@ -78,6 +79,7 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.character.primary_attributes",
         "gurps.character.secondary_characteristics",
         "gurps.character.size_modifier_costs",
+        "gurps.character.ability_modifiers",
         "gurps.character.skill_difficulty",
         "gurps.character.skill_defaults",
         "gurps.character.specialties",
@@ -101,7 +103,7 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
     }
     assert all(
         CAPABILITIES[identifier].owner_issue
-        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 688)
+        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 683, 688)
         for identifier in verified
     )
 
@@ -184,6 +186,8 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
     covered = {(case["capability_id"], case["profile"]) for case in data["cases"]}
     size_data = json.loads(SIZE_FIXTURE.read_text())
     covered.add((size_data["capability_id"], "gurps-basic-set-4e-2004"))
+    limitations_data = json.loads(LIMITATIONS_FIXTURE.read_text())
+    covered.add(("gurps.character.ability_modifiers", limitations_data["profile"]))
     for entry in CAPABILITIES.values():
         if entry.status is not CoverageStatus.VERIFIED:
             continue
