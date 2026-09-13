@@ -142,7 +142,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #390 | Complete. Campaign-authored Biology, Disguise, Geography and Geology subjects derive deterministic definitions and bind the existing technology procedure services. |
 | #358 | Vehicle movement and combat capability verification for the bound vehicle rows. |
 | #366 | Fortune-Telling and Savoir-Faire specialties. |
-| #367 | The Propaganda technology-level media context. |
+| #367 | Complete. Propaganda derives authored media reach and timing from the campaign TL; see `gurps-propaganda-media.md`. |
 | #368 | Interrogation coercion and its reaction consequences. |
 | #369 | Teaching and Leadership bind to advancement and NPC group activity; see `gurps-social-activity-bindings.md`. |
 | #370 | Social audience, income, outlay and hangover outcomes bind through `gurps-social-material-outcomes.md`. |
@@ -316,10 +316,10 @@ Evidence is in `tests/test_ranged_skills.py`.
 
 ## Social procedures (#345)
 
-The parent inventory is accounted for: 16 of its 19 headline rows are bound and
+The parent inventory is accounted for: 17 of its 19 headline rows are bound and
 executable. Fortune-Telling and Savoir-Faire explicitly retain #366 as their
-runtime owner, and Propaganda retains #367; those rows remain unavailable until
-their required specialty or technology/media procedure is implemented. This is
+runtime owner; those rows remain unavailable until their required specialty is
+implemented. Propaganda's TL-keyed media procedure is complete under #367. This is
 the issue's required fail-closed transfer outcome, not a claim that the child
 mechanics are complete. Seven concrete Fortune-Telling specialties introduced
 by the source reconciliation likewise stay blocked under #366.
@@ -357,8 +357,8 @@ required condition rejects before dice.
 
 Three rows keep `runtime-procedure` because they cannot resolve at all yet:
 `skill:fortune-telling` and `skill:savoir-faire` are not learnable without their
-required specialties (#366), and `skill:propaganda` has no medium, reach or
-media-effect duration procedure (#367). Those rows are absent from the pin.
+required specialties (#366). `skill:propaganda` is present only in the explicit
+revision-11/package-0.9.0 pin and requires an authored medium under #367.
 
 A bound row can still leave a named part of its entry elsewhere. That is not a
 blocker — the roll runs — so it is published as `transferred_procedure_scope`
