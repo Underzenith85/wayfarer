@@ -31,7 +31,6 @@ APPLICATION_PAYLOADS = frozenset(
         "Campaign",
         "EventAction",
         "CommandReceipt",
-        "PublicCampaign",
         "CommittedTurn",
         "ReplayedTurn",
         "TurnResult",
@@ -77,9 +76,9 @@ STORE_CONSTRUCTORS = frozenset(
     {"AsyncSQLiteStore", "AsyncPostgresStore", "CatalogStore", "JobStore"}
 )
 STORE_OWNERS = frozenset({"runtime.py", "adventures/runtime.py", "orchestration/runtime.py"})
-# ``orchestration/service.py`` is the unwired pre-runtime composition root; step 2
-# of #631 deletes it and empties this allowlist.
-STORE_CONSTRUCTOR_ALLOWLIST = frozenset({"orchestration/service.py"})
+# Nothing outside persistence and the composition roots opens a store (#634 emptied
+# this allowlist by deleting the pre-runtime creation paths). It stays empty.
+STORE_CONSTRUCTOR_ALLOWLIST: frozenset[str] = frozenset()
 
 
 REDUCER_MODULES = (
@@ -899,12 +898,17 @@ assert 'wayfarer.engine.simulation.rules_context' not in sys.modules
             importlib.import_module(f"wayfarer.{name}")
 
 
-def test_prototype_resolver_and_transcript_writers_are_retired() -> None:
+def test_prototype_resolver_and_legacy_paths_are_retired() -> None:
+    """#634: the pre-runtime creation paths are deleted, not kept behind a flag."""
     from wayfarer import contracts, models
-    from wayfarer.orchestration.service import GameService
 
-    assert not (Path(wayfarer.__file__).parent / "engine/simulation/resolution.py").exists()
-    assert not hasattr(GameService, "turn") and not hasattr(GameService, "interpret")
+    package = Path(wayfarer.__file__).parent
+    for relative in (
+        "engine/simulation/resolution.py",
+        "orchestration/service.py",
+        "transport/http.py",
+    ):
+        assert not (package / relative).exists(), relative
     for module in (models, contracts):
         assert not hasattr(module, "Action") and not hasattr(module, "Event")
     assert set(contracts.CommandReceipt.__annotations__) == {"action", "outcome"}

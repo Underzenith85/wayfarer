@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import Literal, NotRequired, TypedDict
 
 from wayfarer import validation
-from wayfarer.models import Character, Roll, RulesReference, ValidationResult
+from wayfarer.models import Character, Roll, RulesReference
 
 
 class Message(TypedDict):
@@ -82,10 +82,6 @@ class CommandReceipt(TypedDict):
 
     action: EventAction
     outcome: str
-
-
-class PublicCampaign(Campaign):
-    validation: ValidationResult
 
 
 class CommittedTurn(TypedDict):

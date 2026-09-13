@@ -5,12 +5,13 @@ import json
 from pathlib import Path
 
 import pytest
+from support.runtime import build_play
+from test_actions import campaign, engine
 from test_wave9 import prepare
 
 from wayfarer.engine.simulation.actions import Wait
 from wayfarer.engine.simulation.events import document
 from wayfarer.errors import ConflictError
-from wayfarer.orchestration.service import GameService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.persistence.snapshots import decode, encode
@@ -114,29 +115,26 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
     assert usage and all(row["snapshot_revision"] is None for row in usage)
 
 
-async def test_narration_survives_cache_rebuild_without_becoming_state(
-    service: GameService,
-) -> None:
-    from wayfarer.engine.character import builder
-    from wayfarer.engine.simulation.campaign.scenario import scenario
-
-    # Use the legacy public service as well: its flavor used to mutate campaign rows.
-    game = service
-    created = await game.create(builder.character(), scenario())
-    cid = str(created["id"])
+async def test_narration_survives_cache_rebuild_without_becoming_state(tmp_path: Path) -> None:
     from wayfarer.contracts import Campaign, CommandReceipt
+
+    play = build_play(tmp_path, engine(), filename="narration.sqlite")
+    initial = campaign(play.engine)
+    initial["messages"] = [{"role": "gm", "text": "You arrive at the dock."}]
+    cid = initial["id"]
+    await play.store.insert(initial)
 
     def retained(state: Campaign) -> CommandReceipt:
         state["revision"] += 1
         return CommandReceipt(action="setup", outcome="retained fixture")
 
-    await game.store.commit_turn(cid, "one", 0, "fixture", retained)
-    state = await game.store.read(cid)
-    await game.store.save_narration(cid, state["revision"], "The lantern burns blue.")
-    await sql(game.store, "DELETE FROM snapshots WHERE campaign=?", (cid,))
-    await sql(game.store, "UPDATE campaigns SET state='{}' WHERE id=?", (cid,))
-    assert (await game.store.read(cid))["messages"][-1]["flavor"] == "The lantern burns blue."
-    assert "The lantern burns blue." not in json.dumps(await game.store.replay(cid))
+    await play.store.commit_turn(cid, "one", 0, "fixture", retained)
+    state = await play.store.read(cid)
+    await play.store.save_narration(cid, state["revision"], "The lantern burns blue.")
+    await sql(play.store, "DELETE FROM snapshots WHERE campaign=?", (cid,))
+    await sql(play.store, "UPDATE campaigns SET state='{}' WHERE id=?", (cid,))
+    assert (await play.store.read(cid))["messages"][-1]["flavor"] == "The lantern burns blue."
+    assert "The lantern burns blue." not in json.dumps(await play.store.replay(cid))
 
 
 async def test_checkpoint_skips_covered_schemas_and_cache_failure_requires_them(
@@ -158,29 +156,3 @@ async def test_checkpoint_skips_covered_schemas_and_cache_failure_requires_them(
     await sql(play.store, "DELETE FROM snapshots WHERE campaign=?", (cid,))
     with pytest.raises(StorageError, match="Missing upcaster"):
         await play.store.read(cid)
-
-
-async def test_legacy_narration_is_imported_before_replacing_cache(service: GameService) -> None:
-    from wayfarer.engine.character import builder
-    from wayfarer.engine.simulation.campaign.scenario import scenario
-
-    created = await service.create(builder.character(), scenario())
-    cid = created["id"]
-    from wayfarer.contracts import Campaign, CommandReceipt
-
-    def retained(state: Campaign) -> CommandReceipt:
-        state["revision"] += 1
-        return CommandReceipt(action="setup", outcome="retained fixture")
-
-    await service.store.commit_turn(cid, "old", 0, "fixture", retained)
-    cached = await service.store.read(cid)
-    cached["messages"][-1]["flavor"] = "Previously displayed narration"
-    await sql(service.store, "UPDATE campaigns SET state=? WHERE id=?", (json.dumps(cached), cid))
-    await sql(service.store, "DELETE FROM narration_migrations WHERE campaign=?", (cid,))
-    assert (await service.store.read(cid))["messages"][-1][
-        "flavor"
-    ] == "Previously displayed narration"
-    await sql(service.store, "UPDATE campaigns SET state='{}' WHERE id=?", (cid,))
-    assert (await service.store.read(cid))["messages"][-1][
-        "flavor"
-    ] == "Previously displayed narration"

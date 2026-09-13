@@ -58,7 +58,6 @@ from wayfarer.engine.simulation.resources import (
 from wayfarer.engine.world import Connection, Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import ApproveCharacter, PlayService
-from wayfarer.orchestration.service import GameService, public
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
@@ -542,7 +541,6 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     assert sum(isinstance(r, ConflictError) for r in competing) == 1
     restarted = PlayService(store, reducer, rng=Dice(5))
     assert await restarted.execute(initial["id"], command, authenticated_actor_id="a") == results[0]
-    assert "play_json" not in public(await store.read(initial["id"]))
     with pytest.raises(ConflictError):
         await restarted.execute(
             initial["id"], command.model_copy(update={"target_id": "b"}), authenticated_actor_id="a"
@@ -613,17 +611,6 @@ async def test_pending_approval_is_durable_authorized_and_revalidated(tmp_path: 
             Wait(id="x", actor_id="a", expected_revision=2, ticks=1),
             authenticated_actor_id="a",
         )
-
-
-@pytest.mark.asyncio
-async def test_legacy_turns_cannot_mutate_typed_campaigns(service: GameService) -> None:
-    reducer = engine()
-    initial = campaign(reducer)
-    await PlayService(service.store, reducer).create(
-        initial, world(), resource_seed(), (actor_setup(),)
-    )
-    assert not hasattr(service, "turn")
-    assert (await service.read(initial["id"]))["revision"] == 0
 
 
 def test_compiled_resources_cannot_be_forged_and_fatigue_is_charged_once() -> None:
