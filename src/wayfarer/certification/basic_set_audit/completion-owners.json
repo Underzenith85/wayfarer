@@ -10,7 +10,7 @@
     {"issue": 495, "state": "closed", "title": "Complete character creation and background construction"},
     {"issue": 496, "state": "open", "title": "Reconcile every mundane trait"},
     {"issue": 497, "state": "open", "title": "Catalog and execute trait modifiers"},
-    {"issue": 498, "state": "open", "title": "Complete character and racial templates"},
+    {"issue": 498, "state": "closed", "title": "Complete character and racial templates"},
     {"issue": 499, "state": "open", "title": "Implement advancement"},
     {"issue": 500, "state": "open", "title": "Implement character transformations"},
     {"issue": 501, "state": "open", "title": "Complete campaign-time administration"},
