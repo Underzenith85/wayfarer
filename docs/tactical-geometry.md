@@ -46,7 +46,7 @@ profile before constructing a tagged hex battlefield.
 - Occupancy allows multiple actors in a close-combat hex. Entering one requires
   explicit consent from the combat consumer and must end the supplied path.
   Grappling, enemy obstruction/evading checks and subsequent close-combat choices
-  belong to #108; this flag is not authorization to evade an enemy.
+  are owned by the combat layer; this flag is not authorization to evade an enemy.
 - `in_reach` accepts exact reachable distances, with C represented as 0. It tests
   horizontal distance, front/close arcs and effective vertical separation. Each
   reach yard beyond the first reduces the attacker's vertical separation by

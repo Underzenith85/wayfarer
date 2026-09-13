@@ -10,8 +10,8 @@ republished and selected; saved weapons are not inferred from names or skills.
 
 Numeric evidence uses Campaigns Fourth Edition, fourth printing, B382/B407.
 The selected-printing reconciliation completed in #191. Field-level
-provenance is recorded in the equipment audit ledger. No production firearm row
-is certified by these synthetic runtime fixtures; catalog binding remains #180.
+provenance is recorded in the equipment audit ledger. Synthetic runtime fixtures
+alone do not certify a production firearm row; use the current equipment audit.
 
 | Procedure | Authoritative behavior |
 | --- | --- |
@@ -55,6 +55,7 @@ now provide explicit explosion, grenade, single-use and power-cell protocols.
 The selected B278 Gyroc and B280 Laser Pistol add authorized smartguns, typed
 rocket acceleration, individual rechargeable cells and beam-environment DR;
 their executable evidence is in `tests/test_higher_tl_weapons.py`.
-Production catalog auditing remains #180. [Projectile readiness](gurps-projectile-readiness.md)
+Production catalog status is recorded in [the equipment audit](gurps-equipment-audit.md).
+[Projectile readiness](gurps-projectile-readiness.md)
 and [thrown recovery/catching](gurps-thrown-recovery.md) are also explicit protocols.
 None of these changes certify the overall Basic Set or Lite profile.

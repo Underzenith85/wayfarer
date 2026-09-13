@@ -60,8 +60,8 @@ mechanics are complete.
 Trusted scenario `body.tolerance` facts now carry living, unliving, homogenous
 or diffuse structure and No Brain/Eyes/Head/Neck/Vitals variants into the saved
 HP injury status. They are anatomical runtime inputs, not player damage
-modifiers or automatic purchase definitions; trait catalog/compiler ownership
-remains #113/#118/#119. This does not publish a selectable profile. Omitted
+modifiers or automatic purchase definitions; trait catalog/compiler certification
+is separate. This does not publish a selectable profile. Omitted
 metadata preserves existing human behavior and serialization.
 
 The injury reducer applies structure-specific impaling/piercing factors,

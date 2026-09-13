@@ -1,5 +1,8 @@
 # Issue 24 — voice/text parity verification
 
+> Verification record for a closed milestone. The behavior and named evidence
+> below remain part of the current product gate.
+
 Voice is a browser-local adapter over the ordinary reviewed text command path.
 There is deliberately no second voice command endpoint: recognition results remain
 ephemeral until the player edits and submits them, at which point the normal HTTP

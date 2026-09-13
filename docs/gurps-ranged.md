@@ -16,12 +16,12 @@ remains pending. Source review does not promote incomplete ranged mechanics.
 | Weapon selection | Exact trained/default skill, minimum-ST penalty, explicit ranged mode, individual ready item and existing hand/grip validation. Basic catalogs may opt into `rated_strength` for bows/crossbows: damage and ST-multiplied ranges use the weapon rating. Bows above the wielder's effective (fatigue-adjusted) ST reject before dice, including Aim. |
 | Aim and maneuvers | Matching weapon/mode/target gains Acc and up to two extra seconds. Move and Attack uses the worse of Bulk or -2, without melee's cap; ranged All-Out Attack (Determined) gives +1. Other ranged All-Out options reject. |
 | Reload | Ready plus `reload_ammunition_id` and `mode_id` advances the catalog's reload timer; partial progress survives interruptions/restarts. Ordinary Ready never creates ammunition. Legacy catalogs retain magazine loading. Basic catalogs may explicitly select `per-round`: each completed timer reserves one round; firing available rounds cancels unfinished round-loading work. |
-| Unload | Basic Ready with `unload_ammunition=true` releases a magazine reservation, including interrupted reload progress. It is separate from loading, allowing a later source switch; owned inventory quantities never change. Individual-round unloading rejects pending its own timing protocol. |
+| Unload | Basic Ready with `unload_ammunition=true` releases a magazine reservation, including interrupted reload progress. It is separate from loading, allowing a later source switch; owned inventory quantities never change. Opt-in projectile-readiness modes support authored individual-round unloading as documented below. |
 | Ammunition | Loaded rounds reserve a specific owned inventory stack. Reserved rounds retain weight and cannot be consumed or transferred out from under the load. Firing consumes every declared shot, including misses, exactly once. Empty stacks and exhausted reservations are removed together. |
 | Gyrocs and beams | The selected B278 15mm Gyroc Pistol divides rolled damage by three at 1–2 yards and by two at 3–10 yards. The B280 Laser Pistol uses an individual 400-charge cell and adds authored smoke, fog, rain or cloud attenuation as DR. Both enforce smartgun authorization. Its laser sight gives +1 to hit only when the firer sees the dot and +1 to Dodge only when the target sees it. |
-| Thrown weapons | The individual item leaves active inventory and is retained in `expended_items`; Ready cannot recreate it. Battlefield recovery is not yet exposed. |
+| Thrown weapons | The individual item leaves active inventory and is retained in `expended_items`; Ready cannot recreate it. Hits record the target's position, misses require a GM landing declaration, and the recovery/catching protocol is documented below. |
 | Rapid fire | Basic-only integer shot counts up to the mode's RoF. The B373 RoF bonus continues without an artificial 100-shot ceiling; recoil and attack margin determine hits, and Dodge margin removes individual hits. An automatic-only mode enforces one-quarter of full RoF, rounded up, or all remaining rounds when fewer remain. Each remaining hit has separate damage dice, DR and injury reduction. A critical attack roll is undefended, and its margin still bounds how many of the declared shots hit. |
-| Defenses | Firearms permit Dodge; explicitly blockable projectiles and thrown weapons also permit Block. Basic thrown projectiles also permit armed Parry at -1, or -2 for items of at most one pound, with ordinary repeated-Parry restrictions. Unsupported defense selections reject before dice; bare-handed catching remains unavailable. |
+| Defenses | Firearms permit Dodge; explicitly blockable projectiles and thrown weapons also permit Block. Basic thrown projectiles also permit armed Parry at -1, or -2 for items of at most one pound, with ordinary repeated-Parry restrictions. An explicitly catchable one-handed weapon may be caught on a critical barehanded Parry through the opt-in protocol below. |
 | Locations and vision | Basic living-human called locations and per-projectile random locations use the existing location, armor, grip and lasting-injury reducer. Burst traces retain each hit's location, location dice, external DR, damage and injury; singular fields retain the first hit for compatibility. One Eye applies -3 unaimed or -1 after matching Aim. Blind targeting rejects before dice. |
 | Critical results | Single-projectile Basic critical hits use B556 body/head damage, DR, major-wound, shock, eye and held-item effects. Head scarring/deafness uses the shared lasting-injury reducer. Ranged critical misses resolve balance (7/13/16), unreadiness (8/12), drops (9/10/11/14), self-wounds (5/6, including the mandatory one-time ranged reroll), and timed wielding-arm strain (15). Armed thrown-Parry failures use the parrying weapon and defender; their 16 falls prone, while ranged attack 16 only loses balance. A failed Parry still permits incoming damage. Breakage (3/4/17/18 and cheap-weapon drops) requires pinned durability and `critical_breakage` metadata. Resistant weapons get the B556 confirmation roll; a non-break result drops the weapon. A rapid-fire critical rolls the B556 table once and applies it to a single projectile of the burst: that projectile takes the table's damage multiplier, maximum damage, forced major wound, shock, eye redirection and held-item consequences, and the burst's remaining projectiles are ordinary hits at the declared or separately rolled location. One-shot critical-hit consequences (dropped held items and the forced Do Nothing) still apply once per attack. Missing anatomy/grips and unspecified breakage data remain paused. B382 excludes ranged attacks from failure-by-ten critical misses. |
 | Critical persistence | `ranged-critical-v1` resource events retain the table/result trace, pre-resolution combatants, equipment catalog, selected mode, build revisions, scene, ammunition load, inventory and pools inside the existing command CAS. New records also retain the complete ordered table-roll chain (including self-hit and breakage rerolls), the roll subject and affected weapon. Retried commands return the saved receipt. Unresolved contexts do not claim completed consequences. |
@@ -32,11 +32,11 @@ B16/B270 and Campaigns fourth-printing B378 cases. Half damage starts **at**
 the listed 1/2D range, rounding down. Rated crossbows reload in four Ready
 maneuvers at or below the wielder's effective ST, or eight at one or two ST
 above it. Interruptions and retries preserve progress without duplicating rounds.
-At three or four ST above the wielder, reloading rejects pending the explicit
-cocking-aid/standing protocol tracked with #286; at five or more it rejects as
-impossible. A loaded crossbow retains its rated damage when the wielder tires.
-Ordinary bow reload remains two Ready maneuvers; Fast-Draw and draw/hold state
-remain #286. Ratings are explicit Basic-only catalog metadata, with listed
+At three or four ST above the wielder, the opt-in #286 readiness protocol requires
+an accessible cocking aid and standing; at five or more it rejects as impossible.
+A loaded crossbow retains its rated damage when the wielder tires. Opt-in bow
+preparation, draw/let-down state, and exact Arrow/Ammo Fast-Draw specialties are
+documented in [projectile readiness](gurps-projectile-readiness.md). Ratings are explicit Basic-only catalog metadata, with listed
 damage-table rows validated when the catalog loads. Existing catalogs omit the
 new field and retain their existing ST basis and reload timers. To adopt weapon
 ratings, publish and explicitly select a new pinned catalog revision; saved
@@ -110,15 +110,16 @@ B407 precedence, single-shot stoppages, retained misfires, diagnosis, clearing,
 and mechanical repair with persisted consequences and receipts. The inspected
 B278 catalog slice supplies a conventional burst-capable revolver case with
 authoritative reload, malfunction, persistence and replay evidence. The broader
-catalog remains mechanically incomplete under #180;
+catalog remains mechanically incomplete as recorded in
+[the equipment audit](gurps-equipment-audit.md);
 [low-TL/exotic malfunction protocols](gurps-exotic-malfunctions.md) are explicit
 opt-ins. Printing reconciliation is complete. No malfunction number is inferred
 from a skill or damage type.
-Named follow-ups retain the other required scope:
-#286 owns individual-round unloading, Fast-Draw and bow draw/hold fatigue;
-#287 owns bare-handed catches and thrown-item battlefield recovery. Those
-protocols require additional typed skill, weapon readiness, and ground-item state;
-`reload_progress`, `expended_items`, and generic Ready are not substitutes.
+Issue #286 subsequently added opt-in individual-round unloading, exact
+Arrow/Ammo Fast-Draw, and bow preparation/draw/let-down state. Issue #287 added
+[bare-handed catches and thrown-item battlefield recovery](gurps-thrown-recovery.md);
+`expended_items` and generic Ready alone are not substitutes for that ground-item
+protocol.
 #152 supplies typed one-handed and prone-bipod bracing plus fixed/variable scope
 timing. Certification and generation validators must continue using the
 capability registry rather than inferring support from a typed weapon or manual

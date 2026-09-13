@@ -1,5 +1,9 @@
 # Wave 7: campaign approval and typed actions
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 ## Campaign suitability (#9)
 
 `PowerReviewer` wraps the character compiler with a separately versioned

@@ -39,7 +39,11 @@ common conformance ledger and `tests/test_unarmed.py`. The selected-source revie
 and #176 implementation scope are complete; broader close-combat and multi-hex
 work remains under #508, so this is not a whole-profile conformance certificate.
 
-Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which keeps the existing scenario/character capability checks fail-closed. #108 remains open. [Follow-up #176](https://github.com/Underzenith85/wayfarer/issues/176) tracks the remaining work:
+Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which
+keeps the existing scenario/character capability checks fail-closed. Issues #108
+and [#176](https://github.com/Underzenith85/wayfarer/issues/176) are closed for
+their bounded deliveries; broader close-combat and multi-hex work remains under
+#508. The capability boundaries still include:
 
 - Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), torn-muscle lasting penalties (15), and selecting among multiple ready impaling modes (5/6/16). Armed critical-parry failures use the existing weapon consequence reducer; cases lacking sufficient weapon metadata still halt with recorded dice.
 - All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks. Wait is integrated below; Evaluate, Feint, Aim and Concentrate while a grip is held remain explicitly rejected.
@@ -48,7 +52,7 @@ Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, whi
 
 Current bodies have no authored Size Modifier, so tests cover equal-sized human participants. This does not implement large/small creature grappling. Optional/supplement grappling systems and control points are excluded.
 
-The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejection, distinct-hand, fallback ordering and critical-blocker regression tests in `tests/test_unarmed_double_defense.py`. Unimplemented contextual critical outcomes still preserve table dice and block continuation, including when reached through the fallback. This subset does not complete #176 or the source-baseline audit.
+The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejection, distinct-hand, fallback ordering and critical-blocker regression tests in `tests/test_unarmed_double_defense.py`. Unimplemented contextual critical outcomes still preserve table dice and block continuation, including when reached through the fallback. This subset alone does not complete the capability or source-baseline audit.
 
 ## Additional #176 integrations
 
@@ -59,7 +63,7 @@ The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejec
 - Punches and kicks can target torso, neck, arms or legs. A neck strike missed by one resolves against the torso and records both intent and resolved location. Hex retreat is supported against strikes, with the trained unarmed parry bonus. Legacy square coordinates are unchanged.
 - Ready while grappling requires explicitly selected free hands. A grappled actor makes a DX check (including applicable shock/control penalties); failure drops only the selected item. The check and result survive restart and command replay. Partial release does not consume an attack or release other hands.
 
-`tests/test_unarmed_integrations.py` contains independent numeric cases and transaction/replay tests; `tests/test_tactical.py` verifies the v1/v2 HTTP boundary. Both capability families remain partial. These integrations do **not** complete #176 or #108.
+`tests/test_unarmed_integrations.py` contains independent numeric cases and transaction/replay tests; `tests/test_tactical.py` verifies the v1/v2 HTTP boundary. Both capability families remain partial; these integrations do not establish whole-profile certification.
 
 ### Critical consequences and Judo follow-up
 
@@ -98,7 +102,7 @@ when it happens, so a Wait declared across the battlefield stays legal.
   reaction to an unarmed declaration, an unarmed reaction to a weapon declaration, and a
   stop thrust answering close-combat entry.
 - A grappled or grappling fighter may commit to a Wait. Evaluate, Feint, Aim, Concentrate,
-  movement, posture steps and reloading while a grip is held remain rejected as #176 work.
+  movement, posture steps and reloading while a grip is held remain rejected as capability boundaries.
 - The tactical snapshot is shared by both endpoints and is validated by frozen v1 clients,
   so its choices stay inside the v1 command shapes. Declaring an unarmed Wait is therefore a
   v2 command option rather than an offered choice, exactly as `TakeUnarmedTurn.maneuver` is.
@@ -108,7 +112,7 @@ when it happens, so a Wait declared across the battlefield stays legal.
   payload and existing receipt digests.
 
 Independent cases are in `tests/test_unarmed_wait.py`; `tests/test_tactical.py` covers the
-hex projection and the v1/v2 HTTP boundary. Wait integration does not complete #176 or #108.
+hex projection and the v1/v2 HTTP boundary. Wait integration does not make either capability complete.
 
 ## Versioned command contract
 

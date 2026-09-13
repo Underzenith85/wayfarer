@@ -63,13 +63,9 @@ For the Codex provider using a supported ChatGPT login, follow the [Codex setup 
 
 ## Documentation
 
-See the [engine guide](docs/engine.md), [architecture](docs/architecture.md),
-[UI onboarding](docs/ui-onboarding.md), [unavailable states](docs/ui-availability.md),
-[guided scenario authoring](docs/scenario-authoring.md),
-[API runtime](docs/api-v1-runtime.md), [rules](docs/rules-catalog.md),
-[rules profiles](docs/rules-profiles.md), [persistence](docs/persistence.md),
-[operations](docs/operations.md), [quality](docs/quality.md),
-[testing](docs/testing.md), [release gates](docs/release-gates.md), and
-[contributing](CONTRIBUTING.md).
+Use the [documentation index](docs/README.md) to find current engine, runtime,
+authoring, GURPS, UI, and design-system references, and to distinguish them from
+historical delivery records. Contributors should also read
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 This is a limited GURPS-inspired implementation, not a complete or officially licensed GURPS ruleset. No proprietary rulebook text is included.

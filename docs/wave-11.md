@@ -1,5 +1,9 @@
 # Wave 11: durable direction and authoring
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 Wave 11 adds the character workshop (#21), scenario studio services (#22), durable
 turn director (#39), and live integration in the existing React dashboard (#23).
 The frozen v1 contract remains separate; `LiveTransport` explicitly adapts the
