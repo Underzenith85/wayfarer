@@ -13052,9 +13052,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-creatures.md",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13076,9 +13079,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "src/wayfarer/certification/creature_audit.py",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13100,9 +13106,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "src/wayfarer/engine/character/creatures.py",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13124,9 +13133,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "src/wayfarer/engine/character/creatures.py",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13148,9 +13160,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "src/wayfarer/engine/simulation/creatures.py",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13172,9 +13187,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "src/wayfarer/engine/simulation/movement/creature_mounts.py",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13196,9 +13214,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "src/wayfarer/engine/simulation/creatures.py",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13220,9 +13241,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "src/wayfarer/certification/creature_audit.py",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
@@ -13244,13 +13268,16 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "partial",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-creatures.md",
+        "tests/test_creatures.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 521,
+      "completion_owner": 522,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b459:fantasy-monsters",
@@ -13293,12 +13320,14 @@
       ],
       "disposition": "reference-only",
       "implementation": "not-applicable",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-creatures.md"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 521,
+      "completion_owner": 522,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b460:animals-in-combat",
