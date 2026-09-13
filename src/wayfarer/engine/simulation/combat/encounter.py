@@ -155,6 +155,11 @@ class PendingDefense(Record):
     opened_turn: int = Field(ge=0)
     mode_id: str | None = None
     hit_location: HitLocation | None = None
+    armor_chink: bool = Field(default=False, exclude_if=lambda value: not value)
+    strike_strength: int | None = Field(default=None, ge=1, exclude_if=lambda value: value is None)
+    subdual_mode: Literal["flat", "blunt-end"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     transport_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     vehicle_attack_penalty: int = Field(default=0, ge=-30, le=0, exclude_if=lambda v: v == 0)

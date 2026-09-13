@@ -8,12 +8,14 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import strong_damage_bonus
+from wayfarer.engine.rules.tables.special_melee import grapple_size_bonus
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, exertion
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
+from wayfarer.engine.simulation.combat.special_melee import actor_size_modifier
 from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.unarmed.choke import start_choke_hold
 from wayfarer.engine.simulation.combat.unarmed.defense import parry_candidates, unarmed_defense
@@ -142,6 +144,14 @@ def defend(
             location=pending.location,
             board=runtime.hex_map(encounter),
         ).attack_modifier
+    value += (
+        grapple_size_bonus(
+            actor_size_modifier(runtime, state, actor.actor_id),
+            actor_size_modifier(runtime, state, target.actor_id),
+        )
+        if pending.action in ("grapple", "arm_lock")
+        else 0
+    )
     if target.unarmed_guard_dropped and actor.maneuver_state.evaluate_target_id == target.actor_id:
         value += actor.maneuver_state.evaluate_bonus
     value = attack_modifier(

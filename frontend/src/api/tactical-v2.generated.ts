@@ -762,6 +762,21 @@ export interface components {
         | "random"
         | null;
       /**
+       * Armor Chink
+       * @default false
+       */
+      armor_chink: boolean;
+      /**
+       * Strike Strength
+       * @default null
+       */
+      strike_strength: number | null;
+      /**
+       * Subdual Mode
+       * @default null
+       */
+      subdual_mode: ("flat" | "blunt-end") | null;
+      /**
        * Target Item Id
        * @default null
        */
