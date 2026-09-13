@@ -99,6 +99,13 @@ class InventoryItem:
     blockers: tuple[int, ...] = ()
     gaps: tuple[str, ...] = ()
     evidence: tuple[str, ...] = ()
+    obligation: Literal[
+        "construction-catalog",
+        "executable-mechanic",
+        "optional-rule",
+        "reference-only",
+        "unsupported-required",
+    ] = "executable-mechanic"
 
 
 INVENTORY_SOURCE_REVIEW_EVIDENCE: Final = "docs/gurps-inventory-source-review.md"
@@ -259,6 +266,9 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             source_review="reviewed" if e.id in reviewed_skills else "pending",
             blockers=e.followup_issues,
             evidence=e.evidence,
+            obligation="reference-only"
+            if e.implementation == "contextual"
+            else "executable-mechanic",
         )
         for e in skills()
     ]
@@ -360,6 +370,8 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
                     ("gurps-lite-4e-2004",)
                     if package.id == GURPS_LITE_PACKAGE.id
                     else ("gurps-basic-set-4e-2004",),
+                    evidence=("tests/test_profiles.py",),
+                    obligation="construction-catalog",
                 )
             )
     rows.extend(
@@ -371,6 +383,9 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             "equipment-catalog",
             source_review="reviewed" if e.definition_id in reviewed_equipment else "pending",
             evidence=("tests/test_basic_equipment.py",),
+            obligation="unsupported-required"
+            if e.unsupported_mechanics
+            else "construction-catalog",
         )
         for e in (*BASIC_EQUIPMENT.entries, *ULTRATECH_INDEX)
     )
@@ -387,11 +402,37 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             e.source_review,
             blockers=e.blockers,
             evidence=e.evidence,
+            obligation=(
+                "reference-only"
+                if e.id
+                in {
+                    "equipment-field/MeleeMode.kind",
+                    "equipment-field/RangedMode.kind",
+                }
+                else "construction-catalog"
+                if e.scope
+                in {
+                    "equipment-sections",
+                    "equipment-field-provenance",
+                    "equipment-package-binding",
+                }
+                else "unsupported-required"
+                if e.implementation in {"unsupported", "omitted"}
+                else "executable-mechanic"
+            ),
         )
         for e in equipment_audit_rows()
     )
     rows.extend(
-        InventoryItem(e.definition_id, f"B{e.page}", 207, "listing-only", "vehicle-catalog")
+        InventoryItem(
+            e.definition_id,
+            f"B{e.page}",
+            207,
+            "listing-only",
+            "vehicle-catalog",
+            evidence=("tests/test_basic_equipment.py",),
+            obligation="construction-catalog",
+        )
         for e in VEHICLE_INDEX
     )
     rows.extend(
@@ -537,6 +578,17 @@ def validate(root: Path, manifest: Manifest) -> None:
     for row in inventory_rows:
         if row.scope in evidence_scopes and not row.evidence:
             raise ValidationError(f"Inventory row needs item-level evidence: {row.id}")
+        if row.implementation in {"manual-adjudication", "contextual", "listing-only"} and (
+            row.obligation == "executable-mechanic"
+        ):
+            raise ValidationError(f"Non-executable status needs an explicit obligation: {row.id}")
+        if row.obligation in {"construction-catalog", "reference-only"} and not row.evidence:
+            raise ValidationError(f"Non-executable obligation needs evidence: {row.id}")
+        if row.obligation == "unsupported-required" and row.implementation not in {
+            "unsupported",
+            "omitted",
+        }:
+            raise ValidationError(f"Unsupported obligation has a ready status: {row.id}")
         for filename in row.evidence:
             if not (root / filename).is_file():
                 raise ValidationError(f"Missing inventory evidence: {row.id}: {filename}")

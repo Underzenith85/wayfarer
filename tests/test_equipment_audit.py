@@ -25,7 +25,7 @@ from wayfarer.certification.equipment_audit import (
 )
 from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
 from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
-from wayfarer.engine.simulation.equipment.catalog import LITE_EQUIPMENT
+from wayfarer.engine.simulation.equipment.catalog import LITE_EQUIPMENT, RangedMode
 from wayfarer.engine.simulation.health.hit_locations import wound_factor
 from wayfarer.errors import ValidationError
 
@@ -154,6 +154,8 @@ def test_audit_rows_export_only_explicit_source_review_state() -> None:
         assert footnotes[record.id].source_review == expected
     assert fields and all(row.source_review == "reviewed" for row in fields)
     assert all("docs/gurps-equipment-source-review.md" in row.evidence for row in fields)
+    assert sum(row.implementation == "implemented" for row in fields) == 127
+    assert sum(row.implementation == "omitted" for row in fields) == 2
     assert bindings["basic-set-catalog"].source_review == "reviewed"
     assert bindings["lite-catalog"].source_review == "pending"
     assert all(
@@ -173,6 +175,30 @@ def test_selection_rejects_unsupported_and_unknown_equipment() -> None:
     }
     with pytest.raises(ValidationError, match="surge"):
         validate_selection(BASIC, ("equipment:broadsword", "equipment:blaster-pistol"))
+
+
+def test_flail_defense_procedure_unblocks_affected_catalog_rows() -> None:
+    footnote = next(row for row in ledger().footnotes if row.id == "flail-defense-penalties")
+    assert footnote.disposition == "implemented"
+    assert footnote.tests == (
+        "tests/test_special_melee_procedures.py::"
+        "test_b402_b406_special_melee_tables_cover_declared_procedures",
+    )
+    assert all(
+        "flail-defense-penalties" not in row.unsupported_mechanics
+        for row in catalog_entries().values()
+    )
+    assert require_supported("equipment:morningstar").definition_id == "equipment:morningstar"
+    assert require_supported("equipment:nunchaku").definition_id == "equipment:nunchaku"
+
+
+def test_crossbow_catalog_binds_the_executable_cocking_aid() -> None:
+    crossbow = require_supported("equipment:crossbow")
+    mode = next(mode for mode in crossbow.modes if mode.id == "shot")
+    assert isinstance(mode, RangedMode)
+    assert mode.readiness is not None
+    assert mode.readiness.cocking_aid_definition_id == "equipment:goats-foot"
+    assert require_supported("equipment:goats-foot").definition_id == "equipment:goats-foot"
     with pytest.raises(ValidationError, match="outside the selected-table audit"):
         validate_selection(BASIC, ("equipment:invented-blade",))
     assert require_supported("equipment:broadsword").definition_id == "equipment:broadsword"
@@ -223,7 +249,7 @@ def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
     assert report["selected_rows"] == 285
-    assert report["supported_rows"] == 134
+    assert report["supported_rows"] == 146
     assert report["sections_audited"] == 0
     assert report["sections_reconciled"] == 14
     assert report["workstream_complete"] is True

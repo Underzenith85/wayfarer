@@ -830,10 +830,12 @@
       "reference": "B271-273 note 1; B275",
       "anchor": "inspected",
       "behaviour": "A melee table row marked as throwable also requires its independently listed muscle-powered ranged mode before the physical item can be selected.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_b275_276_melee_rows_bind_their_exact_alternate_thrown_modes"
+      ],
       "evidence_gap": null
     },
     {
@@ -852,10 +854,12 @@
       "reference": "B274 note 6",
       "anchor": "inspected",
       "behaviour": "Flails penalize attempts to parry or block them, with smaller penalties for a nunchaku.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.melee_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_special_melee_procedures.py::test_b402_b406_special_melee_tables_cover_declared_procedures"
+      ],
       "evidence_gap": null
     },
     {
@@ -1166,10 +1170,12 @@
       "reference": "B276 note 5",
       "anchor": "inspected",
       "behaviour": "A goat's-foot lever permits a stronger crossbow to be reloaded with extra Ready maneuvers.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_crossbow_cocking_protocol"
+      ],
       "evidence_gap": null
     },
     {
@@ -1245,10 +1251,13 @@
       "reference": "B281 notes 3-4",
       "anchor": "inspected",
       "behaviour": "Guided and homing heavy-weapon missiles acquire and attack through distinct aiming procedures.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_special_ranged_procedures.py::test_b412_guided_flight_arrival_and_interruption_round_trip",
+        "tests/test_special_ranged_procedures.py::test_b412_homing_roles_and_semi_active_designation_are_explicit"
+      ],
       "evidence_gap": null
     },
     {

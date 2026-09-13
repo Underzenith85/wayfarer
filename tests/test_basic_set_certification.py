@@ -21,6 +21,11 @@ def test_basic_set_report_binds_exact_profile_and_source_baseline() -> None:
     assert result.required_capabilities == len(PROFILES[PROFILE_ID].required_capabilities)
     assert 0 < result.verified_capabilities <= result.required_capabilities
     assert result.required_inventory_items > 0
+    assert sum(result.inventory_obligation_rollups.values()) == result.required_inventory_items
+    assert result.inventory_obligation_rollups["executable-mechanic"] > 0
+    assert result.inventory_obligation_rollups["construction-catalog"] > 0
+    assert result.inventory_obligation_rollups["reference-only"] > 0
+    assert result.inventory_obligation_rollups["unsupported-required"] > 0
     assert result.excluded_content == ("gurps.content.infinite-worlds",)
 
 
@@ -95,6 +100,7 @@ def test_basic_set_release_rejects_current_incomplete_evidence() -> None:
 
 def test_report_serialization_keeps_blockers_machine_readable() -> None:
     payload = evaluate(ROOT).as_dict()
+    assert payload["inventory_obligation_rollups"] == evaluate(ROOT).inventory_obligation_rollups
     assert payload["certified"] is False
     assert payload["excluded_content"] == ["gurps.content.infinite-worlds"]
     blockers = payload["blockers"]
