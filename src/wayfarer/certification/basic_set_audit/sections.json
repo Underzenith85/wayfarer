@@ -17,25 +17,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b006:about-the-authors",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "About the Authors",
       "printed_page": 6,
@@ -43,25 +47,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b005:introduction",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b007:what-is-roleplaying",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "What is Roleplaying?",
       "printed_page": 7,
@@ -69,21 +77,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b005:introduction",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b007:mini-glossary",
@@ -113,7 +125,7 @@
     },
     {
       "id": "section:characters:b008:materials-needed-for-play",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Materials Needed for Play",
       "printed_page": 8,
@@ -121,25 +133,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b007:what-is-roleplaying",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b008:quick-start",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Quick Start",
       "printed_page": 8,
@@ -147,25 +163,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b005:introduction",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b009:metric-conversions",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Metric Conversions",
       "printed_page": 9,
@@ -173,21 +193,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b008:quick-start",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b010:1-creating-a-character",
@@ -1627,26 +1651,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b032:types-of-advantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Types of Advantages",
       "printed_page": 32,
@@ -1654,22 +1682,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b033:advantage-origins",
@@ -1682,21 +1714,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b033:potential-advantages",
@@ -1709,25 +1745,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b034:what-s-allowed",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "What’s Allowed",
       "printed_page": 34,
@@ -1735,22 +1775,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b034:turning-advantages-off-and-on",
@@ -1763,25 +1807,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b034:advantage-list",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Advantage List",
       "printed_page": 34,
@@ -1789,22 +1837,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b036:frequency-of-appearance",
@@ -1817,21 +1869,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b046:limited-defenses",
@@ -1844,21 +1900,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b061:alternative-attacks",
@@ -1871,25 +1931,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b100:perks",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Perks",
       "printed_page": 100,
@@ -1897,26 +1961,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b101:modifiers",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Modifiers",
       "printed_page": 101,
@@ -1924,26 +1992,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b102:enhancements",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Enhancements",
       "printed_page": 102,
@@ -1951,22 +2023,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b102:attack-enhancements-and-limitations",
@@ -1979,21 +2055,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 682,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b102:turning-enhancements-off-and-on",
@@ -2006,25 +2086,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 682,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b110:limitations",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Limitations",
       "printed_page": 110,
@@ -2032,22 +2116,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b111:optional-rule-limited-enhancements",
@@ -2115,21 +2203,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 683,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b116:example-of-character-creation-cont-d",
@@ -2161,7 +2253,7 @@
     },
     {
       "id": "section:characters:b117:new-advantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "New Advantages",
       "printed_page": 117,
@@ -2169,26 +2261,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b117:modifying-existing-advantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Modifying Existing Advantages",
       "printed_page": 117,
@@ -2196,26 +2292,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b117:new-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b118:designing-entirely-new-advantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Designing Entirely New Advantages",
       "printed_page": 118,
@@ -2223,22 +2323,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        497
+        497,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b117:new-advantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b119:3-disadvantages",
@@ -2250,26 +2354,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b119:disadvantages-for-heroes",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Disadvantages for Heroes",
       "printed_page": 119,
@@ -2277,22 +2385,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b120:restrictions-on-disadvantages",
@@ -2305,25 +2417,32 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-character-creation.md",
+        "tests/test_statistics.py",
+        "tests/test_character_construction.py"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b120:types-of-disadvantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Types of Disadvantages",
       "printed_page": 120,
@@ -2331,22 +2450,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b120:secret-disadvantages",
@@ -2359,21 +2482,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b120:self-control-for-mental-disadvantages",
@@ -2386,21 +2513,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b121:self-imposed-mental-disadvantages",
@@ -2413,21 +2544,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b121:buying-off-disadvantages",
@@ -2440,25 +2575,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 700,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b122:disadvantage-list",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Disadvantage List",
       "printed_page": 122,
@@ -2466,22 +2605,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b162:example-of-character-creation-cont-d",
@@ -2513,7 +2656,7 @@
     },
     {
       "id": "section:characters:b162:quirks",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Quirks",
       "printed_page": 162,
@@ -2521,26 +2664,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b162:mental-quirks",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Mental Quirks",
       "printed_page": 162,
@@ -2548,22 +2695,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b162:quirks",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b164:example-of-character-creation-cont-d",
@@ -2595,7 +2746,7 @@
     },
     {
       "id": "section:characters:b165:physical-quirks",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Physical Quirks",
       "printed_page": 165,
@@ -2603,26 +2754,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b162:quirks",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b165:new-disadvantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "New Disadvantages",
       "printed_page": 165,
@@ -2630,26 +2785,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b165:modifying-existing-disadvantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Modifying Existing Disadvantages",
       "printed_page": 165,
@@ -2657,26 +2816,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        496
+        496,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b165:new-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b166:brand-new-problems",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Brand-New Problems",
       "printed_page": 166,
@@ -2684,21 +2847,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b165:new-disadvantages",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b167:4-skills",
@@ -2710,21 +2877,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b167:controlling-attribute",
@@ -2737,24 +2908,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b167:choosing-your-beginning-skills",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Choosing Your Beginning Skills",
       "printed_page": 167,
@@ -2762,21 +2940,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b168:difficulty-level",
@@ -2789,20 +2971,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b168:technological-skills",
@@ -2815,20 +3004,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b168:tech-level-modifiers",
@@ -2841,20 +3037,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b169:prerequisites",
@@ -2867,20 +3070,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b169:specialties",
@@ -2893,20 +3103,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b169:grouped-skills",
@@ -2919,20 +3136,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b169:familiarity",
@@ -2945,20 +3169,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b170:buying-skills",
@@ -2971,24 +3202,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b170:skill-notation",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Skill Notation",
       "printed_page": 170,
@@ -2996,21 +3234,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b170:buying-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b170:improving-your-skills",
@@ -3023,20 +3265,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b170:buying-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b170:skills-cost-table",
@@ -3049,24 +3298,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b171:meaning-of-skill-levels",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Meaning of Skill Levels",
       "printed_page": 171,
@@ -3074,25 +3330,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b171:probability-of-success",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Probability of Success",
       "printed_page": 171,
@@ -3100,21 +3360,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b171:meaning-of-skill-levels",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b171:relative-skill-level",
@@ -3127,24 +3391,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b171:meaning-of-skill-levels",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b172:choosing-your-skill-levels",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Choosing Your Skill Levels",
       "printed_page": 172,
@@ -3152,21 +3423,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b171:meaning-of-skill-levels",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b173:skill-defaults-using-skills-you-don-t-know",
@@ -3179,24 +3454,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b174:skill-list",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Skill List",
       "printed_page": 174,
@@ -3204,21 +3486,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b175:optional-rule-wildcard-skills",
@@ -3249,7 +3535,7 @@
     },
     {
       "id": "section:characters:b176:geographical-and-temporal-scope",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Geographical and Temporal Scope",
       "printed_page": 176,
@@ -3257,25 +3543,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b180:planet-types",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Planet Types",
       "printed_page": 180,
@@ -3283,21 +3573,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b181:physiology-modifiers",
@@ -3310,24 +3604,28 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 693,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b190:skills-for-design",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Skills for Design",
       "printed_page": 190,
@@ -3335,21 +3633,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b227:example-of-character-creation-concluded",
@@ -3379,7 +3681,7 @@
     },
     {
       "id": "section:characters:b229:techniques",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Techniques",
       "printed_page": 229,
@@ -3387,21 +3689,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b229:creating-techniques",
@@ -3414,20 +3720,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b230:buying-and-improving-techniques",
@@ -3440,20 +3753,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b230:techniques-cost-table",
@@ -3466,20 +3786,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b230:using-techniques",
@@ -3492,24 +3819,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b230:sample-combat-techniques",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Sample Combat Techniques",
       "printed_page": 230,
@@ -3517,21 +3851,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b232:double-defaults-and-techniques",
@@ -3544,24 +3882,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-mundane-skills.md",
+        "tests/test_skills.py",
+        "tests/test_contextual_metadata.py"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b232:sample-noncombat-techniques",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Sample Noncombat Techniques",
       "printed_page": 232,
@@ -3569,21 +3914,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b234:5-magic",
@@ -3595,22 +3944,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b234:glossary-of-magical-terms",
@@ -3651,21 +4004,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b235:prerequistes",
@@ -3678,21 +4039,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:learning-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b235:mana",
@@ -3705,21 +4074,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:learning-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b235:casting-spells",
@@ -3732,21 +4109,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b236:distraction-and-injury",
@@ -3759,21 +4144,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b236:caster-and-subject",
@@ -3786,21 +4179,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b236:time-required",
@@ -3813,21 +4214,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b236:energy-cost",
@@ -3840,21 +4249,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b236:critical-spell-failure-table",
@@ -3867,21 +4284,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b237:magic-rituals",
@@ -3894,21 +4319,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b237:limits-on-effect",
@@ -3921,21 +4354,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 691,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b237:duration-of-spells-and-maintaining-spells",
@@ -3948,21 +4385,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b237:canceling-spells",
@@ -3975,21 +4420,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b238:casting-spells-while-maintaining-other-spells",
@@ -4002,21 +4455,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b238:ceremonial-magic",
@@ -4029,25 +4490,33 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b239:different-kinds-of-magic",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Different Kinds of Magic",
       "printed_page": 239,
@@ -4055,26 +4524,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b239:colleges-of-magic",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Colleges of Magic",
       "printed_page": 239,
@@ -4082,22 +4555,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b239:spell-classes",
@@ -4110,21 +4587,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 691,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b239:area-spells-on-a-battle-map",
@@ -4137,21 +4618,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-spell-execution.md",
+        "tests/test_spells.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_magic_protocols.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b240:magic-staffs",
@@ -4164,21 +4653,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 691,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b241:dissipating-held-melee-and-missile-spells",
@@ -4191,21 +4684,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 691,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b241:long-distance-modifiers",
@@ -4218,25 +4715,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 691,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b242:alternative-magic-systems",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "characters-third",
       "title": "Alternative Magic Systems",
       "printed_page": 242,
@@ -4244,26 +4745,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "reference-only"
     },
     {
       "id": "section:characters:b242:spell-list",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Spell List",
       "printed_page": 242,
@@ -4271,26 +4776,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b234:5-magic",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b242:air-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Air Spells",
       "printed_page": 242,
@@ -4298,26 +4807,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b244:body-control-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Body Control Spells",
       "printed_page": 244,
@@ -4325,26 +4838,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b245:communication-and-empathy-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Communication and Empathy Spells",
       "printed_page": 245,
@@ -4352,26 +4869,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b245:earth-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Earth Spells",
       "printed_page": 245,
@@ -4379,26 +4900,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b246:enchantment-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Enchantment Spells",
       "printed_page": 246,
@@ -4406,26 +4931,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b246:fire-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Fire Spells",
       "printed_page": 246,
@@ -4433,26 +4962,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b247:gate-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Gate Spells",
       "printed_page": 247,
@@ -4460,26 +4993,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b248:healing-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Healing Spells",
       "printed_page": 248,
@@ -4487,26 +5024,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b249:knowledge-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Knowledge Spells",
       "printed_page": 249,
@@ -4514,26 +5055,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b249:light-and-darkness-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Light and Darkness Spells",
       "printed_page": 249,
@@ -4541,26 +5086,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b250:meta-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Meta-Spells",
       "printed_page": 250,
@@ -4568,26 +5117,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b250:mind-control-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Mind Control Spells",
       "printed_page": 250,
@@ -4595,26 +5148,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b251:movement-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Movement Spells",
       "printed_page": 251,
@@ -4622,26 +5179,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b251:necromantic-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Necromantic Spells",
       "printed_page": 251,
@@ -4649,26 +5210,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b252:protection-and-warning-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Protection and Warning Spells",
       "printed_page": 252,
@@ -4676,26 +5241,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b253:water-spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Water Spells",
       "printed_page": 253,
@@ -4703,22 +5272,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b242:spell-list",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b254:6-psionics",
@@ -4730,22 +5303,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b254:glossary-of-psi-terminology",
@@ -4777,7 +5354,7 @@
     },
     {
       "id": "section:characters:b254:powers-abilities-and-talens",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Powers, Abilities, and Talens",
       "printed_page": 254,
@@ -4785,26 +5362,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:6-psionics",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b255:pside-effects",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Pside Effects",
       "printed_page": 255,
@@ -4812,22 +5393,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:powers-abilities-and-talens",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b255:gaining-new-psi-abilities",
@@ -4840,21 +5425,27 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-psi-powers.md",
+        "tests/test_psi_powers.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:powers-abilities-and-talens",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b255:using-psi-abilities",
@@ -4867,25 +5458,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-psi-powers.md",
+        "tests/test_psi_powers.py"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:6-psionics",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b255:psionic-powers",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Psionic Powers",
       "printed_page": 255,
@@ -4893,26 +5490,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b254:6-psionics",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b255:antipsi",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Antipsi",
       "printed_page": 255,
@@ -4920,26 +5521,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b255:esp",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "ESP",
       "printed_page": 255,
@@ -4947,26 +5552,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b256:psychic-healing",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Psychic Healing",
       "printed_page": 256,
@@ -4974,26 +5583,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b256:psychokinesis-pk",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Psychokinesis (PK)",
       "printed_page": 256,
@@ -5001,22 +5614,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b256:psionics-and-magic",
@@ -5029,25 +5646,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 691,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b257:telepathy",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Telepathy",
       "printed_page": 257,
@@ -5055,26 +5676,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b257:teleportation",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Teleportation",
       "printed_page": 257,
@@ -5082,22 +5707,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b257:examples-of-psionic-powers",
@@ -5129,7 +5758,7 @@
     },
     {
       "id": "section:characters:b257:other-powers",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Other Powers",
       "printed_page": 257,
@@ -5137,22 +5766,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        500
+        500,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b258:7-templates",
@@ -5494,22 +6127,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b264:money",
@@ -5522,21 +6159,28 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-economics.md",
+        "tests/test_economics.py",
+        "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b265:cost-of-living",
@@ -5549,21 +6193,28 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-economics.md",
+        "tests/test_economics.py",
+        "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b265:cost-of-living-table",
@@ -5576,21 +6227,28 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-economics.md",
+        "tests/test_economics.py",
+        "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b266:what-cost-of-living-gets-you-a-modern-example",
@@ -5631,21 +6289,28 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-economics.md",
+        "tests/test_economics.py",
+        "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b267:legality-class",
@@ -5658,25 +6323,32 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-economics.md",
+        "tests/test_economics.py",
+        "tests/test_campaign_administration.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b266:buying-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b267:weapons",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Weapons",
       "printed_page": 267,
@@ -5684,26 +6356,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b267:choosing-your-weapons",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Choosing Your Weapons",
       "printed_page": 267,
@@ -5711,26 +6387,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b268:weapon-statistics",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Weapon Statistics",
       "printed_page": 268,
@@ -5738,22 +6418,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b268:glossary-of-arms-and-armor",
@@ -5812,7 +6496,7 @@
     },
     {
       "id": "section:characters:b271:melee-weapons",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Melee Weapons",
       "printed_page": 271,
@@ -5820,22 +6504,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b275:silver-weapons",
@@ -5848,25 +6536,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 684,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b275:muscle-powered-ranged-weapons",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Muscle-Powered Ranged Weapons",
       "printed_page": 275,
@@ -5874,22 +6566,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b277:bodkin-points",
@@ -5902,21 +6598,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 685,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b277:hand-grenades-and-incendiaries",
@@ -5929,25 +6629,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 685,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b278:firearms",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Firearms",
       "printed_page": 278,
@@ -5955,22 +6659,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b278:smartgun-electronics",
@@ -5983,21 +6691,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 685,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b279:optional-rule-malfunction",
@@ -6028,7 +6740,7 @@
     },
     {
       "id": "section:characters:b281:heavy-weapons",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Heavy Weapons",
       "printed_page": 281,
@@ -6036,26 +6748,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b282:armor",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Armor",
       "printed_page": 282,
@@ -6063,26 +6779,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b282:armor-tables",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Armor Tables",
       "printed_page": 282,
@@ -6090,22 +6810,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b282:armor",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b286:wearing-armor",
@@ -6118,21 +6842,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 686,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b282:armor",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b287:shields",
@@ -6145,21 +6873,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 684,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b287:carrying-weapons-and-other-gear",
@@ -6172,25 +6904,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": 686,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b287:shields",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "executable-mechanic"
     },
     {
       "id": "section:characters:b288:miscellaneous-equipment",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Miscellaneous Equipment",
       "printed_page": 288,
@@ -6198,22 +6934,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b264:8-equipment",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b290:9-character-development",
@@ -6225,22 +6965,26 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b290:improvement-through-adventure",
@@ -6654,25 +7398,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b297:advantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Advantages",
       "printed_page": 297,
@@ -6680,25 +7428,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b299:disadvantages",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Disadvantages",
       "printed_page": 299,
@@ -6706,25 +7458,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b300:modifiers",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Modifiers",
       "printed_page": 300,
@@ -6732,25 +7488,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b301:skills",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Skills",
       "printed_page": 301,
@@ -6758,25 +7518,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b304:techniques",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Techniques",
       "printed_page": 304,
@@ -6784,25 +7548,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b304:spells",
-      "row_kind": "mechanic",
+      "row_kind": "catalog-item",
       "source_id": "characters-third",
       "title": "Spells",
       "printed_page": 304,
@@ -6810,21 +7578,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b297:trait-lists",
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "construction-catalog"
     },
     {
       "id": "section:characters:b307:iconic-characters",
@@ -6836,21 +7608,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:characters:b324:combat-lite",
@@ -7189,21 +7965,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-characters-section-obligations.md"
       ],
       "historical_owners": [
-        191
+        191,
+        94
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
       "classification": null,
-      "listed_value": null
+      "listed_value": null,
+      "obligation_review_issue": 678,
+      "obligation": "structural-non-runtime"
     },
     {
       "id": "section:campaigns:b342:introduction",

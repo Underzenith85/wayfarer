@@ -369,6 +369,21 @@
       "title": "Complete flying and mounted combat"
     },
     {
+      "issue": 683,
+      "state": "open",
+      "title": "Execute all remaining limitations and gadget limitations"
+    },
+    {
+      "issue": 684,
+      "state": "open",
+      "title": "Complete remaining melee weapons and shield behavior"
+    },
+    {
+      "issue": 685,
+      "state": "open",
+      "title": "Complete remaining ranged, beam, and heavy-weapon equipment"
+    },
+    {
       "issue": 686,
       "state": "open",
       "title": "Complete remaining general equipment and accessory behavior"
@@ -382,6 +397,21 @@
       "issue": 690,
       "state": "open",
       "title": "Complete residual Campaigns economic procedures"
+    },
+    {
+      "issue": 691,
+      "state": "open",
+      "title": "Complete residual Characters magic procedures"
+    },
+    {
+      "issue": 693,
+      "state": "open",
+      "title": "Implement cross-species physiology modifiers"
+    },
+    {
+      "issue": 700,
+      "state": "open",
+      "title": "Complete residual Characters trait procedures"
     }
   ]
 }

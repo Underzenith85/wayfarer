@@ -14,6 +14,7 @@ from wayfarer.certification.source_ledgers import (
     EXPECTED_LEDGER_COUNTS,
     INFINITE_WORLDS_CLASSIFICATIONS,
     LedgerBundle,
+    denominator_identity,
     ledger_blockers,
     load_source_ledgers,
     reconcile_trait_ledger,
@@ -35,7 +36,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 207
+    assert len(ledger_blockers(bundle.rows)) == 73
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -168,11 +169,17 @@ def test_duplicate_ids_invalid_pages_and_missing_or_closed_owners_are_rejected()
     with pytest.raises(ValidationError, match="outside selected printing"):
         _validate(replace(bundle, rows=(bad_page, *bundle.rows[1:])))
 
-    unowned = first.model_copy(update={"completion_owner": None})
+    blocker_index = next(
+        index for index, row in enumerate(bundle.rows) if row.completion_owner is not None
+    )
+    blocker = bundle.rows[blocker_index]
+    unowned = blocker.model_copy(update={"completion_owner": None})
+    unowned_rows = list(bundle.rows)
+    unowned_rows[blocker_index] = unowned
     with pytest.raises(ValidationError, match="lacks completion owner"):
-        _validate(replace(bundle, rows=(unowned, *bundle.rows[1:])))
+        _validate(replace(bundle, rows=tuple(unowned_rows)))
 
-    issue = next(issue for issue in bundle.owners.issues if issue.issue == first.completion_owner)
+    issue = next(issue for issue in bundle.owners.issues if issue.issue == blocker.completion_owner)
     closed = issue.model_copy(update={"state": "closed"})
     owners = bundle.owners.model_copy(
         update={
@@ -302,18 +309,80 @@ def test_campaigns_section_obligations_cannot_fall_back_to_the_roadmap() -> None
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 207
+    assert len(ledger) == 73
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
     assert all(blocker.owner_issue is not None for blocker in ledger)
     assert report.source_ledger_rows == 1_285
-    assert report.required_source_ledger_rows == 1_139
+    assert report.required_source_ledger_rows == 1_046
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {
-        "686": 3,
+        "682": 2,
+        "683": 1,
+        "684": 2,
+        "685": 3,
+        "686": 5,
         "689": 6,
         "690": 2,
-        "94": 196,
-        "none": 1_078,
+        "691": 6,
+        "693": 1,
+        "700": 10,
+        "94": 35,
+        "none": 1_212,
     }
+
+
+def test_characters_section_obligations_are_explicit_and_bounded() -> None:
+    bundle = load_source_ledgers(ROOT)
+    reviewed = tuple(row for row in bundle.rows if row.obligation_review_issue == 678)
+    assert len(reviewed) == 161
+    assert Counter(row.obligation for row in reviewed) == {
+        "construction-catalog": 67,
+        "executable-mechanic": 68,
+        "reference-only": 15,
+        "structural-non-runtime": 11,
+    }
+    assert not any(row.completion_owner == 94 for row in reviewed)
+    unresolved = tuple(row for row in reviewed if row.completion_owner is not None)
+    assert len(unresolved) == 27
+    assert Counter(row.completion_owner for row in unresolved) == {
+        682: 2,
+        683: 1,
+        684: 2,
+        685: 3,
+        686: 2,
+        691: 6,
+        693: 1,
+        700: 10,
+    }
+    assert all(row.obligation == "executable-mechanic" for row in unresolved)
+    assert all(
+        row.disposition == "reference-only"
+        and row.implementation == "not-applicable"
+        and row.completion_owner is None
+        for row in reviewed
+        if row.obligation in {"construction-catalog", "reference-only", "structural-non-runtime"}
+    )
+    assert denominator_identity(bundle.rows, inventory(ROOT)) == (
+        "f6cbd79cf54dbae5071c95f75c0a0c1a811b447392a2b17213609c02c87c480b"
+    )
+
+
+def test_characters_section_obligation_drift_is_rejected() -> None:
+    bundle = load_source_ledgers(ROOT)
+    index = next(i for i, row in enumerate(bundle.rows) if row.obligation_review_issue == 678)
+    rows = list(bundle.rows)
+    rows[index] = rows[index].model_copy(update={"obligation": None})
+    with pytest.raises(ValidationError, match="explicit obligation"):
+        _validate(replace(bundle, rows=tuple(rows)))
+
+    index = next(
+        i
+        for i, row in enumerate(bundle.rows)
+        if row.obligation_review_issue == 678 and row.completion_owner is not None
+    )
+    rows = list(bundle.rows)
+    rows[index] = rows[index].model_copy(update={"completion_owner": 94})
+    with pytest.raises(ValidationError, match="falls back to roadmap"):
+        _validate(replace(bundle, rows=tuple(rows)))
