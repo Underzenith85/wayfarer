@@ -29,6 +29,7 @@ from wayfarer.persistence.events import (
     fold,
     payload_digest,
 )
+from wayfarer.persistence.membership import principals
 from wayfarer.persistence.upcasters import EVENT_UPCASTERS, read_event
 
 SNAPSHOT_INTERVAL = 10
@@ -110,6 +111,9 @@ class AsyncPostgresStore:
         await db.execute(
             "CREATE TABLE IF NOT EXISTS checkpoint_digests (campaign TEXT NOT NULL, revision BIGINT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(campaign, revision))"
         )
+        await db.execute(
+            "CREATE TABLE IF NOT EXISTS campaign_principals (campaign TEXT NOT NULL, principal TEXT NOT NULL, PRIMARY KEY(campaign, principal))"
+        )
         await db.commit()
 
     @staticmethod
@@ -129,10 +133,35 @@ class AsyncPostgresStore:
             raise NotFoundError("Campaign not found")
         return AsyncPostgresStore._campaign(row[0])
 
-    async def insert(self, state: Campaign) -> None:
+    @staticmethod
+    async def _index_principals(
+        db: psycopg.AsyncConnection[tuple[object, ...]], state: Campaign
+    ) -> None:
+        for principal in sorted(principals(state)):
+            await db.execute(
+                "INSERT INTO campaign_principals (campaign, principal) VALUES (%s, %s) "
+                "ON CONFLICT(campaign, principal) DO NOTHING",
+                (state["id"], principal),
+            )
+
+    async def commit_genesis(
+        self,
+        state: Campaign,
+        *,
+        command_id: str,
+        actor_id: str = "system",
+        text: str,
+        recorded_at_us: int | None = None,
+        origin: CommandOrigin | None = None,
+    ) -> TurnResult:
+        """Create a campaign as its stream's first command, in one transaction."""
         db = await self._connect()
         try:
             async with db.transaction():
+                duplicate = await self._duplicate(db, state["id"], command_id, text)
+                if duplicate is not None:
+                    return {"kind": "replayed", "state": duplicate}
+                event = CommandReceipt(action="setup", outcome="draft")
                 await db.execute(
                     "INSERT INTO campaigns (id, state) VALUES (%s, %s::jsonb)",
                     (state["id"], json.dumps(state)),
@@ -150,6 +179,32 @@ class AsyncPostgresStore:
                     "INSERT INTO stream_genesis (campaign, revision, state) VALUES (%s, %s, %s)",
                     (state["id"], state["revision"], json.dumps(state)),
                 )
+                await db.execute(
+                    """INSERT INTO command_log (
+                        campaign, command_id, actor_id, expected_revision,
+                        resulting_revision, payload_hash, rules_version,
+                        schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        state["id"],
+                        command_id,
+                        actor_id,
+                        state["revision"],
+                        state["revision"],
+                        payload_digest({"input": text}),
+                        state["rules"],
+                        COMMAND_SCHEMA_VERSION,
+                        json.dumps(event),
+                        None,
+                        None,
+                        recorded_at_us,
+                        origin.model_dump_json() if origin else None,
+                        text,
+                        command_scenario(state),
+                    ),
+                )
+                await self._index_principals(db, state)
+            return {"kind": "committed", "state": state, "event": event}
         except psycopg.Error as exc:
             raise StorageError("Unable to save campaign") from exc
         finally:
@@ -218,10 +273,18 @@ class AsyncPostgresStore:
         finally:
             await db.close()
 
-    async def listing(self) -> list[dict[str, str]]:
+    async def listing(self, principal: str | None = None) -> list[dict[str, str]]:
         db = await self._connect()
         try:
-            cursor = await db.execute("SELECT id FROM campaigns ORDER BY id DESC")
+            cursor = (
+                await db.execute("SELECT id FROM campaigns ORDER BY id DESC")
+                if principal is None
+                else await db.execute(
+                    "SELECT c.id FROM campaigns c JOIN campaign_principals p ON p.campaign=c.id "
+                    "WHERE p.principal=%s ORDER BY c.id DESC",
+                    (principal,),
+                )
+            )
             rows = await cursor.fetchall()
             states = [await self._read(db, validation.string(row[0])) for row in rows]
             return [
@@ -323,6 +386,7 @@ class AsyncPostgresStore:
                         "INSERT INTO snapshots (campaign, revision, state) VALUES (%s, %s, %s::jsonb)",
                         (cid, state["revision"], snapshots.encode(state)),
                     )
+                await self._index_principals(db, state)
                 return {"kind": "committed", "state": state, "event": event}
         except ConflictError, NotFoundError:
             raise

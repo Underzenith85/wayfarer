@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from support.runtime import build_runtime
+from support.runtime import build_runtime, seed_campaign
 from test_actions import campaign, world
 from test_actions import engine as prototype_engine
 from test_actions import seed as prototype_seed
@@ -84,7 +84,7 @@ async def setup(tmp_path: Path) -> tuple[str, PlayService, CampaignRuntime]:
     )
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     return initial["id"], play, build_runtime(play, medical_environment=environment)
 
 

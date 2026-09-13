@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.runtime import seed_play
 from test_actions import campaign, world
 from test_statistics import BASIC, LITE, gurps_draft, profile_package
 
@@ -677,7 +678,7 @@ async def setup(
                 )
             }
         )
-    await play.create(initial, test_world, seed, actors)
+    await seed_play(play, initial, test_world, seed, actors)
     if start_encounter:
         await CombatService(play).execute(
             initial["id"],

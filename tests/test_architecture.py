@@ -1079,3 +1079,34 @@ def test_command_registry_is_consistent() -> None:
         "choose_defense",
         "resume_interrupted_turn",
     }
+
+
+def test_genesis_is_written_only_by_commit_genesis() -> None:
+    """#636: creating a campaign is one command, committed in one place."""
+    package = Path(wayfarer.__file__).parent
+    for adapter in ("persistence/async_sqlite.py", "persistence/postgres.py"):
+        tree = ast.parse((package / adapter).read_text())
+        writers = {
+            node.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+            for child in ast.walk(node)
+            if isinstance(child, ast.Constant)
+            and isinstance(child.value, str)
+            and "INSERT INTO stream_genesis" in child.value
+        }
+        assert writers == {"commit_genesis"}, (adapter, sorted(writers))
+    # Nothing above persistence inserts a campaign row of its own. `list.insert`
+    # is a different verb, so only a call on something store-shaped counts.
+    for layer in ("orchestration", "transport"):
+        for source in sorted((package / layer).rglob("*.py")):
+            for node in ast.walk(ast.parse(source.read_text())):
+                if (
+                    isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "insert"
+                    and isinstance(node.func.value, ast.Attribute | ast.Name)
+                ):
+                    owner = node.func.value
+                    name = owner.attr if isinstance(owner, ast.Attribute) else owner.id
+                    assert name != "store", f"{source}:{node.lineno}"

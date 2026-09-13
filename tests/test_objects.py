@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
+from support.runtime import played
 from test_resources import campaign, engine, seed
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -324,7 +325,7 @@ async def test_damage_atomic_retry_restart_and_custody_history(
         ),
         authenticated_actor_id="a",
     )
-    assert len(await store.history(cid)) == 2
+    assert len(await played(store, cid)) == 2
     assert await store.replay(cid) == await store.read(cid)
 
 

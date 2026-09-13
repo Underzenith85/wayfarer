@@ -6,6 +6,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from support.runtime import seed_campaign
 from test_medical_service import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -342,7 +343,7 @@ async def test_exposure_debt_cannot_be_restored_by_ordinary_rest(tmp_path: Path)
     from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
     play.store = AsyncSQLiteStore(other, 10)
-    await play.store.insert(campaign)
+    await seed_campaign(play.store, campaign)
     await medical.execute(
         cid,
         BeginRecovery(
@@ -403,7 +404,7 @@ async def test_disabled_leg_cannot_bypass_lasting_injury_through_jump(tmp_path: 
     )
     campaign["play_json"] = state.model_dump_json()
     play.store = AsyncSQLiteStore(tmp_path / "leg.sqlite", 10)
-    await play.store.insert(campaign)
+    await seed_campaign(play.store, campaign)
     service = PhysicalService(
         play, lambda *_: PhysicalRoute(id="gap", scene_id="dock", kind="jump")
     )

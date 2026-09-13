@@ -5,7 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from support.runtime import build_play
+from support.runtime import build_play, played, seed_campaign
 from test_actions import campaign, engine
 from test_v1_api import api as api
 
@@ -45,7 +45,7 @@ async def test_clock_captured_before_callback_and_retry_keeps_original(tmp_path:
     instants = iter((CommandInstant(10), CommandInstant(20)))
     play = build_play(tmp_path, engine(), instants=lambda: next(instants), filename="time.sqlite")
     initial = campaign(play.engine)
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     calls = []
 
     def reduce(state: Campaign) -> CommandReceipt:
@@ -56,11 +56,11 @@ async def test_clock_captured_before_callback_and_retry_keeps_original(tmp_path:
     await commit_command(play, initial["id"], "clock", 0, "clock", reduce)
     await commit_command(play, initial["id"], "clock", 0, "clock", reduce)
     assert calls == [0]
-    row = (await play.store.history(initial["id"]))[0]
+    row = (await played(play.store, initial["id"]))[0]
     assert row.recorded_at_us == 10
     # An explicit replay instant never consults the clock (the iterator is exhausted).
     await commit_command(play, initial["id"], "next", 1, "next", reduce, instant=CommandInstant(30))
-    assert (await play.store.history(initial["id"]))[-1].recorded_at_us == 30
+    assert (await played(play.store, initial["id"]))[-1].recorded_at_us == 30
 
 
 async def test_ledger_uses_one_captured_or_supplied_instant(tmp_path: Path) -> None:
@@ -128,13 +128,13 @@ async def test_saved_invitation_claim_resumes_after_expiry(
             restarted, "new", cid, "/redeem", redeem, redeem=True
         )
         assert membership["role"] == "player"
-        history = await service.play.store.history(cid)
+        history = await played(service.play.store, cid)
         assert len(history) == 1 and history[0].recorded_at_us == 1_000_000_000
         assert (
             await invitations.invitation(restarted, "new", cid, "/redeem", redeem, redeem=True)
             == membership
         )
-        assert await service.play.store.history(cid) == history
+        assert await played(service.play.store, cid) == history
         with pytest.raises(Fault):
             await invitations.invitation(
                 restarted,

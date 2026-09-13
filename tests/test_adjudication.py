@@ -10,6 +10,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError as SchemaError
+from support.runtime import played, seed_play
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, seed, world
 
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
@@ -94,7 +95,7 @@ async def setup(
     dice = Dice()
     play = PlayService(store, reducer, rng=dice)
     initial = campaign(reducer)
-    await play.create(initial, world(), resource_seed(), (actor_setup(),))
+    await seed_play(play, initial, world(), resource_seed(), (actor_setup(),))
     return initial["id"], play, AdjudicationService(play), dice
 
 
@@ -161,7 +162,7 @@ async def test_request_approval_execution_are_atomic_durable_and_auditable(
     )
     assert all(r == pending[0] for r in pending)
     assert isinstance(pending[0], Ruling) and pending[0].status == "pending"
-    assert dice.calls == 0 and len(await play.store.history(cid)) == 1
+    assert dice.calls == 0 and len(await played(play.store, cid)) == 1
     approved = await service.submit(cid, decision(), authenticated_actor_id="gm")
     assert isinstance(approved, Ruling) and approved.status == "approved"
     assert approved.approver_id == "gm" and approved.decided_revision == 2
@@ -191,7 +192,7 @@ async def test_request_approval_execution_are_atomic_durable_and_auditable(
     assert await resumed.submit(cid, request(), authenticated_actor_id="a") == pending[0]
     assert await resumed.submit(cid, decision(), authenticated_actor_id="gm") == approved
     assert await resumed.submit(cid, execution(), authenticated_actor_id="a") == result
-    history = await play.store.history(cid)
+    history = await played(play.store, cid)
     assert len(history) == 12
     assert [h.actor_id for h in history[:3]] == ["a", "gm", "a"]
     assert json.loads(history[2].event["outcome"])["check"] is not None
@@ -336,7 +337,7 @@ async def test_changed_retries_competing_decisions_and_unapproved_execution(tmp_
     )
     assert sum(isinstance(r, Ruling) for r in responses) == 1
     assert sum(isinstance(r, ConflictError) for r in responses) == 1
-    assert len(await play.store.history(cid)) == 2 and dice.calls == 0
+    assert len(await played(play.store, cid)) == 2 and dice.calls == 0
 
 
 async def test_player_approval_can_execute_but_other_actors_cannot(tmp_path: Path) -> None:

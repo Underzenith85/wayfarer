@@ -9,6 +9,7 @@ scripted provider passes one in here; nothing in ``tests/`` patches a module.
 from __future__ import annotations
 
 import itertools
+import json
 import os
 import secrets
 from collections.abc import Callable
@@ -16,8 +17,13 @@ from pathlib import Path
 
 import pytest
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActorSetup, PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.world import World
 from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.entropy import SeedSource
 from wayfarer.orchestration.jobs import ProviderJobs
@@ -28,6 +34,7 @@ from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.runtime import CampaignRuntime, CampaignStores
 from wayfarer.orchestration.sessions import EngineFactory, SessionRegistry, Store
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.events import CommandRecord
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
 InstantSource = Callable[[], CommandInstant]
@@ -114,3 +121,42 @@ def build_orchestrator(
 ) -> Orchestrator:
     """The provider facade over a runtime; step 5 moves it into the constructor."""
     return Orchestrator(runtime, provider, timeout=timeout, attempts=attempts)
+
+
+async def seed_play(
+    play: PlayService,
+    campaign: Campaign,
+    world: World,
+    resources: ResourceState,
+    actors: tuple[ActorSetup, ...],
+    members: tuple[CampaignMember, ...] | None = None,
+) -> PlayState:
+    """Seed a campaign the way a trusted activation does: genesis as a command.
+
+    `PlayService.create` used to insert a row; #636 made creation the first entry
+    in the stream, so a fixture goes through the runtime that owns that write.
+    """
+    return await build_runtime(play).seed(campaign, world, resources, actors, members)
+
+
+async def seed_campaign(store: Store, campaign: Campaign) -> Campaign:
+    """Commit a hand-built campaign envelope as its own genesis.
+
+    For fixtures that construct the envelope themselves and never load a play
+    checkpoint from it.
+    """
+    result = await store.commit_genesis(
+        campaign,
+        command_id="setup:seed",
+        text=json.dumps({"operation": "seed", "campaign": campaign["id"]}, sort_keys=True),
+    )
+    return result["state"]
+
+
+async def played(store: Store, cid: str) -> list[CommandRecord]:
+    """The commands a campaign played, after the genesis receipt that created it.
+
+    Creation is the stream's first command since #636, so a test counting what a
+    scenario committed asks for this rather than the whole log.
+    """
+    return (await store.history(cid))[1:]

@@ -4,6 +4,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from support.runtime import seed_campaign
 from test_encounter_context import load, setup
 
 from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
@@ -210,7 +211,7 @@ async def test_two_fights_overlap_at_the_minimum_subgroup_frontier(
     from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
     store = AsyncSQLiteStore(tmp_path / "parallel-fights.sqlite", 10)
-    await store.insert(campaign)
+    await seed_campaign(store, campaign)
     play = PlayService(store, play.engine, rng=play.rng)
     combat = CombatService(play)
 

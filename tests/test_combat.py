@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError as SchemaError
+from support.runtime import played, seed_play
 from test_actions import actor_setup, campaign, engine, world
 
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
@@ -102,7 +103,7 @@ async def setup(
     initial = campaign(reducer)
     actor_a = actor_setup()
     actor_b = actor_a.model_copy(update={"actor_id": "b"})
-    await play.create(initial, world(), resources(a_ready=a_ready), (actor_a, actor_b))
+    await seed_play(play, initial, world(), resources(a_ready=a_ready), (actor_a, actor_b))
     return initial["id"], play, CombatService(play)
 
 
@@ -137,7 +138,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
         "attack",
         "wait",
     )
-    assert len(await play.store.history(cid)) == 1
+    assert len(await played(play.store, cid)) == 1
     with pytest.raises(ConflictError, match="out of turn"):
         await service.execute(
             cid,
@@ -204,7 +205,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
     combatant = next(p for p in encounter.participants if p.actor_id == "a")
     assert combatant.position == GridPoint(x=1, y=0) and combatant.facing == "south"
     assert await play.store.read(cid) == await play.store.replay(cid)
-    assert len(await play.store.history(cid)) == 4
+    assert len(await played(play.store, cid)) == 4
 
 
 async def test_action_economy_posture_terrain_reach_and_parameter_validation(
@@ -311,7 +312,7 @@ async def test_combat_blocks_ordinary_actions_and_lifecycle_requires_gm(tmp_path
         authenticated_actor_id="a",
     )
     assert ordinary.code == "combat.command_required"
-    assert len(await play.store.history(cid)) == 1
+    assert len(await played(play.store, cid)) == 1
     with pytest.raises(ValidationError, match="GM authority"):
         await service.execute(
             cid,

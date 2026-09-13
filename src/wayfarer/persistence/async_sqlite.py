@@ -31,6 +31,7 @@ from wayfarer.persistence.events import (
     fold,
     payload_digest,
 )
+from wayfarer.persistence.membership import principals
 from wayfarer.persistence.upcasters import EVENT_UPCASTERS, read_event
 
 SNAPSHOT_INTERVAL = 10
@@ -99,6 +100,9 @@ class AsyncSQLiteStore:
         await db.execute(
             "CREATE TABLE IF NOT EXISTS checkpoint_digests (campaign TEXT NOT NULL, revision BIGINT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(campaign, revision))"
         )
+        await db.execute(
+            "CREATE TABLE IF NOT EXISTS campaign_principals (campaign TEXT NOT NULL, principal TEXT NOT NULL, PRIMARY KEY(campaign, principal))"
+        )
         await db.commit()
         return db
 
@@ -111,9 +115,33 @@ class AsyncSQLiteStore:
             raise NotFoundError("Campaign not found")
         return contracts.campaign(validation.decode(row[0]))
 
-    async def insert(self, state: Campaign) -> None:
+    @staticmethod
+    async def _index_principals(db: aiosqlite.Connection, state: Campaign) -> None:
+        for principal in sorted(principals(state)):
+            await db.execute(
+                "INSERT INTO campaign_principals (campaign, principal) VALUES (?, ?) ON CONFLICT(campaign, principal) DO NOTHING",
+                (state["id"], principal),
+            )
+
+    async def commit_genesis(
+        self,
+        state: Campaign,
+        *,
+        command_id: str,
+        actor_id: str = "system",
+        text: str,
+        recorded_at_us: int | None = None,
+        origin: CommandOrigin | None = None,
+    ) -> TurnResult:
+        """Create a campaign as its stream's first command, in one transaction."""
         db = await self._connect()
         try:
+            await db.execute("BEGIN IMMEDIATE")
+            duplicate = await self._duplicate(db, state["id"], command_id, text)
+            if duplicate is not None:
+                await db.rollback()
+                return {"kind": "replayed", "state": duplicate}
+            event = CommandReceipt(action="setup", outcome="draft")
             await db.execute(
                 "INSERT INTO campaigns VALUES (?, ?)", (state["id"], json.dumps(state))
             )
@@ -130,7 +158,36 @@ class AsyncSQLiteStore:
                 "INSERT INTO stream_genesis (campaign, revision, state) VALUES (?, ?, ?)",
                 (state["id"], state["revision"], json.dumps(state)),
             )
+            await db.execute(
+                """INSERT INTO command_log (
+                    campaign, command_id, actor_id, expected_revision,
+                    resulting_revision, payload_hash, rules_version,
+                    schema_version, event, entropy_seed, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    state["id"],
+                    command_id,
+                    actor_id,
+                    state["revision"],
+                    state["revision"],
+                    payload_digest({"input": text}),
+                    state["rules"],
+                    COMMAND_SCHEMA_VERSION,
+                    json.dumps(event),
+                    None,
+                    None,
+                    recorded_at_us,
+                    origin.model_dump_json() if origin else None,
+                    text,
+                    command_scenario(state),
+                ),
+            )
+            await self._index_principals(db, state)
             await db.commit()
+            return {"kind": "committed", "state": state, "event": event}
+        except ConflictError, NotFoundError:
+            await db.rollback()
+            raise
         except aiosqlite.Error as exc:
             await db.rollback()
             raise StorageError("Unable to save campaign") from exc
@@ -194,10 +251,18 @@ class AsyncSQLiteStore:
         finally:
             await db.close()
 
-    async def listing(self) -> list[dict[str, str]]:
+    async def listing(self, principal: str | None = None) -> list[dict[str, str]]:
         db = await self._connect()
         try:
-            cursor = await db.execute("SELECT id FROM campaigns ORDER BY rowid DESC")
+            cursor = (
+                await db.execute("SELECT id FROM campaigns ORDER BY rowid DESC")
+                if principal is None
+                else await db.execute(
+                    "SELECT c.id FROM campaigns c JOIN campaign_principals p ON p.campaign=c.id "
+                    "WHERE p.principal=? ORDER BY c.rowid DESC",
+                    (principal,),
+                )
+            )
             rows = await cursor.fetchall()
             await cursor.close()
             states = [await self._read(db, validation.string(row[0])) for row in rows]
@@ -306,6 +371,7 @@ class AsyncSQLiteStore:
                     "INSERT INTO snapshots VALUES (?, ?, ?)",
                     (cid, state["revision"], snapshots.encode(state)),
                 )
+            await self._index_principals(db, state)
             await db.commit()
             return {"kind": "committed", "state": state, "event": event}
         except ConflictError, NotFoundError:

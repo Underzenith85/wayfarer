@@ -352,20 +352,6 @@ class PlayService:
         self.engine.validate(state)
         return state
 
-    async def create(
-        self,
-        campaign: Campaign,
-        world: World,
-        resources: ResourceState,
-        actors: tuple[ActorSetup, ...],
-        members: tuple[CampaignMember, ...] | None = None,
-    ) -> PlayState:
-        state = self.initial_state(campaign, world, resources, actors, members)
-        stored = campaign.copy()
-        stored["play_json"] = state.model_dump_json()
-        await self.store.insert(stored)
-        return state
-
     def _load(self, campaign: Campaign) -> PlayState:
 
         if campaign.get("rules_ref") != reference(self.engine.resources.rules):

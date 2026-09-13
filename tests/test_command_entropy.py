@@ -8,7 +8,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from support.runtime import build_play, build_runtime
+from support.runtime import build_play, build_runtime, played, seed_campaign, seed_play
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 from test_tactical import setup as hex_setup
 from test_wave14 import Table
@@ -74,8 +74,8 @@ async def test_independent_campaigns_have_independent_streams(tmp_path: Path) ->
     initial = campaign(engine())
     other = initial.copy()
     other["id"] = initial["id"] + "-other"
-    await store.insert(initial)
-    await store.insert(other)
+    await seed_campaign(store, initial)
+    await seed_campaign(store, other)
 
     def reduce(state: Campaign) -> CommandReceipt:
         # Separate handles, as with a reducer and its checkpoint hook, share one stream.
@@ -89,7 +89,7 @@ async def test_independent_campaigns_have_independent_streams(tmp_path: Path) ->
             for cid in (initial["id"], other["id"])
         )
     )
-    first, second = [(await store.history(cid))[0] for cid in (initial["id"], other["id"])]
+    first, second = [(await played(store, cid))[0] for cid in (initial["id"], other["id"])]
     assert first.entropy_seed != second.entropy_seed
     for record in (first, second):
         assert record.reexecutable and record.entropy_seed
@@ -113,14 +113,14 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     play = PlayService(store, reducer)
     initial = campaign(reducer)
     cid = initial["id"]
-    await play.create(initial, world(), resource_seed(), (actor_setup(),))
+    await seed_play(play, initial, world(), resource_seed(), (actor_setup(),))
     before = play._load(await store.read(cid))
     command = Inspect(id="seeded-inspect", actor_id="a", expected_revision=0, target_id="chest")
     results = await asyncio.gather(
         *(play.execute(cid, command, authenticated_actor_id="a") for _ in range(6))
     )
     assert all(result == results[0] for result in results)
-    history = await store.history(cid)
+    history = await played(store, cid)
     assert len(history) == 1
     record = history[0]
     assert record.entropy_seed and len(record.entropy_seed) == 64
@@ -135,7 +135,7 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     assert state == play._load(record.state_after)
     restarted = PlayService(store, reducer)
     assert await restarted.execute(cid, command, authenticated_actor_id="a") == result
-    assert await store.history(cid) == history
+    assert await played(store, cid) == history
     with pytest.raises(ConflictError):
         await restarted.execute(
             cid, command.model_copy(update={"target_id": "hidden"}), authenticated_actor_id="a"
@@ -152,7 +152,7 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
         return_exceptions=True,
     )
     assert sum(isinstance(r, ConflictError) for r in races) == 1
-    assert len(await store.history(cid)) == 2
+    assert len(await played(store, cid)) == 2
     assert record.entropy_seed not in json.dumps(record.state_after)
     assert record.entropy_seed not in json.dumps(record.event)
     assert record.entropy_seed not in repr(record)
@@ -178,7 +178,7 @@ async def test_reference_adventure_seed_replays_checkpoint_and_is_private(tmp_pa
         )
         result = await play.execute(table.cid, command, authenticated_actor_id="a")
         assert result.check is not None
-        record = (await play.store.history(table.cid))[-1]
+        record = (await played(play.store, table.cid))[-1]
         assert record.reexecutable and record.entropy_seed
         replay = PlayService(play.store, play.engine, rng=SeededRandom(record.entropy_seed))
         state, resolved_events = replay.engine.resolve(before, command, rng=replay.rng)
@@ -209,7 +209,7 @@ async def test_hex_combat_reexecutes_from_seed(tmp_path: Path) -> None:
         target_id="b",
     )
     result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
-    record = (await play.store.history(cid))[-1]
+    record = (await played(play.store, cid))[-1]
     assert record.reexecutable and record.entropy_seed
     replay = PlayService(play.store, play.engine, rng=SeededRandom(record.entropy_seed))
     state, replayed = reduce_combat(before, command, CombatContext(replay, before))
@@ -229,7 +229,7 @@ async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
     play = build_play(tmp_path, engine(), filename="scope.sqlite")
     store = play.store
     initial = campaign(engine())
-    await store.insert(initial)
+    await seed_campaign(store, initial)
     handle = CommandRandom()
 
     def fail(state: Campaign) -> CommandReceipt:
@@ -238,7 +238,7 @@ async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
 
     with pytest.raises(ValidationError, match="injected failure"):
         await commit_command(play, initial["id"], "failed", 0, "failed", fail)
-    assert await store.history(initial["id"]) == []
+    assert await played(store, initial["id"]) == []
     with pytest.raises(ValidationError, match="command scope"):
         draw_dice(handle)
 
@@ -250,7 +250,7 @@ async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
     await commit_command(
         play, initial["id"], "succeeded", 0, "succeeded", succeed, rng=RecordedDice((1, 2, 3))
     )
-    record = (await store.history(initial["id"]))[0]
+    record = (await played(store, initial["id"]))[0]
     assert record.actor_id == "system" and not record.reexecutable
     assert record.rng_algorithm == "injected"
     assert CommandEntropy("00" * 32).seed not in repr(CommandEntropy("00" * 32))

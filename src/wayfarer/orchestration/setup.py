@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
 
-from wayfarer import contracts
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.simulation.actions import ActorSetup, PlayState
@@ -22,7 +21,6 @@ from wayfarer.errors import (
     AuthorizationError,
     ConflictError,
     NotFoundError,
-    StorageError,
     ValidationError,
 )
 from wayfarer.orchestration.continuation import prepare
@@ -447,19 +445,11 @@ class SetupService:
                     catalog_id=catalog_id,
                 )
 
-        contracts.campaign(campaign)
-        try:
-            existing = await self.play.store.read(cid)
-        except NotFoundError:
-            try:
-                await self.play.store.insert(campaign)
-            except StorageError:
-                # A simultaneous retry may have inserted the same identity.
-                existing = await self.play.store.read(cid)
-            else:
-                existing = campaign
-        if self.load(existing).creation_json != payload:
-            raise ConflictError("Creation identity already used for different input")
+        # The genesis receipt is the creation identity: the same command id with
+        # different bytes conflicts inside the store, before anything is written.
+        existing = await self.access.create(
+            campaign, command_id="setup:create", text=payload, principal_id=principal_id
+        )
         if catalog_id is not None:
             pin = boundary(existing)
             if pin is not None and pin.reference.catalog_id != catalog_id:
@@ -467,8 +457,9 @@ class SetupService:
         return await self.read(cid, principal_id=principal_id)
 
     async def listing(self, *, principal_id: str) -> list[dict[str, object]]:
+        """One query for this principal's campaigns, then their lobby projections."""
         result = []
-        for item in await self.play.store.listing():
+        for item in await self.play.store.listing(principal_id):
             campaign = await self.play.store.read(item["id"])
             if "setup_json" in campaign and any(
                 s.principal_id == principal_id for s in self.load(campaign).seats

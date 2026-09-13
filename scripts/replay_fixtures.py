@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
+from support.runtime import seed_campaign
 
 from wayfarer import contracts, validation
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -139,13 +140,16 @@ class FixtureExecutor:
     ) -> tuple[Campaign, list[EngineEvent]]:
         self.count += 1
         store = AsyncSQLiteStore(self.directory / f"command-{self.count}.sqlite")
-        await store.insert(before)
+        await seed_campaign(store, before)
         play = PlayService(
             store, self.engine, instants=self.instants, seeds=self.seeds
         ).for_campaign(before)
         await execute_recorded(play, command)
         history = await store.history(before["id"])
-        if len(history) != 1:
+        # The seeded store opens with its own genesis receipt (#636); the replayed
+        # command is the only one that advances past the checkpoint it starts from.
+        replayed = [r for r in history if r.resulting_revision > before["revision"]]
+        if len(replayed) != 1:
             raise ValueError("Re-execution must commit exactly one command")
         return await store.read(before["id"]), [
             e.event for e in await store.stream(before["id"], after=before["revision"])
@@ -256,7 +260,7 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
         state = condition(play._load(genesis), "b", "collapsed")
         genesis["play_json"] = state.model_dump_json()
         store = AsyncSQLiteStore(directory / "fatigue-genesis.sqlite")
-        await store.insert(genesis)
+        await seed_campaign(store, genesis)
         play = PlayService(store, play.engine)
     elif name == "spell":
         from test_spell_bindings import setup as spell_setup

@@ -26,6 +26,7 @@ async def test_setup_receipts_pin_genesis_and_reject_changed_cache(tmp_path: Pat
     assert pin.revision == 0 and pin.campaign_revision == 4 and pin.segment == 0
     records = await setup.play.store.history(cid)
     assert [r.command_id for r in records] == [
+        "setup:create",
         "setup:edit",
         "setup:assign",
         "setup:ready",

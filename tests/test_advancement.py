@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from support.runtime import seed_play
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 
 from wayfarer.engine.character.compiler import Purchase
@@ -23,7 +24,7 @@ async def setup(tmp_path: Path) -> tuple[str, PlayService, AdvancementService]:
     reducer = engine()
     play = PlayService(AsyncSQLiteStore(tmp_path / "advancement.sqlite", 10), reducer)
     initial = campaign(reducer)
-    await play.create(initial, world(), resource_seed(), (actor_setup(),))
+    await seed_play(play, initial, world(), resource_seed(), (actor_setup(),))
     return initial["id"], play, AdvancementService(play)
 
 

@@ -176,7 +176,9 @@ class Table:
         for checkpoint, _ in folded:
             verify(checkpoint)
         history = await store.history(self.cid)
-        assert [document(s) for s, _ in folded[1:]] == [document(e.state_after) for e in history]
+        assert [document(s) for s, _ in folded[1:]] == [
+            document(e.state_after) for e in history[1:]
+        ]
 
 
 @pytest.mark.parametrize(

@@ -12,7 +12,7 @@ import aiohttp
 import pytest
 import pytest_asyncio
 from aiohttp import web
-from support.runtime import build_orchestrator, build_runtime, job_worker
+from support.runtime import build_orchestrator, build_runtime, job_worker, seed_play
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -44,7 +44,8 @@ async def api(tmp_path: Path) -> AsyncIterator[tuple[str, str, V1Service]]:
     resources = resources.model_copy(
         update={"owners": resources.owners + (Owner(actor_id="b", capacity=100),)}
     )
-    await play.create(
+    await seed_play(
+        play,
         initial,
         w,
         resources,
@@ -728,7 +729,8 @@ async def test_capabilities_name_only_the_actions_the_engine_executes(
     bare = ActionEngine(reducer.reviewer, reducer.resources, ActionRules(id="actions", version=1))
     play = PlayService(AsyncSQLiteStore(tmp_path / "bare.sqlite"), bare, rng=Dice())
     initial = campaign(bare)
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world(),
         resource_seed(),

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TypedDict
 
 import pytest
-from support.runtime import build_runtime
+from support.runtime import build_runtime, seed_play
 from test_actions import Dice, actor_setup, campaign, resource_seed
 from test_scenes import configured
 
@@ -204,7 +204,8 @@ async def prepare(
             update={"items": tuple(i for i in seed.items if i.owner_id != "guard")}
         )
     initial = campaign(engine)
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world,
         seed,
@@ -607,7 +608,7 @@ async def test_capture_failure_rolls_back_custody_and_revision(tmp_path: Path) -
     with pytest.raises(ValidationError):
         await setback(cid, play, "capture")
     assert await read(cid, play) == before
-    assert await play.store.history(cid) == []
+    assert [r.command_id for r in await play.store.history(cid)] == ["setup:seed"]
 
 
 async def test_incapacitation_does_not_release_captive_or_allow_escape(tmp_path: Path) -> None:

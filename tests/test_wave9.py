@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
-from support.runtime import build_orchestrator, build_play, build_runtime
+from support.runtime import build_orchestrator, build_play, build_runtime, seed_play
 from test_actions import Dice, actor_setup, campaign, resource_seed
 from test_combat import combat_engine, resources, start
 from test_gurps_melee import setup as melee_setup
@@ -106,7 +106,8 @@ async def prepare(
         }
     )
     initial = campaign(engine)
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world,
         seed,
@@ -296,7 +297,8 @@ async def test_combat_damage_retry_armor_incapacitation_and_replay(tmp_path: Pat
     initial = campaign(engine)
     from test_actions import world
 
-    await play.create(
+    await seed_play(
+        play,
         initial,
         world(),
         resources(),
@@ -600,7 +602,8 @@ async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_p
     seed = ResourceState(
         items=resources().items, owners=resources().owners + (Owner(actor_id="c", capacity=100),)
     )
-    await play.create(
+    await seed_play(
+        play,
         initial,
         expanded,
         seed,
@@ -1139,7 +1142,8 @@ async def test_partial_success_abandonment_predicates_and_reward_rollback(tmp_pa
     )
     failing = PlayService(AsyncSQLiteStore(tmp_path / "rollback.sqlite", 10), engine, rng=Dice())
     seed = campaign(engine)
-    await failing.create(
+    await seed_play(
+        failing,
         seed,
         expanded,
         resources(),

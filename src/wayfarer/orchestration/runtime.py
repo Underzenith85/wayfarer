@@ -12,12 +12,15 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, replace
 
-from wayfarer.engine.simulation.actions import ActionRules, PlayState
+from wayfarer import contracts
+from wayfarer.contracts import Campaign
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
 from wayfarer.engine.simulation.combat.engine import hex_template
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.fright_state import projection as fright_projection
-from wayfarer.engine.simulation.resources import wire_weight
+from wayfarer.engine.simulation.resources import ResourceState, wire_weight
+from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.commands import Submission, family_for
 from wayfarer.orchestration.jobs import ProviderJobs
@@ -102,6 +105,49 @@ class CampaignRuntime:
 
     async def history(self, cid: str) -> list[CommandRecord]:
         return await self.play.store.history(cid)
+
+    async def create(
+        self, campaign: Campaign, *, command_id: str, text: str, principal_id: str = "system"
+    ) -> Campaign:
+        """Commit a campaign envelope as its stream's first command, once per identity.
+
+        The campaign lock makes a simultaneous retry wait rather than race the
+        insert, and the genesis receipt makes the retry answerable from the log.
+        """
+        cid = campaign["id"]
+        contracts.campaign(campaign)
+        async with self.play.sessions.serialized(cid):
+            result = await self.play.store.commit_genesis(
+                campaign,
+                command_id=command_id,
+                actor_id=principal_id,
+                text=text,
+                recorded_at_us=self.play.instants().unix_microseconds,
+            )
+            if result["kind"] == "replayed":
+                return await self.play.store.read(cid)
+            return result["state"]
+
+    async def seed(
+        self,
+        campaign: Campaign,
+        world: World,
+        resources: ResourceState,
+        actors: tuple[ActorSetup, ...],
+        members: tuple[CampaignMember, ...] | None = None,
+        *,
+        command_id: str = "setup:seed",
+    ) -> PlayState:
+        """Trusted activation: build the starting checkpoint and commit it as genesis."""
+        state = self.play.initial_state(campaign, world, resources, actors, members)
+        stored = campaign.copy()
+        self.play.commit(stored, state)
+        await self.create(
+            stored,
+            command_id=command_id,
+            text=json.dumps({"operation": "seed", "campaign": campaign["id"]}, sort_keys=True),
+        )
+        return state
 
     @staticmethod
     def view(

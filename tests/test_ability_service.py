@@ -5,7 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from support.runtime import build_runtime
+from support.runtime import build_runtime, seed_campaign
 from test_abilities import command, context, resources, spec, world
 from test_actions import campaign
 from test_statistics import gurps_draft, profile_compiler, profile_package
@@ -132,7 +132,7 @@ async def setup(
         }
     )
     initial["play_json"] = initial_state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     return initial["id"], play
 
 

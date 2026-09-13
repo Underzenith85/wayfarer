@@ -4,7 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from support.runtime import build_runtime
+from support.runtime import build_runtime, seed_campaign
 from test_actions import Dice, actor_setup, campaign
 from test_combat import combat_engine, resources, start
 from test_scenes import configured
@@ -124,7 +124,7 @@ async def setup(
         state = state.model_copy(update={"encounters": (encounter,)})
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
-    await play.store.insert(initial)
+    await seed_campaign(play.store, initial)
     return initial["id"], play
 
 

@@ -4,6 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import seed_play
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
@@ -98,7 +99,7 @@ async def setup(tmp_path: Path) -> tuple[str, PlayService, SceneService]:
     reducer, expanded = configured()
     play = PlayService(AsyncSQLiteStore(tmp_path / "scenes.sqlite", 10), reducer, rng=Dice())
     initial = campaign(reducer)
-    await play.create(initial, expanded, resource_seed(), (actor_setup(),))
+    await seed_play(play, initial, expanded, resource_seed(), (actor_setup(),))
     return initial["id"], play, SceneService(play)
 
 
