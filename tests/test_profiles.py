@@ -26,6 +26,7 @@ from wayfarer.engine.rules.catalog import (
     reference,
 )
 from wayfarer.engine.rules.profiles import (
+    BASIC_SET_OPTIONAL_RULE_SELECTIONS,
     DEFAULT_REGISTRY,
     GURPS_BASIC_EQUIPMENT_DEFINITIONS,
     GURPS_BASIC_PROFILE,
@@ -114,6 +115,7 @@ EXTENDED_PROFILE = RegisteredProfile(
     ),
     policy=EXTENDED_POLICY,
     packages=(PROTOTYPE_PACKAGE, EXTRA_PACKAGE),
+    named_optional_rules=BASIC_SET_OPTIONAL_RULE_SELECTIONS,
 )
 REGISTRY = ProfileRegistry((PROTOTYPE_PROFILE, EXTENDED_PROFILE, GURPS_LITE_PROFILE))
 EXTENDED = ProfileSelection(id=EXTENDED_PROFILE.id, version=1)
@@ -244,6 +246,7 @@ def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verif
         "profile:gurps-lite-4e-2004",
         "profile:gurps-basic-set-4e-2004",
         "profile:gurps-lite-4e-2004",
+        "profile:gurps-basic-set-4e-2004",
         "profile:gurps-basic-set-4e-2004",
         "profile:gurps-basic-set-4e-2004",
     ]
@@ -694,6 +697,10 @@ async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> N
         assert listed[("profile:test-extended", 1)]["packages"][1]["dependencies"] == [
             "package:wayfarer-lite"
         ]
+        assert len(listed[("profile:test-extended", 1)]["named_optional_rules"]) == 11
+        assert not any(
+            rule["enabled"] for rule in listed[("profile:test-extended", 1)]["named_optional_rules"]
+        )
         lite = listed[("profile:gurps-lite-4e-2004", 3)]
         assert lite["supported"] is False and lite["conformance_profile_id"] == "gurps-lite-4e-2004"
         assert lite["unverified_capabilities"] == list(GURPS_LITE_PROFILE.unverified_capabilities)

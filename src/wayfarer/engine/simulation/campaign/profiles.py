@@ -25,6 +25,13 @@ class PackageView(Record):
     source_ids: tuple[Id, ...] = ()
 
 
+class OptionalRuleSelectionView(Record):
+    id: Id
+    enabled: bool
+    source_ref: str = Field(pattern=r"^B\d+$")
+    available: bool
+
+
 class ProfileView(Record):
     id: Id
     version: int = Field(ge=1)
@@ -39,6 +46,7 @@ class ProfileView(Record):
     required_capabilities: tuple[str, ...] = ()
     unverified_capabilities: tuple[str, ...] = ()
     optional_rules: tuple[str, ...] = ()
+    named_optional_rules: tuple[OptionalRuleSelectionView, ...] = ()
 
 
 IncompatibilityKind = Literal["character", "resource", "scenario"]

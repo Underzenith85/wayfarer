@@ -49,6 +49,45 @@ OPTIONAL_RULES: Final = frozenset(
     }
 )
 
+
+@dataclass(frozen=True, slots=True)
+class OptionalRuleDefinition:
+    """Stable identity and execution boundary for one named optional rule."""
+
+    id: str
+    source_ref: str
+    available: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class OptionalRuleSelection:
+    """One explicit enabled/disabled decision in an immutable profile."""
+
+    id: str
+    enabled: bool
+
+
+BASIC_SET_OPTIONAL_RULE_DEFINITIONS: Final = (
+    OptionalRuleDefinition("gurps.optional.limited-enhancements", "B111"),
+    OptionalRuleDefinition("gurps.optional.wildcard-skills", "B175"),
+    OptionalRuleDefinition("gurps.optional.modifying-dice-adds", "B269"),
+    OptionalRuleDefinition("gurps.optional.malfunction", "B279"),
+    OptionalRuleDefinition("gurps.optional.maintaining-skills", "B294"),
+    OptionalRuleDefinition("gurps.optional.influencing-success-rolls", "B347"),
+    OptionalRuleDefinition("gurps.optional.detailed-jumping", "B352"),
+    OptionalRuleDefinition("gurps.optional.posture-in-armor", "B395"),
+    OptionalRuleDefinition("gurps.optional.injury.bleeding", "B420"),
+    OptionalRuleDefinition("gurps.optional.injury.accumulated-wounds", "B420"),
+    OptionalRuleDefinition("gurps.optional.injury.last-wounds", "B420"),
+)
+BASIC_SET_OPTIONAL_RULES: Final = MappingProxyType(
+    {definition.id: definition for definition in BASIC_SET_OPTIONAL_RULE_DEFINITIONS}
+)
+BASIC_SET_OPTIONAL_RULE_SELECTIONS: Final = tuple(
+    OptionalRuleSelection(definition.id, False)
+    for definition in BASIC_SET_OPTIONAL_RULE_DEFINITIONS
+)
+
 GURPS_BASIC_EQUIPMENT_DEFINITIONS: Final = tuple(
     RuleDefinition(
         id=identifier,
@@ -107,6 +146,7 @@ class RegisteredProfile:
     conformance_profile_id: str | None = None
     required_capabilities: frozenset[str] = frozenset()
     optional_rules: tuple[str, ...] = ()
+    named_optional_rules: tuple[OptionalRuleSelection, ...] = ()
 
     @property
     def catalog(self) -> RulesCatalog:
@@ -126,7 +166,31 @@ class RegisteredProfile:
 
     @property
     def supported(self) -> bool:
-        return not self.unverified_capabilities
+        return not self.unverified_capabilities and not self.unavailable_optional_rules
+
+    @property
+    def unavailable_optional_rules(self) -> tuple[str, ...]:
+        return tuple(
+            selection.id
+            for selection in self.named_optional_rules
+            if selection.enabled and not BASIC_SET_OPTIONAL_RULES[selection.id].available
+        )
+
+    def require_optional_rule(self, identifier: str) -> None:
+        """Fail closed unless this exact profile enables an executable rule."""
+        definition = BASIC_SET_OPTIONAL_RULES.get(identifier)
+        if definition is None:
+            raise ValidationError(f"Unknown named optional rule: {identifier}")
+        selection = next(
+            (selection for selection in self.named_optional_rules if selection.id == identifier),
+            None,
+        )
+        if selection is None:
+            raise ValidationError(f"Optional rule is not explicitly selected: {identifier}")
+        if not selection.enabled:
+            raise ValidationError(f"Optional rule is disabled: {identifier}")
+        if not definition.available:
+            raise ValidationError(f"Optional rule is not implemented: {identifier}")
 
     @property
     def digest(self) -> str:
@@ -142,6 +206,7 @@ class RegisteredProfile:
             "conformance_profile_id": self.conformance_profile_id,
             "required_capabilities": sorted(self.required_capabilities),
             "optional_rules": list(self.optional_rules),
+            "named_optional_rules": [asdict(selection) for selection in self.named_optional_rules],
         }
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(encoded.encode()).hexdigest()
@@ -155,6 +220,14 @@ def _validate(profile: RegisteredProfile) -> None:
         or not set(profile.optional_rules) <= OPTIONAL_RULES
     ):
         raise ValidationError(f"Invalid optional rules for profile: {profile.id}")
+    named_ids = tuple(selection.id for selection in profile.named_optional_rules)
+    if len(named_ids) != len(set(named_ids)) or not set(named_ids) <= set(BASIC_SET_OPTIONAL_RULES):
+        raise ValidationError(f"Invalid named optional rules for profile: {profile.id}")
+    if profile.id == "profile:gurps-basic-set-4e-2004" and profile.version >= 9:
+        if named_ids != tuple(BASIC_SET_OPTIONAL_RULES):
+            raise ValidationError(
+                f"Basic Set profile lacks exact optional-rule dispositions: {profile.id}"
+            )
     rules, policy = profile.rules, profile.policy
     if (rules.policy_id, rules.policy_version) != (policy.id, policy.version):
         raise ValidationError(f"Profile policy pin does not resolve: {profile.id}")
@@ -224,10 +297,15 @@ class ProfileRegistry:
     def require_supported(self, profile_id: str, version: int) -> RegisteredProfile:
         profile = self.get(profile_id, version)
         unverified = profile.unverified_capabilities
-        if unverified:
+        unavailable = profile.unavailable_optional_rules
+        if unverified or unavailable:
+            details = []
+            if unverified:
+                details.append(f"unverified capabilities: {', '.join(unverified)}")
+            if unavailable:
+                details.append(f"unavailable optional rules: {', '.join(unavailable)}")
             raise ValidationError(
-                f"Rules profile is not supported: {profile_id}@{version} "
-                f"(unverified capabilities: {', '.join(unverified)})"
+                f"Rules profile is not supported: {profile_id}@{version} ({'; '.join(details)})"
             )
         return profile
 
@@ -483,6 +561,15 @@ GURPS_SOCIAL_SKILLS_PROFILE: Final = replace(
     ),
 )
 
+# #493 records every selected-source named optional rule without silently
+# enabling any of them. This is profile metadata only, so package pins and the
+# prerelease engine version remain unchanged.
+GURPS_OPTIONAL_RULES_PROFILE: Final = replace(
+    GURPS_SOCIAL_SKILLS_PROFILE,
+    version=9,
+    named_optional_rules=BASIC_SET_OPTIONAL_RULE_SELECTIONS,
+)
+
 # Keep the new pin opt-in while the overall Basic Set profile still has unrelated
 # unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
@@ -493,11 +580,12 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_LITE_PROFILE,
         GURPS_BASIC_PROFILE,
         GURPS_MAGIC_PROFILE,
+        GURPS_OPTIONAL_RULES_PROFILE,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(
     {
         GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
-        GURPS_SOCIAL_SKILLS_PROFILE.id: GURPS_SOCIAL_SKILLS_PROFILE,
+        GURPS_OPTIONAL_RULES_PROFILE.id: GURPS_OPTIONAL_RULES_PROFILE,
     }
 )

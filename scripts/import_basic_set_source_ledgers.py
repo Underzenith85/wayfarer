@@ -84,9 +84,14 @@ def clean_title(value: object) -> str:
     return str(value).rstrip("\0\r").strip()
 
 
+def is_optional_rule_title(title: str) -> bool:
+    lower = title.lower()
+    return "optional rule" in lower or lower == "optional jumping rules"
+
+
 def section_owner(source: str, page: int, title: str) -> int:
     lower = title.lower()
-    if "optional rule" in lower:
+    if is_optional_rule_title(title):
         return 493
     if source == "characters-third":
         if 32 <= page <= 165:
@@ -155,7 +160,7 @@ def section_owner(source: str, page: int, title: str) -> int:
 
 def section_shape(depth: int, page: int, title: str) -> tuple[str, str, str]:
     lower = title.lower()
-    if "optional rule" in lower:
+    if is_optional_rule_title(title):
         return "optional-rule", "optional-unresolved", "absent"
     if "example" in lower:
         return "example", "reference-only", "not-applicable"

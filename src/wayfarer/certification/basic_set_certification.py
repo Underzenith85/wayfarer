@@ -15,7 +15,11 @@ from wayfarer.certification.source_audit import InventoryItem, inventory
 from wayfarer.certification.source_audit import report as source_audit_report
 from wayfarer.certification.source_ledgers import ledger_rollups, load_source_ledgers
 from wayfarer.engine.rules.conformance import CAPABILITIES, PROFILES, CoverageStatus
-from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, RegisteredProfile
+from wayfarer.engine.rules.profiles import (
+    BASIC_SET_OPTIONAL_RULES,
+    DEFAULT_REGISTRY,
+    RegisteredProfile,
+)
 from wayfarer.errors import ValidationError
 
 PROFILE_ID: Final = "gurps-basic-set-4e-2004"
@@ -144,12 +148,21 @@ def evaluate(root: Path) -> CertificationReport:
                 )
             )
 
-    if selected.optional_rules:
+    named = {selection.id: selection.enabled for selection in selected.named_optional_rules}
+    if selected.optional_rules or set(named) != set(BASIC_SET_OPTIONAL_RULES):
         blockers.append(
             CertificationBlocker(
                 kind="profile",
                 identifier=f"{selected.id}@{selected.version}",
-                detail="Optional rules must be an explicit reviewed profile selection",
+                detail="Named optional rules require an exact reviewed profile disposition",
+            )
+        )
+    elif any(named.values()):
+        blockers.append(
+            CertificationBlocker(
+                kind="profile",
+                identifier=f"{selected.id}@{selected.version}",
+                detail="Enabled named optional rules are not executable in this profile",
             )
         )
     if selected.required_capabilities != target.required_capabilities:
