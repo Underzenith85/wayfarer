@@ -30,5 +30,6 @@ The decision set is part of the profile digest and public profile view. A change
 therefore requires selection of a different immutable profile and follows the
 existing host-authorized migration, receipt, and replay path. Existing profile
 versions retain their historic digest and unspecified legacy state. Version 9
-adds the explicit decisions without changing package pins or the prerelease
-engine version.
+adds the explicit decisions; version 10 retains them while adding the separate
+Infinite Worlds exclusion. Neither changes package pins or the prerelease engine
+version.

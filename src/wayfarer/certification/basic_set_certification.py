@@ -16,6 +16,7 @@ from wayfarer.certification.source_audit import report as source_audit_report
 from wayfarer.certification.source_ledgers import ledger_rollups, load_source_ledgers
 from wayfarer.engine.rules.conformance import CAPABILITIES, PROFILES, CoverageStatus
 from wayfarer.engine.rules.profiles import (
+    BASIC_SET_CONTENT_BOUNDARIES,
     BASIC_SET_OPTIONAL_RULES,
     DEFAULT_REGISTRY,
     RegisteredProfile,
@@ -46,6 +47,7 @@ class CertificationReport:
     source_ledger_rows: int
     required_source_ledger_rows: int
     source_ledger_rollups: dict[str, dict[str, int]]
+    excluded_content: tuple[str, ...]
     blockers: tuple[CertificationBlocker, ...]
 
     @property
@@ -65,6 +67,7 @@ class CertificationReport:
             "source_ledger_rows": self.source_ledger_rows,
             "required_source_ledger_rows": self.required_source_ledger_rows,
             "source_ledger_rollups": self.source_ledger_rollups,
+            "excluded_content": list(self.excluded_content),
             "certified": self.certified,
             "blockers": [asdict(blocker) for blocker in self.blockers],
         }
@@ -165,6 +168,23 @@ def evaluate(root: Path) -> CertificationReport:
                 detail="Enabled named optional rules are not executable in this profile",
             )
         )
+    content = {selection.id: selection.included for selection in selected.content_boundaries}
+    if set(content) != set(BASIC_SET_CONTENT_BOUNDARIES):
+        blockers.append(
+            CertificationBlocker(
+                kind="profile",
+                identifier=f"{selected.id}@{selected.version}",
+                detail="Selected-source content requires an exact reviewed profile boundary",
+            )
+        )
+    elif any(content.values()):
+        blockers.append(
+            CertificationBlocker(
+                kind="profile",
+                identifier=f"{selected.id}@{selected.version}",
+                detail="Included selected-source content is not executable in this profile",
+            )
+        )
     if selected.required_capabilities != target.required_capabilities:
         blockers.append(
             CertificationBlocker(
@@ -199,6 +219,9 @@ def evaluate(root: Path) -> CertificationReport:
             row.disposition == "required" for row in source_ledgers.rows
         ),
         source_ledger_rollups=ledger_rollups(source_ledgers.rows),
+        excluded_content=tuple(
+            identifier for identifier, included in content.items() if not included
+        ),
         blockers=tuple(blockers),
     )
 

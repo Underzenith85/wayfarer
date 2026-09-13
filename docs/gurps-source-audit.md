@@ -57,7 +57,8 @@ against printed footers. See
 [the selected-source review](gurps-basic-set-source-review.md). The named
 optional-rule decisions are recorded by
 [the exact profile disposition](gurps-optional-rules.md); the Infinite Worlds
-boundary remains an explicit child decision in #494.
+chapter is explicitly excluded from the generic profile by
+[the reviewed content boundary](gurps-infinite-worlds-boundary.md).
 
 ## Executable checks
 
