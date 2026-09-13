@@ -56,6 +56,7 @@ from wayfarer.engine.simulation.combat.ranged.lingering_fire import _schedule_li
 from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
+from wayfarer.engine.simulation.combat.special_melee import targeted_attack_penalty
 from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
@@ -65,7 +66,6 @@ from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
-    attack_penalty,
     disabled,
     location_special_effects,
     missing_location,
@@ -208,19 +208,22 @@ def resolve(
         attack_target -= (
             6 if len(eyes) == 2 else 1 if aimed and actor.last_maneuver != "move_and_attack" else 3
         )
-    if pending.hit_location:
-        entries = {e.definition_id: e for e in equipment.entries}
-        shield_side = next(
-            (
-                hand.split("-")[0]
-                for item, hand in target.hand_bindings
-                if any(
-                    i.id == item and entries[i.definition_id].shield for i in state.resources.items
-                )
-            ),
-            None,
-        )
-        attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
+    entries = {e.definition_id: e for e in equipment.entries}
+    shield_side = next(
+        (
+            hand.split("-")[0]
+            for item, hand in target.hand_bindings
+            if any(i.id == item and entries[i.definition_id].shield for i in state.resources.items)
+        ),
+        None,
+    )
+    attack_target += targeted_attack_penalty(
+        pending.hit_location,
+        armor_chink=pending.armor_chink,
+        damage_type=weapon.damage.damage_type,
+        tight_beam=weapon.damage.tight_beam,
+        shield_side=shield_side,
+    )
     if pending.suppression_skill_cap is not None:
         attack_target = min(
             attack_target,
@@ -700,7 +703,12 @@ def resolve(
                 encounter,
                 pending.target_item_id,
                 damage,
-                resistance_damage,
+                resistance_damage.model_copy(
+                    update={
+                        "armor_divisor": resistance_damage.armor_divisor
+                        * (2 if pending.armor_chink else 1)
+                    }
+                ),
                 impact=index,
             )
             damages.append(damage)
@@ -734,7 +742,7 @@ def resolve(
                 damage_type=weapon.damage.damage_type,
                 location=location,
                 critical_eye=critical_eye and index == 0,
-                armor_divisor=weapon.damage.armor_divisor,
+                armor_divisor=weapon.damage.armor_divisor * (2 if pending.armor_chink else 1),
                 tight_beam=weapon.damage.tight_beam,
             ),
             ht=defender_stats.ht,

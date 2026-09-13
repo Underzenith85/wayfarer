@@ -153,6 +153,9 @@ def preview(
             result,
             command.mode_id,
             hit_location=command.hit_location,
+            armor_chink=command.armor_chink,
+            strike_strength=command.strike_strength,
+            subdual_mode=command.subdual_mode,
             target_item_id=command.target_item_id,
             shots=command.shots,
         )

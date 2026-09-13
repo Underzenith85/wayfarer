@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.heavy_parry import require_breakage
 from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
 from wayfarer.engine.simulation.combat.objects.locations import item_hands
+from wayfarer.engine.simulation.combat.special_melee import actor_reaches
 from wayfarer.engine.simulation.combat.tactical import pose
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, inventory_load
@@ -309,7 +310,16 @@ def score_defense(
                         + 3
                         + parry.modifier
                         - repeat_penalty
-                        + defense_height_bonus(runtime, state, participant, max(weapon_mode.reach)),
+                        + defense_height_bonus(
+                            runtime,
+                            state,
+                            participant,
+                            max(
+                                actor_reaches(
+                                    runtime, state, participant.actor_id, weapon_mode.reach
+                                )
+                            ),
+                        ),
                         item.id,
                         weapon_mode.skill_id,
                     )

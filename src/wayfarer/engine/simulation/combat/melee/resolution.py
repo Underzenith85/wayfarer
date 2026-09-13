@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 
 import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
+from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -38,6 +39,7 @@ from wayfarer.engine.simulation.combat.objects.combat import (
 from wayfarer.engine.simulation.combat.objects.locations import from_behind, unavailable_hand
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.ranged.resolution import resolve
+from wayfarer.engine.simulation.combat.special_melee import actor_reaches, targeted_attack_penalty
 from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_flight
 from wayfarer.engine.simulation.combat.vocabulary import Defense
@@ -46,7 +48,6 @@ from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_obj
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
-    attack_penalty,
     disabled,
     location_special_effects,
     missing_location,
@@ -101,6 +102,7 @@ def resolve_melee(
             second_parry_mode_id=second_parry_mode_id,
             catch_thrown=catch_thrown,
         )
+    damage_type = "cr" if pending.subdual_mode is not None else weapon.damage.damage_type
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     attack_build = build(runtime, state, pending.attacker_id)
@@ -172,28 +174,32 @@ def resolve_melee(
     eyes = disabled(state.resources, pending.attacker_id) & {"left-eye", "right-eye"}
     attack_target -= 6 if len(eyes) == 2 else 1 if eyes else 0
 
+    reaches = actor_reaches(runtime, state, attacker.actor_id, weapon.reach)
     height = height_effect(
         encounter,
         attacker,
         defender,
-        reach=max(weapon.reach),
+        reach=max(reaches),
         location=pending.hit_location,
         board=runtime.hex_map(encounter),
     )
     attack_target += height.attack_modifier
-    if pending.hit_location:
-        entries = {e.definition_id: e for e in equipment.entries}
-        shield_side = next(
-            (
-                hand.split("-")[0]
-                for item, hand in defender.hand_bindings
-                if any(
-                    i.id == item and entries[i.definition_id].shield for i in state.resources.items
-                )
-            ),
-            None,
-        )
-        attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
+    entries = {e.definition_id: e for e in equipment.entries}
+    shield_side = next(
+        (
+            hand.split("-")[0]
+            for item, hand in defender.hand_bindings
+            if any(i.id == item and entries[i.definition_id].shield for i in state.resources.items)
+        ),
+        None,
+    )
+    attack_target += targeted_attack_penalty(
+        pending.hit_location,
+        armor_chink=pending.armor_chink,
+        damage_type=weapon.damage.damage_type,
+        tight_beam=weapon.damage.tight_beam,
+        shield_side=shield_side,
+    )
     attack_target += entangle_attack_penalty(attacker)
     if (
         defender.unarmed_guard_dropped
@@ -233,7 +239,7 @@ def resolve_melee(
                 encounter,
                 attacker,
                 defender,
-                reach=max(weapon.reach),
+                reach=max(reaches),
                 location="torso",
                 board=runtime.hex_map(encounter),
             )
@@ -478,7 +484,7 @@ def resolve_melee(
             location = "torso"
     head = (
         location in ("face", "skull", "left-eye", "right-eye")
-        and weapon.damage.damage_type != "tox"
+        and damage_type != "tox"
         and location_special_effects(hp.injury, location)
     )
     critical_eye = False
@@ -492,13 +498,15 @@ def resolve_melee(
             critical_eye = True
     if head and critical == 8:
         defender = defender.model_copy(update={"forced_do_nothing": True})
-    expression = (
-        attack_build.statistics.swing
-        if weapon.damage.basis == "swing"
-        else attack_build.statistics.thrust
+    thrust, swing = (
+        strength_damage(equipment.profile_id, pending.strike_strength)
+        if pending.strike_strength is not None
+        else (attack_build.statistics.thrust, attack_build.statistics.swing)
     )
+    expression = swing if weapon.damage.basis == "swing" else thrust
     dice_count = weapon.damage.dice or expression.dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
+    adds -= int(pending.subdual_mode == "blunt-end")
     adds += attacker.maneuver_state.stop_thrust_damage_bonus
     if attacker.maneuver_state.strong:
         adds += strong_damage_bonus(dice_count)
@@ -510,7 +518,7 @@ def resolve_melee(
     dice = draw_dice(runtime.rng, dice_count) if (hit or shield_hit) and not maximum else ()
     basic = (
         max(
-            0 if weapon.damage.damage_type == "cr" else 1,
+            0 if damage_type == "cr" else 1,
             (6 * dice_count if maximum else sum(dice)) + adds,
         )
         if hit or shield_hit
@@ -586,8 +594,10 @@ def resolve_melee(
                     "expected_revision": state.resources.revision,
                     "item_id": pending.target_item_id,
                     "basic_damage": basic,
-                    "damage_type": weapon.damage.damage_type,
-                    "armor_divisor": weapon.damage.armor_divisor * (2 if half else 1),
+                    "damage_type": damage_type,
+                    "armor_divisor": weapon.damage.armor_divisor
+                    * (2 if half else 1)
+                    * (2 if pending.armor_chink else 1),
                 }
             ),
             system=True,
@@ -607,9 +617,9 @@ def resolve_melee(
                 expected_revision=state.resources.revision,
                 basic_damage=basic,
                 resistance=resistance,
-                damage_type=weapon.damage.damage_type,
+                damage_type=damage_type,
                 location=location,
-                armor_divisor=weapon.damage.armor_divisor,
+                armor_divisor=weapon.damage.armor_divisor * (2 if pending.armor_chink else 1),
                 tight_beam=weapon.damage.tight_beam,
                 critical_eye=critical_eye,
             ),
@@ -633,12 +643,12 @@ def resolve_melee(
             ignore_dr=head and critical == 3,
             head_trauma=(
                 "deafened"
-                if head and critical in (12, 13) and weapon.damage.damage_type == "cr"
+                if head and critical in (12, 13) and damage_type == "cr"
                 else "scarred"
                 if head and critical in (12, 13)
                 else None
             ),
-            scar_levels=2 if weapon.damage.damage_type in ("burn", "cor") else 1,
+            scar_levels=2 if damage_type in ("burn", "cor") else 1,
         )
         injury = result.injury
         resistance = result.effective_resistance
@@ -775,12 +785,12 @@ def resolve_melee(
                 actor_id=defender.actor_id,
                 dice=dice_count,
                 adds=adds,
-                damage_type=weapon.damage.damage_type,
+                damage_type=damage_type,
                 resistance=resistance,
                 ht=defend_build.statistics.ht,
                 dx=defend_build.statistics.dx,
                 hit_location=pending.hit_location,
-                armor_divisor=weapon.damage.armor_divisor,
+                armor_divisor=weapon.damage.armor_divisor * (2 if pending.armor_chink else 1),
                 tight_beam=weapon.damage.tight_beam,
                 from_behind=from_behind(attacker, defender),
                 held_item_ids=held,

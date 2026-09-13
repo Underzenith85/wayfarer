@@ -1865,6 +1865,40 @@
             "default": null,
             "title": "Hit Location"
           },
+          "armor_chink": {
+            "default": false,
+            "title": "Armor Chink",
+            "type": "boolean"
+          },
+          "strike_strength": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Strike Strength"
+          },
+          "subdual_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "flat",
+                  "blunt-end"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subdual Mode"
+          },
           "target_item_id": {
             "anyOf": [
               {

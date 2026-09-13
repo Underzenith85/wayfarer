@@ -111,6 +111,11 @@ class TakeCombatTurn(CombatCommand):
         default="weapon", exclude_if=lambda v: v == "weapon"
     )
     hit_location: HitLocation | None = None
+    armor_chink: bool = Field(default=False, exclude_if=lambda value: not value)
+    strike_strength: int | None = Field(default=None, ge=1, exclude_if=lambda value: value is None)
+    subdual_mode: Literal["flat", "blunt-end"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ready_hand: Hand | Literal["both"] | None = None
     attack_option: AttackOption | None = None
