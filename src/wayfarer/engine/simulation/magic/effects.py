@@ -5,14 +5,9 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.hex_geometry import Hex
-from wayfarer.engine.simulation.magic.spells import (
-    SpellEffect,
-    SpellEvent,
-    SpellResult,
-    active_spells,
-    event_id,
-)
-from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
+from wayfarer.engine.simulation.magic.spell_state import SpellEffect, active_spells
+from wayfarer.engine.simulation.magic.spell_state import break_daze as break_daze
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -72,24 +67,6 @@ def dazed(state: ResourceState, actor_id: str) -> bool:
 def require_not_dazed(state: ResourceState, actor_id: str) -> None:
     if dazed(state, actor_id):
         raise ValidationError("Dazed actor cannot act or defend")
-
-
-def break_daze(state: ResourceState, actor_id: str, command_id: str) -> ResourceState:
-    events: list[ResourceEvent] = []
-    for effect in active_spells(state):
-        if effect.execute_effects and effect.spell_id == "daze" and effect.target_id == actor_id:
-            events.append(
-                ResourceEvent(
-                    id=event_id(command_id + ":daze:" + effect.cast_id),
-                    at=state.game_time,
-                    target_id=actor_id,
-                    kind=SpellEvent(
-                        effect=effect.model_copy(update={"phase": "ended"}),
-                        result=SpellResult(outcome="cancelled"),
-                    ).model_dump_json(),
-                )
-            )
-    return state.model_copy(update={"events": state.events + tuple(events)})
 
 
 def lighting_penalty(state: PlayState, target_id: str, darkness: int) -> int:

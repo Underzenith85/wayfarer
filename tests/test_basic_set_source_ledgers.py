@@ -118,6 +118,48 @@ def test_runtime_ownership_and_denominator_drift_are_rejected() -> None:
         _validate(replace(bundle, denominator=denominator))
 
 
+def test_runtime_inventory_joins_are_unique_profile_scoped_and_review_aware() -> None:
+    bundle = load_source_ledgers(ROOT)
+    inventory_rows = inventory()
+    bound = next(row for row in bundle.rows if row.runtime_binding is not None)
+    runtime_index = next(
+        index for index, row in enumerate(inventory_rows) if row.id == bound.runtime_binding
+    )
+    runtime = inventory_rows[runtime_index]
+
+    with pytest.raises(ValidationError, match="Duplicate runtime inventory identifier"):
+        validate_source_ledgers(bundle, (*inventory_rows, runtime), frozenset(CAPABILITIES))
+
+    wrong_profile = replace(runtime, required_profiles=("gurps-lite-4e-2004",))
+    wrong_profile_rows = list(inventory_rows)
+    wrong_profile_rows[runtime_index] = wrong_profile
+    with pytest.raises(ValidationError, match="outside profile"):
+        validate_source_ledgers(bundle, tuple(wrong_profile_rows), frozenset(CAPABILITIES))
+
+    reviewed = bound.model_copy(
+        update={
+            "source_review": "reviewed",
+            "implementation": "implemented",
+            "evidence_paths": ("tests/test_basic_set_source_ledgers.py",),
+        }
+    )
+    reviewed_rows = tuple(reviewed if row.id == bound.id else row for row in bundle.rows)
+    with pytest.raises(ValidationError, match="review is not joined"):
+        validate_source_ledgers(
+            replace(bundle, rows=reviewed_rows), inventory_rows, frozenset(CAPABILITIES)
+        )
+
+    reviewed_runtime = replace(runtime, source_review="reviewed", implementation="unsupported")
+    reviewed_inventory = list(inventory_rows)
+    reviewed_inventory[runtime_index] = reviewed_runtime
+    with pytest.raises(ValidationError, match="implementation disagrees"):
+        validate_source_ledgers(
+            replace(bundle, rows=reviewed_rows),
+            tuple(reviewed_inventory),
+            frozenset(CAPABILITIES),
+        )
+
+
 def test_implemented_or_reviewed_dispositions_require_evidence() -> None:
     bundle = load_source_ledgers(ROOT)
     row = next(row for row in bundle.rows if row.disposition == "required")
