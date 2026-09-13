@@ -2020,6 +2020,34 @@
         "title": "CombatConsequence",
         "type": "object"
       },
+      "CombatHazardTurn": {
+        "additionalProperties": false,
+        "description": "An actor-relative deadline on the shared combat clock (B404).",
+        "properties": {
+          "encounter_id": {
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "round": {
+            "minimum": 1,
+            "title": "Round",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "actor_id",
+          "round"
+        ],
+        "title": "CombatHazardTurn",
+        "type": "object"
+      },
       "CombatRules": {
         "additionalProperties": false,
         "properties": {
@@ -4230,6 +4258,17 @@
             ],
             "default": null,
             "title": "Next Check At"
+          },
+          "combat_turn": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CombatHazardTurn"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [

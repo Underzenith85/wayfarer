@@ -15,11 +15,12 @@ Issue #108 adds internal commands to the existing `CombatService` transaction. T
 | `arm_lock` | Offensive path from a surviving, two-hand Judo/Wrestling grapple on an earlier turn, or a successful Judo barehanded parry against an unarmed attack on the first following turn. The defensive route needs two free hands, a selected arm, and close-combat entry when adjacent; an attack/defense pause captures the arm. |
 | `lock_damage` | Once on each subsequent holder turn, a passive contest applies crushing damage to the arm, excluding flexible armor. The action does not consume the holder's attack. Winning a contest on an already crippled arm applies shock and knockdown/stun checks through the injury service, without losing more HP or adding another crippling injury. |
 | `strangle` | A neck-grip contest applies crushing neck damage. Penetrating injury starts the existing durable suffocation schedule; one-hand use carries its penalty. |
+| `choke_hold` grapple option | A two-hand Judo or Wrestling grapple from an adjacent rear hex applies the technique penalty, controls the neck without occupying the victim's hands, and starts suffocation immediately. Each following holder turn requires the victim's due FP loss before that turn continues; optional strangling gains +3 ST. |
 | `ResolveChokeEffects` | The victim settles a due grip-specific suffocation deadline. Existing hazard/fatigue logic owns FP, consciousness and the no-air deadline. It consumes no combat turn and cannot duplicate a tick. |
 | `TakeCombatTurn`: `wait` | The existing Wait maneuver may declare an unarmed reaction instead of a weapon one, and a grappled or grappling fighter may declare it. Any turn-consuming unarmed action then pauses the encounter before dice; the waiter takes exactly the declared attack or declines. See [unarmed Wait reactions](#unarmed-wait-reactions). |
 | `release` | Free release on the holder's turn, including a selected subset of hands. An arm lock cannot retain only one hand. Releasing a choking grip ends its hazard after due effects are settled. |
 
-The suffocation adapter uses the existing one-second shared combat clock. It does not introduce a second clock or a player-authored damage parameter. Individual-actor phase timing for choking, alongside other tactical timing refinements, remains part of #176.
+The suffocation adapter uses the existing one-second shared combat clock. Choke Hold adds a persisted holder/round deadline to that clock rather than introducing a second clock or a player-authored damage parameter. Ordinary strangling retains shared-clock timing.
 
 ## Persistence and authority
 
@@ -35,7 +36,7 @@ Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, whi
 
 - Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), torn-muscle lasting penalties (15), and selecting among multiple ready impaling modes (5/6/16). Armed critical-parry failures use the existing weapon consequence reducer; cases lacking sufficient weapon metadata still halt with recorded dice.
 - All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks. Wait is integrated below; Evaluate, Feint, Aim and Concentrate while a grip is held remain explicitly rejected.
-- The defensive Wrestling parry-to-arm-lock route, barehanded parries against armed attacks, and the distinct Choke Hold technique. Judo parry-to-lock against unarmed attacks is integrated below.
+- The defensive Wrestling parry-to-arm-lock route and barehanded parries against armed attacks. Judo parry-to-lock against unarmed attacks is integrated below. Choke Hold is integrated for explicit rear-hex entry; awareness-based rear defenses and Wait-triggered entry remain unsupported.
 - Escape steps, dragging/carrying, twice-ST movement exceptions, Size Modifier/multiarm variants and additional strikes/targets. Unsupported movement/reload/maneuver combinations are rejected explicitly.
 
 Current bodies have no authored Size Modifier, so tests cover equal-sized human participants. This does not implement large/small creature grappling. Optional/supplement grappling systems and control points are excluded.
@@ -107,3 +108,29 @@ hex projection and the v1/v2 HTTP boundary. Wait integration does not complete #
 `/api/tactical/v2/campaigns/{cid}/commands` accepts `TakeUnarmedTurn.maneuver` and `attack_option`, plus `ChooseDefense.parry_mode_id` and `second_parry_mode_id` and `TakeCombatTurn.wait_trigger.unarmed`. The unchanged snapshot format remains `tactical-v1`. Gameplay v1 and the tactical v1 input schema remain unchanged; the latter rejects the new options. Omitted v2 options do not alter the canonical command payload, preserving existing receipt digests. The tactical v1 request keeps its own frozen `TakeCombatTurn` and `WaitTrigger` shapes, which require `item_id` and reject `unarmed`; the v1 document gains only the unreferenced `UnarmedReaction` definition that the shared snapshot projection carries. See `contracts/tactical/v2/openapi.json` and `frontend/src/api/tactical-v2.generated.ts`.
 
 Verify both contracts with `uv run python -m scripts.tactical_contracts --check` and `uv run python -m scripts.tactical_contracts --version 2 --check`. The exact historical printing/errata equivalence audit remains open; numeric tests are not a source-baseline certification.
+
+## Choke Hold completion carried forward from PR #408
+
+The useful engine scope from the superseded pre-refactor PR is implemented in the
+decomposed combat packages. `TakeUnarmedTurn.choke_hold` requires a two-hand neck grapple,
+Judo-2 or Wrestling-3, and explicit entry from the adjacent rear hex. Under that supported
+geometry the victim receives no active defense. A successful hold applies the ordinary
+grapple penalty while leaving the victim's hands free; its two-hand +5 escape benefit is
+counted once.
+
+The hold creates a B404/B436 suffocation schedule tied durably to the holder's next turn.
+The victim resolves one FP loss before that turn can proceed, without consuming a turn;
+the deadline advances to the following holder turn and survives restart and receipt replay.
+Escape, full release, or holder incapacitation retires the exposure. Partial release is
+invalid. If combat ends while the hold survives, the original no-air start remains and the
+schedule returns to ordinary shared-clock timing. Optional crushing damage through the
+existing `strangle` action gains +3 ST without replacing or duplicating the exposure.
+
+`tests/test_choke_hold.py` covers both initiative orders and skills, early escape, release,
+optional damage, invalid declarations, holder-turn gating, restart, and replay. This engine
+slice intentionally does not add tactical choices or frontend controls. Square-grid or
+same-hex rear inference, Wait-based entry, and awareness-based rear-defense exceptions are
+rejected explicitly. Source review used Campaigns fourth printing B404 and B436, SHA-256
+`79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80`.
+
+No engine version increment is made while the profile remains prerelease.

@@ -163,6 +163,13 @@ class ActionEngine:
         validate_members(state)
         if len({e.id for e in state.encounters}) != len(state.encounters):
             raise ValidationError("Duplicate encounter ID")
+        if any(
+            h.active
+            and h.combat_turn is not None
+            and h.combat_turn.encounter_id not in {e.id for e in state.encounters}
+            for h in state.resources.hazards
+        ):
+            raise ValidationError("Actor-relative hazard has no encounter")
         for encounter in state.encounters:
             if self.combat is None:
                 raise ValidationError("Campaign has encounters without combat rules")

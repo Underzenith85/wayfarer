@@ -18,7 +18,7 @@
     {"issue": 503, "state": "open", "title": "Implement economics and employment"},
     {"issue": 504, "state": "open", "title": "Implement technology-level and world variation"},
     {"issue": 505, "state": "closed", "title": "Complete Basic Combat turn sequence"},
-    {"issue": 506, "state": "open", "title": "Complete Basic Combat resolution"},
+    {"issue": 506, "state": "closed", "title": "Complete Basic Combat resolution"},
     {"issue": 507, "state": "open", "title": "Complete Tactical Combat"},
     {"issue": 508, "state": "open", "title": "Implement close and multi-hex combat"},
     {"issue": 509, "state": "open", "title": "Implement surprise and visibility"},

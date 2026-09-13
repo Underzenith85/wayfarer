@@ -170,7 +170,7 @@ def execute_unarmed(
                         update={"close_pairs": tuple(sorted(pairs))}
                     )
             allowed_defenses: list[str] = ["none"]
-            for choice in ("dodge", "parry"):
+            for choice in () if command.choke_hold else ("dodge", "parry"):
                 try:
                     unarmed_defense(
                         runtime,
@@ -219,6 +219,7 @@ def execute_unarmed(
                     "target_id": command.target_id,
                     "action": command.action,
                     "grip_id": command.grip_id,
+                    "choke_hold": command.choke_hold,
                     "skill": command.skill,
                     "foot": command.foot,
                     "hands": command.hands,

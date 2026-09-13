@@ -137,6 +137,7 @@ class TakeUnarmedTurn(CombatCommand):
     location: GrappleLocation = "torso"
     grip_id: Id | None = None
     enter_close_combat: bool = False
+    choke_hold: bool = Field(default=False, exclude_if=lambda value: not value)
     maneuver: Literal["attack", "all_out_attack", "move_and_attack"] = Field(
         default="attack", exclude_if=lambda value: value == "attack"
     )

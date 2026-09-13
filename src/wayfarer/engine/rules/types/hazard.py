@@ -93,6 +93,14 @@ class HazardSpec(HazardRecord):
         return self
 
 
+class CombatHazardTurn(HazardRecord):
+    """An actor-relative deadline on the shared combat clock (B404)."""
+
+    encounter_id: str = Field(min_length=1)
+    actor_id: str = Field(min_length=1)
+    round: int = Field(ge=1)
+
+
 class HazardSchedule(HazardRecord):
     id: str
     actor_id: str
@@ -120,10 +128,21 @@ class HazardSchedule(HazardRecord):
     )
     no_air_since: int | None = Field(default=None, ge=0)
     next_check_at: int | None = Field(default=None, ge=0)
+    combat_turn: CombatHazardTurn | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @model_validator(mode="after")
+    def combat_timing(self) -> HazardSchedule:
+        if self.combat_turn is not None and self.spec.kind != "suffocation":
+            raise ValueError("Actor-relative hazards currently require suffocation")
+        return self
 
 
 def require_hazards_settled(
     hazards: tuple[HazardSchedule, ...], actors: frozenset[str], at: int
 ) -> None:
-    if any(h.active and h.actor_id in actors and h.due <= at for h in hazards):
+    if any(
+        h.active and h.combat_turn is None and h.actor_id in actors and h.due <= at for h in hazards
+    ):
         raise ConflictError("Resolve due environmental hazards before further activity")

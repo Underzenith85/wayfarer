@@ -58,11 +58,20 @@ class Grip(Record):
     escape_penalty: int = Field(default=0, ge=0)
     last_damage_round: int = Field(default=0, ge=0)
     hazard_id: str | None = None
+    choke_hold: bool = Field(default=False, exclude_if=lambda value: not value)
     pinned: bool = False
     escape_after_round: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
     def coherent(self) -> Self:
+        if self.choke_hold and (
+            len(self.hands) != 2
+            or self.location != "neck"
+            or self.skill not in ("skill:judo", "skill:wrestling")
+            or self.arm_lock
+            or self.pinned
+        ):
+            raise ValueError("Choke Hold requires two skilled hands controlling the neck")
         if self.holder_id == self.target_id or len(set(self.hands)) != len(self.hands):
             raise ValueError("Grip requires different actors and distinct hands")
         if self.arm_lock and (
@@ -80,11 +89,23 @@ class PendingUnarmed(Record):
     target_id: Id
     action: Literal["punch", "kick", "grapple", "arm_lock"]
     grip_id: str | None = None
+    choke_hold: bool = Field(default=False, exclude_if=lambda value: not value)
     skill: UnarmedSkill
     foot: Literal["left-foot", "right-foot"] = "right-foot"
     hands: tuple[Hand, ...] = ()
     location: GrappleLocation = "torso"
     allowed: tuple[Literal["dodge", "parry", "none"], ...]
+
+    @model_validator(mode="after")
+    def valid_choke_hold(self) -> Self:
+        if self.choke_hold and (
+            self.action != "grapple"
+            or self.location != "neck"
+            or self.skill not in ("skill:judo", "skill:wrestling")
+            or set(self.hands) != {"left-hand", "right-hand"}
+        ):
+            raise ValueError("Pending Choke Hold requires its two-hand neck attack")
+        return self
 
 
 class UnarmedReaction(Record):
@@ -201,6 +222,22 @@ def validate_control(encounter: Encounter, resources: ResourceState, *, basic: b
     ):
         raise ValidationError("Unarmed state requires exact Basic Set dispatch")
     participants = {p.actor_id: p for p in encounter.participants}
+    for hazard in resources.hazards:
+        timing = hazard.combat_turn
+        if not hazard.active or timing is None or timing.encounter_id != encounter.id:
+            continue
+        matching = next((g for g in encounter.grips if g.hazard_id == hazard.id), None)
+        if (
+            encounter.status != "active"
+            or matching is None
+            or not matching.choke_hold
+            or timing.actor_id != matching.holder_id
+            or hazard.actor_id != matching.target_id
+            or timing.round <= matching.acquired_round
+        ):
+            raise ValidationError(
+                "Combat suffocation requires its active Choke Hold and holder turn"
+            )
     if len({g.id for g in encounter.grips}) != len(encounter.grips):
         raise ValidationError("Duplicate grip ID")
     if len(set(encounter.close_pairs)) != len(encounter.close_pairs):
@@ -216,6 +253,14 @@ def validate_control(encounter: Encounter, resources: ResourceState, *, basic: b
             raise ValidationError("Invalid close-combat relationship")
     occupied: set[tuple[str, Hand]] = set()
     for grip in encounter.grips:
+        if grip.choke_hold and not any(
+            h.id == grip.hazard_id
+            and h.actor_id == grip.target_id
+            and h.spec.kind == "suffocation"
+            and h.no_air_since is not None
+            for h in resources.hazards
+        ):
+            raise ValidationError("Choke Hold requires its durable suffocation exposure")
         if (
             grip.holder_id not in participants
             or grip.target_id not in participants
@@ -230,9 +275,9 @@ def validate_control(encounter: Encounter, resources: ResourceState, *, basic: b
             occupied.add(key)
     for actor in encounter.participants:
         incoming = tuple(g for g in encounter.grips if g.target_id == actor.actor_id)
-        if actor.grappled != any(g.location == "torso" for g in incoming) or actor.pinned != any(
-            g.pinned for g in incoming
-        ):
+        if actor.grappled != any(
+            g.location == "torso" or g.choke_hold for g in incoming
+        ) or actor.pinned != any(g.pinned for g in incoming):
             raise ValidationError("Combat control projection disagrees with grips")
         if actor.arm_locked != any(g.arm_lock for g in incoming):
             raise ValidationError("Arm-lock projection disagrees with grips")

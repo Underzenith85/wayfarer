@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready
 from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
     MigrateEncounterBasic,
+    ResolveChokeEffects,
     TakeCombatTurn,
     TakeUnarmedTurn,
 )
@@ -22,6 +23,7 @@ from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.unarmed.choke import require_choke_turn_settled
 from wayfarer.engine.simulation.combat.unarmed.records import BASIC, wrestling_bonus
 from wayfarer.engine.simulation.equipment.catalog import inventory_load
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
@@ -76,7 +78,10 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
         p.model_copy(
             update={
                 "arm_locked": any(g.target_id == p.actor_id and g.arm_lock for g in grips),
-                "grappled": any(g.target_id == p.actor_id and g.location == "torso" for g in grips),
+                "grappled": any(
+                    g.target_id == p.actor_id and (g.location == "torso" or g.choke_hold)
+                    for g in grips
+                ),
                 "pinned": any(g.target_id == p.actor_id and g.pinned for g in grips),
             }
         )
@@ -97,6 +102,7 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
 
 
 def guard_control(encounter: Encounter, command: TypedCombatCommand, state: PlayState) -> None:
+    require_choke_turn_settled(state, encounter, exempt=isinstance(command, ResolveChokeEffects))
 
     if encounter.pending_unarmed is not None:
         if isinstance(command, MigrateEncounterBasic):
