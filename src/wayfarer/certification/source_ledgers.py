@@ -125,6 +125,9 @@ class InventoryLedgerRow(Protocol):
     def implementation(self) -> str: ...
 
     @property
+    def source_review(self) -> str: ...
+
+    @property
     def owner(self) -> int: ...
 
 
@@ -204,7 +207,7 @@ def reconcile_trait_ledger(
     owns cost and consequence validation through its inventory record.  This
     distinction prevents catalog presence from certifying behavior.
     """
-    inventory = {row.id: row for row in inventory_rows}
+    inventory = _inventory_index(inventory_rows)
     reconciled: list[TraitReconciliation] = []
     for row in rows:
         kind, classifications, source_class = _trait_classification(row)
@@ -243,6 +246,18 @@ def reconcile_trait_ledger(
     if len(reconciled) != len(rows) or len({row.source_row_id for row in reconciled}) != len(rows):
         raise ValidationError("Every trait source row must reconcile exactly once")
     return tuple(reconciled)
+
+
+def _inventory_index(
+    inventory_rows: tuple[InventoryLedgerRow, ...],
+) -> dict[str, InventoryLedgerRow]:
+    """Build a lossless join index for source-to-runtime reconciliation."""
+    inventory: dict[str, InventoryLedgerRow] = {}
+    for row in inventory_rows:
+        if row.id in inventory:
+            raise ValidationError(f"Duplicate runtime inventory identifier: {row.id}")
+        inventory[row.id] = row
+    return inventory
 
 
 def _read_json(root: Path, filename: str) -> str:
@@ -325,7 +340,7 @@ def validate_source_ledgers(
     if len(bundle.owners.issues) != len({issue.issue for issue in bundle.owners.issues}):
         raise ValidationError("Duplicate completion-owner issue")
 
-    runtime_ids = {row.id for row in inventory_rows}
+    inventory = _inventory_index(inventory_rows)
     bindings: list[str] = []
     for row in bundle.rows:
         low, high = (1, 336) if row.source_id == "characters-third" else (337, 576)
@@ -358,8 +373,19 @@ def validate_source_ledgers(
             if row.runtime_binding == row.id and row.consequence_owner not in open_owners:
                 raise ValidationError(f"Catalog-only row lacks an open consequence owner: {row.id}")
         if row.runtime_binding is not None:
-            if row.runtime_binding not in runtime_ids:
+            runtime = inventory.get(row.runtime_binding)
+            if runtime is None:
                 raise ValidationError(f"Unknown runtime inventory binding: {row.id}")
+            missing_profiles = set(row.profile_membership) - set(runtime.required_profiles)
+            if missing_profiles:
+                raise ValidationError(f"Runtime inventory binding outside profile: {row.id}")
+            if row.source_review == "reviewed" and runtime.source_review != "reviewed":
+                raise ValidationError(f"Runtime inventory review is not joined: {row.id}")
+            if row.implementation in {"implemented", "verified"} and runtime.implementation not in {
+                "implemented",
+                "verified",
+            }:
+                raise ValidationError(f"Runtime inventory implementation disagrees: {row.id}")
             bindings.append(row.runtime_binding)
         if row.implementation in {"implemented", "verified"}:
             if row.source_review != "reviewed" or not row.evidence_paths:
