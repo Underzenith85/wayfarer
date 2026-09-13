@@ -208,6 +208,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.campaign.economics` | no | yes | verified | #503; [conserved trade, exchange, and living costs](gurps-economics.md) |
 | `gurps.campaign.employment` | no | yes | verified | #503; [job search and Time Use-bound income](gurps-economics.md) |
 | `gurps.campaign.hirelings` | no | yes | verified | #503; [contracts, pay, and private loyalty](gurps-economics.md) |
+| `gurps.character.development` | no | yes | partial | #499; [adventure, study, quick-learning, and gained-trait settlement](gurps-character-development.md) |
 | `gurps.social.skill_procedures` | no | yes | partial | #345 parent audit complete; [16 executable headline rows and explicit transfers](gurps-mundane-skills.md#social-procedures-345); residual #353, #366–#370 |
 | `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.combat.melee_weapon_skills` | no | yes | partial | #339; [bound melee, unarmed, defense and tactical skill procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |

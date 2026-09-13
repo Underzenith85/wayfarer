@@ -1725,6 +1725,17 @@
             ],
             "default": null
           },
+          "development": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DevelopmentRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "inventions": {
             "anyOf": [
               {
@@ -1964,6 +1975,64 @@
           "version"
         ],
         "title": "AdministrationRules",
+        "type": "object"
+      },
+      "AdventureImprovementRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "points": {
+            "maximum": 10000,
+            "minimum": 0,
+            "title": "Points",
+            "type": "integer"
+          },
+          "eligible_definition_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Eligible Definition Ids",
+            "type": "array"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "gained_trait_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Gained Trait Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "points",
+          "eligible_definition_ids",
+          "reason"
+        ],
+        "title": "AdventureImprovementRule",
         "type": "object"
       },
       "AmmunitionLoad": {
@@ -4183,6 +4252,58 @@
           "damage_type"
         ],
         "title": "Damage",
+        "type": "object"
+      },
+      "DevelopmentRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "adventures": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AdventureImprovementRule"
+            },
+            "title": "Adventures",
+            "type": "array"
+          },
+          "study": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/StudyRule"
+            },
+            "title": "Study",
+            "type": "array"
+          },
+          "quick_learning": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/QuickLearningRule"
+            },
+            "title": "Quick Learning",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "DevelopmentRules",
         "type": "object"
       },
       "Discovery": {
@@ -10203,6 +10324,55 @@
         "title": "Purchase",
         "type": "object"
       },
+      "QuickLearningRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "stressful_event_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Stressful Event Id",
+            "type": "string"
+          },
+          "earned_entry_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Earned Entry Id",
+            "type": "string"
+          },
+          "default_available": {
+            "default": true,
+            "title": "Default Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "skill_id",
+          "stressful_event_id",
+          "earned_entry_id"
+        ],
+        "title": "QuickLearningRule",
+        "type": "object"
+      },
       "RangedMode": {
         "additionalProperties": false,
         "properties": {
@@ -12217,6 +12387,86 @@
           "end"
         ],
         "title": "Stairway",
+        "type": "object"
+      },
+      "StudyRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "activity_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "self-study",
+              "education",
+              "intensive",
+              "job",
+              "adventure"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "teacher_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Teacher Id"
+          },
+          "learnable_advantage": {
+            "default": false,
+            "title": "Learnable Advantage",
+            "type": "boolean"
+          },
+          "access_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Access Id"
+          },
+          "campaign_permission": {
+            "default": false,
+            "title": "Campaign Permission",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "activity_id",
+          "subject_id",
+          "method"
+        ],
+        "title": "StudyRule",
         "type": "object"
       },
       "SurpriseState": {

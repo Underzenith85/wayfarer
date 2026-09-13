@@ -34,8 +34,8 @@ from wayfarer.engine.simulation.campaign.scenes import ActorScene
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
-from wayfarer.orchestration.builds import banked_points as _balance
 from wayfarer.orchestration.builds import canonical_build as _build
+from wayfarer.orchestration.builds import spendable_points as _spendable
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 
@@ -141,7 +141,13 @@ class AdvancementService:
         delta = after.spent - before.spent
         if delta < 0:
             raise ValidationError("Refunds require GM authorization")
-        available = _balance(state, command.actor_id)
+        before_purchases = {entry.definition_id: entry.amount for entry in before.purchases}
+        changed = frozenset(
+            entry.definition_id
+            for entry in after.purchases
+            if before_purchases.get(entry.definition_id) != entry.amount
+        )
+        available = _spendable(state, command.actor_id, changed)
         if delta > available:
             raise ValidationError("Advancement overspends earned points")
         return AdvancementPreview(
@@ -206,11 +212,17 @@ class AdvancementService:
         before = _build(self.play, state, command.actor_id)
         if before.revision != command.expected_build_revision:
             raise ConflictError("Character build changed")
-        current = _balance(state, command.actor_id)
         review = self.play.engine.reviewer.review(CharacterProposal(draft=command.draft))
         after = review.compilation.build
         if after is None or review.status != "automatic":
             raise ValidationError("Advancement requires a legal automatically approved build")
+        before_purchases = {entry.definition_id: entry.amount for entry in before.purchases}
+        changed = frozenset(
+            entry.definition_id
+            for entry in after.purchases
+            if before_purchases.get(entry.definition_id) != entry.amount
+        )
+        current = _spendable(state, command.actor_id, changed)
         cost = after.spent - before.spent
         if cost < 0 or cost > current:
             raise ValidationError("Advancement point balance is invalid")

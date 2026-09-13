@@ -28,3 +28,24 @@ def canonical_build(play: PlayService, state: PlayState, actor_id: str) -> Valid
 
 def banked_points(state: PlayState, actor_id: str) -> int:
     return sum(entry.points for entry in state.advancement if entry.actor_id == actor_id)
+
+
+def spendable_points(
+    state: PlayState, actor_id: str, changed_definition_ids: frozenset[str]
+) -> int:
+    """Return points legal for this revision, consuming discretionary credit first.
+
+    Purchases are negative discretionary entries. That makes them consume the
+    unrestricted balance first and then offset only source-bound awards eligible
+    for the definitions changed by the proposed revision.
+    """
+    entries = tuple(entry for entry in state.advancement if entry.actor_id == actor_id)
+    unrestricted = sum(entry.points for entry in entries if not entry.eligible_definition_ids)
+    restricted = sum(
+        entry.points
+        for entry in entries
+        if entry.points > 0
+        and entry.eligible_definition_ids
+        and changed_definition_ids.intersection(entry.eligible_definition_ids)
+    )
+    return max(0, unrestricted) + restricted
