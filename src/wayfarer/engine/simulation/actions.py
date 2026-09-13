@@ -35,6 +35,7 @@ from wayfarer.engine.simulation.campaign.administration import (
 )
 from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.engine.simulation.campaign.director import AuthorDraft, DirectorTurn
+from wayfarer.engine.simulation.campaign.economics import EconomicsRules, EconomicsState
 from wayfarer.engine.simulation.campaign.law import LawRules, LawState
 from wayfarer.engine.simulation.campaign.npcs import NPCRules, NPCState
 from wayfarer.engine.simulation.campaign.objectives import ObjectiveRules, ObjectiveState
@@ -164,6 +165,7 @@ class ActionRules(Record):
     spells: SpellRules | None = Field(default=None, exclude=True)
     administration: AdministrationRules | None = Field(default=None, exclude=True)
     law: LawRules | None = Field(default=None, exclude=True)
+    economics: EconomicsRules | None = Field(default=None, exclude=True)
     inventions: InventionRules | None = Field(default=None, exclude=True)
     enchanting: EnchantingRules | None = Field(default=None, exclude=True)
 
@@ -225,6 +227,9 @@ class PlayCheckpoint(Record):
         default=AdministrationState(), exclude_if=lambda value: value == AdministrationState()
     )
     law: LawState = Field(default=LawState(), exclude_if=lambda value: value == LawState())
+    economics: EconomicsState = Field(
+        default=EconomicsState(), exclude_if=lambda value: value == EconomicsState()
+    )
 
 
 class PlayState(PlayCheckpoint):

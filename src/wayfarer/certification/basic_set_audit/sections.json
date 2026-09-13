@@ -5766,14 +5766,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:characters:b290:improvement-through-adventure",
       "classification": null,
@@ -5838,14 +5841,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:characters:b292:improvement-through-study",
       "classification": null,
@@ -15893,14 +15899,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b504:19-game-worlds",
       "classification": null,
@@ -15917,14 +15926,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -15941,14 +15953,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -15965,14 +15980,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -15989,14 +16007,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -16037,14 +16058,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -16061,14 +16085,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -16085,14 +16112,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.hirelings",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -16109,14 +16139,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
@@ -16157,14 +16190,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
+      ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.hirelings",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b513:economics",
       "classification": null,
