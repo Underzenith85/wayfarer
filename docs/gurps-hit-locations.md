@@ -55,14 +55,13 @@ the full rules profile. The capability gates
 and coverage matrix remain partial until that evidence and the named remaining
 mechanics are complete.
 
-## Injury Tolerance and targeted near misses (#107 follow-up)
+## Injury Tolerance and targeted near misses (#107/#688 follow-up)
 
-Trusted scenario `body.tolerance` facts now carry living, unliving, homogenous
-or diffuse structure and No Brain/Eyes/Head/Neck/Vitals variants into the saved
-HP injury status. They are anatomical runtime inputs, not player damage
-modifiers or automatic purchase definitions; trait catalog/compiler certification
-is separate. This does not publish a selectable profile. Omitted
-metadata preserves existing human behavior and serialization.
+Trusted scenario `body.tolerance` facts carry living, unliving, homogeneous or
+diffuse structure and No Blood/Brain/Eyes/Head/Neck/Vitals variants into the
+saved HP injury status. The character compiler projects the same anatomy from
+purchased Injury Tolerance forms, including their exact costs and structural
+inclusions. Omitted metadata preserves existing human behavior and serialization.
 
 The injury reducer applies structure-specific impaling/piercing factors,
 removes applicable location multipliers/knockdown and groin shock effects,
@@ -85,7 +84,7 @@ height. Melee and ranged receipts keep the original roll and actual location.
 
 Independent numeric and persistence tests are in
 `tests/test_geometry_injury_followups.py`, including executed entries in the
-conformance ledger. The executable registry now correctly records the three
-#107 families as partial, matching their existing implementation rather than
-claiming absence. Source reconciliation completed in #191; #153 and the
-nonhumanoid/assisted-movement boundaries above remain unfinished.
+conformance ledger. The executable registry records hit locations and lasting
+wounds as partial. Issue #688 separately verifies the complete Injury Tolerance
+inventory row; #153 and the nonhumanoid/assisted-movement boundaries above remain
+unfinished.

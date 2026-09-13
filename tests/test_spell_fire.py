@@ -33,11 +33,8 @@ def test_exact_fire_inventory_pages_and_runtime() -> None:
         for value in inventory().entries
         if value.id in {binding.id for binding in BINDINGS}
     }
-    assert rows["spell:fireball"].blockers == (173,)
-    assert all(
-        value.blockers == () for identifier, value in rows.items() if identifier != "spell:fireball"
-    )
-    assert all(value.evidence == ("tests/test_spell_fire.py",) for value in rows.values())
+    assert all(value.blockers == () for value in rows.values())
+    assert all("tests/test_spell_fire.py" in value.evidence for value in rows.values())
     build = approved_spell(package(), BINDINGS[0].id)
     world = World(
         entities=(

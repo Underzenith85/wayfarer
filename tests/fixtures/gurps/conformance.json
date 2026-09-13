@@ -5859,6 +5859,34 @@
       "evidence_kind": "independent-aerial-movement-case",
       "provenance": "Independent diagonal movement and aerial attack/retreat fixture checked against Campaigns fourth printing.",
       "test": "tests/test_mounted_flying_combat.py::test_personal_flight_uses_vertical_cost_and_not_vehicle_state"
+    },
+    {
+      "id": "basic-fireball-aimed-face-release",
+      "capability_id": "gurps.magic.spellcasting",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B241, Missile Spells; B247, Fireball",
+      "input": {"energy": 1, "aim_seconds": 1, "hit_location": "face"},
+      "expected": {"damage_dice": 1, "accuracy_bonus": 1, "hit_location_penalty": -5},
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-spell-release-case",
+      "provenance": "Independent Fireball energy, Acc and targeted-location expectations checked against the selected Characters printing.",
+      "test": "tests/test_spell_execution.py::test_fireball_aim_and_hit_location_use_persisted_ranged_state"
+    },
+    {
+      "id": "basic-injury-tolerance-form-inclusions",
+      "capability_id": "gurps.supernatural.abilities",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B60-B61, Injury Tolerance",
+      "input": {"structure": "diffuse"},
+      "expected": {"points": 100, "no_blood": true, "no_brain": true, "no_vitals": true, "no_neck": false},
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-trait-form-case",
+      "provenance": "Independent Diffuse cost and included anatomy expectations checked against the selected Characters printing.",
+      "test": "tests/test_attack_defense_traits.py::test_all_injury_tolerance_forms_project_exact_anatomy"
     }
   ]
 }

@@ -164,7 +164,6 @@ async def test_scenario_cannot_seed_supernatural_execution(tmp_path: Path, prefi
         play.initial_state(campaign(play.engine), world(), forged, ())
 
 
-def test_representative_abilities_are_partial_and_still_block_certification() -> None:
-    assert capability("gurps.supernatural.abilities").status is CoverageStatus.PARTIAL
-    with pytest.raises(ValidationError, match="not verified"):
-        require_verified("gurps.supernatural.abilities")
+def test_supernatural_abilities_are_verified_after_residual_completion() -> None:
+    assert capability("gurps.supernatural.abilities").status is CoverageStatus.VERIFIED
+    assert require_verified("gurps.supernatural.abilities").id == "gurps.supernatural.abilities"

@@ -97,7 +97,15 @@ BINDINGS: Final = (
         "advantage:injury-tolerance",
         "Injury Tolerance",
         20,
-        parameters=(parameter("kind", "text", "diffuse", "homogeneous", "unliving"),),
+        parameters=(
+            parameter("structure", "text", "living", "unliving", "homogeneous", "diffuse"),
+            parameter("no-blood", "boolean", False, True),
+            parameter("no-brain", "boolean", False, True),
+            parameter("no-eyes", "boolean", False, True),
+            parameter("no-head", "boolean", False, True),
+            parameter("no-neck", "boolean", False, True),
+            parameter("no-vitals", "boolean", False, True),
+        ),
     ),
     AttackDefenseBinding(
         "advantage:innate-attack",
@@ -226,7 +234,34 @@ def purchase_cost(binding: AttackDefenseBinding, levels: int, options: TraitOpti
     if binding.id == "advantage:claws":
         base = {"blunt": 3, "sharp": 5, "talons": 8, "long-talons": 11}[str(values["kind"])]
     elif binding.id == "advantage:injury-tolerance":
-        base = {"diffuse": 100, "homogeneous": 40, "unliving": 20}[str(values["kind"])]
+        structure = str(values["structure"])
+        implied = {
+            "living": frozenset(),
+            "unliving": frozenset(),
+            "homogeneous": frozenset({"no-brain", "no-vitals"}),
+            "diffuse": frozenset({"no-blood", "no-brain", "no-vitals"}),
+        }[structure]
+        selected = {
+            name
+            for name in ("no-blood", "no-brain", "no-eyes", "no-head", "no-neck", "no-vitals")
+            if values[name]
+        }
+        if "no-head" in selected and "no-brain" in selected or selected & implied:
+            raise ValidationError("Injury Tolerance form redundantly selects an included benefit")
+        base = {"living": 0, "unliving": 20, "homogeneous": 40, "diffuse": 100}[structure]
+        base += sum(
+            {
+                "no-blood": 5,
+                "no-brain": 5,
+                "no-eyes": 5,
+                "no-head": 7,
+                "no-neck": 5,
+                "no-vitals": 5,
+            }[name]
+            for name in selected
+        )
+        if base == 0:
+            raise ValidationError("Injury Tolerance requires at least one selected form")
     elif binding.id == "advantage:innate-attack":
         base = {
             "burn": 5,

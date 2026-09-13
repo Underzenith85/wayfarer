@@ -23,6 +23,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.magic.gurps_magic import definitions
 from wayfarer.engine.rules.magic.protocols import MagicItemBinding
 from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
+from wayfarer.engine.rules.types.location import HumanBody
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
@@ -91,6 +92,7 @@ async def setup(
     alternatives: tuple[BackfireAlternative, ...] = (),
     mana: Literal["none", "low", "normal", "high", "very-high"] = "normal",
     reserve: bool = False,
+    human_targets: bool = False,
     equipment: tuple[EquipmentProfile, ...] = (),
 ) -> tuple[str, PlayService]:
     fixture_world, fixture_resources = world(), resources()
@@ -211,7 +213,11 @@ async def setup(
         fixture_resources,
         (
             ActorSetup(actor_id="a", proposal=CharacterProposal(draft=draft())),
-            ActorSetup(actor_id="b", proposal=CharacterProposal(draft=gurps_draft())),
+            ActorSetup(
+                actor_id="b",
+                proposal=CharacterProposal(draft=gurps_draft()),
+                body=HumanBody(anatomy="human") if human_targets else None,
+            ),
         )
         + (
             (ActorSetup(actor_id="c", proposal=CharacterProposal(draft=gurps_draft())),)

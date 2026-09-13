@@ -203,6 +203,7 @@ def _observation(
     engine: CombatEngine,
     encounter: Encounter,
     participant: Combatant,
+    resources: ResourceState,
     commitment: ManeuverState,
     *,
     actor_id: str,
@@ -233,7 +234,14 @@ def _observation(
             }
         )
     if maneuver == "aim":
-        if item_id not in participant.ready_item_ids:
+        held_missile = any(
+            effect.actor_id == actor_id
+            and effect.spell_id == "fireball"
+            and effect.execute_effects
+            and item_id == "spell:" + hashlib.sha256(effect.cast_id.encode()).hexdigest()
+            for effect in active_spells(resources)
+        )
+        if item_id not in participant.ready_item_ids and not held_missile:
             raise ValidationError("Aim requires a ready ranged weapon")
         return commitment.model_copy(
             update={
@@ -340,6 +348,7 @@ def prepare(
             engine,
             encounter,
             participant,
+            resources,
             commitment,
             actor_id=actor_id,
             maneuver=maneuver,

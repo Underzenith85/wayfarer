@@ -32,6 +32,7 @@ class InjuryTolerance(Record):
     """Trusted anatomy facts; never accepted as player-authored damage modifiers."""
 
     structure: Literal["living", "unliving", "homogenous", "diffuse"] = "living"
+    no_blood: bool = False
     no_brain: bool = False
     no_eyes: bool = False
     no_head: bool = False

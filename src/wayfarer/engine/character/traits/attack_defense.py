@@ -44,23 +44,33 @@ class AttackDefenseTraits(Record):
         return base_st + self.level("advantage:striking-st")
 
     def injury_tolerance(self) -> str | None:
-        value = self.parameter("advantage:injury-tolerance", "kind")
+        value = self.parameter("advantage:injury-tolerance", "structure")
         return None if value is None else str(value)
 
     def injury_tolerance_profile(self) -> InjuryTolerance | None:
         kind = self.injury_tolerance()
         if kind is None:
             return None
-        structures: Mapping[str, Literal["unliving", "homogenous", "diffuse"]] = {
+        structures: Mapping[str, Literal["living", "unliving", "homogenous", "diffuse"]] = {
+            "living": "living",
             "unliving": "unliving",
             "homogeneous": "homogenous",
             "diffuse": "diffuse",
         }
+        selected = {
+            name: bool(self.parameter("advantage:injury-tolerance", name.replace("_", "-")))
+            for name in ("no_blood", "no_brain", "no_eyes", "no_head", "no_neck", "no_vitals")
+        }
         return InjuryTolerance(
             structure=structures[kind],
-            no_brain=True,
-            no_vitals=True,
-            no_neck=kind in {"homogeneous", "diffuse"},
+            no_blood=selected["no_blood"] or kind == "diffuse",
+            no_brain=selected["no_brain"]
+            or selected["no_head"]
+            or kind in {"homogeneous", "diffuse"},
+            no_eyes=selected["no_eyes"],
+            no_head=selected["no_head"],
+            no_neck=selected["no_neck"],
+            no_vitals=selected["no_vitals"] or kind in {"homogeneous", "diffuse"},
         )
 
     def injury_multiplier(self, source_rarity: str) -> int:

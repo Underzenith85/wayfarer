@@ -1209,14 +1209,14 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        107
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "status": "verified",
+      "supported_subset": "All mutually exclusive structural and additive Injury Tolerance forms, exact costs and inclusions, anatomy and missing-part targeting, damage-type wounding, diffuse attack caps, choking immunity, crippling, recovery, persistence, and shared injury/effect reducer integration.",
       "evidence": [
-        "tests/test_attack_defense_traits.py"
+        "tests/test_attack_defense_traits.py",
+        "tests/test_geometry_injury_followups.py",
+        "tests/test_special_damage.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5808,14 +5808,15 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        173
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "verified",
+      "supported_subset": "Pinned construction and prerequisites plus canonical creation, charging, fatigue/HP payment, holding, Aim, interruption, Wait release, object and hit-location targeting, range, defenses, ranged criticals, burning injury, authority, retry, replay, and restart semantics.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_spell_bindings.py",
+        "tests/test_spell_execution.py",
+        "tests/test_projectile_objects.py"
       ],
       "members": [],
       "talent_cost": null,

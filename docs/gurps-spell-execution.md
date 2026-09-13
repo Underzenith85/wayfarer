@@ -1,10 +1,10 @@
 # Executable Basic Set magic
 
 Issue #171 connects the four representative spells to approved characters and
-existing world, combat, injury, hazard and campaign-ledger services. It does not
-make every broader Basic Set magic rule executable. The catalog source review is
-reconciled, but `gurps.magic.spellcasting` remains **partial** because Fireball
-retains #173 and the source ledger still records incomplete magic mechanics.
+existing world, combat, injury, hazard and campaign-ledger services. Issue #688
+closes the final representative Fireball gaps and verifies the supernatural
+spell inventory. Broader source-ledger work remains separately tracked and does
+not downgrade the complete spell inventory binding.
 
 ## Opt-in configuration
 
@@ -45,7 +45,7 @@ independently in `test_spell_energy.py`, `test_spell_backfires.py` and
 | B241, B247 | Up to three consecutive Fireball casting/expansion seconds, held-missile disposal, Will after injury, self-impact on losing control, Wait release, defense and burning injury, and nonpositive-HP consciousness checks. |
 | B246, B400, B433 | Stationary Create Fire, axial-hex radius, full-turn and transient crossing exposure, and large-area DR. A crossing that ends outside the fire still causes exposure. |
 | B249–251 | Light moves with Concentrate at Move 5; Daze prevents action/defense and ends on injury or successful resistance to another spell. |
-| B382, B556–557 | Fireball uses ranged critical-failure thresholds and supported body critical-hit consequences. Context-dependent physical ranged critical misses retain #173's explicit pause. |
+| B382, B398-400, B556–557 | Fireball uses its Acc 1 Aim state, targeted-location penalties, ranged critical-failure thresholds and typed body critical-hit consequences. |
 
 ## Context-dependent critical results
 

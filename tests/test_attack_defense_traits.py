@@ -56,24 +56,46 @@ def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
     return approved_build(compiler(), *purchases)
 
 
+def tolerance_options(structure: str = "living", **forms: bool) -> TraitOptions:
+    values: dict[str, str | bool] = {
+        "structure": structure,
+        "no-blood": False,
+        "no-brain": False,
+        "no-eyes": False,
+        "no-head": False,
+        "no-neck": False,
+        "no-vitals": False,
+    }
+    values.update({name.replace("_", "-"): enabled for name, enabled in forms.items()})
+    return options(**values)
+
+
 def test_registry_and_inventory_account_for_all_18_entries() -> None:
     assert {binding.id: binding.point_cost for binding in BINDINGS} == EXPECTED
     rows = {row.id: row for row in inventory().entries if row.id in EXPECTED}
     assert set(rows) == set(EXPECTED)
-    assert rows["advantage:injury-tolerance"].blockers == (107,)
-    assert all(
-        row.blockers == ()
-        for identifier, row in rows.items()
-        if identifier != "advantage:injury-tolerance"
-    )
-    assert all(row.evidence == ("tests/test_attack_defense_traits.py",) for row in rows.values())
+    assert all(row.blockers == () for row in rows.values())
+    assert "tests/test_attack_defense_traits.py" in rows["advantage:injury-tolerance"].evidence
 
 
 @pytest.mark.parametrize(
     ("purchase", "expected"),
     [
         (Purchase(definition_id="advantage:claws", trait=options(kind="long-talons")), 11),
-        (Purchase(definition_id="advantage:injury-tolerance", trait=options(kind="diffuse")), 100),
+        (
+            Purchase(
+                definition_id="advantage:injury-tolerance",
+                trait=tolerance_options("diffuse"),
+            ),
+            100,
+        ),
+        (
+            Purchase(
+                definition_id="advantage:injury-tolerance",
+                trait=tolerance_options(no_head=True, no_eyes=True, no_neck=True),
+            ),
+            17,
+        ),
         (
             Purchase(
                 definition_id="advantage:innate-attack",
@@ -126,7 +148,10 @@ def test_projection_feeds_defense_damage_and_survival_values() -> None:
         Purchase(definition_id="advantage:damage-resistance", amount=4),
         Purchase(definition_id="advantage:nictitating-membrane", amount=2),
         Purchase(definition_id="advantage:striking-st", amount=3),
-        Purchase(definition_id="advantage:injury-tolerance", trait=options(kind="unliving")),
+        Purchase(
+            definition_id="advantage:injury-tolerance",
+            trait=tolerance_options("unliving"),
+        ),
         Purchase(definition_id="advantage:unkillable", amount=2),
         Purchase(
             definition_id="disadvantage:vulnerability",
@@ -140,6 +165,56 @@ def test_projection_feeds_defense_damage_and_survival_values() -> None:
     assert traits.injury_tolerance_profile() is not None
     assert traits.injury_multiplier("very-common") == 3
     assert traits.death_thresholds_ignored() == 2
+
+
+@pytest.mark.parametrize(
+    ("structure", "forms", "expected"),
+    [
+        ("living", {"no_blood": True}, ("living", True, False, False, False, False, False)),
+        ("living", {"no_brain": True}, ("living", False, True, False, False, False, False)),
+        ("living", {"no_eyes": True}, ("living", False, False, True, False, False, False)),
+        ("living", {"no_head": True}, ("living", False, True, False, True, False, False)),
+        ("living", {"no_neck": True}, ("living", False, False, False, False, True, False)),
+        ("living", {"no_vitals": True}, ("living", False, False, False, False, False, True)),
+        ("homogeneous", {}, ("homogenous", False, True, False, False, False, True)),
+        ("diffuse", {}, ("diffuse", True, True, False, False, False, True)),
+    ],
+)
+def test_all_injury_tolerance_forms_project_exact_anatomy(
+    structure: str, forms: dict[str, bool], expected: tuple[object, ...]
+) -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="advantage:injury-tolerance",
+            trait=tolerance_options(structure, **forms),
+        )
+    )
+    profile = attack_defense_traits(build, engine.definitions).injury_tolerance_profile()
+    assert profile is not None
+    assert (
+        profile.structure,
+        profile.no_blood,
+        profile.no_brain,
+        profile.no_eyes,
+        profile.no_head,
+        profile.no_neck,
+        profile.no_vitals,
+    ) == expected
+
+
+def test_redundant_or_empty_injury_tolerance_forms_fail_closed() -> None:
+    engine = compiler()
+    for selected in (
+        tolerance_options(),
+        tolerance_options("diffuse", no_blood=True),
+        tolerance_options(no_head=True, no_brain=True),
+    ):
+        result = engine.compile(
+            gurps_draft(Purchase(definition_id="advantage:injury-tolerance", trait=selected))
+        )
+        assert result.build is None and "trait.invalid" in {
+            error.code for error in result.diagnostics
+        }
 
 
 def world() -> World:

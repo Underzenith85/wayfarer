@@ -331,6 +331,7 @@ def _begin_turn(
     if (
         allowed
         and command.item_id
+        and not command.item_id.startswith("spell:")
         and command.maneuver in ("attack", "all_out_attack", "move_and_attack", "aim", "feint")
     ):
         state, encounter = stress(
