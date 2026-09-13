@@ -4297,6 +4297,14 @@
             },
             "title": "Quick Learning",
             "type": "array"
+          },
+          "teaching": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/TeachingBinding"
+            },
+            "title": "Teaching",
+            "type": "array"
           }
         },
         "required": [
@@ -7952,6 +7960,55 @@
         "title": "LawRules",
         "type": "object"
       },
+      "LeadershipActivityRule": {
+        "additionalProperties": false,
+        "description": "A GM-authored NPC group activity gated by one B204 trigger.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "trigger_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Trigger Id",
+            "type": "string"
+          },
+          "group_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Group Id",
+            "type": "string"
+          },
+          "activity_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "follower_actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Follower Actor Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "trigger_id",
+          "group_id",
+          "activity_id",
+          "follower_actor_ids"
+        ],
+        "title": "LeadershipActivityRule",
+        "type": "object"
+      },
       "LearnedCommand": {
         "additionalProperties": false,
         "properties": {
@@ -9439,6 +9496,14 @@
               "$ref": "#/$defs/CrossSceneEffect"
             },
             "title": "Effects",
+            "type": "array"
+          },
+          "leadership": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/LeadershipActivityRule"
+            },
+            "title": "Leadership",
             "type": "array"
           }
         },
@@ -12520,6 +12585,37 @@
           "partial"
         ],
         "title": "SurpriseState",
+        "type": "object"
+      },
+      "TeachingBinding": {
+        "additionalProperties": false,
+        "description": "An authored social trigger that licenses one instructed study program.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "trigger_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Trigger Id",
+            "type": "string"
+          },
+          "study_rule_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Study Rule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger_id",
+          "study_rule_id"
+        ],
+        "title": "TeachingBinding",
         "type": "object"
       },
       "TradeOffer": {
