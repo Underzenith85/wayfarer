@@ -127,7 +127,7 @@ def validate_change(
     return result
 
 
-APPROVAL_REFUSAL = "Fright build decisions require a configured director"
+APPROVAL_REFUSAL = "Fright build decisions require configured director authority"
 
 
 class FrightBuildService:
