@@ -30,7 +30,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import CommandEntropy
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.transport.common import ACCESS_KEY
+from wayfarer.transport.common import RUNTIME_KEY
 
 
 def test_seeded_random_is_repeatable_for_dice_and_arbitrary_bounds() -> None:
@@ -165,9 +165,9 @@ async def test_reference_adventure_seed_replays_checkpoint_and_is_private(tmp_pa
     await table.open()
     try:
         assert table.client
-        table.client.app[ACCESS_KEY].play.rng = secrets
+        table.client.app[RUNTIME_KEY].play.rng = secrets
         await table.start()
-        play = table.client.app[ACCESS_KEY].play
+        play = table.client.app[RUNTIME_KEY].play
         play = play.for_campaign(await play.store.read(table.cid))
         before = play._load(await play.store.read(table.cid))
         command = Inspect(

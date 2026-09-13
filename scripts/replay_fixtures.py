@@ -87,14 +87,14 @@ async def engine_for(name: str, directory: Path) -> ActionEngine:
     if name == "reference":
         from test_wave14 import Table
 
-        from wayfarer.transport.common import ACCESS_KEY
+        from wayfarer.transport.common import RUNTIME_KEY
 
         table = Table(directory / "reference.sqlite")
         await table.open()
         try:
             await table.start()
             assert table.client
-            play = table.client.app[ACCESS_KEY].play
+            play = table.client.app[RUNTIME_KEY].play
             return play.for_campaign(await play.store.read(table.cid)).engine
         finally:
             await table.close()
@@ -228,14 +228,14 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
     if name == "reference":
         from test_wave14 import Table
 
-        from wayfarer.transport.common import ACCESS_KEY
+        from wayfarer.transport.common import RUNTIME_KEY
 
         table = Table(directory / "reference.sqlite")
         await table.open()
         await table.start()
         assert table.client
-        play = table.client.app[ACCESS_KEY].play.for_campaign(
-            await table.client.app[ACCESS_KEY].play.store.read(table.cid)
+        play = table.client.app[RUNTIME_KEY].play.for_campaign(
+            await table.client.app[RUNTIME_KEY].play.store.read(table.cid)
         )
         cid = table.cid
     elif name in ("capture-rescue", "recovery"):

@@ -41,15 +41,13 @@ from wayfarer.orchestration.workshop_options import (
     WorkshopOptions,
     WorkshopReviewQueue,
     catalog_options,
-    preview_character,
     preview_profile,
     profile_option,
 )
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.transport.common import (
-    ACCESS_KEY,
     MAX_BODY,
     ORCHESTRATOR_KEY,
+    RUNTIME_KEY,
     TOKENS_KEY,
     _identity,
     _json,
@@ -121,14 +119,14 @@ async def health(_: web.Request) -> web.Response:
 
 
 async def read_campaign(request: web.Request) -> web.Response:
-    result = await request.app[ACCESS_KEY].read(
+    result = await request.app[RUNTIME_KEY].read(
         request.match_info["cid"], principal_id=_identity(request)
     )
     return web.json_response(result)
 
 
 async def command(request: web.Request) -> web.Response:
-    result = await request.app[ACCESS_KEY].submit_json(
+    result = await request.app[RUNTIME_KEY].submit_json(
         request.match_info["cid"], await _json(request), principal_id=_identity(request)
     )
     return web.json_response(result)
@@ -144,10 +142,10 @@ class InterpretRequest(Record):
 async def interpret(request: web.Request) -> web.Response:
     body = InterpretRequest.model_validate(await _json(request))
     base = request.app[ORCHESTRATOR_KEY]
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
     orchestrator = (
         base
-        if access is request.app[ACCESS_KEY]
+        if access is request.app[RUNTIME_KEY]
         else Orchestrator(
             access,
             base.provider,
@@ -189,7 +187,7 @@ class GenerateDraftRequest(Record):
 async def generate_draft(request: web.Request) -> web.Response:
     body = GenerateDraftRequest.model_validate_json(json.dumps(await _json(request)))
     result = await WorkshopService(
-        await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
+        await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
     ).generate(
         request.match_info["cid"],
         body.command,
@@ -201,11 +199,11 @@ async def generate_draft(request: web.Request) -> web.Response:
 
 
 async def workshop_start(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
+    state = await access.checkpoint(request.match_info["cid"])
     actor_id = request.match_info["aid"]
     member = access.member(state, _identity(request))
-    reviewing = member.role == "gm" and member.principal_id in access.play.engine.reviewer.gm_ids
+    reviewing = member.role == "gm" and access.directs(member.principal_id)
     if not reviewing:
         access.control(member, actor_id)
     actor = next((a for a in state.actors if a.actor_id == actor_id), None)
@@ -226,7 +224,7 @@ async def workshop_start(request: web.Request) -> web.Response:
     )
     if reviewing and draft is None:
         raise AuthorizationError("Submitted draft unavailable")
-    compiler = access.play.engine.reviewer.compiler
+    compiler = access.compiler
     build = compiler.compile(actor.proposal.draft).build
     active = DEFAULT_REGISTRY.find(reference(compiler.rules))
     options = WorkshopOptions(
@@ -236,8 +234,7 @@ async def workshop_start(request: web.Request) -> web.Response:
         catalog=catalog_options(compiler),
         build_revision=build.revision if build else None,
         points_available=sum(e.points for e in state.advancement if e.actor_id == actor_id),
-        can_approve=member.role == "gm"
-        and member.principal_id in access.play.engine.reviewer.gm_ids,
+        can_approve=member.role == "gm" and access.directs(member.principal_id),
         can_edit=actor_id in member.actor_ids,
     )
     return web.json_response(
@@ -252,10 +249,10 @@ async def workshop_start(request: web.Request) -> web.Response:
 
 
 async def workshop_reviews(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
+    state = await access.checkpoint(request.match_info["cid"])
     member = access.member(state, _identity(request))
-    if member.role != "gm" or member.principal_id not in access.play.engine.reviewer.gm_ids:
+    if member.role != "gm" or not access.directs(member.principal_id):
         raise AuthorizationError("Workshop review requires campaign GM")
 
     controlled = {a for m in state.members if m.role == "player" for a in m.actor_ids}
@@ -286,9 +283,9 @@ async def workshop_reviews(request: web.Request) -> web.Response:
 
 async def workshop_grant(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
     cid, principal = request.match_info["cid"], _identity(request)
-    state = access.play._load(await access.play.store.read(cid))
+    state = await access.checkpoint(cid)
     if access.member(state, principal).role != "gm":
         raise AuthorizationError("Point grants require campaign GM")
     body = GrantPoints.model_validate_json(json.dumps(await _json(request)))
@@ -297,18 +294,16 @@ async def workshop_grant(request: web.Request) -> web.Response:
 
 
 async def workshop_character_preview(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
+    state = await access.checkpoint(request.match_info["cid"])
     access.control(access.member(state, _identity(request)), request.match_info["aid"])
     body = CharacterPreviewRequest.model_validate_json(json.dumps(await _json(request)))
-    return web.json_response(
-        preview_character(access.play.engine.reviewer, body.proposal).model_dump(mode="json")
-    )
+    return web.json_response(access.preview(body.proposal).model_dump(mode="json"))
 
 
 async def workshop_profile_preview(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
+    state = await access.checkpoint(request.match_info["cid"])
     access.member(state, _identity(request))
     body = ProfilePreviewRequest.model_validate_json(json.dumps(await _json(request)))
     return web.json_response(preview_profile(body).model_dump(mode="json"))
@@ -316,9 +311,9 @@ async def workshop_profile_preview(request: web.Request) -> web.Response:
 
 async def workshop_advance(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
     cid = request.match_info["cid"]
-    state = access.play._load(await access.play.store.read(cid))
+    state = await access.checkpoint(cid)
     body = AdvanceCharacter.model_validate_json(json.dumps(await _json(request)))
     access.control(access.member(state, _identity(request)), body.actor_id)
     service = AdvancementService(access.play)
@@ -334,7 +329,7 @@ async def workshop_advance(request: web.Request) -> web.Response:
 
 async def read_draft(request: web.Request) -> web.Response:
     result = await WorkshopService(
-        await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
+        await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
     ).read(request.match_info["cid"], request.match_info["did"], principal_id=_identity(request))
     return web.json_response(result)
 
@@ -342,15 +337,15 @@ async def read_draft(request: web.Request) -> web.Response:
 async def save_draft(request: web.Request) -> web.Response:
     body = DraftCommand.model_validate_json(json.dumps(await _json(request)))
     result = await WorkshopService(
-        await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
+        await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
     ).execute(request.match_info["cid"], body, principal_id=_identity(request))
     return web.json_response(result)
 
 
 async def validate_scenario(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
-    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    access = await request.app[RUNTIME_KEY].for_campaign(request.match_info["cid"])
+    state = await access.checkpoint(request.match_info["cid"])
     if access.member(state, _identity(request)).role != "gm":
         raise AuthorizationError("Scenario authoring requires GM")
     graph = ScenarioGraph.model_validate_json(json.dumps(await _json(request)))
@@ -373,7 +368,7 @@ def create_campaign_app(
     if not tokens or any(not token or not principal for token, principal in tokens.items()):
         raise ValueError("Non-empty credentials required")
     app = web.Application(middlewares=[boundary], client_max_size=MAX_BODY)
-    app[ACCESS_KEY] = runtime
+    app[RUNTIME_KEY] = runtime
     app[TOKENS_KEY] = dict(tokens)
     app[LIMITS_KEY] = {}
     install_tactical(app)
@@ -411,12 +406,10 @@ def create_campaign_app(
     )
 
     if v1_ledger_path is None:
-        if not isinstance(runtime.play.store, AsyncSQLiteStore):
-            raise ValueError("Configure v1_ledger_path for the durable API receipt database")
-        v1_ledger_path = runtime.play.store.path.with_suffix(".v1.sqlite3")
+        v1_ledger_path = runtime.ledger_path()
     v1 = install(
         app,
-        runtime.play,
+        runtime,
         tokens,
         v1_ledger_path,
         jobs=runtime.jobs,

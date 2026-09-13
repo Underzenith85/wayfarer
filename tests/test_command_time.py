@@ -5,7 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from support.runtime import build_play, played, seed_campaign
+from support.runtime import build_play, build_runtime, played, seed_campaign
 from test_actions import campaign, engine
 from test_v1_api import api as api
 
@@ -90,7 +90,9 @@ async def test_saved_invitation_claim_resumes_after_expiry(
 ) -> None:
     _, cid, hosted = api
     now = [CommandInstant(1_000_000_000)]
-    service = V1Service(hosted.play, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now))
+    service = V1Service(
+        hosted.runtime, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now)
+    )
     await service.start()
     async with service.ledger.transaction(instant=now[0]) as tx:
         version = obj((await service.view(tx, cid, "gm")).campaign["membership"])["version"]
@@ -113,7 +115,9 @@ async def test_saved_invitation_claim_resumes_after_expiry(
         instants=scripted(now),
         seeds=hosted.play.seeds,
     )
-    broken = V1Service(crashing, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now))
+    broken = V1Service(
+        build_runtime(crashing), hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now)
+    )
     await broken.start()
     try:
         with pytest.raises(RuntimeError, match="after claim"):
@@ -121,7 +125,9 @@ async def test_saved_invitation_claim_resumes_after_expiry(
     finally:
         await broken.close()
     now[0] = CommandInstant(2_000_000_000)
-    restarted = V1Service(hosted.play, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now))
+    restarted = V1Service(
+        hosted.runtime, hosted.ledger.path, jobs=hosted.jobs, instants=scripted(now)
+    )
     await restarted.start()
     try:
         membership = await invitations.invitation(

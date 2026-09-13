@@ -16,7 +16,7 @@ from jsonschema import Draft202012Validator
 from wayfarer.errors import WayfarerError
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.jobs import ProviderJobs
-from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.runtime import CampaignRuntime
 
 from .common import (
     HTTP,
@@ -316,7 +316,7 @@ async def route(
 
 def install(
     app: web.Application,
-    play: PlayService,
+    runtime: CampaignRuntime,
     tokens: Mapping[str, str],
     path: Path,
     *,
@@ -325,7 +325,7 @@ def install(
     origins: frozenset[str] = frozenset(),
     allow_no_origin: bool = False,
 ) -> V1Service:
-    service = V1Service(play, path, jobs=jobs, instants=instants)
+    service = V1Service(runtime, path, jobs=jobs, instants=instants)
     app[SERVICE], app[TOKENS] = service, dict(tokens)
     app[ORIGINS], app[NO_ORIGIN], app[LIMITS] = origins, allow_no_origin, {}
     app.middlewares.insert(0, boundary)

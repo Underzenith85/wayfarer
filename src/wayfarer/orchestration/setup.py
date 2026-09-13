@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
 
 from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.simulation.actions import ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
@@ -31,6 +32,10 @@ from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.scenario_documents import ScenarioDocuments
 from wayfarer.orchestration.scenario_references import pin_scenario
 from wayfarer.orchestration.studio import ScenarioStudio
+from wayfarer.orchestration.workshop_options import (
+    CharacterPreviewResult,
+    preview_character,
+)
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.providers import Orchestrator
@@ -455,6 +460,18 @@ class SetupService:
             if pin is not None and pin.reference.catalog_id != catalog_id:
                 raise ConflictError("Creation identity already pins another catalog")
         return await self.read(cid, principal_id=principal_id)
+
+    async def preview(
+        self, cid: str, proposal: CharacterProposal, *, principal_id: str
+    ) -> CharacterPreviewResult:
+        """Compile a party character for the host's editor, committing nothing."""
+        campaign = await self.play.store.read(cid)
+        setup = self.load(campaign)
+        self.seat(setup, principal_id)
+        if setup.host_id != principal_id:
+            raise AuthorizationError("Only the host edits the setup party")
+        play = self.play.for_campaign(campaign)
+        return preview_character(play.engine.reviewer, proposal)
 
     async def listing(self, *, principal_id: str) -> list[dict[str, object]]:
         """One query for this principal's campaigns, then their lobby projections."""
