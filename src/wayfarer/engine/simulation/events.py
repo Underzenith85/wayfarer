@@ -28,7 +28,7 @@ from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.health.fright_state import TimedFright
 from wayfarer.engine.simulation.health.hazards import HazardResult
 from wayfarer.engine.simulation.health.injury import InjuryResult
-from wayfarer.engine.simulation.magic.spells import SpellEvent
+from wayfarer.engine.simulation.magic.spell_state import SpellEvent
 from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record

@@ -30,6 +30,7 @@ from wayfarer.engine.simulation.health.hit_locations import (
     select_location,
     wound_factor,
 )
+from wayfarer.engine.simulation.magic.spell_state import break_daze
 from wayfarer.engine.simulation.resources import (
     Command,
     Pool,
@@ -654,10 +655,6 @@ def apply_injury(
         }
     )
     if injury:
-        # deferred: fatigue -> injury -> magic.effects -> magic.spells -> fatigue.
-        # Breaking a daze is a spell effect; spellcasting spends fatigue, which is injured here.
-        from wayfarer.engine.simulation.magic.effects import break_daze
-
         updated = break_daze(updated, command.actor_id, command.id)
     return ResourceState.model_validate(updated), result
 
