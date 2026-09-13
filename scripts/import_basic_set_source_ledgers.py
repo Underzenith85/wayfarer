@@ -161,7 +161,7 @@ def section_shape(depth: int, page: int, title: str) -> tuple[str, str, str]:
         return "example", "reference-only", "not-applicable"
     if any(word in lower for word in REFERENCE_WORDS):
         return "reference", "reference-only", "not-applicable"
-    if page >= 522:
+    if page >= 523:
         return "setting", "setting-unresolved", "absent"
     if depth == 0:
         return "structural-section", "required", "absent"
@@ -222,9 +222,10 @@ def import_sections(characters: Path, campaigns: Path) -> list[LedgerRow]:
 
         walk(cast(list[object], reader.outline))
 
-    # pypdf pages are zero-based: B1 is Characters index 2 and B337 is Campaigns index 2.
+    # pypdf pages are zero-based: B1 is Characters index 2. Campaigns' title leaf
+    # is B337 at index 1, so its first visible contents page is B339 at index 3.
     add_outline("characters-third", "characters", characters, -1)
-    add_outline("campaigns-fourth", "campaigns", campaigns, 335)
+    add_outline("campaigns-fourth", "campaigns", campaigns, 336)
     return rows
 
 

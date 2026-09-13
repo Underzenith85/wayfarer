@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Literal
 
@@ -92,7 +92,7 @@ class InventoryItem:
     blockers: tuple[int, ...] = ()
 
 
-def inventory() -> tuple[InventoryItem, ...]:
+def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
     """Read owner inventories; candidate counts never imply exhaustive source coverage."""
     # Item-level skill blockers and certification state come from the owner
     # inventory; a blanket family status would hide unowned runtime coverage.
@@ -208,7 +208,20 @@ def inventory() -> tuple[InventoryItem, ...]:
                     blockers=(owner,),
                 )
             )
-    return tuple(rows)
+    ledger_root = root or Path(__file__).resolve().parents[3]
+    bundle = load_source_ledgers(ledger_root)
+    reviewed_bindings = {
+        row.runtime_binding: row
+        for row in bundle.rows
+        if row.runtime_binding is not None and row.source_review == "reviewed"
+    }
+    return tuple(
+        replace(row, source_review="reviewed")
+        if row.id in reviewed_bindings
+        and set(reviewed_bindings[row.id].profile_membership) <= set(row.required_profiles)
+        else row
+        for row in rows
+    )
 
 
 def fingerprint(value: object) -> str:
@@ -320,7 +333,7 @@ def validate(root: Path, manifest: Manifest) -> None:
     # hand, so the release pipeline checks that derivation here (#358).
     validate_coverage()
     source_ledgers = load_source_ledgers(root)
-    validate_source_ledgers(source_ledgers, inventory(), frozenset(CAPABILITIES))
+    validate_source_ledgers(source_ledgers, inventory(root), frozenset(CAPABILITIES))
 
 
 def blockers(manifest: Manifest) -> tuple[str, ...]:
