@@ -5,7 +5,9 @@ the real CharacterCompiler, not fixture
 values generated from the catalog under test.
 """
 
+import json
 from dataclasses import replace
+from pathlib import Path
 from typing import Literal
 
 import pytest
@@ -14,10 +16,12 @@ from test_statistics import gurps_draft, profile_compiler, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
 from wayfarer.engine.character.templates import (
+    RacialOmission,
     Selection,
     Template,
     TemplateCatalog,
     TemplateChoice,
+    TemplateComponent,
     TemplateOption,
     representative_templates,
 )
@@ -37,6 +41,10 @@ from wayfarer.engine.rules.traits.mundane.runtime import (
     SUPPORTED_HOOKS,
 )
 from wayfarer.errors import ValidationError
+
+TEMPLATE_CASES = json.loads(
+    (Path(__file__).parent / "fixtures/gurps/template-construction.json").read_text()
+)["cases"]
 
 
 def combined_package() -> RulesPackage:
@@ -372,8 +380,14 @@ def test_template_duplicates_cycles_and_taboo_traits_fail_closed() -> None:
     with pytest.raises(ValidationError, match="once"):
         taboo.preview(gurps_draft(), ("a", "a"))
     duplicate = TemplateCatalog(representative_templates(), engine)
-    with pytest.raises(ValidationError, match="reconciliation"):
-        duplicate.preview(gurps_draft(Purchase(definition_id="trait:fit")), ("template:guard",))
+    reconciled = duplicate.preview(
+        gurps_draft(Purchase(definition_id="trait:fit")), ("template:guard",)
+    )
+    assert [p.definition_id for p in reconciled.draft.purchases].count("trait:fit") == 1
+    assert [p.origin for p in reconciled.provenance if p.definition_id == "trait:fit"] == [
+        "personal",
+        "occupational",
+    ]
 
 
 def test_racial_templates_cannot_make_mandatory_traits_optional() -> None:
@@ -393,6 +407,181 @@ def test_racial_templates_cannot_make_mandatory_traits_optional() -> None:
                 ),
             ),
         )
+
+
+def test_optional_choices_and_compiler_priced_allocations_are_bounded() -> None:
+    template = Template(
+        id="template:scout",
+        kind="occupational",
+        choices=(
+            TemplateChoice(
+                id="optional-training",
+                minimum_count=0,
+                maximum_count=2,
+                point_budget=5,
+                options=(
+                    TemplateOption(
+                        id="fit",
+                        purchases=(Purchase(definition_id="trait:fit"),),
+                        excludes=("combat-reflexes",),
+                    ),
+                    TemplateOption(
+                        id="combat-reflexes",
+                        purchases=(Purchase(definition_id="trait:combat-reflexes"),),
+                        excludes=("fit",),
+                    ),
+                ),
+            ),
+        ),
+    )
+    catalog = TemplateCatalog((template,), runtime_compiler())
+    assert catalog.preview(gurps_draft(), (template.id,)).compilation.spent == 0
+    selected = catalog.preview(
+        gurps_draft(),
+        (template.id,),
+        (Selection(template_id=template.id, choice_id="optional-training", option_ids=("fit",)),),
+    )
+    assert (
+        selected.compilation.spent == TEMPLATE_CASES["optional-fit-allocation"]["selected_points"]
+    )
+    with pytest.raises(ValidationError, match="point allocation"):
+        catalog.preview(
+            gurps_draft(),
+            (template.id,),
+            (
+                Selection(
+                    template_id=template.id,
+                    choice_id="optional-training",
+                    option_ids=("combat-reflexes",),
+                ),
+            ),
+        )
+    with pytest.raises(ValidationError, match="choice"):
+        catalog.preview(
+            gurps_draft(),
+            (template.id,),
+            (
+                Selection(
+                    template_id=template.id,
+                    choice_id="optional-training",
+                    option_ids=("fit", "combat-reflexes"),
+                ),
+            ),
+        )
+
+    allocated_template = Template(
+        id="template:allocated-training",
+        kind="occupational",
+        choices=(
+            TemplateChoice(
+                id="skill-points",
+                point_budget=5,
+                allowed_definition_ids=("trait:fit", "trait:combat-reflexes"),
+            ),
+        ),
+    )
+    allocated = TemplateCatalog((allocated_template,), runtime_compiler()).preview(
+        gurps_draft(),
+        (allocated_template.id,),
+        (
+            Selection(
+                template_id=allocated_template.id,
+                choice_id="skill-points",
+                allocations=(Purchase(definition_id="trait:fit"),),
+            ),
+        ),
+    )
+    assert allocated.compilation.spent == 5
+
+
+def test_subrace_meta_trait_omission_and_advancement_keep_owned_provenance() -> None:
+    templates = (
+        Template(
+            id="meta:warrior-instincts",
+            kind="meta-trait",
+            purchases=(Purchase(definition_id="trait:combat-reflexes"),),
+        ),
+        Template(
+            id="race:stout",
+            kind="racial",
+            purchases=(Purchase(definition_id="trait:fit"),),
+            omittable_traits=("trait:fit",),
+        ),
+        Template(
+            id="race:stout-guardian",
+            kind="racial",
+            includes=("race:stout", "meta:warrior-instincts"),
+            components=(
+                TemplateComponent(
+                    purchase=Purchase(definition_id="attribute:st", amount=2),
+                    mode="additive",
+                ),
+            ),
+        ),
+    )
+    catalog = TemplateCatalog(templates, runtime_compiler())
+    preview = catalog.preview(gurps_draft(), ("race:stout-guardian",))
+    assert preview.compilation.spent == TEMPLATE_CASES["stout-guardian"]["total_points"]
+    assert preview.compilation.legal
+    assert {
+        (entry.definition_id, entry.origin, entry.template_id)
+        for entry in preview.provenance
+        if entry.origin != "personal"
+    } == {
+        ("trait:fit", "racial", "race:stout"),
+        ("trait:combat-reflexes", "meta-trait", "meta:warrior-instincts"),
+        ("attribute:st", "sub-race", "race:stout-guardian"),
+    }
+    omitted = catalog.preview(
+        gurps_draft(),
+        ("race:stout-guardian",),
+        omissions=(RacialOmission(template_id="race:stout", definition_ids=("trait:fit",)),),
+    )
+    assert omitted.compilation.spent == TEMPLATE_CASES["stout-guardian-without-fit"]["total_points"]
+    assert [(entry.points, entry.template_id) for entry in omitted.adjustments] == [
+        (-5, "race:stout")
+    ]
+    advanced = catalog.advance(
+        preview,
+        gurps_draft(Purchase(definition_id="trait:fit")),
+    )
+    assert [
+        entry.origin for entry in advanced.provenance if entry.definition_id == "trait:fit"
+    ] == [
+        "personal",
+        "racial",
+    ]
+    assert [p.definition_id for p in advanced.draft.purchases].count("trait:fit") == 1
+
+
+def test_player_races_require_permission_and_meta_traits_cannot_enable_components() -> None:
+    player_race = Template(
+        id="race:player",
+        kind="racial",
+        origin="player",
+        purchases=(Purchase(definition_id="trait:fit"),),
+    )
+    denied = TemplateCatalog((player_race,), runtime_compiler())
+    with pytest.raises(ValidationError, match="permission"):
+        denied.preview(gurps_draft(), (player_race.id,))
+    permitted = TemplateCatalog(
+        (player_race,),
+        runtime_compiler(),
+        allow_player_created_races=True,
+    )
+    assert permitted.preview(gurps_draft(), (player_race.id,)).compilation.legal
+
+    unavailable = Template(
+        id="meta:memory",
+        kind="meta-trait",
+        purchases=(Purchase(definition_id="trait:eidetic-memory"),),
+    )
+    result = TemplateCatalog((unavailable,), compiler()).preview(gurps_draft(), (unavailable.id,))
+    assert not result.compilation.legal
+    assert result.compilation.build is None
+    assert "trait.runtime_unavailable" in {
+        diagnostic.code for diagnostic in result.compilation.diagnostics
+    }
 
 
 def test_template_digest_changes_with_composition_and_exact_rules_pin() -> None:
