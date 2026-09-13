@@ -154,8 +154,8 @@ EVENT_ADAPTER: TypeAdapter[EngineEvent] = TypeAdapter(EngineEvent)
 JSON_ADAPTER: TypeAdapter[JsonValue] = TypeAdapter(JsonValue)
 
 
-def visible(event: EngineEvent, member: CampaignMember) -> bool:
-    audience = event.audience
+def audience_visible(audience: EventAudience, member: CampaignMember) -> bool:
+    """Apply the shared event-audience boundary to any typed engine fact."""
     return (
         member.role == "gm"
         or isinstance(audience, CampaignAudience)
@@ -164,6 +164,10 @@ def visible(event: EngineEvent, member: CampaignMember) -> bool:
             and bool(set(audience.actor_ids) & set(member.actor_ids))
         )
     )
+
+
+def visible(event: EngineEvent, member: CampaignMember) -> bool:
+    return audience_visible(event.audience, member)
 
 
 def digest(value: object) -> str:

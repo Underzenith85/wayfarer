@@ -7,7 +7,7 @@
     {"issue": 492, "state": "open", "title": "Import exhaustive Basic Set source ledgers"},
     {"issue": 493, "state": "open", "title": "Disposition every named Basic Set optional rule"},
     {"issue": 494, "state": "open", "title": "Decide and enforce the Infinite Worlds boundary"},
-    {"issue": 495, "state": "open", "title": "Complete character creation and background construction"},
+    {"issue": 495, "state": "closed", "title": "Complete character creation and background construction"},
     {"issue": 496, "state": "open", "title": "Reconcile every mundane trait"},
     {"issue": 497, "state": "open", "title": "Catalog and execute trait modifiers"},
     {"issue": 498, "state": "open", "title": "Complete character and racial templates"},

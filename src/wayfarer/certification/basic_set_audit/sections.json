@@ -24,7 +24,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": null,
@@ -48,7 +48,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b005:introduction",
@@ -72,7 +72,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b005:introduction",
@@ -96,7 +96,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b007:what-is-roleplaying",
@@ -120,7 +120,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b007:what-is-roleplaying",
@@ -144,7 +144,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b005:introduction",
@@ -168,7 +168,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b008:quick-start",
@@ -186,13 +186,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": null,
@@ -210,13 +214,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -234,13 +242,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -258,13 +270,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -282,13 +298,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -307,12 +327,16 @@
       ],
       "disposition": "reference-only",
       "implementation": "not-applicable",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -330,13 +354,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -354,13 +382,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -378,13 +410,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -402,13 +438,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -426,13 +466,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b014:basic-attributes",
@@ -450,13 +494,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b014:basic-attributes",
@@ -474,13 +522,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b014:basic-attributes",
@@ -498,13 +550,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -522,13 +578,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b015:secondary-characteristics",
@@ -546,13 +606,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b015:secondary-characteristics",
@@ -570,13 +634,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b015:secondary-characteristics",
@@ -595,12 +663,16 @@
       ],
       "disposition": "reference-only",
       "implementation": "not-applicable",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b015:secondary-characteristics",
@@ -618,13 +690,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -642,13 +718,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b018:build",
@@ -666,13 +746,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b018:build",
@@ -690,13 +774,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b018:build",
@@ -714,13 +802,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -738,13 +830,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b020:age-and-beauty",
@@ -762,13 +858,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b020:age-and-beauty",
@@ -786,13 +886,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b020:age-and-beauty",
@@ -811,12 +915,16 @@
       ],
       "disposition": "reference-only",
       "implementation": "not-applicable",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b020:age-and-beauty",
@@ -834,13 +942,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -858,13 +970,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b022:social-background",
@@ -882,13 +998,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b022:social-background",
@@ -906,13 +1026,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b022:social-background",
@@ -930,13 +1054,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b022:social-background",
@@ -954,13 +1082,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b022:social-background",
@@ -978,13 +1110,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b022:social-background",
@@ -1003,12 +1139,16 @@
       ],
       "disposition": "reference-only",
       "implementation": "not-applicable",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b022:social-background",
@@ -1026,13 +1166,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -1050,13 +1194,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1074,13 +1222,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1098,13 +1250,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1122,13 +1278,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1146,13 +1306,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1170,13 +1334,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1194,13 +1362,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1219,12 +1391,16 @@
       ],
       "disposition": "reference-only",
       "implementation": "not-applicable",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1242,13 +1418,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1266,13 +1446,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b025:wealth-and-influence",
@@ -1290,13 +1474,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -1314,13 +1502,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b031:friends-and-foes",
@@ -1338,13 +1530,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b031:friends-and-foes",
@@ -1362,13 +1558,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b010:1-creating-a-character",
@@ -1386,13 +1586,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-character-creation.md",
+        "tests/test_character_construction.py"
       ],
-      "completion_owner": 495,
+      "historical_owners": [
+        191,
+        495
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b031:identities",
@@ -2352,7 +2556,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b165:new-disadvantages",
@@ -2376,7 +2580,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": null,
@@ -2400,7 +2604,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2424,7 +2628,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2448,7 +2652,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2472,7 +2676,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2496,7 +2700,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2520,7 +2724,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2544,7 +2748,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2568,7 +2772,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2592,7 +2796,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2616,7 +2820,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2640,7 +2844,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b170:buying-skills",
@@ -2664,7 +2868,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b170:buying-skills",
@@ -2688,7 +2892,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2712,7 +2916,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2736,7 +2940,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b171:meaning-of-skill-levels",
@@ -2760,7 +2964,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b171:meaning-of-skill-levels",
@@ -2784,7 +2988,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b171:meaning-of-skill-levels",
@@ -2808,7 +3012,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2832,7 +3036,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -2880,7 +3084,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
@@ -2904,7 +3108,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
@@ -2928,7 +3132,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
@@ -2952,7 +3156,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
@@ -2976,7 +3180,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
@@ -3000,7 +3204,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b167:4-skills",
@@ -3024,7 +3228,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
@@ -3048,7 +3252,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
@@ -3072,7 +3276,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
@@ -3096,7 +3300,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
@@ -3120,7 +3324,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
@@ -3144,7 +3348,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
@@ -3168,7 +3372,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.character.primary_attributes",
       "runtime_binding": null,
       "parent_id": "section:characters:b229:techniques",
@@ -6356,7 +6560,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 495,
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
