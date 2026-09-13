@@ -254,7 +254,7 @@ def test_melee_table_modes_cover_parry_hands_and_footnotes() -> None:
 
     knife = entries["equipment:large-knife"]
     knife_modes = [mode for mode in knife.modes if isinstance(mode, MeleeMode)]
-    assert len(knife_modes) == len(knife.modes)
+    assert len(knife_modes) == 2
     assert {mode.parry.modifier for mode in knife_modes if mode.parry} == {-1}
     staff = entries["equipment:quarterstaff"]
     staff_modes = [mode for mode in staff.modes if isinstance(mode, MeleeMode)]
@@ -287,6 +287,47 @@ def test_melee_table_modes_cover_parry_hands_and_footnotes() -> None:
     glaive = entries["equipment:glaive"].modes[0]
     assert isinstance(glaive, MeleeMode) and glaive.ready_after_attack
     assert "conditional-ready-after-attack" in entries["equipment:glaive"].unsupported_mechanics
+
+
+def test_b275_276_melee_rows_bind_their_exact_alternate_thrown_modes() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    expected = {
+        "hatchet": ("thrown-weapon-axe-mace", 8, "swing", 0, "cut", 1, "1.5", "2.5", -2),
+        "throwing-axe": ("thrown-weapon-axe-mace", 11, "swing", 2, "cut", 2, "1", "1.5", -3),
+        "mace": ("thrown-weapon-axe-mace", 12, "swing", 3, "cr", 1, "0.5", "1", -4),
+        "small-mace": ("thrown-weapon-axe-mace", 10, "swing", 2, "cr", 1, "1", "1.5", -3),
+        "large-knife": ("thrown-weapon-knife", 6, "thrust", 0, "imp", 0, "0.8", "1.5", -2),
+        "small-knife": ("thrown-weapon-knife", 5, "thrust", -1, "imp", 0, "0.5", "1", -1),
+        "wooden-stake": ("thrown-weapon-knife", 5, "thrust", 0, "imp", 0, "0.5", "1", -2),
+        "dagger": ("thrown-weapon-knife", 5, "thrust", -1, "imp", 0, "0.5", "1", -1),
+        "spear": ("thrown-weapon-spear", 9, "thrust", 3, "imp", 2, "1", "1.5", -6),
+        "javelin": ("thrown-weapon-spear", 6, "thrust", 1, "imp", 3, "1.5", "2.5", -4),
+    }
+    for identifier, values in expected.items():
+        mode = next(mode for mode in entries[identifier].modes if mode.id == "thrown")
+        assert isinstance(mode, RangedMode) and mode.thrown and mode.ammunition_id is None
+        assert (
+            mode.skill_id.removeprefix("skill:"),
+            mode.minimum_st,
+            mode.damage.basis,
+            mode.damage.adds,
+            mode.damage.damage_type,
+            mode.accuracy,
+            str(mode.half_damage_range),
+            str(mode.maximum_range),
+            mode.bulk,
+        ) == values
+    assert (
+        str(
+            next(
+                mode for mode in entries["wooden-stake"].modes if mode.id == "thrown"
+            ).damage.armor_divisor
+        )
+        == "0.5"
+    )
+    assert all("alternate-thrown-mode" not in row.unsupported_mechanics for row in entries.values())
 
 
 def test_b275_276_launcher_rows_have_independent_inventory_and_mode_facts() -> None:
