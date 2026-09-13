@@ -7215,22 +7215,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "structural-non-runtime",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b343:10-success-rolls",
@@ -7242,26 +7244,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "structural-non-runtime",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b343:when-to-roll",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "When to Roll",
       "printed_page": 343,
@@ -7269,22 +7273,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b344:modifiers",
@@ -7297,21 +7303,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b344:default-rolls",
@@ -7324,25 +7334,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b345:task-difficulty",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Task Difficulty",
       "printed_page": 345,
@@ -7350,22 +7364,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b345:equipment-modifiers",
@@ -7381,18 +7397,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 686,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b346:long-tasks",
@@ -7408,18 +7426,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 689,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b347:degree-of-success-or-failure",
@@ -7432,21 +7452,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b347:optional-rule-influencing-success-rolls",
@@ -7486,21 +7510,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b348:contests",
@@ -7513,21 +7541,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b348:quick-contests",
@@ -7540,21 +7572,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b348:contests",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b349:regular-contests",
@@ -7567,21 +7603,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b348:contests",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b349:the-rule-of-16",
@@ -7594,25 +7634,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b348:contests",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b349:physical-activities",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Physical Activities",
       "printed_page": 349,
@@ -7620,22 +7664,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b349:climbing",
@@ -7648,21 +7694,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b350:digging",
@@ -7678,18 +7728,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 689,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b350:different-gravity",
@@ -7705,18 +7757,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 689,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b351:hiking",
@@ -7729,21 +7783,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-survival.md",
+        "tests/test_orchestration_steps.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b351:holding-your-breath",
@@ -7759,18 +7817,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 689,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b352:jumping",
@@ -7783,21 +7843,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-survival.md",
+        "tests/test_orchestration_steps.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b352:optional-jumping-rules",
@@ -7837,21 +7901,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-survival.md",
+        "tests/test_orchestration_steps.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b354:running",
@@ -7867,18 +7935,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 689,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b354:swimming",
@@ -7891,21 +7961,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-survival.md",
+        "tests/test_orchestration_steps.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b354:flying",
@@ -7918,21 +7992,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-special-combat-situations.md",
+        "tests/test_mounted_flying_combat.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b355:throwing",
@@ -7945,21 +8023,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-thrown-recovery.md",
+        "tests/test_thrown_recovery.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b355:catching",
@@ -7972,21 +8054,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-thrown-recovery.md",
+        "tests/test_thrown_recovery.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b356:extra-effort",
@@ -8002,18 +8088,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 689,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b358:sense-rolls",
@@ -8026,21 +8114,24 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "tests/test_physical_traits.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b358:vision",
@@ -8053,21 +8144,24 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "tests/test_physical_traits.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b358:sense-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b358:hearing",
@@ -8080,21 +8174,24 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "tests/test_physical_traits.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b358:sense-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b358:taste-smell",
@@ -8107,21 +8204,24 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "tests/test_physical_traits.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b358:sense-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b359:influence-rolls",
@@ -8134,25 +8234,29 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-social-runtime.md",
+        "tests/test_social_completion.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b359:influencing-the-pcs",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Influencing the PCs",
       "printed_page": 359,
@@ -8160,22 +8264,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b359:influence-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b360:will-rolls",
@@ -8188,21 +8294,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py",
+        "tests/test_fright_completion.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b360:fright-checks",
@@ -8215,21 +8326,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_gurps_checks.py",
+        "tests/test_fright_completion.py"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b360:will-rolls",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b360:fright-check-table",
@@ -10964,21 +11080,23 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "structural-non-runtime",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b393:surprise-attacks-and-initiative",
@@ -11049,20 +11167,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-special-combat-situations.md",
+        "tests/test_special_ranged_procedures.py",
+        "tests/test_mounted_flying_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b394:high-speed-movement",
@@ -11218,20 +11341,24 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b398:hit-location",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b400:targeting-chinks-in-armor",
@@ -11591,20 +11718,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-firearms.md",
+        "tests/test_firearm_malfunctions.py",
+        "tests/test_exotic_malfunctions.py"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b407:firing-upward-and-downward",
@@ -11617,20 +11749,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-special-combat-situations.md",
+        "tests/test_special_ranged_procedures.py",
+        "tests/test_mounted_flying_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b407:cover",
@@ -11699,20 +11836,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-special-ranged-procedures.md",
+        "tests/test_automatic_fire.py",
+        "tests/test_spraying_fire.py",
+        "tests/test_suppression_fire.py"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b410:special-ranged-weapons",
@@ -11756,17 +11899,19 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 686,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b412:guided-and-homing-weapons",
@@ -11807,20 +11952,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-special-combat-situations.md",
+        "tests/test_special_ranged_procedures.py",
+        "tests/test_mounted_flying_combat.py"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b413:area-and-spreading-attacks",
@@ -12764,18 +12914,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        518
+        518,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 686,
       "capability_id": "gurps.world.environmental_hazards",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b426:fatigue",
@@ -13068,20 +13220,24 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
-        191
+        191,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b429:atmospheric-pressure",
@@ -14997,22 +15153,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "structural-non-runtime",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b462:vehicles",
@@ -15025,25 +15183,30 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-vehicles.md",
+        "tests/test_vehicle_coverage.py",
+        "tests/test_vehicle_modes.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b462:vehicle-statistics",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Vehicle Statistics",
       "printed_page": 462,
@@ -15051,22 +15214,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b463:basic-vehicle-movement",
@@ -15079,25 +15244,30 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-vehicles.md",
+        "tests/test_vehicle_coverage.py",
+        "tests/test_vehicle_modes.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b464:ground-vehicle-table",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Ground Vehicle Table",
       "printed_page": 464,
@@ -15105,26 +15275,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b464:watercraft-table",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Watercraft Table",
       "printed_page": 464,
@@ -15132,26 +15304,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b465:aircraft-table",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Aircraft Table",
       "printed_page": 465,
@@ -15159,26 +15333,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b465:spacecraft-table",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Spacecraft Table",
       "printed_page": 465,
@@ -15186,22 +15362,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b467:basic-vehicle-combat",
@@ -15214,21 +15392,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-vehicles.md",
+        "tests/test_vehicle_coverage.py",
+        "tests/test_vehicle_modes.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b467:vehicle-weapon-mounts",
@@ -15241,21 +15424,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-vehicles.md",
+        "tests/test_vehicle_coverage.py",
+        "tests/test_vehicle_modes.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b469:weapons-fire-from-a-moving-vehicle",
@@ -15268,21 +15456,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-vehicles.md",
+        "tests/test_vehicle_coverage.py",
+        "tests/test_vehicle_modes.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b470:scaling-damage",
@@ -15295,25 +15488,30 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-vehicles.md",
+        "tests/test_vehicle_coverage.py",
+        "tests/test_vehicle_modes.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:vehicles",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b471:electronics",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Electronics",
       "printed_page": 471,
@@ -15321,22 +15519,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b471:communicators",
@@ -15465,21 +15665,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b473:complexity",
@@ -15492,21 +15696,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b473:concept",
@@ -15519,21 +15727,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b473:prototype",
@@ -15604,21 +15816,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b474:production",
@@ -15660,21 +15876,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b473:new-inventions",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b475:gadgeteering",
@@ -16006,21 +16226,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-enchanting.md",
+        "tests/test_enchanting_projects.py",
+        "tests/test_spell_enchantment.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b480:enchantment-spells",
@@ -16033,21 +16258,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-enchanting.md",
+        "tests/test_enchanting_projects.py",
+        "tests/test_spell_enchantment.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b481:enchanting",
@@ -16176,21 +16406,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b483:detailed-hp-calculation",
@@ -16203,21 +16438,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b483:effects-of-injury",
@@ -16230,21 +16470,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b484:damage-to-buildings-and-structures",
@@ -16257,21 +16502,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b484:damage-to-shields",
@@ -16284,21 +16534,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b484:repairs",
@@ -16311,21 +16566,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b485:breakdowns",
@@ -16338,21 +16598,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b485:broken-weapons",
@@ -16365,21 +16630,26 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_object_combat.py",
+        "tests/test_equipment_retrieval.py"
       ],
       "historical_owners": [
         191,
-        527
+        527,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b483:damage-to-objects",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b486:18-game-mastering",
@@ -16391,26 +16661,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "structural-non-runtime",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b486:customizing-the-rules",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Customizing the Rules",
       "printed_page": 486,
@@ -16418,26 +16690,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b486:choosing-a-campaign-type",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Choosing a Campaign Type",
       "printed_page": 486,
@@ -16445,26 +16719,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b487:power-level",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Power Level",
       "printed_page": 487,
@@ -16472,26 +16748,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b487:high-powered-campaigns",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "High-Powered Campaigns",
       "printed_page": 487,
@@ -16499,26 +16777,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b488:the-cinematic-campaign",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "The Cinematic Campaign",
       "printed_page": 488,
@@ -16526,26 +16806,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b489:damn-the-rules-full-speed-ahead",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Damn the Rules, Full Speed Ahead!",
       "printed_page": 489,
@@ -16553,26 +16835,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:choosing-a-campaign-type",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b490:starting-a-game-session",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Starting a Game Session",
       "printed_page": 490,
@@ -16580,26 +16864,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b490:advance-preparation",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Advance Preparation",
       "printed_page": 490,
@@ -16607,26 +16893,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b490:starting-a-game-session",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b490:maps",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Maps",
       "printed_page": 490,
@@ -16634,26 +16922,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b490:starting-a-game-session",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b491:player-made-maps",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Player-Made Maps",
       "printed_page": 491,
@@ -16661,26 +16951,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b490:starting-a-game-session",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b492:running-the-game",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Running the Game",
       "printed_page": 492,
@@ -16688,26 +16980,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b492:settling-rules-questions",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Settling Rules Questions",
       "printed_page": 492,
@@ -16715,26 +17009,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b493:dealing-with-the-players",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Dealing with the Players",
       "printed_page": 493,
@@ -16742,26 +17038,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b493:playing-the-npcs",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Playing the NPCs",
       "printed_page": 493,
@@ -16769,26 +17067,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b494:gaming-online",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Gaming Online",
       "printed_page": 494,
@@ -16796,22 +17096,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b494:reaction-rolls",
@@ -16902,7 +17204,7 @@
     },
     {
       "id": "section:campaigns:b496:keeping-the-characters-alive",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Keeping the Characters Alive",
       "printed_page": 496,
@@ -16910,22 +17212,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b497:game-time",
@@ -16958,7 +17262,7 @@
     },
     {
       "id": "section:campaigns:b497:when-in-doubt-roll-and-shout",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "When in Doubt, Roll and Shout",
       "printed_page": 497,
@@ -16966,22 +17270,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b492:running-the-game",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b498:ending-a-play-session",
@@ -17072,7 +17378,7 @@
     },
     {
       "id": "section:campaigns:b500:writing-your-own-adventures",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Writing Your Own Adventures",
       "printed_page": 500,
@@ -17080,26 +17386,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b486:18-game-mastering",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b500:where-do-you-get-your-ideas",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Where Do You Get Your Ideas?",
       "printed_page": 500,
@@ -17107,26 +17415,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b500:adventure-design",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Adventure Design",
       "printed_page": 500,
@@ -17134,26 +17444,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b501:dungeons",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Dungeons",
       "printed_page": 501,
@@ -17161,22 +17473,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b503:traps",
@@ -17209,7 +17523,7 @@
     },
     {
       "id": "section:campaigns:b504:features-of-a-good-adventure",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Features of a Good Adventure",
       "printed_page": 504,
@@ -17217,26 +17531,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b504:organizing-a-continuing-campaign",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Organizing a Continuing Campaign",
       "printed_page": 504,
@@ -17244,26 +17560,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b504:shared-campaigns-and-travel-between-campaigns",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Shared Campaigns and Travel Between Campaigns",
       "printed_page": 504,
@@ -17271,22 +17589,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        501
+        501,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.check.success",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b500:writing-your-own-adventures",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b505:19-game-worlds",
@@ -17298,26 +17618,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "structural-non-runtime",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b505:cultures-and-languagse",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Cultures and Languagse",
       "printed_page": 505,
@@ -17325,22 +17647,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b506:laws-and-customs",
@@ -17576,7 +17900,7 @@
     },
     {
       "id": "section:campaigns:b509:society-and-government-types",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Society and Government Types",
       "printed_page": 509,
@@ -17584,26 +17908,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b509:the-big-picture",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "The Big Picture",
       "printed_page": 509,
@@ -17611,26 +17937,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b509:society-and-government-types",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b510:variations",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Variations",
       "printed_page": 510,
@@ -17638,26 +17966,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b509:society-and-government-types",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b510:restrictions",
-      "row_kind": "mechanic",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Restrictions",
       "printed_page": 510,
@@ -17665,22 +17995,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b509:society-and-government-types",
-      "classification": null,
-      "listed_value": null
+      "classification": "reference-only-guidance",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b511:tech-levels",
@@ -18032,18 +18364,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 690,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b516:wealth-and-status",
@@ -18171,18 +18505,20 @@
       "implementation": "absent",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        504
+        504,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": 690,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b519:loyalty-checks",
@@ -19785,7 +20121,7 @@
     },
     {
       "id": "section:campaigns:b547:tables",
-      "row_kind": "setting",
+      "row_kind": "structural-section",
       "source_id": "campaigns-fourth",
       "title": "Tables",
       "printed_page": 547,
@@ -19793,26 +20129,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "structural-non-runtime",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b547:combat-modifiers",
-      "row_kind": "setting",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Combat Modifiers",
       "printed_page": 547,
@@ -19820,26 +20158,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b550:size-and-speed-range-table",
-      "row_kind": "setting",
+      "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
       "title": "Size and Speed/Range Table",
       "printed_page": 550,
@@ -19847,26 +20187,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "required",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-ranged.md",
+        "tests/test_gurps_ranged.py"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b551:maneuvers",
-      "row_kind": "setting",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Maneuvers",
       "printed_page": 551,
@@ -19874,26 +20218,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b551:postures",
-      "row_kind": "setting",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Postures",
       "printed_page": 551,
@@ -19901,26 +20247,28 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b552:hit-location-tables",
-      "row_kind": "setting",
+      "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
       "title": "Hit Location Tables",
       "printed_page": 552,
@@ -19928,26 +20276,30 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "required",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-hit-locations.md",
+        "tests/test_hit_locations.py"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b556:critical-success-and-failure",
-      "row_kind": "setting",
+      "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
       "title": "Critical Success and Failure",
       "printed_page": 556,
@@ -19955,26 +20307,31 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "required",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-conformance.md",
+        "tests/test_critical_context.py",
+        "tests/test_critical_continuation.py"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b557:hp-and-dr-of-objects-and-cover",
-      "row_kind": "setting",
+      "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
       "title": "HP and DR of Objects and Cover",
       "printed_page": 557,
@@ -19982,26 +20339,31 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "required",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-object-integration.md",
+        "tests/test_combat_rule_tables.py",
+        "tests/test_object_combat.py"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b559:npc-reactions",
-      "row_kind": "setting",
+      "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
       "title": "NPC Reactions",
       "printed_page": 559,
@@ -20009,26 +20371,31 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "required",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-social-runtime.md",
+        "tests/test_social_completion.py",
+        "tests/test_social_material_outcomes.py"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b560:reaction-table",
-      "row_kind": "setting",
+      "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
       "title": "Reaction Table",
       "printed_page": 560,
@@ -20036,22 +20403,27 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "required",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md",
+        "docs/gurps-social-runtime.md",
+        "tests/test_social_completion.py",
+        "tests/test_social_material_outcomes.py"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b547:tables",
-      "classification": null,
-      "listed_value": null
+      "classification": "executable-mechanic",
+      "listed_value": "joined-executable-evidence"
     },
     {
       "id": "section:campaigns:b563:glossary",
@@ -20109,7 +20481,7 @@
     },
     {
       "id": "section:campaigns:b567:campaign-planning-form",
-      "row_kind": "setting",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Campaign Planning Form",
       "printed_page": 567,
@@ -20117,22 +20489,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b568:gm-control-sheet",
@@ -20190,7 +20564,7 @@
     },
     {
       "id": "section:campaigns:b569:time-use-sheet",
-      "row_kind": "setting",
+      "row_kind": "reference",
       "source_id": "campaigns-fourth",
       "title": "Time Use Sheet",
       "printed_page": 569,
@@ -20198,22 +20572,24 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "setting-unresolved",
-      "implementation": "absent",
+      "disposition": "reference-only",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-campaigns-section-audit.md"
       ],
       "historical_owners": [
         191,
-        494
+        494,
+        679
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": null,
       "runtime_binding": null,
       "parent_id": null,
-      "classification": null,
-      "listed_value": null
+      "classification": "construction-reference-data",
+      "listed_value": "reviewed-non-runtime"
     },
     {
       "id": "section:campaigns:b570:index",

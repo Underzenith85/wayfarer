@@ -34,6 +34,32 @@ INFINITE_WORLDS_CLASSIFICATIONS: Final = frozenset(
         "infinite-worlds-reviewed-exclusion",
     }
 )
+CAMPAIGNS_SECTION_AUDIT_OWNER: Final = 679
+ROADMAP_OWNER: Final = 94
+CAMPAIGNS_SECTION_CLASSIFICATIONS: Final = frozenset(
+    {
+        "executable-mechanic",
+        "construction-reference-data",
+        "reference-only-guidance",
+        "structural-non-runtime",
+    }
+)
+CAMPAIGNS_APPENDIX_REVIEW_IDS: Final = frozenset(
+    {
+        "section:campaigns:b547:tables",
+        "section:campaigns:b547:combat-modifiers",
+        "section:campaigns:b550:size-and-speed-range-table",
+        "section:campaigns:b551:maneuvers",
+        "section:campaigns:b551:postures",
+        "section:campaigns:b552:hit-location-tables",
+        "section:campaigns:b556:critical-success-and-failure",
+        "section:campaigns:b557:hp-and-dr-of-objects-and-cover",
+        "section:campaigns:b559:npc-reactions",
+        "section:campaigns:b560:reaction-table",
+        "section:campaigns:b567:campaign-planning-form",
+        "section:campaigns:b569:time-use-sheet",
+    }
+)
 
 
 class AuditRecord(Record):
@@ -351,6 +377,34 @@ def validate_source_ledgers(
         raise ValidationError("Duplicate completion-owner issue")
 
     inventory = _inventory_index(inventory_rows)
+    campaigns_audit = tuple(
+        row for row in bundle.rows if CAMPAIGNS_SECTION_AUDIT_OWNER in row.historical_owners
+    )
+    if len(campaigns_audit) != 119:
+        raise ValidationError("Campaigns section-audit denominator drift")
+    if not CAMPAIGNS_APPENDIX_REVIEW_IDS <= {row.id for row in campaigns_audit}:
+        raise ValidationError("Campaigns appendix review drift")
+    for row in campaigns_audit:
+        if row.source_id != "campaigns-fourth" or row.source_review != "reviewed":
+            raise ValidationError(f"Campaigns section review drift: {row.id}")
+        if row.classification not in CAMPAIGNS_SECTION_CLASSIFICATIONS:
+            raise ValidationError(f"Campaigns section obligation is unclassified: {row.id}")
+        if row.completion_owner == ROADMAP_OWNER:
+            raise ValidationError(f"Campaigns section falls back to roadmap: {row.id}")
+        if row.classification == "executable-mechanic":
+            if row.row_kind != "mechanic" or row.disposition != "required":
+                raise ValidationError(f"Campaigns executable obligation drift: {row.id}")
+        elif (
+            row.disposition != "reference-only"
+            or row.implementation != "not-applicable"
+            or row.completion_owner is not None
+        ):
+            raise ValidationError(f"Campaigns non-runtime obligation drift: {row.id}")
+        elif row.classification == "structural-non-runtime":
+            if row.row_kind != "structural-section":
+                raise ValidationError(f"Campaigns structural obligation drift: {row.id}")
+        elif row.row_kind != "reference":
+            raise ValidationError(f"Campaigns reference obligation drift: {row.id}")
     bindings: list[str] = []
     for row in bundle.rows:
         low, high = (1, 336) if row.source_id == "characters-third" else (337, 576)

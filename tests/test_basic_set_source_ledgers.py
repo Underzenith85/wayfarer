@@ -9,6 +9,8 @@ import pytest
 from wayfarer.certification.basic_set_certification import evaluate
 from wayfarer.certification.source_audit import inventory
 from wayfarer.certification.source_ledgers import (
+    CAMPAIGNS_APPENDIX_REVIEW_IDS,
+    CAMPAIGNS_SECTION_AUDIT_OWNER,
     EXPECTED_LEDGER_COUNTS,
     INFINITE_WORLDS_CLASSIFICATIONS,
     LedgerBundle,
@@ -33,7 +35,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 625
+    assert len(ledger_blockers(bundle.rows)) == 517
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -90,6 +92,42 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert (
         next(row for row in sections if "optional-rules-for-injury" in row.id).printed_page == 420
     )
+
+
+def test_campaigns_section_audit_has_exact_reviewed_obligations_and_bounded_residuals() -> None:
+    bundle = load_source_ledgers(ROOT)
+    rows = tuple(
+        row
+        for row in bundle.by_type["sections"]
+        if CAMPAIGNS_SECTION_AUDIT_OWNER in row.historical_owners
+    )
+    assert len(rows) == 119
+    assert Counter(row.classification for row in rows) == {
+        "executable-mechanic": 68,
+        "reference-only-guidance": 34,
+        "construction-reference-data": 10,
+        "structural-non-runtime": 7,
+    }
+    assert Counter(row.implementation for row in rows) == {
+        "verified": 57,
+        "not-applicable": 51,
+        "absent": 11,
+    }
+    assert Counter(row.completion_owner for row in rows if row.completion_owner) == {
+        686: 3,
+        689: 6,
+        690: 2,
+    }
+    assert all(row.completion_owner != 94 for row in rows)
+
+    appendix = tuple(row for row in rows if row.id in CAMPAIGNS_APPENDIX_REVIEW_IDS)
+    assert len(appendix) == 12
+    assert Counter(row.classification for row in appendix) == {
+        "executable-mechanic": 6,
+        "construction-reference-data": 5,
+        "structural-non-runtime": 1,
+    }
+    assert all(row.disposition != "setting-unresolved" for row in appendix)
 
 
 def test_every_trait_row_has_separate_construction_consequence_and_review_ownership() -> None:
@@ -245,18 +283,35 @@ def test_infinite_worlds_boundary_drift_is_rejected() -> None:
         _validate(replace(bundle, rows=rows))
 
 
+def test_campaigns_section_obligations_cannot_fall_back_to_the_roadmap() -> None:
+    bundle = load_source_ledgers(ROOT)
+    row = next(
+        row
+        for row in bundle.rows
+        if CAMPAIGNS_SECTION_AUDIT_OWNER in row.historical_owners
+        and row.completion_owner is not None
+    )
+    changed = row.model_copy(update={"completion_owner": 94})
+    rows = tuple(changed if item.id == row.id else item for item in bundle.rows)
+    with pytest.raises(ValidationError, match="falls back to roadmap"):
+        _validate(replace(bundle, rows=rows))
+
+
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 625
+    assert len(ledger) == 517
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
     assert all(blocker.owner_issue is not None for blocker in ledger)
     assert report.source_ledger_rows == 1_285
-    assert report.required_source_ledger_rows == 1_178
+    assert report.required_source_ledger_rows == 1_139
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {
-        "94": 625,
-        "none": 660,
+        "686": 3,
+        "689": 6,
+        "690": 2,
+        "94": 506,
+        "none": 768,
     }
