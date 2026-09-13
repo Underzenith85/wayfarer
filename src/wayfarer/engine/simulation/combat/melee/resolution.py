@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 
+import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.rules.checks import Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -416,12 +417,7 @@ def resolve_melee(
             }
         )
         parry_miss = blocked.endswith(":defender")
-        # deferred: patch seam, not a cycle.  test_critical_continuation replaces
-        # criticals.limbs.resolve_limb with the pre-migration adapter, which a
-        # module-level binding here would resolve past.
-        from wayfarer.engine.simulation.combat.criticals.limbs import resolve_limb
-
-        state, encounter, limb = resolve_limb(
+        state, encounter, limb = critical_limbs.resolve_limb(
             runtime,
             state,
             encounter,
