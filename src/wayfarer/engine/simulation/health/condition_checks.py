@@ -17,6 +17,16 @@ def check_modifiers(
     state: ResourceState, actor_id: str, attribute: str, *, defensive: bool = False
 ) -> tuple[Modifier, ...]:
     result = aftermath_modifiers(state, actor_id)
+    survival = next((entry for entry in state.survival if entry.actor_id == actor_id), None)
+    if (
+        survival is not None
+        and survival.drowsy_until is not None
+        and survival.drowsy_until > state.game_time
+        and attribute.lower() in ("dx", "iq")
+    ):
+        result += (
+            Modifier(-2, "Drowsiness", "survival:missed-sleep", "Basic Set Campaigns 4e B427"),
+        )
     if (
         not defensive
         and attribute.lower() in ("dx", "iq", "per", "will")

@@ -6726,6 +6726,22 @@
             "title": "Recovery Tasks",
             "type": "array"
           },
+          "survival": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/SurvivalStatus"
+            },
+            "title": "Survival",
+            "type": "array"
+          },
+          "survival_tasks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/SurvivalTask"
+            },
+            "title": "Survival Tasks",
+            "type": "array"
+          },
           "hazards": {
             "default": [],
             "items": {
@@ -12520,6 +12536,352 @@
           "partial"
         ],
         "title": "SurpriseState",
+        "type": "object"
+      },
+      "SurvivalStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "started": {
+            "minimum": 0,
+            "title": "Started",
+            "type": "integer"
+          },
+          "next_meal_due": {
+            "minimum": 1,
+            "title": "Next Meal Due",
+            "type": "integer"
+          },
+          "next_water_due": {
+            "minimum": 1,
+            "title": "Next Water Due",
+            "type": "integer"
+          },
+          "awake_since": {
+            "minimum": 0,
+            "title": "Awake Since",
+            "type": "integer"
+          },
+          "next_sleep_due": {
+            "minimum": 1,
+            "title": "Next Sleep Due",
+            "type": "integer"
+          },
+          "sleep_period": {
+            "default": 28800,
+            "maximum": 86400,
+            "minimum": 3600,
+            "title": "Sleep Period",
+            "type": "integer"
+          },
+          "waking_day": {
+            "default": 57600,
+            "maximum": 172800,
+            "minimum": 3600,
+            "title": "Waking Day",
+            "type": "integer"
+          },
+          "water_day_started": {
+            "minimum": 0,
+            "title": "Water Day Started",
+            "type": "integer"
+          },
+          "water_quarts_required": {
+            "default": 2,
+            "enum": [
+              2,
+              3,
+              5
+            ],
+            "title": "Water Quarts Required",
+            "type": "integer"
+          },
+          "water_quarts_consumed": {
+            "default": 0,
+            "maximum": 5,
+            "minimum": 0,
+            "title": "Water Quarts Consumed",
+            "type": "integer"
+          },
+          "next_drowsiness_due": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Next Drowsiness Due"
+          },
+          "drowsy_until": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Drowsy Until"
+          },
+          "forced_asleep": {
+            "default": false,
+            "title": "Forced Asleep",
+            "type": "boolean"
+          },
+          "does_not_sleep": {
+            "default": false,
+            "title": "Does Not Sleep",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "actor_id",
+          "started",
+          "next_meal_due",
+          "next_water_due",
+          "awake_since",
+          "next_sleep_due",
+          "water_day_started"
+        ],
+        "title": "SurvivalStatus",
+        "type": "object"
+      },
+      "SurvivalTask": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "sleep",
+              "forage"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "start": {
+            "minimum": 0,
+            "title": "Start",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 1,
+            "title": "Due",
+            "type": "integer"
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "completed",
+              "interrupted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "interrupted_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Interrupted At"
+          },
+          "settled": {
+            "default": false,
+            "title": "Settled",
+            "type": "boolean"
+          },
+          "forage_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "travel",
+                  "dedicated"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Forage Mode"
+          },
+          "plant_skill": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plant Skill"
+          },
+          "animal_skill": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Animal Skill"
+          },
+          "animal_method": {
+            "anyOf": [
+              {
+                "enum": [
+                  "missile",
+                  "fishing"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Animal Method"
+          },
+          "terrain_modifier": {
+            "default": 0,
+            "maximum": 30,
+            "minimum": -30,
+            "title": "Terrain Modifier",
+            "type": "integer"
+          },
+          "ration_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ration Definition Id"
+          },
+          "supply_owner_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Supply Owner Id"
+          },
+          "party_ht": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Party Ht",
+            "type": "array"
+          },
+          "meal_item_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Meal Item Ids",
+            "type": "array"
+          },
+          "water_item_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Water Item Ids",
+            "type": "array"
+          },
+          "water_quarts_required": {
+            "default": 2,
+            "enum": [
+              2,
+              3,
+              5
+            ],
+            "title": "Water Quarts Required",
+            "type": "integer"
+          },
+          "recovery_meals_consumed": {
+            "default": 0,
+            "maximum": 3,
+            "minimum": 0,
+            "title": "Recovery Meals Consumed",
+            "type": "integer"
+          },
+          "recovery_water_consumed": {
+            "default": 0,
+            "maximum": 5,
+            "minimum": 0,
+            "title": "Recovery Water Consumed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "kind",
+          "start",
+          "due"
+        ],
+        "title": "SurvivalTask",
         "type": "object"
       },
       "TradeOffer": {
