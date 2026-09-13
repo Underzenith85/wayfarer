@@ -10,7 +10,7 @@ owners. No campaign profile or saved package is changed.
 
 ## Source boundary
 
-`rules/supernatural/inventory.json` records observed artifact hashes, edition,
+`src/wayfarer/engine/rules/supernatural/inventory.json` records observed artifact hashes, edition,
 printing, page references, classification and source evidence separately from
 `gurps-4e-characters-3p-2008+campaigns-4p-2008`:
 
@@ -105,7 +105,7 @@ longer appear as blockers merely to preserve history. Only #107 on Injury
 Tolerance and #173 on Fireball remain as concrete mechanics blockers; #122
 cannot claim Basic Set completeness until those required entries are complete.
 
-| Follow-up | Exact family (entry lists are in each issue and inventory) |
+| Owner | Exact family (entry lists are in each issue and inventory) |
 | --- | --- |
 | #221 | Seven enchantment spells |
 | #222 | Knowledge, Light/Darkness and Meta spells |

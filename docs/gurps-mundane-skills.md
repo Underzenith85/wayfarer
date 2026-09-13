@@ -1,6 +1,6 @@
 # Basic Set mundane skill inventory (#112)
 
-`rules/mundane_skills` accounts for the Characters skill chapter without making
+`wayfarer.engine.rules.skills.mundane` accounts for the Characters skill chapter without making
 unimplemented procedures playable. The candidate package is `0.3.0`; no saved
 campaign pin or live representative definition changes.
 
@@ -163,15 +163,16 @@ mounts and crews, streams, launcher-assisted throws, innate attacks and ranged
 defaults is incorporated below. Broader combat effects explicitly published to
 other owners do not make an executable skill row unavailable.
 
-`rules/mundane_skills/ranged.py` is the only place a listed ranged combat row
-becomes executable. A row is implemented when the module binds it to the ranged
-dispatch that already resolves it (`orchestration/gurps_ranged`), declares the
+`wayfarer.engine.rules.skills.mundane.ranged` is the only place a listed ranged
+combat row becomes executable. A row is implemented when the module binds it to
+the ranged dispatch that already resolves it
+(`wayfarer.engine.simulation.combat.ranged.resolution`), declares the
 exact weapon modes it governs and names a registered capability
 (`gurps.combat.ranged_weapon_skills`, #344). Naming a procedure never implements
 one, and neither does a generic target calculation: a weapon whose mode falls
 outside its skill's class is refused before dice by
-`simulation.gurps_equipment.require_skill_procedure`, which runs when an
-equipment catalog is built and again when a mode is selected in play.
+`wayfarer.engine.simulation.equipment.catalog.require_skill_procedure`, which
+runs when an equipment catalog is built and again when a mode is selected in play.
 
 | Row | Reference | State |
 | --- | --- | --- |
@@ -328,10 +329,11 @@ the issue's required fail-closed transfer outcome, not a claim that the child
 mechanics are complete. Seven concrete Fortune-Telling specialties introduced
 by the source reconciliation likewise stay blocked under #366.
 
-A social row is implemented only when `rules/mundane_skills/social.py` binds it to
-a service that already resolves it — `rules.gurps_checks` for success rolls and
-contests, `rules.gurps_social.influence_roll` for the six B359 influence skills —
-declares the shape that decides it, and names a registered capability
+A social row is implemented only when
+`wayfarer.engine.rules.skills.mundane.social` binds it to a service that already
+resolves it — `wayfarer.engine.rules.gurps_checks` for success rolls and
+contests, `wayfarer.engine.rules.social.gurps_social.influence_roll` for the six
+B359 influence skills — declares the shape that decides it, and names a registered capability
 (`gurps.social.skill_procedures`, #345). Naming a procedure never implements it.
 
 Each bound procedure declares the contextual conditions it cannot proceed without,
@@ -371,7 +373,7 @@ rather than folded into the blocker list. Interrogation coercion remains with
 
 The B97 Voice bonus reaches Diplomacy, Fast-Talk, Leadership, Performance,
 Politics, Public Speaking and Sex Appeal through
-`character.social_traits.skill_conditions`, which reads approved purchases only,
+`wayfarer.engine.character.traits.social.skill_conditions`, which reads approved purchases only,
 so the build asserts the condition and the procedure owns the +2.
 
 The definitions live in a new pin, package `0.8.0` with profile version 8
@@ -390,20 +392,22 @@ implemented by #338, and #356 completed the finite discipline-keyed expansions;
 the four player-named Biology, Disguise, Geography and Geology families are now
 bound by #390 without inventing a global subject list.
 
-`rules/mundane_skills/technology.py` is the only place a listed technology row
-becomes executable. A row is implemented when the module binds it to a service
-that already resolves it, declares the exact task it governs, and produces a
-quantity that service consumes. Scoring stays in `rules/gurps_checks`, so no
-second engine exists. Naming a procedure never implements one, and neither does
-a generic target calculation: a family row, a transferred row and a skill outside
-this group are all refused before dice by `technology.require_task`.
+`wayfarer.engine.rules.skills.mundane.technology` is the only place a listed
+technology row becomes executable. A row is implemented when the package binds
+it to a service that already resolves it, declares the exact task it governs,
+and produces a quantity that service consumes. Scoring stays in
+`wayfarer.engine.rules.gurps_checks`, so no second engine exists. Naming a
+procedure never implements one, and neither does a generic target calculation:
+a family row, a transferred row and a skill outside this group are all refused
+before dice by
+`wayfarer.engine.rules.skills.mundane.technology.attempts.require_task`.
 
 | Dispatch | Service | What it owns |
 | --- | --- | --- |
-| `transport.vehicle-control` | `simulation/transport` | Loss of control, skid, collision and occupant injury. |
-| `hazard.exposure` | `simulation/hazards` | Scheduled exposure for a broken seal or placed ordnance. |
-| `object.repair` | `simulation/object_repairs` | Recorded repair work and restored HP. |
-| `noncombat.approach` | `simulation/noncombat` | Progress and revealed facts for an information task. |
+| `transport.vehicle-control` | `wayfarer.engine.simulation.movement.transport` | Loss of control, skid, collision and occupant injury. |
+| `hazard.exposure` | `wayfarer.engine.simulation.health.hazards` | Scheduled exposure for a broken seal or placed ordnance. |
+| `object.repair` | `wayfarer.engine.simulation.equipment.repairs` | Recorded repair work and restored HP. |
+| `noncombat.approach` | `wayfarer.engine.simulation.social.noncombat` | Progress and revealed facts for an information task. |
 
 | Row | Reference | State |
 | --- | --- | --- |
@@ -456,7 +460,7 @@ bindings themselves is in `tests/test_technology_skills.py` and
 The twelve rows #346 transferred are keyed to a science discipline, an
 electronics family, an engineering discipline, a machine type, a subject area or
 a species. They are expanded and bound in the same
-`rules/mundane_skills/technology.py` module and through the same four dispatches;
+`wayfarer.engine.rules.skills.mundane.technology` package and through the same four dispatches;
 no second engine exists, and a family row is still refused before dice.
 
 | Row | Reference | State |
@@ -508,7 +512,7 @@ failure and replay evidence is in `tests/test_open_technology_specialties.py`.
 
 Three shapes let the source be recorded as it is stated instead of flattened into
 something the compiler happens to support. All three are catalog metadata: none
-of them makes a skill playable, and every row still carries the printing delta.
+of them makes a skill playable. Their selected-source review completed in #191.
 
 **Alternative prerequisites.** B168 states several prerequisites as "A or B".
 `SkillSpec.prerequisite_groups` records each alternative set, and the skill

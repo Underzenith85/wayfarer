@@ -87,5 +87,5 @@ Independent numeric and persistence tests are in
 `tests/test_geometry_injury_followups.py`, including executed entries in the
 conformance ledger. The executable registry now correctly records the three
 #107 families as partial, matching their existing implementation rather than
-claiming absence. Full source reconciliation remains #191; #153 and the
+claiming absence. Source reconciliation completed in #191; #153 and the
 nonhumanoid/assisted-movement boundaries above remain unfinished.

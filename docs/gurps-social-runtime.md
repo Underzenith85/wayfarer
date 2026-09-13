@@ -32,7 +32,7 @@ entries or certify unimplemented trait runtime bindings (#113).
 
 A trigger may also carry `NPCSocialStanding`: an authored Appearance level,
 bounded Reputations with the classes that recognize them, and the audience the
-subject presents. `rules.social_hooks` derives those modifiers, so authored data
+subject presents. `wayfarer.engine.rules.social.social_hooks` derives those modifiers, so authored data
 selects standing rather than inventing an integer, and recognition rolls for a
 reputation are drawn before the reaction or influence roll they modify. Standing
 the observer cannot see or place is left out entirely. The same audience governs
@@ -71,21 +71,20 @@ social action. Player characters cannot become reaction/influence subjects.
 
 ## Whole-entry social skill procedures (#345)
 
-`rules.mundane_skills.social` carries one procedure per B168–B233 social skill.
+`wayfarer.engine.rules.skills.mundane.social` carries one procedure per B168–B233 social skill.
 Each declares the shape that decides it — an unopposed success roll, a Quick
 Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
 it cannot proceed without, the modifiers it derives itself, and a named effect for
-every verdict that shape can reach. Numeric references are reconstructed from
-model knowledge under the provisional policy and pinned in
-`tests/fixtures/gurps/social_skills.json`, so frozen-source verification (#336)
-and the printing delta audit (#191) are a data change rather than a rewrite. The
-coverage matrix, including what each row transfers, is
+every verdict that shape can reach. Numeric references are pinned in
+`tests/fixtures/gurps/social_skills.json` and included in the selected-source
+review completed in #191. A future baseline change is therefore a data update,
+not a procedure rewrite. The coverage matrix, including what each row transfers, is
 [the mundane skill inventory](gurps-mundane-skills.md).
 
 Nothing here is a second engine. Success rolls and contests are scored by
-`rules.gurps_checks`; influence procedures call the existing
-`rules.gurps_social.influence_roll`, so the Diplomacy fallback, the Sex Appeal
-outcome and the B359 trait exceptions keep their #111 behaviour, including an
+`wayfarer.engine.rules.gurps_checks`; influence procedures call the existing
+`wayfarer.engine.rules.social.gurps_social.influence_roll`, so the Diplomacy
+fallback, the Sex Appeal outcome and the B359 trait exceptions keep their #111 behavior, including an
 attempt a trait settles with no contest to read a winner from. Standing and trait
 reaction modifiers are derived and rolled before the check that consumes them, and
 only for the influence-shaped procedures B359 lets them reach; an unopposed
@@ -95,8 +94,8 @@ Conditions are named facts about the situation, never numbers. A trigger asserts
 `audience-audible` or `credible-threat`; the procedure owns what each is worth. A
 missing required condition rejects before dice, so Sex Appeal cannot run on an
 audience nobody declared attracted and Interrogation cannot run on a subject who
-is not held. `character.social_traits.skill_conditions` derives the build-supplied
-conditions from approved purchases only, which is how the B97 Voice bonus reaches
+is not held. `wayfarer.engine.character.traits.social.skill_conditions` derives
+the build-supplied conditions from approved purchases only, which is how the B97 Voice bonus reaches
 Diplomacy, Fast-Talk, Leadership, Performance, Politics, Public Speaking and Sex
 Appeal without any resolver supplying an integer. Gesture is paired: B198 uses the
 less fluent party's level, and both parties need an approved level.

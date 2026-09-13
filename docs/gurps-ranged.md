@@ -70,7 +70,7 @@ were inaccessible during this change, so the audit gate remains open.
 Coverage is **partial**. `tests/test_ranged_critical_completion.py` adds
 independent critical-miss, weapon-quality, per-hit location and restart/retry
 fixtures, using Campaigns fourth printing B376, B382, B399 and B556-557.
-The existing selected-printing audit remains a separate gate (#191).
+The selected-printing audit completed separately in #191.
 New quality metadata is opt-in and Basic-only; it requires a durable individual
 weapon and does not alter saved catalog definitions. Disabled weapons cannot be
 Readied, and broken thrown items retain their condition in `expended_items`.
@@ -110,8 +110,8 @@ B407 precedence, single-shot stoppages, retained misfires, diagnosis, clearing,
 and mechanical repair with persisted consequences and receipts. The inspected
 B278 catalog slice supplies a conventional burst-capable revolver case with
 authoritative reload, malfunction, persistence and replay evidence. The broader
-catalog audit remains #180; [low-TL/exotic malfunction protocols](gurps-exotic-malfunctions.md) are explicit opt-ins; printing reconciliation
-remains #191. No malfunction number is inferred from a skill or damage type.
+catalog audit remains #180; [low-TL/exotic malfunction protocols](gurps-exotic-malfunctions.md) are explicit opt-ins. The printing reconciliation
+completed in #191. No malfunction number is inferred from a skill or damage type.
 Named follow-ups retain the other required scope:
 #286 owns individual-round unloading, Fast-Draw and bow draw/hold fatigue;
 #287 owns bare-handed catches and thrown-item battlefield recovery. Those

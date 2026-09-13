@@ -44,7 +44,7 @@ No licensed GURPS rule text is bundled or claimed to be verified.
 | Adventure lifecycle | Every reference route, all endings, generated graph, capture/rescue, rewards and continuation | Authored and structurally validated scenarios |
 | AI boundary | Prompt forgery, hidden-context isolation, stale/timeout/cancel/degradation | Narration is untrusted; semantic prose accuracy is not guaranteed |
 | Manual definitions | Keen senses, Fit, Curious, Code of honor | Catalog labels do not grant executable effects |
-| Rules profiles and migration | Exact profile selection, fail-closed GURPS profiles, dispatch, atomic and idempotent host migration | Registered pins only; no GURPS mechanic is verified |
+| Rules profiles and migration | Exact profile selection, fail-closed GURPS profiles, dispatch, atomic and idempotent host migration | Registered pins include bounded verified mechanics, but no full GURPS profile is supported |
 | Unsupported | Full published GURPS catalog, magic/psionics, vehicles and unimplemented definitions | Require separately approved implementation or bounded manual handling |
 
 The divergent-narration test deliberately supplies false victory/HP/equipment

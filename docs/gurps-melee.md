@@ -81,8 +81,8 @@ event replay. Existing PostgreSQL combat tests run when its test URL is set.
 Source targets: Lite August 2004 revision 07/12/04, pp. 24-30; Basic Set first
 printing with the declared January 26, 2007 errata, B369-376, B378-382 and B556.
 Numeric comparison used the Campaigns fourth-printing table where available;
-the selected-printing delta is not certified. No profile is promoted to
-verified by these engineering tests.
+the selected-printing review completed in #191. No profile is promoted to
+verified by these bounded engineering tests.
 
 B376 was inspected in Campaigns fourth printing (2008), including the
 heavy-weapon box. `tests/test_heavy_parry.py` independently records weight and
@@ -90,8 +90,9 @@ quality boundaries, BL/2xBL equality, failed contacts, double defense, two actor
 identities, duplicate-command concurrency and SQLite restart. The former
 secondary-source 3:1 prohibition is superseded. `tests/test_melee_parry_modes.py`
 checks selected-mode Parry values, critical self-wound damage, deferred context,
-invalid-choice rejection and pending-defense restart/replay. Remaining mechanics
-comparison remains a separate #191 certification gate.
+invalid-choice rejection and pending-defense restart/replay. The selected-source
+comparison completed separately in #191; remaining runtime boundaries still
+prevent whole-profile certification.
 
 `tests/test_critical_miss_completion.py`, `tests/test_critical_limbs.py`, and
 `tests/test_object_combat.py` cover #146's numeric consequences, equipment and

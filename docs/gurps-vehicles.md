@@ -24,15 +24,15 @@ receipts without drawing dice or applying wounds again.
 
 The existing `InitialResources` boundary still rejects transports in frozen v1
 scenario documents, and live play still rejects transport-bearing checkpoints.
-`rules.vehicle_capabilities.VEHICLE_OPERATIONS` exposes the actual internal
+`wayfarer.engine.rules.types.vehicle_capabilities.VEHICLE_OPERATIONS` exposes the actual internal
 operation set per locomotion tag. It is not permission to activate a complete
 GURPS profile or let scenario generation invent the remaining mechanics.
 
 ## Source and independent evidence
 
 Source: the selected GURPS Basic Set: Campaigns Fourth Edition, fourth printing,
-B394-395, B430-432 and B468-470. Item-level mechanics review remains part of
-#191; this PR does not certify the full vehicle rules.
+B394-395, B430-432 and B468-470. The selected-source review completed in #191;
+this page does not certify the full vehicle rules.
 
 `tests/test_vehicle_modes.py` supplies independently entered expected values:
 B432's HP60/velocity25 versus HP10/velocity5 rear-end example produces 12d and 2d;
@@ -97,7 +97,7 @@ mode is. All ten locomotion modes now qualify, including mounted movement throug
 the creature-backed adapter. The movement row is therefore `verified`; the
 combat row is also `verified` after #397.
 
-`rules/vehicle_coverage.validate_coverage` rejects three drifts: an audit that
+`wayfarer.engine.rules.types.vehicle_coverage.validate_coverage` rejects three drifts: an audit that
 declares different modes from `VEHICLE_OPERATIONS`, a mode that claims a concern
 it carries no operation for, and a residual whose owner is this audit itself or
 one of the closed issues it supersedes. It also rejects a declared capability
@@ -106,8 +106,9 @@ to raise a row.
 
 Every bound #346 vehicle skill still records `gurps.vehicles.movement` as its
 historical activation dependency. Because the row is verified,
-`rules/mundane_skills/technology.unsupported_scope` no longer publishes those
-procedures as blocked. Repairing a machine is not operating one, so the #356
+`wayfarer.engine.rules.skills.mundane.technology.inventory.unsupported_scope`
+no longer publishes those procedures as blocked. Repairing a machine is not
+operating one, so the #356
 Mechanic rows carry no activation blocker.
 
 Evidence is in `tests/test_vehicle_coverage.py`.

@@ -22,5 +22,5 @@ unarmed consequences, not weapon breakage on a hand identifier.
 
 Commands use the normal receipt/CAS transaction. Retrying a resolved attack,
 landing declaration or pickup never creates another copy. The fixtures cite
-Campaigns fourth printing B376/B381/B383; selected-printing reconciliation and
-overall catalog certification remain pending under #191.
+Campaigns fourth printing B376/B381/B383. Selected-printing reconciliation
+completed in #191; overall catalog certification remains incomplete.

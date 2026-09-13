@@ -17,9 +17,9 @@ ledger, so retry and replay cannot repeat a threshold check.
 | Temporary attribute penalties | B421 | typed shock, fright, and hazard conditions feed authoritative check modifiers; defensive checks opt out |
 | Mortal wounds and death | B423 | exact threshold-crossing checks, half-hour deadline, further-threshold death, and automatic death |
 
-The optional accumulated-wounds and last-wounds rules on B420 remain owned by
-the optional-rule disposition work (#493); they are not silently enabled by the
-required profile.
+The optional accumulated-wounds and last-wounds rules on B420 are explicitly
+disabled by the profile decisions recorded in #493; they are not silently
+enabled by the required profile.
 
 ## Runtime invariants
 

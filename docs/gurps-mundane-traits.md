@@ -10,7 +10,8 @@ Changing identity vocabulary changes the package digest; an identity never
 supplies a formula or arbitrary cost.
 
 Seven original racial/occupational templates compose purchases through
-`character.templates.TemplateCatalog` and the existing `CharacterCompiler`.
+`wayfarer.engine.character.templates.TemplateCatalog` and the existing
+`CharacterCompiler`.
 Envoy and Celebrated Envoy use bound traits and compile only when the campaign
 pins their runtime hooks. Celebrated Envoy includes Envoy [20], Handsome [12]
 and a +2 Bravery reputation [10], totaling 42 points. Selections, inclusion
@@ -25,15 +26,15 @@ binds effects to existing authoritative services. Seventy-five of 87 records hav
 selected runtime bindings through candidate 0.6.0; this does not certify every
 rule or variant of those traits.
 
-| Selected records | Bound effect | Reference | Remaining owner |
+| Selected records | Bound effect | Reference | Source evidence |
 | --- | --- | --- | --- |
-| Charisma | +1 reaction/influence per level, when perceived | B41 | #191 source reconciliation |
-| Voice | +2 reaction when heard and +2 in seven social-skill procedures | B97 | #191 source reconciliation |
-| Status, Low Status | Relative observer reaction plus purchased/free level | B28 | #191 source reconciliation |
-| Wealth, Rank, language and culture | Starting assets, free Status, rank form, comprehension and familiarity | B23-30 | #191 source reconciliation |
+| Charisma | +1 reaction/influence per level, when perceived | B41 | reviewed in #191 |
+| Voice | +2 reaction when heard and +2 in seven social-skill procedures | B97 | reviewed in #191 |
+| Status, Low Status | Relative observer reaction plus purchased/free level | B28 | reviewed in #191 |
+| Wealth, Rank, language and culture | Starting assets, free Status, rank form, comprehension and familiarity | B23-30 | reviewed in #191 |
 | Bad Temper, Curious, Overconfidence | Approved self-control rating roll | B120-121, B124, B129, B148 | #333 consequences beyond the roll |
-| Appearance levels and selected variants | Sight/race, split/flat, Universal, Off-the-Shelf, resentment and nuisance effects | B21 | #191 source reconciliation |
-| Selected Reputation constructions | Level, affected class, recognition frequency and durable recognition | B26-28 | #191 source reconciliation |
+| Appearance levels and selected variants | Sight/race, split/flat, Universal, Off-the-Shelf, resentment and nuisance effects | B21 | reviewed in #191 |
+| Selected Reputation constructions | Level, affected class, recognition frequency and durable recognition | B26-28 | reviewed in #191 |
 
 Appearance and reputation come from approved purchases and implemented pinned
 hooks. The existing standing resolver supplies values; the existing transactional
@@ -51,8 +52,9 @@ ordinary Handsome purchase. Reputation records name concrete details; the two
 new selected constructions retain their class, recognition frequency and
 stage-by-stage rounded price.
 
-The other 12 records remain unavailable. Every record carries source owner #191;
-concrete runtime follow-ups are exported directly to the source audit:
+The other 12 records remain unavailable. Every record carries the source-review
+evidence completed in #191; concrete runtime follow-ups are exported directly to
+the source audit:
 
 | Follow-up | Selected outstanding scope |
 | --- | --- |
@@ -60,9 +62,11 @@ concrete runtime follow-ups are exported directly to the source audit:
 | #334 | Completed by candidate 0.5.0 |
 | #335 | Completed by candidate 0.6.0 |
 
-These follow-ups block remaining #113 gameplay coverage and #122 certification.
+These follow-ups block the remaining selected gameplay coverage and #122
+certification.
 The inventory is a selected construction inventory, not an exhaustive Basic Set
-index. Unselected entries remain #113/#191 reconciliation work. A manual ruling
+index. Unselected entries remain part of the #496 trait reconciliation and #497
+modifier work; the selected-source review completed in #191. A manual ruling
 or a priced construction never counts as complete runtime coverage.
 
 ## Pins, provenance and evidence
@@ -73,8 +77,8 @@ profiles. Campaigns without its explicit runtime hooks cannot activate these
 purchases. Public v1 contracts are unchanged.
 
 Numeric references use the selected Basic Set: Characters, Fourth Edition,
-third printing, B21 and B26-28. Item-level verification remains #191; no profile
-is promoted to verified.
+third printing, B21 and B26-28. Item-level source review completed in #191; that
+evidence does not promote the profile to verified.
 
 Independent tests cover construction costs, self-control multipliers, identities,
 exclusions, template totals, unavailable effects, modifier values and audiences,
@@ -86,8 +90,9 @@ values are literals from the selected source pages, not generated from bindings.
 
 Candidate version **0.3.0** binds all 12 selected physical records, bringing the
 selected inventory to **27 bound records and 38 unavailable records**. The earlier
-0.2.0 standing scope above remains supported. Physical records retain #191 as a
-source-certification blocker; #332 is no longer an unimplemented runtime owner.
+0.2.0 standing scope above remains supported. The physical records were included
+in the source review completed in #191; #332 is no longer an unimplemented
+runtime owner.
 
 | Records | Executable effects | Numeric reference |
 | --- | --- | --- |
