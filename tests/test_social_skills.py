@@ -340,16 +340,10 @@ def test_unsupported_scope_is_published_with_an_owner() -> None:
     # A bound row can still leave part of its entry elsewhere; a transferred row
     # keeps a blocker instead, so it never appears here.
     assert set(scope) == {
-        "skill:carousing",
         "skill:interrogation",
-        "skill:leadership",
-        "skill:panhandling",
-        "skill:performance",
-        "skill:public-speaking",
-        "skill:teaching",
     }
     assert all(entry.owner_issue > 0 and entry.detail for entry in scope.values())
-    assert {entry.owner_issue for entry in scope.values()} == {368, 369, 370}
+    assert {entry.owner_issue for entry in scope.values()} == {368}
     assert all(procedure(identifier).dispatchable for identifier in scope)
     transferred = {
         identifier
@@ -376,7 +370,7 @@ def test_inventory_rows_agree_with_the_procedure_registry() -> None:
     assert "runtime-procedure" in rows["skill:savoir-faire"].blockers
     assert rows["skill:savoir-faire"].blocker_owners["runtime-procedure"] == (345, 366)
     assert "runtime-procedure" not in rows["skill:teaching"].blockers
-    assert 369 in rows["skill:teaching"].followup_issues
+    assert not procedure("skill:teaching").unsupported
 
 
 def test_a_binding_cannot_disagree_with_the_recorded_inventory() -> None:
@@ -657,7 +651,7 @@ def test_the_registry_rejects_an_incoherent_procedure(
     with pytest.raises(ValidationError, match="Duplicate social procedure"):
         _validate((entry, entry))
     scope = replace(
-        entry, unsupported=(replace(procedure("skill:teaching").unsupported[0], detail=""),)
+        entry, unsupported=(replace(procedure("skill:interrogation").unsupported[0], detail=""),)
     )
     with pytest.raises(ValidationError, match="owner and detail"):
         _validate((scope,))

@@ -1,5 +1,7 @@
 """Independent animal and swarm combat cases from Campaigns B460-B461."""
 
+from typing import Literal
+
 import pytest
 from pydantic import ValidationError as SchemaError
 from test_creatures import catalog
@@ -16,6 +18,7 @@ from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.location import InjuryTolerance
 from wayfarer.engine.simulation.creature_combat import (
     DamageSwarm,
+    NaturalAttackOutcome,
     ResolveNaturalAttack,
     ResolveSwarmTurn,
     SetSwarmArea,
@@ -29,10 +32,10 @@ from wayfarer.engine.simulation.movement.creature_mounts import mount_transport
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
-PROFILE = "gurps-basic-set-4e-2004"
+PROFILE: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
 
 
-def creature_state():
+def creature_state() -> ResourceState:
     entries = catalog()
     wolf = entries.compile("wolf", "Wolf", "creature:timber-wolf").creature
     dog = entries.compile("dog", "Dog", "creature:large-guard-dog").creature
@@ -67,7 +70,7 @@ def test_natural_attack_uses_compiled_damage_reach_dr_and_common_injury() -> Non
     seed = creature_state()
     dice = RecordedDice([2, 2, 2, 4])
     updated, result = apply_creature_combat(seed, natural(), rng=dice, system=True)
-    assert result is not None and result.hit
+    assert isinstance(result, NaturalAttackOutcome) and result.hit
     assert result.damage_dice == (4,) and result.basic_damage == 2
     assert result.injury is not None
     assert (result.injury.effective_resistance, result.injury.injury) == (1, 1)
@@ -113,7 +116,7 @@ def test_natural_attack_cannot_bypass_persisted_injury_tolerance() -> None:
         rng=RecordedDice([2, 2, 2, 6]),
         system=True,
     )
-    assert result is not None and result.injury is not None
+    assert isinstance(result, NaturalAttackOutcome) and result.injury is not None
     # 1d-2 cutting would inflict 6 injury before Diffuse caps this attack at 2.
     assert (result.basic_damage, result.injury.injury) == (4, 2)
     assert next(pool.current for pool in updated.pools if pool.id == "hp:dog") == 7
@@ -123,8 +126,7 @@ def test_creature_proposals_fail_closed_for_training_anatomy_and_condition() -> 
     state = creature_state()
     dog = next(entry for entry in state.creatures if entry.actor_id == "dog")
     assert not any(
-        proposal.attack_id
-        for proposal in propose_creature_actions(state, "dog", "commanded")
+        proposal.attack_id for proposal in propose_creature_actions(state, "dog", "commanded")
     )
     trained = dog.model_copy(
         update={
@@ -140,7 +142,11 @@ def test_creature_proposals_fail_closed_for_training_anatomy_and_condition() -> 
         }
     )
     state = state.model_copy(
-        update={"creatures": tuple(trained if entry.actor_id == "dog" else entry for entry in state.creatures)}
+        update={
+            "creatures": tuple(
+                trained if entry.actor_id == "dog" else entry for entry in state.creatures
+            )
+        }
     )
     proposals = propose_creature_actions(state, "dog", "commanded")
     attacks = tuple(value for value in proposals if value.attack_id)
@@ -154,9 +160,9 @@ def test_creature_proposals_fail_closed_for_training_anatomy_and_condition() -> 
         for pool in state.pools
     )
     unconscious = state.model_copy(update={"pools": pools})
-    assert [value.maneuver for value in propose_creature_actions(unconscious, "dog", "defensive")] == [
-        "do-nothing"
-    ]
+    assert [
+        value.maneuver for value in propose_creature_actions(unconscious, "dog", "defensive")
+    ] == ["do-nothing"]
 
 
 def test_mounted_creature_attack_uses_existing_transport_separation_state() -> None:
@@ -275,9 +281,10 @@ def test_swarm_diffuse_damage_and_dispersal_are_exactly_once() -> None:
     assert result.dispersed and result.remaining_hp == 0
     assert not dispersed.swarms[0].active and dispersed.swarms[0].occupants == ()
     restored = ResourceState.model_validate_json(dispersed.model_dump_json())
-    assert apply_creature_combat(
-        restored, command, rng=RecordedDice([]), system=True
-    ) == (restored, result)
+    assert apply_creature_combat(restored, command, rng=RecordedDice([]), system=True) == (
+        restored,
+        result,
+    )
     with pytest.raises(ConflictError, match="already dispersed"):
         apply_creature_combat(
             dispersed,
@@ -335,13 +342,9 @@ def test_swarm_area_and_countermeasure_schemas_fail_closed() -> None:
 def test_creature_combat_replays_from_json_without_new_randomness() -> None:
     seed = creature_state()
     command = natural()
-    live = replay_creature_combat(
-        seed, (command,), rng=RecordedDice([2, 2, 2, 4])
-    )
+    live = replay_creature_combat(seed, (command,), rng=RecordedDice([2, 2, 2, 4]))
     restored = ResourceState.model_validate_json(live.model_dump_json())
-    assert replay_creature_combat(
-        restored, (command,), rng=RecordedDice([])
-    ) == restored
+    assert replay_creature_combat(restored, (command,), rng=RecordedDice([])) == restored
 
 
 def test_special_monster_attack_rejects_without_a_trait_procedure() -> None:

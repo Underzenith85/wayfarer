@@ -242,9 +242,7 @@ def propose_creature_actions(
     return tuple(proposals)
 
 
-def _mounted_transport(
-    state: ResourceState, creature: Creature, transport_id: str
-) -> Transport:
+def _mounted_transport(state: ResourceState, creature: Creature, transport_id: str) -> Transport:
     transport = next((entry for entry in state.transports if entry.id == transport_id), None)
     if (
         transport is None
@@ -258,7 +256,9 @@ def _mounted_transport(
 
 
 def _attack_level(creature: Creature) -> int:
-    brawling = next((entry.level for entry in creature.skills if entry.id == "skill:brawling"), None)
+    brawling = next(
+        (entry.level for entry in creature.skills if entry.id == "skill:brawling"), None
+    )
     return creature.statistics.dx if brawling is None else brawling
 
 
@@ -274,7 +274,9 @@ def _natural_damage(
     if attack is None:
         raise ValidationError("Natural attack is not in the compiled creature")
     if attack.damage_basis == "special" or attack.damage_type == "special":
-        raise ValidationError("Special monster attacks require their own implemented trait procedure")
+        raise ValidationError(
+            "Special monster attacks require their own implemented trait procedure"
+        )
     expression = strength_damage(PROFILE, creature.statistics.st)[0]
     adds = expression.add - (1 if attack.damage_basis == "thrust-1" else 0)
     traits = {entry.id for entry in creature.traits}
@@ -353,7 +355,9 @@ def resolve_natural_attack(
         mounted_transport_id=command.mounted_transport_id,
     )
     if proposal not in legal:
-        raise ValidationError("Creature attack is excluded by behavior, training, anatomy or condition")
+        raise ValidationError(
+            "Creature attack is excluded by behavior, training, anatomy or condition"
+        )
     selected = next((entry for entry in creature.attacks if entry.id == command.attack_id), None)
     if selected is None:
         raise ValidationError("Unknown natural attack")
@@ -364,7 +368,9 @@ def resolve_natural_attack(
     if separation > selected.reach:
         raise ValidationError("Target is outside the compiled natural-attack reach")
     if selected.damage_basis == "special" or selected.damage_type == "special":
-        raise ValidationError("Special monster attacks require their own implemented trait procedure")
+        raise ValidationError(
+            "Special monster attacks require their own implemented trait procedure"
+        )
     defender = next(
         (entry for entry in state.creatures if entry.actor_id == command.target_id), None
     )
@@ -451,9 +457,7 @@ def _replace_swarm(state: ResourceState, swarm: Swarm) -> ResourceState:
     values = [swarm if entry.id == swarm.id else entry for entry in state.swarms]
     if not found:
         values.append(swarm)
-    return state.model_copy(
-        update={"swarms": tuple(sorted(values, key=lambda entry: entry.id))}
-    )
+    return state.model_copy(update={"swarms": tuple(sorted(values, key=lambda entry: entry.id))})
 
 
 def _protected(swarm: Swarm, occupant: SwarmOccupant, now: int) -> bool:
@@ -474,8 +478,7 @@ def _set_swarm_area(state: ResourceState, command: SetSwarmArea) -> ResourceStat
     # Shared geometry owns adjacency: every destination cell must connect to the area.
     cells = tuple(Hex(q=entry.q, r=entry.r) for entry in command.area)
     if len(cells) > 1 and any(
-        not any(distance(cell, other) == 1 for other in cells if other != cell)
-        for cell in cells
+        not any(distance(cell, other) == 1 for other in cells if other != cell) for cell in cells
     ):
         raise ValidationError("Swarm area must be connected in shared hex geometry")
     old = tuple(Hex(q=entry.q, r=entry.r) for entry in swarm.area)
@@ -575,7 +578,7 @@ def _damage_swarm(
                 "anatomy": "swarm",
                 "tolerance": InjuryTolerance(
                     structure="diffuse", no_brain=True, no_eyes=True, no_neck=True, no_vitals=True
-                )
+                ),
             }
         )
         state = state.model_copy(

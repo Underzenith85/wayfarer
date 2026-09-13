@@ -946,6 +946,11 @@
           "title": "Permanent Iq Loss",
           "type": "integer"
         },
+        "collapse": {
+          "default": false,
+          "title": "Collapse",
+          "type": "boolean"
+        },
         "trait_choice": {
           "default": "none",
           "enum": [
@@ -1064,10 +1069,29 @@
           "type": "string"
         },
         "audience": {
-          "$ref": "#/$defs/GMAudience",
           "default": {
             "kind": "gm"
-          }
+          },
+          "discriminator": {
+            "mapping": {
+              "actors": "#/$defs/ActorAudience",
+              "campaign": "#/$defs/CampaignAudience",
+              "gm": "#/$defs/GMAudience"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CampaignAudience"
+            },
+            {
+              "$ref": "#/$defs/ActorAudience"
+            },
+            {
+              "$ref": "#/$defs/GMAudience"
+            }
+          ],
+          "title": "Audience"
         },
         "result": {
           "$ref": "#/$defs/HazardResult"
@@ -1125,6 +1149,19 @@
             }
           ],
           "default": null
+        },
+        "conditions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Conditions",
+          "type": "array"
+        },
+        "radiation_dose": {
+          "default": 0,
+          "title": "Radiation Dose",
+          "type": "integer"
         }
       },
       "required": [

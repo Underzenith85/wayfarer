@@ -80,12 +80,8 @@ class CreatureAttack(Record):
     reach: int = Field(default=0, ge=0, le=100)
 
 
-CreatureManeuver = Literal[
-    "attack", "all-out-attack", "move", "move-and-attack", "do-nothing"
-]
-CreatureMotivation = Literal[
-    "predatory", "defensive", "territorial", "commanded", "panic"
-]
+CreatureManeuver = Literal["attack", "all-out-attack", "move", "move-and-attack", "do-nothing"]
+CreatureMotivation = Literal["predatory", "defensive", "territorial", "commanded", "panic"]
 
 
 class CreatureCombatBehavior(Record):

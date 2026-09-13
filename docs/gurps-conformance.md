@@ -174,6 +174,10 @@ training, natural-attack and swarm slice described in
 and three source example swarms deliberately do not claim an unlimited
 bestiary. All bodily damage converges on the existing injury reducer.
 
+Issue #519 supplies authored disease/contact profiles, private incubation,
+wound-linked infection schedules, chronological aging, and the approved lasting
+attribute-loss boundary described in [disease, infection, and aging](gurps-disease-aging.md).
+
 ## Mechanics-family coverage matrix
 
 Status and implementation ownership mirror `CAPABILITIES`. None is certified. References name source sections without reproducing prose; precise item/page verification remains part of the source audit above.
@@ -198,7 +202,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.resistance` | yes | yes | verified | #99 |
 | `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
 | `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
-| `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
+| `gurps.social.fright` | no | yes | partial | #111; complete B360-361 consequence runtime #520 |
 | `gurps.campaign.administration` | no | yes | verified | #501; [authoritative reactions and exact-once awards](gurps-campaign-administration.md) |
 | `gurps.campaign.knowledge` | no | yes | verified | #501; [audience-scoped knowledge](gurps-campaign-administration.md) |
 | `gurps.campaign.time_use` | no | yes | verified | #501; [shared-clock Time Use settlement](gurps-campaign-administration.md) |
@@ -242,11 +246,11 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.tactical.hex_movement` | no | yes | partial | #105; #329 adds lossless [hex-to-Basic conversion](mapless-combat.md#hex-to-basic-conversion) for representable battlefields |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
 | `gurps.tactical.visibility` | no | yes | partial | #105 |
-| `gurps.recovery.fatigue` | yes | yes | partial | [#109 details](gurps-recovery.md) |
+| `gurps.recovery.fatigue` | yes | yes | partial | #516; [Basic Set survival complete](gurps-survival.md), exact Lite source remains unavailable |
 | `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
-| `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
+| `gurps.world.environmental_hazards` | yes | yes | partial | #110, #154, #517, and #518; [typed persistent exposure schedules](gurps-hazards.md), [poisons, intoxication, drugs, withdrawal, and overdose](gurps-toxins.md); illness ownership remains separate |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
 | `gurps.vehicles.movement` | no | yes | verified | #358; [vehicle operation audit](gurps-vehicles.md); all ten modes complete in #392-#396 |
@@ -533,8 +537,9 @@ expected result by hand; `tests/test_social_skills.py` runs them.
 
 Reaction/influence/fright coverage remains **partial**, and runtime self-control
 is partial: these are server-only procedures, with full NPC play dispatch and
-timed consequence execution in #137. The complete numeric fright table is
-represented by typed FrightEffect records: durations, recovery attributes and
+timed consequence execution in #137. The #520 completion pass source-reviewed
+the complete numeric fright table and reconciled the earlier #137/#299 runtime.
+It is represented by typed FrightEffect records: durations, recovery attributes and
 intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
 explicit GM trait/panic choices. Each row has executable tests. Table effects
 are persisted in the private receipt. The #137 runtime adapter now applies HP/FP
@@ -545,7 +550,7 @@ Will recovery retains the original trigger target, without the Fright Check's
 Rule-of-14 cap. Build HT/Will and explicit profile pools are validated before dice.
 
 Choice-bearing results expose owner-scoped proposals and director approvals.
-#299 applies the exact lasting trait/self-control/HT/IQ change through the pinned
+#520 preserves #299's exact lasting trait/self-control/HT/IQ change through the pinned
 compiler and power reviewer, recalculates dependent values, preserves resource
 deficits and grants no spendable refund. Unapproved permanent losses remain
 blockers. Authoritative clock adapters automatically settle successive fright
@@ -570,7 +575,7 @@ use compiled skills, and self-control uses its rating plus situation modifiers.
 Campaign commands expose care/panic decisions and owner-proposed, GM-approved
 lasting changes. See [runtime details](gurps-social-runtime.md) and the
 `test_fright_builds`, `test_fright_conditions`, and `test_social_scenario_v2`
-suites for executable #299 evidence. Coverage remains partial for the separate
+suites for executable #520 evidence. Coverage remains partial for the separate
 source/errata and catalog certification gates; these are not waived by this PR.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
@@ -584,7 +589,7 @@ subjects. Persisted retries do not re-run the resolver or recheck changed world
 knowledge. Colon-bearing trigger identities cannot alias, and legacy receipts
 remain readable. Player projections and event streams omit private traces.
 Fright dispatch applies the timed runtime adapter and the approval-aware lasting
-consequence workflow from #299. Independent
+consequence workflow completed by #520. Independent
 SQLite restart, stale command, failed disclosure, authority, and projection tests
 cover this boundary. The profile registry remains gated pending certification.
 

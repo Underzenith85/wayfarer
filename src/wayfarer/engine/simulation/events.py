@@ -125,7 +125,7 @@ class FrightResolved(Record):
 
 class HazardResolved(Record):
     kind: Literal["hazard.resolved"] = "hazard.resolved"
-    audience: GMAudience = GMAudience()
+    audience: EventAudience = GMAudience()
     result: HazardResult
 
 
@@ -300,7 +300,12 @@ def play_facts(before: PlayState, after: PlayState, actor_id: str) -> list[Engin
         if event.id.startswith("fright-runtime:"):
             result.append(FrightResolved(fact=TimedFright.model_validate_json(event.kind)))
         elif event.id.startswith("hazard:"):
-            result.append(HazardResolved(result=HazardResult.model_validate_json(event.kind)))
+            result.append(
+                HazardResolved(
+                    audience=ActorAudience(actor_ids=(event.target_id,)),
+                    result=HazardResult.model_validate_json(event.kind),
+                )
+            )
         elif event.id.startswith("injury:"):
             result.append(InjuryResolved(result=InjuryResult.model_validate_json(event.kind)))
         elif event.id.startswith("spell:"):

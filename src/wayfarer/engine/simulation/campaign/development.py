@@ -57,6 +57,14 @@ class QuickLearningRule(Record):
     default_available: bool = True
 
 
+class TeachingBinding(Record):
+    """An authored social trigger that licenses one instructed study program."""
+
+    id: Id
+    trigger_id: Id
+    study_rule_id: Id
+
+
 class DevelopmentRules(Record):
     id: Id
     version: int = Field(ge=1)
@@ -64,16 +72,27 @@ class DevelopmentRules(Record):
     adventures: tuple[AdventureImprovementRule, ...] = ()
     study: tuple[StudyRule, ...] = ()
     quick_learning: tuple[QuickLearningRule, ...] = ()
+    teaching: tuple[TeachingBinding, ...] = Field(default=(), exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def unique_rules(self) -> DevelopmentRules:
         identifiers = tuple(value.id for value in self.adventures)
         identifiers += tuple(value.id for value in self.study)
         identifiers += tuple(value.id for value in self.quick_learning)
+        identifiers += tuple(value.id for value in self.teaching)
         if len(set(identifiers)) != len(identifiers):
             raise ValueError("Duplicate character-development rule ID")
         if len({value.activity_id for value in self.study}) != len(self.study):
             raise ValueError("A Time Use activity may settle only one study subject")
+        if len({value.trigger_id for value in self.teaching}) != len(self.teaching):
+            raise ValueError("A Teaching trigger may bind only one study program")
+        programs = {value.id: value for value in self.study}
+        if any(
+            value.study_rule_id not in programs
+            or programs[value.study_rule_id].method not in ("education", "intensive")
+            for value in self.teaching
+        ):
+            raise ValueError("Teaching bindings require an instructed study program")
         return self
 
 
@@ -107,12 +126,24 @@ class QuickLearningAttempt(Record):
     succeeded: bool
 
 
+class TeachingLesson(Record):
+    id: Id
+    binding_id: Id
+    study_rule_id: Id
+    teacher_id: Id
+    student_id: Id
+
+
 class DevelopmentState(Record):
     progress: tuple[StudyProgress, ...] = ()
     consumed_time_use_ids: tuple[Id, ...] = ()
     settled_adventure_ids: tuple[Id, ...] = ()
     permissions: tuple[AdvancementPermission, ...] = ()
     quick_learning: tuple[QuickLearningAttempt, ...] = ()
+    teaching_lessons: tuple[TeachingLesson, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    consumed_lesson_ids: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)
 
 
 class DevelopmentCommand(Record):
@@ -269,6 +300,76 @@ def _finish(
     )
 
 
+def bind_teaching_outcome(
+    state: DevelopmentState,
+    rules: DevelopmentRules | None,
+    *,
+    command_id: str,
+    trigger_id: str,
+    teacher_id: str,
+    student_id: str,
+    outcome: str,
+) -> DevelopmentState:
+    """Bind a B224 social result to the instructed-study ledger.
+
+    The roll does not spend the student's points or choose study for them.  A
+    success creates a single-use lesson authorization; the student's later
+    ``SettleStudy`` command remains the action that consumes time and advances.
+    """
+    if rules is None:
+        return state
+    binding = next((value for value in rules.teaching if value.trigger_id == trigger_id), None)
+    if binding is None:
+        return state
+    study = _rule(rules.study, binding.study_rule_id, "Teaching study program")
+    if study.teacher_id != teacher_id:
+        raise ValidationError("Teaching trigger does not match the program teacher")
+    if any(value.id == command_id for value in state.teaching_lessons):
+        raise ConflictError("Teaching outcome is already bound")
+    if outcome != "teaching-taught":
+        return state
+    return state.model_copy(
+        update={
+            "teaching_lessons": state.teaching_lessons
+            + (
+                TeachingLesson(
+                    id=command_id,
+                    binding_id=binding.id,
+                    study_rule_id=study.id,
+                    teacher_id=teacher_id,
+                    student_id=student_id,
+                ),
+            )
+        }
+    )
+
+
+def _required_lesson(
+    state: DevelopmentState,
+    rules: DevelopmentRules,
+    study_rule: StudyRule,
+    actor_id: str,
+) -> TeachingLesson | None:
+    teaching = next(
+        (value for value in rules.teaching if value.study_rule_id == study_rule.id), None
+    )
+    if teaching is None:
+        return None
+    lesson = next(
+        (
+            value
+            for value in state.teaching_lessons
+            if value.binding_id == teaching.id
+            and value.student_id == actor_id
+            and value.id not in state.consumed_lesson_ids
+        ),
+        None,
+    )
+    if lesson is None:
+        raise ValidationError("Instructed study requires a successful Teaching lesson")
+    return lesson
+
+
 def apply_development(
     state: DevelopmentState,
     resources: ResourceState,
@@ -341,6 +442,7 @@ def apply_development(
         )
         if entry is None or entry.actor_id != command.actor_id:
             raise ValidationError("Study requires the actor's settled Time Use entry")
+        lesson = _required_lesson(state, rules, study_rule, command.actor_id)
         _instruction_valid(study_rule, profiles, command.actor_id)
         learning = _study_credit(study_rule, entry)
         current = next(
@@ -402,6 +504,8 @@ def apply_development(
                 "progress": all_progress,
                 "consumed_time_use_ids": state.consumed_time_use_ids + (command.time_use_id,),
                 "permissions": permissions,
+                "consumed_lesson_ids": state.consumed_lesson_ids
+                + ((lesson.id,) if lesson is not None else ()),
             }
         )
         outcome = DevelopmentOutcome(status="studied", points=awarded, learning_seconds=learning)
@@ -477,11 +581,20 @@ def validate_development(
         return
     if len(set(state.consumed_time_use_ids)) != len(state.consumed_time_use_ids):
         raise ValidationError("Duplicate settled study Time Use entry")
+    if len({item.id for item in state.teaching_lessons}) != len(state.teaching_lessons):
+        raise ValidationError("Duplicate Teaching lesson")
+    if len(set(state.consumed_lesson_ids)) != len(state.consumed_lesson_ids):
+        raise ValidationError("Duplicate consumed Teaching lesson")
+    if not set(state.consumed_lesson_ids) <= {item.id for item in state.teaching_lessons}:
+        raise ValidationError("Consumed Teaching lesson does not exist")
     if not set(state.consumed_time_use_ids) <= {item.id for item in administration.time_use}:
         raise ValidationError("Study settlement references unknown Time Use")
     if len({(item.actor_id, item.subject_id) for item in state.progress}) != len(state.progress):
         raise ValidationError("Duplicate study progress")
-    if any(item.actor_id not in actor_ids for item in state.progress + state.permissions):
+    if any(item.actor_id not in actor_ids for item in state.progress + state.permissions) or any(
+        item.teacher_id not in actor_ids or item.student_id not in actor_ids
+        for item in state.teaching_lessons
+    ):
         raise ValidationError("Character development references an unknown actor")
     if any(
         entry.source_kind != "discretionary"

@@ -59,10 +59,35 @@ class PendingEffect(Record):
     recipient_actor_ids: tuple[Id, ...]
 
 
+class LeadershipActivityRule(Record):
+    """A GM-authored NPC group activity gated by one B204 trigger."""
+
+    id: Id
+    trigger_id: Id
+    group_id: Id
+    activity_id: Id
+    follower_actor_ids: tuple[Id, ...] = Field(min_length=1)
+
+
+class LeadershipActivity(Record):
+    id: Id
+    rule_id: Id
+    activity_id: Id
+    group_id: Id
+    leader_actor_id: Id
+    follower_actor_ids: tuple[Id, ...]
+    group_size: int = Field(ge=2)
+    group_size_modifier: Literal[0] = 0
+    status: Literal["followed", "hesitant", "refused"]
+
+
 class PartyRules(Record):
     id: Id
     version: int = Field(ge=1)
     effects: tuple[CrossSceneEffect, ...] = ()
+    leadership: tuple[LeadershipActivityRule, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
 
 class PartyState(Record):
@@ -72,6 +97,77 @@ class PartyState(Record):
     receipts: tuple[ActivityReceipt, ...] = ()
     effects: tuple[PendingEffect, ...] = ()
     fired_effect_ids: tuple[Id, ...] = ()
+    leadership: tuple[LeadershipActivity, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+
+
+def bind_leadership_outcome(
+    rules: PartyRules | None,
+    party: PartyState,
+    *,
+    command_id: str,
+    trigger_id: str,
+    leader_actor_id: str,
+    subject_id: str,
+    outcome: str,
+    player_actor_ids: frozenset[str],
+) -> PartyState:
+    """Bind a B204 verdict to an authored NPC group activity.
+
+    B204 gives no numerical group-size penalty. ``group_size_modifier`` records
+    that audited zero while the result names every affected follower. PCs remain
+    outside the consequence and choose their own actions.
+    """
+    if rules is None:
+        return party
+    rule = next((value for value in rules.leadership if value.trigger_id == trigger_id), None)
+    if rule is None:
+        return party
+    group = next((value for value in party.groups if value.id == rule.group_id), None)
+    if group is None or leader_actor_id not in group.actor_ids:
+        raise ValidationError("Leadership activity requires the leader's current subgroup")
+    followers = frozenset(rule.follower_actor_ids)
+    if subject_id not in followers or not followers < frozenset(group.actor_ids):
+        raise ValidationError("Leadership subject and followers must share the subgroup")
+    if followers & player_actor_ids:
+        raise ValidationError("Leadership cannot select a player character's group activity")
+    if any(value.id == command_id for value in party.leadership):
+        raise ConflictError("Leadership outcome is already bound")
+    status: Literal["followed", "hesitant", "refused"] = (
+        "followed"
+        if outcome == "leadership-followed"
+        else "refused"
+        if outcome == "leadership-refused"
+        else "hesitant"
+    )
+    return party.model_copy(
+        update={
+            "leadership": party.leadership
+            + (
+                LeadershipActivity(
+                    id=command_id,
+                    rule_id=rule.id,
+                    activity_id=rule.activity_id,
+                    group_id=rule.group_id,
+                    leader_actor_id=leader_actor_id,
+                    follower_actor_ids=rule.follower_actor_ids,
+                    group_size=1 + len(rule.follower_actor_ids),
+                    status=status,
+                ),
+            ),
+            "receipts": party.receipts
+            + (
+                ActivityReceipt(
+                    id="leadership:" + command_id,
+                    actor_id=leader_actor_id,
+                    at=group.ready_through,
+                    status="committed" if status == "followed" else "rejected",
+                    code=rule.activity_id,
+                ),
+            ),
+        }
+    )
 
 
 def migrate(state: PlayState) -> PlayState:
@@ -137,6 +233,18 @@ def validate(state: PlayState) -> None:
         raise ValidationError("Duplicate queued activity")
     if len({r.id for r in party.receipts}) != len(party.receipts):
         raise ValidationError("Duplicate activity receipt")
+    if len({value.id for value in party.leadership}) != len(party.leadership):
+        raise ValidationError("Duplicate Leadership activity")
+    groups = {value.id: value for value in party.groups}
+    for result in party.leadership:
+        leader_group = groups.get(result.group_id)
+        if (
+            leader_group is None
+            or result.leader_actor_id not in leader_group.actor_ids
+            or not set(result.follower_actor_ids) < set(leader_group.actor_ids)
+            or result.group_size != len(result.follower_actor_ids) + 1
+        ):
+            raise ValidationError("Leadership activity disagrees with its subgroup")
     if {q.id for q in party.queue} & {r.id for r in party.receipts}:
         raise ValidationError("Activity is both queued and completed")
     for activity in party.queue:
@@ -153,6 +261,15 @@ def validate(state: PlayState) -> None:
 def validate_effects(rules: PartyRules, state: PlayState, scene_ids: frozenset[str]) -> None:
     """Cross-scene effects must name known scenes, facts and approved recipients."""
     effects = rules.effects
+    if len({value.id for value in rules.leadership}) != len(rules.leadership):
+        raise ValidationError("Duplicate Leadership activity rule")
+    if len({value.trigger_id for value in rules.leadership}) != len(rules.leadership):
+        raise ValidationError("Duplicate Leadership trigger")
+    if any(
+        len(set(value.follower_actor_ids)) != len(value.follower_actor_ids)
+        for value in rules.leadership
+    ):
+        raise ValidationError("Duplicate Leadership follower")
     if len({e.id for e in effects}) != len(effects):
         raise ValidationError("Duplicate cross-scene effect")
     actor_ids = {a.actor_id for a in state.actors}

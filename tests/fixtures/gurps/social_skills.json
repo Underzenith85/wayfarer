@@ -67,9 +67,7 @@
         "audience-perceptible"
       ],
       "modifiers": [],
-      "unsupported": [
-        370
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {},
       "defaults": [
@@ -243,9 +241,7 @@
       "modifiers": [
         "audible-voice-trait"
       ],
-      "unsupported": [
-        369
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {},
       "defaults": [
@@ -287,9 +283,7 @@
         "audience-perceptible"
       ],
       "modifiers": [],
-      "unsupported": [
-        370
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
@@ -315,9 +309,7 @@
       "modifiers": [
         "audible-voice-trait"
       ],
-      "unsupported": [
-        370
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
@@ -396,9 +388,7 @@
       "modifiers": [
         "audible-voice-trait"
       ],
-      "unsupported": [
-        370
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {},
       "defaults": [
@@ -500,9 +490,7 @@
         "shared-language"
       ],
       "modifiers": [],
-      "unsupported": [
-        369
-      ],
+      "unsupported": [],
       "dispatched": true,
       "transferred": {},
       "defaults": [

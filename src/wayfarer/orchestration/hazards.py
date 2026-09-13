@@ -13,7 +13,12 @@ from wayfarer.engine.character.statistics import encumbrance
 from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.environment import ambient_spec
 from wayfarer.engine.rules.physical import contagion_modifier
-from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
+from wayfarer.engine.rules.types.hazard import (
+    HazardEnvironment,
+    HazardProtection,
+    HazardSchedule,
+    HazardSpec,
+)
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.health.hazards import HazardCommand, HazardResult, apply_hazard
 from wayfarer.engine.simulation.resources import decimal_weight
@@ -34,6 +39,7 @@ class HazardContext:
     wind_mph: int = 0
     clothing: str = "winter"
     wet: bool = False
+    protection: HazardProtection | None = None
     contacts: tuple[str, ...] = ()
 
 
@@ -95,21 +101,40 @@ class HazardService:
                             raise ValidationError("Contact modifiers require a disease")
                         bonus = contagion_modifier(context.contacts)
                     if context.temperature_f is not None:
+                        if context.protection is None:
+                            raise ValidationError(
+                                "Measured temperature requires explicit protection facts"
+                            )
                         levels = physical_traits(
                             build, play.engine.reviewer.compiler.definitions
                         ).temperature_tolerance
+                        ambient = ambient_spec(
+                            context.spec,
+                            temperature=context.temperature_f,
+                            ht=ht,
+                            tolerance=levels,
+                            cold_extension=context.cold_extension_f,
+                            center=context.comfort_center_f,
+                            wind=context.wind_mph,
+                            clothing=context.clothing,
+                            wet=context.wet,
+                        )
                         context = replace(
                             context,
-                            spec=ambient_spec(
-                                context.spec,
-                                temperature=context.temperature_f,
-                                ht=ht,
-                                tolerance=levels,
-                                cold_extension=context.cold_extension_f,
-                                center=context.comfort_center_f,
-                                wind=context.wind_mph,
-                                clothing=context.clothing,
-                                wet=context.wet,
+                            spec=ambient.model_copy(
+                                update={
+                                    "environment": HazardEnvironment(
+                                        medium="air",
+                                        intensity=max(
+                                            1,
+                                            abs(context.temperature_f - context.comfort_center_f),
+                                        ),
+                                        duration_seconds=ambient.interval * ambient.cycles,
+                                        temperature_f=context.temperature_f,
+                                        source_class="ambient-temperature",
+                                    ),
+                                    "protection": context.protection,
+                                }
                             ),
                         )
                         assert build.statistics is not None
@@ -200,7 +225,7 @@ class HazardService:
                         if context.spec.kind == "disease" and context.contacts
                         else "cycles",
                         no_air_since=before.resources.game_time
-                        if context.spec.kind == "suffocation"
+                        if context.spec.kind in ("suffocation", "vacuum")
                         else None,
                     )
             if command.kind == "enter" and schedule is not None and schedule.spec.kind == "disease":
