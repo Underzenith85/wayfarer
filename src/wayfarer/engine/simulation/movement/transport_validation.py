@@ -16,6 +16,16 @@ def validate_transport(engine: ResourceEngine, state: ResourceState, t: Transpor
     """Explicit scenario activation validator. No inferred migration from catalog listings."""
     if t.locomotion == "ground-mount" and t.body_id not in engine.actors:
         raise ValidationError("Mount must be a world actor")
+    creature = next((entry for entry in state.creatures if entry.actor_id == t.body_id), None)
+    if t.locomotion == "ground-mount" and creature is not None:
+        if creature.mount is None or not creature.mount.riding:
+            raise ValidationError("Ground mount lacks creature riding capability")
+        ground = creature.statistics.move("ground")
+        if (t.acceleration, t.top_speed) != (
+            ground.ordinary_move,
+            ground.enhanced_move or ground.ordinary_move,
+        ):
+            raise ValidationError("Ground mount movement disagrees with creature facts")
     passengers = t.occupants + t.overboard + tuple(e.actor_id for e in t.pending_ejections)
     if not set(passengers) <= engine.actors:
         raise ValidationError("Unknown transport occupant")
