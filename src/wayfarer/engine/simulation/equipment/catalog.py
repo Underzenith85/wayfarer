@@ -479,6 +479,47 @@ class EquipmentProfile(Record):
         )
 
 
+def _validate_object_extensions(
+    entry: EquipmentProfile, entries: dict[str, EquipmentProfile]
+) -> None:
+    profile = entry.durability
+    if profile is None:
+        return
+    for outcome in profile.broken_weapon_outcomes:
+        if outcome is None:
+            continue
+        retained = entries.get(outcome.retained_definition_id or "")
+        detached = entries.get(outcome.detached_definition_id or "")
+        if outcome.retained_definition_id and (retained is None or not retained.modes):
+            raise ValueError("Retained broken pieces require a pinned weapon entry")
+        if outcome.detached_definition_id and detached is None:
+            raise ValueError("Detached broken pieces require a pinned catalog entry")
+    if any(value not in entries for value in profile.reduced_effectiveness_definitions):
+        raise ValueError("Reduced effectiveness requires pinned catalog entries")
+    if profile.salvage is None:
+        return
+    if any(
+        value not in entries
+        for value in (
+            profile.salvage.tools_definition_id,
+            profile.salvage.recovered_definition_id,
+        )
+    ):
+        raise ValueError("Salvage requires pinned tools and recovered material")
+    recovered = entries[profile.salvage.recovered_definition_id]
+    if any(
+        (
+            recovered.modes,
+            recovered.armor,
+            recovered.shield,
+            recovered.durability,
+            recovered.power_cell_capacity,
+            recovered.electronics,
+        )
+    ):
+        raise ValueError("Recovered salvage material must be stackable")
+
+
 class EquipmentCatalog(Record):
     profile_id: Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
     entries: tuple[EquipmentProfile, ...]
@@ -503,6 +544,7 @@ class EquipmentCatalog(Record):
                         raise ValueError(
                             "Residual modes require a pinned non-durable weapon definition"
                         )
+            _validate_object_extensions(entry, entries)
             if entry.parry_quality is not None and self.profile_id != "gurps-basic-set-4e-2004":
                 raise ValueError("Parry quality requires the exact Basic Set profile")
             if entry.critical_breakage is not None and self.profile_id != "gurps-basic-set-4e-2004":

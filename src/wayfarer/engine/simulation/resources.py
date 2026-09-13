@@ -88,6 +88,7 @@ class Item(Record):
     equipped: bool = False
     ready: bool = False
     condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
+    machine_actor_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
     firearm_failure: FirearmFailure | None = Field(default=None, exclude_if=lambda v: v is None)
     charges: int | None = Field(default=None, ge=0, exclude_if=lambda v: v is None)

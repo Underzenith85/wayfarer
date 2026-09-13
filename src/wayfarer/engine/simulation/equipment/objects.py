@@ -1,21 +1,35 @@
-"""Basic Set nonsentient object damage using authoritative inventory and receipts.
+"""Basic Set object damage using authoritative inventory and receipts.
 
-Campaigns fourth printing B380, B483-484. Opt-in profiles only; no implicit
-migration, sentient machines, diffuse targets, repairs, or special fragile traits.
+Campaigns fourth printing B380, B483-485. Opt-in profiles only; no implicit
+migration. Sentient machines are routed to actor injury by the combat adapter.
 """
 
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Callable
+from dataclasses import dataclass
 from decimal import Decimal
 from fractions import Fraction
 from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import Field
 
-from wayfarer.engine.rules.checks import NO_RANDOM, RandomSource, draw_dice, evaluate_success
+from wayfarer.engine.rules.checks import (
+    NO_RANDOM,
+    CheckTrace,
+    Outcome,
+    RandomSource,
+    draw_dice,
+    evaluate_success,
+)
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
-from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile, ObjectResult
+from wayfarer.engine.rules.types.object import (
+    ObjectCondition,
+    ObjectProfile,
+    ObjectResult,
+    residual_definition,
+)
 from wayfarer.engine.rules.types.recovery import require_settled
 from wayfarer.engine.simulation.resources import (
     Command,
@@ -37,6 +51,7 @@ class DamageObject(Command):
     basic_damage: int = Field(ge=0)
     damage_type: Literal["cr", "cut", "imp", "pi-", "pi", "pi+", "pi++", "burn"]
     armor_divisor: Decimal = Field(default=Decimal(1), gt=0, allow_inf_nan=False)
+    explosive: bool = Field(default=False, exclude_if=lambda v: not v)
 
 
 class StressObject(Command):
@@ -44,7 +59,21 @@ class StressObject(Command):
     item_id: Id
 
 
-ObjectCommand = Annotated[DamageObject | StressObject, Field(discriminator="kind")]
+class BurnObject(Command):
+    kind: Literal["burn_object"] = "burn_object"
+    item_id: Id
+
+
+class SetObjectEffectiveness(Command):
+    kind: Literal["set_object_effectiveness"] = "set_object_effectiveness"
+    item_id: Id
+    definition_id: str | None = None
+
+
+ObjectCommand = Annotated[
+    DamageObject | StressObject | BurnObject | SetObjectEffectiveness,
+    Field(discriminator="kind"),
+]
 
 
 def object_hp(
@@ -74,6 +103,181 @@ def initialize_object(item: Item, profile: ObjectProfile) -> Item:
     if item.condition is not None or item.quantity != 1:
         raise ValidationError("Only an uninitialized individual item can be initialized")
     return item.model_copy(update={"condition": ObjectCondition(hp=profile.hp)})
+
+
+@dataclass(frozen=True)
+class _ObjectEffect:
+    condition: ObjectCondition
+    injury: int
+    dr: int
+    checks: tuple[tuple[int, int, int], ...]
+    damage_dice: tuple[int, ...]
+    ignited: bool
+    exploded: bool
+
+
+def _fragile_result(
+    profile: ObjectProfile,
+    condition: ObjectCondition,
+    injury: int,
+    hp: int,
+    attack_is_fire: bool,
+    check: Callable[[int], CheckTrace],
+) -> tuple[int, bool, bool, bool, bool]:
+    disabled, destroyed = condition.disabled, condition.destroyed
+    ignited, exploded = condition.burning, False
+    major = injury > profile.hp // 2
+    combustible = "combustible" in profile.fragility
+    flammable = "flammable" in profile.fragility
+    combined_auto = combustible and flammable and attack_is_fire and (major or injury >= 10)
+    if combined_auto:
+        ignited = True
+    elif combustible and attack_is_fire:
+        ignited = injury >= 10 or (major and not check(profile.ht).outcome.succeeded)
+    if major and flammable and not combined_auto:
+        ignited = ignited or not check(profile.ht - (3 if attack_is_fire else 0)).outcome.succeeded
+    if major and "explosive" in profile.fragility:
+        exploded = check(profile.ht).outcome is Outcome.CRITICAL_FAILURE
+    if hp <= -5 * profile.hp:
+        disabled = destroyed = True
+    elif not destroyed:
+        for multiple in range(1, 5):
+            if hp <= -multiple * profile.hp < condition.hp:
+                death = check(profile.ht)
+                if death.outcome.succeeded:
+                    continue
+                disabled = destroyed = True
+                if "brittle" in profile.fragility or (
+                    "explosive" in profile.fragility and death.margin <= -3
+                ):
+                    hp = -10 * profile.hp
+                if "explosive" in profile.fragility and death.margin <= -3:
+                    exploded = True
+                if (
+                    flammable
+                    and (condition.burning or ignited)
+                    and death.outcome is Outcome.CRITICAL_FAILURE
+                ):
+                    exploded = True
+                break
+    if exploded:
+        hp, disabled, destroyed, ignited = -10 * profile.hp, True, True, False
+    return hp, disabled, destroyed, ignited, exploded
+
+
+def _resolve_object_effect(
+    profile: ObjectProfile,
+    condition: ObjectCondition,
+    command: DamageObject | StressObject | BurnObject,
+    state: ResourceState,
+    rng: RandomSource,
+) -> _ObjectEffect:
+    rolls: list[tuple[int, int, int]] = []
+
+    def check(target: int) -> CheckTrace:
+        dice = draw_dice(rng)
+        rolls.append(dice)
+        return evaluate_success(
+            target,
+            (),
+            dice,
+            rules_package=profile.profile_id,
+            rules_version="1",
+            rule_id="object:ht",
+        )
+
+    injury, dr = 0, profile.dr
+    hp, disabled, destroyed = condition.hp, condition.disabled, condition.destroyed
+    stress_at, burn_at = condition.last_stress_at, condition.last_burn_at
+    damage_dice: tuple[int, ...] = ()
+    ignited, exploded = condition.burning, False
+    basic_damage = command.basic_damage if isinstance(command, DamageObject) else 0
+    damage_type = command.damage_type if isinstance(command, DamageObject) else "burn"
+    armor_divisor = command.armor_divisor if isinstance(command, DamageObject) else Decimal(1)
+    if isinstance(command, BurnObject):
+        if not condition.burning:
+            raise ValidationError("Object is not burning")
+        if burn_at == state.game_time:
+            raise ConflictError("Object already took burning damage this second")
+        burn_at = state.game_time
+        damage_dice = draw_dice(rng, 1)
+        basic_damage = max(0, damage_dice[0] - 1)
+    if isinstance(command, (DamageObject, BurnObject)):
+        dr = int(Decimal(profile.dr) / armor_divisor)
+        if profile.dr == 0 and armor_divisor < 1:
+            dr = 1
+        penetrating = max(0, basic_damage - dr)
+        ratios = (
+            {
+                "imp": Fraction(1),
+                "pi++": Fraction(1),
+                "pi+": Fraction(1, 2),
+                "pi": Fraction(1, 3),
+                "pi-": Fraction(1, 5),
+            }
+            if profile.construction == "unliving"
+            else {
+                "imp": Fraction(1, 2),
+                "pi++": Fraction(1, 2),
+                "pi+": Fraction(1, 3),
+                "pi": Fraction(1, 5),
+                "pi-": Fraction(1, 10),
+            }
+        )
+        multiplier = ratios.get(
+            damage_type, Fraction(3, 2) if damage_type == "cut" else Fraction(1)
+        )
+        injury = max(1, int(penetrating * multiplier)) if penetrating else 0
+        if profile.construction == "diffuse":
+            injury = min(injury, 1 if damage_type in ratios else 2)
+        hp -= injury
+        attack_is_fire = damage_type == "burn" or (
+            isinstance(command, DamageObject) and command.explosive
+        )
+        hp, disabled, destroyed, ignited, exploded = _fragile_result(
+            profile, condition, injury, hp, attack_is_fire, check
+        )
+    else:
+        if disabled:
+            raise ValidationError("Disabled objects cannot be used under stress")
+        if hp <= 0:
+            if stress_at == state.game_time:
+                raise ConflictError("Object already checked under stress this second")
+            stress_at = state.game_time
+            if not check(profile.ht).outcome.succeeded:
+                disabled = True
+    residual_roll = condition.residual_roll
+    if (
+        disabled
+        and not condition.disabled
+        and not destroyed
+        and (profile.residual_definitions or profile.broken_weapon_outcomes)
+    ):
+        residual_roll = rng.randbelow(6) + 1
+    updated = condition.model_copy(
+        update={
+            "hp": hp,
+            "disabled": disabled,
+            "destroyed": destroyed,
+            "last_stress_at": stress_at,
+            "last_burn_at": burn_at,
+            "residual_roll": residual_roll,
+            "shock": min(4, injury)
+            if injury and not profile.high_pain_threshold
+            else condition.shock,
+            "shock_until": state.game_time + 1 if injury else condition.shock_until,
+            "burning": ignited,
+        }
+    )
+    return _ObjectEffect(
+        updated,
+        injury,
+        dr,
+        tuple(rolls),
+        damage_dice,
+        ignited and not condition.burning,
+        exploded,
+    )
 
 
 def apply_object(
@@ -118,107 +322,66 @@ def apply_object(
     condition = item.condition
     if profile is None or condition is None:
         raise ValidationError("Object requires an explicit Basic Set durability profile")
+    if profile.sentient:
+        raise ValidationError("Sentient machines use their actor injury authority")
     if condition.destroyed and not (shield and isinstance(command, DamageObject)):
         raise ValidationError("Object is already destroyed")
-    rolls: list[tuple[int, int, int]] = []
-
-    def passes() -> bool:
-        dice = draw_dice(rng)
-        rolls.append(dice)
-        return evaluate_success(
-            profile.ht,
-            (),
-            dice,
-            rules_package=profile.profile_id,
-            rules_version="1",
-            rule_id="object:ht",
-        ).outcome.succeeded
-
-    injury, dr = 0, profile.dr
-    hp = condition.hp
-    disabled: bool = condition.disabled
-    destroyed: bool = condition.destroyed
-    stress_at = condition.last_stress_at
-    if isinstance(command, DamageObject):
-        dr = int(Decimal(profile.dr) / command.armor_divisor)
-        if profile.dr == 0 and command.armor_divisor < 1:
-            dr = 1
-        penetrating = max(0, command.basic_damage - dr)
-        ratios = (
-            {
-                "imp": Fraction(1),
-                "pi++": Fraction(1),
-                "pi+": Fraction(1, 2),
-                "pi": Fraction(1, 3),
-                "pi-": Fraction(1, 5),
-            }
-            if profile.construction == "unliving"
-            else {
-                "imp": Fraction(1, 2),
-                "pi++": Fraction(1, 2),
-                "pi+": Fraction(1, 3),
-                "pi": Fraction(1, 5),
-                "pi-": Fraction(1, 10),
+    if isinstance(command, SetObjectEffectiveness):
+        if condition.hp * 3 >= profile.hp:
+            raise ValidationError("Reduced effectiveness requires less than one-third HP")
+        if (
+            command.definition_id is not None
+            and command.definition_id not in profile.reduced_effectiveness_definitions
+        ):
+            raise ValidationError("GM selection is not a pinned reduced-effectiveness mode")
+        updated_condition = condition.model_copy(
+            update={"reduced_definition_id": command.definition_id}
+        )
+        result = ObjectResult(
+            command_id=command.id,
+            item_id=item.id,
+            condition=updated_condition,
+        )
+        updated_item = item.model_copy(update={"condition": updated_condition})
+        updated = state.model_copy(
+            update={
+                "revision": state.revision + 1,
+                "object_results": state.object_results + (result,),
+                "items": tuple(updated_item if i.id == item.id else i for i in state.items),
+                "receipts": state.receipts + (Receipt(command_id=command.id, digest=digest),),
+                "events": state.events
+                + (
+                    ResourceEvent(
+                        id=f"object:{command.id}",
+                        at=state.game_time,
+                        kind=command.kind,
+                        target_id=item.id,
+                    ),
+                ),
             }
         )
-        multiplier = ratios.get(
-            command.damage_type, Fraction(3, 2) if command.damage_type == "cut" else Fraction(1)
-        )
-        injury = max(1, int(penetrating * multiplier)) if penetrating else 0
-        if profile.construction == "diffuse":
-            injury = min(injury, 1 if command.damage_type in ratios else 2)
-        hp -= injury
-        if hp <= -5 * profile.hp:
-            disabled = destroyed = True
-        elif not destroyed:
-            for multiple in range(1, 5):
-                if hp <= -multiple * profile.hp < condition.hp and not passes():
-                    disabled = destroyed = True
-                    break
-    else:
-        if disabled:
-            raise ValidationError("Disabled objects cannot be used under stress")
-        if hp <= 0:
-            if stress_at == state.game_time:
-                raise ConflictError("Object already checked under stress this second")
-            stress_at = state.game_time
-            if not passes():
-                disabled = True
-    residual_roll = condition.residual_roll
-    if disabled and not condition.disabled and not destroyed and profile.residual_definitions:
-        residual_roll = rng.randbelow(6) + 1
-    usable = (
-        disabled
-        and not destroyed
-        and residual_roll is not None
-        and bool(profile.residual_definitions and profile.residual_definitions[residual_roll - 1])
-    )
-    updated_condition = condition.model_copy(
-        update={
-            "hp": hp,
-            "disabled": disabled,
-            "destroyed": destroyed,
-            "last_stress_at": stress_at,
-            "residual_roll": residual_roll,
-            "shock": min(4, injury)
-            if injury and not profile.high_pain_threshold
-            else condition.shock,
-            "shock_until": state.game_time + 1 if injury else condition.shock_until,
-        }
-    )
+        engine.validate(updated)
+        return updated, result
+    effect = _resolve_object_effect(profile, condition, command, state, rng)
+    updated_condition = effect.condition
+    usable = residual_definition(profile, effect.condition) is not None
     result = ObjectResult(
         command_id=command.id,
         item_id=item.id,
-        injury=injury,
-        effective_dr=dr,
-        checks=tuple(rolls),
+        injury=effect.injury,
+        effective_dr=effect.dr,
+        checks=effect.checks,
+        damage_dice=effect.damage_dice,
+        ignited=effect.ignited,
+        exploded=effect.exploded,
+        explosion_dice=(6 * profile.hp + 9) // 10 if effect.exploded else 0,
         condition=updated_condition,
     )
     updated_item = item.model_copy(
         update={
             "condition": updated_condition,
-            "ready": item.ready and (not disabled or usable),
-            "equipped": item.equipped and not (shield and hp <= -10 * profile.hp),
+            "ready": item.ready and (not effect.condition.disabled or usable),
+            "equipped": item.equipped and not (shield and effect.condition.hp <= -10 * profile.hp),
         }
     )
     updated = state.model_copy(

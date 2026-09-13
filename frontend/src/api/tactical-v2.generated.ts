@@ -299,6 +299,21 @@ export interface components {
        * @default null
        */
       shock_until: number | null;
+      /**
+       * Burning
+       * @default false
+       */
+      burning: boolean;
+      /**
+       * Last Burn At
+       * @default null
+       */
+      last_burn_at: number | null;
+      /**
+       * Reduced Definition Id
+       * @default null
+       */
+      reduced_definition_id: string | null;
     };
     /** ProjectileProgress */
     ProjectileProgress: {

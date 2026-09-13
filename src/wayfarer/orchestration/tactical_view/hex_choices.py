@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Sequence
 from itertools import product
 
 from wayfarer.engine.rules.types.object import residual_definition
@@ -17,6 +18,7 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
 from wayfarer.engine.simulation.combat.vocabulary import Maneuver
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.hex_geometry import Hex, neighbor
+from wayfarer.engine.simulation.resources import Item
 from wayfarer.errors import WayfarerError
 from wayfarer.orchestration.combat import (
     COMBAT_ADAPTER,
@@ -29,6 +31,38 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view.basic_choices import basic_choices
 from wayfarer.orchestration.tactical_view.preview import preview
 from wayfarer.orchestration.tactical_view.records import TacticalChoice
+
+
+def _ground_object_candidates(
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    weapons: Sequence[tuple[Item, MeleeMode | RangedMode]],
+) -> list[tuple[str, dict[str, object]]]:
+    candidates: list[tuple[str, dict[str, object]]] = []
+    for target_item in state.resources.items:
+        if not target_item.ground or not target_item.condition:
+            continue
+        owner = next(
+            (p for p in encounter.participants if p.actor_id == target_item.owner_id), None
+        )
+        if owner is None or owner.actor_id == actor_id:
+            continue
+        for item, mode in weapons:
+            candidates.append(
+                (
+                    f"Strike ground {target_item.definition_id}",
+                    {
+                        "kind": "take_combat_turn",
+                        "maneuver": "attack",
+                        "target_id": owner.actor_id,
+                        "target_item_id": target_item.id,
+                        "item_id": item.id,
+                        "mode_id": mode.id,
+                    },
+                )
+            )
+    return candidates
 
 
 def choices(
@@ -482,6 +516,8 @@ def choices(
                             },
                         )
                     )
+        # Ground equipment is visible by its own position even when its owner is occluded.
+        candidates.extend(_ground_object_candidates(state, encounter, actor_id, weapons))
     result: list[TacticalChoice] = []
     seen: set[str] = set()
     for label, fields in candidates:

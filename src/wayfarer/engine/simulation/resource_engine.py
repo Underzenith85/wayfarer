@@ -33,6 +33,7 @@ from wayfarer.engine.rules.types.toxin import require_toxins_settled
 from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
+from wayfarer.engine.simulation.equipment.salvage_state import tasks as salvage_tasks
 from wayfarer.engine.simulation.health.disease import (
     require_health_settled,
     require_no_health_deadline_before,
@@ -70,6 +71,45 @@ def _require_splittable(item: Item) -> None:
 def _validate_swarms(state: ResourceState, actors: frozenset[str]) -> None:
     if not {swarm.actor_id for swarm in state.swarms} <= actors:
         raise ValidationError("Swarm is not a world actor")
+
+
+def _validate_durable_item(
+    engine: ResourceEngine, state: ResourceState, item: Item, spec: EquipmentSpec
+) -> None:
+    profile = spec.durability
+    assert profile is not None
+    if profile.sentient:
+        pool = next((p for p in state.pools if p.id == f"hp:{item.machine_actor_id}"), None)
+        if (
+            item.quantity != 1
+            or item.condition is not None
+            or item.machine_actor_id not in engine.actors
+            or pool is None
+            or pool.injury is None
+        ):
+            raise ValidationError("Sentient machine durability requires one actor injury authority")
+        return
+    if item.machine_actor_id is not None:
+        raise ValidationError("Nonsentient objects cannot bind a machine actor")
+    if item.quantity != 1 or item.condition is None:
+        raise ValidationError("Durable objects require individual initialized instances")
+    condition = item.condition
+    if condition.hp > profile.hp:
+        raise ValidationError("Object HP exceeds maximum")
+    if condition.hp <= -5 * profile.hp and not condition.destroyed:
+        raise ValidationError("Object below destruction threshold")
+    if condition.last_stress_at is not None and condition.last_stress_at > state.game_time:
+        raise ValidationError("Object stress time is in the future")
+    if condition.last_burn_at is not None and condition.last_burn_at > state.game_time:
+        raise ValidationError("Object burning time is in the future")
+    if condition.disabled and item.ready and not residual_definition(profile, condition):
+        raise ValidationError("Disabled equipment cannot be ready")
+    if condition.reduced_definition_id is not None and (
+        condition.hp * 3 >= profile.hp
+        or condition.reduced_definition_id not in profile.reduced_effectiveness_definitions
+        or condition.reduced_definition_id not in engine.specs
+    ):
+        raise ValidationError("Invalid reduced-effectiveness selection")
 
 
 def _survival_before_command(state: ResourceState, command: ResourceCommand) -> ResourceState:
@@ -232,27 +272,7 @@ class ResourceEngine:
             ) and item.quantity != 1:
                 raise ValidationError("Equipment instances must have quantity one")
             if spec.durability is not None:
-                if item.quantity != 1 or item.condition is None:
-                    raise ValidationError(
-                        "Durable objects require individual initialized instances"
-                    )
-                condition = item.condition
-                if condition.hp > spec.durability.hp:
-                    raise ValidationError("Object HP exceeds maximum")
-                if condition.hp <= -5 * spec.durability.hp and not condition.destroyed:
-                    raise ValidationError("Object below destruction threshold")
-                if (
-                    condition.last_stress_at is not None
-                    and condition.last_stress_at > state.game_time
-                ):
-                    raise ValidationError("Object stress time is in the future")
-
-                if (
-                    condition.disabled
-                    and item.ready
-                    and not residual_definition(spec.durability, condition)
-                ):
-                    raise ValidationError("Disabled equipment cannot be ready")
+                _validate_durable_item(self, state, item, spec)
             elif item.condition is not None:
                 raise ValidationError("Object condition requires a pinned durability profile")
             self._validate_item_charge(item, spec)
@@ -408,6 +428,9 @@ class ResourceEngine:
                 )
             if any(
                 t.status == "pending" and item.id in (t.item_id, t.tool_id) for t in tasks(state)
+            ) or any(
+                t.status == "pending" and item.id in (t.item_id, t.tool_id)
+                for t in salvage_tasks(state)
             ):
                 raise ConflictError("Equipment is committed to a pending repair")
             spec = self.specs[item.definition_id]

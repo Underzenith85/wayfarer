@@ -28,6 +28,7 @@ from wayfarer.orchestration.combat.handlers import (
     _landing,
     _repair,
     _retrieve,
+    _salvage,
     _unarmed,
 )
 from wayfarer.orchestration.combat.migration import _declare_basic_facts, _migrate, _migrate_basic
@@ -47,6 +48,7 @@ _COMBAT_STEPS: dict[
     "continue_critical_miss": _critical,
     "retrieve_equipment": _retrieve,
     "repair_equipment": _repair,
+    "salvage_equipment": _salvage,
     "resolve_choke_effects": _choke,
     "take_unarmed_turn": _unarmed,
     "join_encounter": _join,

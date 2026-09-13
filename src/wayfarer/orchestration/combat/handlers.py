@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.combat.commands import (
     ResolveChokeEffects,
     ResolveWeaponExplosion,
     RetrieveEquipment,
+    SalvageEquipment,
     TakeUnarmedTurn,
     TypedCombatCommand,
 )
@@ -22,6 +23,7 @@ from wayfarer.engine.simulation.combat.unarmed.attack import execute_unarmed
 from wayfarer.engine.simulation.combat.unarmed.choke import resolve_choke
 from wayfarer.engine.simulation.equipment.repair_transitions import repair
 from wayfarer.engine.simulation.equipment.retrieval import retrieve as retrieve_field
+from wayfarer.engine.simulation.equipment.salvage import salvage
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 
 
@@ -150,6 +152,33 @@ def _repair(
         current_actor_id=encounter.current_actor_id,
     )
     return CombatStep(state, encounter, resources, result)
+
+
+def _salvage(
+    state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
+) -> CombatStep:
+    play = context.play
+    assert isinstance(command, SalvageEquipment)
+    state, task = salvage(
+        play.rules_context,
+        state,
+        actor_id=command.actor_id,
+        item_id=command.item_id,
+        command_id=command.id,
+        stage=command.stage,
+        task_id=command.task_id,
+    )
+    return CombatStep(
+        state,
+        encounter,
+        state.resources,
+        CombatResult(
+            encounter_id=encounter.id,
+            code="equipment.salvage_" + task.status,
+            round=encounter.round,
+            current_actor_id=encounter.current_actor_id,
+        ),
+    )
 
 
 def _choke(

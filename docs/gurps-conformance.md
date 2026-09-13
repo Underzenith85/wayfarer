@@ -238,7 +238,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
-| `gurps.equipment.object_durability` | no | yes | partial | #114; #181 live melee/repair integration; remaining #289/#290 |
+| `gurps.equipment.object_durability` | no | yes | partial | #114/#181/#289/#290 mechanics complete; source certification remains #191/#492 |
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
 | `gurps.injury.damage_resistance` | yes | yes | partial | #102 |
 | `gurps.injury.hp_thresholds` | yes | yes | partial | #102 |
@@ -830,14 +830,12 @@ quality checks, collision and ground custody, live stress failure, two actor
 identities, concurrent duplicate commands, fresh-store retries, timed repairs,
 parts consumption and ownership locks. Existing limb fixtures remain required.
 
-The capability and #103/#146/#181 remain partial. #289 tracks sentient/fragile
-objects, detached secondary weapon pieces, salvage and discretionary reduced
-effectiveness. #290 tracks full ranged/spell interception and knockback, object
-hex occupancy and post-encounter retrieval, complete used-equipment/party-clock
-stress, migrated blocked-critical continuation and final UI/HTTP/browser evidence.
-A residual-mode binding alone is not full B485 support. Existing campaigns are
-not implicitly initialized or certified, and resource-only writes against live
-encounters remain forbidden. #106/#107 remain the hard prerequisites of #114.
+The live engine scope of #289/#290 is complete: sentient and fragile objects,
+detached B485 pieces, timed salvage, discretionary reduced effectiveness, shield
+knockback/arm routing, recent-attack reach, visible ground targets, ground missile
+spells and persisted row-14 continuation all use the same campaign CAS. Existing
+campaigns are not implicitly initialized or certified, and resource-only writes
+against live encounters remain forbidden. Source review remains owned by #191/#492.
 
 ## Equipment table audit and special gear behavior (#180)
 

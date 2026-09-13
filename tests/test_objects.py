@@ -12,7 +12,9 @@ from test_resources import campaign, engine, seed
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
 from wayfarer.engine.simulation.equipment.objects import (
+    BurnObject,
     DamageObject,
+    SetObjectEffectiveness,
     StressObject,
     apply_object,
     initialize_object,
@@ -135,6 +137,79 @@ def test_zero_hp_requires_stress_not_automatic_breakage_and_retries() -> None:
     item = next(i for i in transferred.items if i.id == "sword")
     assert item.owner_id == "b" and item.condition == result.condition
     assert reducer.carried_weight(transferred, "b") == 5
+
+
+def test_fragile_ignition_burning_tick_explosion_and_brittle_destruction() -> None:
+    reducer, state = fixture()
+    profile = reducer.specs["sword"].durability
+    assert profile is not None
+    profile = profile.model_copy(update={"fragility": ("combustible",)})
+    reducer.specs["sword"] = reducer.specs["sword"].model_copy(update={"durability": profile})
+    state, result = apply_object(
+        reducer,
+        state,
+        hit(8, damage_type="burn"),
+        system=True,
+        rng=RecordedDice([6, 6, 6]),
+    )
+    assert result.ignited and result.condition.burning
+    state, result = apply_object(
+        reducer,
+        state,
+        BurnObject(id="burn", actor_id="a", expected_revision=1, item_id="sword"),
+        system=True,
+        rng=RecordedDice([4]),
+    )
+    assert result.damage_dice == (4,) and result.injury == 1
+
+    reducer, state = fixture()
+    profile = reducer.specs["sword"].durability
+    assert profile is not None
+    profile = profile.model_copy(update={"fragility": ("explosive",)})
+    reducer.specs["sword"] = reducer.specs["sword"].model_copy(update={"durability": profile})
+    _, result = apply_object(reducer, state, hit(8), system=True, rng=RecordedDice([6, 6, 6]))
+    assert result.exploded and result.explosion_dice == 6
+    assert result.condition.destroyed and result.condition.hp == -100
+
+    reducer, state = fixture()
+    profile = reducer.specs["sword"].durability
+    assert profile is not None
+    profile = profile.model_copy(update={"fragility": ("brittle",)})
+    reducer.specs["sword"] = reducer.specs["sword"].model_copy(update={"durability": profile})
+    _, result = apply_object(reducer, state, hit(22), system=True, rng=RecordedDice([6, 6, 6]))
+    assert result.condition.destroyed and result.condition.hp == -100
+
+
+def test_reduced_effectiveness_is_an_explicit_pinned_gm_selection() -> None:
+    reducer, state = fixture()
+    profile = reducer.specs["sword"].durability
+    assert profile is not None
+    profile = profile.model_copy(update={"reduced_effectiveness_definitions": ("sword",)})
+    reducer.specs["sword"] = reducer.specs["sword"].model_copy(update={"durability": profile})
+    state = state.model_copy(
+        update={
+            "items": tuple(
+                i.model_copy(update={"condition": i.condition.model_copy(update={"hp": 2})})
+                if i.id == "sword" and i.condition
+                else i
+                for i in state.items
+            )
+        }
+    )
+    state, result = apply_object(
+        reducer,
+        state,
+        SetObjectEffectiveness(
+            id="gm-mode",
+            actor_id="a",
+            expected_revision=0,
+            item_id="sword",
+            definition_id="sword",
+        ),
+        system=True,
+    )
+    assert result.condition.reduced_definition_id == "sword"
+    assert state.object_results[-1] == result
 
 
 def test_multiple_thresholds_and_automatic_destruction() -> None:

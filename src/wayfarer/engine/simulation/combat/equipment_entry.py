@@ -22,7 +22,9 @@ def effective_entry(runtime: RulesContext, item: Item) -> EquipmentProfile:
     residual = residual_definition(entry.durability, item.condition)
     if item.condition and item.condition.disabled and residual is None:
         raise ValidationError("Disabled equipment has no usable weapon mode")
-    return entries[residual] if residual else entry
+    reduced = item.condition.reduced_definition_id if item.condition else None
+    replacement = residual or reduced
+    return entries[replacement] if replacement is not None else entry
 
 
 def weapon_target(runtime: RulesContext, state: PlayState, item_id: str | None) -> bool:
