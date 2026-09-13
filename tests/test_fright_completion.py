@@ -1,8 +1,6 @@
 """Independent completion evidence for Campaigns B360-B361 fright consequences."""
 
-import json
 from pathlib import Path
-from typing import Any
 
 import pytest
 from test_gurps_melee import setup
@@ -14,18 +12,33 @@ from wayfarer.engine.simulation.health.fright import apply_effect, effects
 from wayfarer.engine.simulation.health.fright_state import PREFIX
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 
 FIXTURE = Path(__file__).parent / "fixtures/gurps/fright_consequences.json"
 
 
-@pytest.mark.parametrize("case", json.loads(FIXTURE.read_text())["cases"], ids=lambda c: c["name"])
-def test_representative_source_derived_consequences(case: dict[str, Any]) -> None:
-    effect = fright_effect(
-        int(case["total"]), int(case["ht"]), rng=RecordedDice(list(case["dice"]))
-    )
-    for field, expected in dict(case["expected"]).items():
+class FrightCase(Record):
+    name: str
+    total: int
+    ht: int
+    dice: tuple[int, ...]
+    expected: dict[str, bool | int | str]
+
+
+class FrightFixture(Record):
+    source: str
+    cases: tuple[FrightCase, ...]
+
+
+CASES = FrightFixture.model_validate_json(FIXTURE.read_text()).cases
+
+
+@pytest.mark.parametrize("case", CASES, ids=lambda case: case.name)
+def test_representative_source_derived_consequences(case: FrightCase) -> None:
+    effect = fright_effect(case.total, case.ht, rng=RecordedDice(list(case.dice)))
+    for field, expected in case.expected.items():
         assert getattr(effect, field) == expected
 
 
