@@ -897,6 +897,11 @@ export interface components {
        */
       enter_close_combat: boolean;
       /**
+       * Choke Hold
+       * @default false
+       */
+      choke_hold: boolean;
+      /**
        * Maneuver
        * @default attack
        * @enum {string}
