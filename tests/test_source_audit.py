@@ -30,6 +30,8 @@ def test_owner_inventory_exclusions_are_not_profile_exclusions() -> None:
     assert supernatural and all(r.owner == 119 for r in supernatural)
     assert any(r.source_review == "reviewed" for r in rows)
     assert any(r.source_review == "pending" for r in rows)
+    creatures = [r for r in rows if r.scope == "creature-catalog"]
+    assert len(creatures) == 7 and all(r.source_review == "reviewed" for r in creatures)
 
 
 def test_missing_fixture_review_rejected() -> None:

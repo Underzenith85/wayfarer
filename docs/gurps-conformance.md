@@ -168,6 +168,11 @@ The following matrix is a **mechanics-family inventory**, not an exhaustive cata
 
 The existing catalog work in #112 (traits), #113 (skills), #114 (equipment), and #119 (creatures/templates) must supply item-level inventories; those cannot be replaced by a generic family row. Missing item identifiers fail closed today. Source-artifact review and the exhaustive inventory are outstanding prerequisites for marking #95 complete, not deferred certification work.
 
+Issue #521 supplies the bounded B455-460 creature construction and training
+slice described in [creature construction and training](gurps-creatures.md).
+Its seven-item ledger deliberately does not claim an unlimited bestiary. Animal
+combat, natural-attack resolution and swarms remain owned by #522.
+
 ## Mechanics-family coverage matrix
 
 Status and implementation ownership mirror `CAPABILITIES`. None is certified. References name source sections without reproducing prose; precise item/page verification remains part of the source audit above.

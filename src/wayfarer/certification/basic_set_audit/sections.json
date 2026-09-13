@@ -14066,15 +14066,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-creatures.md",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": null,
@@ -14092,15 +14094,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "src/wayfarer/certification/creature_audit.py",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b455:16-animals-and-monsters",
@@ -14118,15 +14122,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "src/wayfarer/engine/character/creatures.py",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b455:common-animals",
@@ -14144,15 +14150,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "src/wayfarer/engine/character/creatures.py",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b455:common-animals",
@@ -14170,15 +14178,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "src/wayfarer/engine/simulation/creatures.py",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b455:16-animals-and-monsters",
@@ -14196,15 +14206,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "src/wayfarer/engine/simulation/movement/creature_mounts.py",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b458:pets-and-trained-animals",
@@ -14222,15 +14234,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "src/wayfarer/engine/simulation/creatures.py",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b458:pets-and-trained-animals",
@@ -14248,15 +14262,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "src/wayfarer/certification/creature_audit.py",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
-        191
+        191,
+        521
       ],
-      "completion_owner": 521,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b455:16-animals-and-monsters",
@@ -14274,15 +14290,16 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-creatures.md",
+        "tests/test_creatures.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 521,
+      "completion_owner": 522,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b460:fantasy-monsters",
@@ -14329,12 +14346,12 @@
       "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-creatures.md"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 521,
+      "completion_owner": 522,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b461:animals-in-combat",
