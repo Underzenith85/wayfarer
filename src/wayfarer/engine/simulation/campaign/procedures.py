@@ -34,16 +34,29 @@ from wayfarer.engine.simulation.campaign.law import (
     LawRules,
     apply_law,
 )
-from wayfarer.engine.simulation.resources import Advance, ResourceState, Transfer
+from wayfarer.engine.simulation.campaign.world_context import (
+    WORLD_COMMAND_KINDS,
+    WorldCommand,
+    WorldContextOutcome,
+    WorldContextRules,
+    apply_world_context,
+)
+from wayfarer.engine.simulation.resources import Advance, Consume, ResourceState, Transfer
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
-CampaignOutcome = AdministrationOutcome | LawOutcome | EconomicsOutcome | DevelopmentOutcome
+CampaignOutcome = (
+    AdministrationOutcome | LawOutcome | EconomicsOutcome | DevelopmentOutcome | WorldContextOutcome
+)
 CampaignCommand = (
-    CampaignAdministrationCommand | LawCommand | EconomicCommand | CharacterDevelopmentCommand
+    CampaignAdministrationCommand
+    | LawCommand
+    | EconomicCommand
+    | CharacterDevelopmentCommand
+    | WorldCommand
 )
 
 
@@ -58,6 +71,7 @@ class CampaignProcedureEngine:
         law: LawRules | None,
         economics: EconomicsRules | None,
         development: DevelopmentRules | None,
+        world_context: WorldContextRules | None,
     ) -> None:
         self.resources = resources
         self.reviewer = reviewer
@@ -65,6 +79,7 @@ class CampaignProcedureEngine:
         self.law = law
         self.economics = economics
         self.development = development
+        self.world_context = world_context
 
     def _advance(
         self, actor_id: str, rng: RandomSource
@@ -145,6 +160,54 @@ class CampaignProcedureEngine:
             outcome,
         )
 
+    def _apply_world_context(
+        self,
+        state: PlayState,
+        command: WorldCommand,
+        *,
+        rng: RandomSource,
+        system: bool,
+    ) -> tuple[PlayState, WorldContextOutcome]:
+        if self.world_context is None:
+            raise ValidationError("World-context command is not enabled")
+        builds = {}
+        for actor in state.actors:
+            compiled = self.reviewer.compiler.compile(actor.proposal.draft).build
+            if compiled is None:
+                raise ValidationError("World context requires valid actor builds")
+            builds[actor.actor_id] = compiled
+
+        def consume(current: ResourceState, request: Consume) -> ResourceState:
+            return self.resources.apply(current, request, system=True, rng=rng)
+
+        context, resources, world, outcome = apply_world_context(
+            state.world_context,
+            state.resources,
+            state.world,
+            command,
+            self.world_context,
+            builds=builds,
+            consume=consume,
+            advance=self._advance(command.actor_id, rng),
+            system=system,
+        )
+        if resources is state.resources:
+            return state, outcome
+        return (
+            state.model_copy(
+                update={
+                    "revision": resources.revision,
+                    "resources": resources,
+                    "world": world,
+                    "world_context": context,
+                    "rulings": expire_rulings(
+                        state.rulings, resources.revision, resources.game_time
+                    ),
+                }
+            ),
+            outcome,
+        )
+
     def apply(
         self,
         state: PlayState,
@@ -153,6 +216,10 @@ class CampaignProcedureEngine:
         rng: RandomSource,
         system: bool = False,
     ) -> tuple[PlayState, CampaignOutcome]:
+        if command.kind in WORLD_COMMAND_KINDS:
+            return self._apply_world_context(
+                state, cast(WorldCommand, command), rng=rng, system=system
+            )
         if command.kind in {"adventure-improvement", "study-settlement", "quick-learning"}:
             return self._apply_development(
                 state,
