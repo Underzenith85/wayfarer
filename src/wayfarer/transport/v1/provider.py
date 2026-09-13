@@ -30,7 +30,7 @@ def interpretation_schema() -> Obj:
 
 def bind_provider(service: V1Service, orchestrator: Orchestrator) -> None:
     async def interpret(context: Obj, text: str) -> Interpretation:
-        reply = await orchestrator._reply(
+        reply = await orchestrator.interpretation(
             ProviderRequest(
                 operation="intent",
                 session_id=service.projector.token(
@@ -55,7 +55,7 @@ def bind_provider(service: V1Service, orchestrator: Orchestrator) -> None:
         )
 
     async def narrate(context: Obj, action: Obj) -> str:
-        raw = await orchestrator._call(
+        return await orchestrator.narrate(
             ProviderRequest(
                 operation="narration",
                 session_id=service.projector.token(
@@ -66,6 +66,5 @@ def bind_provider(service: V1Service, orchestrator: Orchestrator) -> None:
                 output_schema=Narration.model_json_schema(),
             )
         )
-        return Narration.model_validate_json(raw).text
 
     service.interpret, service.narrate = interpret, narrate

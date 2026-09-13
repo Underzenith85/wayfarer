@@ -333,14 +333,20 @@ class WorkshopService:
                 "previous": old.content_json if old else None,
             }
         )
-        raw = await llm._call(
+        raw = await llm.generate(
             ProviderRequest(
                 operation="character_draft",
                 session_id=f"workshop:{cid}:{principal_id}:{command.draft_id}:{command.expected_draft_revision}",
                 context_json=context,
                 prompt=prompt,
                 output_schema=CharacterProposal.model_json_schema(),
-            )
+            ),
+            kind="character_generation",
+            cid=cid,
+            principal=principal_id,
+            actor=command.actor_id,
+            key=f"{command.draft_id}:{command.expected_draft_revision}",
+            revision=command.expected_revision,
         )
         proposal = CharacterProposal.model_validate_json(raw)
         # Save uses the original CAS after the provider returns. Illegal drafts remain editable.

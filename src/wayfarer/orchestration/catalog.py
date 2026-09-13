@@ -389,9 +389,9 @@ class ScenarioCatalog:
             if report is not None
             else None
         )
-        for _ in range(request.attempts):
+        for attempt in range(request.attempts):
             repairing = current_graph is not None
-            raw = await llm._call(
+            raw = await llm.generate(
                 ProviderRequest(
                     operation="scenario_draft",
                     session_id=f"scenario-authoring:{principal}:{job.id}",
@@ -409,7 +409,12 @@ class ScenarioCatalog:
                         + request.instructions
                     )[:4000],
                     output_schema=GeneratedScenarioGraph.model_json_schema(),
-                )
+                ),
+                kind="scenario_generation",
+                cid=f"scenario-authoring:{principal}",
+                principal=principal,
+                actor=principal,
+                key=f"{job.id}:{attempt}",
             )
             proposed: ScenarioGraph = GeneratedScenarioGraph.model_validate_json(raw)
             if current_graph is not None:
