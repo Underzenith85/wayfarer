@@ -19,5 +19,5 @@ same-location Area Effect fields into the existing `SpellContext`; it does not
 create a second spell engine. Multiple Mana Enhancers use only the highest
 increase, as specified by the source.
 
-The selected-source review completed in #191, and runtime blocker #239 is
-removed from all six entries. This bounded package does not certify the full profile.
+The selected-printing review and #239 implementation evidence are reconciled;
+all six inventory rows are verified.

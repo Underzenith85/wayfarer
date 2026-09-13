@@ -38,6 +38,7 @@ fallback from a GURPS profile to the prototype package.
 | `profile:gurps-basic-set-4e-2004` | 3 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.3.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds skills and equipment definitions |
 | `profile:gurps-basic-set-4e-2004` | 4 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.4.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds the magic learning catalog |
 | `profile:gurps-basic-set-4e-2004` | 10 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.8.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; includes later construction/skill work, eleven disabled optional-rule decisions, and the Infinite Worlds exclusion |
+| `profile:gurps-basic-set-4e-2004` | 11 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.9.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds the Propaganda/TL procedure and pins policy version 2 with campaign TL 8 |
 
 The GURPS packages register identity, edition, source provenance and dependencies.
 Version 0.2.0 of the Lite and Characters packages carries the #97 attribute and
@@ -45,8 +46,10 @@ secondary-characteristic definitions from `wayfarer.engine.rules.gurps_character
 (identifiers and per-level costs only); later mechanics work adds skills, traits,
 equipment, magic, construction context, and bound skill procedures through new
 immutable packages. Basic Set versions 5 through 9 are retained in code as that
-construction history but are not selectable entries in `DEFAULT_REGISTRY`; the
-registered latest selection is version 10. Version 1 of each GURPS profile was
+construction history but are not selectable entries in `DEFAULT_REGISTRY`.
+Version 10 records the optional-rule and content-boundary decisions; registered
+version 11 retains them while adding Propaganda/TL through package 0.9.0 and
+policy version 2. Version 1 of each GURPS profile was
 never supported, so no campaign can reference it and it is not kept registered.
 Sources cite the frozen artifacts from
 `docs/gurps-conformance.md` with rights `user-supplied-reference`, and

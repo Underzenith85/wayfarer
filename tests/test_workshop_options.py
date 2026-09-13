@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 
 from aiohttp.test_utils import TestClient, TestServer
+from support.runtime import build_runtime
 from test_wave9 import prepare
 
 from scripts.workshop_contracts import contract
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import CharacterDraft, Purchase
 from wayfarer.engine.character.power import CharacterProposal
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.orchestration.workshop_options import ProfilePreviewRequest, preview_profile
 from wayfarer.transport.campaign_api import create_campaign_app
@@ -47,7 +47,7 @@ def test_profile_preview_compiles_service_totals_and_keeps_gates() -> None:
 async def test_http_workshop_metadata_and_profile_preview(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
     app = create_campaign_app(
-        CampaignAccess(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
+        build_runtime(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
     )
     async with TestClient(TestServer(app)) as client:
         headers = {"Authorization": "Bearer alice-token"}
@@ -110,7 +110,7 @@ async def test_setup_reactivation_does_not_heal(tmp_path: Path) -> None:
         return CommandReceipt(action="resource", outcome="hurt")
 
     await play.store.commit_turn(cid, "injury", 0, "injure", injure, actor_id="a")
-    workshop = WorkshopService(CampaignAccess(play))
+    workshop = WorkshopService(build_runtime(play))
     await workshop.execute(
         cid,
         DraftCommand(
@@ -144,7 +144,7 @@ async def test_active_preview_is_read_only_authorized_and_rejects_client_costs(
 ) -> None:
     cid, play = await prepare(tmp_path)
     app = create_campaign_app(
-        CampaignAccess(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
+        build_runtime(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
     )
     proposal = CharacterProposal(
         draft=CharacterDraft(
@@ -208,7 +208,7 @@ async def test_setup_preview_uses_exact_profile_and_host_authority(tmp_path: Pat
     from wayfarer.orchestration.setup import SetupService
 
     profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
+    setup = SetupService(build_runtime(profiles.play))
     graph = extended_graph(trait=True)
     created = await setup.create(
         CreateSetup(id="preview", brief=graph.brief, graph=graph, rules_profile=EXTENDED),
@@ -221,7 +221,7 @@ async def test_setup_preview_uses_exact_profile_and_host_authority(tmp_path: Pat
         principal_id="alice",
     )
     before = await profiles.store.read(cid)
-    app = create_campaign_app(CampaignAccess(profiles.play), TOKENS)
+    app = create_campaign_app(build_runtime(profiles.play), TOKENS)
     async with TestClient(TestServer(app)) as client:
         path = f"/setups/{cid}/character-preview"
         body = {"proposal": graph.actors[0].proposal.model_dump(mode="json")}

@@ -32,10 +32,16 @@ from wayfarer.engine.simulation.combat.maneuvers import (
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
 )
-from wayfarer.engine.simulation.combat.tactical import move_hex, sight
+from wayfarer.engine.simulation.combat.tactical import (
+    attack_approach,
+    move_hex,
+    pop_up_hex,
+    pose,
+    sight,
+)
 from wayfarer.engine.simulation.combat.turn_commitment import prepare as prepare_commitment
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
-from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing
+from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing, Pose
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -126,13 +132,37 @@ def _wait_interruption(
             assert waiter is not None
             before_actor = next(p for p in original.participants if p.actor_id == actor_id)
             after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
-            zone_hit = not trigger.zone or any(
-                (point.q, point.r) in trigger.zone
-                for point in (
-                    hex_path
-                    or ((after_actor.position,) if isinstance(after_actor.position, Hex) else ())
-                )
+            path_points = hex_path or (
+                (after_actor.position,) if isinstance(after_actor.position, Hex) else ()
             )
+            trigger_index = (
+                next(
+                    (
+                        index
+                        for index, point in enumerate(path_points)
+                        if not trigger.zone or (point.q, point.r) in trigger.zone
+                    ),
+                    None,
+                )
+                if path_points
+                else None
+            )
+            zone_hit = trigger_index is not None or not path_points and not trigger.zone
+            if (
+                original.spatial_kind == "hex"
+                and trigger.action == "move"
+                and trigger_index is not None
+                and hex_path
+            ):
+                after_actor = move_hex(
+                    original,
+                    before_actor,
+                    maneuver,
+                    hex_path[: trigger_index + 1],
+                    None,
+                    None,
+                    board=engine.hex_map(original),
+                )
             stop_candidate = trigger.stop_thrust and (
                 original.spatial_kind != "basic"
                 and action == "attack"
@@ -146,7 +176,8 @@ def _wait_interruption(
             stop_thrust = stop_candidate and waiter.reach > before_actor.reach
             observable = True
             if original.spatial_kind == "hex":
-                observable = sight(result[0], waiter, after_actor, board=engine.hex_map(result[0]))
+                observed = engine._replace(result[0], after_actor)
+                observable = sight(observed, waiter, after_actor, board=engine.hex_map(observed))
             elif original.spatial_kind == "basic":
                 observable = basic_visible(original, waiter_id, actor_id)
             matches = (
@@ -162,8 +193,6 @@ def _wait_interruption(
         if not matches:
             continue
         assert waiter is not None and trigger is not None
-        before_actor = next(p for p in original.participants if p.actor_id == actor_id)
-        after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
         bonus = (
             engine.distance(before_actor.position, after_actor.position) // 2
             if trigger.stop_thrust
@@ -206,19 +235,24 @@ def _wait_interruption(
                     ),
                 )
             saved = json.loads(command_json)
+            remaining_hex_path = (
+                [point.model_dump(mode="json") for point in hex_path[trigger_index + 1 :]]
+                if trigger.action == "move" and trigger_index is not None
+                else []
+            )
             saved.update(
                 {
                     "destination": None,
                     "facing": None,
                     "posture": None,
-                    "hex_path": [],
-                    "hex_facing": None,
+                    "hex_path": remaining_hex_path,
+                    "hex_facing": saved.get("hex_facing") if remaining_hex_path else None,
                     "basic_move": None,
                     "step_timing": "before",
                     "crouch": None if crouch in ("before", "rise") else crouch,
                 }
             )
-            if maneuver == "move":
+            if maneuver == "move" and not remaining_hex_path:
                 saved["maneuver"] = "do_nothing"
             resume_json = json.dumps(saved, sort_keys=True, separators=(",", ":"))
         paused = paused.model_copy(
@@ -270,6 +304,7 @@ def take_turn(
     command_json: str = "",
     hex_path: tuple[Hex, ...] = (),
     hex_facing: HexFacing | None = None,
+    pop_up: bool = False,
     basic_move: BasicMove | None = None,
     spatial_revision: int | None = None,
     suppression_fire: bool = False,
@@ -327,6 +362,7 @@ def take_turn(
         second_mode_id=second_mode_id,
         hex_path=hex_path,
         hex_facing=hex_facing,
+        pop_up=pop_up,
         basic_move=basic_move,
         suppression_fire=suppression_fire,
     )
@@ -347,6 +383,62 @@ def take_turn(
         if interrupted is not None:
             return interrupted
     return result
+
+
+def _apply_hex_movement(
+    engine: CombatEngine,
+    encounter: Encounter,
+    participant: Combatant,
+    *,
+    maneuver: Maneuver,
+    destination: GridPoint | None,
+    facing: Facing | None,
+    posture: Posture | None,
+    crouch: CrouchAction | None,
+    target_id: str | None,
+    defense_option: DefenseOption | None,
+    hex_path: tuple[Hex, ...],
+    hex_facing: HexFacing | None,
+    pop_up: bool,
+    basic_move: BasicMove | None,
+) -> tuple[Combatant, Pose | None]:
+    """Select one mapped movement transaction without growing turn dispatch."""
+    if pop_up:
+        if (
+            maneuver != "attack"
+            or posture is not None
+            or crouch is not None
+            or destination is not None
+            or facing is not None
+            or basic_move is not None
+        ):
+            raise ValidationError("Pop-up attack requires one mapped Attack transaction")
+        target = next((p for p in encounter.participants if p.actor_id == target_id), None)
+        if target is None or sight(encounter, participant, target, board=engine.hex_map(encounter)):
+            raise ValidationError("Pop-up attack must begin out of sight behind cover")
+        return pop_up_hex(
+            encounter,
+            participant,
+            hex_path,
+            hex_facing,
+            board=engine.hex_map(encounter),
+        )
+    if destination is not None or facing is not None:
+        raise ValidationError("Hex encounters require explicit hex paths and facings")
+    if posture is not None and hex_path:
+        raise ValidationError("A posture step cannot also translate the actor")
+    return (
+        move_hex(
+            encounter,
+            participant,
+            maneuver,
+            hex_path,
+            hex_facing,
+            defense_option,
+            board=engine.hex_map(encounter),
+        ),
+        None,
+    )
 
 
 def apply_turn(
@@ -373,6 +465,7 @@ def apply_turn(
     second_mode_id: str | None = None,
     hex_path: tuple[Hex, ...] = (),
     hex_facing: HexFacing | None = None,
+    pop_up: bool = False,
     basic_move: BasicMove | None = None,
     suppression_fire: bool = False,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
@@ -395,6 +488,8 @@ def apply_turn(
     start_position = (
         None if isinstance(encounter.spatial, BasicSpatialContext) else participant.position
     )
+    start_hex_pose = pose(participant) if encounter.spatial_kind == "hex" else None
+    tactical_attack_pose = None
     # B205: a stream lasts only while its holder keeps pouring it on the same
     # weapon and mode. Any other maneuver lets go of it (#359).
     if participant.stream is not None and not (
@@ -405,8 +500,8 @@ def apply_turn(
     basic = isinstance(encounter.spatial, BasicSpatialContext)
     battlefield = None if basic else engine.battlefields[encounter.battlefield_id]
     deferred_step = step_timing == "after"
-    if deferred_step and maneuver != "attack":
-        raise ValidationError("Only Attack permits a step after the attack")
+    if deferred_step and (maneuver != "attack" or pop_up):
+        raise ValidationError("Only an ordinary Attack permits a step after the attack")
     if deferred_step and not (
         destination is not None
         or hex_path
@@ -459,18 +554,21 @@ def apply_turn(
     ):
         raise ValidationError("A posture step only switches standing and kneeling")
     if encounter.spatial_kind == "hex" and not deferred_step:
-        if destination is not None or facing is not None:
-            raise ValidationError("Hex encounters require explicit hex paths and facings")
-        if posture is not None and hex_path:
-            raise ValidationError("A posture step cannot also translate the actor")
-        participant = move_hex(
+        participant, tactical_attack_pose = _apply_hex_movement(
+            engine,
             encounter,
             participant,
-            maneuver,
-            hex_path,
-            hex_facing,
-            defense_option,
-            board=engine.hex_map(encounter),
+            maneuver=maneuver,
+            destination=destination,
+            facing=facing,
+            posture=posture,
+            crouch=crouch,
+            target_id=target_id,
+            defense_option=defense_option,
+            hex_path=hex_path,
+            hex_facing=hex_facing,
+            pop_up=pop_up,
+            basic_move=basic_move,
         )
         encounter = engine._replace(encounter, participant)
     elif (hex_path or hex_facing is not None) and not deferred_step:
@@ -656,6 +754,16 @@ def apply_turn(
             allowed=("dodge", "parry", "none") if target.ready_item_ids else ("dodge", "none"),
             opened_round=encounter.round,
             opened_turn=encounter.turn_index,
+            tactical_approach=(
+                "pop-up"
+                if pop_up
+                else "runaround"
+                if start_hex_pose is not None
+                and attack_approach(pose(target), pose(participant), origin=start_hex_pose)
+                == "runaround"
+                else None
+            ),
+            tactical_attack_pose=tactical_attack_pose,
             post_attack_destination=destination if deferred_step else None,
             post_attack_square_facing=facing if deferred_step else None,
             post_attack_hex_path=hex_path if deferred_step else (),

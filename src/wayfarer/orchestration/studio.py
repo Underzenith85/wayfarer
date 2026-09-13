@@ -708,7 +708,7 @@ class ScenarioStudio:
                 complete=False,
                 messages=[],
             )
-            PlayService(self.play.store, engine).initial_state(
+            self.play.derived(engine).initial_state(
                 seed, graph.world, graph.resources, graph.actors
             )
         except (ValidationError, ValueError, KeyError, StopIteration) as exc:
@@ -825,7 +825,7 @@ class ScenarioStudio:
         report = self.validate(graph)
         if not report.valid:
             raise ValidationError("Scenario failed hard playability checks")
-        activated = PlayService(self.play.store, self.engine(graph), rng=self.play.rng)
+        activated = self.play.derived(self.engine(graph), rng=self.play.rng)
         # A deterministic campaign ID makes retries identify the same starting snapshot.
 
         try:

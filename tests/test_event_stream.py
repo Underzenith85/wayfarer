@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
+from support.runtime import build_runtime
 from test_wave9 import prepare
 
 from wayfarer.engine.simulation.actions import Wait
@@ -18,7 +19,6 @@ from wayfarer.engine.simulation.events import (
     visible,
 )
 from wayfarer.errors import StorageError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import fold
@@ -28,7 +28,7 @@ from wayfarer.persistence.events import fold
 async def test_atomic_stream_fold_retry_and_schema(tmp_path: Path, backend: str) -> None:
     cid, play = await prepare(tmp_path, backend=backend)
     initial = await play.store.read(cid)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     command = Wait(id="stream", actor_id="a", expected_revision=0, ticks=1)
     await access.execute(cid, command.model_dump(mode="json"), principal_id="alice")
     stream = await play.store.stream(cid)

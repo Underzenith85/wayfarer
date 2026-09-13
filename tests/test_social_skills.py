@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 
 from wayfarer.engine.rules.checks import ModifierKind, RecordedDice
 from wayfarer.engine.rules.conformance import CAPABILITIES
@@ -125,9 +126,7 @@ def context(case: dict[str, object]) -> SocialSkillContext:
 
 
 # Rows this issue binds; the rest keep `runtime-procedure` for a named child.
-BOUND = tuple(
-    name for name in SCOPE if name not in ("fortune-telling", "propaganda", "savoir-faire")
-)
+BOUND = tuple(name for name in SCOPE if name not in ("fortune-telling", "savoir-faire"))
 
 
 def test_every_listed_row_is_accounted_for_and_only_bound_rows_dispatch() -> None:
@@ -161,7 +160,6 @@ def test_issue_345_parent_scope_is_complete_or_explicitly_transferred() -> None:
     rows = {row.id: row for row in inventory()}
     transferred = {
         "skill:fortune-telling": 366,
-        "skill:propaganda": 367,
         "skill:savoir-faire": 366,
     }
     for name in SCOPE:
@@ -350,7 +348,7 @@ def test_unsupported_scope_is_published_with_an_owner() -> None:
         for identifier, entry in PROCEDURES.items()
         if "runtime-procedure" in entry.blockers
     }
-    assert transferred == {"skill:fortune-telling", "skill:propaganda", "skill:savoir-faire"}
+    assert transferred == {"skill:fortune-telling", "skill:savoir-faire"}
 
 
 def test_inventory_rows_agree_with_the_procedure_registry() -> None:
@@ -523,7 +521,6 @@ async def test_a_procedure_runs_in_a_live_authorized_transaction(tmp_path: Path)
     from test_social_dispatch import prepare
 
     from wayfarer.engine.simulation.actions import PlayState
-    from wayfarer.orchestration.access import CampaignAccess
     from wayfarer.orchestration.play import PlayService
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 
@@ -539,7 +536,7 @@ async def test_a_procedure_runs_in_a_live_authorized_transaction(tmp_path: Path)
     assert outcome.kind == "skill" and outcome.outcome == "streetwise-vouched"
     with pytest.raises(ValidationError, match="trusted director authority"):
         await service.execute(cid, skill_command("again"), authenticated_gm_id="alice")
-    projection = str(await CampaignAccess(play).read(cid, principal_id="alice"))
+    projection = str(await build_runtime(play).read(cid, principal_id="alice"))
     for secret in ("criminal-milieu", "contest", "dice", "victory_margin"):
         assert secret not in projection
 

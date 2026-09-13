@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TypedDict
 
 import pytest
+from support.runtime import build_runtime
 from test_actions import Dice, actor_setup, campaign, resource_seed
 from test_scenes import configured
 
@@ -21,7 +22,6 @@ from wayfarer.engine.simulation.health.recovery import RecoveryOption, RecoveryR
 from wayfarer.engine.simulation.resources import Item, Owner
 from wayfarer.engine.world import Entity, EntityKind, Fact
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.npcs import NPCProposal, NPCService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
@@ -282,7 +282,7 @@ async def test_capture_captive_action_rescue_reunion_restart_and_custody(
     assert captive(state, "a") and state.objectives.outcome == "ongoing"
     assert all(i.owner_id != "a" for i in state.resources.items)
     assert len(state.party.groups) == 2
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     assert (await access.read(cid, principal_id="bob"))["captivity"] == ()
     with pytest.raises(ValidationError, match="evidence"):
         await choose(cid, play, "b", "rescue")
@@ -352,7 +352,7 @@ async def test_duplicate_concurrent_setback_and_illegal_captive_bypass(tmp_path:
             authenticated_actor_id="a",
         )
     with pytest.raises(AuthorizationError):
-        await CampaignAccess(play).execute(
+        await build_runtime(play).execute(
             cid, command.model_dump(mode="json"), principal_id="alice"
         )
     assert (await read(cid, play)).revision == 1
@@ -446,7 +446,7 @@ async def test_two_authenticated_players_capture_rescue_and_private_stream(tmp_p
 
     cid, play = await prepare(tmp_path)
     app = create_campaign_app(
-        CampaignAccess(play),
+        build_runtime(play),
         {"alice-secret": "alice", "bob-secret": "bob", "gm-secret": "gm"},
         legacy_routes=True,
     )

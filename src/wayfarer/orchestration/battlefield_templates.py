@@ -17,7 +17,6 @@ from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.sessions import REGISTRY
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
@@ -25,12 +24,7 @@ if TYPE_CHECKING:
 
 def install_rules(campaign: Campaign, play: PlayService, combat: CombatRules) -> PlayService:
     """Retain immutable source provenance while recording the migrated runtime graph."""
-    # deferred: battlefield_templates -> play -> npcs -> providers -> access ->
-    # combat -> combat.context -> battlefield_templates.
-    from wayfarer.orchestration.play import PlayService
-
-    engine = REGISTRY.bind(
-        play.store,
+    engine = play.sessions.bind(
         campaign["id"],
         play.engine.reviewer,
         play.engine.resources,
@@ -60,7 +54,7 @@ def install_rules(campaign: Campaign, play: PlayService, combat: CombatRules) ->
     else:
         # Pre-scenario typed campaigns retain a CombatRules fragment, never maps on encounters.
         campaign["combat_rules_json"] = combat.model_dump_json()
-    return PlayService(play.store, engine, rng=play.rng, profiles=play.profiles)
+    return play.derived(engine, rng=play.rng, profiles=play.profiles)
 
 
 def template_id(board: HexBattlefield, location: str) -> str:
@@ -232,7 +226,7 @@ async def migrate_embedded_maps(
         return CommandReceipt(action="combat", outcome="Map templates migrated")
 
     result = await commit_command(
-        play.store,
+        play,
         cid,
         command_id,
         expected_revision,

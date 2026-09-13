@@ -13,6 +13,5 @@ Affliction and Binding enter the shared active-effect clock. Vampiric Bite heali
 attacker's canonical HP pool. All paths enforce actor authority, compare-and-set revisions,
 stable receipts, and restart-safe replay.
 
-The selected-source review completed in #191, and runtime blocker #237 is
-removed from all 18 covered rows. This opt-in package does not by itself certify
-the full profile.
+The selected-printing review and #237 implementation evidence are reconciled.
+Seventeen rows are verified; Injury Tolerance remains partial under #107.

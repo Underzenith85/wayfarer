@@ -110,7 +110,7 @@ narration operations. `ResponsesProvider` bridges the existing Responses client;
 Codex subscription integration remains #30. Runtime schemas forbid forged costs,
 rolls, identities and state. The orchestrator binds identity and revision itself,
 rechecks permission/session generation after model calls, and executes through
-CampaignAccess. Session identity includes campaign, principal, actor, subgroup and
+the campaign runtime. Session identity includes campaign, principal, actor, subgroup and
 generation. Context is perspective-filtered with bounded recent event metadata;
 raw canonical event payloads and hidden objective evidence are never retrieved
 into player/NPC model contexts. Drafts are proposals only; activation still uses

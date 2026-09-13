@@ -47,11 +47,17 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import World
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
-from wayfarer.orchestration.entropy import CommandRandom, commit_command
+from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.entropy import (
+    CommandRandom,
+    SeedSource,
+    commit_command,
+    token_seed,
+)
 from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
 from wayfarer.orchestration.npcs import initialize
 from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
-from wayfarer.orchestration.sessions import REGISTRY
+from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
@@ -93,11 +99,36 @@ class PlayService:
         *,
         rng: RandomSource = secrets,
         profiles: ProfileRuntime | None = None,
+        sessions: SessionRegistry | None = None,
+        instants: Callable[[], CommandInstant] = capture_instant,
+        seeds: SeedSource = token_seed,
     ) -> None:
         self.store, self.engine, self.rng = store, engine, CommandRandom(rng)
         # When present, campaigns pinned to another registered profile dispatch to
         # that profile's service. Without a runtime, mismatched pins fail closed.
         self.profiles = profiles
+        # Every service derived from this one shares these, so two handles onto the
+        # same campaign take the same lock and read the same scripted sources.
+        self.sessions = SessionRegistry() if sessions is None else sessions
+        self.instants, self.seeds = instants, seeds
+
+    def derived(
+        self,
+        engine: ActionEngine,
+        *,
+        rng: RandomSource | None = None,
+        profiles: ProfileRuntime | None = None,
+    ) -> PlayService:
+        """A sibling over the same store, session registry and injected sources."""
+        return PlayService(
+            self.store,
+            engine,
+            rng=secrets if rng is None else rng,
+            profiles=profiles,
+            sessions=self.sessions,
+            instants=self.instants,
+            seeds=self.seeds,
+        )
 
     def for_campaign(self, campaign: Campaign) -> PlayService:
         """Dispatch to the campaign's exact registered profile, then bind its scenario."""
@@ -120,8 +151,7 @@ class PlayService:
             if original is None:
                 raise ValidationError("Map migration requires configured combat rules")
             saved = CombatRules.model_validate_json(override)
-            engine = REGISTRY.bind(
-                self.store,
+            engine = self.sessions.bind(
                 campaign["id"],
                 self.engine.reviewer,
                 self.engine.resources,
@@ -133,10 +163,9 @@ class PlayService:
             )
             if engine.digest == self.engine.digest:
                 return self
-            return PlayService(self.store, engine, rng=self.rng, profiles=self.profiles)
+            return self.derived(engine, rng=self.rng, profiles=self.profiles)
         graph = parse_graph(encoded)
-        engine = REGISTRY.bind(
-            self.store,
+        engine = self.sessions.bind(
             campaign["id"],
             self.engine.reviewer,
             self.engine.resources.for_world(graph.world),
@@ -153,7 +182,7 @@ class PlayService:
             and engine.resources.actors == self.engine.resources.actors
         ):
             return self
-        return PlayService(self.store, engine, rng=self.rng, profiles=self.profiles)
+        return self.derived(engine, rng=self.rng, profiles=self.profiles)
 
     def initial_state(
         self,
@@ -448,7 +477,7 @@ class PlayService:
             return CommandReceipt(action="typed-action", outcome=result.model_dump_json())
 
         committed = await commit_command(
-            self.store,
+            self,
             cid,
             command.id,
             command.expected_revision,
@@ -513,7 +542,7 @@ class PlayService:
             return CommandReceipt(action="power-approval", outcome=approval.model_dump_json())
 
         committed = await commit_command(
-            self.store,
+            self,
             cid,
             command.id,
             command.expected_revision,

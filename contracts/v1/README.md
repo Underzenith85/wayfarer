@@ -206,7 +206,7 @@ Inspected main commit `9a56802a8fc6d579635b5fd8aed046930531396a`.
 | GET `/campaigns/{cid}` | Bearer + member, revision/game_time/actor perspectives; GM world projection | Typed player DTOs, opaque scoped versions, character/inventory/scene reads: #50 |
 | POST `/campaigns/{cid}/commands` | Typed `id`, actor_id, expected_revision; calls PlayService, returns projection | New envelope, result resource, async lifecycle, clarification/cancellation: #50/#20/#39 |
 | GET `/campaigns/{cid}/events?after=N` | JSON polling of revision-based history; not a WebSocket stream | Scoped envelopes, opaque cursors, replay/revocation and transport: #48/#50/#45 |
-| `orchestration/access.py` | gm/player/spectator, owned actor control; other actor outcomes redacted | Filter event metadata as well as outcomes, historical revocation tests, scene authorization: #45/#50 |
+| `orchestration/runtime.py` | gm/player/spectator, owned actor control; other actor outcomes redacted | Filter event metadata as well as outcomes, historical revocation tests, scene authorization: #45/#50 |
 | `orchestration/play.py` | Transactional commands, duplicate lookup, feasibility, revision checks | Persist accepted action/clarification lifecycle; resource-token mapping: #50/#39 |
 | `transport/http.py`: `/api/bootstrap`, campaigns, turn, validate, generate routes | Separate legacy local demo; not authenticated authoritative facade | Do not treat as production v1. Setup/generation adapters: #21/#22/#40/#50 |
 | Character/compiler, resources, combat, scenes, advancement services | Domain implementations independent of HTTP | Typed projections and command adapters, not duplicated mechanics: #50 and respective engine owners |

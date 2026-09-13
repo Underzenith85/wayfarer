@@ -6,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import build_orchestrator
 from test_wave11 import graph_fixture
 from test_wave12 import ready, service
 
@@ -211,13 +212,11 @@ async def test_archive_restore_and_invalid_preview(tmp_path: Path) -> None:
 async def test_generation_is_resumable_and_does_not_mutate_play(tmp_path: Path) -> None:
     from test_wave9 import FakeProvider
 
-    from wayfarer.orchestration.providers import Orchestrator
-
     setup = service(tmp_path)
     cid = await finish(setup)
     before = PlayState.model_validate_json((await setup.play.store.read(cid))["play_json"])
     provider = FakeProvider(successor().model_dump_json())
-    llm = Orchestrator(setup.access, provider)
+    llm = build_orchestrator(setup.access, provider)
     command = SetupCommand(id="generate-next", expected_revision=6, operation="preview")
     first = await setup.generate(cid, command, llm, principal_id="alice")
     second = await setup.generate(cid, command, llm, principal_id="alice")

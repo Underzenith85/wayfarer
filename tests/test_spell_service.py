@@ -4,6 +4,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_abilities import spec
 from test_ability_service import setup
 from test_spells import command
@@ -14,7 +15,6 @@ from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.spells import SpellCommand, active_spells
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -55,7 +55,7 @@ async def test_concurrent_completion_restart_and_private_rolls(tmp_path: Path) -
         == results[0]
     )
     assert await restarted.store.read(cid) == saved
-    events = await CampaignAccess(restarted).events(cid, principal_id="b")
+    events = await build_runtime(restarted).events(cid, principal_id="b")
     assert "effective_target" not in str(events)
     assert "approved" not in str(events)
     with pytest.raises(ConflictError):

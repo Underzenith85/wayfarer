@@ -143,7 +143,7 @@ def prepare(
         if candidate == "block" and not (weapon.thrown or weapon.blockable):
             continue
         try:
-            defense_adjustment(encounter, actor, target)
+            defense_adjustment(encounter, actor, target, approach=pending.tactical_approach)
             defense_value(
                 runtime,
                 state,

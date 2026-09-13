@@ -9,8 +9,8 @@ from wayfarer.engine.simulation.magic.backfire_transitions import (
 from wayfarer.engine.simulation.magic.backfire_transitions import resolve
 from wayfarer.engine.simulation.magic.backfires import Backfire, backfires
 from wayfarer.errors import AuthorizationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.play import PlayService
 
 
@@ -22,7 +22,7 @@ class SpellBackfireService:
         command = ResolveSpellBackfire.model_validate(value)
         play = self.play.for_campaign(await self.play.store.read(cid))
         initial = play._load(await play.store.read(cid))
-        member = CampaignAccess(play)._member(initial, authenticated_gm_id)
+        member = member_for(initial, authenticated_gm_id)
         if (
             command.actor_id != authenticated_gm_id
             or member.role != "gm"
@@ -46,7 +46,7 @@ class SpellBackfireService:
             return CommandReceipt(action="resource", outcome="spell:backfire-resolved")
 
         committed = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

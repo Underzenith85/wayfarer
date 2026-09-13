@@ -77,7 +77,7 @@ class DirectorService:
             return CommandReceipt(action="director", outcome=turn.phase)
 
         await commit_command(
-            self.play.store,
+            self.play,
             cid,
             key,
             revision,

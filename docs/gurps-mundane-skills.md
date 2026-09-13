@@ -20,8 +20,8 @@ The supplied **Characters, Fourth Edition, third printing (2008), ISBN
 978-1-55634-729-0** is the observed source. `source_index.json` records its SHA-256
 and independently indexes B301–B304, with explicit chapter expansions at
 B168–B233. This observation uses the selected Characters third-printing
-baseline. The selected-source review completed in #191; remaining executable
-item-level work stays under #336 and its child owners. No rulebook prose is bundled.
+baseline. Remaining mechanics verification stays under each row's explicit
+blockers and source-ledger completion owner. No rulebook prose is bundled.
 
 | Source accounting | Entries |
 | --- | ---: |
@@ -54,8 +54,12 @@ also verifies names, pages and owners against the supernatural catalog.
 | Structured candidate definitions | 10 | Unsupported; runtime or campaign-context blockers remain. |
 | Bound runtime procedures | 466 | Includes the executable arts/trades, combat, technique, knowledge/investigation, medicine/mental, physical/outdoor, and open-subject technology rows. Open families remain nondispatchable until a campaign selects a concrete specialty. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
-| Transferred cinematic/supernatural skills | 28 | Owned by #242/#243; source review completed in #191. |
+| Transferred cinematic/supernatural skills | 28 | Reconciled by the #242/#243 receiving catalog; no stale #191 owner remains. |
 | **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 427 inventory rows are available.** |
+
+Each of the 504 mundane inventory rows carries the executable evidence suite of
+its procedure owner. Source-audit validation rejects missing or nonexistent
+row-level evidence paths instead of accepting a family-level coverage claim.
 
 ## Arts, crafts and trade procedures (#338)
 
@@ -142,7 +146,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #390 | Complete. Campaign-authored Biology, Disguise, Geography and Geology subjects derive deterministic definitions and bind the existing technology procedure services. |
 | #358 | Vehicle movement and combat capability verification for the bound vehicle rows. |
 | #366 | Fortune-Telling and Savoir-Faire specialties. |
-| #367 | The Propaganda technology-level media context. |
+| #367 | Complete. Propaganda derives authored media reach and timing from the campaign TL; see `gurps-propaganda-media.md`. |
 | #368 | Interrogation coercion and its reaction consequences. |
 | #369 | Teaching and Leadership bind to advancement and NPC group activity; see `gurps-social-activity-bindings.md`. |
 | #370 | Social audience, income, outlay and hangover outcomes bind through `gurps-social-material-outcomes.md`. |
@@ -317,10 +321,10 @@ Evidence is in `tests/test_ranged_skills.py`.
 
 ## Social procedures (#345)
 
-The parent inventory is accounted for: 16 of its 19 headline rows are bound and
+The parent inventory is accounted for: 17 of its 19 headline rows are bound and
 executable. Fortune-Telling and Savoir-Faire explicitly retain #366 as their
-runtime owner, and Propaganda retains #367; those rows remain unavailable until
-their required specialty or technology/media procedure is implemented. This is
+runtime owner; those rows remain unavailable until their required specialty is
+implemented. Propaganda's TL-keyed media procedure is complete under #367. This is
 the issue's required fail-closed transfer outcome, not a claim that the child
 mechanics are complete. Seven concrete Fortune-Telling specialties introduced
 by the source reconciliation likewise stay blocked under #366.
@@ -359,8 +363,8 @@ required condition rejects before dice.
 
 Three rows keep `runtime-procedure` because they cannot resolve at all yet:
 `skill:fortune-telling` and `skill:savoir-faire` are not learnable without their
-required specialties (#366), and `skill:propaganda` has no medium, reach or
-media-effect duration procedure (#367). Those rows are absent from the pin.
+required specialties (#366). `skill:propaganda` is present only in the explicit
+revision-11/package-0.9.0 pin and requires an authored medium under #367.
 
 A bound row can still leave a named part of its entry elsewhere. That is not a
 blocker — the roll runs — so it is published as `transferred_procedure_scope`

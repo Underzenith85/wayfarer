@@ -4,6 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_actions import Dice, actor_setup, campaign
 from test_combat import combat_engine, resources, start
 from test_scenes import configured
@@ -32,7 +33,6 @@ from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.resources import Owner
 from wayfarer.engine.world import Entity, EntityKind
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import CombatService, EndEncounter, TakeCombatTurn
 from wayfarer.orchestration.encounter_scenes import (
     EncounterSceneService,
@@ -285,7 +285,7 @@ async def test_ambiguous_migration_is_explicit_authorized_atomic_and_retry_safe(
         expected_revision=0,
         bindings=(EncounterSceneBinding(encounter_id="fight", scene_id="dock-scene"),),
     )
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     with pytest.raises(AuthorizationError):
         await access.execute(cid, command.model_dump(mode="json"), principal_id="alice")
     with pytest.raises(ValidationError):
@@ -343,7 +343,7 @@ async def test_spectator_split_preserves_combat_and_can_queue_independent_activi
     split = PartyCommand(
         id="split", actor_id="c", kind="split_party", expected_revision=1, target_id="scouts"
     )
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     await access.execute(cid, split.model_dump(mode="json"), principal_id="scout")
     after = await load(play, cid)
     assert after.encounters == state.encounters and after.world == state.world

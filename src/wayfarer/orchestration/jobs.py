@@ -7,7 +7,6 @@ import hashlib
 import json
 from collections.abc import Awaitable, Callable
 from typing import Literal
-from weakref import ReferenceType, WeakKeyDictionary, ref
 
 from wayfarer.errors import (
     ConflictError,
@@ -17,14 +16,14 @@ from wayfarer.errors import (
     ProviderTimeoutError,
     provider_diagnostic,
 )
-from wayfarer.orchestration.sessions import Store
-from wayfarer.persistence.catalog import CatalogStore
 from wayfarer.persistence.jobs import JobStore, ProviderJob
 
 
 class ProviderJobs:
-    def __init__(self, store: Store, *, partition: str = "default") -> None:
-        self.store = JobStore(CatalogStore(store))
+    """One bounded worker per partition, over the job store the runtime hands it."""
+
+    def __init__(self, store: JobStore, *, partition: str = "default") -> None:
+        self.store = store
         self.partition = partition
         self.tasks: dict[str, asyncio.Task[None]] = {}
         self._slots = asyncio.Semaphore(8)
@@ -133,15 +132,3 @@ class ProviderJobs:
         for task in tasks:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
-
-
-_RUNNERS: WeakKeyDictionary[Store, ReferenceType[ProviderJobs]] = WeakKeyDictionary()
-
-
-def jobs_for(store: Store) -> ProviderJobs:
-    saved = _RUNNERS.get(store)
-    jobs = saved() if saved is not None else None
-    if jobs is None:
-        jobs = ProviderJobs(store)
-        _RUNNERS[store] = ref(jobs)
-    return jobs

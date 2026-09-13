@@ -54,9 +54,11 @@ class GeneratedScenarioGraph(ScenarioGraph):
 
 
 class ScenarioCatalog:
-    def __init__(self, setup: SetupService, authors: frozenset[str]) -> None:
+    def __init__(
+        self, setup: SetupService, authors: frozenset[str], *, store: CatalogStore
+    ) -> None:
         self.setup = setup
-        self.store = CatalogStore(setup.play.store)
+        self.store = store
         self.documents = ScenarioDocuments(
             ScenarioStudio(setup.play, npc_reviewer=setup.play.engine.reviewer), author_ids=authors
         )

@@ -9,9 +9,8 @@ from test_wave9 import FakeProvider
 from test_wave10 import prepare, setback
 from test_wave12 import two_player_graph
 
-from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, create_campaign_app, interpret
 from wayfarer.transport.setup_api import SETUP_KEY
@@ -22,7 +21,7 @@ from wayfarer.transport.v1.provider import bind_provider
 async def application() -> web.Application:
     directory = Path(tempfile.mkdtemp(prefix="wave11-browser-"))
     _, play = await prepare(directory)
-    access = CampaignAccess(play)
+    access = CampaignRuntime(play)
     opening = two_player_graph()
     sequel = opening.model_copy(
         update={
@@ -40,7 +39,9 @@ async def application() -> web.Application:
         legacy_routes=True,
         v1_origins=frozenset({"http://127.0.0.1:4174"}),
     )
-    app[SETUP_KEY] = SetupService(CampaignAccess(PlayService(play.store, configured()[0])))
+    # The setup service binds its own scenario engine, but over the same store:
+    # derive it so it shares this runtime's campaign locks and job worker.
+    app[SETUP_KEY] = SetupService(access.for_service(play.derived(configured()[0])))
     app[ORCHESTRATOR_KEY] = Orchestrator(access, FakeProvider())
     bind_provider(app[SERVICE], app[ORCHESTRATOR_KEY])
     app.router.add_post("/campaigns/{cid}/interpret", interpret)

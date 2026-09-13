@@ -16,10 +16,10 @@ from wayfarer.engine.simulation.campaign.director import AuthorDraft
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Id, Record
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
+from wayfarer.orchestration.runtime import CampaignRuntime
 
 
 class DraftCommand(Record):
@@ -35,7 +35,7 @@ class DraftCommand(Record):
 
 
 class WorkshopService:
-    def __init__(self, access: CampaignAccess) -> None:
+    def __init__(self, access: CampaignRuntime) -> None:
         self.access, self.play = access, access.play
 
     def _get(self, state: PlayState, draft_id: str, principal_id: str) -> AuthorDraft:
@@ -280,7 +280,7 @@ class WorkshopService:
             return CommandReceipt(action="workshop", outcome=command.operation)
 
         await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,

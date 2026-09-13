@@ -11,5 +11,5 @@ costs, durations, interruption policy, and private fact IDs. The reducer enforce
 authority and compare-and-set revisions, charges canonical FP, records persistent effects,
 reveals only authored facts, and provides identical-command replay after restart.
 
-The selected-source review completed in #191, and runtime blocker #236 is removed
-from every covered row. This opt-in package does not by itself certify the full profile.
+The selected-printing review and #236 implementation evidence are reconciled;
+these inventory rows are verified.

@@ -106,7 +106,7 @@ def prepare_attack(
         if targeting_weapon and candidate == "block":
             continue
         try:
-            defense_adjustment(encounter, attacker, defender)
+            defense_adjustment(encounter, attacker, defender, approach=pending.tactical_approach)
             defense_value(
                 runtime,
                 state,

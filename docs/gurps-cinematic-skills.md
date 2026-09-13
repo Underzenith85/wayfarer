@@ -16,5 +16,5 @@ acting character or the GM.
 
 Free-form narrative consequences and procedures requiring broader combat,
 invention, influence, or knowledge adjudication remain explicit boundaries.
-The selected-source review completed in #191; rows remain `partial` for those
-runtime boundaries.
+The selected-printing review and #242 implementation evidence are reconciled;
+all 23 inventory rows are verified.

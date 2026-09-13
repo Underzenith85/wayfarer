@@ -1,9 +1,16 @@
-"""Authorized campaign queries, commands, and perspective-safe resumable streams."""
+"""The campaign runtime: the container every adapter receives.
+
+It owns the dependencies a campaign write needs — the play services, the session
+registry behind them, the provider job worker and the store handles those are
+built from — and exposes the authorized queries, commands and perspective-safe
+resumable streams on top of them. Nothing here is a module global, so two
+runtimes in one process share no lock, no engine cache and no job partition.
+"""
 
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, replace
 
 from wayfarer.engine.simulation.actions import ACTION_ADAPTER, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
@@ -17,6 +24,7 @@ from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.encounter_scenes import EncounterSceneService, MigrateEncounterScenes
 from wayfarer.orchestration.fright import FrightDecision, FrightService
 from wayfarer.orchestration.fright_builds import FrightBuildService
+from wayfarer.orchestration.jobs import ProviderJobs
 from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
@@ -30,22 +38,65 @@ from wayfarer.orchestration.player_medical import choices as medical_choices
 from wayfarer.orchestration.player_medical import execute as execute_medical
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService, guard
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.orchestration.sessions import Store
 from wayfarer.orchestration.tactical_view import legacy_encounter
+from wayfarer.persistence.catalog import CatalogStore
 from wayfarer.persistence.events import CommandOrigin
+from wayfarer.persistence.jobs import JobStore
 
 
-class CampaignAccess:
+@dataclass(frozen=True)
+class CampaignStores:
+    """The store handles one runtime owns. Adapters receive the runtime, not these."""
+
+    campaigns: Store
+    catalog: CatalogStore
+    jobs: JobStore
+
+    @classmethod
+    def on(cls, store: Store) -> CampaignStores:
+        catalog = CatalogStore(store)
+        return cls(campaigns=store, catalog=catalog, jobs=JobStore(catalog))
+
+
+class CampaignRuntime:
     def __init__(
-        self, play: PlayService, medical_environment: EnvironmentResolver | None = None
+        self,
+        play: PlayService,
+        medical_environment: EnvironmentResolver | None = None,
+        *,
+        stores: CampaignStores | None = None,
+        jobs: ProviderJobs | None = None,
+        partition: str = "default",
     ) -> None:
         self.play = play
         self.medical_environment = medical_environment
+        self.stores = CampaignStores.on(play.store) if stores is None else stores
+        # One worker per runtime, so two runtimes never contend for a partition.
+        self.jobs = ProviderJobs(self.stores.jobs, partition=partition) if jobs is None else jobs
+        self.partition = self.jobs.partition
 
-    async def runtime(self, cid: str) -> CampaignAccess:
+    def for_service(self, play: PlayService) -> CampaignRuntime:
+        """The same runtime around another service over these stores.
+
+        A composition that binds a second engine to one store — a setup service on
+        its own scenario, a rebound campaign — must reuse this runtime's stores and
+        worker, and the service must come from ``PlayService.derived`` so it shares
+        the session registry. Two runtimes over one store would mean two locks on a
+        campaign and two workers on a partition.
+        """
+        return CampaignRuntime(
+            play,
+            self.medical_environment,
+            stores=self.stores,
+            jobs=self.jobs,
+        )
+
+    async def for_campaign(self, cid: str) -> CampaignRuntime:
         """Reconstruct an activated scenario's pinned runtime after restart."""
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
-        return self if play is self.play else CampaignAccess(play, self.medical_environment)
+        return self if play is self.play else self.for_service(play)
 
     @staticmethod
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
@@ -206,7 +257,7 @@ class CampaignAccess:
         }
 
     async def read(self, cid: str, *, principal_id: str) -> dict[str, object]:
-        runtime = await self.runtime(cid)
+        runtime = await self.for_campaign(cid)
         if runtime is not self:
             return await runtime.read(cid, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
@@ -346,7 +397,7 @@ class CampaignAccess:
             return await self._execute(cid, value, principal_id=principal_id)
 
     async def _execute(self, cid: str, value: object, *, principal_id: str) -> dict[str, object]:
-        runtime = await self.runtime(cid)
+        runtime = await self.for_campaign(cid)
         if runtime is not self:
             return await runtime._execute(cid, value, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
@@ -500,7 +551,7 @@ class CampaignAccess:
     async def events(
         self, cid: str, *, principal_id: str, after: int = 0, limit: int = 100
     ) -> tuple[StreamEvent, ...]:
-        runtime = await self.runtime(cid)
+        runtime = await self.for_campaign(cid)
         if runtime is not self:
             return await runtime.events(cid, principal_id=principal_id, after=after, limit=limit)
         if after < 0 or not 1 <= limit <= 100:

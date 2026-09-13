@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_social_dispatch import PROFILE, command, prepare
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -12,7 +13,6 @@ from wayfarer.engine.simulation.health.fright import apply_effect, blocked, effe
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
@@ -52,7 +52,7 @@ async def test_fright_loss_restart_privacy_and_recovery(tmp_path: Path) -> None:
         await SocialService(play, resolve).execute(cid, value, authenticated_gm_id="gm") == result
     )
     assert await play.store.read(cid) == saved == await play.store.replay(cid)
-    projection = await CampaignAccess(play).read(cid, principal_id="alice")
+    projection = await build_runtime(play).read(cid, principal_id="alice")
     assert "recovery_target" not in str(projection)
     # First check at the end of the initial stun; failure schedules one second later.
     due = state.resources.model_copy(update={"game_time": 2})

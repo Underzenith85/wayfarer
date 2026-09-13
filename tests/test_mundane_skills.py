@@ -40,7 +40,7 @@ def test_inventory_and_references() -> None:
     } <= ids
     assert len(entries) > 180
     # #338-#343 add bound procedures without changing a package pin.
-    assert audit_report()["available"] == 427
+    assert audit_report()["available"] == 428
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -404,8 +404,8 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert report["implementation_counts"] == {
         # #343 binds 66 concrete physical/outdoor rows and four templates.
         "contextual": 28,
-        "implemented": 466,
-        "unsupported": 10,
+        "implemented": 467,
+        "unsupported": 9,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -427,12 +427,12 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert isinstance(counts, dict) and counts["listing-only"] == 28
 
 
-def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None:
-    """Exclusion is a transfer with named owners, never a silent removal."""
+def test_excluded_skills_remain_owned_by_the_reconciled_catalog() -> None:
+    """Exclusion is a transfer to an exact verified row, never a silent removal."""
     rows = {e.id: e for e in transferred_exclusions()}
     assert len(rows) == 28
-    assert rows["alchemy"].owners == (191,)
-    assert rows["zen-archery"].owners == (191,)
+    assert rows["alchemy"].owners == ()
+    assert rows["zen-archery"].owners == ()
     assert all(row.reason and row.page for row in rows.values())
 
 
@@ -443,16 +443,14 @@ def test_exclusion_owner_drift_is_a_coverage_failure(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(module, "exclusions", lambda: rows[1:])
     with pytest.raises(ValidationError, match="owning catalog differ"):
         transferred_exclusions()
-    renamed = rows[0].model_copy(update={"owners": (243, 191)})
+    renamed = rows[0].model_copy(update={"owners": (243,)})
     monkeypatch.setattr(module, "exclusions", lambda: (renamed, *rows[1:]))
     with pytest.raises(ValidationError, match="owner drift"):
         transferred_exclusions()
 
 
-@pytest.mark.parametrize(
-    "changes", [{"owners": []}, {"owners": [242, 242]}, {"owners": [0]}, {"id": "Alchemy"}]
-)
-def test_exclusion_records_reject_unowned_transfers(changes: dict[str, object]) -> None:
+@pytest.mark.parametrize("changes", [{"owners": [242, 242]}, {"owners": [0]}, {"id": "Alchemy"}])
+def test_exclusion_records_reject_invalid_transfers(changes: dict[str, object]) -> None:
     row = exclusions()[0].model_dump(mode="json")
     with pytest.raises(SchemaError):
         Exclusion.model_validate_json(json.dumps(row | changes))

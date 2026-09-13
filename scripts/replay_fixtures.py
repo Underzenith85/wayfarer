@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import secrets
+from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
 
@@ -15,6 +16,8 @@ from wayfarer.engine.rules.randomness import RNG_ALGORITHM
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.events import EngineEvent, digest, document
 from wayfarer.models import Record
+from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.entropy import SeedSource, token_seed
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.replay import execute_recorded
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -118,8 +121,18 @@ async def engine_for(name: str, directory: Path) -> ActionEngine:
 
 
 class FixtureExecutor:
-    def __init__(self, engine: ActionEngine, directory: Path) -> None:
+    def __init__(
+        self,
+        engine: ActionEngine,
+        directory: Path,
+        *,
+        instants: Callable[[], CommandInstant] = capture_instant,
+        seeds: SeedSource = token_seed,
+    ) -> None:
         self.engine, self.directory, self.count = engine, directory, 0
+        # A verifying caller passes sources that refuse: replay must read the
+        # recorded instant and seed, never capture a fresh one.
+        self.instants, self.seeds = instants, seeds
 
     async def __call__(
         self, before: Campaign, command: CommandRecord
@@ -127,7 +140,9 @@ class FixtureExecutor:
         self.count += 1
         store = AsyncSQLiteStore(self.directory / f"command-{self.count}.sqlite")
         await store.insert(before)
-        play = PlayService(store, self.engine).for_campaign(before)
+        play = PlayService(
+            store, self.engine, instants=self.instants, seeds=self.seeds
+        ).for_campaign(before)
         await execute_recorded(play, command)
         history = await store.history(before["id"])
         if len(history) != 1:
@@ -138,7 +153,12 @@ class FixtureExecutor:
 
 
 async def verify_fixture(
-    fixture: ReplayFixture, engine: ActionEngine, directory: Path
+    fixture: ReplayFixture,
+    engine: ActionEngine,
+    directory: Path,
+    *,
+    instants: Callable[[], CommandInstant] = capture_instant,
+    seeds: SeedSource = token_seed,
 ) -> tuple[ReplayCheck, ...]:
     initial = contracts.campaign(validation.decode(fixture.initial_json))
     # Verify against the actual bound engine, not just the fixture's own pin.
@@ -163,7 +183,7 @@ async def verify_fixture(
         records,
         stream,
         configuration_digest=fixture.configuration_digest,
-        execute=FixtureExecutor(engine, directory),
+        execute=FixtureExecutor(engine, directory, instants=instants, seeds=seeds),
     )
     if not all(c.folded and c.reexecuted for c in checks):
         raise ValueError(f"Fixture contains unverified commands: {checks}")

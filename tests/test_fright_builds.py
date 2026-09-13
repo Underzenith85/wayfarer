@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_mundane_trait_runtime import prepare as prepare_traits
 from test_social_dispatch import prepare
 
@@ -16,8 +17,8 @@ from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.health.fright import TimedFright, effects, public_id, save
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
@@ -89,7 +90,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
         for p in initial.actors[0].proposal.draft.purchases
     )
     command = proposal(play, initial, item, purchases)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     result = await access.execute(cid, command, principal_id="alice")
     assert isinstance(result["fright"], tuple)
     assert build(play.rules_context, play._load(await play.store.read(cid)), "a") == old
@@ -99,7 +100,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     assert projected["proposal_id"] and projected["build_approval_required"]
     state = play._load(await play.store.read(cid))
     assert (
-        CampaignAccess._projection(state, CampaignMember(principal_id="watch", role="spectator"))[
+        CampaignRuntime._projection(state, CampaignMember(principal_id="watch", role="spectator"))[
             "fright"
         ]
         == ()
@@ -122,7 +123,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "social.sqlite", 10), play.engine, rng=RecordedDice([])
     )
-    access = CampaignAccess(restarted)
+    access = build_runtime(restarted)
     result = await access.execute(cid, approval, principal_id="gm")
     final = restarted._load(await restarted.store.read(cid))
     new = build(restarted.rules_context, final, "a")
@@ -161,7 +162,7 @@ async def test_self_control_worsens_one_step_and_rejects_unrelated_purchases(
         for p in draft.purchases
     )
     command = proposal(play, state, item, purchases) | {"related_trait_id": "trait:bad-temper"}
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     changed = tuple(
         p.model_copy(update={"amount": 11}) if p.definition_id == "attribute:st" else p
         for p in purchases
@@ -226,7 +227,7 @@ async def test_new_trait_requires_exact_cost_then_approved_catalog_purchase(
     item = await install(cid, play, effect)
     state = play._load(await play.store.read(cid))
     purchases = state.actors[0].proposal.draft.purchases + (Purchase(definition_id=definition.id),)
-    access = CampaignAccess(play)
+    access = build_runtime(play)
     result = await access.execute(cid, proposal(play, state, item, purchases), principal_id="alice")
     assert isinstance(result["fright"], tuple)
     await access.execute(

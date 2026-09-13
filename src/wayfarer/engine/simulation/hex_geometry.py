@@ -151,6 +151,7 @@ class HexBattlefield(Record):
 class Occupant(Record):
     actor_id: Id
     position: Hex
+    relation: Literal["ally", "enemy"] = "enemy"
 
 
 class Movement(Record):
@@ -158,6 +159,16 @@ class Movement(Record):
     destination: Pose
     cost: Decimal = Field(ge=0)
     path: tuple[Hex, ...]
+    baseline_id: str = BASELINE_ID
+
+
+class PopUpMovement(Record):
+    """A validated B390 exposure-and-return transaction."""
+
+    origin: Pose
+    exposure: Pose
+    destination: Pose
+    path: tuple[Hex, Hex]
     baseline_id: str = BASELINE_ID
 
 
@@ -227,8 +238,9 @@ def movement(
         stair = battlefield.stairway(pose.position, target)
         if cell.ground != battlefield.cell(pose.position).ground and not stair:
             raise ValidationError("Elevation transition requires physical-feat resolution")
-        occupied = any(o.position == target and o.actor_id != actor_id for o in occupants)
-        if occupied and not (enter_close_combat and index == len(path) - 1):
+        present = tuple(o for o in occupants if o.position == target and o.actor_id != actor_id)
+        enemies = tuple(o for o in present if o.relation == "enemy")
+        if enemies and not (enter_close_combat and index == len(path) - 1):
             raise ValidationError("Occupied hex requires explicit close-combat entry")
         direction = DIRECTIONS.index((target.q - pose.position.q, target.r - pose.position.r))
         forward = (direction - pose.facing) % 6 in (0, 1, 5)
@@ -244,7 +256,13 @@ def movement(
                 if origin.posture in ("kneeling", "crawling")
                 else Decimal(0)
             )
-            total += (1 if forward else 2) + cell.extra_cost + int(stair) + posture_cost
+            total += (
+                (1 if forward else 2)
+                + cell.extra_cost
+                + int(stair)
+                + posture_cost
+                + sum(o.relation == "ally" for o in present)
+            )
         pose = Pose(
             position=target,
             facing=direction if forward and not step else pose.facing,  # type: ignore[arg-type]
@@ -262,6 +280,47 @@ def movement(
     if total > budget and not (not step and len(path) == 1 and not turns):
         raise ValidationError("Movement exceeds allowance")
     return Movement(origin=origin, destination=pose, cost=total, path=path)
+
+
+def pop_up_movement(
+    battlefield: HexBattlefield,
+    origin: Pose,
+    path: tuple[Hex, ...],
+    *,
+    move: int,
+    occupants: tuple[Occupant, ...] = (),
+    actor_id: str | None = None,
+    exposure_facing: HexFacing | None = None,
+) -> PopUpMovement:
+    """Validate one adjacent exposure and an immediate return without mutating state."""
+    if len(path) != 2 or path[-1] != origin.position or path[0] == origin.position:
+        raise ValidationError("Pop-up attack requires one exposed hex and return to origin")
+    outward = movement(
+        battlefield,
+        origin,
+        (path[0],),
+        move=move,
+        occupants=occupants,
+        actor_id=actor_id,
+        step=True,
+        final_facing=exposure_facing,
+    )
+    inward = movement(
+        battlefield,
+        outward.destination,
+        (origin.position,),
+        move=move,
+        occupants=occupants,
+        actor_id=actor_id,
+        step=True,
+        final_facing=outward.destination.facing,
+    )
+    return PopUpMovement(
+        origin=origin,
+        exposure=outward.destination,
+        destination=inward.destination,
+        path=(path[0], path[1]),
+    )
 
 
 def in_reach(

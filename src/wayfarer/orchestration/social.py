@@ -21,9 +21,12 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.development import bind_teaching_outcome
 from wayfarer.engine.simulation.campaign.economics import bind_social_material_outcome
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
 from wayfarer.engine.simulation.campaign.party import bind_leadership_outcome
+from wayfarer.engine.simulation.campaign.propaganda import bind_media
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.health.fright import apply_effect, validate_subject
+from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.social import (
     SocialCommand,
     SocialContext,
@@ -34,8 +37,8 @@ from wayfarer.engine.simulation.social.social import (
 )
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.play import PlayService
 
 
@@ -110,12 +113,25 @@ def bind_skill_conditions(
     if context.procedure_id is None:
         raise ValidationError("Social skill dispatch requires a declared procedure")
     procedure = require_procedure(context.profile_id, context.procedure_id)
+    if procedure.id != "skill:propaganda" and context.medium_id is not None:
+        raise ValidationError("Only Propaganda can select an authored medium")
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
     if actor is None or actor.approval is None:
         context.bind_trait_modifiers(())
         return
 
     approved = build(play.rules_context, state, command.actor_id)
+    if procedure.id == "skill:propaganda":
+        npc_rules = play.engine.rules.npcs
+        context.media = bind_media(
+            npc_rules.propaganda if isinstance(npc_rules, NPCSocialRules) else None,
+            profile_id=context.profile_id,
+            campaign_technology_level=play.engine.reviewer.compiler.policy.technology_level,
+            medium_id=context.medium_id,
+            actor_id=command.actor_id,
+            build=approved,
+            resources=state.resources,
+        )
     definitions = play.engine.reviewer.compiler.definitions
     context.conditions = context.conditions | skill_conditions(
         approved, definitions, procedure.id, context.audience
@@ -156,6 +172,7 @@ def dispatch(
             bind_skill_conditions(play, before, command, interaction.context)
         else:
             bind_trait_modifiers(play, before, command, interaction.context)
+    replay = any(receipt.command_id == command.id for receipt in before.resources.receipts)
     resources, world, outcome = apply_interaction(
         before.resources,
         before.world,
@@ -165,6 +182,18 @@ def dispatch(
         rng=play.rng,
         system=True,
     )
+    if outcome.media is not None and not replay:
+        resources = play.engine.resources.apply(
+            resources,
+            Advance(
+                id=f"{command.id}:propaganda-time",
+                actor_id=command.actor_id,
+                expected_revision=resources.revision,
+                to=resources.game_time + outcome.media.attempt_seconds,
+            ),
+            system=True,
+            rng=play.rng,
+        )
     encounters = before.encounters
     development = before.development
     economics = before.economics
@@ -285,7 +314,7 @@ class SocialService:
             raise ValidationError("Invalid social command") from exc
         play = self.play.for_campaign(await self.play.store.read(cid))
         state = play._load(await play.store.read(cid))
-        member = CampaignAccess(play)._member(state, authenticated_gm_id)
+        member = member_for(state, authenticated_gm_id)
         if member.role != "gm" or authenticated_gm_id not in play.engine.reviewer.gm_ids:
             raise ValidationError("Social dispatch requires trusted director authority")
         profile_id = play.engine.reviewer.compiler.statistics_profile
@@ -309,7 +338,7 @@ class SocialService:
             return CommandReceipt(action="npc", outcome=outcome.model_dump_json())
 
         result = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

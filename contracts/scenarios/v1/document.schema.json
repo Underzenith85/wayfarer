@@ -430,6 +430,17 @@
             }
           ],
           "default": null
+        },
+        "artifacts": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRules"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -980,6 +991,570 @@
         "dr"
       ],
       "title": "Armor",
+      "type": "object"
+    },
+    "ArtifactAnalysis": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "artifact_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "property_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Property Id",
+          "type": "string"
+        },
+        "procedure": {
+          "$ref": "#/$defs/ArtifactProcedure"
+        },
+        "duration_seconds": {
+          "default": 60,
+          "minimum": 60,
+          "title": "Duration Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "artifact_id",
+        "property_id",
+        "procedure"
+      ],
+      "title": "ArtifactAnalysis",
+      "type": "object"
+    },
+    "ArtifactCapability": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "property_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Property Id",
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/ArtifactProcedure"
+        },
+        "effect_family": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Effect Family",
+          "type": "string"
+        },
+        "effect": {
+          "discriminator": {
+            "mapping": {
+              "artifact-state": "#/$defs/ArtifactStateEffect",
+              "injury": "#/$defs/ArtifactInjuryEffect",
+              "object-damage": "#/$defs/ArtifactObjectEffect"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ArtifactStateEffect"
+            },
+            {
+              "$ref": "#/$defs/ArtifactInjuryEffect"
+            },
+            {
+              "$ref": "#/$defs/ArtifactObjectEffect"
+            }
+          ],
+          "title": "Effect"
+        },
+        "side_effect_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Side Effect Ids",
+          "type": "array"
+        },
+        "charge_cost": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Charge Cost",
+          "type": "integer"
+        },
+        "required_fact_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Required Fact Ids",
+          "type": "array"
+        },
+        "required_definition_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Required Definition Ids",
+          "type": "array"
+        },
+        "required_item_definition_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Required Item Definition Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "property_id",
+        "operation",
+        "effect_family",
+        "effect"
+      ],
+      "title": "ArtifactCapability",
+      "type": "object"
+    },
+    "ArtifactDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "item_definition_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Item Definition Id",
+          "type": "string"
+        },
+        "apparent_function": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Apparent Function",
+          "type": "string"
+        },
+        "actual_capability": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Actual Capability",
+          "type": "string"
+        },
+        "origin": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Origin",
+          "type": "string"
+        },
+        "property_definitions": {
+          "items": {
+            "$ref": "#/$defs/ArtifactProperty"
+          },
+          "minItems": 1,
+          "title": "Property Definitions",
+          "type": "array"
+        },
+        "public_property_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Public Property Ids",
+          "type": "array"
+        },
+        "capabilities": {
+          "items": {
+            "$ref": "#/$defs/ArtifactCapability"
+          },
+          "minItems": 1,
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "repair": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactProcedure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "campaign_permitted": {
+          "default": true,
+          "title": "Campaign Permitted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "item_definition_id",
+        "apparent_function",
+        "actual_capability",
+        "origin",
+        "property_definitions",
+        "capabilities"
+      ],
+      "title": "ArtifactDefinition",
+      "type": "object"
+    },
+    "ArtifactInjuryEffect": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "injury",
+          "default": "injury",
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "operator",
+            "target-actor"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "dice": {
+          "default": 0,
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Dice",
+          "type": "integer"
+        },
+        "add": {
+          "default": 0,
+          "maximum": 20,
+          "minimum": -20,
+          "title": "Add",
+          "type": "integer"
+        },
+        "damage_type": {
+          "default": "cr",
+          "enum": [
+            "cr",
+            "cut",
+            "imp",
+            "pi-",
+            "pi",
+            "pi+",
+            "pi++",
+            "burn"
+          ],
+          "title": "Damage Type",
+          "type": "string"
+        },
+        "ignore_dr": {
+          "default": false,
+          "title": "Ignore Dr",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "target"
+      ],
+      "title": "ArtifactInjuryEffect",
+      "type": "object"
+    },
+    "ArtifactObjectEffect": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "object-damage",
+          "default": "object-damage",
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "artifact",
+            "target-item"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "basic_damage": {
+          "minimum": 0,
+          "title": "Basic Damage",
+          "type": "integer"
+        },
+        "damage_type": {
+          "default": "cr",
+          "enum": [
+            "cr",
+            "cut",
+            "imp",
+            "pi-",
+            "pi",
+            "pi+",
+            "pi++",
+            "burn"
+          ],
+          "title": "Damage Type",
+          "type": "string"
+        },
+        "armor_divisor": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1",
+          "title": "Armor Divisor"
+        }
+      },
+      "required": [
+        "id",
+        "target",
+        "basic_damage"
+      ],
+      "title": "ArtifactObjectEffect",
+      "type": "object"
+    },
+    "ArtifactProcedure": {
+      "additionalProperties": false,
+      "properties": {
+        "skill_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Skill Id",
+          "type": "string"
+        },
+        "technology_field": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Technology Field",
+          "type": "string"
+        },
+        "native_technology_level": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Native Technology Level",
+          "type": "integer"
+        },
+        "modifier": {
+          "default": 0,
+          "maximum": 20,
+          "minimum": -20,
+          "title": "Modifier",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "skill_id",
+        "technology_field",
+        "native_technology_level"
+      ],
+      "title": "ArtifactProcedure",
+      "type": "object"
+    },
+    "ArtifactProperty": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "capability_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Capability Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description"
+      ],
+      "title": "ArtifactProperty",
+      "type": "object"
+    },
+    "ArtifactRules": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "profile_id": {
+          "const": "gurps-basic-set-4e-2004",
+          "default": "gurps-basic-set-4e-2004",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/ArtifactDefinition"
+          },
+          "minItems": 1,
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "analyses": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ArtifactAnalysis"
+          },
+          "title": "Analyses",
+          "type": "array"
+        },
+        "executable_capability_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Executable Capability Ids",
+          "type": "array"
+        },
+        "executable_effect_families": {
+          "default": [],
+          "items": {
+            "enum": [
+              "artifact-state",
+              "injury",
+              "object"
+            ],
+            "type": "string"
+          },
+          "title": "Executable Effect Families",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "artifacts"
+      ],
+      "title": "ArtifactRules",
+      "type": "object"
+    },
+    "ArtifactStateEffect": {
+      "additionalProperties": false,
+      "description": "A persisted condition, malfunction, or transformation effect.",
+      "properties": {
+        "kind": {
+          "const": "artifact-state",
+          "default": "artifact-state",
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "condition",
+            "malfunction",
+            "transformation"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "operator",
+            "target-actor",
+            "artifact",
+            "target-item"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "duration_seconds": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Seconds"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "target"
+      ],
+      "title": "ArtifactStateEffect",
       "type": "object"
     },
     "AttackProfile": {
@@ -4851,6 +5426,117 @@
       "title": "FirearmSpec",
       "type": "object"
     },
+    "GadgetContext": {
+      "additionalProperties": false,
+      "description": "Authored physical context needed to interpret the B476 bug table.",
+      "properties": {
+        "powered": {
+          "default": false,
+          "title": "Powered",
+          "type": "boolean"
+        },
+        "weapon": {
+          "default": false,
+          "title": "Weapon",
+          "type": "boolean"
+        }
+      },
+      "title": "GadgetContext",
+      "type": "object"
+    },
+    "GadgetDefect": {
+      "additionalProperties": false,
+      "description": "A hidden, replayable device defect selected only from recorded entropy.",
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "ordinary-minor",
+            "unwanted-attention",
+            "oversized",
+            "resource-drain",
+            "side-effects",
+            "awkward",
+            "power-hungry",
+            "weapon-underperformance",
+            "overheating",
+            "unreliable",
+            "repair-after-use",
+            "recoil",
+            "preparation-required",
+            "critical-self-destruction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "table_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 3,
+          "minItems": 0,
+          "title": "Table Dice",
+          "type": "array"
+        },
+        "table_total": {
+          "anyOf": [
+            {
+              "maximum": 18,
+              "minimum": 3,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Total"
+        },
+        "magnitude": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Magnitude"
+        },
+        "discovered": {
+          "default": false,
+          "title": "Discovered",
+          "type": "boolean"
+        },
+        "discovered_at": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Discovered At"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "GadgetDefect",
+      "type": "object"
+    },
     "GenerationBrief": {
       "additionalProperties": false,
       "properties": {
@@ -6352,7 +7038,7 @@
     },
     "InventionBlueprint": {
       "additionalProperties": false,
-      "description": "Trusted GM-authored concept, prerequisites, costs and ordinary work schedule.",
+      "description": "Trusted concept, prerequisites, resources and method-specific context.",
       "properties": {
         "id": {
           "maxLength": 200,
@@ -6512,10 +7198,89 @@
           "title": "Runtime Adapter Id"
         },
         "method": {
-          "const": "ordinary",
           "default": "ordinary",
+          "enum": [
+            "ordinary",
+            "gadgeteer",
+            "quick-gadgeteer"
+          ],
           "title": "Method",
           "type": "string"
+        },
+        "activity": {
+          "default": "invention",
+          "enum": [
+            "invention",
+            "analysis",
+            "modification"
+          ],
+          "title": "Activity",
+          "type": "string"
+        },
+        "subject_definition_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Definition Id"
+        },
+        "campaign_tl": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Campaign Tl"
+        },
+        "retail_price": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retail Price"
+        },
+        "similar_facility_available": {
+          "default": false,
+          "title": "Similar Facility Available",
+          "type": "boolean"
+        },
+        "gadget_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GadgetContext"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "non_gadgeteer_access": {
+          "$ref": "#/$defs/NonGadgeteerAccess",
+          "default": {
+            "use": true,
+            "repair": true,
+            "reproduce": false
+          }
         }
       },
       "required": [
@@ -6555,6 +7320,16 @@
           "maxLength": 200,
           "minLength": 1,
           "title": "Blueprint Id",
+          "type": "string"
+        },
+        "method": {
+          "default": "ordinary",
+          "enum": [
+            "ordinary",
+            "gadgeteer",
+            "quick-gadgeteer"
+          ],
+          "title": "Method",
           "type": "string"
         },
         "phase": {
@@ -6639,6 +7414,14 @@
           },
           "title": "Lots",
           "type": "array"
+        },
+        "gadget_defects": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/GadgetDefect"
+          },
+          "title": "Gadget Defects",
+          "type": "array"
         }
       },
       "required": [
@@ -6675,6 +7458,21 @@
             "$ref": "#/$defs/InventionBlueprint"
           },
           "title": "Blueprints",
+          "type": "array"
+        },
+        "permitted_methods": {
+          "default": [
+            "ordinary"
+          ],
+          "items": {
+            "enum": [
+              "ordinary",
+              "gadgeteer",
+              "quick-gadgeteer"
+            ],
+            "type": "string"
+          },
+          "title": "Permitted Methods",
           "type": "array"
         }
       },
@@ -6734,6 +7532,46 @@
           "minimum": 1,
           "title": "Units",
           "type": "integer"
+        },
+        "status": {
+          "default": "running",
+          "enum": [
+            "running",
+            "paused"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "remaining_seconds": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Remaining Seconds"
+        },
+        "schedule_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Schedule Dice",
+          "type": "array"
+        },
+        "schedule_kind": {
+          "default": "ordinary-full-time",
+          "enum": [
+            "ordinary-full-time",
+            "gadgeteer-interruptible",
+            "quick-random"
+          ],
+          "title": "Schedule Kind",
+          "type": "string"
         }
       },
       "required": [
@@ -8175,6 +9013,29 @@
       "title": "NPCRules",
       "type": "object"
     },
+    "NonGadgeteerAccess": {
+      "additionalProperties": false,
+      "description": "The campaign's explicit access decision for completed gadgets.",
+      "properties": {
+        "use": {
+          "default": true,
+          "title": "Use",
+          "type": "boolean"
+        },
+        "repair": {
+          "default": true,
+          "title": "Repair",
+          "type": "boolean"
+        },
+        "reproduce": {
+          "default": false,
+          "title": "Reproduce",
+          "type": "boolean"
+        }
+      },
+      "title": "NonGadgeteerAccess",
+      "type": "object"
+    },
     "NoncombatRule": {
       "additionalProperties": false,
       "properties": {
@@ -9572,6 +10433,22 @@
           "default": false,
           "title": "Behavior Available",
           "type": "boolean"
+        },
+        "defects": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/GadgetDefect"
+          },
+          "title": "Defects",
+          "type": "array"
+        },
+        "non_gadgeteer_access": {
+          "$ref": "#/$defs/NonGadgeteerAccess",
+          "default": {
+            "use": true,
+            "repair": true,
+            "reproduce": false
+          }
         }
       },
       "required": [

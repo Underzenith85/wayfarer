@@ -26,12 +26,12 @@ from wayfarer.errors import (
     WayfarerError,
 )
 from wayfarer.models import Record
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import AdvanceCharacter, AdvancementService, GrantPoints
 from wayfarer.orchestration.codex import ProviderStatus
 from wayfarer.orchestration.director import DirectorService
 from wayfarer.orchestration.provider_runtime import provider_runtime
 from wayfarer.orchestration.providers import Orchestrator
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
@@ -154,7 +154,7 @@ class InterpretRequest(Record):
 async def interpret(request: web.Request) -> web.Response:
     body = InterpretRequest.model_validate(await _json(request))
     base = request.app[ORCHESTRATOR_KEY]
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     orchestrator = (
         base
         if access is request.app[ACCESS_KEY]
@@ -198,7 +198,7 @@ class GenerateDraftRequest(Record):
 
 async def generate_scenario_draft(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     principal = _identity(request)
     if access._member(state, principal).role != "gm":
@@ -232,7 +232,7 @@ async def generate_scenario_draft(request: web.Request) -> web.Response:
 async def generate_draft(request: web.Request) -> web.Response:
     body = GenerateDraftRequest.model_validate_json(json.dumps(await _json(request)))
     result = await WorkshopService(
-        await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+        await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     ).generate(
         request.match_info["cid"],
         body.command,
@@ -244,7 +244,7 @@ async def generate_draft(request: web.Request) -> web.Response:
 
 
 async def workshop_start(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     actor_id = request.match_info["aid"]
     member = access._member(state, _identity(request))
@@ -295,7 +295,7 @@ async def workshop_start(request: web.Request) -> web.Response:
 
 
 async def workshop_reviews(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     member = access._member(state, _identity(request))
     if member.role != "gm" or member.principal_id not in access.play.engine.reviewer.gm_ids:
@@ -329,7 +329,7 @@ async def workshop_reviews(request: web.Request) -> web.Response:
 
 async def workshop_grant(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     cid, principal = request.match_info["cid"], _identity(request)
     state = access.play._load(await access.play.store.read(cid))
     if access._member(state, principal).role != "gm":
@@ -340,7 +340,7 @@ async def workshop_grant(request: web.Request) -> web.Response:
 
 
 async def workshop_character_preview(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     access._control(access._member(state, _identity(request)), request.match_info["aid"])
     body = CharacterPreviewRequest.model_validate_json(json.dumps(await _json(request)))
@@ -350,7 +350,7 @@ async def workshop_character_preview(request: web.Request) -> web.Response:
 
 
 async def workshop_profile_preview(request: web.Request) -> web.Response:
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     access._member(state, _identity(request))
     body = ProfilePreviewRequest.model_validate_json(json.dumps(await _json(request)))
@@ -359,7 +359,7 @@ async def workshop_profile_preview(request: web.Request) -> web.Response:
 
 async def workshop_advance(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     cid = request.match_info["cid"]
     state = access.play._load(await access.play.store.read(cid))
     body = AdvanceCharacter.model_validate_json(json.dumps(await _json(request)))
@@ -377,7 +377,7 @@ async def workshop_advance(request: web.Request) -> web.Response:
 
 async def read_draft(request: web.Request) -> web.Response:
     result = await WorkshopService(
-        await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+        await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     ).read(request.match_info["cid"], request.match_info["did"], principal_id=_identity(request))
     return web.json_response(result)
 
@@ -385,7 +385,7 @@ async def read_draft(request: web.Request) -> web.Response:
 async def save_draft(request: web.Request) -> web.Response:
     body = DraftCommand.model_validate_json(json.dumps(await _json(request)))
     result = await WorkshopService(
-        await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+        await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     ).execute(request.match_info["cid"], body, principal_id=_identity(request))
     return web.json_response(result)
 
@@ -397,7 +397,7 @@ class ActivateScenarioRequest(Record):
 
 async def activate_scenario(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     cid = request.match_info["cid"]
     state = access.play._load(await access.play.store.read(cid))
     principal = _identity(request)
@@ -427,7 +427,7 @@ async def activate_scenario(request: web.Request) -> web.Response:
 
 async def validate_scenario(request: web.Request) -> web.Response:
 
-    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    access = await request.app[ACCESS_KEY].for_campaign(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     if access._member(state, _identity(request)).role != "gm":
         raise AuthorizationError("Scenario authoring requires GM")
@@ -437,7 +437,7 @@ async def validate_scenario(request: web.Request) -> web.Response:
 
 
 def create_campaign_app(
-    play: CampaignAccess,
+    runtime: CampaignRuntime,
     tokens: Mapping[str, str],
     *,
     settings: Settings | None = None,
@@ -451,11 +451,16 @@ def create_campaign_app(
     if not tokens or any(not token or not principal for token, principal in tokens.items()):
         raise ValueError("Non-empty credentials required")
     app = web.Application(middlewares=[boundary], client_max_size=MAX_BODY)
-    app[ACCESS_KEY] = play
+    app[ACCESS_KEY] = runtime
     app[TOKENS_KEY] = dict(tokens)
     app[LIMITS_KEY] = {}
     install_tactical(app)
-    install_setup(app, SetupService(play, engine_controls=legacy_routes), scenario_templates)
+    install_setup(
+        app,
+        SetupService(runtime, engine_controls=legacy_routes),
+        scenario_templates,
+        catalog=runtime.stores.catalog,
+    )
     app[LEGACY_KEY] = legacy_routes
     if frontend_dir is not None:
 
@@ -487,14 +492,15 @@ def create_campaign_app(
         )
 
     if v1_ledger_path is None:
-        if not isinstance(play.play.store, AsyncSQLiteStore):
+        if not isinstance(runtime.play.store, AsyncSQLiteStore):
             raise ValueError("Configure v1_ledger_path for the durable API receipt database")
-        v1_ledger_path = play.play.store.path.with_suffix(".v1.sqlite3")
+        v1_ledger_path = runtime.play.store.path.with_suffix(".v1.sqlite3")
     v1 = install(
         app,
-        play.play,
+        runtime.play,
         tokens,
         v1_ledger_path,
+        jobs=runtime.jobs,
         origins=v1_origins,
         allow_no_origin=v1_allow_no_origin,
     )
@@ -515,7 +521,10 @@ def create_campaign_app(
                 settings, status=application[PROVIDER_STATUS_KEY].append
             ) as provider:
                 application[ORCHESTRATOR_KEY] = Orchestrator(
-                    play, provider, timeout=min(settings.model_timeout_seconds, 300.0), attempts=1
+                    runtime,
+                    provider,
+                    timeout=min(settings.model_timeout_seconds, 300.0),
+                    attempts=1,
                 )
 
                 bind_provider(v1, application[ORCHESTRATOR_KEY])

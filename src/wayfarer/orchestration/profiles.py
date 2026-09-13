@@ -41,8 +41,11 @@ from wayfarer.orchestration.advancement import (
     MigrationService,
     _diff,
 )
+from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.entropy import SeedSource, token_seed
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenario_documents import parse_document
+from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
@@ -105,8 +108,14 @@ class ProfileRuntime:
         default: RegisteredProfile,
         *,
         rng: RandomSource = secrets,
+        sessions: SessionRegistry | None = None,
+        instants: Callable[[], CommandInstant] = capture_instant,
+        seeds: SeedSource = token_seed,
     ) -> None:
         self.registry, self.store, self.build, self.rng = registry, store, build, rng
+        # One registry per runtime: every profile's service locks the same campaign.
+        self.sessions = SessionRegistry() if sessions is None else sessions
+        self.instants, self.seeds = instants, seeds
         self._services: dict[tuple[str, int], PlayService] = {}
         self.default = registry.get(default.id, default.version)
         self.play = self.service(self.default)
@@ -120,7 +129,15 @@ class ProfileRuntime:
         engine = self.build(registered)
         if reference(engine.resources.rules) != registered.reference:
             raise ValidationError(f"Runtime rules do not match profile {identity(registered)}")
-        service = PlayService(self.store, engine, rng=self.rng, profiles=self)
+        service = PlayService(
+            self.store,
+            engine,
+            rng=self.rng,
+            profiles=self,
+            sessions=self.sessions,
+            instants=self.instants,
+            seeds=self.seeds,
+        )
         self._services[key] = service
         return service
 

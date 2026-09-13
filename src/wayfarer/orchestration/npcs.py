@@ -350,6 +350,7 @@ def social_occurrence(
         context.procedure_id = procedure.id
         context.skill_level = int(value.value)
         context.conditions = frozenset(trigger.conditions)
+        context.medium_id = trigger.medium_id
         if procedure.influence:
             context.skill = influence_procedure(procedure.id)
             context.influence_conditions = InfluenceConditions(
@@ -527,7 +528,7 @@ class NPCService:
             return CommandReceipt(action="npc", outcome="proposed")
 
         result = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,

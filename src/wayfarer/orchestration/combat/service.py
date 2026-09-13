@@ -109,7 +109,7 @@ class CombatService:
             return CommandReceipt(action="combat", outcome=result.model_dump_json())
 
         committed = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,

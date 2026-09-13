@@ -6,8 +6,9 @@ Wayfarer implements the ordinary invention lifecycle from the selected fourth-pr
 An authored `InventionBlueprint` pins the proposed concept, invention and related skills,
 operation skill, complexity, novelty context, native and inventor TL, facilities, funding
 pool, materials, work durations, production target, and optional catalog/runtime bindings.
-The ordinary method rejects devices more than one TL ahead; cinematic gadgeteering remains
-a separate, unsupported adapter.
+The ordinary method rejects devices more than one TL ahead. Gadgeteer and Quick
+Gadgeteer variants share this project model and are documented in
+[`gurps-gadgeteering.md`](gurps-gadgeteering.md).
 
 `InventionProject` persists monotonic concept/design, prototype, testing, production, and
 complete phases. Work begins by checking actor availability, skills, facilities, funding,

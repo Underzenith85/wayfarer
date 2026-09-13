@@ -5,6 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_abilities import command, context, resources, spec, world
 from test_actions import campaign
 from test_statistics import gurps_draft, profile_compiler, profile_package
@@ -27,7 +28,6 @@ from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import CombatService, StartEncounter, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -157,9 +157,9 @@ async def test_actual_approved_reading_wait_resistance_private_replay(tmp_path: 
     assert await restarted.execute(cid, resolve, principal_id="a") == results[0]
     assert await play.store.read(cid) == await play.store.replay(cid)
     assert "secret" not in results[0].model_dump_json()
-    view = await CampaignAccess(play).read(cid, principal_id="a")
+    view = await build_runtime(play).read(cid, principal_id="a")
     assert "never revealed" not in str(view)
-    events = await CampaignAccess(play).events(cid, principal_id="b")
+    events = await build_runtime(play).events(cid, principal_id="b")
     assert "I am hungry" not in str(events)
     with pytest.raises(ConflictError):
         await service.execute(

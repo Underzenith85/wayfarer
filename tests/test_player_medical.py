@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from support.runtime import build_runtime
 from test_actions import campaign, world
 from test_actions import engine as prototype_engine
 from test_actions import seed as prototype_seed
@@ -20,10 +21,10 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.medical import CareEnvironment
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.player_medical import choices
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 PROFILE: ProfileId = "gurps-basic-set-4e-2004"
@@ -37,7 +38,7 @@ def projected_list(projection: dict[str, object], key: str) -> list[dict[str, ob
     return cast(list[dict[str, object]], projection[key])
 
 
-async def setup(tmp_path: Path) -> tuple[str, PlayService, CampaignAccess]:
+async def setup(tmp_path: Path) -> tuple[str, PlayService, CampaignRuntime]:
     compiler = profile_compiler(PROFILE)
     catalog = RulesCatalog((profile_package(PROFILE),))
     engine = ActionEngine(
@@ -84,7 +85,7 @@ async def setup(tmp_path: Path) -> tuple[str, PlayService, CampaignAccess]:
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
     await play.store.insert(initial)
-    return initial["id"], play, CampaignAccess(play, environment)
+    return initial["id"], play, build_runtime(play, medical_environment=environment)
 
 
 async def test_non_gurps_profile_exposes_no_medical_choices(tmp_path: Path) -> None:
@@ -169,8 +170,9 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
     state = play._load(await play.store.read(cid))
     assert len(state.resources.recovery_tasks) == 1
 
-    restarted = CampaignAccess(
-        PlayService(play.store, play.engine, rng=RecordedDice([])), environment
+    restarted = build_runtime(
+        PlayService(play.store, play.engine, rng=RecordedDice([])),
+        medical_environment=environment,
     )
     restored = await restarted.read(cid, principal_id="alice")
     assert restored["gurps_recovery_tasks"] == started["gurps_recovery_tasks"]

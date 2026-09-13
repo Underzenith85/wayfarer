@@ -35,8 +35,8 @@ from wayfarer.engine.simulation.magic.spells import (
     event_id,
 )
 from wayfarer.errors import AuthorizationError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.play import PlayService
 
 
@@ -63,7 +63,7 @@ class SpellService:
             raise AuthorizationError("Select exactly one authenticated spell principal")
         identity = principal_id or authenticated_gm_id
         assert identity is not None
-        member = CampaignAccess(play)._member(state, identity)
+        member = member_for(state, identity)
         if principal_id is not None:
             if (
                 self.resolve is not None
@@ -99,7 +99,7 @@ class SpellService:
             )
 
         committed = await commit_command(
-            play.store,
+            play,
             cid,
             command.id,
             command.expected_revision,

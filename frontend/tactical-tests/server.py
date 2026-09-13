@@ -8,18 +8,18 @@ from test_reinforcements import setup_profiled_basic
 from test_tactical import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.transport.campaign_api import create_campaign_app
 
 
-class TestAccess(CampaignAccess):
+class TestAccess(CampaignRuntime):
     def __init__(self, play: PlayService) -> None:
         super().__init__(play)
-        self.campaigns: dict[str, CampaignAccess] = {}
+        self.campaigns: dict[str, CampaignRuntime] = {}
 
-    async def runtime(self, cid: str) -> CampaignAccess:
-        return self.campaigns.get(cid) or await super().runtime(cid)
+    async def for_campaign(self, cid: str) -> CampaignRuntime:
+        return self.campaigns.get(cid) or await super().for_campaign(cid)
 
 
 async def application() -> web.Application:
@@ -41,7 +41,7 @@ async def application() -> web.Application:
             )
         )
         runtime.rng = RecordedDice((3, 3, 3) * 1000)
-        access.campaigns[cid] = CampaignAccess(runtime)
+        access.campaigns[cid] = CampaignRuntime(runtime)
         return web.json_response({"campaign_id": cid})
 
     app.router.add_post("/test-tactical", fixture)

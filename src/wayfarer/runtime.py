@@ -17,8 +17,8 @@ from wayfarer.engine.simulation.campaign.studio import GenerationBrief, Scenario
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.engine.world import Connection, Entity, EntityKind, World
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.profiles import ProfileRuntime
+from wayfarer.orchestration.runtime import CampaignRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.transport.campaign_api import create_campaign_app
@@ -147,9 +147,9 @@ def create_runtime_app(settings: Settings, frontend_dir: Path) -> web.Applicatio
         if settings.database_url
         else AsyncSQLiteStore(settings.db, settings.db_timeout_seconds)
     )
-    runtime = ProfileRuntime(DEFAULT_REGISTRY, store, runtime_engine, PROTOTYPE_PROFILE)
+    profiles = ProfileRuntime(DEFAULT_REGISTRY, store, runtime_engine, PROTOTYPE_PROFILE)
     return create_campaign_app(
-        CampaignAccess(runtime.play),
+        CampaignRuntime(profiles.play, partition=settings.partition),
         {token: principal for token, principal in settings.tokens.items()},
         settings=settings if settings.llm_provider == "codex" or settings.llm_enabled else None,
         frontend_dir=frontend_dir,

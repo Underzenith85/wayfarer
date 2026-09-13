@@ -1,11 +1,19 @@
 """Audit integrity and negative certification evidence; no source-completeness claims."""
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
-from wayfarer.certification.source_audit import blockers, inventory, load, report, validate
+from wayfarer.certification.source_audit import (
+    blockers,
+    inventory,
+    load,
+    profile_blockers,
+    report,
+    validate,
+)
 from wayfarer.engine.simulation.hex_geometry import Hex, distance
 from wayfarer.errors import ValidationError
 
@@ -16,7 +24,7 @@ def test_audit_integrity_and_unresolved_sources_block_certification() -> None:
     result = report(ROOT)
     assert result["audit_complete"] is False
     manifest = load(ROOT)
-    assert sum(f.status == "reviewed" for f in manifest.fixtures) == 163
+    assert sum(f.status == "reviewed" for f in manifest.fixtures) == 164
     assert sum(f.status == "pending" for f in manifest.fixtures) == 98
     assert not any(f.status == "compared" for f in manifest.fixtures)
     assert "source:sjg:gurps-lite-4e-2004" in blockers(manifest)
@@ -113,6 +121,25 @@ def test_selected_basic_set_scopes_are_reviewed_but_lite_remains_blocked() -> No
     )
 
 
+def test_profile_source_blockers_do_not_cross_contaminate_certification() -> None:
+    manifest = load(ROOT)
+    basic = profile_blockers(ROOT, manifest, "gurps-basic-set-4e-2004")
+    lite = profile_blockers(ROOT, manifest, "gurps-lite-4e-2004")
+    assert not basic
+    assert lite
+    assert all("lite" in blocker for blocker in lite)
+
+    basic_report = report(ROOT, profile_id="gurps-basic-set-4e-2004")
+    basic_blockers = basic_report["blockers"]
+    assert isinstance(basic_blockers, tuple)
+    assert basic_blockers
+    assert all(blocker.startswith("ledger:") for blocker in basic_blockers)
+    assert not any("lite" in blocker for blocker in basic_blockers)
+
+    with pytest.raises(ValidationError, match="Unknown source-audit profile"):
+        profile_blockers(ROOT, manifest, "invented-profile")
+
+
 def test_compared_fixture_cannot_be_promoted_without_source_reconciliation() -> None:
     manifest = load(ROOT)
     ledger = json.loads((ROOT / "tests/fixtures/gurps/conformance.json").read_text())
@@ -145,6 +172,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     rows = [r for r in inventory() if r.scope == "mundane-skills"]
     assert len(rows) == 504
     assert all(r.owner == 112 and r.blockers for r in rows)
+    assert all(r.evidence and all((ROOT / path).is_file() for path in r.evidence) for r in rows)
     assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
     assert {r.implementation for r in rows} == {"implemented", "unsupported", "contextual"}
     # #336 records a technique template or an open family for each of these.
@@ -152,7 +180,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     # #338-#343, #344 (with its children), #345, #346 and #356: a bound procedure
     # reaches certification as implemented, and a transferred one reaches it
     # naming the concrete open child that owns it.
-    assert sum(r.implementation == "implemented" for r in rows) == 466
+    assert sum(r.implementation == "implemented" for r in rows) == 467
     assert next(r for r in rows if r.id == "skill:photography").blockers == (
         112,
         336,
@@ -171,3 +199,46 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344)
     assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 362)
     assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)
+
+
+def test_owner_source_reviews_join_runtime_and_registered_catalog_rows() -> None:
+    rows = inventory(ROOT)
+    skills = [row for row in rows if row.scope == "mundane-skills"]
+    equipment = [row for row in rows if row.scope == "equipment-catalog"]
+    registered = [row for row in rows if row.scope == "registered-catalog"]
+
+    assert skills and all(row.source_review == "reviewed" for row in skills)
+    assert equipment and all(row.source_review == "reviewed" for row in equipment)
+    assert all(
+        row.source_review == "pending"
+        for row in registered
+        if row.required_profiles == ("gurps-lite-4e-2004",)
+    )
+    by_definition = {
+        (row.id.split("@", 1)[1].split("/", 1)[0], row.id.partition("/")[2]): row
+        for row in registered
+    }
+    assert by_definition[("0.3.0", "skill:broadsword")].source_review == "reviewed"
+    assert by_definition[("0.3.0", "equipment:broadsword")].source_review == "reviewed"
+    assert by_definition[("0.4.0", "spell:ignite-fire")].source_review == "reviewed"
+    # Package-only equipment skill references have no reviewed owner row to join.
+    assert by_definition[("0.3.0", "skill:guns-gyroc")].source_review == "pending"
+    assert all(
+        row.source_review == "pending"
+        for row in registered
+        if row.id.partition("/")[2].startswith(("attribute:", "secondary:"))
+    )
+
+
+@pytest.mark.parametrize("evidence", [(), ("tests/not-a-real-suite.py",)])
+def test_skill_and_equipment_rows_require_existing_item_evidence(
+    evidence: tuple[str, ...], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import wayfarer.certification.source_audit as module
+
+    rows = list(inventory())
+    index = next(i for i, row in enumerate(rows) if row.scope == "mundane-skills")
+    rows[index] = replace(rows[index], evidence=evidence)
+    monkeypatch.setattr(module, "inventory", lambda root=None: tuple(rows))
+    with pytest.raises(ValidationError, match="inventory evidence|item-level evidence"):
+        module.validate(ROOT, load(ROOT))

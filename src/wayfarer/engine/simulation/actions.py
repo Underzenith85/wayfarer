@@ -58,6 +58,7 @@ from wayfarer.engine.simulation.campaign.world_context import (
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.equipment.artifacts import ArtifactRules, ArtifactState
 from wayfarer.engine.simulation.health.recovery import RecoveryRules, RecoveryState
 from wayfarer.engine.simulation.magic.bindings import SpellRules
 from wayfarer.engine.simulation.magic.enchanting import EnchantingRules
@@ -182,6 +183,7 @@ class ActionRules(Record):
     world_context: WorldContextRules | None = Field(default=None, exclude=True)
     # Engine-only until a dedicated authoring/API contract is designed.
     transformations: SkipJsonSchema[TransformationRules | None] = Field(default=None, exclude=True)
+    artifacts: ArtifactRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -252,6 +254,9 @@ class PlayCheckpoint(Record):
     )
     transformations: TransformationState = Field(
         default=TransformationState(), exclude_if=lambda value: value == TransformationState()
+    )
+    artifacts: ArtifactState = Field(
+        default=ArtifactState(), exclude_if=lambda value: value == ArtifactState()
     )
 
 

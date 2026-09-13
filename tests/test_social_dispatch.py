@@ -5,6 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_actions import campaign
 
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
@@ -30,7 +31,6 @@ from wayfarer.engine.simulation.social.social import (
 )
 from wayfarer.engine.world import Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -259,10 +259,10 @@ async def test_durable_dispatch_replays_without_resolver_and_keeps_secrets_priva
         == result
     )
     assert await restarted.store.read(cid) == saved
-    projection = await CampaignAccess(restarted).read(cid, principal_id="alice")
+    projection = await build_runtime(restarted).read(cid, principal_id="alice")
     assert "secret" not in json.dumps(projection)
     assert "disclosure" in json.dumps(projection)
-    events = await CampaignAccess(restarted).events(cid, principal_id="alice")
+    events = await build_runtime(restarted).events(cid, principal_id="alice")
     assert all("secret" not in e.model_dump_json() for e in events)
     with pytest.raises(ConflictError):
         await service.execute(

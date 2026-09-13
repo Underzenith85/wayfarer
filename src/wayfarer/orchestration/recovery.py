@@ -713,7 +713,7 @@ class RecoveryService:
             return CommandReceipt(action="recovery", outcome=command.kind)
 
         result = await commit_command(
-            self.play.store,
+            self.play,
             cid,
             command.id,
             command.expected_revision,

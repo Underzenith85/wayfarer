@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from support.runtime import build_runtime
 from test_actions import campaign
 from test_social_dispatch import prepare
 
@@ -27,7 +28,6 @@ from wayfarer.engine.simulation.campaign.social_policy import (
 from wayfarer.engine.simulation.campaign.studio import GenerationBrief
 from wayfarer.engine.simulation.health.fright import effects
 from wayfarer.engine.simulation.resources import Owner, ResourceState
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenario_documents import (
     ScenarioDocuments,
@@ -140,5 +140,5 @@ async def test_import_publish_activate_and_restart_social_occurrence(tmp_path: P
     restarted.rng = RecordedDice([])
     assert await restarted.execute(initial["id"], wait, authenticated_actor_id="a") == result
     assert await restarted.store.read(initial["id"]) == await restarted.store.replay(initial["id"])
-    visible = await CampaignAccess(activated).read(initial["id"], principal_id="alice")
+    visible = await build_runtime(activated).read(initial["id"], principal_id="alice")
     assert "alarm-plan" not in json.dumps(visible) and "private-plan" not in json.dumps(visible)

@@ -21,7 +21,7 @@ from wayfarer.orchestration.tactical_view.records import (
 )
 
 if TYPE_CHECKING:
-    from wayfarer.orchestration.access import CampaignAccess
+    from wayfarer.orchestration.runtime import CampaignRuntime
 
 
 def legacy_encounter(
@@ -54,9 +54,9 @@ def legacy_encounter(
 
 
 async def snapshot(
-    access: CampaignAccess, cid: str, principal: str, actor_id: str
+    access: CampaignRuntime, cid: str, principal: str, actor_id: str
 ) -> TacticalSnapshot:
-    access = await access.runtime(cid)
+    access = await access.for_campaign(cid)
     state = access.play._load(await access.play.store.read(cid))
     member = access._member(state, principal)
     access._control(member, actor_id)
