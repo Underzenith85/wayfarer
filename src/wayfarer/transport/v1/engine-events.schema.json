@@ -1735,6 +1735,11 @@
           "default": null,
           "title": "Grip Id"
         },
+        "choke_hold": {
+          "default": false,
+          "title": "Choke Hold",
+          "type": "boolean"
+        },
         "skill": {
           "enum": [
             "attribute:dx",
