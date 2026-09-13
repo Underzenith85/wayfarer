@@ -98,6 +98,35 @@ class ProcessStore:
                 await self._publish(db, saved)
             return saved
 
+    async def resume(self, process_id: str) -> Process:
+        """Hand a terminal process back to the worker, for the kinds that retry.
+
+        A provider call's result is its answer, success or failure. A turn is
+        unfinished work until its own phases say otherwise, and its terminal phases
+        answer from the campaign rather than from this row. The kind decides which,
+        and this is how one is picked back up.
+        """
+        async with self.catalog.transaction() as db:
+            rows = await db.query("SELECT state FROM processes WHERE id=?", (process_id,))
+            if not rows:
+                raise ConflictError("Process is unavailable")
+            previous = Process.model_validate_json(str(rows[0][0]))
+            if previous.status not in ("failed", "succeeded"):
+                return previous
+            resumed = previous.model_copy(
+                update={
+                    "status": "queued",
+                    "error": None,
+                    "error_stage": None,
+                    "result_json": None,
+                    "version": previous.version + 1,
+                }
+            )
+            await db.query(
+                "UPDATE processes SET state=? WHERE id=?", (resumed.model_dump_json(), process_id)
+            )
+            return resumed
+
     async def recover(self, partition: str) -> None:
         """A partition has one worker; restart fails its interrupted work explicitly."""
         async with self.catalog.transaction() as db:

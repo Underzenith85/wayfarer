@@ -7,12 +7,13 @@ knows the whole set.
 
 from __future__ import annotations
 
+from wayfarer.orchestration.director import DIRECTOR_TURN
 from wayfarer.orchestration.processes import ProcessRegistry
 from wayfarer.orchestration.providers import PROVIDER_KINDS
 
 
 def registered(registry: ProcessRegistry) -> ProcessRegistry:
     """Register every known kind on a fresh registry."""
-    for kind in PROVIDER_KINDS:
+    for kind in (*PROVIDER_KINDS, DIRECTOR_TURN):
         registry.register(kind)
     return registry

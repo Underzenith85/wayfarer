@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from typing import Literal
 
 from wayfarer.contracts import Campaign
 from wayfarer.errors import (
@@ -85,6 +86,11 @@ class ProcessKind:
     step: Callable[[Process, object], Awaitable[Step]]
     # The director's turn is the longest; no kind may loop without bound.
     steps: int = 8
+    # What a retry of this identity does. "answer" returns the stored result, which
+    # is what a provider call's retry wants. "resume" picks a failed process back
+    # up. "repeat" re-enters whatever its state, for work whose own terminal step
+    # answers from live state rather than from the row.
+    retry: Literal["answer", "resume", "repeat"] = "answer"
 
 
 @dataclass
@@ -99,6 +105,9 @@ class ProcessRegistry:
 
     def __post_init__(self) -> None:
         self.tasks: dict[str, asyncio.Task[Process]] = {}
+        # A caller awaiting a process it started sees the failure that stopped it,
+        # not the row's summary. A restarted worker has only the row.
+        self.failures: dict[str, BaseException] = {}
         self._slots = asyncio.Semaphore(self.slots)
         self._started = False
         self._starting = asyncio.Lock()
@@ -136,6 +145,11 @@ class ProcessRegistry:
                 input_digest=identity.input_digest,
             )
         )
+        if (process.status == "failed" and kind.retry in ("resume", "repeat")) or (
+            process.status == "succeeded" and kind.retry == "repeat"
+        ):
+            self.failures.pop(process.id, None)
+            process = await self.store.resume(process.id)
         if process.status == "queued" and process.id not in self.tasks:
             task = asyncio.create_task(self._advance(kind, process, value))
             self.tasks[process.id] = task
@@ -163,8 +177,10 @@ class ProcessRegistry:
             return await self._fail(process, "worker_stopped")
         except ProviderError as exc:
             diagnostic = provider_diagnostic(exc)
+            self.failures[process.id] = exc
             return await self._fail(process, diagnostic.code, stage=exc.stage)
-        except Exception:
+        except Exception as exc:
+            self.failures[process.id] = exc
             return await self._fail(process, "process_failed")
 
     async def _steps(self, kind: ProcessKind, process: Process, value: object) -> Process:
@@ -191,7 +207,9 @@ class ProcessRegistry:
             )
             if step.done or step.wait:
                 return process
-            value = None if step.job is None else await self._work(step.job)
+            # A step with work feeds its result forward; one without re-enters on
+            # the same input, which is how a phase loop advances.
+            value = value if step.job is None else await self._work(step.job)
         return await self._fail(process, "process_exhausted")
 
     async def _work(self, job: Job) -> str:
@@ -215,6 +233,9 @@ class ProcessRegistry:
         task = self.tasks.get(process.id)
         if task is not None:
             await asyncio.shield(task)
+        failure = self.failures.pop(process.id, None)
+        if failure is not None:
+            raise failure
         latest = await self.store.read(process.id)
         if latest.status != "succeeded" or latest.result_json is None:
             error_type = {
@@ -233,6 +254,7 @@ class ProcessRegistry:
 
     async def drain(self) -> None:
         await asyncio.gather(*tuple(self.tasks.values()))
+        self.failures.clear()
 
     async def close(self) -> None:
         tasks = tuple(self.tasks.values())
