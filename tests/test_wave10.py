@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.npcs import NPCAction, NPCPlan, NPCRules
 from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
 from wayfarer.engine.simulation.campaign.party import PartyRules
+from wayfarer.engine.simulation.campaign.transformations import TransformationRules
 from wayfarer.engine.simulation.health.recovery import RecoveryOption, RecoveryRules, SetbackRule
 from wayfarer.engine.simulation.resources import Item, Owner
 from wayfarer.engine.world import Entity, EntityKind, Fact
@@ -110,6 +111,7 @@ async def prepare(
     postgres: bool = False,
     combat: bool = False,
     guard_capacity: int = 100,
+    transformations: TransformationRules | None = None,
 ) -> tuple[str, PlayService]:
     base, world = configured()
     world = replace(
@@ -175,6 +177,7 @@ async def prepare(
                 ),
                 failures=(Predicate(kind="known", subject_id="a", value="lost"),),
             ),
+            "transformations": transformations,
         }
     )
     base.resources.actors = frozenset(e.id for e in world.entities if e.kind == EntityKind.ACTOR)

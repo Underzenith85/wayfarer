@@ -13,7 +13,11 @@ from typing import Final, Literal, cast
 
 from wayfarer.certification.source_audit import InventoryItem, inventory
 from wayfarer.certification.source_audit import report as source_audit_report
-from wayfarer.certification.source_ledgers import ledger_rollups, load_source_ledgers
+from wayfarer.certification.source_ledgers import (
+    SourceLedgerRow,
+    ledger_rollups,
+    load_source_ledgers,
+)
 from wayfarer.engine.rules.conformance import CAPABILITIES, PROFILES, CoverageStatus
 from wayfarer.engine.rules.profiles import (
     BASIC_SET_CONTENT_BOUNDARIES,
@@ -84,18 +88,46 @@ def _latest_registered_profile() -> RegisteredProfile:
     return max(candidates, key=lambda candidate: candidate.version)
 
 
-def _inventory_ready(item: InventoryItem) -> bool:
-    return item.source_review == "reviewed" and item.implementation in {"implemented", "verified"}
+READY_IMPLEMENTATIONS: Final = frozenset({"implemented", "verified"})
+
+
+def _inventory_ready(item: InventoryItem, source_row: SourceLedgerRow | None) -> bool:
+    """Require runtime and bound source evidence to agree before promotion."""
+    if item.source_review != "reviewed" or item.implementation not in READY_IMPLEMENTATIONS:
+        return False
+    if source_row is None:
+        return True
+    return (
+        source_row.disposition == "required"
+        and source_row.source_review == "reviewed"
+        and source_row.implementation in READY_IMPLEMENTATIONS
+    )
+
+
+def _inventory_blocker_detail(item: InventoryItem, source_row: SourceLedgerRow | None) -> str:
+    detail = f"implementation={item.implementation}; source_review={item.source_review}"
+    if item.gaps:
+        detail += "; gaps=" + ",".join(item.gaps)
+    if source_row is None:
+        return detail
+    return (
+        f"{detail}; source_ledger_disposition={source_row.disposition}; "
+        f"source_ledger_implementation={source_row.implementation}; "
+        f"source_ledger_review={source_row.source_review}"
+    )
 
 
 def evaluate(root: Path) -> CertificationReport:
     """Return complete Basic Set certification accounting without mutating state."""
     target = PROFILES[PROFILE_ID]
     selected = _latest_registered_profile()
-    audit = source_audit_report(root)
+    audit = source_audit_report(root, profile_id=PROFILE_ID)
     audit_blockers = cast(tuple[str, ...], audit["blockers"])
     source_ledgers = load_source_ledgers(root)
     ledger_by_id = {row.id: row for row in source_ledgers.rows}
+    ledger_by_runtime_binding = {
+        row.runtime_binding: row for row in source_ledgers.rows if row.runtime_binding is not None
+    }
     source_baseline = cast(str, audit["baseline_id"])
     source_complete = cast(bool, audit["audit_complete"])
     blockers: list[CertificationBlocker] = []
@@ -141,13 +173,22 @@ def evaluate(root: Path) -> CertificationReport:
         item for item in inventory(root) if PROFILE_ID in item.required_profiles
     )
     for item in required_inventory:
-        if not _inventory_ready(item):
+        source_row = ledger_by_runtime_binding.get(item.id)
+        if not _inventory_ready(item, source_row):
             blockers.append(
                 CertificationBlocker(
                     kind="inventory",
                     identifier=item.id,
-                    detail=f"implementation={item.implementation}; source_review={item.source_review}",
-                    owner_issue=item.blockers[0] if item.blockers else item.owner,
+                    detail=_inventory_blocker_detail(item, source_row),
+                    owner_issue=(
+                        source_row.completion_owner
+                        if source_row is not None
+                        and source_row.implementation not in READY_IMPLEMENTATIONS
+                        and source_row.completion_owner is not None
+                        else item.blockers[0]
+                        if item.blockers
+                        else item.owner
+                    ),
                 )
             )
 

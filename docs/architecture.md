@@ -1,3 +1,11 @@
+# Architecture reference and decision record
+
+Start with the [engine guide](engine.md) for the current contributor-facing
+package map and command lifecycle. This page retains the decisions and migration
+history that produced that architecture. Present-tense contracts describe the
+current implementation; issue numbers identify their provenance, not unfinished
+work.
+
 # ADR 001: Python package and domain boundaries
 
 Status: accepted for wave 1 / issue #2.
@@ -13,7 +21,7 @@ implicit checkout imports, or global pip dependencies are required.
 | --- | --- | --- |
 | `models`, `validation`, `errors` | The `Record` entity contract, its scalar aliases, the vocabulary the engine emits and payloads embed (`Character`, `ValidationResult`, `Roll`, `RulesReference`), runtime structural schemas and typed failures | Models |
 | `contracts` | Application payloads: the campaign envelope, `Message`, `CommandReceipt`, committed and replayed turns, and their parsers | Kernel |
-| `engine.rules` | Closed demo catalog and checks | Kernel, rules |
+| `engine.rules` | Stateless rules knowledge, catalogs, checks and profiles | Kernel, rules |
 | `engine.character` | Character draft validation, preset, and profile-selected attribute/secondary statistics | Kernel, rules, character |
 | `engine.simulation` | Scenario validation and state transitions | Kernel, rules, character, simulation, world |
 | `certification` | Release accounting over engine evidence; reads the source tree | Kernel, rules, simulation |
@@ -53,12 +61,14 @@ The cycle test reads the graph a module actually pays for on import, so it
 counts relative imports, and treats `from package import submodule` as an edge
 to the submodule rather than to the package init that does not mention it.
 
-The simulation resolver mutates the supplied state and returns an event. The
-SQLite adapter invokes it only after locking and checking the expected revision,
-then atomically saves both state and event. The callback must not perform external
-I/O. LLM calls occur before or after this transaction, never inside it. Typed contracts establish the seams. Mypy strict now checks the whole Python
-repository, including tests and scripts; shared runtime schemas validate
-untrusted data before domain use.
+The simulation resolver treats the supplied state as immutable and returns a new
+state plus an ordered event list. SQLite and PostgreSQL adapters invoke reducers
+only after locking and checking the expected revision, then atomically append the
+command, events and checkpoint digest. The callback must not perform external I/O.
+LLM calls occur before or after this transaction, never inside it. Typed contracts
+establish the seams. Mypy strict checks the whole Python repository, including
+tests and scripts; shared runtime schemas validate untrusted data before domain
+use.
 
 Domain boundary tests inspect imports and verify that importing the resolver does
 not load HTTP, storage or provider adapters. New dependencies must follow the
@@ -73,20 +83,18 @@ Nouns and verbs are kept apart at three levels.
   frozen, strict, closed to unknown fields and revalidated when nested. No other
   module subclasses `BaseModel` directly or restates that configuration. A state
   transition returns a new record; entities never mutate themselves.
-- **Aggregate modules hold entities and their invariants.** `engine/simulation/campaign/scenes.py`,
-  `campaign/party.py`, `noncombat.py`, `access.py`, `advancement.py`, `spell_bindings.py`,
-  `ability_types.py` and `combat.py` each declare their records and a
-  `validate_*` function that checks a checkpoint against those records. Pure
-  rule tables that need no state (range penalties, rapid-fire bonuses) live in
-  `engine/rules/`.
+- **Aggregate modules hold entities and their invariants.** Representative owners
+  include `engine/simulation/campaign/scenes.py`, `campaign/party.py`,
+  `social/noncombat.py`, `magic/bindings.py`, `ability_types.py` and
+  `combat/encounter.py`. Pure rule tables that need no state (range penalties,
+  rapid-fire bonuses) live in `engine/rules/`.
 - **Verbs live in engines and services.** `engine/simulation/actions.py` declares the
   typed commands, action rules, results and `PlayState`; the resolver that
-  assesses and applies them is `engine/simulation/action_engine.py`, whose `validate`
-  is the ordered sequence of aggregate invariants. `CombatEngine` and
+  assesses and applies them is `engine/simulation/action_engine/engine.py`, whose
+  `validate` is the ordered sequence of aggregate invariants. `CombatEngine` and
   `ResourceEngine` follow the same shape. Orchestration services coordinate
-  transactions and end every one with `PlayService.commit`, the only verb that
-  writes a play checkpoint onto a campaign row (setup transitions, which write
-  several campaign fields at once, are the documented exception).
+  transactions and commit through `PlayService`; setup now uses that same
+  single-writer boundary for play checkpoints.
 
 Architecture tests enforce the single entity base, that importing the action
 entities never loads the engine, and that no other module assigns `play_json`.
@@ -120,7 +128,8 @@ recording and typed event streams remain the separate ADR 002 migration steps.
 
 The verb-tier modules of each domain subpackage own the state-aware melee, ranged,
 unarmed, object, physical and spell adapters and their follow-up transitions
-(`engine/simulation/combat/melee.py`, `combat/ranged.py`, `combat/unarmed.py`,
+(`engine/simulation/combat/melee/resolution.py`,
+`combat/ranged/resolution.py`, `combat/unarmed/resolution.py`,
 `magic/spell_transitions.py`, `movement/physical.py` and their siblings).
 `engine/rules/tables/combat.py` and `engine/rules/tables/unarmed.py` own the shared numeric formulas, skill permissions
 and critical-miss rows. These modules import independently of orchestration and
@@ -169,9 +178,12 @@ should land on these seams rather than invent new ones.
 
 ## Package and dependency workflow
 
-`pyproject.toml` is authoritative; `uv.lock` is committed. Runtime dependencies remain empty. The development group contains locked mypy,
-Ruff and pre-commit tooling; the existing unittest suite uses the standard library. The exact uv build backend version is pinned
-for repeatable builds and bundled by the documented uv CLI version.
+`pyproject.toml` is authoritative; `uv.lock` is committed. Runtime dependencies
+include aiohttp, SQLite/PostgreSQL adapters, Pydantic settings, structured logging,
+the Codex integration and JSON Schema validation. The development group contains
+locked pytest, Hypothesis, mypy, Ruff, pre-commit, coverage and contract tooling.
+The exact uv build backend version is pinned for repeatable builds and bundled by
+the documented uv CLI version.
 
 CPython 3.14 is the development and CI interpreter. `requires-python >=3.14`
 sets the same minimum for installed packages; newer interpreters remain allowed
@@ -188,11 +200,11 @@ endpoint returns 410 after retirement in #426. `uv run server.py` remains a comp
 The old root-level Python modules are internal implementation details and are
 replaced with explicit package imports. No full GURPS implementation is implied.
 
-Strict typing/Ruff gates are implemented in wave 2 (#3); see docs/quality.md.
-Pytest/Hypothesis belongs to #4, and production
-configuration, async I/O and error handling are implemented in wave 3 (#5). Existing demo limitations
-remain documented, including the synchronous local HTTP server and narration
-fallback. This wave introduces no authentication or production deployment.
+Strict typing, Ruff, pytest, Hypothesis, validated configuration, async I/O and
+structured error handling are all part of the current package and CI gates. See
+[quality](quality.md), [testing](testing.md) and [operations](operations.md).
+Wayfarer remains local-first: internet-facing deployment, TLS termination and
+credential issuance are responsibilities of the embedding deployment.
 
 # ADR 002: Layers, streams and where non-determinism enters
 
@@ -344,8 +356,9 @@ entropy boundary; task-local command RNG handles keep all checkpoint draws on th
 same stream without putting mutable entropy on cached engines. The architecture
 gate forbids live services from bypassing this boundary and forbids entropy
 imports in simulation. See [command entropy](persistence.md#command-entropy-411)
-for retry, migration and explicit test-source semantics. The #418 release gate verifies fold and re-execution equality for the five
-reviewed fixture families and requires reviewed fixtures for deliberate behavior changes.
+for retry, migration and explicit test-source semantics. The #418 release gate
+verifies fold and re-execution equality for seven reviewed fixture families and
+requires reviewed fixtures for deliberate behavior changes.
 
 The #414 implementation also records an orchestration-captured UTC instant on
 each live command. Invitation claims persist and reuse that instant across
@@ -438,10 +451,11 @@ keeps the compiler flat and gathers the per-family projections under `traits/`.
 
 `engine/simulation/` groups by domain: `equipment/`, `health/`, `traits/`,
 `skills/`, `combat/`, `magic/`, `social/`, `movement/` and `campaign/`, with
-`resources.py`, `hex_geometry.py`, `abilities.py`, `actions.py`, `events.py`,
-`rules_context.py` and `action_engine.py` staying flat because every domain uses
-them. The `mechanics/` package is gone: each adapter now sits beside the nouns it
-resolves, named for the transition it performs (`fright_transitions.py`,
+`resources.py`, `hex_geometry.py`, `abilities.py`, `actions.py`, `events.py` and
+`rules_context.py` remaining shared modules. The action resolver is the shared
+`action_engine/` package, split into the engine, digest and rules-validation
+modules. The `mechanics/` package is gone: each adapter now sits beside the nouns
+it resolves, named for the transition it performs (`fright_transitions.py`,
 `spell_transitions.py`, `repair_transitions.py`) so a domain's contracts and its
 verbs never share a name.
 
@@ -505,8 +519,8 @@ Completion preserves injury and fatigue records for recovery.
 The reviewed `fatigue-turn` and `fatigue-defense` replay fixtures start with a
 fatigue-collapsed defender whose injury record remains unincapacitated. The latter
 also retains an unresolved attack. Both finish with `incapacitation` after their
-command resolves. Existing five fixture families regenerate unchanged; the new
-cases are required by the release gate. No engine version bump is involved.
+command resolves. The five earlier fixture families and these two fatigue cases
+are all required by the release gate. No engine version bump is involved.
 
 ### The kernel and the application contracts (#566)
 

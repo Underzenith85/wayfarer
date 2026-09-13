@@ -34,7 +34,7 @@ def test_registry_and_inventory_account_for_all_37_entries() -> None:
     }
     assert set(rows) == {binding.id for binding in BINDINGS}
     assert all(
-        row.blockers == (191,) and row.evidence == ("tests/test_physiology_traits.py",)
+        row.blockers == () and row.evidence == ("tests/test_physiology_traits.py",)
         for row in rows.values()
     )
 

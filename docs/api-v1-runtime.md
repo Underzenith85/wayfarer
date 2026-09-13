@@ -84,11 +84,12 @@ HTTP pagination also rechecks permissions and uses bound, expiring snapshots.
 Unknown and inaccessible IDs share the same error shape. Unsupported query fields,
 including invented search filters, are rejected rather than routed to raw history.
 
-The engine's atomic `state_after` command log is the source outbox. The adapter
-scans committed checkpoints after each scope's pinned boundary, projects only
-states authorized at the time and now, and persists stable scope-local event IDs
-and random cursor aliases before delivery. If it crashes before materialization,
-the source log permits recovery. If a visibility change crosses the scan, the old
+The folded, audience-declared event stream is the source outbox. The adapter scans
+committed stream states after each scope's pinned boundary, projects only states
+authorized at the time and now, and persists stable scope-local event IDs and
+random cursor aliases before delivery. If it crashes before materialization, the
+retained stream permits recovery. The legacy `command_log.state_after` column is
+not trusted by current reads. If a visibility change crosses the scan, the old
 scope is reset instead of exposing historical data. Hidden-only changes do not
 produce placeholder frames or advance the cursor. Membership grants do not grant
 old player action history; explicitly authorized GMs may inspect actions recorded
@@ -113,7 +114,7 @@ narration for a committed result, and interruption affects only its subscription
 | Current session | 404 until an engine session record exists; no fabricated session or recap | #40 |
 | Live snapshot/replay/revocation/narration | Implemented over the committed engine log | #45/#50; browser reconciliation #54 |
 | Reviewed voice input / local narration | Browser adapters use the ordinary text action receipt; no server media route is advertised | #24/#57 |
-| Character creation, advancement and scenario generation | Dedicated routes remain proposed | #21/#22/#37/#40 |
+| Character creation, advancement and scenario generation | Kept outside frozen v1; additive setup, campaign workshop and authoring routes are implemented | #21/#22/#37/#40 |
 | Combat, equip/drop/store/transfer, split/capture/rescue, objectives/endings | Existing engines retain ownership; dedicated v1 command routes are not invented | #18/#38/#41/#43/#44/#45 and respective waves |
 
 `actions.inspect`, `actions.move`, `actions.use_item`, `actions.wait` are the core

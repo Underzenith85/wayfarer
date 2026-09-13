@@ -46,7 +46,7 @@ LISTED = (
     "engineer geography geology hazardous-materials mechanic paleontology"
 ).split()
 # Rows whose specialty axis is a world, a planet type, a species or a region.
-# The axis is recorded here; naming one subject is #390's.
+# These axes are recorded here; #390 binds their campaign-authored children.
 OPEN = {"skill:biology", "skill:disguise", "skill:geography", "skill:geology"}
 OPEN_SUBJECT_OWNER = 390
 
@@ -154,10 +154,11 @@ def test_listed_scope_is_completely_accounted_for() -> None:
         identifier = f"skill:{name}"
         entry, procedure = rows[identifier], PROCEDURES[identifier]
         if identifier in OPEN:
-            assert entry.implementation == "unsupported"
-            assert not procedure.implemented
-            assert procedure.transferred["runtime-procedure"] == (OPEN_SUBJECT_OWNER,)
+            assert entry.implementation == "implemented"
+            assert procedure.implemented
+            assert "runtime-procedure" not in procedure.transferred
             assert OPEN_SUBJECT_OWNER in entry.followup_issues
+            assert not procedure.dispatchable
         else:
             assert entry.implementation == "implemented"
             assert procedure.specialties

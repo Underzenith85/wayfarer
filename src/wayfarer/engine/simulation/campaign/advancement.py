@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class AdvancementEntry(Record):
     id: Id
     actor_id: Id
-    kind: Literal["earned", "purchase", "refund"]
+    kind: Literal["earned", "purchase", "refund", "transformation"]
     points: int
     revision: int = Field(ge=1)
     build_before: str
@@ -29,6 +29,9 @@ class AdvancementEntry(Record):
     eligible_definition_ids: tuple[Id, ...] = ()
     source_kind: Literal["discretionary", "adventure", "study", "quick-learning"] = "discretionary"
     source_id: Id | None = None
+    # Transformations can alter total character value without manufacturing
+    # spendable points. ``points`` remains the earned-point account delta.
+    character_point_delta: int = Field(default=0, exclude_if=lambda value: value == 0)
 
 
 class MigrationEntry(Record):

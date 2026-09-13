@@ -17,5 +17,5 @@ authority, compare-and-set revisions, optional expiry schedules, explicit
 deactivation, and restart-safe event history. Telepathy rejects nonliving or
 nonsentient targets; suppression fails before the shared ability service runs.
 
-Inventory rows remain `partial` for source certification #191; runtime blocker
-#240 is removed from all six powers.
+The selected-printing review and #240 implementation evidence are reconciled;
+all six power rows are verified.

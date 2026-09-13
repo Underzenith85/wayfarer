@@ -356,14 +356,13 @@
       "attribute": "attribute:iq",
       "difficulty": "average",
       "resolution": "success-roll",
-      "required_conditions": [],
+      "required_conditions": [
+        "audience-perceptible"
+      ],
       "modifiers": [],
       "unsupported": [],
-      "dispatched": false,
+      "dispatched": true,
       "transferred": {
-        "runtime-procedure": [
-          367
-        ],
         "conditional-or-skill-defaults": [
           383
         ]
@@ -970,6 +969,25 @@
         "effect": "streetwise-watched",
         "effective_skill": 12,
         "reaction": "bad",
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "propaganda-broadcast-is-received",
+      "procedure": "skill:propaganda",
+      "skill": 11,
+      "conditions": [
+        "audience-perceptible"
+      ],
+      "dice": [
+        3,
+        3,
+        3
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "propaganda-received",
+        "effective_skill": 11,
         "requires_adjudication": false
       }
     },

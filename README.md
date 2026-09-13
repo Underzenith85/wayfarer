@@ -21,16 +21,16 @@ uv run --frozen wayfarer
 
 Open [Wayfarer](http://127.0.0.1:8000). The normal command serves the production frontend and the authoritative `/setups` and `/api/v1` services together.
 
-1. Select the **New game** tab, enter your access token, and select **Sign in**. The server identifies your player name; no campaign ID is required.
-2. Setup runs as a stepper — **Concept**, **Adventure**, **Rules** and **Ready** — showing one step at a time, with **Back** and **Next** moving between them. On **Adventure**, choose **The Last Beacon (solo)** under **Adventure and starting party**; if you have already written a concept, it is kept and the adventure's own is taken only through **Use adventure concept**. Take **Next** to **Ready**, review the brief and the legal starting character there, then **Create game draft**.
+1. Select the **Start game** tab, enter your access token, and select **Sign in**. The server identifies your player name; no campaign ID is required.
+2. Setup runs as a three-step wizard — **Adventure**, **Rules** and **Ready** — showing one step at a time, with **Back** and **Next** moving between them. On **Adventure**, choose **The Last Beacon (solo)** under **Adventure and starting party**. Continue through **Rules** to **Ready**, review the brief and legal starting character, then select **Create game draft**.
 3. The draft opens on **Party**, the screen that follows the numbered steps. Assign Mira to your player name, then on **Ready** click **Validate and mark ready** followed by **Start game**.
 4. The opening scene loads immediately, replacing the setup shell: the game shell starts at the top of every page. Use **Wait one tick** or **Travel to The Beacon** to play without an AI provider. Free-text interpretation and generated narration require a provider. The transcript records what you submitted and when; unsent text is kept as a draft for that scene and character alone, labelled with its age and discarded with **Discard draft**.
 
 For multiplayer, add distinct token-to-player entries to `WAYFARER_TOKENS`, restart the server, and choose the two-player scenario. Invite the other player's name. They use the **Join game** tab and their own token to accept; the host assigns Mira and Iven, both players mark ready, and the host starts. Tokens are never shared between players.
 
-Writing, importing and publishing your own scenarios happens under the **Scenarios** tab, beside the game modes, rather than inside the numbered setup steps.
+Writing, importing and publishing your own scenarios happens under the **Create scenario** tab, beside the game modes, rather than inside the numbered setup steps. After publishing, return to **Start game** and choose the scenario under **Adventure and starting party**.
 
-**Session** in the play header reopens setup with **Switch campaign** (which returns to the campaign you were playing) or **New game**, and holds **End session**; setup and play are never shown at once. **Continue game** lists authorized saved games and unfinished setups. Every view is addressable per campaign — `/c/<campaign-id>/character`, for example — so a page can be bookmarked or shared, and a refresh returns to the same campaign and view. The access token is kept for that browser tab only: reloading restores the session, while closing the tab, leaving play, or **End session** discards what the tab would reopen. A pasted campaign link asks an unauthenticated visitor to sign in and then opens the view they asked for. Uncertain setup commands are retained in that tab's session storage under the authenticated player name; **Retry original setup request** resends the same command, including after refresh. Validation errors leave the draft editable; stale revisions require **Refresh this list**. Setup edits clear assignments and readiness.
+**Session** in the play header reopens setup with **Switch campaign** (which opens **Join game**) or **New game** (which opens **Start game**), and holds **End session**; setup and play are never shown at once. **Join game** lists invitations, authorized saved games and unfinished setups. Every view is addressable per campaign — `/c/<campaign-id>/character`, for example — so a page can be bookmarked or shared, and a refresh returns to the same campaign and view. The access token is kept for that browser tab only: reloading restores the session, while closing the tab, leaving play, or **End session** discards what the tab would reopen. A pasted campaign link asks an unauthenticated visitor to sign in and then opens the view they asked for. Uncertain setup commands are retained in that tab's session storage under the authenticated player name; **Retry original setup request** resends the same command, including after refresh. Validation errors leave the draft editable; stale revisions require **Refresh this list**. Setup edits clear assignments and readiness.
 
 SQLite saves campaigns and drafts under `data/wayfarer.sqlite3`; durable player-API receipts use `data/wayfarer.v1.sqlite3`. Back up both databases together. Restarting the server retains drafts and active play. You do not need seed scripts, fixtures, SQL, or pre-existing campaign IDs.
 
@@ -60,7 +60,8 @@ For the Codex provider using a supported ChatGPT login, follow the [Codex setup 
 
 ## Documentation
 
-See [architecture](docs/architecture.md), [UI onboarding](docs/ui-onboarding.md),
+See the [engine guide](docs/engine.md), [architecture](docs/architecture.md),
+[UI onboarding](docs/ui-onboarding.md),
 [unavailable states](docs/ui-availability.md), [guided scenario authoring](docs/scenario-authoring.md), [API runtime](docs/api-v1-runtime.md), [rules](docs/rules-catalog.md), [rules profiles](docs/rules-profiles.md), [persistence](docs/persistence.md), [testing](docs/testing.md), and [contributing](CONTRIBUTING.md).
 
 This is a limited GURPS-inspired implementation, not a complete or officially licensed GURPS ruleset. No proprietary rulebook text is included.

@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_statistics import BASIC, profile_package
 
+from wayfarer.certification.creature_audit import inventory as creature_audit_inventory
 from wayfarer.engine.character.compiler import CharacterCompiler
 from wayfarer.engine.character.creatures import CreatureCatalog
 from wayfarer.engine.rules.catalog import (
@@ -97,6 +98,25 @@ def test_representative_rows_compile_deterministically_through_character_engine(
             entry.reference == template.reference for entry in first.creature.point_provenance
         )
         assert {entry.origin for entry in first.creature.point_provenance} == {"template"}
+
+
+def test_creature_audit_does_not_promote_incomplete_source_rows() -> None:
+    rows = {row.id: row for row in creature_audit_inventory()}
+    assert {
+        identifier for identifier, row in rows.items() if row.implementation == "implemented"
+    } == {"swarm:bats", "swarm:rats"}
+    assert all(row.source_review == "reviewed" for row in rows.values())
+    assert all(bool(row.gaps) == (row.implementation == "partial") for row in rows.values())
+    assert rows["creature:house-cat"].gaps == (
+        "catfall",
+        "combat-reflexes",
+        "domestic-animal",
+        "night-vision-5",
+        "sharp-teeth",
+        "jumping-14",
+    )
+    assert "executable-death-gaze" in rows["creature:basilisk"].gaps
+    assert rows["swarm:bees"].gaps == ("hive-distance-disengagement",)
 
 
 def test_individual_variation_is_separate_and_keeps_point_origin() -> None:

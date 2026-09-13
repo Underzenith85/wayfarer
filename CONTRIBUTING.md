@@ -21,7 +21,8 @@ uv build
 Add a runtime dependency with `uv add NAME`, or a development tool with
 `uv add --dev NAME`. Review and commit both pyproject.toml and uv.lock. Frozen
 sync does not regenerate the lockfile; CI separately checks lockfile freshness.
-The current runtime and test suite intentionally have no third-party dependencies.
+The runtime and development dependency sets are declared in `pyproject.toml` and
+must remain reproducible from the committed lockfile.
 
 The packaging workflow tests Python 3.14, builds the wheel from the source
 distribution, installs it in a separate environment, and runs the HTTP/UI
@@ -40,7 +41,8 @@ Mypy strict and Ruff apply to source, tests and scripts. Install local checks wi
 `uv run --frozen pre-commit run --all-files`. Hooks use the exact CI commands and
 locked tools. See [the quality contract](docs/quality.md) for typing policy,
 runtime validation, repair commands and the pending required-check setting.
-Pytest, pytest-asyncio, Hypothesis and branch coverage are documented in docs/testing.md.
+Pytest, pytest-asyncio, Hypothesis and branch coverage are documented in
+[the test strategy](docs/testing.md).
 
 
 Changes to the frozen player API must update contracts/v1 schemas, operation-bound

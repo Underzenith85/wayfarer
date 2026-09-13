@@ -88,7 +88,7 @@
       "owner": 119,
       "decision": "required",
       "reviewed": true,
-      "reason": "All 28 exclusions from the mundane inventory are directly integrated through #119 with concrete runtime blockers #242/#243 and #191 source reconciliation. They are not profile exclusions."
+      "reason": "All 28 exclusions from the mundane inventory are directly integrated through #119 and reconciled by the completed #242/#243 receiving catalog. They are not profile exclusions."
     },
     {
       "id": "supernatural-catalog",
@@ -97,7 +97,7 @@
       "owner": 119,
       "decision": "required",
       "reviewed": true,
-      "reason": "The #119 typed inventory accounts for all 100 indexed spells, 192 exotic/supernatural or psi-member traits, six psi powers and eight magic protocols. All rows retain concrete runtime blockers and #191 printing/errata reconciliation; no complete execution coverage is claimed."
+      "reason": "The #119 typed inventory accounts for all 100 indexed spells, 192 exotic/supernatural or psi-member traits, six psi powers and eight magic protocols. The selected printing is reconciled; Fireball and Injury Tolerance retain their concrete mechanics blockers."
     },
     {
       "id": "equipment-catalog",
