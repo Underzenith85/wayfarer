@@ -62,7 +62,7 @@ chapter is explicitly excluded from the generic profile by
 
 ## Executable checks
 
-Run `uv run python scripts/audit_gurps_sources.py` for the combined report and
+Run `uv run --frozen python scripts/audit_gurps_sources.py` for the combined report and
 integrity checks. CI runs it and pytest exercises failure cases. Checks reject
 missing/duplicate records, stale fixture fingerprints, unknown sources/profile
 references, missing test bindings, missing required scopes, and registry/table
@@ -73,7 +73,7 @@ The #180 equipment ledger is read directly by the same report. Its sections,
 special-gear dispositions, field provenance, package binding and Lite gaps are
 inventory rows with their own owning issues, so an omitted table group is a named
 blocker rather than an absence. Run
-`uv run python scripts/audit_gurps_equipment.py` for that ledger on its own; see
+`uv run --frozen python scripts/audit_gurps_equipment.py` for that ledger on its own; see
 [the equipment table audit](gurps-equipment-audit.md).
 
 `--require-complete` exits nonzero while any source, scope or fixture is unresolved.

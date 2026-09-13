@@ -196,10 +196,10 @@ folder. Database paths remain caller-owned, never inside the installed package.
 ## Scope
 
 The frozen v1 routes and payloads hold their published contracts. The obsolete
-prototype turn endpoint returns 410 after retirement in #426. `uv run server.py`
-still launches the package after syncing. Root-level Python modules are internal
-implementation details reached through explicit package imports. No full GURPS
-implementation is implied.
+prototype turn endpoint returns 410 after retirement in #426.
+`uv run --frozen python server.py` still launches the package after syncing.
+Root-level Python modules are internal implementation details reached through
+explicit package imports. No full GURPS implementation is implied.
 
 The product has not launched, so nothing here carries a legacy path: there are no
 aliases, importers, additive migrations or readers kept for databases an earlier

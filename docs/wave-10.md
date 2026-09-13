@@ -14,9 +14,9 @@ Use a dedicated local profile with the installed helper:
 
 ```sh
 uv sync --frozen
-uv run wayfarer-codex-login
+uv run --frozen wayfarer-codex-login
 # For a headless machine:
-uv run wayfarer-codex-login --device-auth
+uv run --frozen wayfarer-codex-login --device-auth
 ```
 
 The helper uses the SDK equivalents of `codex login` and
@@ -98,7 +98,7 @@ subscription-consuming authenticated interpretation/resume smoke test:
 
 ```sh
 WAYFARER_CODEX_SMOKE=1 WAYFARER_CODEX_HOME=/absolute/dedicated/profile \
-  uv run pytest tests/test_codex_provider.py -k authenticated_codex_smoke --no-cov
+  uv run --frozen pytest tests/test_codex_provider.py -k authenticated_codex_smoke --no-cov
 ```
 
 The smoke test skips without explicit opt-in or a suitable login. It is not a

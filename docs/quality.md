@@ -38,6 +38,7 @@ uv sync --frozen
 uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen mypy
+uv run --frozen python scripts/check_no_any.py
 ```
 
 For automated repairs, use `uv run --frozen ruff check --fix .` and

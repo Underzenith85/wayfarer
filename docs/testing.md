@@ -14,8 +14,10 @@ Composition goes through `tests/support/runtime.py`: `open_store`, `build_play`,
 `build_runtime`, `build_orchestrator` and `job_worker` build the production objects
 with fakes passed as constructor arguments — a temporary store, a scripted command
 clock, a counting seed source, an injected engine factory, a named job partition.
-Do not patch a module to reach a seam; add the constructor argument instead. Ruff
-bans `unittest.mock`, and #631 removes the remaining `monkeypatch` uses step by step.
+New production collaborators should use constructor arguments rather than module
+patches. Ruff bans `unittest.mock`. Existing tests still use pytest's
+`monkeypatch` for controlled failure probes, environment/process boundaries, and
+some legacy module seams; that is not the primary runtime-composition path.
 
 Coverage is branch-aware and fails below 65% for the package. This initial floor
 covers the inherited prototype while emphasizing rules, transactions, runtime
@@ -23,8 +25,14 @@ validation and failure boundaries. Raise it as production modules replace demo
 paths; do not add mirror tests solely to inflate the number. Every engine issue
 must test its domain invariants and negative paths.
 
-CI runs Python 3.14 with frozen dependencies, Ruff, mypy strict, quality-gate
-probes, pytest, wheel build and an installed application smoke test.
+The Python CI job runs Python 3.14 with frozen dependencies, Ruff, mypy strict,
+the explicit-`Any` gate, quality-gate probes, source/equipment audits, contract
+validation, pytest and release-evidence generation, then builds and smoke-tests
+the installed wheel. The frontend job runs supported Node 22 and 26 matrices;
+Node 22 additionally runs the desktop or full browser journeys, live backend
+journeys, reference adventure, production startup, PWA, and browser-evidence gate.
+Path filters keep unrelated PRs from running both jobs. The manual/tagged product
+release workflow always calls both reusable jobs and the readiness ledger.
 
 PostgreSQL transaction, replay, snapshot, catalog and engine integration tests run
 against PostgreSQL 17 in CI. To reproduce them locally, start the service with

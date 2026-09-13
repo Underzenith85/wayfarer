@@ -6,7 +6,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from typing import Literal
+from typing import Final, Literal
 
 from pydantic import ConfigDict, Field
 
@@ -99,6 +99,144 @@ class InventoryItem:
     blockers: tuple[int, ...] = ()
     gaps: tuple[str, ...] = ()
     evidence: tuple[str, ...] = ()
+
+
+INVENTORY_SOURCE_REVIEW_EVIDENCE: Final = "docs/gurps-inventory-source-review.md"
+
+# Exact expansion-to-parent joins.  These bindings are intentionally enumerated:
+# a future vocabulary value or construction variant must receive its own review.
+MUNDANE_TRAIT_SOURCE_BINDINGS: Final = {
+    "trait:low-status": "trait:disadvantage:status",
+    **dict.fromkeys(
+        (
+            "trait:shyness-mild",
+            "trait:shyness-severe",
+            "trait:shyness-crippling",
+        ),
+        "trait:disadvantage:shyness",
+    ),
+    "trait:code-of-honor-soldier": "trait:disadvantage:code-of-honor",
+    **dict.fromkeys(
+        (
+            "trait:appearance-hideous",
+            "trait:appearance-ugly",
+            "trait:appearance-unattractive",
+            "trait:appearance-horrific",
+            "trait:appearance-monstrous",
+        ),
+        "trait:disadvantage:appearance",
+    ),
+    **dict.fromkeys(
+        (
+            "trait:appearance-average",
+            "trait:appearance-attractive",
+            "trait:appearance-handsome",
+            "trait:appearance-very-handsome",
+            "trait:appearance-transcendent",
+            "trait:appearance-handsome-androgynous",
+            "trait:appearance-handsome-impressive",
+            "trait:appearance-very-handsome-androgynous",
+            "trait:appearance-very-handsome-impressive",
+            "trait:appearance-transcendent-androgynous",
+            "trait:appearance-transcendent-impressive",
+            "trait:appearance-attractive-universal",
+            "trait:appearance-handsome-universal",
+            "trait:appearance-very-handsome-universal",
+            "trait:appearance-transcendent-universal",
+            "trait:appearance-handsome-off-the-shelf",
+            "trait:appearance-very-handsome-off-the-shelf",
+            "trait:appearance-transcendent-off-the-shelf",
+        ),
+        "trait:advantage:appearance",
+    ),
+    **dict.fromkeys(
+        (
+            "trait:reputation-bravery",
+            "trait:reputation-bravery-guild-sometimes",
+        ),
+        "trait:advantage:reputation",
+    ),
+    **dict.fromkeys(
+        (
+            "trait:reputation-cruelty",
+            "trait:reputation-cruelty-guild-occasionally",
+        ),
+        "trait:disadvantage:reputation",
+    ),
+    "trait:acute-hearing": "trait:advantage:acute-hearing",
+    "trait:acute-taste-smell": "trait:advantage:acute-taste-and-smell",
+    "trait:acute-touch": "trait:advantage:acute-touch",
+    "trait:acute-vision": "trait:advantage:acute-vision",
+    **dict.fromkeys(
+        (
+            "trait:wealth-dead-broke",
+            "trait:wealth-poor",
+            "trait:wealth-struggling",
+        ),
+        "trait:disadvantage:wealth",
+    ),
+    **dict.fromkeys(
+        (
+            "trait:wealth-average",
+            "trait:wealth-comfortable",
+            "trait:wealth-wealthy",
+            "trait:wealth-very-wealthy",
+            "trait:wealth-filthy-rich",
+            "trait:wealth-multimillionaire-1",
+            "trait:wealth-multimillionaire-2",
+            "trait:wealth-multimillionaire-3",
+        ),
+        "trait:advantage:wealth",
+    ),
+    **dict.fromkeys(
+        (
+            "trait:sense-of-duty-individual",
+            "trait:sense-of-duty-small-group",
+            "trait:sense-of-duty-large-group",
+            "trait:sense-of-duty-race",
+            "trait:sense-of-duty-all-living",
+        ),
+        "trait:disadvantage:sense-of-duty",
+    ),
+    "trait:culture-foreign": "trait:advantage:cultural-familiarity",
+    "trait:rank-watch": "trait:advantage:rank",
+    "trait:rank-replaces-status-watch": "trait:advantage:rank",
+    "trait:courtesy-rank-watch": "trait:advantage:courtesy-rank",
+    "trait:ally-associate": "trait:advantage:allies",
+    "trait:contact-associate": "trait:advantage:contacts",
+    "trait:patron-associate": "trait:advantage:patrons",
+    "trait:dependent-associate": "trait:disadvantage:dependents",
+    "trait:enemy-associate": "trait:disadvantage:enemies",
+}
+
+DIRECT_INVENTORY_SOURCE_REVIEWS: Final = frozenset(
+    {
+        "trait:language-trade-spoken",
+        "trait:language-trade-written",
+        "vehicle:wagon",
+        "vehicle:luxury-car",
+        *(
+            f"package:gurps-basic-set-characters-4e-2004@{version}/{definition}"
+            for version in ("0.3.0", "0.4.0")
+            for definition in (
+                "attribute:st",
+                "attribute:dx",
+                "attribute:iq",
+                "attribute:ht",
+                "secondary:hp",
+                "secondary:will",
+                "secondary:per",
+                "secondary:fp",
+                "secondary:basic-speed",
+                "secondary:basic-move",
+                "skill:guns-gyroc",
+                "skill:guns-smg",
+            )
+        ),
+        "package:gurps-basic-set-characters-4e-2004@0.4.0/trait:magery-0",
+        "package:gurps-basic-set-characters-4e-2004@0.4.0/trait:magery",
+    }
+)
 
 
 def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
@@ -305,13 +443,21 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
         for row in bundle.rows
         if row.runtime_binding is not None and row.source_review == "reviewed"
     }
-    joined = tuple(
-        replace(row, source_review="reviewed")
-        if row.id in reviewed_bindings
-        and set(reviewed_bindings[row.id].profile_membership) <= set(row.required_profiles)
-        else row
-        for row in rows
-    )
+    joined_rows = []
+    for row in rows:
+        binding_id = MUNDANE_TRAIT_SOURCE_BINDINGS.get(row.id, row.id)
+        source_binding = reviewed_bindings.get(binding_id)
+        exact_review = row.id in DIRECT_INVENTORY_SOURCE_REVIEWS
+        parent_review = source_binding is not None and set(
+            source_binding.profile_membership
+        ) <= set(row.required_profiles)
+        if exact_review or parent_review:
+            evidence = row.evidence
+            if exact_review or row.id in MUNDANE_TRAIT_SOURCE_BINDINGS:
+                evidence = tuple(dict.fromkeys((*evidence, INVENTORY_SOURCE_REVIEW_EVIDENCE)))
+            row = replace(row, source_review="reviewed", evidence=evidence)
+        joined_rows.append(row)
+    joined = tuple(joined_rows)
     reviewed_inventory = {row.id: row for row in joined if row.source_review == "reviewed"}
     result = []
     for row in joined:
