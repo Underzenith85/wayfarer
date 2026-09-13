@@ -222,6 +222,12 @@ test("reference rescue: separate players coordinate, reconnect, reclaim gear and
     );
     await page.getByRole("button", { name, exact: true }).click();
     expect((await submitted).ok()).toBeTruthy();
+    const settled = page.waitForResponse(
+      (r) =>
+        r.url().endsWith(`/campaigns/${id}`) && r.request().method() === "GET",
+    );
+    await page.getByRole("button", { name: "Refresh scene decisions" }).click();
+    await settled;
     await expect(
       page.getByRole("button", { name: "Wait one tick", exact: true }),
     ).toBeEnabled();
