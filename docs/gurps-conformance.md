@@ -252,6 +252,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344 row-complete; [all 51 reconciled ranged rows and residual cross-system scope](gurps-mundane-skills.md#ranged-combat-procedures-344) |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
+| `gurps.combat.mounted` | no | yes | verified | #528; [separate rider/mount identities, training-gated action context and atomic separation](gurps-special-combat-situations.md#mounted-and-personal-flying-combat-528) |
+| `gurps.combat.personal_flight` | no | yes | verified | #528; [personal aerial movement, stalls and aerial attack/retreat context](gurps-special-combat-situations.md#mounted-and-personal-flying-combat-528) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105; #329 adds lossless [hex-to-Basic conversion](mapless-combat.md#hex-to-basic-conversion) for representable battlefields; #507 and #509 add source-reviewed tactical and [personal high-speed movement](gurps-special-combat-situations.md) |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
 | `gurps.tactical.visibility` | no | yes | partial | #105; #509 adds source-reviewed [surprise and directed combat visibility](gurps-special-combat-situations.md) |

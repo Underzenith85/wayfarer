@@ -56,3 +56,32 @@ mapless context cannot preserve its direction and turning budget.
 Evidence: `tests/test_special_combat_situations.py`,
 `tests/test_physical_traits.py`, `tests/test_basic_combat.py`, and
 `tests/test_tactical_completion.py`.
+
+## Mounted and personal flying combat (#528)
+
+Campaigns B396-B398 now has a combat-procedure adapter over the existing mount,
+creature, geometry and injury aggregates. A mounted relationship names a rider,
+creature combatant and ground-mount transport independently. Binding verifies
+that all three authoritative records agree, places the rider with the mount,
+and records Riding, saddle/stirrups, control and the creature's persisted
+war-training fact. The rider's weapon skill is capped by Riding and Riding below
+12 reduces active defenses. An untrained mount exposes movement only; a
+war-trained mount retains its creature-authored attack maneuvers. Rider/mount
+separation delegates damage to the existing B397/B430 reducer and updates the
+encounter relationship and rider posture as one returned state pair. Retries use
+the transport receipt and reproduce both injury ledgers without new dice.
+
+Personal flight is state on the combatant, never a transport or aircraft. Its
+hex route retains altitude and charges independently entered horizontal,
+vertical and simultaneous diagonal movement in half-yard units. Terrain
+intersections reject for the collision/falling service; winged, non-hovering
+flight below minimum speed enters a typed stall. Aerial attacks have no blanket
+penalty, while a hovering defender can claim the extra out-of-plane retreat
+bonus. Both ground-to-air height and any resulting fall remain inputs to the
+shared geometry and injury services rather than a second spatial engine.
+
+Evidence: `tests/test_mounted_flying_combat.py`; selected-source review against
+Campaigns fourth printing B396-B398 and coordination review against B455-B470.
+Unsupported multiple riders, exotic saddles, atmospheric ceilings and narrated
+flight powers continue to reject or require a separately authored hazard or
+capability.

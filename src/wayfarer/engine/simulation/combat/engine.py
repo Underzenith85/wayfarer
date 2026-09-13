@@ -272,6 +272,7 @@ class CombatEngine:
                             and all(
                                 tuple(sorted((other_id, participant.actor_id)))
                                 in encounter.close_pairs
+                                or encounter.mounted_pair(other_id, participant.actor_id)
                                 for other_id in occupied[position]
                             )
                         )

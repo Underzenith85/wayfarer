@@ -16,6 +16,10 @@ from pydantic import (
 
 from wayfarer.engine.rules.types.entangle import Entanglement
 from wayfarer.engine.rules.types.location import HitLocation
+from wayfarer.engine.rules.types.special_combat import (
+    MountedCombatRelationship,
+    PersonalFlightState,
+)
 from wayfarer.engine.rules.types.spray import Stream
 from wayfarer.engine.rules.types.tactical import EncounterSurprise, HighSpeedState
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
@@ -90,6 +94,9 @@ class Combatant(Record):
     stream: Stream | None = Field(default=None, exclude_if=lambda v: v is None)
     forced_do_nothing: bool = False
     high_speed: HighSpeedState | None = Field(default=None, exclude_if=lambda value: value is None)
+    personal_flight: PersonalFlightState | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
 
     @property
@@ -270,6 +277,9 @@ class Encounter(Record):
     )
     reinforcements_expected: bool = Field(default=False, exclude_if=lambda value: not value)
     surprise: EncounterSurprise | None = Field(default=None, exclude_if=lambda value: value is None)
+    mounted_combat: tuple[MountedCombatRelationship, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def validate_scene_version(self) -> Encounter:
@@ -302,6 +312,19 @@ class Encounter(Record):
         ):
             raise ValueError("Basic combatants cannot retain exact mapped poses")
         actors = {p.actor_id for p in self.participants}
+        mounted_actors: set[str] = set()
+        transport_ids: set[str] = set()
+        for relationship in self.mounted_combat:
+            if (
+                relationship.rider_id not in actors
+                or relationship.mount_id not in actors
+                or relationship.rider_id in mounted_actors
+                or relationship.mount_id in mounted_actors
+                or relationship.transport_id in transport_ids
+            ):
+                raise ValueError("Mounted combat relationships require unique encounter combatants")
+            mounted_actors.update((relationship.rider_id, relationship.mount_id))
+            transport_ids.add(relationship.transport_id)
         allegiance_actors = [a.actor_id for a in self.allegiances]
         if self.allegiances and (
             set(allegiance_actors) != actors or len(allegiance_actors) != len(actors)
@@ -313,6 +336,13 @@ class Encounter(Record):
         if self.completion_policy == "automatic" and not self.oppositions:
             raise ValueError("Automatic completion requires explicit opposition")
         return self
+
+    def mounted_pair(self, left: str, right: str) -> bool:
+        return any(
+            relationship.control != "separated"
+            and {relationship.rider_id, relationship.mount_id} == {left, right}
+            for relationship in self.mounted_combat
+        )
 
     @property
     def current_actor_id(self) -> str:

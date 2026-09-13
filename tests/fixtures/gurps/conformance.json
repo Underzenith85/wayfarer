@@ -5831,6 +5831,34 @@
       "evidence_kind": "independent-withdrawal-case",
       "provenance": "Independent daily physiological-withdrawal failure checked against Campaigns fourth printing.",
       "test": "tests/test_toxins.py::test_intoxication_and_withdrawal_are_durable"
+    },
+    {
+      "id": "basic-mounted-riding-defense",
+      "capability_id": "gurps.combat.mounted",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B396-B398",
+      "input": {"riding_skill": 9, "mount_war_trained": false},
+      "expected": {"weapon_skill_cap": 9, "active_defense_modifier": -3, "mount_attack": false},
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-mounted-combat-case",
+      "provenance": "Independent Riding cap, defense shortfall, and training boundary checked against Campaigns fourth printing.",
+      "test": "tests/test_mounted_flying_combat.py::test_mount_and_rider_remain_separate_and_training_controls_mount_actions"
+    },
+    {
+      "id": "basic-personal-flight-diagonal",
+      "capability_id": "gurps.combat.personal_flight",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B398",
+      "input": {"horizontal_yards": 1, "vertical_yards": 1, "basic_air_move": 3},
+      "expected": {"half_yard_cost": 3, "attack_modifier": 0, "hover_retreat_bonus": 1},
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-aerial-movement-case",
+      "provenance": "Independent diagonal movement and aerial attack/retreat fixture checked against Campaigns fourth printing.",
+      "test": "tests/test_mounted_flying_combat.py::test_personal_flight_uses_vertical_cost_and_not_vehicle_state"
     }
   ]
 }

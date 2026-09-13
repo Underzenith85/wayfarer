@@ -3129,6 +3129,28 @@
         "tests/test_toxins.py::test_intoxication_and_withdrawal_are_durable"
       ],
       "owner": 518
+    },
+    {
+      "id": "basic-mounted-riding-defense",
+      "sha256": "9b0a22e427e772a7e7d18ea2a0b8762c5027cc94e083b0ff568ea201304d018b",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-special-combat-situations.md",
+      "tests": [
+        "tests/test_mounted_flying_combat.py::test_mount_and_rider_remain_separate_and_training_controls_mount_actions"
+      ],
+      "owner": 528
+    },
+    {
+      "id": "basic-personal-flight-diagonal",
+      "sha256": "e413b189abb0b442522ce0c28d68c9b99b3d7a00a42c43300a77fca5d13ec402",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-special-combat-situations.md",
+      "tests": [
+        "tests/test_mounted_flying_combat.py::test_personal_flight_uses_vertical_cost_and_not_vehicle_state"
+      ],
+      "owner": 528
     }
   ]
 }
