@@ -20,7 +20,7 @@ from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -47,6 +47,38 @@ class SceneService:
             raise ValidationError("Campaign scenes are not configured")
         return rules.scenes
 
+    def plan(self, command: SceneCommand) -> CommandPlan[SceneEvent]:
+        """What a scene command writes; the pipeline decides whether it runs."""
+        payload = json.dumps(
+            {"operation": "scene", "command": command.model_dump(mode="json")},
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+
+        def resolve(campaign: Campaign) -> CommandReceipt:
+            state = self.play._load(campaign)
+            if isinstance(command, TravelScene):
+                synchronous(state, command.actor_id)
+            updated = self.play.checkpoint(self.reduce(state, command), before=state)
+            self.play.commit(campaign, updated)
+            result = self._result(updated, command.id)
+            return CommandReceipt(action="scene", outcome=result.model_dump_json())
+
+        async def outcome(campaign: Campaign) -> SceneEvent:
+            return self._result(PlayState.model_validate_json(campaign["play_json"]), command.id)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            hypothetical=command.hypothetical,
+            rng=self.play.rng,
+        )
+
     async def execute(
         self,
         cid: str,
@@ -59,41 +91,12 @@ class SceneService:
             command = SCENE_ADAPTER.validate_python(value)
         except SchemaError as exc:
             raise ValidationError("Invalid scene command") from exc
-        if command.actor_id != authenticated_actor_id or command.hypothetical:
-            raise ValidationError("Scene command actor is not authorized")
-        payload = json.dumps(
-            {"operation": "scene", "command": command.model_dump(mode="json")},
-            sort_keys=True,
-            separators=(",", ":"),
-        )
-        duplicate = await self.play.store.duplicate(cid, command.id, payload)
-        if duplicate is not None:
-            result = self._result(PlayState.model_validate_json(duplicate["play_json"]), command.id)
-            return result
-
-        def resolve(campaign: Campaign) -> CommandReceipt:
-            if authorize is not None:
-                authorize(campaign)
-            state = self.play._load(campaign)
-            if isinstance(command, TravelScene):
-                synchronous(state, command.actor_id)
-            updated = self.play.checkpoint(self.reduce(state, command), before=state)
-            self.play.commit(campaign, updated)
-            result = self._result(updated, command.id)
-            return CommandReceipt(action="scene", outcome=result.model_dump_json())
-
-        committed = await commit_command(
+        return await submit(
             self.play,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id=command.actor_id,
-            rng=self.play.rng,
-        )
-        return self._result(
-            PlayState.model_validate_json(committed["state"]["play_json"]), command.id
+            self.plan(command),
+            principal_id=authenticated_actor_id,
+            authorize=authorize,
         )
 
     def reduce(

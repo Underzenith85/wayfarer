@@ -25,7 +25,7 @@ from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -69,9 +69,7 @@ class AdjudicationService:
             command = RULING_ADAPTER.validate_python(value)
         except SchemaError as exc:
             raise ValidationError("Invalid ruling command") from exc
-        if command.actor_id != authenticated_actor_id:
-            raise ValidationError("Ruling command actor is not authorized")
-        return await self._commit(cid, command)
+        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)
 
     async def evaluate(
         self, cid: str, ruling_id: str, *, command_id: str, expected_revision: int
@@ -82,15 +80,13 @@ class AdjudicationService:
         qualifies, do not write a decision or consume a revision. Human approval
         remains available through submit(). Do not expose this as a model tool.
         """
-        result = await self._commit(
-            cid,
-            EvaluateRuling(
-                id=command_id,
-                actor_id="system:adjudication",
-                expected_revision=expected_revision,
-                ruling_id=ruling_id,
-            ),
+        command = EvaluateRuling(
+            id=command_id,
+            actor_id="system:adjudication",
+            expected_revision=expected_revision,
+            ruling_id=ruling_id,
         )
+        result = await submit(self.play, cid, self.plan(command), principal_id=command.actor_id)
         if not isinstance(result, Ruling):
             raise ValidationError("Missing policy decision")
         return result
@@ -218,11 +214,8 @@ class AdjudicationService:
             raise ValidationError("Approved action is no longer feasible")
         return updated, result
 
-    async def _commit(
-        self, cid: str, command: RulingCommand | EvaluateRuling
-    ) -> Ruling | ActionResult:
-        if command.hypothetical:
-            raise ValidationError("Ruling commands cannot be hypothetical; use action preview")
+    def plan(self, command: RulingCommand | EvaluateRuling) -> CommandPlan[Ruling | ActionResult]:
+        """What a ruling command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"operation": "adjudication", "command": command.model_dump(mode="json")},
             sort_keys=True,
@@ -256,21 +249,24 @@ class AdjudicationService:
             self.play.commit(campaign, updated)
             return CommandReceipt(action=command.kind, outcome=result.model_dump_json())
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> Ruling | ActionResult:
+            state = self.play._load(campaign)
+            if isinstance(command, ExecuteRuling):
+                result = state.last_result
+                if result is None or result.command_id != command.id:
+                    raise ValidationError("Missing committed ruling result")
+                return result
+            ruling_id = command.id if isinstance(command, RequestRuling) else command.ruling_id
+            return next(r for r in state.rulings if r.id == ruling_id)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            hypothetical=command.hypothetical,
             rng=self.play.rng,
         )
-        state = self.play._load(committed["state"])
-        if isinstance(command, ExecuteRuling):
-            result = state.last_result
-            if result is None or result.command_id != command.id:
-                raise ValidationError("Missing committed ruling result")
-            return result
-        ruling_id = command.id if isinstance(command, RequestRuling) else command.ruling_id
-        return next(r for r in state.rulings if r.id == ruling_id)

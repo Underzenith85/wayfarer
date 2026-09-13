@@ -33,9 +33,9 @@ from wayfarer.engine.simulation.projects.inventions import busy_actor_ids
 from wayfarer.engine.simulation.resources import Advance, Transfer
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
-from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.npcs import due_times
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
 
@@ -489,13 +489,8 @@ class PartyService:
         )
         return self.flush(state)
 
-    async def execute(self, cid: str, value: object, *, authenticated_actor_id: str) -> PlayState:
-        try:
-            command = PartyCommand.model_validate(value)
-        except ValueError as exc:
-            raise ValidationError("Invalid subgroup command") from exc
-        if command.actor_id != authenticated_actor_id or command.hypothetical:
-            raise ValidationError("Subgroup command is not authorized")
+    def plan(self, command: PartyCommand) -> CommandPlan[PlayState]:
+        """What a subgroup command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"operation": "party", "command": command.model_dump(mode="json")}, sort_keys=True
         )
@@ -505,14 +500,24 @@ class PartyService:
             self.play.commit(campaign, state)
             return CommandReceipt(action="party", outcome=command.kind)
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> PlayState:
+            return self.play._load(campaign)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            hypothetical=command.hypothetical,
             rng=self.play.rng,
         )
-        return self.play._load(committed["state"])
+
+    async def execute(self, cid: str, value: object, *, authenticated_actor_id: str) -> PlayState:
+        try:
+            command = PartyCommand.model_validate(value)
+        except ValueError as exc:
+            raise ValidationError("Invalid subgroup command") from exc
+        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)

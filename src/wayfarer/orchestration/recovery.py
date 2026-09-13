@@ -27,8 +27,8 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.advancement import AdvanceCharacter, AdvancementService
 from wayfarer.orchestration.builds import banked_points as _balance
 from wayfarer.orchestration.builds import canonical_build as _build
-from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.party import PartyService
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -682,10 +682,8 @@ class RecoveryService:
             update={"resources": resources.model_copy(update={"revision": state.revision})}
         )
 
-    async def execute(self, cid: str, value: object, *, authenticated_actor_id: str) -> PlayState:
-        command = RecoveryCommand.model_validate(value)
-        if command.actor_id != authenticated_actor_id or command.hypothetical:
-            raise ValidationError("Recovery command is unauthorized")
+    def plan(self, command: RecoveryCommand) -> CommandPlan[PlayState]:
+        """What a recovery command writes; the pipeline decides whether it runs."""
         if (
             command.kind == "apply_setback"
             and command.actor_id not in self.play.engine.reviewer.gm_ids
@@ -712,14 +710,21 @@ class RecoveryService:
             self.play.commit(campaign, state)
             return CommandReceipt(action="recovery", outcome=command.kind)
 
-        result = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> PlayState:
+            return self.play._load(campaign)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            hypothetical=command.hypothetical,
             rng=self.play.rng,
         )
-        return self.play._load(result["state"])
+
+    async def execute(self, cid: str, value: object, *, authenticated_actor_id: str) -> PlayState:
+        command = RecoveryCommand.model_validate(value)
+        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)

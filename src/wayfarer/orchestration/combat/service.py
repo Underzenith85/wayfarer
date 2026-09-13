@@ -40,7 +40,7 @@ from wayfarer.orchestration.combat.context import (
     encounter_for,
 )
 from wayfarer.orchestration.combat.steps import reduce_combat
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -143,17 +143,8 @@ class CombatService:
                     ):
                         raise ValidationError("Target is unavailable")
 
-    async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> CombatResult:
-        command = self.propose(value)
-        if command.actor_id != authenticated_actor_id:
-            raise ValidationError("Combat command actor is not authorized")
-        bound = self.play.for_campaign(await self.play.store.read(cid))
-        if bound is not self.play:
-            return await CombatService(bound).execute(
-                cid, value, authenticated_actor_id=authenticated_actor_id
-            )
+    def plan(self, cid: str, command: TypedCombatCommand) -> CommandPlan[CombatResult]:
+        """What a combat command writes; the pipeline decides whether it runs."""
         engine = self.play.engine.combat
         if engine is None:
             raise ValidationError("Campaign combat is not configured")
@@ -184,9 +175,6 @@ class CombatService:
             sort_keys=True,
             separators=(",", ":"),
         )
-        duplicate = await self.play.store.duplicate(cid, command.id, payload)
-        if duplicate is not None:
-            return await self._recorded_result(cid, command.id)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             play, before, effective_command = _bind_combat_command(campaign, command, self.play)
@@ -195,21 +183,37 @@ class CombatService:
             play.commit(campaign, updated)
             return CommandReceipt(action="combat", outcome=result.model_dump_json())
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> CombatResult:
+            result = self.play.for_campaign(campaign)._load(campaign).last_combat_result
+            if result is None:
+                raise ValidationError("Missing committed combat result")
+            return result
+
+        async def replayed(campaign: Campaign) -> CombatResult:
+            # A retry answers from its own receipt; the checkpoint has moved on.
+            return await self._recorded_result(cid, command.id)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            replayed=replayed,
             rng=self.play.rng,
         )
-        if committed["kind"] == "replayed":
-            return await self._recorded_result(cid, command.id)
-        result = (
-            self.play.for_campaign(committed["state"])._load(committed["state"]).last_combat_result
+
+    async def execute(
+        self, cid: str, value: object, *, authenticated_actor_id: str
+    ) -> CombatResult:
+        command = self.propose(value)
+        bound = self.play.for_campaign(await self.play.store.read(cid))
+        if bound is not self.play:
+            return await CombatService(bound).execute(
+                cid, value, authenticated_actor_id=authenticated_actor_id
+            )
+        return await submit(
+            self.play, cid, self.plan(cid, command), principal_id=authenticated_actor_id
         )
-        if result is None:
-            raise ValidationError("Missing committed combat result")
-        return result

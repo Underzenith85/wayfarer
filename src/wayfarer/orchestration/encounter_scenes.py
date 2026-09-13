@@ -12,7 +12,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.encounter_context import EncounterSceneBinding, bind_scene
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -28,19 +28,8 @@ class EncounterSceneService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def execute(
-        self, cid: str, command: MigrateEncounterScenes, *, authenticated_gm_id: str
-    ) -> PlayState:
-        bound = self.play.for_campaign(await self.play.store.read(cid))
-        if bound is not self.play:
-            return await EncounterSceneService(bound).execute(
-                cid, command, authenticated_gm_id=authenticated_gm_id
-            )
-        if (
-            command.actor_id != authenticated_gm_id
-            or authenticated_gm_id not in self.play.engine.reviewer.gm_ids
-        ):
-            raise ValidationError("Encounter scene migration requires GM authority")
+    def plan(self, command: MigrateEncounterScenes) -> CommandPlan[PlayState]:
+        """What a scene migration writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"operation": "encounter-scenes", "command": command.model_dump(mode="json")},
             sort_keys=True,
@@ -74,14 +63,26 @@ class EncounterSceneService:
             self.play.commit(campaign, updated)
             return CommandReceipt(action="encounter-scenes", outcome=command.model_dump_json())
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id=authenticated_gm_id,
+        async def outcome(campaign: Campaign) -> PlayState:
+            return self.play._load(campaign)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=command.actor_id,
+            outcome=outcome,
+            control=(Trusted(self.play.engine.reviewer.gm_ids), ActsAs(command.actor_id)),
             rng=self.play.rng,
         )
-        return self.play._load(committed["state"])
+
+    async def execute(
+        self, cid: str, command: MigrateEncounterScenes, *, authenticated_gm_id: str
+    ) -> PlayState:
+        bound = self.play.for_campaign(await self.play.store.read(cid))
+        if bound is not self.play:
+            return await EncounterSceneService(bound).execute(
+                cid, command, authenticated_gm_id=authenticated_gm_id
+            )
+        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_gm_id)

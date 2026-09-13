@@ -15,7 +15,7 @@ from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -197,15 +197,8 @@ class NoncombatService:
             }
         )
 
-    async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> NoncombatEncounter:
-        try:
-            command = NoncombatCommand.model_validate(value)
-        except ValueError as exc:
-            raise ValidationError("Invalid noncombat command") from exc
-        if command.actor_id != authenticated_actor_id or command.hypothetical:
-            raise ValidationError("Noncombat command is not authorized")
+    def plan(self, command: NoncombatCommand) -> CommandPlan[NoncombatEncounter]:
+        """What a noncombat command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"operation": "noncombat", "command": command.model_dump(mode="json")}, sort_keys=True
         )
@@ -239,16 +232,28 @@ class NoncombatService:
             result = next(e for e in state.noncombat if e.id == command.encounter_id)
             return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> NoncombatEncounter:
+            return next(
+                e for e in self.play._load(campaign).noncombat if e.id == command.encounter_id
+            )
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            hypothetical=command.hypothetical,
             rng=self.play.rng,
         )
-        return next(
-            e for e in self.play._load(committed["state"]).noncombat if e.id == command.encounter_id
-        )
+
+    async def execute(
+        self, cid: str, value: object, *, authenticated_actor_id: str
+    ) -> NoncombatEncounter:
+        try:
+            command = NoncombatCommand.model_validate(value)
+        except ValueError as exc:
+            raise ValidationError("Invalid noncombat command") from exc
+        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)

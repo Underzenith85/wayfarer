@@ -8,7 +8,9 @@ therefore replayed rather than rerolled.
 
 ## Command entropy (#411)
 
-Live command services enter through `orchestration.entropy.commit_command`.
+Live command families plan their writes and enter through
+`orchestration.pipeline.submit`, which commits them through
+`orchestration.entropy.commit_command`.
 Before entering persistence it captures a fresh 256-bit seed. During the
 synchronous resolver, all `CommandRandom` handles use one task-local source,
 including the main reducer and checkpoint hooks. The scope is reset in `finally`;

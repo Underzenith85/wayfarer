@@ -12,7 +12,7 @@ from wayfarer.engine.simulation.campaign.objectives import ObjectiveState, evalu
 from wayfarer.engine.simulation.resources import Transfer
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.builds import canonical_build as _build
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
@@ -90,15 +90,8 @@ class ObjectiveService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> ObjectiveState:
-        try:
-            command = ObjectiveCommand.model_validate(value)
-        except ValueError as exc:
-            raise ValidationError("Invalid objective command") from exc
-        if command.actor_id != authenticated_actor_id or command.hypothetical:
-            raise ValidationError("Objective command is not authorized")
+    def plan(self, command: ObjectiveCommand) -> CommandPlan[ObjectiveState]:
+        """What an objective command writes; the pipeline decides whether it runs."""
         if self.play.engine.rules.objectives is None:
             raise ValidationError("No configured objectives")
         if (
@@ -128,14 +121,26 @@ class ObjectiveService:
             self.play.commit(campaign, state)
             return CommandReceipt(action="objectives", outcome=state.objectives.model_dump_json())
 
-        committed = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> ObjectiveState:
+            return self.play._load(campaign).objectives
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id),),
+            hypothetical=command.hypothetical,
             rng=self.play.rng,
         )
-        return self.play._load(committed["state"]).objectives
+
+    async def execute(
+        self, cid: str, value: object, *, authenticated_actor_id: str
+    ) -> ObjectiveState:
+        try:
+            command = ObjectiveCommand.model_validate(value)
+        except ValueError as exc:
+            raise ValidationError("Invalid objective command") from exc
+        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)

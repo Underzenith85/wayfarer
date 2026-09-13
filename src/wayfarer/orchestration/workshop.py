@@ -12,12 +12,13 @@ from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.power import Approval, CharacterProposal
 from wayfarer.engine.rules.catalog import CampaignPolicy
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.director import AuthorDraft
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.advancement import _refreshed
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import CommandPlan, submit
 from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.runtime import CampaignRuntime
@@ -109,16 +110,10 @@ class WorkshopService:
             self._get(self.play._load(await self.play.store.read(cid)), draft_id, principal_id)
         )
 
-    async def execute(
-        self, cid: str, command: DraftCommand, *, principal_id: str
-    ) -> dict[str, object]:
-        state = self.play._load(await self.play.store.read(cid))
-        member = self.access.member(state, principal_id)
-        if command.operation == "approve":
-            if member.role != "gm" or principal_id not in self.play.engine.reviewer.gm_ids:
-                raise AuthorizationError("Approval requires campaign GM")
-        else:
-            self.access.control(member, command.actor_id)
+    def plan(
+        self, cid: str, command: DraftCommand, member: CampaignMember, *, principal_id: str
+    ) -> CommandPlan[None]:
+        """What a draft command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"principal_id": principal_id, "command": command.model_dump(mode="json")},
             sort_keys=True,
@@ -280,15 +275,35 @@ class WorkshopService:
             self.play.commit(campaign, current)
             return CommandReceipt(action="workshop", outcome=command.operation)
 
-        await commit_command(
+        async def outcome(campaign: Campaign) -> None:
+            return None
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=command.actor_id,
+            outcome=outcome,
+            # Campaign membership decides a draft, so the plan adds no actor rule.
+            rng=self.play.rng,
+        )
+
+    async def execute(
+        self, cid: str, command: DraftCommand, *, principal_id: str
+    ) -> dict[str, object]:
+        state = self.play._load(await self.play.store.read(cid))
+        member = self.access.member(state, principal_id)
+        if command.operation == "approve":
+            if member.role != "gm" or principal_id not in self.play.engine.reviewer.gm_ids:
+                raise AuthorizationError("Approval requires campaign GM")
+        else:
+            self.access.control(member, command.actor_id)
+        await submit(
             self.play,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
-            actor_id=command.actor_id,
-            rng=self.play.rng,
+            self.plan(cid, command, member, principal_id=principal_id),
+            principal_id=principal_id,
         )
         return await self.read(cid, command.draft_id, principal_id=principal_id)
 
