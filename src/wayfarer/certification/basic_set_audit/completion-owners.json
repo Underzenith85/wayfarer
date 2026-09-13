@@ -27,7 +27,7 @@
     {"issue": 511, "state": "open", "title": "Complete special ranged procedures"},
     {"issue": 512, "state": "open", "title": "Implement area attacks and explosions"},
     {"issue": 513, "state": "open", "title": "Implement afflictions and penetration"},
-    {"issue": 514, "state": "open", "title": "Complete wound and death transitions"},
+    {"issue": 514, "state": "closed", "title": "Complete wound and death transitions"},
     {"issue": 515, "state": "open", "title": "Complete recovery and medical care"},
     {"issue": 516, "state": "open", "title": "Complete fatigue and deprivation"},
     {"issue": 517, "state": "open", "title": "Complete environmental hazards"},
