@@ -84,7 +84,7 @@ def weapon(
     tl: TechnologyLevel,
     price: int,
     weight: int,
-    *modes: MeleeMode,
+    *modes: MeleeMode | RangedMode,
     unsupported: tuple[str, ...] = (),
     durability_dr: int | None = None,
 ) -> EquipmentProfile:
@@ -99,6 +99,43 @@ def weapon(
         durability=None if durability_dr is None else solid(weight, durability_dr),
         modes=modes,
         unsupported_mechanics=unsupported,
+    )
+
+
+def thrown(
+    identifier: str,
+    skill: str,
+    minimum_st: int,
+    basis: Literal["thrust", "swing"],
+    adds: int,
+    damage_type: DamageType,
+    accuracy: int,
+    half_range: Decimal | int,
+    maximum_range: Decimal | int,
+    bulk: int,
+    *,
+    armor_divisor: Decimal = Decimal(1),
+) -> RangedMode:
+    """Construct one source-authored alternate thrown mode from B275-276."""
+    return RangedMode(
+        id=identifier,
+        skill_id="skill:" + skill,
+        minimum_st=minimum_st,
+        hands=1,
+        damage=Damage(
+            basis=basis,
+            adds=adds,
+            damage_type=damage_type,
+            armor_divisor=armor_divisor,
+        ),
+        accuracy=accuracy,
+        range_basis="st",
+        half_damage_range=half_range,
+        maximum_range=maximum_range,
+        shots=1,
+        reload_seconds=0,
+        bulk=bulk,
+        thrown=True,
     )
 
 
@@ -150,6 +187,9 @@ def ranged(
                 kind=rated_kind,
                 fast_draw_skill_id="skill:fast-draw-arrow",
                 fast_draw_specialty="Arrow",
+                cocking_aid_definition_id=(
+                    "equipment:goats-foot" if rated_kind == "crossbow" else None
+                ),
             )
         ),
     )

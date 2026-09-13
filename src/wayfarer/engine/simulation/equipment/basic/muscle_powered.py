@@ -141,7 +141,7 @@ MUSCLE_POWERED_RANGED = (
     ranged_weapon("large-net", 276, 0, 40, 20000, unsupported=("entangling-special-damage",)),
     ranged_weapon("melee-net", 276, 2, 20, 5000, unsupported=("entangling-special-damage",)),
     ranged_weapon("atlatl", 276, 0, 20, 1000, unsupported=("launcher-assisted-throw",)),
-    ranged_weapon("goats-foot", 276, 3, 50, 2000, unsupported=("crossbow-cocking-aid",)),
+    ranged_weapon("goats-foot", 276, 3, 50, 2000),
 )
 
 MUSCLE_POWERED_AMMUNITION = tuple(

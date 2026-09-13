@@ -45,6 +45,30 @@ def test_owner_inventory_exclusions_are_not_profile_exclusions() -> None:
     assert len(swarms) == 3 and all(r.owner == 522 for r in swarms)
 
 
+def test_non_executable_inventory_statuses_have_explicit_obligations() -> None:
+    rows = inventory(ROOT)
+    contextual = [row for row in rows if row.implementation == "contextual"]
+    manual = [row for row in rows if row.implementation == "manual-adjudication"]
+    listings = [row for row in rows if row.implementation == "listing-only"]
+    assert contextual and all(row.obligation == "reference-only" for row in contextual)
+    assert manual and all(row.obligation == "construction-catalog" for row in manual)
+    assert listings and all(row.obligation == "construction-catalog" for row in listings)
+    assert all(row.evidence for row in (*contextual, *manual, *listings))
+
+
+def test_non_executable_status_cannot_fall_back_to_executable_readiness(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import wayfarer.certification.source_audit as module
+
+    rows = list(inventory(ROOT))
+    index = next(i for i, row in enumerate(rows) if row.implementation == "contextual")
+    rows[index] = replace(rows[index], obligation="executable-mechanic")
+    monkeypatch.setattr(module, "inventory", lambda root=None: tuple(rows))
+    with pytest.raises(ValidationError, match="explicit obligation"):
+        module.validate(ROOT, load(ROOT))
+
+
 def test_missing_fixture_review_rejected() -> None:
     manifest = load(ROOT)
     with pytest.raises(ValidationError, match="Every fixture"):
