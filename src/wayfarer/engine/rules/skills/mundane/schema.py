@@ -291,9 +291,9 @@ class Exclusion(Record):
     name: Annotated[str, Field(min_length=1)]
     page: Annotated[int, Field(ge=174, le=228)]
     reason: Annotated[str, Field(min_length=1)]
-    # The owning follow-up issues that must resolve the transferred skill. An
-    # exclusion without a named owner would silently drop it from the Basic Set.
-    owners: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
+    # Unresolved transferred skills name their follow-up issues. A reconciled
+    # receiving catalog has no blocker, represented by an empty tuple.
+    owners: tuple[Annotated[int, Field(gt=0)], ...]
 
     @model_validator(mode="after")
     def distinct_owners(self) -> Self:

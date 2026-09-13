@@ -20,5 +20,5 @@ The package keeps construction and execution inseparable:
 
 `advantage:shapeshifting` is the source heading for Alternate Form and Morph,
 not a separate zero-cost advantage. The compiler therefore rejects it and
-requires one of those concrete constructions. Inventory rows remain partial
-until the selected-printing review tracked by #191 is reconciled.
+requires one of those concrete constructions. The selected-printing review is
+reconciled and these inventory rows are verified.

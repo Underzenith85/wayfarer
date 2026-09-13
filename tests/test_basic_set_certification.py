@@ -27,7 +27,7 @@ def test_basic_set_gate_exposes_capability_source_and_inventory_blockers() -> No
     result = evaluate(ROOT)
     assert result.certified is False
     kinds = {blocker.kind for blocker in result.blockers}
-    assert {"source", "capability", "inventory"} <= kinds
+    assert {"ledger", "capability", "inventory"} <= kinds
     capabilities = [blocker for blocker in result.blockers if blocker.kind == "capability"]
     assert capabilities
     assert all(blocker.owner_issue is not None for blocker in capabilities)
@@ -35,10 +35,45 @@ def test_basic_set_gate_exposes_capability_source_and_inventory_blockers() -> No
     assert not any(
         blocker.identifier == "gurps.character.size_modifier_costs" for blocker in capabilities
     )
-    assert any(blocker.identifier.startswith("source:") for blocker in result.blockers)
+    assert not any(
+        blocker.kind == "source" and "lite" in blocker.identifier for blocker in result.blockers
+    )
     assert any(
         blocker.owner_issue == 119 for blocker in result.blockers if blocker.kind == "inventory"
     )
+
+
+def test_inventory_cannot_outrun_bound_source_ledger_implementation() -> None:
+    result = evaluate(ROOT)
+    inventory_blockers = {
+        blocker.identifier: blocker for blocker in result.blockers if blocker.kind == "inventory"
+    }
+
+    # The runtime hook exists, but the exhaustive source row still records only
+    # partial rule coverage. The inventory row must therefore remain blocked.
+    combat_reflexes = inventory_blockers["trait:combat-reflexes"]
+    assert "implementation=implemented" in combat_reflexes.detail
+    assert "source_review=reviewed" in combat_reflexes.detail
+    assert "source_ledger_implementation=partial" in combat_reflexes.detail
+    assert combat_reflexes.owner_issue == 496
+
+    # A row whose runtime and bound source evidence are both verified remains
+    # eligible and must not acquire a duplicate inventory blocker.
+    assert "development:adventure" not in inventory_blockers
+
+
+def test_inventory_blocker_reports_itemized_creature_gaps() -> None:
+    result = evaluate(ROOT)
+    blockers = {
+        blocker.identifier: blocker for blocker in result.blockers if blocker.kind == "inventory"
+    }
+    cat = blockers["creature:house-cat"]
+    assert cat.owner_issue == 521
+    assert "implementation=partial" in cat.detail
+    assert "gaps=catfall,combat-reflexes,domestic-animal" in cat.detail
+    assert "swarm:bees" in blockers
+    assert "swarm:bats" not in blockers
+    assert "swarm:rats" not in blockers
 
 
 def test_basic_set_release_rejects_current_incomplete_evidence() -> None:

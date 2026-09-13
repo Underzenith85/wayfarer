@@ -20,8 +20,8 @@ The supplied **Characters, Fourth Edition, third printing (2008), ISBN
 978-1-55634-729-0** is the observed source. `source_index.json` records its SHA-256
 and independently indexes B301–B304, with explicit chapter expansions at
 B168–B233. This observation uses the selected Characters third-printing
-baseline. Remaining item-level verification stays under #336 and #191's
-audit machinery. No rulebook prose is bundled.
+baseline. Remaining mechanics verification stays under each row's explicit
+blockers and source-ledger completion owner. No rulebook prose is bundled.
 
 | Source accounting | Entries |
 | --- | ---: |
@@ -54,8 +54,12 @@ also verifies names, pages and owners against the supernatural catalog.
 | Structured candidate definitions | 10 | Unsupported; runtime or campaign-context blockers remain. |
 | Bound runtime procedures | 466 | Includes the executable arts/trades, combat, technique, knowledge/investigation, medicine/mental, physical/outdoor, and open-subject technology rows. Open families remain nondispatchable until a campaign selects a concrete specialty. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
-| Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
+| Transferred cinematic/supernatural skills | 28 | Reconciled by the #242/#243 receiving catalog; no stale #191 owner remains. |
 | **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 427 inventory rows are available.** |
+
+Each of the 504 mundane inventory rows carries the executable evidence suite of
+its procedure owner. Source-audit validation rejects missing or nonexistent
+row-level evidence paths instead of accepting a family-level coverage claim.
 
 ## Arts, crafts and trade procedures (#338)
 

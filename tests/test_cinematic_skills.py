@@ -136,7 +136,7 @@ def test_exact_skill_set_metadata_and_inventory() -> None:
     assert computer.technology_level_required
     rows = {row.id: row for row in inventory().entries if row.id.removeprefix("skill:") in SKILLS}
     assert set(rows) == {"skill:" + value for value in SKILLS}
-    assert all(row.blockers == (191,) for row in rows.values())
+    assert all(row.blockers == () for row in rows.values())
     assert all(row.evidence == ("tests/test_cinematic_skills.py",) for row in rows.values())
 
 

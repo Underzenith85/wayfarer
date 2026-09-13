@@ -13,4 +13,5 @@ survive JSON restart, do not reroll on retry, and remain private to the actor an
 GM. Recipe invention, ingredient economics, spirit behavior, and free-form
 magical discoveries remain narrative or future catalog work.
 
-Inventory rows remain `partial` pending source certification issue #191.
+The selected-printing review and #243 implementation evidence are reconciled;
+all five inventory rows are verified.

@@ -10,8 +10,7 @@
       "printing": 3,
       "publication": "February 2008",
       "errata_overlay": null,
-      "baseline_reconciled": false,
-      "blocker": 191,
+      "baseline_reconciled": true,
       "sha256": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e"
     },
     {
@@ -21,8 +20,7 @@
       "printing": 4,
       "publication": "2008",
       "errata_overlay": null,
-      "baseline_reconciled": false,
-      "blocker": 191,
+      "baseline_reconciled": true,
       "sha256": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80"
     }
   ],
@@ -35,11 +33,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -58,11 +54,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -81,11 +75,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -104,11 +96,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -127,11 +117,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -150,11 +138,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -173,11 +159,9 @@
       "classification": "psi-member",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -196,11 +180,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -219,11 +201,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -242,11 +222,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -265,11 +243,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -288,11 +264,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -311,11 +285,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -334,11 +306,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -357,11 +327,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -380,11 +348,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -403,11 +369,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -426,11 +390,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -449,11 +411,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -472,11 +432,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -495,11 +453,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -518,11 +474,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -541,11 +495,9 @@
       "classification": "psi-member",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -564,11 +516,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -587,11 +537,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -610,11 +558,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -633,11 +579,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -656,11 +600,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -679,11 +621,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -702,11 +642,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -725,11 +663,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -748,11 +684,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -771,11 +705,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -794,11 +726,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -817,11 +747,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -840,11 +768,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -863,11 +789,9 @@
       "classification": "psi-member",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -886,11 +810,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -909,11 +831,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -932,11 +852,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -955,11 +873,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -978,11 +894,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1001,11 +915,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1024,11 +936,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1047,11 +957,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -1070,11 +978,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1093,11 +999,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -1116,11 +1020,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1139,11 +1041,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -1162,11 +1062,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1185,11 +1083,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -1208,11 +1104,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1231,11 +1125,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1254,11 +1146,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1277,11 +1167,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1300,11 +1188,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1324,7 +1210,6 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        191,
         107
       ],
       "source": "characters-third",
@@ -1347,11 +1232,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -1370,11 +1253,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1393,11 +1274,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1416,11 +1295,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus authored event-backed Jumper, Snatcher, and Warp execution.",
       "evidence": [
         "tests/test_world_travel_traits.py"
@@ -1439,11 +1316,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1462,11 +1337,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
       "evidence": [
         "tests/test_mana_divine_traits.py"
@@ -1485,11 +1358,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
       "evidence": [
         "tests/test_mana_divine_traits.py"
@@ -1508,11 +1379,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
       "evidence": [
         "tests/test_mana_divine_traits.py"
@@ -1531,11 +1400,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
       "evidence": [
         "tests/test_mana_divine_traits.py"
@@ -1554,11 +1421,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1577,11 +1442,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -1600,11 +1463,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1623,11 +1484,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1646,11 +1505,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1669,11 +1526,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1692,11 +1547,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1715,11 +1568,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1738,11 +1589,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1761,11 +1610,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1784,11 +1631,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1807,11 +1652,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1830,11 +1673,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -1853,11 +1694,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1876,11 +1715,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -1899,11 +1736,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1922,11 +1757,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1945,11 +1778,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -1968,11 +1799,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -1991,11 +1820,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2014,11 +1841,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
       "evidence": [
         "tests/test_mana_divine_traits.py"
@@ -2037,11 +1862,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2060,11 +1883,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -2083,11 +1904,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2106,11 +1925,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2129,11 +1946,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2152,11 +1967,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2175,11 +1988,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2198,11 +2009,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -2221,11 +2030,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2244,11 +2051,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -2267,11 +2072,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -2290,11 +2093,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -2313,11 +2114,9 @@
       "classification": "psi-member",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -2336,11 +2135,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -2359,11 +2156,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2382,11 +2177,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -2405,11 +2198,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2428,11 +2219,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2451,11 +2240,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -2474,11 +2261,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -2497,11 +2282,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -2520,11 +2303,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2543,11 +2324,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -2566,11 +2345,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus authored event-backed Jumper, Snatcher, and Warp execution.",
       "evidence": [
         "tests/test_world_travel_traits.py"
@@ -2589,11 +2366,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2612,11 +2387,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2635,11 +2408,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2658,11 +2429,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2681,11 +2450,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -2704,11 +2471,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2727,11 +2492,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -2750,11 +2513,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -2773,11 +2534,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -2796,11 +2555,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2819,11 +2576,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2842,11 +2597,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -2865,11 +2618,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -2888,11 +2639,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -2911,11 +2660,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -2934,11 +2681,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -2957,11 +2702,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -2980,11 +2723,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3003,11 +2744,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -3026,11 +2765,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3049,11 +2786,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3072,11 +2807,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3095,11 +2828,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3118,11 +2849,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3141,11 +2870,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3164,11 +2891,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -3187,11 +2912,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -3210,11 +2933,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -3233,11 +2954,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3256,11 +2975,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3279,11 +2996,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -3302,11 +3017,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3325,11 +3038,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -3348,11 +3059,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
         "tests/test_sensory_traits.py"
@@ -3371,11 +3080,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3394,11 +3101,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3417,11 +3122,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3440,11 +3143,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus authored event-backed Jumper, Snatcher, and Warp execution.",
       "evidence": [
         "tests/test_world_travel_traits.py"
@@ -3463,11 +3164,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3486,11 +3185,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3509,11 +3206,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3532,11 +3227,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3555,11 +3248,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3578,11 +3269,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3601,11 +3290,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3624,11 +3311,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3647,11 +3332,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3670,11 +3353,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3693,11 +3374,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3716,11 +3395,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -3739,11 +3416,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3762,11 +3437,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3785,11 +3458,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3808,11 +3479,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3831,11 +3500,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3854,11 +3521,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -3877,11 +3542,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
       "evidence": [
         "tests/test_mana_divine_traits.py"
@@ -3900,11 +3563,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3923,11 +3584,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3946,11 +3605,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -3969,11 +3626,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -3992,11 +3647,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4015,11 +3668,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -4038,11 +3689,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4061,11 +3710,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -4084,11 +3731,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -4107,11 +3752,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
       "evidence": [
         "tests/test_movement_forms.py"
@@ -4130,11 +3773,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4153,11 +3794,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4176,11 +3815,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4199,11 +3836,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4222,11 +3857,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -4245,11 +3878,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -4268,11 +3899,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -4291,11 +3920,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4314,11 +3941,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -4337,11 +3962,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4360,11 +3983,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -4383,11 +4004,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
       "evidence": [
         "tests/test_attack_defense_traits.py"
@@ -4406,11 +4025,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
       "evidence": [
         "tests/test_physiology_traits.py"
@@ -4429,11 +4046,9 @@
       "classification": "Sup",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned construction plus approved-build projection and authored event-backed mental/spirit execution.",
       "evidence": [
         "tests/test_mental_spirit_traits.py"
@@ -4452,11 +4067,9 @@
       "classification": "psi",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -4483,11 +4096,9 @@
       "classification": "psi",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -4522,11 +4133,9 @@
       "classification": "psi",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -4554,11 +4163,9 @@
       "classification": "psi",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -4591,11 +4198,9 @@
       "classification": "psi",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -4634,11 +4239,9 @@
       "classification": "psi",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
       "evidence": [
         "tests/test_psi_powers.py"
@@ -4661,11 +4264,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Paid square and axial-hex circles, explicit affected subsets, four-yard default height, and Create Fire integration.",
       "evidence": [
         "tests/test_spell_execution.py",
@@ -4685,11 +4286,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Typed instant defense, one-per-turn limit, critical-hit exclusion, active-spell penalty, and unreduced cost contract for concrete Blocking spells.",
       "evidence": [
         "tests/test_magic_protocols.py"
@@ -4708,11 +4307,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Approved participant roles and limits, opposition cap, energy bonus steps, tenfold time, automatic-failure ceiling, atomic FP/HP payments, retries, and shared-location validation.",
       "evidence": [
         "tests/test_magic_protocols.py"
@@ -4731,11 +4328,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Explicit opt-in tradition boundary; unselected clerical casting fails closed before spell execution.",
       "evidence": [
         "tests/test_magic_protocols.py"
@@ -4754,11 +4349,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Stable caster, spell, subject, and day identity enforcing the per-day attempt boundary without exposing results.",
       "evidence": [
         "tests/test_magic_protocols.py"
@@ -4777,11 +4370,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Concrete inventory binding, holder and disabled checks, Magery restriction, mana-sensitive Power, and mana-sensitive energy reduction through SpellService.",
       "evidence": [
         "tests/test_magic_protocols.py",
@@ -4801,11 +4392,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Typed held hand-or-staff charge boundary for concrete Melee spells; it cannot be substituted with a missile attack.",
       "evidence": [
         "tests/test_magic_protocols.py"
@@ -4824,11 +4413,9 @@
       "classification": "magic",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Explicit opt-in tradition boundary; unselected ritual-magic casting fails closed before spell execution.",
       "evidence": [
         "tests/test_magic_protocols.py"
@@ -4847,11 +4434,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
       "evidence": [
         "tests/test_magic_craft_skills.py"
@@ -4870,11 +4455,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -4893,11 +4476,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -4916,11 +4497,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -4939,11 +4518,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -4962,11 +4539,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -4985,11 +4560,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5008,11 +4581,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5031,11 +4602,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
       "evidence": [
         "tests/test_magic_craft_skills.py"
@@ -5054,11 +4623,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5077,11 +4644,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5100,11 +4665,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5123,11 +4686,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5146,11 +4707,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5169,11 +4728,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5192,11 +4749,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5215,11 +4770,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5238,11 +4791,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5261,11 +4812,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5284,11 +4833,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5307,11 +4854,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
       "evidence": [
         "tests/test_magic_craft_skills.py"
@@ -5330,11 +4875,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5353,11 +4896,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5376,11 +4917,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
       "evidence": [
         "tests/test_magic_craft_skills.py"
@@ -5399,11 +4938,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
       "evidence": [
         "tests/test_magic_craft_skills.py"
@@ -5422,11 +4959,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5445,11 +4980,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5468,11 +5001,9 @@
       "classification": "cinematic-skill",
       "difficulty": null,
       "colleges": [],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
       "evidence": [
         "tests/test_cinematic_skills.py"
@@ -5493,11 +5024,9 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_enchantment.py"
@@ -5518,11 +5047,9 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -5543,11 +5070,9 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -5568,11 +5093,9 @@
       "colleges": [
         "protection-warning"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -5593,11 +5116,9 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -5618,11 +5139,9 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_healing.py"
@@ -5643,11 +5162,9 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -5668,11 +5185,9 @@
       "colleges": [
         "light-darkness"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -5694,11 +5209,9 @@
         "air",
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -5719,11 +5232,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -5744,11 +5255,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -5769,11 +5278,9 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_mind_control.py"
@@ -5794,11 +5301,9 @@
       "colleges": [
         "light-darkness"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -5819,11 +5324,9 @@
       "colleges": [
         "meta"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -5844,11 +5347,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -5869,11 +5370,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -5894,11 +5393,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -5919,11 +5416,9 @@
       "colleges": [
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_water.py"
@@ -5944,11 +5439,9 @@
       "colleges": [
         "light-darkness"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -5969,11 +5462,9 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_mind_control.py"
@@ -5994,11 +5485,9 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -6019,11 +5508,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -6044,11 +5531,9 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_enchantment.py"
@@ -6069,11 +5554,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -6094,11 +5577,9 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -6119,11 +5600,9 @@
       "colleges": [
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_water.py"
@@ -6144,11 +5623,9 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -6169,11 +5646,9 @@
       "colleges": [
         "meta"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -6195,11 +5670,9 @@
         "air",
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -6220,11 +5693,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -6245,11 +5716,9 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_enchantment.py"
@@ -6270,11 +5739,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -6295,11 +5762,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -6320,11 +5785,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -6346,7 +5809,6 @@
         "fire"
       ],
       "blockers": [
-        191,
         173
       ],
       "source": "characters-third",
@@ -6371,11 +5833,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -6396,11 +5856,9 @@
       "colleges": [
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_water.py"
@@ -6421,11 +5879,9 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_mind_control.py"
@@ -6446,11 +5902,9 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_mind_control.py"
@@ -6471,11 +5925,9 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_enchantment.py"
@@ -6496,11 +5948,9 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -6521,11 +5971,9 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_healing.py"
@@ -6546,11 +5994,9 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -6571,11 +6017,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -6596,11 +6040,9 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_communication_empathy.py"
@@ -6622,11 +6064,9 @@
         "body-control",
         "movement"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -6647,11 +6087,9 @@
       "colleges": [
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_water.py"
@@ -6672,11 +6110,9 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -6697,11 +6133,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -6722,11 +6156,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -6747,11 +6179,9 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_healing.py"
@@ -6772,11 +6202,9 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_healing.py"
@@ -6797,11 +6225,9 @@
       "colleges": [
         "light-darkness"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -6822,11 +6248,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -6847,11 +6271,9 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -6872,11 +6294,9 @@
       "colleges": [
         "protection-warning"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -6897,11 +6317,9 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_healing.py"
@@ -6922,11 +6340,9 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_mind_control.py"
@@ -6947,11 +6363,9 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_mind_control.py"
@@ -6972,11 +6386,9 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_communication_empathy.py"
@@ -6997,11 +6409,9 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_healing.py"
@@ -7022,11 +6432,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -7047,11 +6455,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -7072,11 +6478,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -7097,11 +6501,9 @@
       "colleges": [
         "gate"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -7122,11 +6524,9 @@
       "colleges": [
         "gate"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -7147,11 +6547,9 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_enchantment.py"
@@ -7172,11 +6570,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -7197,11 +6593,9 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_enchantment.py"
@@ -7222,11 +6616,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -7247,11 +6639,9 @@
       "colleges": [
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_water.py"
@@ -7272,11 +6662,9 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_healing.py"
@@ -7297,11 +6685,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -7322,11 +6708,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -7347,11 +6731,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -7372,11 +6754,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -7397,11 +6777,9 @@
       "colleges": [
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_water.py"
@@ -7422,11 +6800,9 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -7447,11 +6823,9 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_communication_empathy.py"
@@ -7472,11 +6846,9 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_communication_empathy.py"
@@ -7497,11 +6869,9 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -7522,11 +6892,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -7547,11 +6915,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -7572,11 +6938,9 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_fire.py"
@@ -7597,11 +6961,9 @@
       "colleges": [
         "water"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_water.py"
@@ -7622,11 +6984,9 @@
       "colleges": [
         "protection-warning"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_movement.py"
@@ -7647,11 +7007,9 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_mind_control.py"
@@ -7672,11 +7030,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -7697,11 +7053,9 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "campaigns-fourth",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_enchantment.py"
@@ -7722,11 +7076,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -7747,11 +7099,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -7772,11 +7122,9 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_earth.py"
@@ -7797,11 +7145,9 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -7822,11 +7168,9 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -7847,11 +7191,9 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_knowledge.py"
@@ -7872,11 +7214,9 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_communication_empathy.py"
@@ -7897,11 +7237,9 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"
@@ -7922,11 +7260,9 @@
       "colleges": [
         "air"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_air.py"
@@ -7947,11 +7283,9 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_body_control.py"
@@ -7972,11 +7306,9 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [
-        191
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
+      "status": "verified",
       "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
         "tests/test_spell_necromantic.py"

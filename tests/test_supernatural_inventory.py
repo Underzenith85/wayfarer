@@ -121,57 +121,30 @@ def test_psi_inventory_includes_conditional_members_and_no_antipsi_talent() -> N
     assert any("Force Field" in c for c in lookup("power:psychokinesis").member_conditions)
 
 
-def test_every_entry_has_concrete_runtime_and_source_blockers_and_real_evidence() -> None:
+def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evidence() -> None:
     data = inventory()
     assert {s.printing for s in data.sources} == {3, 4}
-    assert all(not s.baseline_reconciled and s.errata_overlay is None for s in data.sources)
+    assert all(s.baseline_reconciled and s.blocker is None for s in data.sources)
+    assert all(s.errata_overlay is None for s in data.sources)
     for entry in data.entries:
-        assert entry.status is not CoverageStatus.VERIFIED
-        assert 191 in entry.blockers
-        if not any(221 <= n <= 243 for n in entry.blockers):
+        assert 191 not in entry.blockers
+        if entry.blockers:
             assert entry.status is CoverageStatus.PARTIAL
             assert entry.supported_subset and entry.evidence
+        else:
+            assert entry.status is CoverageStatus.VERIFIED
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert set(coverage_blockers(PROFILE)) == {
-        107,
-        173,
-        191,
-        *(
-            n
-            for n in range(221, 244)
-            if n
-            not in {
-                221,
-                222,
-                223,
-                224,
-                225,
-                226,
-                227,
-                228,
-                229,
-                230,
-                231,
-                232,
-                233,
-                234,
-                235,
-                236,
-                237,
-                238,
-                239,
-                240,
-                241,
-                242,
-                243,
-            }
-        ),
-    }
+    assert set(coverage_blockers(PROFILE)) == {107, 173}
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 
 @pytest.mark.parametrize("identifier", ["spell:light", "spell:shape-fire", "power:telepathy"])
-def test_partial_and_learning_only_entries_are_not_execution_permissions(identifier: str) -> None:
+def test_source_reconciled_entries_satisfy_the_whole_entry_gate(identifier: str) -> None:
+    assert require_entries(PROFILE, (identifier,))[0].id == identifier
+
+
+@pytest.mark.parametrize("identifier", ["spell:fireball", "advantage:injury-tolerance"])
+def test_remaining_mechanics_blockers_still_reject_whole_entry_use(identifier: str) -> None:
     with pytest.raises(ValidationError, match="not certified"):
         require_entries(PROFILE, (identifier,))
 
@@ -228,15 +201,14 @@ def test_malformed_or_falsely_certified_inventory_rejects(change: str) -> None:
 
     raw = json.loads(inventory().model_dump_json())
     if change == "blockers":
-        raw["entries"][0]["blockers"] = []
+        next(e for e in raw["entries"] if e["status"] == "partial")["blockers"] = []
     elif change == "source":
         raw["entries"][0]["source"] = "invented"
     elif change == "member":
         next(e for e in raw["entries"] if e["kind"] == "power")["members"] = ["advantage:fake"]
     else:
-        raw["entries"][0].update(
+        next(e for e in raw["entries"] if e["status"] == "partial").update(
             status="verified",
-            blockers=[],
             supported_subset="manual",
             evidence=["tests/test_supernatural_inventory.py"],
         )
@@ -265,7 +237,7 @@ def test_source_compared_representative_modified_costs(
 
 
 def test_partial_entry_without_subset_evidence_is_invalid() -> None:
-    data = lookup("spell:light").model_dump_json()
+    data = lookup("spell:fireball").model_dump_json()
     import json
 
     raw = json.loads(data)
@@ -281,11 +253,11 @@ def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() 
     assert {(e.name, e.page) for e in inventory().entries if e.kind == "skill"} == {
         (e.name, e.page) for e in exclusions()
     }
-    assert lookup("skill:alchemy").blockers == (191,)
-    assert lookup("skill:zen-archery").blockers == (191,)
+    assert lookup("skill:alchemy").status is CoverageStatus.VERIFIED
+    assert lookup("skill:zen-archery").status is CoverageStatus.VERIFIED
     owned = [e for e in source_inventory() if e.id.startswith("supernatural/")]
     assert len(owned) == 334
     assert {e.id for e in owned} == {"supernatural/" + e.id for e in inventory().entries}
-    assert Counter(e.source_review for e in owned) == {"reviewed": 188, "pending": 146}
+    assert Counter(e.source_review for e in owned) == {"reviewed": 334}
     assert all(e.owner == 119 for e in owned)
     assert {n for e in owned for n in e.blockers} == set(coverage_blockers(PROFILE))

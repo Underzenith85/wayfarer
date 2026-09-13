@@ -3,9 +3,10 @@
 The audit accounts for every spell in the Basic Set spell index, every exotic
 or supernatural advantage/disadvantage row in the trait index, and the six
 listed psi powers. **This completes inventory accounting, not supernatural
-runtime coverage.** Every entry retains a named open runtime blocker and #191
-for frozen-source reconciliation. No entry is verified and no campaign profile
-or saved package is changed.
+runtime coverage.** The selected-printing source review is reconciled. Of 334
+entries, 332 are verified against their completed implementation evidence;
+Fireball and Injury Tolerance remain partial under their concrete mechanics
+owners. No campaign profile or saved package is changed.
 
 ## Source boundary
 
@@ -15,8 +16,8 @@ printing, page references, classification and source evidence separately from
 
 | Observed source | Index and rule references | Reconciliation |
 | --- | --- | --- |
-| Characters, Fourth Edition, third printing, February 2008 | B297–300 trait index; B304–334 spell index; B34–101 and B122–165 traits; B235–257 magic/psi | Selected baseline; no additional errata overlay. #191 owns the remaining item-level source audit. |
-| Campaigns, Fourth Edition, fourth printing, 2008 | B479–482 enchantments and magic items, also indexed in Characters | Same unresolved baseline comparison; later-printing evidence does not certify the original baseline. |
+| Characters, Fourth Edition, third printing, February 2008 | B297–300 trait index; B304–334 spell index; B34–101 and B122–165 traits; B235–257 magic/psi | Selected baseline reconciled; no additional errata overlay. |
+| Campaigns, Fourth Edition, fourth printing, 2008 | B479–482 enchantments and magic items, also indexed in Characters | Selected baseline reconciled; no additional errata overlay. |
 
 The inventory contains identifiers and descriptive metadata, not rulebook prose
 or an automatically executable transcription. Names, pages, difficulty, college
@@ -30,15 +31,15 @@ supplement the existing execution tests; they do not certify every variant.
 
 | Inventory group | Rows | Coverage decision |
 | --- | ---: | --- |
-| Characters spells | 93 | Four representative effects execute; three additional spells are learning prerequisites only. All whole entries retain blockers. |
-| Campaigns enchantment spells | 7 | Enchant, Accuracy, Deflect, Fortify, Power, Puissance and Staff are required blocked entries, not supplement exclusions. |
+| Characters spells | 93 | Source and college implementations are verified except Fireball, which retains #173 for remaining critical consequences. |
+| Campaigns enchantment spells | 7 | Enchant, Accuracy, Deflect, Fortify, Power, Puissance and Staff are verified required entries, not supplement exclusions. |
 | Exotic/supernatural advantages | 146 | Includes all X and Sup index rows, even if an exotic trait could have a nonmagical origin. |
 | Additional psi-member advantages | 4 | Animal Empathy, Danger Sense, Empathy and Resistant are mundane index entries explicitly listed in psi powers; included here for their psi use. Mundane construction remains #113. |
 | Exotic/supernatural disadvantages | 42 | Includes negative Destiny and Shadow Form as distinct definitions. Narrative or manual treatment never certifies a mechanical consequence. |
 | Psi powers | 6 | Explicit member references, conditional membership, Talent cost and power modifier. No Antipsi Talent or power discount. |
 | Magic protocols | 8 | Includes blocked class/area/ceremonial/item protocols and explicitly optional Clerical/Ritual Magic. |
 | Transferred cinematic/supernatural skills | 28 | All explicit #112 exclusions retain named blockers #242/#243; not silently excluded from Basic. |
-| **Total** | **334** | **No verified rows.** |
+| **Total** | **334** | **332 verified; two partial.** |
 
 A row covers its entire named definition, including levels, special modifiers
 and conditional variants. Subtypes such as Morph, Alternate Form, Para-Radar
@@ -57,7 +58,7 @@ special modifiers and combinations.
 
 ## Runtime and validator contract
 
-The shared #191 source-audit report directly consumes all 334 records,
+The shared source-audit report directly consumes all 334 records,
 including the 28 transferred skills and their optional-profile boundaries.
 `inventory()` exposes typed immutable records. `lookup()` resolves exact audit
 IDs, and `coverage_blockers()` exposes the item-level follow-up list. Source
@@ -99,9 +100,10 @@ in PR #187. Both prerequisites are closed; their family capabilities remain
 partial. Earlier conformance sections describe historical implementation slices
 and do not override these acceptance decisions.
 
-The audit may close with the following concrete open blockers. #122 cannot
-claim Basic Set completeness until required entries have independent runtime
-and source evidence. #191 consumes this inventory for global source review.
+The completed implementation workstreams below own the row evidence. They no
+longer appear as blockers merely to preserve history. Only #107 on Injury
+Tolerance and #173 on Fireball remain as concrete mechanics blockers; #122
+cannot claim Basic Set completeness until those required entries are complete.
 
 | Follow-up | Exact family (entry lists are in each issue and inventory) |
 | --- | --- |
@@ -128,7 +130,6 @@ and source evidence. #191 consumes this inventory for global source review.
 | #241 | Remaining magic class/ceremonial/area/item protocols and optional alternatives |
 | #242 | Cinematic and enthrallment skills transferred from #112 |
 | #243 | Alchemy, Herb Lore, Ritual Magic, Symbol Drawing and Thaumatology |
-| #191 | First-printing/errata reconciliation for every entry |
 
 `tests/test_supernatural_inventory.py` independently fixes the complete spell
 name set, supernatural advantage name set, source counts, cross-college

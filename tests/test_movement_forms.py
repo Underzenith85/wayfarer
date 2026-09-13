@@ -95,7 +95,7 @@ def test_registry_accounts_for_every_bounded_issue_entry_and_source_cost() -> No
     assert set(rows) == set(EXPECTED_COSTS)
     assert all(233 not in row.blockers for row in rows.values())
     assert all(
-        row.blockers == (191,) and row.evidence == ("tests/test_movement_forms.py",)
+        row.blockers == () and row.evidence == ("tests/test_movement_forms.py",)
         for row in rows.values()
     )
 
