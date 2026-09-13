@@ -196,7 +196,8 @@ folder. Database paths remain caller-owned, never inside the installed package.
 ## Compatibility and scope
 
 The frozen v1 routes and payloads are preserved. The obsolete prototype turn
-endpoint returns 410 after retirement in #426. `uv run server.py` remains a compatibility launcher after syncing.
+endpoint returns 410 after retirement in #426. `uv run --frozen python server.py`
+remains a compatibility launcher after syncing.
 The old root-level Python modules are internal implementation details and are
 replaced with explicit package imports. No full GURPS implementation is implied.
 

@@ -186,7 +186,7 @@ published = service.publish(draft, principal_id="gm")
 player_brief = service.player_export(published)
 ```
 
-Run `uv run python scripts/scenario_contracts.py` to regenerate schemas and the
+Run `uv run --frozen python scripts/scenario_contracts.py` to regenerate schemas and the
 authored/generated-shaped Last Lantern examples; `--check` verifies drift. The
 generated example is synthetic and makes no live LLM call. Both examples use the
 same decoder and domain validation. The schemas cover full documents, player

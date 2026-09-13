@@ -1146,7 +1146,7 @@ flag alone cannot bypass missing item evidence.
 
 ## Lite certification gate (#121, preparation)
 
-`uv run python -m scripts.release_gates artifacts/pytest.xml --gurps-lite`
+`uv run --frozen python -m scripts.release_gates artifacts/pytest.xml --gurps-lite`
 produces `artifacts/release/lite-certification.json` and exits nonzero when
 certification is blocked. This is independent of the existing prototype release
 result. A green prototype run cannot satisfy this gate.

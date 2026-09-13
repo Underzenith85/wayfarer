@@ -12,7 +12,7 @@ package. It does not require licensed rule text or live provider credentials.
 Build the frontend with `pnpm --dir frontend build`, then run:
 
 ```sh
-uv run python -m wayfarer.adventures --tokens /private/tokens.json --db data/lantern.sqlite3 --frontend frontend/dist
+uv run --frozen python -m wayfarer.adventures --tokens /private/tokens.json --db data/lantern.sqlite3 --frontend frontend/dist
 ```
 
 The token file maps your chosen bearer tokens to principal IDs. Include two player
@@ -75,7 +75,7 @@ resolves, rescue during that encounter, and explicit reunion without resetting i
 
 ## Acceptance evidence
 
-`uv run pytest tests/test_wave14.py` exercises setup, legal activation, authenticated
+`uv run --frozen pytest --no-cov tests/test_wave14.py` exercises setup, legal activation, authenticated
 commands, durable restart, concurrent recovery choices, rewards, epilogues and
 continuation through HTTP. It asserts private projections, exact replay and no
 rerolls. No test seeds a playable campaign through a private mutation endpoint.

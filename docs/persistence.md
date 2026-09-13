@@ -129,7 +129,7 @@ General loads, history and retries now use stream materialisation under #419.
 `engine-events.schema.json`, defining the engine event union and schema-version-1
 `StoredEngineEvent`. The frozen live schema has no semantic changes. The offline validator
 checks the definitions against the runtime models; schema changes require review.
-Run `uv run python -m scripts.update_engine_event_schema` to regenerate the
+Run `uv run --frozen python -m scripts.update_engine_event_schema` to regenerate the
 engine definitions while preserving the wire definitions.
 
 ## Fold and re-execution gate (#418)
@@ -165,9 +165,9 @@ durable replay and corruption tests.
 
 To review a deliberate engine behavior change:
 
-1. Run `uv run python -m scripts.regenerate_replay_fixtures`.
+1. Run `uv run --frozen python -m scripts.regenerate_replay_fixtures`.
 2. Review the event/dice diffs and snapshot digests, then run
-   `uv run python -m scripts.regenerate_replay_fixtures --check` and the release tests.
+   `uv run --frozen python -m scripts.regenerate_replay_fixtures --check` and the release tests.
 
 Regeneration preserves inputs, seeds, time and initial state. The gate still
 rejects changed outputs until fixtures are deliberately regenerated and reviewed.
