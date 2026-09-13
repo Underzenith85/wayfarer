@@ -3,7 +3,7 @@
   "profile_id": "gurps-basic-set-4e-2004",
   "lite_profile_id": "gurps-lite-4e-2004",
   "printing": "Characters Fourth Edition, third printing (February 2008)",
-  "baseline_note": "Review data for the selected Characters third-printing and Campaigns fourth-printing baseline. Each row, unit, and price stays pending until its evidence is independently reviewed under #191.",
+  "baseline_note": "Independent source comparison completed against the selected Characters third-printing and Campaigns fourth-printing baseline; detailed evidence is recorded in docs/gurps-equipment-source-review.md.",
   "sections": [
     {
       "id": "melee-weapons-b271",
@@ -561,8 +561,8 @@
     },
     {
       "id": "ready-after-attack",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B269-B270/B271-B289; Campaigns fourth printing B382",
+      "anchor": "inspected",
       "behaviour": "A weapon marked unready after an attack must be readied before its next use.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.maneuvers",
@@ -574,8 +574,8 @@
     },
     {
       "id": "minimum-strength",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B270",
+      "anchor": "inspected",
       "behaviour": "Attacking below a weapon's minimum ST applies its skill and defence penalty.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.ranged_attack",
@@ -587,8 +587,8 @@
     },
     {
       "id": "armor-divisor",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "Campaigns fourth printing B378",
+      "anchor": "inspected",
       "behaviour": "A damage armor divisor reduces the target's DR before penetration is computed.",
       "disposition": "implemented",
       "capability_id": "gurps.injury.armor_divisors",
@@ -600,8 +600,8 @@
     },
     {
       "id": "tight-beam-burning",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "Campaigns fourth printing B399",
+      "anchor": "inspected",
       "behaviour": "Tight-beam burning damage may target the eyes and vitals that other non-penetrating damage cannot.",
       "disposition": "implemented",
       "capability_id": "gurps.injury.hit_locations",
@@ -613,8 +613,8 @@
     },
     {
       "id": "thrown-weapon",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B355/B373",
+      "anchor": "inspected",
       "behaviour": "A thrown weapon leaves the thrower's inventory and is the projectile itself.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.ranged_attack",
@@ -626,8 +626,8 @@
     },
     {
       "id": "blockable-projectile",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "Campaigns fourth printing B376",
+      "anchor": "inspected",
       "behaviour": "Only thrown or explicitly blockable projectiles may be blocked or parried.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.active_defense",
@@ -639,8 +639,8 @@
     },
     {
       "id": "per-round-reload",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B270",
+      "anchor": "inspected",
       "behaviour": "A per-round reload loads one shot at a time instead of exchanging a magazine.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.ammunition",
@@ -710,8 +710,8 @@
     },
     {
       "id": "variable-power-scope",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "Campaigns fourth printing B412",
+      "anchor": "inspected",
       "behaviour": "A variable-power scope adds up to its bonus as aiming seconds accumulate.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.aim",
@@ -723,8 +723,8 @@
     },
     {
       "id": "fixed-power-scope",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "Campaigns fourth printing B412",
+      "anchor": "inspected",
       "behaviour": "A fixed-power scope grants its bonus only after its full aiming time.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.aim",
@@ -736,8 +736,8 @@
     },
     {
       "id": "bracing",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B364; Campaigns fourth printing B412",
+      "anchor": "inspected",
       "behaviour": "One-handed bracing and bipod bracing each add their own aiming bonus.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.aim",
@@ -762,8 +762,8 @@
     },
     {
       "id": "object-durability",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "Campaigns fourth printing B483-B484",
+      "anchor": "inspected",
       "behaviour": "An item carries its own HP, DR and HT and can be damaged and disabled.",
       "disposition": "implemented",
       "capability_id": "gurps.equipment.object_durability",
@@ -788,8 +788,8 @@
     },
     {
       "id": "carried-weight-encumbrance",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B17; Campaigns fourth printing B353",
+      "anchor": "inspected",
       "behaviour": "Carried equipment weight selects the encumbrance level that caps Move and Dodge.",
       "disposition": "implemented",
       "capability_id": "gurps.character.secondary_characteristics",
@@ -1396,8 +1396,8 @@
     },
     {
       "id": "weapon-breakage",
-      "reference": "B264-289; resolved against B556-557",
-      "anchor": "range-only",
+      "reference": "Campaigns fourth printing B376/B485/B556-B557",
+      "anchor": "inspected",
       "behaviour": "A weapon's quality decides whether a critical miss breaks it and whether a resistant weapon gets a second roll; a broken weapon loses readiness.",
       "disposition": "implemented",
       "capability_id": "gurps.equipment.object_durability",
@@ -1413,10 +1413,10 @@
       "id": "Provenance.source_id",
       "unit": "source identifier",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
       ],
@@ -1427,9 +1427,9 @@
       "unit": "printing label",
       "reference": "publication statement",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_selected_source_rows"
       ],
@@ -1439,10 +1439,10 @@
       "id": "Provenance.pages",
       "unit": "page number",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
       ],
@@ -1452,10 +1452,10 @@
       "id": "Provenance.errata",
       "unit": "errata overlay label",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
       ],
@@ -1466,9 +1466,9 @@
       "unit": "thrust/swing/fixed selector",
       "reference": "B271 damage column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1479,9 +1479,9 @@
       "unit": "d6 count",
       "reference": "B271 damage column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_impossible_damage"
       ],
@@ -1492,9 +1492,9 @@
       "unit": "damage adds",
       "reference": "B271 damage column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1505,9 +1505,9 @@
       "unit": "damage type code",
       "reference": "B271 damage column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1517,10 +1517,10 @@
       "id": "Damage.armor_divisor",
       "unit": "divisor multiple",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_objects.py::test_object_armor_divisors"
       ],
@@ -1530,10 +1530,10 @@
       "id": "Damage.tight_beam",
       "unit": "flag",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_equipment_audit.py::test_tight_beam_burning_reaches_eyes_and_vitals"
       ],
@@ -1544,9 +1544,9 @@
       "unit": "parry column modifier",
       "reference": "B272-274 parry column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_melee_table_modes_cover_parry_hands_and_footnotes"
       ],
@@ -1557,9 +1557,9 @@
       "unit": "flag",
       "reference": "B271",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_melee.py::test_unbalanced_and_fencing_parry_columns"
       ],
@@ -1570,9 +1570,9 @@
       "unit": "flag",
       "reference": "B271",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_melee.py::test_unbalanced_and_fencing_parry_columns"
       ],
@@ -1582,10 +1582,10 @@
       "id": "MeleeMode.kind",
       "unit": "adapter discriminator",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [],
       "gap": "Adapter discriminator; no source column corresponds to it."
     },
@@ -1594,9 +1594,9 @@
       "unit": "mode identifier",
       "reference": "B271 weapon row modes",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1607,9 +1607,9 @@
       "unit": "skill reference",
       "reference": "B271 weapon table skill heading",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_modes_and_references_fail_closed"
       ],
@@ -1620,9 +1620,9 @@
       "unit": "ST",
       "reference": "B271 ST column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1633,9 +1633,9 @@
       "unit": "hand count",
       "reference": "B272-274 dagger-marked ST rows",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_melee_table_modes_cover_parry_hands_and_footnotes"
       ],
@@ -1646,9 +1646,9 @@
       "unit": "damage record",
       "reference": "B271 damage column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1659,9 +1659,9 @@
       "unit": "yards; 0 is close combat",
       "reference": "B271 reach column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1672,9 +1672,9 @@
       "unit": "parry record",
       "reference": "B271 parry column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -1684,10 +1684,10 @@
       "id": "MeleeMode.ready_after_attack",
       "unit": "flag",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_maneuvers.py::test_unready_after_attack_requires_ready_and_forbids_double"
       ],
@@ -1697,10 +1697,10 @@
       "id": "RangedMode.kind",
       "unit": "adapter discriminator",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [],
       "gap": "Adapter discriminator; no source column corresponds to it."
     },
@@ -1708,10 +1708,10 @@
       "id": "RangedMode.id",
       "unit": "mode identifier",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
       ],
@@ -1721,10 +1721,10 @@
       "id": "RangedMode.skill_id",
       "unit": "skill reference",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
       ],
@@ -1734,10 +1734,10 @@
       "id": "RangedMode.minimum_st",
       "unit": "ST",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_minimum_st_penalty_and_determined_bonus"
       ],
@@ -1747,10 +1747,10 @@
       "id": "RangedMode.hands",
       "unit": "hand count",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
       ],
@@ -1760,10 +1760,10 @@
       "id": "RangedMode.damage",
       "unit": "damage record",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
       ],
@@ -1773,10 +1773,10 @@
       "id": "RangedMode.accuracy",
       "unit": "accuracy bonus",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_aim_range_speed_size_and_half_damage"
       ],
@@ -1786,10 +1786,10 @@
       "id": "RangedMode.range_basis",
       "unit": "yards or ST multiple",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
       ],
@@ -1799,10 +1799,10 @@
       "id": "RangedMode.half_damage_range",
       "unit": "yards",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_aim_range_speed_size_and_half_damage"
       ],
@@ -1812,10 +1812,10 @@
       "id": "RangedMode.maximum_range",
       "unit": "yards",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_fractional_range_and_illegal_thrown_mode"
       ],
@@ -1825,10 +1825,10 @@
       "id": "RangedMode.rate_of_fire",
       "unit": "shots per attack",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately",
         "tests/test_gurps_ranged.py::test_b373_high_rate_of_fire_bonus_continues_by_doubling",
@@ -1841,9 +1841,9 @@
       "unit": "shots per attack",
       "reference": "Campaigns fourth printing B408",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_automatic_fire.py::test_full_auto_minimum_rejects_short_declared_burst",
         "tests/test_automatic_fire.py::test_full_auto_may_fire_all_of_a_short_remaining_load"
@@ -1855,9 +1855,9 @@
       "unit": "optional projectiles released per consumed shot",
       "reference": "Characters third printing B279; Campaigns fourth printing B409",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_shotguns.py::test_b409_ten_percent_boundary",
         "tests/test_shotguns.py::test_dispersed_shotgun_counts_pellets_but_spends_one_shell"
@@ -1868,10 +1868,10 @@
       "id": "RangedMode.shots",
       "unit": "shots per load",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_missed_single_shot_restart_and_lost_response_conserve_ammo"
       ],
@@ -1882,9 +1882,9 @@
       "unit": "rounds held outside the magazine",
       "reference": "B278-279 Shots column, +1 notation",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_b278_firearms_preserve_independent_table_columns"
       ],
@@ -1894,10 +1894,10 @@
       "id": "RangedMode.reload_seconds",
       "unit": "seconds",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_interrupted_reload_restart_retry_and_reservation"
       ],
@@ -1907,10 +1907,10 @@
       "id": "RangedMode.reload_protocol",
       "unit": "magazine or per-round selector",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_ranged_followups.py::test_per_round_loading_and_fire_cancels_partial_round"
       ],
@@ -1921,9 +1921,9 @@
       "unit": "bulk penalty",
       "reference": "B275-276 bulk column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_b275_276_launcher_rows_have_independent_inventory_and_mode_facts"
       ],
@@ -1931,12 +1931,12 @@
     },
     {
       "id": "RangedMode.recoil",
-      "unit": "recoil divisor",
-      "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "unit": "recoil score; margin-of-success interval for extra hits",
+      "reference": "B270; Campaigns fourth printing B408",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
       ],
@@ -1946,10 +1946,10 @@
       "id": "RangedMode.ammunition_id",
       "unit": "equipment reference",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
       ],
@@ -1959,10 +1959,10 @@
       "id": "RangedMode.thrown",
       "unit": "flag",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_thrown_weapon_leaves_inventory_and_retries_once"
       ],
@@ -1972,10 +1972,10 @@
       "id": "RangedMode.blockable",
       "unit": "flag",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_ranged.py::test_firearm_forbids_block_and_parry_including_second_defense"
       ],
@@ -1985,10 +1985,10 @@
       "id": "RangedMode.brace_kind",
       "unit": "one-handed or bipod selector",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
       ],
@@ -1998,10 +1998,10 @@
       "id": "RangedMode.scope_bonus",
       "unit": "accuracy bonus",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
       ],
@@ -2011,10 +2011,10 @@
       "id": "RangedMode.fixed_power_scope",
       "unit": "flag",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_maneuver_followups.py::test_fixed_scope_requires_its_full_aim_time"
       ],
@@ -2025,9 +2025,9 @@
       "unit": "hit location names",
       "reference": "B283 location column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -2038,9 +2038,9 @@
       "unit": "damage resistance",
       "reference": "B283 DR column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -2051,9 +2051,9 @@
       "unit": "flag",
       "reference": "B283 flexibility notation",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -2064,9 +2064,9 @@
       "unit": "skill reference",
       "reference": "B287 Shield Table",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_b287_shields_preserve_independent_table_columns"
       ],
@@ -2077,9 +2077,9 @@
       "unit": "defence bonus",
       "reference": "B287 DB column",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_melee.py::test_dodge_parry_block_and_repeats"
       ],
@@ -2090,9 +2090,9 @@
       "unit": "flag",
       "reference": "B287 shield rules",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_melee.py::test_dodge_parry_block_and_repeats"
       ],
@@ -2102,10 +2102,10 @@
       "id": "EquipmentProfile.definition_id",
       "unit": "equipment identifier",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_catalog_roundtrip_and_profile_gate"
       ],
@@ -2115,10 +2115,10 @@
       "id": "EquipmentProfile.provenance",
       "unit": "provenance record",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
       ],
@@ -2128,10 +2128,10 @@
       "id": "EquipmentProfile.weight_millipounds",
       "unit": "thousandths of a pound",
       "reference": "B264-289 weight column, pounds",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_load_bands_overload_and_unit_guard",
         "tests/test_heavy_parry.py::test_heavy_parry_breakage_and_incoming_damage"
@@ -2142,10 +2142,10 @@
       "id": "EquipmentProfile.price",
       "unit": "dollars",
       "reference": "B264-289 cost column",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_selected_source_rows"
       ],
@@ -2156,9 +2156,9 @@
       "unit": "integer TL, skill-relative marker, or superscience marker",
       "reference": "B264-289 TL column, including B272/B287 ^ and B289 var.",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_selected_source_rows",
         "tests/test_basic_equipment.py::test_non_numeric_technology_levels_fail_closed"
@@ -2169,10 +2169,10 @@
       "id": "EquipmentProfile.slot",
       "unit": "adapter inventory slot",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_modes_and_references_fail_closed"
       ],
@@ -2182,10 +2182,10 @@
       "id": "EquipmentProfile.ammunition",
       "unit": "flag",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
       ],
@@ -2196,9 +2196,9 @@
       "unit": "weapon mode records",
       "reference": "B271 weapon rows",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -2209,9 +2209,9 @@
       "unit": "armor record",
       "reference": "B283 armor rows",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -2222,9 +2222,9 @@
       "unit": "shield record",
       "reference": "B287 Shield Table",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_b287_shields_preserve_independent_table_columns"
       ],
@@ -2234,10 +2234,10 @@
       "id": "EquipmentProfile.unsupported_mechanics",
       "unit": "behaviour identifiers",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_container_units_and_unsupported_activation"
       ],
@@ -2247,10 +2247,10 @@
       "id": "EquipmentProfile.durability",
       "unit": "object profile record",
       "reference": "B264-289",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
       ],
@@ -2260,10 +2260,10 @@
       "id": "EquipmentProfile.critical_breakage",
       "unit": "weapon quality selector",
       "reference": "B264-289 weapon quality column; consumed by B556-557",
-      "anchor": "range-only",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_ranged_critical_completion.py::test_typed_breakage_and_resistant_second_roll"
       ],
@@ -2274,9 +2274,9 @@
       "unit": "thousandths of a pound",
       "reference": "B288 container rows",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_container_units_and_unsupported_activation"
       ],
@@ -2287,9 +2287,9 @@
       "unit": "weapon quality selector",
       "reference": "B376 heavy-weapon breakage; Campaigns fourth printing (2008)",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_heavy_parry.py::test_heavy_parry_breakage_and_incoming_damage"
       ],
@@ -2298,11 +2298,11 @@
     {
       "id": "RangedMode.rated_strength",
       "unit": "optional weapon strength protocol",
-      "reference": "Characters third printing B16/B270; selected-printing field review pending #191",
+      "reference": "Characters third printing B16/B270",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_rated_projectiles.py::test_rating_is_opt_in_and_validated"
       ],
@@ -2311,11 +2311,11 @@
     {
       "id": "RatedStrength.kind",
       "unit": "bow or crossbow selector",
-      "reference": "Characters third printing B16/B270; selected-printing field review pending #191",
+      "reference": "Characters third printing B16/B270",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_rated_projectiles.py::test_crossbow_reload_timing_interruptions_and_restart"
       ],
@@ -2324,11 +2324,11 @@
     {
       "id": "RatedStrength.st",
       "unit": "weapon ST level",
-      "reference": "Characters third printing B16/B270; selected-printing field review pending #191",
+      "reference": "Characters third printing B16/B270",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_rated_projectiles.py::test_bow_uses_weapon_st_for_damage_and_range"
       ],
@@ -2337,11 +2337,11 @@
     {
       "id": "RangedMode.firearm",
       "unit": "optional conventional firearm protocol",
-      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "reference": "Campaigns fourth printing B382/B407",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_firearm_malfunctions.py::test_firearm_metadata_is_opt_in_and_bounded"
       ],
@@ -2350,11 +2350,11 @@
     {
       "id": "RangedMode.entangle",
       "unit": "optional entangling binding protocol",
-      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
+      "reference": "Characters third printing B181/B211",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_entangling_attacks.py::test_landed_net_binds_the_target_and_stops_its_movement"
       ],
@@ -2363,11 +2363,11 @@
     {
       "id": "EntangleSpec.binding_st",
       "unit": "binding strength level",
-      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
+      "reference": "Characters third printing B181/B211",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_entangling_attacks.py::test_escape_frees_or_records_the_attempt"
       ],
@@ -2376,11 +2376,11 @@
     {
       "id": "EntangleSpec.attack_penalty",
       "unit": "attack roll modifier",
-      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
+      "reference": "Characters third printing B181/B211",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_entangling_attacks.py::test_binding_penalises_the_victims_attacks_and_defenses"
       ],
@@ -2389,11 +2389,11 @@
     {
       "id": "EntangleSpec.defense_penalty",
       "unit": "active defense modifier",
-      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
+      "reference": "Characters third printing B181/B211",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_entangling_attacks.py::test_binding_penalises_the_victims_attacks_and_defenses"
       ],
@@ -2402,11 +2402,11 @@
     {
       "id": "EntangleSpec.immobilizes",
       "unit": "movement restriction flag",
-      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
+      "reference": "Characters third printing B181/B211",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_entangling_attacks.py::test_landed_net_binds_the_target_and_stops_its_movement"
       ],
@@ -2415,11 +2415,11 @@
     {
       "id": "EntangleSpec.attached",
       "unit": "weapon retention flag",
-      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
+      "reference": "Characters third printing B181/B211",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_entangling_attacks.py::test_landed_net_binds_the_target_and_stops_its_movement"
       ],
@@ -2428,11 +2428,11 @@
     {
       "id": "EntangleSpec.escape_skill_id",
       "unit": "optional trained escape skill reference",
-      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
+      "reference": "Characters third printing B181/B211",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_entangling_attacks.py::test_escape_frees_or_records_the_attempt"
       ],
@@ -2441,11 +2441,11 @@
     {
       "id": "RangedMode.mount",
       "unit": "optional crew-served mount protocol",
-      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
+      "reference": "Characters third printing B178/B198",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_mounted_ranged_skills.py::test_every_mounted_specialty_fires_from_its_crew"
       ],
@@ -2454,11 +2454,11 @@
     {
       "id": "MountSpec.crew",
       "unit": "crew complement",
-      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
+      "reference": "Characters third printing B178/B198",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_mounted_ranged_skills.py::test_crew_assignment_is_validated_and_durable"
       ],
@@ -2467,11 +2467,11 @@
     {
       "id": "MountSpec.laying_seconds",
       "unit": "seconds of laying",
-      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
+      "reference": "Characters third printing B178/B198",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_mounted_ranged_skills.py::test_a_mount_is_never_thrown_or_entangling"
       ],
@@ -2480,11 +2480,11 @@
     {
       "id": "MountSpec.indirect",
       "unit": "indirect fire flag",
-      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
+      "reference": "Characters third printing B178/B198",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_mounted_ranged_skills.py::test_an_indirect_mount_leaves_the_target_no_active_defense"
       ],
@@ -2493,11 +2493,11 @@
     {
       "id": "MountSpec.vehicle_mounted",
       "unit": "vehicle mount flag",
-      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
+      "reference": "Characters third printing B178/B198",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_mounted_ranged_skills.py::test_every_mounted_specialty_fires_from_its_crew"
       ],
@@ -2506,11 +2506,11 @@
     {
       "id": "RangedMode.sprayer",
       "unit": "optional held stream protocol",
-      "reference": "Characters third printing B205; selected-printing field review pending #191",
+      "reference": "Characters third printing B205",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_liquid_projector_streams.py::test_every_specialty_opens_a_stream"
       ],
@@ -2519,11 +2519,11 @@
     {
       "id": "SprayerSpec.sustained_seconds",
       "unit": "seconds of sustained stream",
-      "reference": "Characters third printing B205; selected-printing field review pending #191",
+      "reference": "Characters third printing B205",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_liquid_projector_streams.py::test_a_stream_stops_at_its_ceiling"
       ],
@@ -2532,11 +2532,11 @@
     {
       "id": "SprayerSpec.rounds_per_second",
       "unit": "rounds per second of stream",
-      "reference": "Characters third printing B205; selected-printing field review pending #191",
+      "reference": "Characters third printing B205",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_liquid_projector_streams.py::test_a_held_stream_is_paid_for_every_second_and_can_be_walked"
       ],
@@ -2545,11 +2545,11 @@
     {
       "id": "SprayerSpec.ignites",
       "unit": "ignition flag",
-      "reference": "Characters third printing B205; selected-printing field review pending #191",
+      "reference": "Characters third printing B205",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_liquid_projector_streams.py::test_every_specialty_opens_a_stream"
       ],
@@ -2558,11 +2558,11 @@
     {
       "id": "RangedMode.launcher",
       "unit": "optional launcher-assisted throw protocol",
-      "reference": "Characters third printing B222; selected-printing field review pending #191",
+      "reference": "Characters third printing B222",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_launcher_throws.py::test_the_launcher_improves_the_throw_and_is_not_consumed"
       ],
@@ -2571,11 +2571,11 @@
     {
       "id": "LauncherSpec.launcher_definition_id",
       "unit": "pinned launcher catalog reference",
-      "reference": "Characters third printing B222; selected-printing field review pending #191",
+      "reference": "Characters third printing B222",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_launcher_throws.py::test_without_the_launcher_in_hand_the_throw_is_refused"
       ],
@@ -2584,11 +2584,11 @@
     {
       "id": "LauncherSpec.range_multiplier",
       "unit": "range multiplier",
-      "reference": "Characters third printing B222; selected-printing field review pending #191",
+      "reference": "Characters third printing B222",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_launcher_throws.py::test_the_launcher_extends_the_throws_reach"
       ],
@@ -2597,11 +2597,11 @@
     {
       "id": "LauncherSpec.damage_bonus",
       "unit": "damage adds",
-      "reference": "Characters third printing B222; selected-printing field review pending #191",
+      "reference": "Characters third printing B222",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_launcher_throws.py::test_the_launcher_improves_the_throw_and_is_not_consumed"
       ],
@@ -2610,11 +2610,11 @@
     {
       "id": "FirearmSpec.technology_level",
       "unit": "technology level",
-      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "reference": "Campaigns fourth printing B382/B407",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_firearm_malfunctions.py::test_source_malfunction_numbers"
       ],
@@ -2623,11 +2623,11 @@
     {
       "id": "FirearmSpec.action",
       "unit": "repeating or revolver mechanism",
-      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "reference": "Campaigns fourth printing B382/B407",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_firearm_malfunctions.py::test_revolver_advances_past_misfire_on_next_attack"
       ],
@@ -2636,11 +2636,11 @@
     {
       "id": "FirearmSpec.quality",
       "unit": "weapon quality category",
-      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "reference": "Campaigns fourth printing B382/B407",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_firearm_malfunctions.py::test_source_malfunction_numbers"
       ],
@@ -2649,11 +2649,11 @@
     {
       "id": "FirearmSpec.malfunction_override",
       "unit": "optional unmodified 3d threshold",
-      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "reference": "Campaigns fourth printing B382/B407",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_firearm_malfunctions.py::test_stoppage_fires_only_one_without_rapid_fire_bonus"
       ],
@@ -2662,11 +2662,11 @@
     {
       "id": "FirearmSpec.armoury_skill_id",
       "unit": "pinned Armoury skill identifier",
-      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "reference": "Campaigns fourth printing B382/B407",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_firearm_malfunctions.py::test_hourly_repair_success_failure_and_destruction"
       ],
@@ -2675,11 +2675,11 @@
     {
       "id": "RangedMode.readiness",
       "unit": "optional readiness protocol",
-      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_projectile_readiness.py::test_bow_prepare_draw_let_down_without_extra_fatigue"
       ],
@@ -2688,11 +2688,11 @@
     {
       "id": "ProjectileReadiness.kind",
       "unit": "protocol selector",
-      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_projectile_readiness.py::test_crossbow_cocking_protocol"
       ],
@@ -2701,11 +2701,11 @@
     {
       "id": "ProjectileReadiness.fast_draw_skill_id",
       "unit": "exact trained skill reference",
-      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_projectile_readiness.py::test_fast_draw_preserves_ammunition_and_receipts"
       ],
@@ -2714,11 +2714,11 @@
     {
       "id": "ProjectileReadiness.fast_draw_specialty",
       "unit": "Arrow or Ammo specialty",
-      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_projectile_readiness.py::test_fast_draw_untrained_rejects_without_mutation"
       ],
@@ -2727,11 +2727,11 @@
     {
       "id": "ProjectileReadiness.fast_draw_seconds",
       "unit": "Ready maneuvers saved",
-      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_projectile_readiness.py::test_fast_draw_preserves_ammunition_and_receipts"
       ],
@@ -2740,11 +2740,11 @@
     {
       "id": "ProjectileReadiness.cocking_aid_definition_id",
       "unit": "owned equipment reference",
-      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_projectile_readiness.py::test_crossbow_missing_aid_rejects_before_dice"
       ],
@@ -2753,11 +2753,11 @@
     {
       "id": "ProjectileReadiness.unload_seconds_per_round",
       "unit": "authored Ready maneuvers per round; uncertified",
-      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_projectile_readiness.py::test_authored_round_unloading_survives_interruption"
       ],
@@ -2766,11 +2766,11 @@
     {
       "id": "RangedMode.catchable",
       "unit": "explicit barehanded parry and critical catch opt-in",
-      "reference": "Campaigns fourth printing B376/B381; baseline reconciliation remains #191",
+      "reference": "Campaigns fourth printing B376/B381",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_thrown_recovery.py::test_catch_requires_critical_success"
       ],
@@ -2779,11 +2779,11 @@
     {
       "id": "FirearmSpec.fuse_seconds",
       "unit": "normal fuse duration in seconds",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B410",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2793,11 +2793,11 @@
     {
       "id": "ExplosionSpec.dice",
       "unit": "six-sided blast damage dice",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2807,11 +2807,11 @@
     {
       "id": "ExplosionSpec.adds",
       "unit": "blast damage points before multiplier",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2821,11 +2821,11 @@
     {
       "id": "ExplosionSpec.multiplier",
       "unit": "blast damage and radius multiplier",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2835,11 +2835,11 @@
     {
       "id": "ExplosionSpec.damage_type",
       "unit": "crushing or burning blast damage",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2849,11 +2849,11 @@
     {
       "id": "ExplosionSpec.armor_divisor",
       "unit": "divisor for direct target armor only",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2863,11 +2863,11 @@
     {
       "id": "ExplosionSpec.fragmentation_dice",
       "unit": "six-sided cutting fragmentation dice",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2877,11 +2877,11 @@
     {
       "id": "EquipmentProfile.warhead",
       "unit": "pinned explosive and fragmentation damage",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2891,11 +2891,11 @@
     {
       "id": "EquipmentProfile.power_cell_capacity",
       "unit": "charges per individual physical cell",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
+      "reference": "Characters third printing B280 Shots and power-cell records",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
@@ -2907,9 +2907,9 @@
       "unit": "typed gyroc acceleration bands",
       "reference": "B278 Gyroc footnote 2",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
       "gap": null
     },
@@ -2918,9 +2918,9 @@
       "unit": "typed smartgun behavior",
       "reference": "B278 Gyroc footnote 1 and B280 Beam Weapons",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_rejects_an_unauthorized_owner"],
       "gap": null
     },
@@ -2929,9 +2929,9 @@
       "unit": "flag requiring authored obscurant DR",
       "reference": "B280 Beam Weapons footnote 3",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_laser_beam_cell_environment_and_recharge"],
       "gap": null
     },
@@ -2940,9 +2940,9 @@
       "unit": "yards",
       "reference": "B278 Gyroc footnote 2",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
       "gap": null
     },
@@ -2951,9 +2951,9 @@
       "unit": "rolled-damage divisor",
       "reference": "B278 Gyroc footnote 2",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
       "gap": null
     },
@@ -2962,9 +2962,9 @@
       "unit": "yards",
       "reference": "B278 Gyroc footnote 2",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
       "gap": null
     },
@@ -2973,9 +2973,9 @@
       "unit": "rolled-damage divisor",
       "reference": "B278 Gyroc footnote 2",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
       "gap": null
     },
@@ -2984,9 +2984,9 @@
       "unit": "attack roll bonus",
       "reference": "B278 Gyroc footnote 1 and Campaigns B412 Laser Sights",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_laser_beam_cell_environment_and_recharge"],
       "gap": null
     },
@@ -2995,9 +2995,9 @@
       "unit": "repair or malfunction-service roll bonus",
       "reference": "B278 Gyroc footnote 1",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_selected_gyroc_and_laser_rows_are_exact_and_executable"],
       "gap": null
     },
@@ -3006,9 +3006,9 @@
       "unit": "authorization requirement flag",
       "reference": "B278 Gyroc footnote 1",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_rejects_an_unauthorized_owner"],
       "gap": null
     },
@@ -3017,9 +3017,9 @@
       "unit": "typed electronics capability suite",
       "reference": "Campaigns B471-472; Characters B288-289",
       "anchor": "inspected",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_electronics.py::test_basic_catalog_pins_executable_device_profiles_and_operating_time"],
       "gap": null
     }

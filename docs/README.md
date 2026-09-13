@@ -49,7 +49,9 @@ The capability registry and executable reports are authoritative. Topic pages
 describe bounded implementations; a topic page is not a whole-profile certificate.
 
 - [Conformance baseline](gurps-conformance.md), [Basic Set certification](gurps-basic-set-certification.md),
-  [source audit](gurps-source-audit.md), and [selected-source review](gurps-basic-set-source-review.md)
+  [source audit](gurps-source-audit.md), [selected-source review](gurps-basic-set-source-review.md),
+  [inventory source review](gurps-inventory-source-review.md), and
+  [equipment source review](gurps-equipment-source-review.md)
 - [Abilities](gurps-abilities.md), [mundane skills](gurps-mundane-skills.md),
   [cinematic skills](gurps-cinematic-skills.md), and [mundane traits](gurps-mundane-traits.md)
 - [Attack and defense traits](gurps-attack-defense-traits.md),

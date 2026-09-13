@@ -116,7 +116,8 @@ def test_field_provenance_tracks_the_whole_equipment_schema() -> None:
     expected = {f"{m.__name__}.{n}" for m in AUDITED_MODELS for n in m.model_fields}
     records = {record.id: record for record in ledger().fields}
     assert set(records) == expected
-    assert all(record.status == "pending" for record in records.values())
+    assert all(record.status == "reviewed" for record in records.values())
+    assert all(record.reviewer and record.evidence for record in records.values())
     assert records["EquipmentProfile.weight_millipounds"].unit == "thousandths of a pound"
     assert records["EquipmentProfile.container_capacity_millipounds"].unit == (
         "thousandths of a pound"
@@ -151,7 +152,8 @@ def test_audit_rows_export_only_explicit_source_review_state() -> None:
     for record in ledger().footnotes:
         expected = "reviewed" if record.anchor == "inspected" else "pending"
         assert footnotes[record.id].source_review == expected
-    assert fields and all(row.source_review == "pending" for row in fields)
+    assert fields and all(row.source_review == "reviewed" for row in fields)
+    assert all("docs/gurps-equipment-source-review.md" in row.evidence for row in fields)
     assert bindings["basic-set-catalog"].source_review == "reviewed"
     assert bindings["lite-catalog"].source_review == "pending"
     assert all(
@@ -393,7 +395,7 @@ def test_section_records_cannot_hide_an_incomplete_audit() -> None:
             capability_id="gurps.combat.melee_attack",
             evidence_gap="No case exists",
         )
-    with pytest.raises(ValueError, match="cannot claim a source comparison"):
+    with pytest.raises(ValueError, match="cannot claim an incomplete source comparison"):
         FieldProvenance(
             id="Armor.dr",
             unit="damage resistance",
