@@ -19,7 +19,7 @@ from wayfarer.engine.simulation.health.medical.commands import (
 )
 from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -140,17 +140,15 @@ class MedicalService:
     def __init__(self, play: PlayService, environment: EnvironmentResolver) -> None:
         self.play, self.environment = play, environment
 
-    async def execute(
-        self, cid: str, command: BeginRecovery | FinishRecovery, *, authenticated_actor_id: str
-    ) -> RecoveryResult:
-        command = type(command).model_validate(command)
-        if authenticated_actor_id != command.actor_id:
-            raise ValidationError("Recovery actor does not match authenticated actor")
-        play = self.play.for_campaign(await self.play.store.read(cid))
-        profile_id = play.engine.reviewer.compiler.statistics_profile
-        if profile_id not in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
-            raise ValidationError("Recovery requires an exact GURPS profile")
-        selected = cast(ProfileId, profile_id)
+    def plan(
+        self,
+        play: PlayService,
+        selected: ProfileId,
+        command: BeginRecovery | FinishRecovery,
+        *,
+        principal_id: str,
+    ) -> CommandPlan[RecoveryResult]:
+        """What a care command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"operation": "gurps-recovery", "command": command.model_dump(mode="json")},
             sort_keys=True,
@@ -287,17 +285,36 @@ class MedicalService:
                 outcome=json.dumps({"task_id": result.task_id, "status": result.status}),
             )
 
-        committed = await commit_command(
-            play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> RecoveryResult:
+            # A retry reads the persisted result without re-running skills or conditions.
+            state = play._load(campaign)
+            event = next(e for e in state.resources.events if e.id == f"care:{command.id}")
+            return RecoveryResult.model_validate_json(event.kind)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(
+                ActsAs(command.actor_id, "Recovery actor does not match authenticated actor"),
+            ),
             rng=play.rng,
         )
-        state = play._load(committed["state"])
-        # A retry reads the persisted result without re-running skills or conditions.
-        event = next(e for e in state.resources.events if e.id == f"care:{command.id}")
-        return RecoveryResult.model_validate_json(event.kind)
+
+    async def execute(
+        self, cid: str, command: BeginRecovery | FinishRecovery, *, principal_id: str
+    ) -> RecoveryResult:
+        command = type(command).model_validate(command)
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        profile_id = play.engine.reviewer.compiler.statistics_profile
+        if profile_id not in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
+            raise ValidationError("Recovery requires an exact GURPS profile")
+        return await submit(
+            play,
+            cid,
+            self.plan(play, cast(ProfileId, profile_id), command, principal_id=principal_id),
+            principal_id=principal_id,
+        )

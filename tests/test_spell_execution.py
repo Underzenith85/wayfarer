@@ -121,7 +121,7 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
                 reaction_target_id="b",
             ),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     result = await combat.execute(
         cid,
@@ -133,7 +133,7 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
             maneuver="move",
             destination=GridPoint(x=3, y=1),
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     assert result.code == "combat.wait_triggered"
     await service.execute(
@@ -147,14 +147,14 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
         ChooseDefense(
             id="defense", actor_id="b", expected_revision=6, encounter_id="fight", defense="none"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     saved = play._load(await play.store.read(cid))
     assert saved.encounters[0].wait_interrupt and saved.encounters[0].wait_interrupt.ready
     await combat.execute(
         cid,
         ResumeInterruptedTurn(id="resume", actor_id="b", expected_revision=7, encounter_id="fight"),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     saved = play._load(await play.store.read(cid))
     assert next(
@@ -179,7 +179,7 @@ async def test_hex_fire_crossing_hurts_even_when_endpoint_is_outside(tmp_path: P
                 "battlefield": migrate.battlefield.model_copy(update={"id": "room"}),
             }
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play = play.for_campaign(await play.store.read(cid))
     combat = CombatService(play)
@@ -202,7 +202,7 @@ async def test_hex_fire_crossing_hurts_even_when_endpoint_is_outside(tmp_path: P
             maneuver="move",
             hex_path=(Hex(q=2, r=0), Hex(q=3, r=0)),
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     saved = play._load(await play.store.read(cid))
     assert next(p.current for p in saved.resources.pools if p.id == "hp:b") == 8
@@ -257,10 +257,10 @@ async def test_gm_backfire_retarget_is_atomic_authorized_and_replayable(
     )
     resolver = SpellBackfireService(play)
     with pytest.raises(AuthorizationError):
-        await resolver.execute(cid, decision, authenticated_gm_id="a")
+        await resolver.execute(cid, decision, principal_id="a")
     play.rng = RecordedDice([])
     results = await asyncio.gather(
-        *(resolver.execute(cid, decision, authenticated_gm_id="gm") for _ in range(3))
+        *(resolver.execute(cid, decision, principal_id="gm") for _ in range(3))
     )
     assert all(r == results[0] and not r.pending for r in results)
     saved = play._load(await play.store.read(cid))
@@ -341,7 +341,7 @@ async def test_fireball_body_criticals_execute_damage(
         ChooseDefense(
             id="hit", actor_id="b", expected_revision=4, encounter_id="fight", defense="none"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     assert result.injury and result.injury.injury == expected
     assert result.injury.adjudication_required is None
@@ -355,7 +355,7 @@ async def test_noncombat_mental_stun_recovers_at_next_second_with_iq(tmp_path: P
     service = SpellService(play)
     await service.execute(cid, command(), principal_id="a")
     await play.execute(
-        cid, Wait(id="time", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="time", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([6, 6, 6, 3, 3, 3])
     await service.execute(cid, command(2, "complete"), principal_id="a")
@@ -365,7 +365,7 @@ async def test_noncombat_mental_stun_recovers_at_next_second_with_iq(tmp_path: P
     await play.execute(
         cid,
         Wait(id="recover", actor_id="a", expected_revision=3, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     saved = play._load(await play.store.read(cid))
     assert not backfires(saved.resources)[0].stunned
@@ -380,7 +380,7 @@ async def test_backfire_illusion_exposes_only_appearance(tmp_path: Path) -> None
     service = SpellService(play)
     await service.execute(cid, command(), principal_id="a")
     await play.execute(
-        cid, Wait(id="time", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="time", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([6, 6, 6, 5, 5, 4])
     await service.execute(cid, command(2, "complete"), principal_id="a")
@@ -418,7 +418,7 @@ async def test_demon_result_adds_only_an_approved_reserve_combatant(tmp_path: Pa
         backfire_id=backfires(saved.resources)[0].id,
         alternative_id=alternative.id,
     )
-    await SpellBackfireService(play).execute(cid, decision, authenticated_gm_id="gm")
+    await SpellBackfireService(play).execute(cid, decision, principal_id="gm")
     saved = play._load(await play.store.read(cid))
     assert saved.encounters[0].turn_order == ("a", "b", "c")
     assert next(

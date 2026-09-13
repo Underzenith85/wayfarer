@@ -54,7 +54,7 @@ async def test_body_critical_damage_and_restart_receipt(
     play.rng = RecordedDice(
         [1, 1, 1, *table, *([] if sum(table) in (6, 15) else [2]), *([1, 1, 1] * 4)]
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury is not None
     assert result.injury.defense is None
     assert result.injury.basic_damage == damage
@@ -62,7 +62,7 @@ async def test_body_critical_damage_and_restart_receipt(
     assert result.injury.adjudication_required is None
     assert isinstance(play.store, AsyncSQLiteStore)
     play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
     saved = play._load(await play.store.read(cid))
     events = [e for e in saved.resources.events if e.id.startswith("ranged-critical:")]
     assert len(events) == 1
@@ -187,10 +187,10 @@ async def test_unload_releases_reservations_once_across_restart(tmp_path: Path) 
         mode_id="ranged",
         unload_ammunition=True,
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, command, principal_id="a")
     assert isinstance(play.store, AsyncSQLiteStore)
     play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="a") == result
+    assert await CombatService(play).execute(cid, command, principal_id="a") == result
     state = play._load(await play.store.read(cid))
     assert not state.resources.ammunition_loads
     assert next(i.quantity for i in state.resources.items if i.id == "ammo-a") == 10

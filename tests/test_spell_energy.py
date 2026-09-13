@@ -106,7 +106,7 @@ async def test_one_second_cast_completes_before_other_actor_turn(
                 Placement(actor_id="b", position=GridPoint(x=2, y=1)),
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play.rng = RecordedDice([3, 3, 3])
     cmd = player_command(1)

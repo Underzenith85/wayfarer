@@ -103,7 +103,7 @@ async def test_changed_subgroup_releases_uninterpreted_turn(tmp_path: Path) -> N
             expected_revision=state.revision,
             target_id="scouts",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     result = await director.run(
         cid, principal_id="alice", actor_id="a", command_id="old", text="wait"

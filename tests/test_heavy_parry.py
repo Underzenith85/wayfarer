@@ -52,7 +52,7 @@ async def test_heavy_parry_breakage_and_incoming_damage(
     # Attack 9 succeeds; Parry 8 succeeds without needing shield DB. 4+1 damage,
     # with no armor, inflicts 5 crushing injury when >6-in-6 sweeps the parry aside.
     play.rng = RecordedDice([3, 3, 3, 2, 3, 3, die, *([] if stopped else [4])])
-    result = await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("parry"), principal_id="b")
     state = play._load(await play.store.read(cid))
     event = next(e for e in state.resources.events if e.id.startswith("heavy-parry:"))
     saved = HeavyParryResult.model_validate_json(event.kind)
@@ -88,14 +88,11 @@ async def test_heavy_parry_authority_concurrency_and_restart(tmp_path: Path) -> 
     play.rng = RecordedDice([])
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="authorized"):
-        await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="a")
+        await CombatService(play).execute(cid, choice("parry"), principal_id="a")
     assert await play.store.read(cid) == before
     play.rng = RecordedDice([3, 3, 3, 2, 3, 3, 1])
     results = await asyncio.gather(
-        *(
-            CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
-            for _ in range(2)
-        )
+        *(CombatService(play).execute(cid, choice("parry"), principal_id="b") for _ in range(2))
     )
     assert results[0] == results[1]
     state = play._load(await play.store.read(cid))
@@ -103,8 +100,7 @@ async def test_heavy_parry_authority_concurrency_and_restart(tmp_path: Path) -> 
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
     assert (
-        await CombatService(restarted).execute(cid, choice("parry"), authenticated_actor_id="b")
-        == results[0]
+        await CombatService(restarted).execute(cid, choice("parry"), principal_id="b") == results[0]
     )
     assert restarted._load(await restarted.store.read(cid)).resources == state.resources
 
@@ -181,7 +177,7 @@ async def test_no_breakage_without_successful_contact(
     )
     await attack(cid, play)
     play.rng = RecordedDice([*attack_dice, *defense_dice, *([4] if defense_dice else [])])
-    await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    await CombatService(play).execute(cid, choice("parry"), principal_id="b")
     state = play._load(await play.store.read(cid))
     assert not any(e.id.startswith("heavy-parry:") for e in state.resources.events)
     item = next(i for i in state.resources.items if i.id == "sword-b")
@@ -257,7 +253,7 @@ async def test_shield_db_contact_does_not_break_the_weapon(tmp_path: Path) -> No
     await attack(cid, play)
     # Parry is 9 without DB; a 10 contacts the shield, not the sword.
     play.rng = RecordedDice([3, 3, 3, 3, 3, 4, 4])
-    result = await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("parry"), principal_id="b")
     state = play._load(await play.store.read(cid))
     assert result.injury and result.injury.effect_dice == ()
     assert not any(e.id.startswith("heavy-parry:") for e in state.resources.events)

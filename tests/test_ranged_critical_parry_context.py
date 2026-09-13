@@ -73,7 +73,7 @@ async def test_selected_thrown_parry_mode_and_retry(
     play.rng = RecordedDice(
         [3, 3, 3, *([4, 4, 4] if second else []), 6, 6, 6, *table, 1, 1, 4, *([3] * 20)]
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id=subject)
+    result = await CombatService(play).execute(cid, command, principal_id=subject)
     assert result.injury and result.injury.adjudication_required is None
     saved = play._load(await play.store.read(cid))
     limb = CriticalLimbResult.model_validate_json(
@@ -92,10 +92,7 @@ async def test_selected_thrown_parry_mode_and_retry(
     assert context.table_rolls == (table,)  # A crushing/cutting Parry is not a ranged self-hit.
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id=subject)
-        == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id=subject) == result
     assert restarted._load(await restarted.store.read(cid)).resources == saved.resources
     assert await play.store.read(cid) == await play.store.replay(cid)
 
@@ -122,10 +119,10 @@ async def test_ranged_drop_has_authoritative_landing(
         encounter_id="fight",
         defense="none",
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert isinstance(play.store, AsyncSQLiteStore)
     play = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
     state = play._load(await play.store.read(cid))
     encounter = state.encounters[0]
     actor = encounter.participants[0]

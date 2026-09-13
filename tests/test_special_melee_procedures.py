@@ -95,10 +95,10 @@ async def test_b400_chink_attack_uses_worn_armor_and_halves_dr(tmp_path: Path) -
             hit_location="torso",
             armor_chink=True,
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([1, 1, 2, 3, 3, 3, 4])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury is not None
     assert result.injury.attack.effective_target == 5  # skill 13, complete chink penalty -8
     assert result.injury.resistance == 2
@@ -122,10 +122,10 @@ async def test_b401_pull_strength_and_turn_blade_are_committed_subdual(tmp_path:
             strike_strength=9,
             subdual_mode="flat",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([3, 3, 3, 4])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury is not None
     assert result.injury.basic_damage == 4  # ST 9 swing plus the weapon's printed add
     assert result.injury.injury == 4  # crushing, not the cutting mode's x1.5
@@ -150,10 +150,10 @@ async def test_b400_weapon_hit_dispatches_through_object_damage(tmp_path: Path) 
             target_id="b",
             target_item_id="sword-b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([3, 3, 3, 4])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     assert result.injury is not None and result.injury.injury == 0
     damage = state.resources.object_results[-1]

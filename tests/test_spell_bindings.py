@@ -316,7 +316,7 @@ async def test_player_context_is_compiled_and_retries_are_durable(tmp_path: Path
     assert (bound.skill, bound.magery, bound.ht, bound.will) == (14, 2, 10, 12)
     assert (await service.execute(cid, command(), principal_id="a")).outcome == "casting"
     await play.execute(
-        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([3, 3, 3])
     complete = command(2, "complete")
@@ -360,7 +360,7 @@ async def test_daze_casting_seconds_combat_restrictions_and_injury_cancellation(
                 Placement(actor_id="b", position=GridPoint(x=2, y=1)),
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     service = SpellService(play)
     start = command(1).model_copy(update={"spell_id": "daze", "channel_id": "daze"})
@@ -372,7 +372,7 @@ async def test_daze_casting_seconds_combat_restrictions_and_injury_cancellation(
         TakeCombatTurn(
             id="b1", actor_id="b", expected_revision=2, encounter_id="fight", maneuver="do_nothing"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     await service.execute(
         cid,
@@ -386,7 +386,7 @@ async def test_daze_casting_seconds_combat_restrictions_and_injury_cancellation(
         TakeCombatTurn(
             id="b2", actor_id="b", expected_revision=4, encounter_id="fight", maneuver="do_nothing"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     play.rng = RecordedDice([3, 3, 3, 4, 4, 4])
     result = await service.execute(
@@ -402,7 +402,7 @@ async def test_daze_casting_seconds_combat_restrictions_and_injury_cancellation(
         TakeCombatTurn(
             id="a3", actor_id="a", expected_revision=6, encounter_id="fight", maneuver="do_nothing"
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     with pytest.raises(ValidationError, match="Dazed"):
         await combat.execute(
@@ -415,14 +415,14 @@ async def test_daze_casting_seconds_combat_restrictions_and_injury_cancellation(
                 maneuver="move",
                 destination=GridPoint(x=3, y=1),
             ),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     await combat.execute(
         cid,
         TakeCombatTurn(
             id="b3", actor_id="b", expected_revision=7, encounter_id="fight", maneuver="do_nothing"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     wounded, injury = apply_injury(
@@ -458,7 +458,7 @@ async def start_fight(cid: str, play: PlayService) -> CombatService:
                 Placement(actor_id="b", position=GridPoint(x=2, y=1)),
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     return combat
 
@@ -474,7 +474,7 @@ async def idle(cid: str, play: PlayService, actor: str) -> None:
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -511,7 +511,7 @@ async def test_fireball_release_uses_defense_and_exactly_once_injury(
         id="defense", actor_id="b", expected_revision=5, encounter_id="fight", defense="none"
     )
     results = await asyncio.gather(
-        *(combat.execute(cid, defense, authenticated_actor_id="b") for _ in range(3))
+        *(combat.execute(cid, defense, principal_id="b") for _ in range(3))
     )
     assert all(r == results[0] for r in results)
     state = play._load(await play.store.read(cid))
@@ -551,7 +551,7 @@ async def test_create_fire_exposure_ends_when_target_moves(tmp_path: Path) -> No
             maneuver="move",
             destination=GridPoint(x=3, y=1),
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     state = play._load(await play.store.read(cid))
     assert not any(h.active for h in state.resources.hazards)
@@ -568,7 +568,7 @@ async def test_light_illuminates_its_target_until_cancel_without_revealing_facts
     before = play._load(await play.store.read(cid))
     await service.execute(cid, command(), principal_id="a")
     await play.execute(
-        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), authenticated_actor_id="a"
+        cid, Wait(id="wait", actor_id="a", expected_revision=1, ticks=1), principal_id="a"
     )
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(cid, command(2, "complete"), principal_id="a")

@@ -414,23 +414,23 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
     await service.create(initial, seed())
     command = Consume(id="one", actor_id="a", expected_revision=0, item_id="arrows", quantity=3)
     results = await asyncio.gather(
-        *(service.execute(initial["id"], command, authenticated_actor_id="a") for _ in range(8))
+        *(service.execute(initial["id"], command, principal_id="a") for _ in range(8))
     )
     assert all(r == results[0] for r in results)
     assert results[0].revision == 1
     assert next(i.quantity for i in results[0].items if i.id == "arrows") == 7
     with pytest.raises(ValidationError, match="authorized"):
-        await service.execute(initial["id"], command, authenticated_actor_id="b")
+        await service.execute(initial["id"], command, principal_id="b")
     with pytest.raises(ValidationError):
         await service.execute(
             initial["id"],
             Consume(id="bad", actor_id="a", expected_revision=1, item_id="arrows", quantity=8),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     second = Consume(id="two", actor_id="a", expected_revision=1, item_id="arrows", quantity=2)
-    await service.execute(initial["id"], second, authenticated_actor_id="a")
+    await service.execute(initial["id"], second, principal_id="a")
     restarted = ResourceService(store, reducer)
-    assert await restarted.execute(initial["id"], command, authenticated_actor_id="a") == results[0]
+    assert await restarted.execute(initial["id"], command, principal_id="a") == results[0]
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
     history = await played(store, initial["id"])
     assert (
@@ -440,7 +440,7 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
     )
     with pytest.raises(ConflictError):
         await restarted.execute(
-            initial["id"], second.model_copy(update={"id": "stale"}), authenticated_actor_id="a"
+            initial["id"], second.model_copy(update={"id": "stale"}), principal_id="a"
         )
     assert len(await played(store, initial["id"])) == 2
     competing = await asyncio.gather(
@@ -450,7 +450,7 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
                 Consume(
                     id=f"race-{i}", actor_id="a", expected_revision=2, item_id="arrows", quantity=4
                 ),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
             for i in range(2)
         ),
@@ -466,12 +466,12 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
             expected_revision=3,
             entry=Scheduled(id="poison-expiry", due=10, kind="expire", target_id="poison"),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
         system=True,
     )
     clock = Advance(id="clock", actor_id="a", expected_revision=4, to=10)
     expired = await ResourceService(store, reducer).execute(
-        initial["id"], clock, authenticated_actor_id="a", system=True
+        initial["id"], clock, principal_id="a", system=True
     )
     assert expired.active_effect_ids == () and expired.fired == ("poison-expiry",)
     clock_record = next(
@@ -479,17 +479,14 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
     )
     assert clock_record.actor_id == "system" and clock_record.reexecutable
     assert clock_record.entropy_seed is not None
-    assert (
-        await restarted.execute(initial["id"], clock, authenticated_actor_id="a", system=True)
-        == expired
-    )
+    assert await restarted.execute(initial["id"], clock, principal_id="a", system=True) == expired
     for revision in range(5, 12):
         await restarted.execute(
             initial["id"],
             Advance(
                 id=f"tick-{revision}", actor_id="a", expected_revision=revision, to=revision + 10
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
             system=True,
         )
     reconstructed = await store.replay(initial["id"])

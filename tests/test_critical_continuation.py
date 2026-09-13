@@ -37,7 +37,7 @@ async def test_explicit_migration_resolves_original_wounds_once(
     defense = choice("parry" if parry else "none").model_copy(
         update={"parry_mode_id": "swing" if parry else None}
     )
-    await CombatService(play).execute(cid, defense, authenticated_actor_id="b")
+    await CombatService(play).execute(cid, defense, principal_id="b")
     monkeypatch.setattr(limbs, "resolve_limb", original)
     state = play._load(await play.store.read(cid))
     event = next(e for e in state.resources.events if e.id.startswith("critical:"))
@@ -53,16 +53,16 @@ async def test_explicit_migration_resolves_original_wounds_once(
     )
     play.rng = RecordedDice([])
     with pytest.raises(ConflictError, match="explicit migration"):
-        await CombatService(play).execute(cid, resume, authenticated_actor_id="gm")
+        await CombatService(play).execute(cid, resume, principal_id="gm")
     with pytest.raises(ValidationError, match="GM authority"):
         await CombatService(play).execute(
-            cid, resume.model_copy(update={"actor_id": "a"}), authenticated_actor_id="a"
+            cid, resume.model_copy(update={"actor_id": "a"}), principal_id="a"
         )
     migration = resume.model_copy(update={"id": "migrate", "stage": "migrate"})
-    await CombatService(play).execute(cid, migration, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, migration, principal_id="gm")
     play.rng = RecordedDice([1, 1, 2, 2] if parry else [1, 1, 2])
     resume = resume.model_copy(update={"expected_revision": 4})
-    result = await CombatService(play).execute(cid, resume, authenticated_actor_id="gm")
+    result = await CombatService(play).execute(cid, resume, principal_id="gm")
     state = play._load(await play.store.read(cid))
     record = Continuation.model_validate_json(
         next(
@@ -75,4 +75,4 @@ async def test_explicit_migration_resolves_original_wounds_once(
     assert record.status == "resolved" and state.encounters[0].blocked_reason is None
     assert next(e for e in state.resources.events if e.id == event.id) == event
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, resume, authenticated_actor_id="gm") == result
+    assert await CombatService(play).execute(cid, resume, principal_id="gm") == result

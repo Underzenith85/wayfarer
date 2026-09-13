@@ -283,7 +283,7 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
                         expected_revision=state.revision,
                         target_id=target,
                     ),
-                    authenticated_actor_id="a",
+                    principal_id="a",
                 )
                 if result.status != "committed":
                     break
@@ -311,7 +311,7 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
                     mode_id="swing",
                     target_id="b",
                 ),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
         elif name in ("fatigue-turn", "fatigue-defense"):
             from test_gurps_melee import choice
@@ -328,7 +328,7 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
                     maneuver="do_nothing",
                 )
             )
-            await CombatService(play).execute(cid, command, authenticated_actor_id=command.actor_id)
+            await CombatService(play).execute(cid, command, principal_id=command.actor_id)
             settled = play._load(await play.store.read(cid)).encounters[0]
             assert settled.status == "completed" and settled.completion_reason == "incapacitation"
         elif name == "spell":
@@ -339,7 +339,7 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
             await play.execute(
                 cid,
                 Wait(id="spell-wait", actor_id="a", expected_revision=state.revision, ticks=1),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
         rows = (await play.store.history(cid))[baseline:]
         stream = await play.store.stream(cid, after=initial["revision"])

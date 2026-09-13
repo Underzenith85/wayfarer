@@ -308,7 +308,7 @@ async def target(cid: str, play: PlayService, location: HitLocation) -> None:
             target_id="b",
             hit_location=location,
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
 
 
@@ -319,7 +319,7 @@ async def test_melee_limb_wound_grip_and_duration_survive_sqlite(tmp_path: Path)
     restarted = PlayService(
         AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([3, 3, 3, 4, 3, 3, 3])
     )
-    result = await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(restarted).execute(cid, choice(), principal_id="b")
     assert result.injury and result.injury.location == "right-arm"
     assert result.injury.attack.effective_target == 11
     assert result.injury.injury == 6
@@ -332,12 +332,10 @@ async def test_melee_limb_wound_grip_and_duration_survive_sqlite(tmp_path: Path)
     end = EndEncounter(
         id="end", actor_id="gm", expected_revision=3, encounter_id="fight", reason="disengaged"
     )
-    await CombatService(restarted).execute(cid, end, authenticated_actor_id="gm")
+    await CombatService(restarted).execute(cid, end, principal_id="gm")
     restarted.rng = RecordedDice([])
-    assert (
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b") == result
-    )
-    await CombatService(restarted).execute(cid, end, authenticated_actor_id="gm")
+    assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == result
+    await CombatService(restarted).execute(cid, end, principal_id="gm")
     state = restarted._load(await restarted.store.read(cid))
     hp = next(p for p in state.resources.pools if p.id == "hp:b")
     assert hp.injury and hp.injury.lasting_injuries[0].duration == "temporary"
@@ -414,7 +412,7 @@ async def test_critical_head_numeric_table(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await target(cid, play, "skull")
     play.rng = RecordedDice([1, 1, 1] + table + [1, 1, 1] * 10)
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury
     assert result.injury.critical_table == tuple(table)
     assert result.injury.basic_damage == damage
@@ -426,7 +424,7 @@ async def test_random_location_and_shield_arm_effects_are_persisted(tmp_path: Pa
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await target(cid, play, "random")
     play.rng = RecordedDice([3, 3, 3, 4, 4, 4, 4, 1, 1, 1])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury and result.injury.location == "left-arm"
     assert result.injury.location_dice == (4, 4, 4)
     assert result.injury.attack.effective_target == 13
@@ -438,14 +436,14 @@ async def test_random_location_and_shield_arm_effects_are_persisted(tmp_path: Pa
     value, _ = defense_value(play.rules_context, state, participant, "dodge")
     assert value and value.value == 8  # Basic Dodge 8; shield's DB1 is reduced to zero.
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, choice(), authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, choice(), principal_id="b") == result
 
 
 async def test_critical_head_forces_exactly_one_do_nothing_turn(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await target(cid, play, "skull")
     play.rng = RecordedDice([1, 1, 1, 2, 3, 3, 1])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury and result.injury.injury == 0 and not result.injury.adjudication_required
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].participants[1].forced_do_nothing
@@ -463,7 +461,7 @@ async def test_critical_head_forces_exactly_one_do_nothing_turn(tmp_path: Path) 
             mode_id="swing",
             target_id="a",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     assert forced.code == "combat.do_nothing"
     state = play._load(await play.store.read(cid))
@@ -476,7 +474,7 @@ async def test_critical_head_scar_is_applied_without_adjudication_pause(tmp_path
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await target(cid, play, "face")
     play.rng = RecordedDice([1, 1, 1, 4, 4, 4] + [1, 1, 1] * 10)
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury and result.injury.critical_table == (4, 4, 4)
     assert result.injury.adjudication_required is None
     state = play._load(await play.store.read(cid))

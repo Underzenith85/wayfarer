@@ -235,7 +235,7 @@ async def setback(cid: str, play: PlayService, rule: str, actor: str = "a") -> P
             rule_id=rule,
             target_actor_id=actor,
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
 
 
@@ -253,7 +253,7 @@ async def choose(
             rule_id=rule,
             target_actor_id=target,
         ),
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -270,7 +270,7 @@ async def wait(cid: str, play: PlayService, actor: str, ticks: int = 1) -> PlayS
                 id="inner", actor_id=actor, expected_revision=state.revision, ticks=ticks
             ).model_dump_json(),
         ),
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -337,12 +337,12 @@ async def test_duplicate_concurrent_setback_and_illegal_captive_bypass(tmp_path:
         target_actor_id="a",
     )
     results = await asyncio.gather(
-        *(service.execute(cid, command, authenticated_actor_id="gm") for _ in range(2))
+        *(service.execute(cid, command, principal_id="gm") for _ in range(2))
     )
     assert results[0] == results[1] and results[0].revision == 1
     with pytest.raises(ConflictError):
         await service.execute(
-            cid, command.model_copy(update={"target_actor_id": "b"}), authenticated_actor_id="gm"
+            cid, command.model_copy(update={"target_actor_id": "b"}), principal_id="gm"
         )
     with pytest.raises(ValidationError):
         await wait(cid, play, "a")
@@ -350,7 +350,7 @@ async def test_duplicate_concurrent_setback_and_illegal_captive_bypass(tmp_path:
         await play.execute(
             cid,
             Wait(id="bypass", actor_id="a", expected_revision=1, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     with pytest.raises(AuthorizationError):
         await build_runtime(play).submit_json(
@@ -411,7 +411,7 @@ async def test_npc_unknown_proposal_falls_back_and_finite_loop(tmp_path: Path) -
         NPCProposal(
             id="proposal", actor_id="gm", expected_revision=0, plan_id="patrol", action_id="unknown"
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     state = await wait(cid, play, "a", 100)
     assert len([d for d in state.npcs.decisions if d.status != "proposed"]) == 4
@@ -577,7 +577,7 @@ async def test_capture_and_rescue_during_resolved_combat_boundary(tmp_path: Path
     from wayfarer.orchestration.combat import CombatService
 
     cid, play = await prepare(tmp_path, combat=True)
-    await CombatService(play).execute(cid, start(), authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, start(), principal_id="gm")
     state = await setback(cid, play, "capture")
     assert state.encounters[0].status == "completed"
     assert state.encounters[0].completion_reason == "setback:capture"
@@ -700,7 +700,7 @@ async def test_downtime_advancement_reuses_compiler_and_earned_point_balance(
             points=4,
             reason="Earned adventure reward",
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     state = await choose(cid, play, "a", "train")
     assert state.recovery.decisions[-1].status == "committed"

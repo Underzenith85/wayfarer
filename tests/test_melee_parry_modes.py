@@ -46,7 +46,7 @@ async def test_selected_parry_mode_survives_pending_restart_and_critical_self_hi
         rng=RecordedDice([3, 3, 3, 6, 6, 6, 2, 2, 2, 1, 1, 4, 1]),
     )
     command = choice("parry").model_copy(update={"item_id": "sword-b", "parry_mode_id": "jab"})
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury and result.injury.defense
     assert result.injury.defense.effective_target == 9  # skill 13: 6+3-1+shield DB 1.
     assert result.injury.adjudication_required is None
@@ -61,10 +61,10 @@ async def test_selected_parry_mode_survives_pending_restart_and_critical_self_hi
     # The original incoming swing still hits for floor((1+1)*1.5)=3.
     assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
     with pytest.raises(ConflictError):
         await CombatService(play).execute(
-            cid, command.model_copy(update={"parry_mode_id": "swing"}), authenticated_actor_id="b"
+            cid, command.model_copy(update={"parry_mode_id": "swing"}), principal_id="b"
         )
 
 
@@ -77,7 +77,7 @@ async def test_blocked_critical_context_keeps_declared_mode(
     await attack(cid, play)
     play.rng = RecordedDice([3, 3, 3, 6, 6, 6, 2, 2, 2])
     command = choice("parry").model_copy(update={"parry_mode_id": selected})
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury and result.injury.adjudication_required == "basic-critical-miss:6:defender"
     state = play._load(await play.store.read(cid))
     record = CriticalMiss.model_validate_json(
@@ -101,7 +101,7 @@ async def test_invalid_parry_mode_rejects_before_dice(
     play.rng = RecordedDice([])
     command = choice().model_copy(update={"defense": defense, "parry_mode_id": mode_id})
     with pytest.raises(ValidationError):
-        await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+        await CombatService(play).execute(cid, command, principal_id="b")
     assert await play.store.read(cid) == before
 
 

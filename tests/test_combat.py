@@ -126,7 +126,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
 ) -> None:
     cid, play, service = await setup(tmp_path, backend=backend)
     results = await asyncio.gather(
-        *(service.execute(cid, start(), authenticated_actor_id="gm") for _ in range(8))
+        *(service.execute(cid, start(), principal_id="gm") for _ in range(8))
     )
     assert all(result == results[0] for result in results)
     assert results[0].code == "combat.started" and results[0].current_actor_id == "a"
@@ -145,7 +145,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
             TakeCombatTurn(
                 id="early", actor_id="b", expected_revision=1, encounter_id="fight", maneuver="wait"
             ),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     moved = await service.execute(
         cid,
@@ -158,7 +158,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
             destination=GridPoint(x=1, y=0),
             facing="south",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert moved.current_actor_id == "b"
     pending = await service.execute(
@@ -172,7 +172,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
             target_id="a",
             item_id="sword-b",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     assert pending.code == "combat.defense_required"
     assert pending.current_actor_id == "b" and pending.available == ("dodge", "parry", "none")
@@ -182,7 +182,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
             TakeCombatTurn(
                 id="skip", actor_id="b", expected_revision=3, encounter_id="fight", maneuver="wait"
             ),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     restarted = CombatService(PlayService(play.store, play.engine))
     chosen = await restarted.execute(
@@ -194,7 +194,7 @@ async def test_full_turn_order_movement_defense_pause_restart_and_replay(
             encounter_id="fight",
             defense="parry",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert chosen.code == "combat.defense_recorded"
     assert chosen.current_actor_id == "a" and chosen.round == 2
@@ -212,7 +212,7 @@ async def test_action_economy_posture_terrain_reach_and_parameter_validation(
     tmp_path: Path,
 ) -> None:
     cid, play, service = await setup(tmp_path)
-    await service.execute(cid, start(), authenticated_actor_id="gm")
+    await service.execute(cid, start(), principal_id="gm")
     before = await play.store.read(cid)
     invalid_moves = (
         GridPoint(x=4, y=0),
@@ -231,7 +231,7 @@ async def test_action_economy_posture_terrain_reach_and_parameter_validation(
                     maneuver="move",
                     destination=point,
                 ),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
     with pytest.raises(ValidationError, match="unexpected"):
         await service.execute(
@@ -244,7 +244,7 @@ async def test_action_economy_posture_terrain_reach_and_parameter_validation(
                 maneuver="wait",
                 target_id="b",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
     await service.execute(
@@ -257,7 +257,7 @@ async def test_action_economy_posture_terrain_reach_and_parameter_validation(
             maneuver="change_posture",
             posture="prone",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await service.execute(
         cid,
@@ -268,7 +268,7 @@ async def test_action_economy_posture_terrain_reach_and_parameter_validation(
             encounter_id="fight",
             maneuver="wait",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     with pytest.raises(ValidationError, match="movement"):
         await service.execute(
@@ -281,7 +281,7 @@ async def test_action_economy_posture_terrain_reach_and_parameter_validation(
                 maneuver="move",
                 destination=GridPoint(x=2, y=0),
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     with pytest.raises(ValidationError, match="out of reach"):
         await service.execute(
@@ -295,21 +295,19 @@ async def test_action_economy_posture_terrain_reach_and_parameter_validation(
                 target_id="b",
                 item_id="sword-a",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
 
 
 async def test_combat_blocks_ordinary_actions_and_lifecycle_requires_gm(tmp_path: Path) -> None:
     cid, play, service = await setup(tmp_path)
     with pytest.raises(ValidationError, match="GM authority"):
-        await service.execute(
-            cid, start().model_copy(update={"actor_id": "a"}), authenticated_actor_id="a"
-        )
-    await service.execute(cid, start(), authenticated_actor_id="gm")
+        await service.execute(cid, start().model_copy(update={"actor_id": "a"}), principal_id="a")
+    await service.execute(cid, start(), principal_id="gm")
     ordinary = await play.execute(
         cid,
         Wait(id="ordinary", actor_id="a", expected_revision=1, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert ordinary.code == "combat.command_required"
     assert len(await played(play.store, cid)) == 1
@@ -323,7 +321,7 @@ async def test_combat_blocks_ordinary_actions_and_lifecycle_requires_gm(tmp_path
                 encounter_id="fight",
                 reason="No",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     completed = await service.execute(
         cid,
@@ -334,20 +332,20 @@ async def test_combat_blocks_ordinary_actions_and_lifecycle_requires_gm(tmp_path
             encounter_id="fight",
             reason="Opponents withdrew",
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     assert completed.code == "combat.completed" and completed.available == ()
     ordinary = await play.execute(
         cid,
         Wait(id="ordinary", actor_id="a", expected_revision=2, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert ordinary.status == "committed"
 
 
 async def test_ready_maneuver_syncs_inventory_and_rejects_forged_state(tmp_path: Path) -> None:
     cid, play, service = await setup(tmp_path, a_ready=False)
-    await service.execute(cid, start(), authenticated_actor_id="gm")
+    await service.execute(cid, start(), principal_id="gm")
     state = PlayState.model_validate_json((await play.store.read(cid))["play_json"])
     forged = current(state).model_copy(
         update={
@@ -371,7 +369,7 @@ async def test_ready_maneuver_syncs_inventory_and_rejects_forged_state(tmp_path:
             maneuver="ready",
             item_id="sword-a",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.current_actor_id == "b"
     state = PlayState.model_validate_json((await play.store.read(cid))["play_json"])
@@ -385,7 +383,7 @@ async def test_start_rejects_identity_placement_and_configuration_forgery(tmp_pa
     cid, play, service = await setup(tmp_path)
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="authorized"):
-        await service.execute(cid, start(), authenticated_actor_id="a")
+        await service.execute(cid, start(), principal_id="a")
     for placements in (
         start().placements[:1],
         start().placements + (start().placements[0],),
@@ -398,6 +396,6 @@ async def test_start_rejects_identity_placement_and_configuration_forgery(tmp_pa
             await service.execute(
                 cid,
                 start().model_copy(update={"id": "changed", "placements": placements}),
-                authenticated_actor_id="gm",
+                principal_id="gm",
             )
     assert await play.store.read(cid) == before

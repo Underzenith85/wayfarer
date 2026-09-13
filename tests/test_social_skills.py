@@ -696,10 +696,10 @@ async def test_a_procedure_runs_in_a_live_authorized_transaction(tmp_path: Path)
     cid, play = await prepare(tmp_path)
     play.rng = RecordedDice([3, 4, 3, 4, 4, 4])
     service = SocialService(play, resolver)
-    outcome = await service.execute(cid, skill_command(), authenticated_gm_id="gm")
+    outcome = await service.execute(cid, skill_command(), principal_id="gm")
     assert outcome.kind == "skill" and outcome.outcome == "streetwise-vouched"
     with pytest.raises(ValidationError, match="trusted director authority"):
-        await service.execute(cid, skill_command("again"), authenticated_gm_id="alice")
+        await service.execute(cid, skill_command("again"), principal_id="alice")
     projection = str(await build_runtime(play).read(cid, principal_id="alice"))
     for secret in ("criminal-milieu", "contest", "dice", "victory_margin"):
         assert secret not in projection
@@ -753,7 +753,7 @@ async def test_an_authored_trigger_dispatches_a_procedure_from_an_approved_level
     await play.execute(
         cid,
         Wait(id="first", actor_id="a", expected_revision=0, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     recorded = _json.loads(state.resources.events[-1].kind)
@@ -843,7 +843,7 @@ async def test_an_unopposed_procedure_collects_no_reaction_modifiers(tmp_path: P
     outcome = await service.execute(
         cid,
         skill_command("watch-the-window"),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     assert outcome.outcome == "lip-reading-misread"
     assert outcome.requires_adjudication and outcome.adjudication == ("lip-reading-misread",)
@@ -870,7 +870,7 @@ async def test_an_initiator_without_an_approved_build_asserts_nothing(tmp_path: 
     stranger = skill_command("stranger").model_copy(
         update={"actor_id": "npc", "subject_id": "npc:branch"}
     )
-    outcome = await service.execute(cid, stranger, authenticated_gm_id="gm")
+    outcome = await service.execute(cid, stranger, principal_id="gm")
     assert outcome.outcome == "streetwise-vouched"
 
 
@@ -887,7 +887,7 @@ async def test_dispatch_rejects_a_skill_context_without_a_procedure(tmp_path: Pa
     cid, play = await prepare(tmp_path)
     service = SocialService(play, bare)
     with pytest.raises(ValidationError, match="requires a declared procedure"):
-        await service.execute(cid, skill_command(), authenticated_gm_id="gm")
+        await service.execute(cid, skill_command(), principal_id="gm")
 
 
 @pytest.mark.parametrize(

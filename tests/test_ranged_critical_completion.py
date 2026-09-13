@@ -51,11 +51,11 @@ async def test_miss_weapon_handling_and_lost_response(
         defense="none",
     )
     play.rng = RecordedDice([6, 6, 6, *table])
-    result = await CombatService(play).execute(cid, cmd, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, cmd, principal_id="b")
     assert result.injury and result.injury.adjudication_required is None
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(restarted).execute(cid, cmd, authenticated_actor_id="b") == result
+    assert await CombatService(restarted).execute(cid, cmd, principal_id="b") == result
     saved = play._load(await play.store.read(cid))
     item = next(i for i in saved.resources.items if i.id == "sword-a")
     assert (item.ready, item.equipped) == (ready, equipped)
@@ -249,7 +249,7 @@ async def test_random_burst_has_independent_locations_and_replays(tmp_path: Path
     )
     # Skill 13, roll 9, Rcl 2 -> three hits: right arm, torso, left leg.
     play.rng = RecordedDice([3, 3, 3, 2, 3, 3, 1, 3, 3, 3, 2, 4, 4, 5, 3])
-    result = await CombatService(play).execute(cid, cmd, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, cmd, principal_id="b")
     assert result.injury
     assert result.injury.hits == 3
     assert result.injury.per_hit_locations == ("right-arm", "torso", "left-leg")
@@ -259,7 +259,7 @@ async def test_random_burst_has_independent_locations_and_replays(tmp_path: Path
     assert result.injury.hp_after == 4
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(restarted).execute(cid, cmd, authenticated_actor_id="b") == result
+    assert await CombatService(restarted).execute(cid, cmd, principal_id="b") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
@@ -287,7 +287,7 @@ async def test_broken_weapon_cas_restart_and_retry(tmp_path: Path, thrown: bool)
         defense="none",
     )
     play.rng = RecordedDice([6, 6, 6, 1, 1, 1, 6, 6, 6])
-    result = await CombatService(play).execute(cid, cmd, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, cmd, principal_id="b")
     assert result.injury and result.injury.adjudication_required is None
     saved = play._load(await play.store.read(cid))
     item = next(
@@ -302,7 +302,7 @@ async def test_broken_weapon_cas_restart_and_retry(tmp_path: Path, thrown: bool)
     assert record.trace.critical_table == (6, 6, 6)
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(restarted).execute(cid, cmd, authenticated_actor_id="b") == result
+    assert await CombatService(restarted).execute(cid, cmd, principal_id="b") == result
     assert restarted._load(await restarted.store.read(cid)).resources == saved.resources
     await turn(cid, restarted, "b", "do_nothing")
     before = await restarted.store.read(cid)

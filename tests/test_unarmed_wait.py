@@ -53,7 +53,7 @@ async def declare(
             maneuver="wait",
             wait_trigger=WaitTrigger.model_validate(declaration(**changes)),
         ),
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -68,7 +68,7 @@ async def resume(cid: str, play: PlayService, *, cancel: bool = False) -> Combat
             encounter_id="fight",
             cancel=cancel,
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
 
 
@@ -211,7 +211,7 @@ async def test_armed_reaction_cannot_answer_an_unarmed_declaration(tmp_path: Pat
                 encounter_id="fight",
                 maneuver="move",
             ),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     assert await state_of(cid, play) == before
 
@@ -229,7 +229,7 @@ async def test_waiter_may_decline_and_the_attack_still_resumes(tmp_path: Path) -
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     declined = (await state_of(cid, play)).encounters[0]
     assert declined.unarmed_history == ()
@@ -277,11 +277,11 @@ async def test_reaction_and_its_defense_replay_after_restart(tmp_path: Path) -> 
     }
     restarted = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine)
     restarted.rng = RecordedDice(())
-    first = await CombatService(restarted).execute(cid, reaction, authenticated_actor_id="b")
+    first = await CombatService(restarted).execute(cid, reaction, principal_id="b")
     assert restarted.rng.exhausted()
     replayed = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine)
     replayed.rng = RecordedDice(())
-    assert await CombatService(replayed).execute(cid, reaction, authenticated_actor_id="b") == first
+    assert await CombatService(replayed).execute(cid, reaction, principal_id="b") == first
     held = (await state_of(cid, replayed)).encounters[0]
     interrupt = held.wait_interrupt
     assert interrupt is not None and interrupt.reacting and held.pending_unarmed is not None
@@ -376,7 +376,7 @@ async def test_stop_thrust_cannot_answer_a_close_combat_entry(tmp_path: Path) ->
                 maneuver="wait" if actor == "b" else "do_nothing",
                 wait_trigger=None if trigger is None else WaitTrigger.model_validate(trigger),
             ),
-            authenticated_actor_id=actor,
+            principal_id=actor,
         )
     before = await state_of(cid, play)
     with pytest.raises(ValidationError, match="stop thrust against close-combat entry"):

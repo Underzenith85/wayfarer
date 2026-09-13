@@ -74,7 +74,7 @@ async def test_live_attack_penalty_without_defense_or_build_changes(
             mode_id="swing",
             target_id="b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(
@@ -85,7 +85,7 @@ async def test_live_attack_penalty_without_defense_or_build_changes(
         ChooseDefense(
             id="defense", actor_id="b", expected_revision=3, encounter_id="fight", defense="none"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     assert result.injury is not None and result.injury.attack.effective_target == target
     assert result.injury.attack.modifiers[0].value == (-2 if condition == "aftermath" else -5)
@@ -117,7 +117,7 @@ async def test_condition_specific_maneuvers(
     )
     saved = await play.store.read(cid)
     with pytest.raises(ValidationError, match="does not permit"):
-        await CombatService(play).execute(cid, blocked, authenticated_actor_id="a")
+        await CombatService(play).execute(cid, blocked, principal_id="a")
     assert await play.store.read(cid) == saved
     if condition == "panic":
         await CombatService(play).execute(
@@ -125,7 +125,7 @@ async def test_condition_specific_maneuvers(
             blocked.model_copy(
                 update={"id": "flee", "maneuver": "move", "destination": GridPoint(x=0, y=1)}
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
         after = play._load(await play.store.read(cid))
         assert after.encounters[0].participants[0].position == GridPoint(x=0, y=1)
@@ -133,7 +133,7 @@ async def test_condition_specific_maneuvers(
         await CombatService(play).execute(
             cid,
             blocked.model_copy(update={"id": "wait-turn", "maneuver": "do_nothing"}),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     else:
         assert [m.value for m in check_modifiers(state.resources, "a", "will")] == [-5]
@@ -219,7 +219,7 @@ async def test_aftermath_combines_with_new_physical_trait_checks(
     command = PhysicalCheckCommand(
         id="observe", actor_id="a", expected_revision=1, trigger_id="scene-check"
     )
-    await service.execute(cid, command, gm_id="gm")
+    await service.execute(cid, command, principal_id="gm")
     state = play._load(await play.store.read(cid))
     event = next(e for e in state.resources.events if e.id.startswith("physical-check:"))
     assert json.loads(event.kind)["effective_target"] == expected

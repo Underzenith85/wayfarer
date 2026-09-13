@@ -60,17 +60,14 @@ async def hold(cid: str, play: PlayService, holder: str = "a", skill: str = "ski
         }
     )
     play.rng = RecordedDice(())
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id=holder)
+    result = await CombatService(play).execute(cid, command, principal_id=holder)
     assert result.available == ("none",)
     pending = await state_of(cid, play)
     assert pending.encounters[0].pending_unarmed is not None
     assert pending.encounters[0].pending_unarmed.choke_hold
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice(()))
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id=holder)
-        == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id=holder) == result
     play.rng = RecordedDice((2, 2, 2))
     await defend(cid, play)
     state = await state_of(cid, play)
@@ -93,14 +90,11 @@ async def settle(cid: str, play: PlayService, grip: str, target: str) -> None:
         encounter_id="fight",
         grip_id=grip,
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id=target)
+    result = await CombatService(play).execute(cid, command, principal_id=target)
     after = await state_of(cid, play)
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice(()))
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id=target)
-        == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id=target) == result
     assert await state_of(cid, restarted) == after
 
 
@@ -201,7 +195,7 @@ async def test_invalid_choke_intent_rejects_before_dice(
     }
     play.rng = RecordedDice(())
     with pytest.raises(ValidationError):
-        await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+        await CombatService(play).execute(cid, command, principal_id="a")
     assert await state_of(cid, play) == before and play.rng.exhausted()
 
 
@@ -238,7 +232,7 @@ async def test_ending_combat_keeps_no_air_exposure_on_shared_clock(tmp_path: Pat
             encounter_id="fight",
             reason="scene-ended",
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     state = await state_of(cid, play)
     hazard = state.resources.hazards[0]

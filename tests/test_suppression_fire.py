@@ -95,7 +95,7 @@ async def test_suppression_fire_pays_up_front_attacks_entry_and_expires(tmp_path
             mode_id="suppress",
             suppression_zones=(SuppressionZone(center=Hex(q=4, r=0), shots=10),),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     assert not state.resources.ammunition_loads
@@ -155,7 +155,7 @@ async def test_invalid_multiple_suppression_zones_reject_before_mutation(tmp_pat
                     SuppressionZone(center=Hex(q=5, r=0), shots=5),
                 ),
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
 
@@ -179,7 +179,7 @@ async def test_multiple_adjacent_zones_queue_separate_attacks(tmp_path: Path) ->
                 SuppressionZone(center=Hex(q=5, r=0), shots=5),
             ),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     movement = await turn(
         cid,
@@ -234,6 +234,6 @@ async def test_suppression_fire_fails_closed_without_exact_hex_geometry(tmp_path
                 mode_id="suppress",
                 suppression_zones=(SuppressionZone(center=Hex(q=3, r=0), shots=5),),
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before

@@ -117,7 +117,7 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     before = play._load(await store.read(cid))
     command = Inspect(id="seeded-inspect", actor_id="a", expected_revision=0, target_id="chest")
     results = await asyncio.gather(
-        *(play.execute(cid, command, authenticated_actor_id="a") for _ in range(6))
+        *(play.execute(cid, command, principal_id="a") for _ in range(6))
     )
     assert all(result == results[0] for result in results)
     history = await played(store, cid)
@@ -134,18 +134,18 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     assert result == results[0] and result.check is not None
     assert state == play._load(record.state_after)
     restarted = PlayService(store, reducer)
-    assert await restarted.execute(cid, command, authenticated_actor_id="a") == result
+    assert await restarted.execute(cid, command, principal_id="a") == result
     assert await played(store, cid) == history
     with pytest.raises(ConflictError):
         await restarted.execute(
-            cid, command.model_copy(update={"target_id": "hidden"}), authenticated_actor_id="a"
+            cid, command.model_copy(update={"target_id": "hidden"}), principal_id="a"
         )
     races = await asyncio.gather(
         *(
             restarted.execute(
                 cid,
                 Wait(id=f"wait-{i}", actor_id="a", expected_revision=1, ticks=1),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
             for i in range(2)
         ),
@@ -176,7 +176,7 @@ async def test_reference_adventure_seed_replays_checkpoint_and_is_private(tmp_pa
             expected_revision=before.revision,
             target_id="manifest",
         )
-        result = await play.execute(table.cid, command, authenticated_actor_id="a")
+        result = await play.execute(table.cid, command, principal_id="a")
         assert result.check is not None
         record = (await played(play.store, table.cid))[-1]
         assert record.reexecutable and record.entropy_seed
@@ -208,7 +208,7 @@ async def test_hex_combat_reexecutes_from_seed(tmp_path: Path) -> None:
         mode_id="swing",
         target_id="b",
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, command, principal_id="a")
     record = (await played(play.store, cid))[-1]
     assert record.reexecutable and record.entropy_seed
     replay = PlayService(play.store, play.engine, rng=SeededRandom(record.entropy_seed))

@@ -340,6 +340,4 @@ class ProfileMigrations:
             from_profile=identity(source),
             to_profile=identity(target),
         )
-        return await migration.apply(
-            cid, approval, authenticated_gm_id=principal_id, payload=payload
-        )
+        return await migration.apply(cid, approval, principal_id=principal_id, payload=payload)

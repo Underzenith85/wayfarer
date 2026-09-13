@@ -99,7 +99,7 @@ async def setup(
 
     await play.store.commit_turn(cid, "members", 1, "members", members)
     if migrate:
-        await CombatService(play).execute(cid, migration(), authenticated_actor_id="gm")
+        await CombatService(play).execute(cid, migration(), principal_id="gm")
     return cid, play.for_campaign(await play.store.read(cid))
 
 
@@ -182,7 +182,7 @@ async def wait(cid: str, play: PlayService, actor: str) -> None:
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -193,11 +193,11 @@ async def test_explicit_migration_and_replay_leave_legacy_poses_unchanged(tmp_pa
     service = CombatService(play)
     with pytest.raises(ValidationError, match="GM"):
         await service.execute(
-            cid, migration().model_copy(update={"actor_id": "a"}), authenticated_actor_id="a"
+            cid, migration().model_copy(update={"actor_id": "a"}), principal_id="a"
         )
     command = migration()
-    first = await service.execute(cid, command, authenticated_actor_id="gm")
-    assert first == await service.execute(cid, command, authenticated_actor_id="gm")
+    first = await service.execute(cid, command, principal_id="gm")
+    assert first == await service.execute(cid, command, principal_id="gm")
     play = play.for_campaign(await play.store.read(cid))
     state = play._load(await play.store.read(cid))
     assert state.revision == 2 and state.encounters[0].participants[0].position == Hex(q=0, r=0)
@@ -206,7 +206,7 @@ async def test_explicit_migration_and_replay_leave_legacy_poses_unchanged(tmp_pa
         await service.execute(
             cid,
             command.model_copy(update={"placements": command.placements[:-1]}),
-            authenticated_actor_id="gm",
+            principal_id="gm",
         )
 
 
@@ -221,8 +221,8 @@ async def test_axial_movement_range_updates_and_no_duplicate_turn(tmp_path: Path
         hex_path=(Hex(q=1, r=-1), Hex(q=2, r=-1)),
     )
     service = CombatService(play)
-    result = await service.execute(cid, command, authenticated_actor_id="a")
-    assert result == await service.execute(cid, command, authenticated_actor_id="a")
+    result = await service.execute(cid, command, principal_id="a")
+    assert result == await service.execute(cid, command, principal_id="a")
     state = play._load(await play.store.read(cid))
     assert state.revision == 3
     assert state.encounters[0].participants[0].position == Hex(q=2, r=-1)
@@ -305,7 +305,7 @@ async def test_melee_retreat_numeric_trace_survives_restart(tmp_path: Path) -> N
             mode_id="swing",
             target_id="b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     defense = ChooseDefense(
         id="retreat",
@@ -315,7 +315,7 @@ async def test_melee_retreat_numeric_trace_survives_restart(tmp_path: Path) -> N
         defense="dodge",
         retreat=Hex(q=2, r=0),
     )
-    result = await service.execute(cid, defense, authenticated_actor_id="b")
+    result = await service.execute(cid, defense, principal_id="b")
     assert result.injury and result.injury.defense and result.injury.defense.effective_target == 12
     state = play._load(await play.store.read(cid))
     target = state.encounters[0].participants[1]
@@ -327,9 +327,7 @@ async def test_melee_retreat_numeric_trace_survives_restart(tmp_path: Path) -> N
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "melee.sqlite", 10), play.engine, rng=RecordedDice(())
     )
-    assert (
-        await CombatService(restarted).execute(cid, defense, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, defense, principal_id="b") == result
     projected = await snapshot(build_runtime(restarted), cid, "bob", "b")
     assert projected.encounters[0].traces[-1].totals == (9, 9)
 
@@ -419,7 +417,7 @@ async def test_invalid_migration_does_not_write(tmp_path: Path, change: str) -> 
     else:
         command = command.model_copy(update={"placements": command.placements[:-1]})
     with pytest.raises(ValidationError):
-        await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+        await CombatService(play).execute(cid, command, principal_id="gm")
     assert play._load(await play.store.read(cid)).revision == 1
 
 
@@ -436,7 +434,7 @@ async def test_facing_blocks_rear_attack_before_dice(tmp_path: Path) -> None:
             )
         }
     )
-    await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, command, principal_id="gm")
     play = play.for_campaign(await play.store.read(cid))
     play.rng = RecordedDice(())
     with pytest.raises(ValidationError, match="unavailable"):
@@ -452,7 +450,7 @@ async def test_facing_blocks_rear_attack_before_dice(tmp_path: Path) -> None:
                 mode_id="swing",
                 target_id="b",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert play._load(await play.store.read(cid)).revision == 2
 
@@ -477,14 +475,14 @@ async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_pa
             mode_id="throw-fixture",
             target_id="b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     result = await CombatService(play).execute(
         cid,
         ChooseDefense(
             id="take-throw", actor_id="b", expected_revision=3, encounter_id="fight", defense="none"
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     assert result.injury is not None
     assert (
@@ -667,7 +665,7 @@ async def test_unarmed_wait_declaration_is_a_v2_only_request_option(
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     body = {
@@ -714,7 +712,7 @@ async def test_unarmed_wait_declaration_is_a_v2_only_request_option(
                 encounter_id="fight",
                 maneuver="do_nothing",
             ),
-            authenticated_actor_id="c",
+            principal_id="c",
         )
         paused = await action(cid, play, "a", "punch", hands=("right-hand",), enter=True)
         assert isinstance(paused, CombatResult) and paused.code == "combat.wait_triggered"

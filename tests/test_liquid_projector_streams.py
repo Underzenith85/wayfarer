@@ -148,7 +148,7 @@ async def test_qualifying_hit_schedules_scene_bound_lingering_fire(tmp_path: Pat
     restarted = PlayService(
         AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([3, 3, 4, 4])
     )
-    result = await CombatService(restarted).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(restarted).execute(cid, command, principal_id="b")
     state = restarted._load(await restarted.store.read(cid))
     hazard = state.resources.hazards[0]
     assert hazard.actor_id == "b" and hazard.active
@@ -162,9 +162,7 @@ async def test_qualifying_hit_schedules_scene_bound_lingering_fire(tmp_path: Pat
     assert hazard.spec.reference == "Basic Set B433/B400"
     assert any(r.command_id == hazard.id + ":enter" for r in state.resources.receipts)
     restarted.rng = RecordedDice([])
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
     assert await restarted.store.read(cid) == await restarted.store.replay(cid)
 
 

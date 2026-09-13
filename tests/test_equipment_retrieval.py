@@ -19,7 +19,7 @@ async def test_off_board_retrieval_requires_completed_encounter_owner_and_time(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, 4, 5, 5, 6, 6])
-    await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     sword = next(i for i in state.resources.items if i.id == "sword-a")
     assert sword.ground and sword.ground.x == -6
@@ -32,7 +32,7 @@ async def test_off_board_retrieval_requires_completed_encounter_owner_and_time(
         stage="start",
     )
     with pytest.raises(ValidationError, match="completed"):
-        await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+        await CombatService(play).execute(cid, command, principal_id="a")
     await CombatService(play).execute(
         cid,
         EndEncounter(
@@ -42,7 +42,7 @@ async def test_off_board_retrieval_requires_completed_encounter_owner_and_time(
             encounter_id="fight",
             reason="finished",
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     command = command.model_copy(update={"expected_revision": 4})
     play.rng = RecordedDice([])
@@ -52,10 +52,10 @@ async def test_off_board_retrieval_requires_completed_encounter_owner_and_time(
     assert equipment_view(play, play._load(await play.store.read(cid)), "b") == ()
     with pytest.raises(ValidationError, match="owned"):
         await CombatService(play).execute(
-            cid, command.model_copy(update={"actor_id": "b"}), authenticated_actor_id="b"
+            cid, command.model_copy(update={"actor_id": "b"}), principal_id="b"
         )
-    first = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="a") == first
+    first = await CombatService(play).execute(cid, command, principal_id="a")
+    assert await CombatService(play).execute(cid, command, principal_id="a") == first
     state = play._load(await play.store.read(cid))
     task = tasks(state.resources)[0]
     assert task.due > state.resources.game_time
@@ -68,7 +68,7 @@ async def test_off_board_retrieval_requires_completed_encounter_owner_and_time(
         }
     )
     with pytest.raises(ConflictError, match="deadline"):
-        await CombatService(play).execute(cid, finish, authenticated_actor_id="a")
+        await CombatService(play).execute(cid, finish, principal_id="a")
     await play.execute(
         cid,
         Wait(
@@ -77,13 +77,13 @@ async def test_off_board_retrieval_requires_completed_encounter_owner_and_time(
             expected_revision=state.revision,
             ticks=task.due - state.resources.game_time,
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     state = play._load(await play.store.read(cid))
     finish = finish.model_copy(update={"expected_revision": state.revision})
-    result = await CombatService(play).execute(cid, finish, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, finish, principal_id="a")
     state = play._load(await play.store.read(cid))
     sword = next(i for i in state.resources.items if i.id == "sword-a")
     assert sword.ground is None and sword.owner_id == "a" and not sword.ready and not sword.equipped
     assert tasks(state.resources)[0].status == "completed"
-    assert await CombatService(play).execute(cid, finish, authenticated_actor_id="a") == result
+    assert await CombatService(play).execute(cid, finish, principal_id="a") == result

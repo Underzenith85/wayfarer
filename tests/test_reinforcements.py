@@ -191,7 +191,7 @@ async def test_same_group_basic_admission_is_complete_authoritative_and_replayab
 ) -> None:
     cid, play = await setup(tmp_path)
     service = CombatService(play)
-    await service.execute(cid, start_basic(2), authenticated_actor_id="gm")
+    await service.execute(cid, start_basic(2), principal_id="gm")
     before = await load(play, cid)
     group = before.party.groups[0]
     current = before.encounters[0].current_actor_id
@@ -210,7 +210,7 @@ async def test_same_group_basic_admission_is_complete_authoritative_and_replayab
                     )
                 ),
             ),
-            authenticated_actor_id="c",
+            principal_id="c",
         )
     with pytest.raises(ValidationError, match="complete fact set"):
         await service.execute(
@@ -227,7 +227,7 @@ async def test_same_group_basic_admission_is_complete_authoritative_and_replayab
                     )[:-1]
                 ),
             ),
-            authenticated_actor_id="gm",
+            principal_id="gm",
         )
     command = JoinEncounter(
         id="admit-c",
@@ -239,7 +239,7 @@ async def test_same_group_basic_admission_is_complete_authoritative_and_replayab
             facts=reinforcement_facts("c", ("a", "b"), revision=1, command_id="admit-c")
         ),
     )
-    await service.execute(cid, command, authenticated_actor_id="gm")
+    await service.execute(cid, command, principal_id="gm")
     state = await load(play, cid)
     encounter = state.encounters[0]
     assert isinstance(encounter.spatial, BasicSpatialContext)
@@ -249,18 +249,18 @@ async def test_same_group_basic_admission_is_complete_authoritative_and_replayab
     assert all("position" not in p for p in encounter.model_dump(mode="json")["participants"])
 
     restarted = CombatService(PlayService(play.store, play.engine))
-    assert await restarted.execute(
-        cid, command, authenticated_actor_id="gm"
-    ) == await service.execute(cid, command, authenticated_actor_id="gm")
+    assert await restarted.execute(cid, command, principal_id="gm") == await service.execute(
+        cid, command, principal_id="gm"
+    )
     assert await play.store.replay(cid) == await play.store.read(cid)
 
 
 async def test_hex_join_requires_visibility_and_profile_compatibility(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path)
     service = CombatService(play)
-    await service.execute(cid, start_basic(2), authenticated_actor_id="gm")
+    await service.execute(cid, start_basic(2), principal_id="gm")
     with pytest.raises(ValidationError, match="exact saved combat profile"):
-        await service.execute(cid, escalation(revision=1), authenticated_actor_id="gm")
+        await service.execute(cid, escalation(revision=1), principal_id="gm")
 
     cid, play = await setup_profiled_basic(tmp_path, 2)
     wall = frozenset(
@@ -276,7 +276,7 @@ async def test_hex_join_requires_visibility_and_profile_compatibility(tmp_path: 
     await CombatService(play).execute(
         cid,
         escalation(revision=2, battlefield=board(opaque=wall)),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play = play.for_campaign(await play.store.read(cid))
     with pytest.raises(ValidationError, match="visible"):
@@ -289,7 +289,7 @@ async def test_hex_join_requires_visibility_and_profile_compatibility(tmp_path: 
                 encounter_id="fight",
                 placement=HexJoinPlacement(position=Hex(q=4, r=2), facing=3),
             ),
-            authenticated_actor_id="c",
+            principal_id="c",
         )
 
 
@@ -307,14 +307,14 @@ async def test_basic_escalation_preserves_turn_and_hex_join_rejects_occupancy(
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     before = (await load(play, cid)).encounters[0]
     with pytest.raises(ValidationError, match="distance"):
         await service.execute(
-            cid, escalation(revision=3, b_position=Hex(q=3, r=0)), authenticated_actor_id="gm"
+            cid, escalation(revision=3, b_position=Hex(q=3, r=0)), principal_id="gm"
         )
-    await service.execute(cid, escalation(revision=3), authenticated_actor_id="gm")
+    await service.execute(cid, escalation(revision=3), principal_id="gm")
     play = play.for_campaign(await play.store.read(cid))
     service = CombatService(play)
     state = await load(play, cid)
@@ -336,7 +336,7 @@ async def test_basic_escalation_preserves_turn_and_hex_join_rejects_occupancy(
                 encounter_id="fight",
                 placement=HexJoinPlacement(position=Hex(q=0, r=0), facing=0),
             ),
-            authenticated_actor_id="c",
+            principal_id="c",
         )
     join = JoinEncounter(
         id="hex-c",
@@ -345,7 +345,7 @@ async def test_basic_escalation_preserves_turn_and_hex_join_rejects_occupancy(
         encounter_id="fight",
         placement=HexJoinPlacement(position=Hex(q=1, r=1), facing=3),
     )
-    await service.execute(cid, join, authenticated_actor_id="c")
+    await service.execute(cid, join, principal_id="c")
     joined = await load(play, cid)
     assert set(joined.encounters[0].turn_order) == {"a", "b", "c"}
     assert joined.encounters[0].current_actor_id == before.current_actor_id
@@ -367,7 +367,7 @@ async def test_basic_escalation_rejects_pending_interaction(tmp_path: Path) -> N
             item_id="sword-a",
             mode_id="swing",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     with pytest.raises(ConflictError, match="pending interaction"):
-        await service.execute(cid, escalation(revision=3), authenticated_actor_id="gm")
+        await service.execute(cid, escalation(revision=3), principal_id="gm")

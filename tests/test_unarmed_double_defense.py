@@ -30,7 +30,7 @@ async def pending_attack(tmp_path: Path, *, double: bool = True) -> tuple[str, P
             maneuver="all_out_defense" if double else "do_nothing",
             defense_option="double" if double else None,
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await action(cid, play, "b", "kick")
     return cid, play
@@ -69,7 +69,7 @@ async def test_ordered_double_defense_restart_and_replay(
         second_item_id="right-hand" if second == "parry" else None,
     )
     service = CombatService(play)
-    result = await service.execute(cid, command, authenticated_actor_id="a")
+    result = await service.execute(cid, command, principal_id="a")
     assert play.rng.exhausted()
     after = await state_of(cid, play)
     trace = after.encounters[0].unarmed_history[-1]
@@ -81,14 +81,12 @@ async def test_ordered_double_defense_restart_and_replay(
     assert after.encounters[0].current_actor_id == "c"
     restarted = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine)
     restarted.rng = RecordedDice(())
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="a") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="a") == result
     with pytest.raises(ConflictError):
         await CombatService(restarted).execute(
             cid,
             command.model_copy(update={"second_item_id": "left-hand"}),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await state_of(cid, restarted) == after
     assert restarted.rng.exhausted()
@@ -132,7 +130,7 @@ async def test_invalid_fallback_rejected_before_dice(
                 second_defense=second,
                 second_item_id=second_item,
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await state_of(cid, play) == before
     assert play.rng.exhausted()
@@ -169,7 +167,7 @@ async def test_double_defense_damage_miss_and_critical_boundaries(
         second_defense="parry",
         second_item_id="right-hand",
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, command, principal_id="a")
     assert play.rng.exhausted()
     after = await state_of(cid, play)
     encounter = after.encounters[0]
@@ -184,7 +182,5 @@ async def test_double_defense_damage_miss_and_critical_boundaries(
     assert encounter.current_actor_id == ("b" if blocked else "c")
     restarted = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine)
     restarted.rng = RecordedDice(())
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="a") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="a") == result
     assert await state_of(cid, restarted) == after

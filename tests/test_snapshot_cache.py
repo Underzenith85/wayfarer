@@ -44,7 +44,7 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
         await play.execute(
             cid,
             Wait(id=f"step-{revision}", actor_id="a", expected_revision=revision, ticks=1),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     expected = await store.read(cid)
     db = await store._connect()
@@ -81,9 +81,7 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
     assert document((await reopened.history(cid))[-1].state_after) == document(expected)
     # Lost response retries read the original revision from the stream.
     duplicate = Wait(id="step-10", actor_id="a", expected_revision=10, ticks=1)
-    await asyncio.gather(
-        *(play.execute(cid, duplicate, authenticated_actor_id="a") for _ in range(2))
-    )
+    await asyncio.gather(*(play.execute(cid, duplicate, principal_id="a") for _ in range(2)))
     assert document(await reopened.read(cid)) == document(expected)
     # Concurrent distinct writers still compare-and-set against the folded revision.
     outcomes = await asyncio.gather(
@@ -91,7 +89,7 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
             play.execute(
                 cid,
                 Wait(id=name, actor_id="a", expected_revision=11, ticks=1),
-                authenticated_actor_id="a",
+                principal_id="a",
             )
             for name in ("left", "right")
         ),
@@ -147,7 +145,7 @@ async def test_checkpoint_skips_covered_schemas_and_cache_failure_requires_them(
     await play.execute(
         cid,
         Wait(id="covered", actor_id="a", expected_revision=0, ticks=1),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     expected = await play.store.read(cid)
     monkeypatch.setitem(EVENT_UPCASTERS.current, "state.patched", 2)

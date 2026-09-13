@@ -958,7 +958,7 @@ async def test_v2_collision_concurrency_and_restart(tmp_path: Path, backend: str
             service.execute_transport(
                 initial["id"],
                 command,
-                authenticated_actor_id="a",
+                principal_id="a",
                 system=True,
                 health={"a": 12},
                 rng=RecordedDice([4, 4]),
@@ -970,7 +970,7 @@ async def test_v2_collision_concurrency_and_restart(tmp_path: Path, backend: str
     restarted = ResourceService(store, engine)
     assert (
         await restarted.execute_transport(
-            initial["id"], command, authenticated_actor_id="a", system=True, rng=RecordedDice([])
+            initial["id"], command, principal_id="a", system=True, rng=RecordedDice([])
         )
         == results[0]
     )

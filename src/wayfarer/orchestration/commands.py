@@ -169,7 +169,7 @@ async def _fright_decision(submission: Submission) -> None:
     command = submission.command
     assert isinstance(command, FrightDecision)
     await FrightService(submission.play).execute(
-        submission.cid, command, authenticated_gm_id=submission.principal_id
+        submission.cid, command, principal_id=submission.principal_id
     )
 
 
@@ -177,7 +177,7 @@ async def _encounter_scenes(submission: Submission) -> None:
     command = submission.command
     assert isinstance(command, MigrateEncounterScenes)
     await EncounterSceneService(submission.play).execute(
-        submission.cid, command, authenticated_gm_id=command.actor_id
+        submission.cid, command, principal_id=command.actor_id
     )
 
 
@@ -197,7 +197,7 @@ async def _ruling(submission: Submission) -> None:
     await AdjudicationService(submission.play).submit(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -205,7 +205,7 @@ async def _recovery(submission: Submission) -> None:
     await RecoveryService(submission.play).execute(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -213,7 +213,7 @@ async def _npc_proposal(submission: Submission) -> None:
     await NPCService(submission.play).propose(
         submission.cid,
         submission.command,
-        authenticated_gm_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -221,7 +221,7 @@ async def _combat(submission: Submission) -> None:
     await CombatService(submission.play).execute(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -229,7 +229,7 @@ async def _scene(submission: Submission) -> None:
     await SceneService(submission.play).execute(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -237,7 +237,7 @@ async def _noncombat(submission: Submission) -> None:
     await NoncombatService(submission.play).execute(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -245,7 +245,7 @@ async def _objective(submission: Submission) -> None:
     await ObjectiveService(submission.play).execute(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -253,7 +253,7 @@ async def _party(submission: Submission) -> None:
     await PartyService(submission.play).execute(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 
@@ -261,7 +261,7 @@ async def _typed_action(submission: Submission) -> None:
     await submission.play.execute(
         submission.cid,
         submission.command,
-        authenticated_actor_id=_actor_id(submission.command),
+        principal_id=_actor_id(submission.command),
     )
 
 

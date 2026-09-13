@@ -704,7 +704,7 @@ async def setup(
                     ),
                 ),
             ),
-            authenticated_actor_id="gm",
+            principal_id="gm",
         )
     return initial["id"], play
 
@@ -722,7 +722,7 @@ async def attack(cid: str, play: PlayService) -> None:
             mode_id="swing",
             target_id="b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
 
 
@@ -745,19 +745,17 @@ async def test_trained_skill_and_deferred_restart_receipt(tmp_path: Path) -> Non
     restarted = PlayService(
         AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([4, 4, 4, 3, 3, 3, 3])
     )
-    result = await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(restarted).execute(cid, choice(), principal_id="b")
     assert result.injury is not None
     assert result.injury.attack.effective_target == 13
     assert result.injury.basic_damage == 4 and result.injury.injury == 6
     assert result.injury.hp_after == 4
     restarted.rng = RecordedDice([])
-    assert (
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
     with pytest.raises(ConflictError):
         await CombatService(restarted).execute(
-            cid, choice().model_copy(update={"id": "new"}), authenticated_actor_id="b"
+            cid, choice().model_copy(update={"id": "new"}), principal_id="b"
         )
     await CombatService(restarted).execute(
         cid,
@@ -768,11 +766,9 @@ async def test_trained_skill_and_deferred_restart_receipt(tmp_path: Path) -> Non
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
-    assert (
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == result
 
 
 async def test_default_skill_not_dx_and_invalid_mode_no_mutation(tmp_path: Path) -> None:
@@ -790,12 +786,12 @@ async def test_default_skill_not_dx_and_invalid_mode_no_mutation(tmp_path: Path)
                 item_id="sword-a",
                 target_id="b",
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
     await attack(cid, play)
     play.rng = RecordedDice([2, 2, 3])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury is not None and result.injury.attack.effective_target == 5
     assert result.injury.injury == 0
 
@@ -842,7 +838,7 @@ async def test_heavy_weapon_requires_explicit_breakage_metadata(tmp_path: Path) 
             mode_id="swing",
             target_id="b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert result.available == ("none", "dodge", "block")
     state = play._load(await play.store.read(cid))
@@ -855,7 +851,7 @@ async def test_heavy_weapon_requires_explicit_breakage_metadata(tmp_path: Path) 
         assert value is not None and value.value == expected
     before = await play.store.read(cid)
     with pytest.raises(ValidationError):
-        await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+        await CombatService(play).execute(cid, choice("parry"), principal_id="b")
     assert await play.store.read(cid) == before
 
     cid, play = await setup(tmp_path / "under", basic, attacker_weight=8999)
@@ -899,7 +895,7 @@ async def test_lite_critical_bypasses_defense_and_uses_maximum(tmp_path: Path) -
     cid, play = await setup(tmp_path)
     await attack(cid, play)
     play.rng = RecordedDice([1, 1, 1, 3, 3, 3])
-    result = await CombatService(play).execute(cid, choice("dodge"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("dodge"), principal_id="b")
     assert result.injury is not None
     assert result.injury.defense is None and not result.injury.damage_dice
     assert result.injury.basic_damage == 7 and result.injury.hp_after == 0
@@ -909,13 +905,13 @@ async def test_basic_critical_miss_is_persisted_blocker_not_reroll(tmp_path: Pat
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, 2, 2, 1])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert result.injury is not None and result.injury.critical_table == (2, 2, 1)
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].blocked_reason == "basic-critical-miss:5"
     assert not result.available
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, choice(), authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, choice(), principal_id="b") == result
 
 
 @pytest.mark.parametrize(
@@ -928,7 +924,7 @@ async def test_basic_ordinary_critical_misses_execute(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, *table])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     assert result.injury is not None and result.injury.adjudication_required is None
     a = state.encounters[0].participants[0]
@@ -947,10 +943,10 @@ async def test_unauthorized_defense_and_forged_damage_never_roll(tmp_path: Path)
     play.rng = RecordedDice([])
     before = await play.store.read(cid)
     with pytest.raises(ValidationError):
-        await CombatService(play).execute(cid, choice(), authenticated_actor_id="a")
+        await CombatService(play).execute(cid, choice(), principal_id="a")
     with pytest.raises(ValidationError):
         await CombatService(play).execute(
-            cid, {**choice().model_dump(), "basic_damage": 999}, authenticated_actor_id="b"
+            cid, {**choice().model_dump(), "basic_damage": 999}, principal_id="b"
         )
     assert before == await play.store.read(cid)
 
@@ -967,19 +963,19 @@ async def test_maximum_length_command_id_and_retry(tmp_path: Path) -> None:
         mode_id="swing",
         target_id="b",
     )
-    await CombatService(play).execute(cid, attack_command, authenticated_actor_id="a")
+    await CombatService(play).execute(cid, attack_command, principal_id="a")
     play.rng = RecordedDice([2, 2, 3, 1])
     command = choice().model_copy(update={"id": "d" * 200})
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
 
 
 async def test_injury_stun_recovers_on_forced_turn_without_repeating_damage(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path)
     await attack(cid, play)
     play.rng = RecordedDice([4, 4, 4, 3, 4, 4, 4])
-    await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    await CombatService(play).execute(cid, choice(), principal_id="b")
     before = play._load(await play.store.read(cid))
     hp = next(p for p in before.resources.pools if p.id == "hp:b")
     assert hp.injury is not None and hp.injury.stunned and hp.injury.shock == 4
@@ -987,9 +983,9 @@ async def test_injury_stun_recovers_on_forced_turn_without_repeating_damage(tmp_
     command = TakeCombatTurn(
         id="recover", actor_id="b", expected_revision=3, encounter_id="fight", maneuver="do_nothing"
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
     after = play._load(await play.store.read(cid))
     healed = next(p for p in after.resources.pools if p.id == "hp:b")
     assert healed.current == hp.current == 4
@@ -1000,7 +996,7 @@ async def test_failed_consciousness_turn_is_committed_and_ends_encounter(tmp_pat
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([1, 1, 1, 1, 1, 1, 3, 3, 3, 3])
-    await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    await CombatService(play).execute(cid, choice(), principal_id="b")
     play.rng = RecordedDice([4, 4, 4])
     command = TakeCombatTurn(
         id="collapse",
@@ -1012,12 +1008,12 @@ async def test_failed_consciousness_turn_is_committed_and_ends_encounter(tmp_pat
         mode_id="swing",
         target_id="a",
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].status == "completed"
     assert not result.available
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
 
 
 async def spend_fp(
@@ -1090,7 +1086,7 @@ async def test_target_due_care_blocks_attack_before_any_dice_or_state_change(
         target_id="b",
     )
     with pytest.raises(ConflictError):
-        await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+        await CombatService(play).execute(cid, command, principal_id="a")
     assert await play.store.read(cid) == before
 
 
@@ -1110,13 +1106,13 @@ async def test_failed_fatigue_check_commits_collapse_without_attack_or_retry_rol
         mode_id="swing",
         target_id="b",
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, command, principal_id="a")
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].status == "completed" and not state.encounters[0].wounds
     fp = next(p for p in state.resources.pools if p.id == "fp:a")
     assert fp.fatigue is not None and fp.fatigue.collapsed
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="a") == result
+    assert await CombatService(play).execute(cid, command, principal_id="a") == result
 
 
 async def test_low_fp_st_penalty_does_not_reduce_damage(tmp_path: Path) -> None:
@@ -1132,10 +1128,10 @@ async def test_low_fp_st_penalty_does_not_reduce_damage(tmp_path: Path) -> None:
         mode_id="swing",
         target_id="b",
     )
-    await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    await CombatService(play).execute(cid, command, principal_id="a")
     play.rng = RecordedDice([2, 2, 3, 3, 3, 3, 3])
     result = await CombatService(play).execute(
-        cid, choice().model_copy(update={"expected_revision": 3}), authenticated_actor_id="b"
+        cid, choice().model_copy(update={"expected_revision": 3}), principal_id="b"
     )
     assert result.injury is not None
     assert result.injury.attack.effective_target == 8
@@ -1183,7 +1179,7 @@ async def test_basic_critical_hit_golden_damage(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([1, 1, 1, *table, *([die] if die else []), 3, 3, 3])
-    result = await CombatService(play).execute(cid, choice("block"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("block"), principal_id="b")
     assert result.injury is not None and result.injury.defense is None
     assert (result.injury.basic_damage, result.injury.injury, result.injury.hp_after) == (
         basic,

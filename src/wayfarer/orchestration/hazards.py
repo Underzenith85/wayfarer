@@ -23,8 +23,8 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.health.hazards import HazardCommand, HazardResult, apply_hazard
 from wayfarer.engine.simulation.resources import decimal_weight
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build, _value
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -56,13 +56,10 @@ class HazardService:
     def __init__(self, play: PlayService, resolver: HazardResolver) -> None:
         self.play, self.resolver = play, resolver
 
-    async def execute(
-        self, cid: str, command: HazardCommand, *, authenticated_actor_id: str
-    ) -> HazardResult:
-        command = HazardCommand.model_validate(command)
-        if command.actor_id != authenticated_actor_id:
-            raise ValidationError("Hazard actor does not match authenticated actor")
-        play = self.play.for_campaign(await self.play.store.read(cid))
+    def plan(
+        self, play: PlayService, command: HazardCommand, *, principal_id: str
+    ) -> CommandPlan[HazardResult]:
+        """What a hazard exposure writes; the pipeline decides whether it runs."""
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Hazards require exact Basic Set profile")
         payload = json.dumps(
@@ -248,16 +245,28 @@ class HazardService:
             play.commit(campaign, updated)
             return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
-        committed = await commit_command(
-            play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> HazardResult:
+            state = play._load(campaign)
+            event = next(e for e in state.resources.events if e.id == "hazard:" + command.id)
+            return HazardResult.model_validate_json(event.kind)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(ActsAs(command.actor_id, "Hazard actor does not match authenticated actor"),),
             rng=play.rng,
         )
-        state = play._load(committed["state"])
-        event = next(e for e in state.resources.events if e.id == "hazard:" + command.id)
-        return HazardResult.model_validate_json(event.kind)
+
+    async def execute(self, cid: str, command: HazardCommand, *, principal_id: str) -> HazardResult:
+        command = HazardCommand.model_validate(command)
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        return await submit(
+            play,
+            cid,
+            self.plan(play, command, principal_id=principal_id),
+            principal_id=principal_id,
+        )

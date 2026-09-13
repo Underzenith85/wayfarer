@@ -90,7 +90,7 @@ async def test_spraying_fire_persists_separate_attacks_and_traversal_cost(
             shots=5,
             spray_targets=(SprayTarget(target_id="c", shots=4),),
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     play.rng = RecordedDice([3, 3, 4, 1, 1])
     first = await defend(cid, play, "b")
@@ -114,8 +114,8 @@ async def test_spraying_fire_persists_separate_attacks_and_traversal_cost(
         encounter_id="fight",
         defense="none",
     )
-    second = await CombatService(play).execute(cid, defense, authenticated_actor_id="c")
-    assert await CombatService(play).execute(cid, defense, authenticated_actor_id="c") == second
+    second = await CombatService(play).execute(cid, defense, principal_id="c")
+    assert await CombatService(play).execute(cid, defense, principal_id="c") == second
     assert second.injury is not None
     assert (
         second.injury.attack.effective_target,
@@ -152,7 +152,7 @@ async def test_invalid_spraying_fire_rejects_before_dice_or_mutation(tmp_path: P
                 shots=10,
                 spray_targets=(SprayTarget(target_id="c", shots=10),),
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
 
@@ -183,6 +183,6 @@ async def test_spraying_fire_rejects_targets_outside_thirty_degree_arc(tmp_path:
                 shots=5,
                 spray_targets=(SprayTarget(target_id="c", shots=4),),
             ),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before

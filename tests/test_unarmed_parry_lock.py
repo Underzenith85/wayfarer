@@ -59,16 +59,14 @@ async def test_parry_to_lock_survives_restart_and_defense_pause(tmp_path: Path) 
         defense="none",
     )
     restarted.rng = RecordedDice((2, 2, 2))
-    result = await CombatService(restarted).execute(cid, command, authenticated_actor_id="a")
+    result = await CombatService(restarted).execute(cid, command, principal_id="a")
     after = await state_of(cid, restarted)
     grip = after.encounters[0].grips[0]
     assert grip.arm_lock and grip.holder_id == "b" and grip.target_id == "a"
     assert grip.location == "right-arm" and len(grip.hands) == 2
     assert after.encounters[0].unarmed_history[-1].checks[0].effective_target == 10
     assert restarted.rng.exhausted()
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="a") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="a") == result
     assert await state_of(cid, restarted) == after
 
 

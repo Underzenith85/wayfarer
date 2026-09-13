@@ -226,7 +226,7 @@ async def test_two_fights_overlap_at_the_minimum_subgroup_frontier(
                 encounter_id=encounter_id,
                 maneuver="do_nothing",
             ),
-            authenticated_actor_id=actor,
+            principal_id=actor,
         )
         revision += 1
     held = await load(play, cid)
@@ -240,13 +240,13 @@ async def test_two_fights_overlap_at_the_minimum_subgroup_frontier(
         encounter_id="two",
         maneuver="do_nothing",
     )
-    result = await combat.execute(cid, last, authenticated_actor_id="d")
+    result = await combat.execute(cid, last, principal_id="d")
     after = await load(play, cid)
     assert [g.ready_through for g in after.party.groups] == [1, 1]
     assert after.resources.game_time == 1
     # A retry and a restarted service return the receipt without consuming a second.
-    assert await combat.execute(cid, last, authenticated_actor_id="d") == result
+    assert await combat.execute(cid, last, principal_id="d") == result
     restarted = CombatService(PlayService(store, play.engine))
-    assert await restarted.execute(cid, last, authenticated_actor_id="d") == result
+    assert await restarted.execute(cid, last, principal_id="d") == result
     assert (await load(play, cid)).resources.game_time == 1
     assert await store.replay(cid) == await store.read(cid)

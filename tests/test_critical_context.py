@@ -21,7 +21,7 @@ async def test_blocked_context_survives_restart_and_exact_retry(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, *table])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     events = tuple(e for e in state.resources.events if e.id.startswith("critical:"))
     assert len(events) == 1
@@ -36,9 +36,7 @@ async def test_blocked_context_survives_restart_and_exact_retry(
     assert save_critical(state.resources, record) is state.resources
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert (
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == result
     restored = restarted._load(await restarted.store.read(cid))
     assert restored.resources == state.resources
     with pytest.raises(ConflictError, match="cannot be replaced"):
@@ -54,7 +52,7 @@ async def test_critical_parry_captures_deferred_incoming_damage(tmp_path: Path) 
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([3, 3, 3, 6, 6, 6, 2, 2, 1])
-    result = await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("parry"), principal_id="b")
     state = play._load(await play.store.read(cid))
     event = next(e for e in state.resources.events if e.id.startswith("critical:"))
     record = CriticalMiss.model_validate_json(event.kind)
@@ -76,14 +74,11 @@ async def test_ordinary_critical_parry_does_not_cancel_incoming_hit(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     await attack(cid, play)
     play.rng = RecordedDice([3, 3, 3, 6, 6, 6, *table, 3, 3, 3, 3])
-    result = await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice("parry"), principal_id="b")
     assert result.injury is not None
     assert result.injury.adjudication_required is None
     assert result.injury.basic_damage == 4 and result.injury.hp_after == 4
     state = play._load(await play.store.read(cid))
     assert not any(e.id.startswith("critical:") for e in state.resources.events)
     play.rng = RecordedDice([])
-    assert (
-        await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
-        == result
-    )
+    assert await CombatService(play).execute(cid, choice("parry"), principal_id="b") == result

@@ -197,7 +197,7 @@ async def test_generated_npc_choice_is_durable_and_keeps_origin(tmp_path: Path) 
     provider = FakeProvider(payload='{"action_id":"unknown"}')
     llm = build_orchestrator(build_runtime(play), provider)
     state = await NPCService(play).propose_generated(
-        cid, llm=llm, command_id="generated", authenticated_gm_id="gm", plan_id="patrol"
+        cid, llm=llm, command_id="generated", principal_id="gm", plan_id="patrol"
     )
     assert state.revision == 1
     receipt = (await play.store.history(cid))[-1]

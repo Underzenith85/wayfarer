@@ -151,14 +151,14 @@ async def test_dispatch_combines_purchases_once_and_replays_without_resolving(
         Purchase(definition_id="trait:reputation-bravery", amount=2),
     )
     service = SocialService(play, plain)
-    outcome = await service.execute(cid, command(), authenticated_gm_id="gm")
+    outcome = await service.execute(cid, command(), principal_id="gm")
     # B21/B27: 15 + 2 (appearance) + 2 (reputation) = 19, Excellent.
     assert outcome.outcome == "excellent"
 
     def fail(play: PlayService, state: PlayState, value: SocialCommand) -> ResolvedInteraction:
         raise AssertionError("A replay must not evaluate standing or consume dice")
 
-    repeated = await SocialService(play, fail).execute(cid, command(), authenticated_gm_id="gm")
+    repeated = await SocialService(play, fail).execute(cid, command(), principal_id="gm")
     assert repeated == outcome
     assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
 
@@ -171,7 +171,7 @@ async def test_dispatch_rejects_duplicate_standing_before_rolling(tmp_path: Path
 
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="cannot also be supplied"):
-        await SocialService(play, duplicate).execute(cid, command(), authenticated_gm_id="gm")
+        await SocialService(play, duplicate).execute(cid, command(), principal_id="gm")
     assert await play.store.read(cid) == before
     assert isinstance(play.rng, RecordedDice) and not play.rng.exhausted()
 

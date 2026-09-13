@@ -46,7 +46,7 @@ async def test_burst_targets_object_with_individual_receipts_and_restart(tmp_pat
     # Skill 13 + burst 1 - weapon size 4 = 10, irrespective of the owner's SM.
     # Roll 6 yields three hits: cr 4,5,6 minus DR 2 = 2,3,4 object HP.
     play.rng = RecordedDice([2, 2, 2, 4, 5, 6])
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     assert result.injury
     assert result.injury.attack.effective_target == 10
     assert result.injury.hp_before == result.injury.hp_after == 10
@@ -56,9 +56,7 @@ async def test_burst_targets_object_with_individual_receipts_and_restart(tmp_pat
     assert state.resources.ammunition_loads == ()
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
     assert restarted._load(await restarted.store.read(cid)).resources == state.resources
 
 
@@ -166,14 +164,14 @@ async def test_fireball_object_target_or_shield_interception(
         expected_revision=4,
         defense="none" if target_object else "dodge",
     )
-    result = await combat.execute(cid, choice, authenticated_actor_id="b")
+    result = await combat.execute(cid, choice, principal_id="b")
     assert result.injury
     assert result.injury.injury == (0 if target_object else 3)
     state = play._load(await play.store.read(cid))
     assert state.resources.object_results[-1].item_id == "target-0"
     assert state.resources.object_results[-1].injury == 6
     play.rng = RecordedDice([])
-    assert await combat.execute(cid, choice, authenticated_actor_id="b") == result
+    assert await combat.execute(cid, choice, principal_id="b") == result
 
 
 async def test_second_defense_stresses_only_after_failed_first_defense(tmp_path: Path) -> None:

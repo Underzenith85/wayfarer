@@ -20,7 +20,7 @@ async def test_postgres_concurrent_retry_and_replay(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path, backend="postgres")
     command = Wait(id="same", actor_id="a", expected_revision=0, ticks=1)
     results = await asyncio.gather(
-        *(play.execute(cid, command, authenticated_actor_id="a") for _ in range(6))
+        *(play.execute(cid, command, principal_id="a") for _ in range(6))
     )
     assert all(result == results[0] for result in results)
     assert await play.store.replay(cid) == await play.store.read(cid)

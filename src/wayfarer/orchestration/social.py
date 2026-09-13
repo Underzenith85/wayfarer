@@ -37,8 +37,7 @@ from wayfarer.engine.simulation.social.social import (
 )
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.membership import member_for
+from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -309,6 +308,9 @@ def dispatch(
     return updated, outcome
 
 
+DIRECTOR_REFUSAL = "Social dispatch requires trusted director authority"
+
+
 class SocialService:
     """Bind a trusted scenario/NPC trigger resolver, then commit through PlayService.
 
@@ -320,29 +322,28 @@ class SocialService:
     def __init__(self, play: PlayService, resolve: InteractionResolver) -> None:
         self.play, self.resolve = play, resolve
 
-    async def execute(self, cid: str, value: object, *, authenticated_gm_id: str) -> SocialOutcome:
-        try:
-            command = SocialCommand.model_validate(value)
-        except SchemaError as exc:
-            raise ValidationError("Invalid social command") from exc
-        play = self.play.for_campaign(await self.play.store.read(cid))
-        state = play._load(await play.store.read(cid))
-        member = member_for(state, authenticated_gm_id)
-        if member.role != "gm" or authenticated_gm_id not in play.engine.reviewer.gm_ids:
-            raise ValidationError("Social dispatch requires trusted director authority")
+    def plan(
+        self,
+        play: PlayService,
+        state: PlayState,
+        command: SocialCommand,
+        *,
+        principal_id: str,
+    ) -> CommandPlan[SocialOutcome]:
+        """What a social dispatch writes; the pipeline decides whether it runs."""
         profile_id = play.engine.reviewer.compiler.statistics_profile
         if profile_id is None:
             raise ValidationError("Social dispatch requires an exact GURPS profile")
         payload = json.dumps(
             {
                 "operation": "gurps-social",
-                "principal_id": authenticated_gm_id,
+                "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
             },
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> CommandReceipt:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated, outcome = dispatch(play, before, command, self.resolve(play, before, command))
             updated = play.checkpoint(updated, before=before)
@@ -350,24 +351,43 @@ class SocialService:
             # The event stream carries neither trusted modifiers nor fact IDs.
             return CommandReceipt(action="npc", outcome=outcome.model_dump_json())
 
-        result = await commit_command(
+        async def outcome(campaign: Campaign) -> SocialOutcome:
+            committed = play._load(campaign)
+            # Receipt replay must not invoke the resolver again or re-evaluate facts.
+            _, result = apply_social(
+                committed.resources,
+                committed.world,
+                command,
+                SocialContext(profile_id, 0),
+                rng=play.rng,
+                system=True,
+            )
+            return result
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=principal_id,
+            outcome=outcome,
+            control=(
+                Seats(state, refusal=DIRECTOR_REFUSAL),
+                Trusted(play.engine.reviewer.gm_ids, refusal=DIRECTOR_REFUSAL),
+            ),
+            rng=play.rng,
+        )
+
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> SocialOutcome:
+        try:
+            command = SocialCommand.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid social command") from exc
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        state = play._load(await play.store.read(cid))
+        return await submit(
             play,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            reduce,
-            actor_id=authenticated_gm_id,
-            rng=play.rng,
+            self.plan(play, state, command, principal_id=principal_id),
+            principal_id=principal_id,
         )
-        committed = play._load(result["state"])
-        # Receipt replay must not invoke the resolver again or re-evaluate facts.
-        _, outcome = apply_social(
-            committed.resources,
-            committed.world,
-            command,
-            SocialContext(profile_id, 0),
-            rng=play.rng,
-            system=True,
-        )
-        return outcome

@@ -8,7 +8,7 @@ from wayfarer.engine.simulation.combat.surprise import SurpriseCommand as Surpri
 from wayfarer.engine.simulation.combat.surprise import SurpriseSides as SurpriseSides
 from wayfarer.engine.simulation.combat.surprise import apply_surprise as apply_surprise
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -16,29 +16,43 @@ class SurpriseService:
     def __init__(self, play: PlayService, resolve: Resolver) -> None:
         self.play, self.resolve = play, resolve
 
-    async def execute(self, cid: str, command: SurpriseCommand, *, gm_id: str) -> None:
-        command = SurpriseCommand.model_validate(command)
-        if not command.trigger_id:
-            raise ValidationError("Surprise requires a stable authored trigger")
-        play = self.play.for_campaign(await self.play.store.read(cid))
+    def plan(
+        self, play: PlayService, command: SurpriseCommand, *, principal_id: str
+    ) -> CommandPlan[None]:
+        """What a surprise resolution writes; the pipeline decides whether it runs."""
         payload = json.dumps(
-            {"surprise": command.model_dump(mode="json"), "gm": gm_id}, sort_keys=True
+            {"surprise": command.model_dump(mode="json"), "gm": principal_id}, sort_keys=True
         )
 
-        def reduce(campaign: Campaign) -> CommandReceipt:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
-            updated = apply_surprise(state, command, play.rules_context, self.resolve, gm_id)
+            updated = apply_surprise(state, command, play.rules_context, self.resolve, principal_id)
             updated = play.checkpoint(updated, before=state)
             play.commit(campaign, updated)
             return CommandReceipt(action="combat", outcome="resolved")
 
-        await commit_command(
+        async def outcome(campaign: Campaign) -> None:
+            return None
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=principal_id,
+            outcome=outcome,
+            control=(ActsAs(principal_id),),
+            rng=play.rng,
+        )
+
+    async def execute(self, cid: str, command: SurpriseCommand, *, principal_id: str) -> None:
+        command = SurpriseCommand.model_validate(command)
+        if not command.trigger_id:
+            raise ValidationError("Surprise requires a stable authored trigger")
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        await submit(
             play,
             cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            reduce,
-            actor_id=gm_id,
-            rng=play.rng,
+            self.plan(play, command, principal_id=principal_id),
+            principal_id=principal_id,
         )

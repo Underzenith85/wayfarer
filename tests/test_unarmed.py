@@ -114,7 +114,7 @@ async def action(
             "skill": skill,
             "location": location,
         },
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -133,7 +133,7 @@ async def defend(cid: str, play: PlayService, *, defense: str = "none") -> None:
                 "defense": defense,
             }
         ),
-        authenticated_actor_id=pending.target_id,
+        principal_id=pending.target_id,
     )
 
 
@@ -148,7 +148,7 @@ async def wait(cid: str, play: PlayService, actor: str) -> None:
             encounter_id="fight",
             maneuver="do_nothing",
         ),
-        authenticated_actor_id=actor,
+        principal_id=actor,
     )
 
 
@@ -206,10 +206,10 @@ async def test_grapple_restart_replay_escape(tmp_path: Path) -> None:
         encounter_id="fight",
         defense="none",
     )
-    first = await CombatService(restarted).execute(cid, command, authenticated_actor_id="b")
+    first = await CombatService(restarted).execute(cid, command, principal_id="b")
     assert restarted.rng.exhausted()
     restarted.rng = RecordedDice(())
-    assert await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == first
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == first
     held = await state_of(cid, restarted)
     grip = held.encounters[0].grips[0]
     assert grip.hands == ("left-hand", "right-hand")
@@ -236,7 +236,7 @@ async def test_unauthorized_and_changed_payload_never_roll(tmp_path: Path) -> No
                 action="kick",
                 target_id="b",
             ),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     await action(cid, play, "a", "grapple", hands=("left-hand",), enter=True)
     state = await state_of(cid, play)
@@ -250,11 +250,11 @@ async def test_unauthorized_and_changed_payload_never_roll(tmp_path: Path) -> No
         defense="none",
     )
     play.rng = RecordedDice((3, 3, 3))
-    await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    await CombatService(play).execute(cid, command, principal_id="b")
     play.rng = RecordedDice(())
     with pytest.raises(ConflictError):
         await CombatService(play).execute(
-            cid, command.model_copy(update={"defense": "dodge"}), authenticated_actor_id="b"
+            cid, command.model_copy(update={"defense": "dodge"}), principal_id="b"
         )
 
 
@@ -433,8 +433,8 @@ async def test_strangle_reuses_durable_suffocation_and_release(tmp_path: Path) -
         encounter_id="fight",
         grip_id=grip.id,
     )
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="b") == result
+    result = await CombatService(play).execute(cid, command, principal_id="b")
+    assert await CombatService(play).execute(cid, command, principal_id="b") == result
     state = await state_of(cid, play)
     assert next(p for p in state.resources.pools if p.id == "fp:b").current == 9
     await action(cid, play, "a", "release", grip=grip.id)

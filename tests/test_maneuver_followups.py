@@ -72,7 +72,7 @@ async def test_attack_then_step_is_deferred_until_defense_and_replays_once(tmp_p
         hex_path=(Hex(q=-1, r=0),),
     )
     service = CombatService(play)
-    await service.execute(cid, command, authenticated_actor_id="a")
+    await service.execute(cid, command, principal_id="a")
     pending = play._load(await play.store.read(cid)).encounters[0]
     assert pending.participants[0].position == Hex(q=0, r=0)
     play.rng = RecordedDice((5, 5, 5))
@@ -83,7 +83,7 @@ async def test_attack_then_step_is_deferred_until_defense_and_replays_once(tmp_p
     restarted = CombatService(
         type(play)(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice(()))
     )
-    result = await restarted.execute(cid, command, authenticated_actor_id="a")
+    result = await restarted.execute(cid, command, principal_id="a")
     assert result.code == "combat.defense_required"
 
 
@@ -156,7 +156,7 @@ async def test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards(tmp_path
             )
         }
     )
-    await CombatService(play).execute(cid, moved_migration, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, moved_migration, principal_id="gm")
     play = play.for_campaign(await play.store.read(cid))
     await turn(
         cid,

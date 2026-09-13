@@ -515,9 +515,9 @@ class PartyService:
             rng=self.play.rng,
         )
 
-    async def execute(self, cid: str, value: object, *, authenticated_actor_id: str) -> PlayState:
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> PlayState:
         try:
             command = PartyCommand.model_validate(value)
         except ValueError as exc:
             raise ValidationError("Invalid subgroup command") from exc
-        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)
+        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)

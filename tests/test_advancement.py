@@ -59,12 +59,12 @@ async def test_grant_preview_purchase_retry_and_restart(tmp_path: Path) -> None:
         points=4,
         reason="Solved the opening scene",
     )
-    awarded = await service.grant(cid, grant, authenticated_gm_id="gm")
+    awarded = await service.grant(cid, grant, principal_id="gm")
     assert awarded.kind == "earned" and awarded.points == 4
     command = upgraded(1, build.revision)
-    preview = await service.preview(cid, command, authenticated_actor_id="a")
+    preview = await service.preview(cid, command, principal_id="a")
     assert preview.points_available == 4 and preview.points_delta == 4
-    results = [await service.advance(cid, command, authenticated_actor_id="a") for _ in range(2)]
+    results = [await service.advance(cid, command, principal_id="a") for _ in range(2)]
     assert results[0] == results[1]
     assert results[0].kind == "purchase" and results[0].points == -4
     restarted = AdvancementService(PlayService(play.store, play.engine))
@@ -81,7 +81,7 @@ async def test_overspending_illegal_and_unauthorized_grants_mutate_nothing(tmp_p
     assert build is not None
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="overspends"):
-        await service.preview(cid, upgraded(0, build.revision), authenticated_actor_id="a")
+        await service.preview(cid, upgraded(0, build.revision), principal_id="a")
     with pytest.raises(ValidationError, match="GM authority"):
         await service.grant(
             cid,
@@ -93,7 +93,7 @@ async def test_overspending_illegal_and_unauthorized_grants_mutate_nothing(tmp_p
                 points=100,
                 reason="Forged",
             ),
-            authenticated_gm_id="a",
+            principal_id="a",
         )
     assert await play.store.read(cid) == before
 
@@ -121,7 +121,7 @@ async def test_migration_preview_apply_and_failed_migration_is_atomic(tmp_path: 
                 expected_from_digest=base.digest,
                 reason="No authority",
             ),
-            authenticated_gm_id="a",
+            principal_id="a",
         )
     assert await current.store.read(cid) == before
     entry = await migrations.apply(
@@ -133,7 +133,7 @@ async def test_migration_preview_apply_and_failed_migration_is_atomic(tmp_path: 
             expected_from_digest=base.digest,
             reason="Approved package upgrade",
         ),
-        authenticated_gm_id="gm",
+        principal_id="gm",
     )
     assert entry.to_digest == target_engine.digest
     assert (
@@ -146,7 +146,7 @@ async def test_migration_preview_apply_and_failed_migration_is_atomic(tmp_path: 
                 expected_from_digest=base.digest,
                 reason="Approved package upgrade",
             ),
-            authenticated_gm_id="gm",
+            principal_id="gm",
         )
         == entry
     )

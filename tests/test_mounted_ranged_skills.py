@@ -221,7 +221,7 @@ async def test_vehicle_mount_uses_vehicle_pose_control_penalty_and_occupant_cove
                 HexPlacement(actor_id="c", pose=Pose(position=Hex(q=-1, r=0), facing=0)),
             ),
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play = play.for_campaign(await play.store.read(cid))
     await turn(

@@ -68,7 +68,7 @@ async def test_every_critical_hit_table_entry_replays(
     )
     play = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine)
     play.rng = RecordedDice((1, 1, 1) + table + damage_dice + extra)
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     after = await state_of(cid, play)
     trace = after.encounters[0].unarmed_history[-1]
     assert trace.won and trace.blocked_reason is None
@@ -79,13 +79,11 @@ async def test_every_critical_hit_table_entry_replays(
     assert play.rng.exhausted()
     restarted = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine)
     restarted.rng = RecordedDice(())
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
     assert await state_of(cid, restarted) == after
     with pytest.raises(ConflictError):
         await CombatService(restarted).execute(
-            cid, command.model_copy(update={"defense": "none"}), authenticated_actor_id="b"
+            cid, command.model_copy(update={"defense": "none"}), principal_id="b"
         )
 
 
@@ -171,7 +169,7 @@ async def test_maneuver_commitments(
             "attack_option": option,
         }
     )
-    await CombatService(play).execute(cid, command, authenticated_actor_id="a")
+    await CombatService(play).execute(cid, command, principal_id="a")
     # Move and Attack misses on 6, then succeeds on its ordinary DX balance check.
     play.rng = RecordedDice((2, 2, 2, 3) if damage else (2, 2, 2, 3, 3, 3))
     await defend(cid, play)
@@ -205,7 +203,7 @@ async def test_unsupported_all_out_combinations_reject_before_dice(
                 "maneuver": "all_out_attack",
                 "attack_option": option,
             },
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     assert await state_of(cid, play) == before and play.rng.exhausted()
 
@@ -231,7 +229,7 @@ async def test_grappled_ready_free_hand_dx_and_replay(
         ready_hand="right-hand",
     )
     play.rng = RecordedDice(roll)
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     after = await state_of(cid, play)
     assert next(i for i in after.resources.items if i.id == "sword-b").ready == readied
     assert len([e for e in after.resources.events if e.id.startswith("grapple-ready:")]) == 1
@@ -239,9 +237,7 @@ async def test_grappled_ready_free_hand_dx_and_replay(
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine, rng=RecordedDice(())
     )
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
     assert await state_of(cid, restarted) == after
 
 
@@ -333,7 +329,7 @@ async def test_unarmed_strike_hex_retreat(tmp_path: Path, choice: str, score: in
         }
     )
     play.rng = RecordedDice((2, 2, 2, 3, 3, 3))
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     after = await state_of(cid, play)
     trace = after.encounters[0].unarmed_history[-1]
     assert trace.checks[1].effective_target == score and not trace.won
@@ -344,9 +340,7 @@ async def test_unarmed_strike_hex_retreat(tmp_path: Path, choice: str, score: in
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine, rng=RecordedDice(())
     )
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
 
 
 async def arm_defender(cid: str, play: PlayService) -> None:
@@ -410,7 +404,7 @@ async def test_armed_parry_separate_skill_check_and_leg_injury(
         parry_mode_id="swing",
     )
     play.rng = RecordedDice((2, 2, 2, 2, 3, 3) + counter)
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, command, principal_id="b")
     after = await state_of(cid, play)
     trace = after.encounters[0].unarmed_history[-1]
     assert not trace.won and trace.injury == 0
@@ -422,9 +416,7 @@ async def test_armed_parry_separate_skill_check_and_leg_injury(
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine, rng=RecordedDice(())
     )
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
     assert await state_of(cid, restarted) == after
 
 
@@ -482,7 +474,7 @@ async def test_ambiguous_or_unknown_armed_parry_rejected_before_dice(
                 item_id="sword-b",
                 parry_mode_id=selected_mode,
             ),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     assert await state_of(cid, play) == before and play.rng.exhausted()
 
@@ -504,7 +496,7 @@ async def test_evaluate_is_used_by_next_unarmed_attack_only(tmp_path: Path) -> N
             maneuver="evaluate",
             target_id="b",
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     await wait(cid, play, "b")
     await action(cid, play, "a", "kick")
@@ -552,6 +544,6 @@ async def test_long_weapon_cannot_parry_in_close_combat(tmp_path: Path) -> None:
                 item_id="sword-b",
                 parry_mode_id="swing",
             ),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     assert await state_of(cid, play) == before and play.rng.exhausted()

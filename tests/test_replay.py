@@ -25,7 +25,7 @@ async def test_durable_replay_reports_legacy_and_detects_tampering(
     await play.execute(
         cid,
         Inspect(id="replay", actor_id="a", expected_revision=0, target_id="chest"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     records = await played(play.store, cid)
     assert len(records) == 1 and records[0].command_input is not None

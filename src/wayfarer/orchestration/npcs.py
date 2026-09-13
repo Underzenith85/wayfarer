@@ -29,7 +29,7 @@ from wayfarer.engine.simulation.health.fright_state import blocked, requires_adj
 from wayfarer.engine.simulation.resources import Consume
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, SocialDisclosure
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
 from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.persistence.events import CommandOrigin
 
@@ -409,6 +409,9 @@ def social_occurrence(
     )
 
 
+DIRECTOR_REFUSAL = "NPC proposals require trusted director authority"
+
+
 class NPCService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
@@ -419,13 +422,13 @@ class NPCService:
         *,
         llm: Orchestrator,
         command_id: str,
-        authenticated_gm_id: str,
+        principal_id: str,
         plan_id: str,
     ) -> PlayState:
         """Generate a bounded advisory choice before submitting a typed NPC proposal."""
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
-        if authenticated_gm_id not in play.engine.reviewer.gm_ids:
+        if principal_id not in play.engine.reviewer.gm_ids:
             raise ValidationError("NPC proposals require trusted director authority")
         state = play._load(campaign)
         rules = play.engine.rules.npcs
@@ -449,15 +452,15 @@ class NPCService:
             ),
             cid=cid,
             revision=state.revision,
-            principal=authenticated_gm_id,
-            actor=authenticated_gm_id,
+            principal=principal_id,
+            actor=principal_id,
             key=command_id,
         )
         choice = validation.mapping(validation.decode(reply.payload_json))
         action_id = validation.string(choice["action_id"])
         command = NPCProposal(
             id=command_id,
-            actor_id=authenticated_gm_id,
+            actor_id=principal_id,
             expected_revision=state.revision,
             plan_id=plan_id,
             action_id=action_id,
@@ -465,28 +468,16 @@ class NPCService:
         return await NPCService(play).propose(
             cid,
             command,
-            authenticated_gm_id=authenticated_gm_id,
+            principal_id=principal_id,
             origin=CommandOrigin.proposal(
                 "npc", choice, provider=reply.provider, model=reply.model
             ),
         )
 
-    async def propose(
-        self,
-        cid: str,
-        value: object,
-        *,
-        authenticated_gm_id: str,
-        origin: CommandOrigin | None = None,
-    ) -> PlayState:
-        command = NPCProposal.model_validate(value)
-        if (
-            command.actor_id != authenticated_gm_id
-            or authenticated_gm_id not in self.play.engine.reviewer.gm_ids
-        ):
-            raise ValidationError("NPC proposals require trusted director authority")
-        if command.hypothetical:
-            raise ValidationError("Hypothetical proposal cannot be persisted")
+    def plan(
+        self, command: NPCProposal, *, origin: CommandOrigin | None = None
+    ) -> CommandPlan[PlayState]:
+        """What an NPC proposal writes; the pipeline decides whether it runs."""
         payload = command.model_dump_json()
 
         def resolve(campaign: Campaign) -> CommandReceipt:
@@ -527,15 +518,34 @@ class NPCService:
             self.play.commit(campaign, state)
             return CommandReceipt(action="npc", outcome="proposed")
 
-        result = await commit_command(
-            self.play,
-            cid,
-            command.id,
-            command.expected_revision,
-            payload,
-            resolve,
+        async def outcome(campaign: Campaign) -> PlayState:
+            return self.play._load(campaign)
+
+        return CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
             actor_id=command.actor_id,
+            outcome=outcome,
+            control=(
+                ActsAs(command.actor_id, DIRECTOR_REFUSAL),
+                Trusted(self.play.engine.reviewer.gm_ids, refusal=DIRECTOR_REFUSAL),
+            ),
+            hypothetical=command.hypothetical,
             rng=self.play.rng,
             origin=origin,
         )
-        return self.play._load(result["state"])
+
+    async def propose(
+        self,
+        cid: str,
+        value: object,
+        *,
+        principal_id: str,
+        origin: CommandOrigin | None = None,
+    ) -> PlayState:
+        command = NPCProposal.model_validate(value)
+        return await submit(
+            self.play, cid, self.plan(command, origin=origin), principal_id=principal_id
+        )

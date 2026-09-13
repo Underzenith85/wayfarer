@@ -110,7 +110,7 @@ async def test_wait_interrupt_stops_on_the_first_matching_hex(tmp_path: Path) ->
             expected_revision=state.revision,
             encounter_id="fight",
         ),
-        authenticated_actor_id="b",
+        principal_id="b",
     )
     resumed = play._load(await play.store.read(cid)).encounters[0]
     assert resumed.participants[1].position == h(2, -1)
@@ -140,7 +140,7 @@ async def test_pop_up_uses_exposure_geometry_returns_to_cover_and_applies_penalt
     await CombatService(play).execute(
         cid,
         command.model_copy(update={"battlefield": battlefield, "placements": placements}),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     play = play.for_campaign(await play.store.read(cid))
     state = play._load(await play.store.read(cid))
@@ -156,7 +156,7 @@ async def test_pop_up_uses_exposure_geometry_returns_to_cover_and_applies_penalt
         pop_up=True,
         hex_path=(h(1, 0), h(0, 0)),
     )
-    result = await CombatService(play).execute(cid, attack, authenticated_actor_id="a")
+    result = await CombatService(play).execute(cid, attack, principal_id="a")
     assert result.code == "combat.defense_required"
     pending = play._load(await play.store.read(cid)).encounters[0]
     assert pending.participants[0].position == h(0, 0)

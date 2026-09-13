@@ -112,20 +112,20 @@ async def test_initial_observation_check_discovery_alternate_route_revisit_and_r
     assert {entry.fact_id for entry in scenes.journal(state, "a")} == {"dock-seen"}
     # A successful authored check records evidence in the perspective journal.
     action = Inspect(id="inspect", actor_id="a", expected_revision=0, target_id="chest")
-    result = await play.execute(cid, action, authenticated_actor_id="a")
+    result = await play.execute(cid, action, principal_id="a")
     assert result.revealed_fact_ids == ("clue",)
     state = play._load(await play.store.read(cid))
     assert {entry.fact_id for entry in scenes.journal(state, "a")} == {"dock-seen", "clue"}
     moved = await scenes.execute(
         cid,
         TravelScene(id="out", actor_id="a", expected_revision=1, exit_id="shortcut-to-alley"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert moved.scene_id == "alley-scene" and "alley-seen" in moved.revealed_fact_ids
     returned = await scenes.execute(
         cid,
         TravelScene(id="back", actor_id="a", expected_revision=2, exit_id="return"),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert returned.scene_id == "dock-scene"
     state = play._load(await play.store.read(cid))
@@ -140,18 +140,18 @@ async def test_blocked_invalid_and_retry_commands_do_not_duplicate_triggers(tmp_
         await scenes.execute(
             cid,
             TravelScene(id="bad", actor_id="a", expected_revision=0, exit_id="missing"),
-            authenticated_actor_id="a",
+            principal_id="a",
         )
     with pytest.raises(ValidationError, match="authorized"):
         await scenes.execute(
             cid,
             ObserveScene(id="forged", actor_id="a", expected_revision=0),
-            authenticated_actor_id="b",
+            principal_id="b",
         )
     assert await play.store.read(cid) == before
     command = TravelScene(id="out", actor_id="a", expected_revision=0, exit_id="to-alley")
-    first = await scenes.execute(cid, command, authenticated_actor_id="a")
-    second = await scenes.execute(cid, command, authenticated_actor_id="a")
+    first = await scenes.execute(cid, command, principal_id="a")
+    second = await scenes.execute(cid, command, principal_id="a")
     assert first == second
     state = play._load(await play.store.read(cid))
     assert state.fired_scene_triggers.count("exit-dock") == 1
@@ -159,5 +159,5 @@ async def test_blocked_invalid_and_retry_commands_do_not_duplicate_triggers(tmp_
         await scenes.execute(
             cid,
             TravelScene(id="blocked", actor_id="a", expected_revision=1, exit_id="return"),
-            authenticated_actor_id="a",
+            principal_id="a",
         )

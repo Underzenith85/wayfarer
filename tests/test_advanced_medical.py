@@ -297,14 +297,14 @@ async def test_survival_authority_sqlite_reconnect_and_no_reroll(tmp_path: Path)
         id="survive", actor_id="a", target_id="a", kind="mortal-check", expected_revision=0
     )
     with pytest.raises(ValidationError, match="authenticated"):
-        await service.execute(cid, command, authenticated_actor_id="b")
+        await service.execute(cid, command, principal_id="b")
     play.rng = RecordedDice([3, 3, 3])
-    first = await service.execute(cid, command, authenticated_actor_id="a")
+    first = await service.execute(cid, command, principal_id="a")
     reopened = PlayService(
         AsyncSQLiteStore(tmp_path / "medical.sqlite", 10), play.engine, rng=RecordedDice([])
     )
     service = MedicalService(reopened, lambda *_args: CareEnvironment())
-    assert await service.execute(cid, command, authenticated_actor_id="a") == first
+    assert await service.execute(cid, command, principal_id="a") == first
     restored = reopened._load(await reopened.store.read(cid))
     hit = next(p for p in restored.resources.pools if p.id == "hp:a")
     assert hit.injury is not None and hit.injury.mortal_wound_due == 3600

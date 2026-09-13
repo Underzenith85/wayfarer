@@ -24,7 +24,7 @@ async def test_self_wound_uses_canonical_limb_damage_and_persists(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, *table, 1, 1, 4, *([3] * 12)])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     event = next(e for e in state.resources.events if e.id.startswith("critical-limb:"))
     effect = CriticalLimbResult.model_validate_json(event.kind)
@@ -38,9 +38,7 @@ async def test_self_wound_uses_canonical_limb_damage_and_persists(
     assert sword.ready is (injury < 6)
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert (
-        await CombatService(restarted).execute(cid, choice(), authenticated_actor_id="b") == result
-    )
+    assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == result
     assert restarted._load(await restarted.store.read(cid)).resources == state.resources
 
 
@@ -48,7 +46,7 @@ async def test_shoulder_uses_wielding_arm_without_dropping_weapon(tmp_path: Path
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, 5, 5, 5])
-    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
     state = play._load(await play.store.read(cid))
     hp = next(p for p in state.resources.pools if p.id == "hp:a")
     assert hp.current == 10 and hp.injury is not None
@@ -147,11 +145,11 @@ async def test_impaling_exception_rolls_table_once_then_replays(
         blocker="basic-critical-miss:5",
     ) == (updated, encounter, result)
     play.rng = RecordedDice([6, 6, 6, 2, 2, 1, *second, 1, 1, 5, *([3] * 12)])
-    receipt = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    receipt = await CombatService(play).execute(cid, choice(), principal_id="b")
     assert receipt.injury and receipt.injury.critical_table == second
     assert receipt.injury.adjudication_required is None
     persisted = play._load(await play.store.read(cid))
     recorded = next(e for e in persisted.resources.events if e.id.startswith("critical-limb:"))
     assert CriticalLimbResult.model_validate_json(recorded.kind).table_rolls == ((2, 2, 1), second)
     play.rng = RecordedDice([])
-    assert await CombatService(play).execute(cid, choice(), authenticated_actor_id="b") == receipt
+    assert await CombatService(play).execute(cid, choice(), principal_id="b") == receipt

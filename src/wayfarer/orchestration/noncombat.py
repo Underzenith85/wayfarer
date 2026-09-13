@@ -249,11 +249,9 @@ class NoncombatService:
             rng=self.play.rng,
         )
 
-    async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> NoncombatEncounter:
+    async def execute(self, cid: str, value: object, *, principal_id: str) -> NoncombatEncounter:
         try:
             command = NoncombatCommand.model_validate(value)
         except ValueError as exc:
             raise ValidationError("Invalid noncombat command") from exc
-        return await submit(self.play, cid, self.plan(command), principal_id=authenticated_actor_id)
+        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)

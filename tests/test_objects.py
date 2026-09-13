@@ -293,7 +293,7 @@ async def test_damage_atomic_retry_restart_and_custody_history(
     results = await asyncio.gather(
         *(
             service.execute_object(
-                cid, command, authenticated_actor_id="a", system=True, rng=RecordedDice([5, 5, 5])
+                cid, command, principal_id="a", system=True, rng=RecordedDice([5, 5, 5])
             )
             for _ in range(4)
         )
@@ -302,19 +302,19 @@ async def test_damage_atomic_retry_restart_and_custody_history(
     restarted = ResourceService(store, reducer)
     assert (
         await restarted.execute_object(
-            cid, command, authenticated_actor_id="a", system=True, rng=RecordedDice([])
+            cid, command, principal_id="a", system=True, rng=RecordedDice([])
         )
         == results[0]
     )
     with pytest.raises(ValidationError, match="authority"):
         await restarted.execute_object(
-            cid, command, authenticated_actor_id="b", system=True, rng=RecordedDice([])
+            cid, command, principal_id="b", system=True, rng=RecordedDice([])
         )
     with pytest.raises(ConflictError):
         await restarted.execute_object(
             cid,
             command.model_copy(update={"basic_damage": 23}),
-            authenticated_actor_id="a",
+            principal_id="a",
             system=True,
             rng=RecordedDice([]),
         )
@@ -323,7 +323,7 @@ async def test_damage_atomic_retry_restart_and_custody_history(
         Transfer(
             id="trade", actor_id="a", expected_revision=1, item_id="sword", quantity=1, owner_id="b"
         ),
-        authenticated_actor_id="a",
+        principal_id="a",
     )
     assert len(await played(store, cid)) == 2
     assert await store.replay(cid) == await store.read(cid)
@@ -363,6 +363,6 @@ async def test_resource_only_damage_refuses_live_play_state(tmp_path: Path) -> N
     await service.create(initial, state)
     with pytest.raises(ValidationError, match="combat transaction"):
         await service.execute_object(
-            initial["id"], hit(12), authenticated_actor_id="a", system=True, rng=RecordedDice([])
+            initial["id"], hit(12), principal_id="a", system=True, rng=RecordedDice([])
         )
     assert (await service.store.read(initial["id"]))["revision"] == 0

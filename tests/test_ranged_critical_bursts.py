@@ -43,7 +43,7 @@ async def test_critical_burst_scores_one_critical_projectile(tmp_path: Path) -> 
     # margin of 10 fills the declared three shots at Rcl 2. Critical table 5
     # doubles the damage of the one critical projectile only: 2x2, then 1 and 1.
     play.rng = RecordedDice([1, 1, 1, 1, 2, 2, 2, 1, 1])
-    result = await CombatService(play).execute(cid, cmd, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, cmd, principal_id="b")
     assert play.rng.exhausted()
     assert result.injury is not None
     assert result.injury.attack.effective_target == 13
@@ -65,7 +65,7 @@ async def test_critical_burst_scores_one_critical_projectile(tmp_path: Path) -> 
     assert record.trace.hits == 3
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(restarted).execute(cid, cmd, authenticated_actor_id="b") == result
+    assert await CombatService(restarted).execute(cid, cmd, principal_id="b") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
@@ -103,7 +103,7 @@ async def test_critical_burst_redirects_only_the_critical_projectile(tmp_path: P
     # trailing ones are the per-hit knockdown and eye-crippling checks, which all
     # succeed on a 3 and so leave posture and consciousness alone.
     play.rng = RecordedDice([1, 1, 1, 2, 2, 2, 1] + [1] * 12)
-    result = await CombatService(play).execute(cid, cmd, authenticated_actor_id="b")
+    result = await CombatService(play).execute(cid, cmd, principal_id="b")
     assert play.rng.exhausted()
     assert result.injury is not None
     assert result.injury.attack.effective_target == 8
@@ -119,5 +119,5 @@ async def test_critical_burst_redirects_only_the_critical_projectile(tmp_path: P
     assert saved.encounters[0].blocked_reason is None
     assert isinstance(play.store, AsyncSQLiteStore)
     restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([]))
-    assert await CombatService(restarted).execute(cid, cmd, authenticated_actor_id="b") == result
+    assert await CombatService(restarted).execute(cid, cmd, principal_id="b") == result
     assert await play.store.read(cid) == await play.store.replay(cid)

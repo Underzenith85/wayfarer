@@ -117,14 +117,11 @@ async def test_low_tl_explosion_uses_pinned_warhead_and_restarts(tmp_path: Path)
     )
     # A: 1+4 direct damage 5; B is one grid yard away: floor((2+4)/3)=2.
     play.rng = RecordedDice([1, 3, 3, 3, 2])
-    resolved = await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    resolved = await CombatService(play).execute(cid, command, principal_id="gm")
     restarted = PlayService(
         AsyncSQLiteStore(tmp_path / "melee.sqlite"), play.engine, rng=RecordedDice([])
     )
-    assert (
-        await CombatService(restarted).execute(cid, command, authenticated_actor_id="gm")
-        == resolved
-    )
+    assert await CombatService(restarted).execute(cid, command, principal_id="gm") == resolved
     state = play._load(await play.store.read(cid))
     assert blasts(state.resources)[0].resolved
     assert next(p.current for p in state.resources.pools if p.id == "hp:a") == 5
@@ -209,7 +206,7 @@ async def test_grenade_dud_and_delayed_fuse(
                 encounter_id="fight",
                 reason="leave",
             ),
-            authenticated_actor_id="gm",
+            principal_id="gm",
         )
     center = position(state.encounters[0], state.encounters[0].participants[0])
     await CombatService(play).execute(
@@ -222,7 +219,7 @@ async def test_grenade_dud_and_delayed_fuse(
             item_id="sword-a",
             landing=center,
         ),
-        authenticated_actor_id="gm",
+        principal_id="gm",
     )
     await turn(cid, play, "b", "do_nothing")
     await turn(cid, play, "a", "do_nothing")
@@ -245,7 +242,7 @@ async def test_grenade_dud_and_delayed_fuse(
         environment="air",
     )
     play.rng = RecordedDice([1, 1])
-    await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, command, principal_id="gm")
     state = play._load(await play.store.read(cid))
     assert blasts(state.resources)[0].resolved
     spent = next(i for i in state.resources.expended_items if i.id == "sword-a")
@@ -317,7 +314,7 @@ async def test_fragmentation_and_object_damage_share_the_transaction(tmp_path: P
     # Direct A: one automatic fragment. B: skill15, roll15 gives one fragment.
     # Three durable items receive separate blast and fragmentation reducer commands.
     play.rng = RecordedDice([1, 3, 3, 4, 1] + [1, 5, 5, 5, 3, 3, 4, 1] + [1, 5, 5, 5, 1] * 3)
-    await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    await CombatService(play).execute(cid, command, principal_id="gm")
     state = play._load(await play.store.read(cid))
     assert len(state.resources.object_results) == 6
     assert all(r.injury == 0 for r in state.resources.object_results)
@@ -361,7 +358,7 @@ async def test_failed_blast_declaration_consumes_no_rolls(tmp_path: Path) -> Non
     )
     play.rng = RecordedDice([])
     with pytest.raises(ValidationError, match="every actor"):
-        await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+        await CombatService(play).execute(cid, command, principal_id="gm")
     assert await play.store.read(cid) == before
 
 
@@ -447,8 +444,8 @@ async def test_immediate_explosion_defers_and_restores_round_time(tmp_path: Path
         environment="air",
     )
     play.rng = RecordedDice([1, 1])
-    result = await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    result = await CombatService(play).execute(cid, command, principal_id="gm")
     state = play._load(await play.store.read(cid))
     assert state.resources.game_time == 1
-    assert await CombatService(play).execute(cid, command, authenticated_actor_id="gm") == result
+    assert await CombatService(play).execute(cid, command, principal_id="gm") == result
     assert await play.store.read(cid) == await play.store.replay(cid)

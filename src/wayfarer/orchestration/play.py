@@ -403,11 +403,9 @@ class PlayService:
         except SchemaError as exc:
             raise ValidationError("Invalid typed action proposal") from exc
 
-    async def preview(
-        self, cid: str, value: object, *, authenticated_actor_id: str
-    ) -> ActionResult:
+    async def preview(self, cid: str, value: object, *, principal_id: str) -> ActionResult:
         command = self.propose(value)
-        ActsAs(command.actor_id)(authenticated_actor_id)
+        ActsAs(command.actor_id)(principal_id)
         return self.engine.assess(self._load(await self.store.read(cid)), command)
 
     def plan(self, command: TypedAction, checkpoint: Campaign) -> CommandPlan[ActionResult]:
@@ -462,7 +460,7 @@ class PlayService:
         cid: str,
         value: object,
         *,
-        authenticated_actor_id: str,
+        principal_id: str,
         authorize: Callable[[Campaign], None] | None = None,
     ) -> ActionResult:
         command = self.propose(value)
@@ -470,7 +468,7 @@ class PlayService:
             self,
             cid,
             self.plan(command, await self.store.read(cid)),
-            principal_id=authenticated_actor_id,
+            principal_id=principal_id,
             authorize=authorize,
         )
 
@@ -536,14 +534,12 @@ class PlayService:
             rng=self.rng,
         )
 
-    async def approve(self, cid: str, value: object, *, authenticated_gm_id: str) -> Approval:
+    async def approve(self, cid: str, value: object, *, principal_id: str) -> Approval:
         try:
             command = ApproveCharacter.model_validate(value)
         except SchemaError as exc:
             raise ValidationError("Invalid approval command") from exc
-        return await submit(
-            self, cid, self.approval_plan(cid, command), principal_id=authenticated_gm_id
-        )
+        return await submit(self, cid, self.approval_plan(cid, command), principal_id=principal_id)
 
 
 def record_play_state(campaign: Campaign, state: PlayState) -> None:
