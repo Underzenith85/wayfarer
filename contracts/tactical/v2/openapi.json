@@ -1865,6 +1865,40 @@
             "default": null,
             "title": "Hit Location"
           },
+          "armor_chink": {
+            "default": false,
+            "title": "Armor Chink",
+            "type": "boolean"
+          },
+          "strike_strength": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Strike Strength"
+          },
+          "subdual_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "flat",
+                  "blunt-end"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subdual Mode"
+          },
           "target_item_id": {
             "anyOf": [
               {
@@ -1878,6 +1912,34 @@
             ],
             "default": null,
             "title": "Target Item Id"
+          },
+          "cover_item_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cover Item Id"
+          },
+          "overpenetration_target_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Overpenetration Target Id"
           },
           "ready_hand": {
             "anyOf": [

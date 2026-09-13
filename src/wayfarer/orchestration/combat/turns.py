@@ -38,6 +38,16 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 
 
+def _validate_special_strike_command(command: TakeCombatTurn, *, gurps: bool) -> None:
+    invalid = (
+        command.maneuver not in ATTACK_MANEUVERS or not gurps or command.attack_option == "double"
+    )
+    if command.armor_chink and invalid:
+        raise ValidationError("Armor-chink targeting requires a single GURPS attack")
+    if (command.strike_strength is not None or command.subdual_mode is not None) and invalid:
+        raise ValidationError("Subdual striking requires a single GURPS attack")
+
+
 def _validate_turn(
     state: PlayState, command: TakeCombatTurn, encounter: Encounter, context: CombatContext
 ) -> tuple[PlayState, Encounter]:
@@ -61,13 +71,14 @@ def _validate_turn(
         command.maneuver not in ATTACK_MANEUVERS or engine.rules.gurps_equipment is None
     ):
         raise ValidationError("Hit location requires GURPS attack dispatch")
-    if command.target_item_id and (
+    _validate_special_strike_command(command, gurps=engine.rules.gurps_equipment is not None)
+    if (command.target_item_id or command.cover_item_id or command.overpenetration_target_id) and (
         command.maneuver not in ATTACK_MANEUVERS
-        or command.hit_location
+        or (command.target_item_id is not None and command.hit_location is not None)
         or engine.rules.gurps_equipment is None
         or command.attack_option == "double"
     ):
-        raise ValidationError("Object targeting requires a single GURPS attack")
+        raise ValidationError("Object and penetration targeting require a single GURPS attack")
     if command.ready_hand is not None and (
         command.maneuver != "ready" or engine.rules.gurps_equipment is None
     ):
@@ -242,7 +253,12 @@ def _preview_turn(
                     if preview.pending_defense.suppression_zone_id is not None
                     else command.hit_location
                 ),
+                armor_chink=command.armor_chink,
+                strike_strength=command.strike_strength,
+                subdual_mode=command.subdual_mode,
                 target_item_id=command.target_item_id,
+                cover_item_id=command.cover_item_id,
+                overpenetration_target_id=command.overpenetration_target_id,
                 shots=(
                     preview.pending_defense.shots
                     if preview.pending_defense.suppression_zone_id is not None
@@ -458,7 +474,12 @@ def _prepare_attack_turn(
         encounter,
         command.mode_id,
         hit_location=command.hit_location,
+        armor_chink=command.armor_chink,
+        strike_strength=command.strike_strength,
+        subdual_mode=command.subdual_mode,
         target_item_id=command.target_item_id,
+        cover_item_id=command.cover_item_id,
+        overpenetration_target_id=command.overpenetration_target_id,
         shots=command.shots,
     )
     encounter = prepare_spraying_fire(context.play.rules_context, state, encounter, command)

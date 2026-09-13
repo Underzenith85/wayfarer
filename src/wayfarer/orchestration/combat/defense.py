@@ -132,6 +132,9 @@ def _defend(
             encounter,
             queued.mode_id,
             hit_location=queued.hit_location,
+            armor_chink=queued.armor_chink,
+            strike_strength=queued.strike_strength,
+            subdual_mode=queued.subdual_mode,
             target_item_id=queued.target_item_id,
             shots=queued.shots,
         )

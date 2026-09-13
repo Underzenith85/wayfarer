@@ -54,7 +54,7 @@ def test_all_87_source_rows_have_distinct_modifier_definitions() -> None:
     assert len(source) == len(MODIFIER_INDEX) == 87
     assert {row.id for row in source} == set(MODIFIER_INDEX)
     assert all(row.construction_binding == row.id for row in source)
-    assert all(row.cost_owner and row.consequence_owner == 497 for row in source)
+    assert all(row.cost_owner and row.consequence_owner == 94 for row in source)
 
 
 def test_positive_negative_level_cost_and_final_rounding() -> None:

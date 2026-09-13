@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
@@ -20,10 +22,11 @@ from wayfarer.engine.simulation.combat.objects.combat import target_geometry, ta
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
 from wayfarer.engine.simulation.combat.ranged.attack import prepare
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.special_melee import actor_reaches, validate_special_attack
 from wayfarer.engine.simulation.combat.tactical import attack_geometry, defense_adjustment
 from wayfarer.engine.simulation.combat.visibility import combat_visibility
 from wayfarer.engine.simulation.combat.vocabulary import Defense
-from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -35,12 +38,29 @@ def prepare_attack(
     mode_id: str | None,
     *,
     hit_location: HitLocation | None = None,
+    armor_chink: bool = False,
+    strike_strength: int | None = None,
+    subdual_mode: Literal["flat", "blunt-end"] | None = None,
     target_item_id: str | None = None,
+    cover_item_id: str | None = None,
+    overpenetration_target_id: str | None = None,
     shots: int = 1,
 ) -> Encounter:
     pending = encounter.pending_defense
     assert pending is not None
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, mode_id)
+    validate_special_attack(
+        runtime,
+        state,
+        selected,
+        attacker_id=pending.attacker_id,
+        defender_id=pending.defender_id,
+        hit_location=hit_location,
+        armor_chink=armor_chink,
+        strike_strength=strike_strength,
+        subdual_mode=subdual_mode,
+        target_item_id=target_item_id,
+    )
     if target_item_id:
         if selected.damage.damage_type not in (
             "cr",
@@ -63,7 +83,11 @@ def prepare_attack(
             shots=shots,
             hit_location=hit_location,
             target_item_id=target_item_id,
+            cover_item_id=cover_item_id,
+            overpenetration_target_id=overpenetration_target_id,
         )
+    if cover_item_id is not None or overpenetration_target_id is not None:
+        raise ValidationError("Cover and overpenetration require a ranged mode")
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
@@ -92,17 +116,20 @@ def prepare_attack(
     ):
         raise ValidationError("Double attack requires a weapon usable twice without readying")
 
+    reaches = (
+        frozenset(actor_reaches(runtime, state, pending.attacker_id, selected.reach))
+        if isinstance(selected, MeleeMode)
+        else None
+    )
     geometry = encounter
     if target_item_id:
-        geometry = target_geometry(
-            runtime, state, encounter, target_item_id, frozenset(selected.reach)
-        )
+        geometry = target_geometry(runtime, state, encounter, target_item_id, reaches)
     target_position = next(p for p in geometry.participants if p.actor_id == defender.actor_id)
     attack_geometry(
         geometry,
         attacker,
         target_position,
-        frozenset(selected.reach),
+        reaches,
         location=hit_location,
         board=runtime.hex_map(geometry),
     )
@@ -111,7 +138,7 @@ def prepare_attack(
         if isinstance(geometry.spatial, BasicSpatialContext)
         else float(CombatEngine.distance(attacker.position, target_position.position))
     )
-    if selected_distance not in selected.reach:
+    if reaches is not None and selected_distance not in reaches:
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
     candidates = tuple(
@@ -149,6 +176,9 @@ def prepare_attack(
                     "mode_id": selected.id,
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
+                    "armor_chink": armor_chink,
+                    "strike_strength": strike_strength,
+                    "subdual_mode": subdual_mode,
                     "target_item_id": target_item_id,
                     "visibility_attack_penalty": visibility.attack_penalty,
                     "visibility_defense_penalty": visibility.defense_penalty,

@@ -7,6 +7,7 @@ certification gate. No alternative inventory, injury or command receipt engine.
 from __future__ import annotations
 
 from dataclasses import replace
+from decimal import ROUND_CEILING, Decimal
 from typing import TYPE_CHECKING, cast
 
 from wayfarer.engine.character.statistics import damage as strength_damage
@@ -55,17 +56,18 @@ from wayfarer.engine.simulation.combat.ranged.critical import RangedCritical, sa
 from wayfarer.engine.simulation.combat.ranged.lingering_fire import _schedule_lingering_fire
 from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 from wayfarer.engine.simulation.combat.ranged.situation import situation
+from wayfarer.engine.simulation.combat.ranged.special import impact_cover, living_cover_dr
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
+from wayfarer.engine.simulation.combat.special_melee import targeted_attack_penalty
 from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
 from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.combat.vocabulary import Defense
-from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
-    attack_penalty,
     disabled,
     location_special_effects,
     missing_location,
@@ -82,6 +84,128 @@ def _visibility_adjustment(value: DerivedValue | None, penalty: int) -> DerivedV
     if value is None:
         return None
     return DerivedValue(value.target, value.value + penalty, value.explanations)
+
+
+def _resolve_overpenetration(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    weapon: RangedMode,
+    *,
+    secondary_id: str | None,
+    projectile_id: str,
+    rolled_damage: int,
+    intervening_dr: int,
+    primary_hp: int,
+    primary_armor_dr: int,
+    blocked_by_shield: bool,
+    location: HumanLocation | None,
+) -> tuple[PlayState, Encounter]:
+    """Apply the original projectile to one declared target behind living cover."""
+
+    cover_threshold = intervening_dr + living_cover_dr(
+        hp=primary_hp,
+        armor_dr=primary_armor_dr,
+        armor_divisor=weapon.damage.armor_divisor,
+    )
+    if secondary_id is None or blocked_by_shield or rolled_damage <= cover_threshold:
+        return state, encounter
+    secondary = next(p for p in encounter.participants if p.actor_id == secondary_id)
+    secondary_build = build(runtime, state, secondary_id)
+    secondary_stats = secondary_build.statistics
+    assert secondary_stats is not None
+    secondary_hp = next(p for p in state.resources.pools if p.id == f"hp:{secondary_id}")
+    entries = {entry.definition_id: entry for entry in catalog(runtime).entries}
+    secondary_armor = max(
+        (
+            armor.dr
+            for item in state.resources.items
+            if item.owner_id == secondary_id
+            and item.equipped
+            and (item.condition is None or not item.condition.disabled)
+            for armor in (entries[item.definition_id].armor,)
+            if armor is not None
+            and (
+                (location or "torso") in armor.locations
+                or (part(location) + "s" if location else "torso") in armor.locations
+            )
+        ),
+        default=0,
+    )
+    if runtime.rules.abilities is not None:
+        secondary_armor += damage_resistance(
+            state.resources, secondary_id, build_revision=secondary_build.revision
+        )
+    secondary_effective = int(
+        (Decimal(secondary_armor) / weapon.damage.armor_divisor).to_integral_value(
+            rounding=ROUND_CEILING
+        )
+    )
+    resources, _ = apply_injury(
+        state.resources,
+        Wound(
+            id=f"{projectile_id}:overpenetration:{secondary_id}",
+            actor_id=secondary_id,
+            expected_revision=state.resources.revision,
+            basic_damage=rolled_damage,
+            resistance=cover_threshold + secondary_effective,
+            damage_type=weapon.damage.damage_type,
+            location=location,
+            tight_beam=weapon.damage.tight_beam,
+        ),
+        ht=secondary_stats.ht,
+        dx=secondary_stats.dx,
+        rng=runtime.rng,
+        system=True,
+    )
+    updated_state = state.model_copy(update={"resources": resources})
+    updated_secondary = next(p for p in resources.pools if p.id == secondary_hp.id)
+    updated_encounter = CombatEngine._replace(
+        encounter,
+        secondary.model_copy(
+            update={
+                "posture": "prone"
+                if updated_secondary.injury and updated_secondary.injury.prone
+                else secondary.posture,
+                "ready_item_ids": tuple(
+                    sorted(
+                        item.id
+                        for item in resources.items
+                        if item.owner_id == secondary_id and item.ready and item.equipped
+                    )
+                ),
+            }
+        ),
+    )
+    return updated_state, updated_encounter
+
+
+def _resolve_cover_impact(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    damage: Damage,
+    *,
+    cover_item_id: str | None,
+    projectile_id: str,
+    target_id: str,
+    basic_damage: int,
+) -> tuple[PlayState, Encounter, int]:
+    """Apply an optional physical barrier and return its effective DR."""
+
+    if cover_item_id is None:
+        return state, encounter, 0
+    updated_state, updated_encounter, cover = impact_cover(
+        runtime,
+        state,
+        encounter,
+        projectile_id=projectile_id,
+        barrier_item_id=cover_item_id,
+        target_id=target_id,
+        basic_damage=basic_damage,
+        damage=damage,
+    )
+    return updated_state, updated_encounter, cover.cover_dr
 
 
 if TYPE_CHECKING:
@@ -208,19 +332,22 @@ def resolve(
         attack_target -= (
             6 if len(eyes) == 2 else 1 if aimed and actor.last_maneuver != "move_and_attack" else 3
         )
-    if pending.hit_location:
-        entries = {e.definition_id: e for e in equipment.entries}
-        shield_side = next(
-            (
-                hand.split("-")[0]
-                for item, hand in target.hand_bindings
-                if any(
-                    i.id == item and entries[i.definition_id].shield for i in state.resources.items
-                )
-            ),
-            None,
-        )
-        attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
+    entries = {e.definition_id: e for e in equipment.entries}
+    shield_side = next(
+        (
+            hand.split("-")[0]
+            for item, hand in target.hand_bindings
+            if any(i.id == item and entries[i.definition_id].shield for i in state.resources.items)
+        ),
+        None,
+    )
+    attack_target += targeted_attack_penalty(
+        pending.hit_location,
+        armor_chink=pending.armor_chink,
+        damage_type=weapon.damage.damage_type,
+        tight_beam=weapon.damage.tight_beam,
+        shield_side=shield_side,
+    )
     if pending.suppression_skill_cap is not None:
         attack_target = min(
             attack_target,
@@ -693,6 +820,9 @@ def resolve(
                 else 1
             )
 
+        rolled_damage = damage
+        intervening_dr = 0
+
         if pending.target_item_id:
             state, encounter, object_result = damage_target(
                 runtime,
@@ -700,7 +830,12 @@ def resolve(
                 encounter,
                 pending.target_item_id,
                 damage,
-                resistance_damage,
+                resistance_damage.model_copy(
+                    update={
+                        "armor_divisor": resistance_damage.armor_divisor
+                        * (2 if pending.armor_chink else 1)
+                    }
+                ),
                 impact=index,
             )
             damages.append(damage)
@@ -709,6 +844,18 @@ def resolve(
             if object_result:
                 effect_dice += tuple(d for roll in object_result.checks for d in roll)
             continue
+        state, encounter, intervening_dr = _resolve_cover_impact(
+            runtime,
+            state,
+            encounter,
+            resistance_damage,
+            cover_item_id=pending.cover_item_id,
+            projectile_id=f"{pending.id}:hit:{index}",
+            target_id=target.actor_id,
+            basic_damage=damage,
+        )
+        dr += intervening_dr
+        hit_resistances[-1] = dr
         if shield_hit and index < shield_impacts:
             state, encounter, damage = shield_damage(
                 runtime,
@@ -734,7 +881,7 @@ def resolve(
                 damage_type=weapon.damage.damage_type,
                 location=location,
                 critical_eye=critical_eye and index == 0,
-                armor_divisor=weapon.damage.armor_divisor,
+                armor_divisor=weapon.damage.armor_divisor * (2 if pending.armor_chink else 1),
                 tight_beam=weapon.damage.tight_beam,
             ),
             ht=defender_stats.ht,
@@ -776,6 +923,20 @@ def resolve(
         injuries.append(result.injury)
         lasting_ids += result.lasting_injury_ids
         effect_dice += result.location_dice
+        state, encounter = _resolve_overpenetration(
+            runtime,
+            state,
+            encounter,
+            weapon,
+            secondary_id=pending.overpenetration_target_id,
+            projectile_id=f"{pending.id}:hit:{index}",
+            rolled_damage=rolled_damage,
+            intervening_dr=intervening_dr,
+            primary_hp=hp.maximum,
+            primary_armor_dr=armor_dr() + dr_bonus,
+            blocked_by_shield=shield_hit is not None,
+            location=location,
+        )
     if critical == 12 and not head and blocked is None and not pending.target_item_id:
         state = state.model_copy(
             update={

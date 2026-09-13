@@ -6989,6 +6989,47 @@
         "title": "GroundPosition",
         "type": "object"
       },
+      "GuidanceSpec": {
+        "additionalProperties": false,
+        "description": "Explicit equipment adapter for a steerable projectile (B412-B413).",
+        "properties": {
+          "kind": {
+            "enum": [
+              "guided",
+              "homing",
+              "semi-active"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "seeker_skill": {
+            "default": 10,
+            "maximum": 30,
+            "minimum": 3,
+            "title": "Seeker Skill",
+            "type": "integer"
+          },
+          "seeker_sense": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Seeker Sense"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "GuidanceSpec",
+        "type": "object"
+      },
       "HazardEnvironment": {
         "additionalProperties": false,
         "description": "Measured, scenario-authored exposure facts (Campaigns B428-B437).",
@@ -10672,6 +10713,22 @@
             },
             "title": "Residual Definitions",
             "type": "array"
+          },
+          "cover_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "structural",
+                  "thin"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cover Kind"
           }
         },
         "required": [
@@ -12431,6 +12488,17 @@
             "default": false,
             "title": "Beam Environment Dr",
             "type": "boolean"
+          },
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/GuidanceSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [

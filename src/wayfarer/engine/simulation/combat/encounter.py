@@ -20,6 +20,7 @@ from wayfarer.engine.rules.types.special_combat import (
     MountedCombatRelationship,
     PersonalFlightState,
 )
+from wayfarer.engine.rules.types.special_ranged import GuidanceState
 from wayfarer.engine.rules.types.spray import Stream
 from wayfarer.engine.rules.types.tactical import EncounterSurprise, HighSpeedState
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
@@ -155,7 +156,14 @@ class PendingDefense(Record):
     opened_turn: int = Field(ge=0)
     mode_id: str | None = None
     hit_location: HitLocation | None = None
+    armor_chink: bool = Field(default=False, exclude_if=lambda value: not value)
+    strike_strength: int | None = Field(default=None, ge=1, exclude_if=lambda value: value is None)
+    subdual_mode: Literal["flat", "blunt-end"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    cover_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    overpenetration_target_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     transport_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     vehicle_attack_penalty: int = Field(default=0, ge=-30, le=0, exclude_if=lambda v: v == 0)
     vehicle_aim_lost: bool = Field(default=False, exclude_if=lambda v: not v)
@@ -266,6 +274,9 @@ class Encounter(Record):
         default=(), exclude_if=lambda value: not value
     )
     suppression_zones: tuple[ActiveSuppressionZone, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    guided_projectiles: tuple[GuidanceState, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
     allegiances: tuple[CombatAllegiance, ...] = Field(

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.tables.special_melee import size_reach
 from wayfarer.engine.rules.tables.unarmed import UNARMED_SKILLS
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, movement
+from wayfarer.engine.simulation.actors import catalog, fatigue_ready, movement
 from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
     CombatResult,
@@ -19,6 +20,7 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.engine.simulation.combat.objects.locations import from_behind
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.special_melee import actor_size_modifier
 from wayfarer.engine.simulation.combat.tactical import attack_geometry, occupants, pose, sight
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
     encumbrance_level,
@@ -133,11 +135,6 @@ def validate_action(
     target_hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
     assert target_hp.injury is not None
     require_location(target_hp.injury, command.location)
-    if command.action in ("grapple", "pin", "takedown", "break_free"):
-        for participant in (actor, target):
-            compiled = build(runtime, state, participant.actor_id)
-            if any(v.target == "size-modifier" and v.value != 0 for v in compiled.sheet.values):
-                raise ValidationError("Unequal-size grappling requires body-size integration")
     setup = next(a for a in state.actors if a.actor_id == actor.actor_id)
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
@@ -170,13 +167,15 @@ def validate_action(
     distance = 0 if command.enter_close_combat else separation
 
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
+        unarmed_reach = frozenset(
+            size_reach((0,), actor_size_modifier(runtime, state, actor.actor_id))
+        )
         attack_geometry(
             encounter,
             actor,
             target,
-            frozenset({0, 1})
-            if command.action == "kick" or command.enter_close_combat
-            else frozenset({0}),
+            unarmed_reach
+            | ({1} if command.action == "kick" or command.enter_close_combat else set()),
             location=command.location,
             board=runtime.hex_map(encounter),
         )
@@ -194,7 +193,8 @@ def validate_action(
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
         if command.grip_id is not None and command.action != "arm_lock":
             raise ValidationError("Attack cannot name an existing grip")
-        if distance not in ((0, 1) if command.action == "kick" else (0,)):
+        legal_distance = set(unarmed_reach) | ({1} if command.action == "kick" else set())
+        if distance not in legal_distance:
             raise ValidationError("Unarmed attack is out of reach")
         skills = UNARMED_SKILLS[command.action]
         if command.skill not in skills:

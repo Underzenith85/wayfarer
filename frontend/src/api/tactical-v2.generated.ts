@@ -762,10 +762,35 @@ export interface components {
         | "random"
         | null;
       /**
+       * Armor Chink
+       * @default false
+       */
+      armor_chink: boolean;
+      /**
+       * Strike Strength
+       * @default null
+       */
+      strike_strength: number | null;
+      /**
+       * Subdual Mode
+       * @default null
+       */
+      subdual_mode: ("flat" | "blunt-end") | null;
+      /**
        * Target Item Id
        * @default null
        */
       target_item_id: string | null;
+      /**
+       * Cover Item Id
+       * @default null
+       */
+      cover_item_id: string | null;
+      /**
+       * Overpenetration Target Id
+       * @default null
+       */
+      overpenetration_target_id: string | null;
       /**
        * Ready Hand
        * @default null

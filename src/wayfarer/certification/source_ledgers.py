@@ -19,6 +19,7 @@ from wayfarer.models import Record
 
 BASIC_PROFILE_ID: Final = "gurps-basic-set-4e-2004"
 BASELINE_ID: Final = "gurps-4e-characters-3p-2008+campaigns-4p-2008"
+READY_IMPLEMENTATIONS: Final = frozenset({"implemented", "verified"})
 LEDGER_DIRECTORY: Final = Path("src/wayfarer/certification/basic_set_audit")
 EXPECTED_LEDGER_COUNTS: Final = {"sections": 711, "traits": 487, "modifiers": 87}
 SOURCE_DIGESTS: Final = {
@@ -327,6 +328,7 @@ def validate_source_ledgers(
     bundle: LedgerBundle,
     inventory_rows: tuple[InventoryLedgerRow, ...],
     capability_ids: frozenset[str],
+    root: Path,
 ) -> None:
     """Fail on malformed imports, dead ownership, duplicate bindings, or drift."""
     if bundle.denominator.baseline_id != BASELINE_ID:
@@ -371,12 +373,14 @@ def validate_source_ledgers(
         ):
             raise ValidationError(f"Infinite Worlds boundary disposition drift: {row.id}")
         needs_owner = row.disposition in {"optional-unresolved", "setting-unresolved"} or (
-            row.disposition == "required" and row.implementation not in {"implemented", "verified"}
+            row.disposition == "required" and row.implementation not in READY_IMPLEMENTATIONS
         )
         if needs_owner and row.completion_owner is None:
             raise ValidationError(f"Required row lacks completion owner: {row.id}")
-        if row.completion_owner is not None and row.completion_owner not in open_owners:
+        if needs_owner and row.completion_owner not in open_owners:
             raise ValidationError(f"Completion owner is missing or closed: {row.id}")
+        if not needs_owner and row.completion_owner is not None:
+            raise ValidationError(f"Completed row retains a completion owner: {row.id}")
         if row.capability_id is not None and row.capability_id not in capability_ids:
             raise ValidationError(f"Unknown source-ledger capability: {row.id}")
         if row.parent_id is not None and row.parent_id not in row_ids:
@@ -392,7 +396,11 @@ def validate_source_ledgers(
                 raise ValidationError(
                     f"Reviewed catalog row retains a source-review owner: {row.id}"
                 )
-            if row.runtime_binding == row.id and row.consequence_owner not in open_owners:
+            if (
+                row.runtime_binding == row.id
+                and row.implementation not in READY_IMPLEMENTATIONS
+                and row.consequence_owner not in open_owners
+            ):
                 raise ValidationError(f"Catalog-only row lacks an open consequence owner: {row.id}")
         if row.runtime_binding is not None:
             runtime = inventory.get(row.runtime_binding)
@@ -408,6 +416,22 @@ def validate_source_ledgers(
                 "verified",
             }:
                 raise ValidationError(f"Runtime inventory implementation disagrees: {row.id}")
+            executable_evidence = tuple(
+                binding
+                for binding in row.evidence_paths
+                if binding.startswith("tests/") and (root / binding.partition("::")[0]).is_file()
+            )
+            if row.implementation in READY_IMPLEMENTATIONS and not executable_evidence:
+                raise ValidationError(f"Implemented binding lacks executable evidence: {row.id}")
+            if (
+                runtime.source_review == "reviewed"
+                and runtime.implementation in READY_IMPLEMENTATIONS
+                and row.disposition == "required"
+                and row.source_review == "reviewed"
+                and executable_evidence
+                and row.implementation not in READY_IMPLEMENTATIONS
+            ):
+                raise ValidationError(f"Source-ledger implementation is not joined: {row.id}")
             bindings.append(row.runtime_binding)
         if row.implementation in {"implemented", "verified"}:
             if row.source_review != "reviewed":
