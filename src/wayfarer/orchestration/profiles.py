@@ -16,13 +16,18 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.contracts import Campaign
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.checks import RandomSource
-from wayfarer.engine.rules.profiles import ProfileRegistry, RegisteredProfile
+from wayfarer.engine.rules.profiles import (
+    BASIC_SET_OPTIONAL_RULES,
+    ProfileRegistry,
+    RegisteredProfile,
+)
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.advancement import BuildDiff, MigrationEntry
 from wayfarer.engine.simulation.campaign.profiles import (
     Incompatibility,
     MigrateProfile,
+    OptionalRuleSelectionView,
     PackageView,
     ProfileMigrationPreview,
     ProfileSelection,
@@ -77,6 +82,15 @@ def view(profile: RegisteredProfile) -> ProfileView:
         required_capabilities=tuple(sorted(profile.required_capabilities)),
         unverified_capabilities=profile.unverified_capabilities,
         optional_rules=profile.optional_rules,
+        named_optional_rules=tuple(
+            OptionalRuleSelectionView(
+                id=selection.id,
+                enabled=selection.enabled,
+                source_ref=BASIC_SET_OPTIONAL_RULES[selection.id].source_ref,
+                available=BASIC_SET_OPTIONAL_RULES[selection.id].available,
+            )
+            for selection in profile.named_optional_rules
+        ),
     )
 
 

@@ -24,6 +24,38 @@
   },
   "ProfileView": {
     "$defs": {
+      "OptionalRuleSelectionView": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "source_ref": {
+            "pattern": "^B\\d+$",
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "enabled",
+          "source_ref",
+          "available"
+        ],
+        "title": "OptionalRuleSelectionView",
+        "type": "object"
+      },
       "PackageView": {
         "additionalProperties": false,
         "properties": {
@@ -161,6 +193,14 @@
           "type": "string"
         },
         "title": "Optional Rules",
+        "type": "array"
+      },
+      "named_optional_rules": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/OptionalRuleSelectionView"
+        },
+        "title": "Named Optional Rules",
         "type": "array"
       }
     },
