@@ -65,7 +65,7 @@
       "listed_value": "10",
       "construction_binding": "trait:advantage:3d-spatial-sense",
       "cost_owner": "trait:advantage:3d-spatial-sense",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -95,7 +95,7 @@
       "listed_value": "5",
       "construction_binding": "trait:advantage:absolute-direction",
       "cost_owner": "trait:advantage:absolute-direction",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -186,7 +186,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:acute-hearing",
       "cost_owner": "trait:advantage:acute-hearing",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -216,7 +216,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:acute-taste-and-smell",
       "cost_owner": "trait:advantage:acute-taste-and-smell",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -246,7 +246,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:acute-touch",
       "cost_owner": "trait:advantage:acute-touch",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -276,7 +276,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:acute-vision",
       "cost_owner": "trait:advantage:acute-vision",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -368,7 +368,7 @@
       "listed_value": "1",
       "construction_binding": "trait:advantage:alcohol-tolerance",
       "cost_owner": "trait:advantage:alcohol-tolerance",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1535,7 +1535,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:cybernetics",
       "cost_owner": "trait:advantage:cybernetics",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -1967,7 +1967,7 @@
       "listed_value": "15",
       "construction_binding": "trait:advantage:double-jointed",
       "cost_owner": "trait:advantage:double-jointed",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -2305,7 +2305,7 @@
       "listed_value": "25/attack",
       "construction_binding": "trait:advantage:extra-attack",
       "cost_owner": "trait:advantage:extra-attack",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -2612,7 +2612,7 @@
       "listed_value": "5",
       "construction_binding": "trait:advantage:flexibility",
       "cost_owner": "trait:advantage:flexibility",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -2915,7 +2915,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:hard-to-kill",
       "cost_owner": "trait:advantage:hard-to-kill",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -2945,7 +2945,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:hard-to-subdue",
       "cost_owner": "trait:advantage:hard-to-subdue",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3067,7 +3067,7 @@
       "listed_value": "5/level",
       "construction_binding": "trait:advantage:high-manual-dexterity",
       "cost_owner": "trait:advantage:high-manual-dexterity",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3189,7 +3189,7 @@
       "listed_value": "1",
       "construction_binding": "trait:advantage:honest-face",
       "cost_owner": "trait:advantage:honest-face",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3281,7 +3281,7 @@
       "listed_value": "5 to 25",
       "construction_binding": "trait:advantage:improved-g-tolerance",
       "cost_owner": "trait:advantage:improved-g-tolerance",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3649,7 +3649,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:less-sleep",
       "cost_owner": "trait:advantage:less-sleep",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -3740,7 +3740,7 @@
       "listed_value": "2",
       "construction_binding": "trait:advantage:longevity",
       "cost_owner": "trait:advantage:longevity",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -4479,7 +4479,7 @@
       "listed_value": "1",
       "construction_binding": "trait:advantage:no-hangover",
       "cost_owner": "trait:advantage:no-hangover",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -4755,7 +4755,7 @@
       "listed_value": "15",
       "construction_binding": "trait:advantage:perfect-balance",
       "cost_owner": "trait:advantage:perfect-balance",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -4785,7 +4785,7 @@
       "listed_value": "15",
       "construction_binding": "trait:advantage:peripheral-vision",
       "cost_owner": "trait:advantage:peripheral-vision",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -5431,7 +5431,7 @@
       "listed_value": "2/level",
       "construction_binding": "trait:advantage:reduced-consumption",
       "cost_owner": "trait:advantage:reduced-consumption",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -5955,7 +5955,7 @@
       "listed_value": "1",
       "construction_binding": "trait:advantage:shtick",
       "cost_owner": "trait:advantage:shtick",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -7922,7 +7922,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:acceleration-weakness",
       "cost_owner": "trait:disadvantage:acceleration-weakness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -7952,7 +7952,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:addiction",
       "cost_owner": "trait:disadvantage:addiction",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -7982,7 +7982,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:alcohol-intolerance",
       "cost_owner": "trait:disadvantage:alcohol-intolerance",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8012,7 +8012,7 @@
       "listed_value": "-15 or -20",
       "construction_binding": "trait:disadvantage:alcoholism",
       "cost_owner": "trait:disadvantage:alcoholism",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8133,7 +8133,7 @@
       "listed_value": "-15 or -25",
       "construction_binding": "trait:disadvantage:bad-back",
       "cost_owner": "trait:disadvantage:bad-back",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8163,7 +8163,7 @@
       "listed_value": "-5/level",
       "construction_binding": "trait:disadvantage:bad-grip",
       "cost_owner": "trait:disadvantage:bad-grip",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8193,7 +8193,7 @@
       "listed_value": "-25",
       "construction_binding": "trait:disadvantage:bad-sight",
       "cost_owner": "trait:disadvantage:bad-sight",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8223,7 +8223,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:bad-smell",
       "cost_owner": "trait:disadvantage:bad-smell",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8344,7 +8344,7 @@
       "listed_value": "-50",
       "construction_binding": "trait:disadvantage:blindness",
       "cost_owner": "trait:disadvantage:blindness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8404,7 +8404,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:bowlegged",
       "cost_owner": "trait:disadvantage:bowlegged",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8524,7 +8524,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:cannot-float",
       "cost_owner": "trait:disadvantage:cannot-float",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8584,7 +8584,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:cannot-speak",
       "cost_owner": "trait:disadvantage:cannot-speak",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8734,7 +8734,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:chronic-pain",
       "cost_owner": "trait:disadvantage:chronic-pain",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8886,7 +8886,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:colorblindness",
       "cost_owner": "trait:disadvantage:colorblindness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -8916,7 +8916,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:combat-paralysis",
       "cost_owner": "trait:disadvantage:combat-paralysis",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9127,7 +9127,7 @@
       "listed_value": "-20",
       "construction_binding": "trait:disadvantage:deafness",
       "cost_owner": "trait:disadvantage:deafness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9403,7 +9403,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:distinctive-features",
       "cost_owner": "trait:disadvantage:distinctive-features",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9463,7 +9463,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:disturbing-voice",
       "cost_owner": "trait:disadvantage:disturbing-voice",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9738,7 +9738,7 @@
       "listed_value": "-2/level",
       "construction_binding": "trait:disadvantage:easy-to-kill",
       "cost_owner": "trait:disadvantage:easy-to-kill",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9829,7 +9829,7 @@
       "listed_value": "-30",
       "construction_binding": "trait:disadvantage:epilepsy",
       "cost_owner": "trait:disadvantage:epilepsy",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -9859,7 +9859,7 @@
       "listed_value": "-2/level",
       "construction_binding": "trait:disadvantage:extra-sleep",
       "cost_owner": "trait:disadvantage:extra-sleep",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10314,7 +10314,7 @@
       "listed_value": "-5 or -10",
       "construction_binding": "trait:disadvantage:ham-fisted",
       "cost_owner": "trait:disadvantage:ham-fisted",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10344,7 +10344,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:hard-of-hearing",
       "cost_owner": "trait:disadvantage:hard-of-hearing",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10374,7 +10374,7 @@
       "listed_value": "-30",
       "construction_binding": "trait:disadvantage:hemophilia",
       "cost_owner": "trait:disadvantage:hemophilia",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10495,7 +10495,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:horrible-hangovers",
       "cost_owner": "trait:disadvantage:horrible-hangovers",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10555,7 +10555,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:hunchback",
       "cost_owner": "trait:disadvantage:hunchback",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10675,7 +10675,7 @@
       "listed_value": "-10/level",
       "construction_binding": "trait:disadvantage:increased-consumption",
       "cost_owner": "trait:disadvantage:increased-consumption",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -10979,7 +10979,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:killjoy",
       "cost_owner": "trait:disadvantage:killjoy",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11039,7 +11039,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:klutz",
       "cost_owner": "trait:disadvantage:klutz",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11191,7 +11191,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:light-sleeper",
       "cost_owner": "trait:disadvantage:light-sleeper",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11311,7 +11311,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:low-pain-threshold",
       "cost_owner": "trait:disadvantage:low-pain-threshold",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11463,7 +11463,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:maintenance",
       "cost_owner": "trait:disadvantage:maintenance",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11553,7 +11553,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:minor-handicaps",
       "cost_owner": "trait:disadvantage:minor-handicaps",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11675,7 +11675,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:motion-sickness",
       "cost_owner": "trait:disadvantage:motion-sickness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11705,7 +11705,7 @@
       "listed_value": "-25",
       "construction_binding": "trait:disadvantage:mute",
       "cost_owner": "trait:disadvantage:mute",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11735,7 +11735,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:nervous-stomach",
       "cost_owner": "trait:disadvantage:nervous-stomach",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11765,7 +11765,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:neurological-disorder",
       "cost_owner": "trait:disadvantage:neurological-disorder",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11795,7 +11795,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:disadvantage:neutered",
       "cost_owner": "trait:disadvantage:neutered",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11825,7 +11825,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:night-blindness",
       "cost_owner": "trait:disadvantage:night-blindness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -11885,7 +11885,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:no-depth-perception",
       "cost_owner": "trait:disadvantage:no-depth-perception",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12038,7 +12038,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:no-sense-of-smell-taste",
       "cost_owner": "trait:disadvantage:no-sense-of-smell-taste",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12099,7 +12099,7 @@
       "listed_value": "-2/level",
       "construction_binding": "trait:disadvantage:noisy",
       "cost_owner": "trait:disadvantage:noisy",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12189,7 +12189,7 @@
       "listed_value": "-20",
       "construction_binding": "trait:disadvantage:numb",
       "cost_owner": "trait:disadvantage:numb",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12340,7 +12340,7 @@
       "listed_value": "-20",
       "construction_binding": "trait:disadvantage:one-arm",
       "cost_owner": "trait:disadvantage:one-arm",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12370,7 +12370,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:one-eye",
       "cost_owner": "trait:disadvantage:one-eye",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12400,7 +12400,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:one-hand",
       "cost_owner": "trait:disadvantage:one-hand",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12731,7 +12731,7 @@
       "listed_value": "-80",
       "construction_binding": "trait:disadvantage:quadriplegic",
       "cost_owner": "trait:disadvantage:quadriplegic",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12853,7 +12853,7 @@
       "listed_value": "-10 to -40",
       "construction_binding": "trait:disadvantage:restricted-diet",
       "cost_owner": "trait:disadvantage:restricted-diet",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -12883,7 +12883,7 @@
       "listed_value": "-15 or -30",
       "construction_binding": "trait:disadvantage:restricted-vision",
       "cost_owner": "trait:disadvantage:restricted-vision",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13464,7 +13464,7 @@
       "listed_value": "-5/level",
       "construction_binding": "trait:disadvantage:slow-healing",
       "cost_owner": "trait:disadvantage:slow-healing",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13494,7 +13494,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:slow-riser",
       "cost_owner": "trait:disadvantage:slow-riser",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13524,7 +13524,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:social-disease",
       "cost_owner": "trait:disadvantage:social-disease",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13585,7 +13585,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:space-sickness",
       "cost_owner": "trait:disadvantage:space-sickness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13797,7 +13797,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:stuttering",
       "cost_owner": "trait:disadvantage:stuttering",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13889,7 +13889,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:disadvantage:susceptible",
       "cost_owner": "trait:disadvantage:susceptible",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13919,7 +13919,7 @@
       "listed_value": "-75, or",
       "construction_binding": "trait:disadvantage:terminally-ill",
       "cost_owner": "trait:disadvantage:terminally-ill",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13949,7 +13949,7 @@
       "listed_value": "-10",
       "construction_binding": "trait:disadvantage:timesickness",
       "cost_owner": "trait:disadvantage:timesickness",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -13979,7 +13979,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:total-klutz",
       "cost_owner": "trait:disadvantage:total-klutz",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -14161,7 +14161,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:unfit",
       "cost_owner": "trait:disadvantage:unfit",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -14376,7 +14376,7 @@
       "listed_value": "-15",
       "construction_binding": "trait:disadvantage:very-unfit",
       "cost_owner": "trait:disadvantage:very-unfit",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {
@@ -14622,7 +14622,7 @@
       "listed_value": "-5",
       "construction_binding": "trait:disadvantage:wounded",
       "cost_owner": "trait:disadvantage:wounded",
-      "consequence_owner": 514,
+      "consequence_owner": 496,
       "source_review_owner": null
     },
     {

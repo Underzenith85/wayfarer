@@ -11732,15 +11732,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
@@ -11758,15 +11762,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11784,15 +11792,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11816,9 +11828,10 @@
         "docs/gurps-basic-set-source-review.md"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11836,15 +11849,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11862,15 +11879,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11888,15 +11909,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11941,15 +11966,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11967,15 +11996,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -11993,15 +12026,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -12019,15 +12056,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-injury-state.md",
+        "tests/test_hit_locations.py",
+        "tests/test_injury.py"
       ],
       "historical_owners": [
-        191
+        191,
+        514
       ],
-      "completion_owner": 514,
+      "completion_owner": null,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
@@ -12079,7 +12120,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 515,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12131,7 +12172,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 515,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12235,7 +12276,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 515,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b423:recovery",
@@ -12521,7 +12562,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 513,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12547,7 +12588,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12599,7 +12640,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12625,7 +12666,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12651,7 +12692,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12677,7 +12718,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12703,7 +12744,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12729,7 +12770,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12755,7 +12796,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12781,7 +12822,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12807,7 +12848,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12885,7 +12926,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -12937,7 +12978,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 517,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
@@ -13015,7 +13056,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 518,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13145,7 +13186,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 518,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b437:poison",
@@ -13171,7 +13212,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 519,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
@@ -13223,7 +13264,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 514,
+      "completion_owner": 519,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b442:illness",
