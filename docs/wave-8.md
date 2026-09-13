@@ -1,5 +1,9 @@
 # Wave 8 gameplay foundations
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 Wave 8 provides the service-authoritative foundations required by the complete-game
 roadmap. Generated or client-authored values remain proposals; only typed commands
 executed against canonical campaign state may change mechanics.

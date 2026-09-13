@@ -1,5 +1,9 @@
 # Wave 10: subscription provider, NPC activity and recovery
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 Implements #30, #37 and #38 on the Wave 9 engine and merged API/UI baseline.
 These are typed engine services and the existing authenticated campaign facade;
 `/api/v1` conformance remains #50. No frozen contract or frontend changes.

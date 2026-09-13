@@ -69,5 +69,5 @@ must make `package (3.14)` required on `main` after confirming the emitted job
 name. Preserve existing protection settings.
 
 This repository setting is tracked in [issue #27](https://github.com/Underzenith85/wayfarer/issues/27).
-It is **not configured by this PR**: the connected tools cannot administer branch
-protection/rulesets. Do not claim merge protection until the setting is verified.
+It is not currently documented as configured. Do not claim merge protection until
+the live repository setting is verified.

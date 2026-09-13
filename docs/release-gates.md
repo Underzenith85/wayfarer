@@ -59,15 +59,18 @@ full desktop/phone/tablet browser suites, live setup/voice/capture coverage,
 reference-adventure and production-startup tests, and requires every job to pass.
 The browser evidence checker names Issue #24's disclosure, reviewed-command parity,
 interruption, denied/unsupported/network fallback and scope-revocation journeys;
-an unrelated green browser report cannot certify voice behavior.
+it also names the scenario-catalog and production PWA journeys. An unrelated green
+browser report cannot certify those behaviors.
 Routine PR path filters remain in place to avoid running frontend tests on every
 backend change; complete browser verification is mandatory for a release candidate.
 
-`docs/product-release.json` records outstanding #59 Stage B and #60 acceptance.
-The product readiness job intentionally fails until those implementations and
-executable evidence land. Update this reviewed ledger in the same PR that adds
-the evidence, and include the suites in the reusable frontend workflow. An engine
-gate pass alone does not certify those unimplemented product requirements.
+`docs/product-release.json` records the outstanding manual release verification
+in #250. Issues #59 and #60 are closed for implementation, and their automated
+browser suites run in the reusable frontend workflow. The product readiness job
+intentionally fails until the untested-browser, real-device, assistive-technology,
+and manual performance evidence in #250 is recorded. Update this reviewed ledger
+when that evidence is complete. An engine gate pass alone does not certify the
+product release.
 
 Configure the candidate/release process to require `Product release gates / release`.
 Branch protection and publishing policy are repository settings; this change does

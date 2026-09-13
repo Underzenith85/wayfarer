@@ -1,6 +1,6 @@
 # GURPS inventory source review
 
-Reviewer: OpenAI Codex  
+Reviewer: OpenAI Codex
 Review date: 2026-09-13
 
 ## Selected sources

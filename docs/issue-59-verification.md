@@ -1,6 +1,12 @@
 # Issue 59 integration verification
 
-Issue #59 is a verification gate over feature work owned by the UI/API and engine issues. It should not duplicate those implementations. This document records the browser evidence that CI must preserve and the remaining dependency for the final Stage B claim.
+> Verification record for a closed milestone. The named evidence below remains
+> part of the current product gate.
+
+Issue #59 was a verification gate over feature work owned by the UI/API and engine
+issues. It did not duplicate those implementations. This document records the
+browser and service evidence that CI preserves for its closed Stage A and Stage B
+acceptance.
 
 ## Stage A: two-player playable slice
 
@@ -29,6 +35,16 @@ The reference-provider suite preserves the end-to-end campaign evidence that has
 
 The CI browser-evidence gate requires those named reference and startup journeys as well.
 
-## Remaining Stage B dependency
+## Guided authoring completion
 
-Issue #84 remains open. Therefore #59 must remain open after this verification-gate change: the final Stage B acceptance still needs deterministic live evidence for AI-assisted scenario refinement plus save/reopen, export/import round-trip, exact-revision launch, restart recovery, and launch without reinvoking the provider. Once #84 lands, add its production browser journey to `REQUIRED_JOURNEYS["startup"]` (or a dedicated scenario report) before closing #59.
+Issue #84 subsequently delivered guided generation and refinement. Deterministic
+provider tests in `tests/test_catalog.py` cover proposal review, save/reopen,
+export/import round trips, immutable exact-revision launch, restart recovery, and
+launch from saved content without asking the provider to recreate it.
+
+`frontend/startup-tests/catalog.spec.ts` exercises the production UI and service:
+an author saves a portable document, reloads it, publishes the exact revision,
+creates a game from it, and starts play without exposing private author notes.
+`scripts/check_browser_evidence.py` names that journey so deleting it cannot leave
+the product browser gate green. The separate provider-backed service tests retain
+the deterministic AI boundary without requiring live credentials in CI.

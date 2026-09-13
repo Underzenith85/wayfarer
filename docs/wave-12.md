@@ -1,5 +1,9 @@
 # Wave 12 — setup lifecycle and reviewed voice
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 Implements the engine-owned work for #24 and #40. The dedicated UI roadmaps #56
 and #57 remain separate acceptance gates; this PR does not close them or the
 full-adventure release gates #42/#59.

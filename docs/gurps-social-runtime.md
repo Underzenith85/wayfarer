@@ -20,7 +20,7 @@ initiator must have a compiled trained or legal default level. A built subject's
 Will comes from its approved build; `npc_will` supplies only an unbuilt NPC's Will.
 The authored `specious_intimidation` flag produces a Very Bad reaction on a loss
 or tie. It is invalid for any other procedure. Existing profile package pins are
-unchanged; broader skill catalog population remains #112.
+unchanged; skill catalog population and certification remain separate from this runtime.
 
 Trusted `SocialContext.influence_conditions` supports the B359 Indomitable,
 appropriate Empathy, Unfazeable, and Slave Mentality cases. The director's resolver

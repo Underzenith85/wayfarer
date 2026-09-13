@@ -2,6 +2,10 @@
 
 Issue #95 freezes the source boundary and evidence contract for the GURPS mechanics track. It does **not** certify the existing Wayfarer prototype as GURPS-conformant and it does not copy rulebook prose.
 
+This is a cumulative implementation record. The capability table and certification
+report are authoritative for current status; later sections supersede delivery-time
+limitations described in earlier sections.
+
 ## Selected source artifacts
 
 The baseline selects the exact supplied Fourth Edition PDFs. Other printings, supplements, errata overlays, and FAQ interpretations are excluded unless an explicit baseline revision adds them. Existing package and profile identifiers stay stable for prerelease compatibility; the distinct baseline ID records this source revision.
@@ -298,7 +302,8 @@ hex migration, authoritative movement/reach/LOS/range/armed retreat, safe player
 projections, generated contracts, keyboard choices and reconnect receipts.
 `tests/test_tactical.py` and the desktop/phone live tactical browser journeys
 exercise these boundaries. This does not enable or certify the Basic Set profile;
-remaining advanced ranged and unarmed gaps are tracked by #173 and #176. The
+the bounded advanced ranged and unarmed work delivered through #173 and #176 is
+documented in the linked topic guides. The
 selected-source reconciliation completed in #191.
 
 ## Typed equipment profiles (#101)
@@ -335,8 +340,9 @@ Do not pass this adapter's units to the v1 integer-gram projection.
 and reference failures, ranged round trips, and property-based equip/transfer
 conservation with stale-revision and idempotency checks. Combat damage, ST-use
 penalties, hand occupancy beyond the inventory slot, active defenses, hit-location
-resolution and ammunition consumption in attacks remain with #102, #103, #106
-and #107; these data structures do not authorize those unverified mechanics.
+resolution and ammunition consumption were delivered separately through #102,
+#103, #106 and #107. These data structures alone do not authorize those mechanics;
+current status comes from the capability registry.
 
 ## Skill compilation (#98)
 
@@ -591,7 +597,8 @@ Campaign commands expose care/panic decisions and owner-proposed, GM-approved
 lasting changes. See [runtime details](gurps-social-runtime.md) and the
 `test_fright_builds`, `test_fright_conditions`, and `test_social_scenario_v2`
 suites for executable #520 evidence. Coverage remains partial for the separate
-source/errata and catalog certification gates; these are not waived by this PR.
+source/errata and catalog certification gates; this bounded integration does not
+waive them.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
 coma deadlines, recovery retries, privacy and unchanged approved builds.
@@ -739,8 +746,9 @@ combat turn adapter, effect consumers, critical-failure table, very-high mana an
 HP-powered casting remain required follow-up work in #171. Combat dispatch and unsupported
 mana variants reject; there is no player route or arbitrary LLM spell definition.
 A critical failure is recorded explicitly, without inventing its table consequence.
-Full spellcasting and #117 remain open until those paths and source certification
-are complete.
+Issue #117 closed after its bounded spellcasting delivery. The paths omitted from
+that slice and whole-capability source certification remain tracked by the current
+registry and the later spell-family sections.
 
 Early cancellation costs 1 FP regardless of skill; aborting an unfinished cast or
 letting its duration expire is free. The [publisher-hosted cancellation discussion](https://forums.sjgames.com/showthread.php?t=109197)
@@ -752,7 +760,8 @@ Held missile disposal remains rejected pending its concrete adapter in #171.
 `basic_equipment.BASIC_EQUIPMENT` contains 20 audited numeric entries: two B271
 weapons, eight B283 rigid body armors, and ten B288 ordinary items. The three
 B280 ultra-tech entries are a separate blocked index. Vehicle listings (B464)
-are separate from inventory and explicitly reject operation pending #120.
+are separate from inventory and do not by themselves authorize operation; the
+later vehicle sections describe the opt-in runtime.
 `tests/test_basic_equipment.py` enumerates the selected rows independently.
 This is not a complete table inventory. Remaining rows and special mechanics
 are a completion blocker in #180, which now accounts for them item by item; see
@@ -969,13 +978,14 @@ builds against exact catalog definitions. Unpurchased spells, missing approvals,
 invalid metadata, and unavailable casters reject before spell dice or costs.
 Retries still use the original persisted receipt without rerunning the resolver.
 
-This slice does **not complete #171**. Player dispatch, each-second combat
+This initial slice did **not complete #171**. Player dispatch, each-second combat
 concentration, concrete Light/Daze/Fireball/Create Fire effects, critical-failure
 consequences, very-high mana, HP-powered casting, and their PostgreSQL/live
 combat evidence remain required work. The service remains private and rejects
 combat dispatch. No transport contract or generated client has changed.
-Spellcasting remains partial. References B66-67, B235 and B246-250 are provisional;
-the independent frozen-source audit remains pending.
+Spellcasting remains partial. References B66-67, B235 and B246-250 were
+provisional in this slice; the later sections and source-review ledgers record
+their current disposition.
 
 
 ## Representative spell effects and ability acceptance (#117, #118, #171)
@@ -1056,7 +1066,7 @@ independent fixture bindings, persistence evidence and remaining boundaries.
 The source inventory and audit disposition are recorded by #191; no capability
 or whole profile is promoted to certified by these changes.
 
-### Ground transport foundation (#120; not acceptance-complete)
+### Ground transport foundation (#120; initial bounded delivery)
 
 `engine/simulation/movement/transport.py` adds opt-in persisted transport manifests to the existing
 resource checkpoint. Internal `ResourceService.execute_transport` uses the same
@@ -1074,18 +1084,16 @@ B394-397, B430-432 and B466-469. Numeric tests are independently entered in
 | Explicit wheeled/mount manifests and operator custody | Validated exact Basic Set injury/durability opt-in; other locomotion tags reject. Stats and contiguous longitudinal footprint are trusted authored scenario facts, not automatic catalog activation. |
 | Straight level hex movement | Full authored footprint checks; safe powered-wheel braking (5 yd/s), acceleration bounds and end-of-turn high-speed adjustment. Occupancy comes from trusted caller. No turns, terrain surcharges, galloping or inferred collision path. |
 | Vehicle control | Handling and situational modifiers, SR/critical-failure split, persisted control dice, lost-Aim and attack-penalty facts. A skid/crash blocks further movement pending integration; no invented recovery. |
-| Mount calming | B397 spooked state, consecutive success/failure counts, critical success and total-loss state survive reload. Full loss-table consequences remain in #120. |
+| Mount calming | B397 spooked state, consecutive success/failure counts, critical success and total-loss state survive reload. Full loss-table consequences were outside this initial slice. |
 | Hard immovable vehicle collision | B430 fractional dice and B431 hard-object multiplier; body damage uses object reducer and occupant injury uses existing HP/threshold reducer. Only unequipped occupants and a uniform restraint choice; mounted collisions reject. |
 | Persistence | SQLite concurrent duplicate collision, restart replay, actor authorization and stale payload tests; equivalent PostgreSQL test runs when configured. |
 
-#120 remains open for its representative live mounted/vehicle encounters,
-compiled operator/rider profiles, mounted attacks/defenses, Aim/penalty consumption,
-mount loss-table/fall consequences, and atomic tactical/object synchronization.
-#105, #106 and #102 remain open hard merge prerequisites; live object integration
-also depends on #181. This foundation alone does not satisfy #120 acceptance.
-#207 tracked the additional Basic Set locomotion, collision and ejection audit
-and is closed; #358 and its children #392-#397 carry what it left, and remain
-blockers for #122. Nothing here certifies full vehicle or Basic Set coverage.
+This initial #120 foundation omitted representative live mounted/vehicle
+encounters, compiled operator/rider profiles, mounted attacks/defenses,
+Aim/penalty consumption, mount loss-table/fall consequences, and atomic
+tactical/object synchronization. Subsequent #207, #358, and #392–#397 deliveries
+are summarized below. The foundation alone does not certify full vehicle or Basic
+Set coverage.
 
 ### Vehicle coverage audit (#358)
 

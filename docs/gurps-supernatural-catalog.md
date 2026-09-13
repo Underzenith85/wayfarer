@@ -31,10 +31,10 @@ supplement the existing execution tests; they do not certify every variant.
 
 | Inventory group | Rows | Coverage decision |
 | --- | ---: | --- |
-| Characters spells | 93 | Source and college implementations are verified except Fireball, which retains #173 for remaining critical consequences. |
+| Characters spells | 93 | Source and college implementations are verified except Fireball, which retains an explicit critical-consequence blocker. |
 | Campaigns enchantment spells | 7 | Enchant, Accuracy, Deflect, Fortify, Power, Puissance and Staff are verified required entries, not supplement exclusions. |
 | Exotic/supernatural advantages | 146 | Includes all X and Sup index rows, even if an exotic trait could have a nonmagical origin. |
-| Additional psi-member advantages | 4 | Animal Empathy, Danger Sense, Empathy and Resistant are mundane index entries explicitly listed in psi powers; included here for their psi use. Mundane construction remains #113. |
+| Additional psi-member advantages | 4 | Animal Empathy, Danger Sense, Empathy and Resistant are mundane index entries explicitly listed in psi powers; included here for their psi use. Mundane construction is certified separately. |
 | Exotic/supernatural disadvantages | 42 | Includes negative Destiny and Shadow Form as distinct definitions. Narrative or manual treatment never certifies a mechanical consequence. |
 | Psi powers | 6 | Explicit member references, conditional membership, Talent cost and power modifier. No Antipsi Talent or power discount. |
 | Magic protocols | 8 | Includes blocked class/area/ceremonial/item protocols and explicitly optional Clerical/Ritual Magic. |

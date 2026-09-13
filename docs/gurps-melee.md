@@ -101,13 +101,14 @@ flight, and SQLite restart/retry without new dice. B556-557 were inspected in
 the supplied Campaigns PDF for this completion; this does not certify the
 entire profile or resolve unrelated source-audit blockers.
 
-Coverage of the broader profile remains **partial**.
-Complete maneuvers, initiative/timing and tactical defense options
-remain #104; unarmed/grappling #108; ranged attacks #106. The heavy-parry path
+Coverage of the broader profile remains **partial**. Complete maneuvers,
+initiative/timing and tactical defense options, unarmed and grappling, and ranged
+attacks were delivered separately through #104, #108, and #106. Their topic guides
+and the capability registry describe the current bounds. The heavy-parry path
 does not add deliberately futile over-BL attempts and their
 drop/knockback consequences, improvised weapon destruction, or effective weights
-for unarmed attacks; those remain visible integration gaps under #103/#108/#114.
-Advantage-specific defense exceptions remain unavailable and belong to #113.
+for unarmed attacks; those remain visible integration gaps. Advantage-specific
+defense exceptions remain unavailable.
 The full GURPS profile remains unavailable until those capability gates pass.
 
 The durable critical context is an internal handoff, not a GM override or a

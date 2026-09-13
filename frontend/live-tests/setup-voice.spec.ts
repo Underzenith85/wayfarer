@@ -132,7 +132,19 @@ test("two identities activate a saved party and review speech through the live d
     expect(view.actors).toEqual(["b"]);
     expect(view.director).toEqual([]);
 
-    await a.getByRole("button", { name: "Inspect Chest", exact: true }).click();
+    // A peer-visible update can race the stream's snapshot handoff. The client
+    // rejects that mixed snapshot and offers an explicit authoritative reload;
+    // exercise the supported recovery before issuing the next command.
+    const reload = a.getByRole("button", { name: "Reload campaign" });
+    const inspect = a.getByRole("button", {
+      name: "Inspect Chest",
+      exact: true,
+    });
+    await expect(async () => {
+      if (await reload.isVisible()) await reload.click();
+      await expect(inspect).toBeEnabled({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+    await inspect.click();
     await expect
       .poll(
         async () => {
