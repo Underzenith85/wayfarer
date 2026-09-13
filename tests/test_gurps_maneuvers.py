@@ -1,5 +1,6 @@
 """Independent B363-366 maneuver expectations, provisional 2004 baseline."""
 
+from fractions import Fraction
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,7 @@ from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Maneuver
+from wayfarer.engine.simulation.equipment.catalog import Damage, MeleeMode, Parry
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService, ResumeInterruptedTurn, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
@@ -412,6 +414,29 @@ async def test_unready_after_attack_requires_ready_and_forbids_double(tmp_path: 
     await turn(cid, play, "a", "ready", item_id="sword-a")
     state = play._load(await play.store.read(cid))
     assert next(i for i in state.resources.items if i.id == "sword-a").ready
+
+
+@pytest.mark.parametrize(("minimum_st", "expected_ready"), [(10, False), (6, True)])
+async def test_double_dagger_readiness_uses_exact_strength_threshold(
+    tmp_path: Path, minimum_st: int, expected_ready: bool
+) -> None:
+    mode = MeleeMode(
+        id="swing",
+        skill_id="skill:broadsword",
+        minimum_st=minimum_st,
+        hands=1,
+        damage=Damage(basis="swing", adds=1, damage_type="cut"),
+        reach=(1,),
+        parry=Parry(),
+        ready_after_attack_below_st_multiple=Fraction(3, 2),
+    )
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", melee_modes=(mode,))
+    await turn(cid, play, "a", "attack", item_id="sword-a", target_id="b", mode_id="swing")
+    play.rng = RecordedDice([5, 5, 5])
+    await defend(cid, play, "b")
+    state = play._load(await play.store.read(cid))
+    item = next(i for i in state.resources.items if i.id == "sword-a")
+    assert item.ready is expected_ready
 
 
 async def test_second_defense_unavailable_rejects_before_attack_roll(tmp_path: Path) -> None:

@@ -70,6 +70,7 @@ class Provenance(Record):
 class Damage(Record):
     basis: Literal["thrust", "swing", "fixed"]
     dice: Positive | None = None
+    bonus_dice: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
     adds: int = 0
     damage_type: DamageType
     armor_divisor: Decimal = Field(default=Decimal(1), gt=0, allow_inf_nan=False)
@@ -79,6 +80,8 @@ class Damage(Record):
     def valid_basis(self) -> Self:
         if (self.basis == "fixed") != (self.dice is not None):
             raise ValueError("Only fixed damage supplies a positive d6 count")
+        if self.basis == "fixed" and self.bonus_dice:
+            raise ValueError("Fixed damage cannot also add ST-based bonus dice")
         return self
 
 
@@ -98,12 +101,27 @@ class MeleeMode(Record):
     reach: tuple[Nonnegative, ...] = Field(min_length=1)  # 0 is close combat
     parry: Parry | None = None
     ready_after_attack: bool = Field(default=False, exclude_if=lambda value: not value)
+    ready_after_attack_below_st_multiple: Fraction | None = Field(
+        default=None, gt=0, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def unique_reach(self) -> Self:
         if tuple(sorted(set(self.reach))) != self.reach:
             raise ValueError("Reach must be unique and ascending")
+        if self.ready_after_attack and self.ready_after_attack_below_st_multiple is not None:
+            raise ValueError(
+                "Post-attack readiness cannot be both unconditional and ST-conditional"
+            )
         return self
+
+    def becomes_unready_after_attack(self, strength: int) -> bool:
+        """Apply the B270 dagger threshold without rounding approximations."""
+        threshold = self.ready_after_attack_below_st_multiple
+        return self.ready_after_attack or (
+            threshold is not None
+            and strength * threshold.denominator < self.minimum_st * threshold.numerator
+        )
 
 
 class RatedStrength(Record):

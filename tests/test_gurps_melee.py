@@ -771,6 +771,25 @@ async def test_trained_skill_and_deferred_restart_receipt(tmp_path: Path) -> Non
     assert await CombatService(restarted).execute(cid, choice(), principal_id="b") == result
 
 
+async def test_strength_damage_can_add_a_source_authored_die(tmp_path: Path) -> None:
+    mode = MeleeMode(
+        id="swing",
+        skill_id="skill:broadsword",
+        minimum_st=5,
+        damage=Damage(basis="swing", bonus_dice=1, adds=-2, damage_type="cut"),
+        reach=(1,),
+        parry=Parry(),
+    )
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", melee_modes=(mode,))
+    await attack(cid, play)
+    play.rng = RecordedDice([3, 3, 3, 2, 3])
+    result = await CombatService(play).execute(cid, choice(), principal_id="b")
+    assert result.injury is not None
+    assert result.injury.damage_dice == (2, 3)
+    assert result.injury.basic_damage == 3
+    assert await play.store.read(cid) == await play.store.replay(cid)
+
+
 async def test_default_skill_not_dx_and_invalid_mode_no_mutation(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path, trained=False)
     before = await play.store.read(cid)

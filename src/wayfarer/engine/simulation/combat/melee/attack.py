@@ -146,9 +146,11 @@ def prepare_attack(
     )
     if attacker.maneuver_state.strong and selected.damage.basis == "fixed":
         raise ValidationError("Strong requires ST-based melee damage")
+    attack_build = build(runtime, state, pending.attacker_id)
+    assert attack_build.statistics is not None
     if (
         attacker.maneuver_state.attacks_remaining
-        and selected.ready_after_attack
+        and selected.becomes_unready_after_attack(attack_build.statistics.st)
         and attacker.maneuver_state.second_attack_item_id is None
     ):
         raise ValidationError("Double attack requires a weapon usable twice without readying")
