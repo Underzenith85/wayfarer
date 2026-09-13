@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Final
+from typing import Final, Literal, Self
+
+from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, ModifierKind, Outcome, RandomSource
 from wayfarer.engine.rules.conformance import BASELINE_ID
@@ -35,6 +37,28 @@ from wayfarer.engine.rules.social.gurps_social import (
     influence_roll,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
+
+
+class InterrogationCoercion(Record):
+    """A trusted B202 coercion choice and its authored consequences.
+
+    B202 fixes the skill bonus, but not a universal physical cost or the exact
+    B494 behavior penalty. Zero physical cost is valid because the entry also
+    describes psychological torture.
+    """
+
+    method: Literal["severe-threats", "torture"]
+    injury: int = Field(default=0, ge=0, le=100000)
+    fatigue: int = Field(default=0, ge=0, le=100000)
+    informed_actor_ids: tuple[Id, ...] = ()
+    reaction_penalty: Literal[-2, -1] = -2
+
+    @model_validator(mode="after")
+    def unique_audience(self) -> Self:
+        if len(set(self.informed_actor_ids)) != len(self.informed_actor_ids):
+            raise ValueError("Coercion audiences must be unique informed actors")
+        return self
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,6 +79,8 @@ class SocialSkillContext:
     subject_id: str = "subject"
     reaction_modifiers: tuple[ReactionModifier, ...] = ()
     influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS
+    coercion: InterrogationCoercion | None = None
+    callous: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,11 +136,19 @@ def _validate_context(entry: SocialProcedure, context: SocialSkillContext) -> No
         context.reaction_modifiers or context.influence_conditions != DEFAULT_INFLUENCE_CONDITIONS
     ):
         raise ValidationError(f"Reaction modifiers reach influence rolls only: {entry.id}")
+    if context.coercion is not None:
+        coercion = context.coercion
+        if entry.id != "skill:interrogation":
+            raise ValidationError("Coercion modifiers belong to Interrogation only")
+        if context.actor_id in coercion.informed_actor_ids:
+            raise ValidationError("Coercion audiences must be unique informed other actors")
+    if type(context.callous) is not bool or (context.callous and context.coercion is None):
+        raise ValidationError("Callous modifies an explicit Interrogation coercion choice only")
 
 
 def derived_modifiers(entry: SocialProcedure, context: SocialSkillContext) -> tuple[Modifier, ...]:
     """Modifiers the rule itself contributes, in declared order and with provenance."""
-    return tuple(
+    modifiers = tuple(
         Modifier(
             declared.value,
             f"{entry.id}:{declared.condition}",
@@ -125,6 +159,28 @@ def derived_modifiers(entry: SocialProcedure, context: SocialSkillContext) -> tu
         for declared in entry.modifiers
         if declared.condition in context.conditions
     )
+    if context.coercion is None:
+        return modifiers
+    modifiers += (
+        Modifier(
+            3 if context.coercion.method == "severe-threats" else 6,
+            f"{entry.id}:{context.coercion.method}",
+            "B202",
+            BASELINE_ID,
+            ModifierKind.SITUATIONAL,
+        ),
+    )
+    if context.callous:
+        modifiers += (
+            Modifier(
+                1,
+                f"{entry.id}:callous-coercion",
+                "B202",
+                BASELINE_ID,
+                ModifierKind.TRAIT,
+            ),
+        )
+    return modifiers
 
 
 def _quick_verdict(trace: QuickContestTrace, actor_id: str) -> Verdict:

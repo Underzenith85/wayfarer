@@ -1,6 +1,58 @@
 {
   "NPCSocialRules": {
     "$defs": {
+      "InterrogationCoercion": {
+        "additionalProperties": false,
+        "description": "A trusted B202 coercion choice and its authored consequences.\n\nB202 fixes the skill bonus, but not a universal physical cost or the exact\nB494 behavior penalty. Zero physical cost is valid because the entry also\ndescribes psychological torture.",
+        "properties": {
+          "method": {
+            "enum": [
+              "severe-threats",
+              "torture"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "injury": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Injury",
+            "type": "integer"
+          },
+          "fatigue": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Fatigue",
+            "type": "integer"
+          },
+          "informed_actor_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Informed Actor Ids",
+            "type": "array"
+          },
+          "reaction_penalty": {
+            "default": -2,
+            "enum": [
+              -2,
+              -1
+            ],
+            "title": "Reaction Penalty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "method"
+        ],
+        "title": "InterrogationCoercion",
+        "type": "object"
+      },
       "NPCAction": {
         "additionalProperties": false,
         "properties": {
@@ -488,6 +540,13 @@
             "title": "Npc Will",
             "type": "integer"
           },
+          "npc_ht": {
+            "default": 10,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Npc Ht",
+            "type": "integer"
+          },
           "skill_id": {
             "default": "skill:diplomacy",
             "maxLength": 200,
@@ -558,6 +617,17 @@
             ],
             "default": null,
             "title": "Medium Id"
+          },
+          "coercion": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InterrogationCoercion"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -7378,6 +7448,58 @@
         "title": "InjuryTolerance",
         "type": "object"
       },
+      "InterrogationCoercion": {
+        "additionalProperties": false,
+        "description": "A trusted B202 coercion choice and its authored consequences.\n\nB202 fixes the skill bonus, but not a universal physical cost or the exact\nB494 behavior penalty. Zero physical cost is valid because the entry also\ndescribes psychological torture.",
+        "properties": {
+          "method": {
+            "enum": [
+              "severe-threats",
+              "torture"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "injury": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Injury",
+            "type": "integer"
+          },
+          "fatigue": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Fatigue",
+            "type": "integer"
+          },
+          "informed_actor_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Informed Actor Ids",
+            "type": "array"
+          },
+          "reaction_penalty": {
+            "default": -2,
+            "enum": [
+              -2,
+              -1
+            ],
+            "title": "Reaction Penalty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "method"
+        ],
+        "title": "InterrogationCoercion",
+        "type": "object"
+      },
       "Intoxication": {
         "additionalProperties": false,
         "properties": {
@@ -9795,6 +9917,13 @@
             "title": "Npc Will",
             "type": "integer"
           },
+          "npc_ht": {
+            "default": 10,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Npc Ht",
+            "type": "integer"
+          },
           "skill_id": {
             "default": "skill:diplomacy",
             "maxLength": 200,
@@ -9865,6 +9994,17 @@
             ],
             "default": null,
             "title": "Medium Id"
+          },
+          "coercion": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InterrogationCoercion"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [

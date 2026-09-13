@@ -291,7 +291,7 @@ def social_occurrence(
     profile_id = play.engine.reviewer.compiler.statistics_profile
     if profile_id is None:
         raise ValidationError("Authored social triggers require an exact GURPS profile")
-    target, will, ht = 10, trigger.npc_will, 10
+    target, will, ht = 10, trigger.npc_will, trigger.npc_ht
     social_specialties = play.engine.reviewer.compiler.social_skill_specialties
     context = SocialContext(profile_id, target, campaign_specialties=social_specialties)
     if trigger.kind in ("fright", "self-control"):
@@ -352,6 +352,7 @@ def social_occurrence(
         context.skill_level = int(value.value)
         context.conditions = frozenset(trigger.conditions)
         context.medium_id = trigger.medium_id
+        context.coercion = trigger.coercion
         if procedure.influence:
             context.skill = influence_procedure(procedure.id)
             context.influence_conditions = InfluenceConditions(
@@ -372,7 +373,7 @@ def social_occurrence(
         if any(a.actor_id == trigger.subject_id for a in state.actors):
             resisting = build(play.rules_context, state, trigger.subject_id)
             assert resisting.statistics is not None
-            will = resisting.statistics.will
+            will, ht = resisting.statistics.will, resisting.statistics.ht
     context.target, context.will, context.ht = target, will, ht
     context.required_fact_ids = trigger.required_fact_ids
     if trigger.kind in ("reaction", "influence", "skill"):

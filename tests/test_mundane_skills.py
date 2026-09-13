@@ -412,7 +412,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     scope = report["transferred_procedure_scope"]
     assert isinstance(scope, list)
     published = {str(row["skill"]) for row in scope}
-    assert "skill:interrogation" in published
+    assert "skill:interrogation" not in published
     assert (
         not {
             "skill:carousing",

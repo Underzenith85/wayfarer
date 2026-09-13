@@ -1,0 +1,24 @@
+{
+  "source": "Basic Set Characters, Fourth Edition, third printing, B202",
+  "provenance": "Hand-entered severe-threat, torture, and Callous bonuses; expected values are independent of the implementation.",
+  "cases": [
+    {
+      "name": "severe-threats",
+      "method": "severe-threats",
+      "callous": false,
+      "expected_bonus": 3
+    },
+    {
+      "name": "torture",
+      "method": "torture",
+      "callous": false,
+      "expected_bonus": 6
+    },
+    {
+      "name": "callous-torture",
+      "method": "torture",
+      "callous": true,
+      "expected_bonus": 7
+    }
+  ]
+}

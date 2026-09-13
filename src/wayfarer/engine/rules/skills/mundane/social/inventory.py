@@ -83,9 +83,6 @@ SPECIALTIES_ISSUE: Final = 366
 TECHNOLOGY_LEVEL_ISSUE: Final = 367
 
 
-COERCION_ISSUE: Final = 368
-
-
 DEFAULTS_ISSUE: Final = 383
 
 
@@ -491,13 +488,6 @@ _DECLARED_ROWS: Final = (
         required_conditions=("subject-restrained", "shared-language"),
         resolved=(RUNTIME_PROCEDURE,),
         transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
-        unsupported=(
-            UnsupportedScope(
-                "interrogation-coercion",
-                "Coercion modifiers and their injury, fatigue and reaction cost are not carried",
-                COERCION_ISSUE,
-            ),
-        ),
     ),
     SocialProcedure(
         "skill:intimidation",
