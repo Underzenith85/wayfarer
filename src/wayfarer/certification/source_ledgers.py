@@ -6,6 +6,7 @@ catalogs may be linked from a row, but the engine does not import this module.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections import Counter
 from dataclasses import dataclass
@@ -60,6 +61,11 @@ CAMPAIGNS_APPENDIX_REVIEW_IDS: Final = frozenset(
         "section:campaigns:b569:time-use-sheet",
     }
 )
+CHARACTERS_SECTION_REVIEW_ISSUE: Final = 678
+CHARACTERS_SECTION_REVIEW_COUNT: Final = 161
+CHARACTERS_SECTION_REVIEW_SHA256: Final = (
+    "d5d4c5ad7b0457c74c92502dd3beb77feebddcd3f858df78839826ac45bfe9b1"
+)
 
 
 class AuditRecord(Record):
@@ -107,6 +113,17 @@ class SourceLedgerRow(AuditRecord):
     cost_owner: str | None = None
     consequence_owner: int | None = Field(default=None, gt=0)
     source_review_owner: int | None = Field(default=None, gt=0)
+    obligation: (
+        Literal[
+            "construction-catalog",
+            "executable-mechanic",
+            "profile-excluded",
+            "reference-only",
+            "structural-non-runtime",
+        ]
+        | None
+    ) = None
+    obligation_review_issue: int | None = Field(default=None, gt=0)
 
 
 class SourceLedger(AuditRecord):
@@ -324,15 +341,21 @@ def denominator_identity(
     rows: tuple[SourceLedgerRow, ...], inventory_rows: tuple[InventoryLedgerRow, ...]
 ) -> str:
     """Fingerprint membership/identity, not progress fields that change during review."""
-    import hashlib
-
     ledger_identity = [
         {
             "id": row.id,
             "source_id": row.source_id,
             "printed_page": row.printed_page,
             "profile_membership": row.profile_membership,
-            "disposition": row.disposition,
+            # Issue #678 reviews the executable meaning of an already-frozen
+            # Characters denominator.  Keep its baseline disposition in the
+            # identity fingerprint while allowing the reviewed runtime
+            # disposition to stop treating non-mechanics as blockers.
+            "disposition": (
+                "required"
+                if row.obligation_review_issue == CHARACTERS_SECTION_REVIEW_ISSUE
+                else row.disposition
+            ),
         }
         for row in rows
     ]
@@ -406,6 +429,20 @@ def validate_source_ledgers(
         elif row.row_kind != "reference":
             raise ValidationError(f"Campaigns reference obligation drift: {row.id}")
     bindings: list[str] = []
+    characters_section_reviewed = tuple(
+        row for row in bundle.rows if row.obligation_review_issue == CHARACTERS_SECTION_REVIEW_ISSUE
+    )
+    if len(characters_section_reviewed) != CHARACTERS_SECTION_REVIEW_COUNT:
+        raise ValidationError("Characters section obligation review denominator drift")
+    if any(row.source_id != "characters-third" for row in characters_section_reviewed):
+        raise ValidationError("Characters section review contains a foreign source row")
+    if any(
+        row.source_id == "characters-third"
+        and row.id.startswith("section:")
+        and row.completion_owner == ROADMAP_OWNER
+        for row in bundle.rows
+    ):
+        raise ValidationError("Characters section row falls back to roadmap owner")
     for row in bundle.rows:
         low, high = (1, 336) if row.source_id == "characters-third" else (337, 576)
         if not low <= row.printed_page <= high:
@@ -492,6 +529,39 @@ def validate_source_ledgers(
                 raise ValidationError(f"Implemented row lacks reviewed evidence: {row.id}")
         if row.source_review == "reviewed" and not row.evidence_paths:
             raise ValidationError(f"Reviewed disposition lacks evidence: {row.id}")
+        if row.obligation_review_issue is not None:
+            if row.obligation is None or row.source_review != "reviewed":
+                raise ValidationError(f"Reviewed section lacks explicit obligation: {row.id}")
+            non_runtime = {
+                "construction-catalog",
+                "reference-only",
+                "structural-non-runtime",
+            }
+            if row.obligation in non_runtime and (
+                row.disposition != "reference-only"
+                or row.implementation != "not-applicable"
+                or row.completion_owner is not None
+            ):
+                raise ValidationError(f"Non-runtime section obligation is executable: {row.id}")
+            if row.obligation == "profile-excluded" and (
+                row.disposition not in {"excluded", "optional-disabled"}
+                or row.completion_owner is not None
+            ):
+                raise ValidationError(f"Profile-excluded section disposition drift: {row.id}")
+            if row.obligation == "executable-mechanic" and row.disposition != "required":
+                raise ValidationError(f"Executable section is not required: {row.id}")
+            if (
+                row.obligation == "executable-mechanic"
+                and row.implementation in READY_IMPLEMENTATIONS
+                and not any(path.startswith("tests/") for path in row.evidence_paths)
+            ):
+                raise ValidationError(f"Executable section lacks independent evidence: {row.id}")
+    review_identity = sorted((row.id, row.printed_page) for row in characters_section_reviewed)
+    review_sha256 = hashlib.sha256(
+        json.dumps(review_identity, separators=(",", ":")).encode()
+    ).hexdigest()
+    if review_sha256 != CHARACTERS_SECTION_REVIEW_SHA256:
+        raise ValidationError("Characters section obligation review identity drift")
     if len(bindings) != len(set(bindings)):
         duplicates = sorted(key for key, count in Counter(bindings).items() if count > 1)
         raise ValidationError(f"Duplicate runtime inventory ownership: {duplicates[0]}")
