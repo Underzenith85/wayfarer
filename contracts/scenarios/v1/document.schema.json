@@ -8892,6 +8892,8 @@
           "enum": [
             "rest",
             "natural",
+            "unconsciousness",
+            "drug",
             "bandage",
             "first-aid",
             "physician",
@@ -9138,6 +9140,30 @@
           "default": 0,
           "minimum": 0,
           "title": "Fp Recovered Total",
+          "type": "integer"
+        },
+        "drug_item_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Drug Item Id"
+        },
+        "drug_hp": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Drug Hp",
+          "type": "integer"
+        },
+        "drug_fp": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Drug Fp",
           "type": "integer"
         }
       },

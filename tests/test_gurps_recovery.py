@@ -6,7 +6,7 @@ import pytest
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.injury import InjuryStatus
-from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus, interrupt_tasks
 from wayfarer.engine.simulation.health.fatigue import (
     ContinueExertion,
     FatigueCost,
@@ -19,13 +19,14 @@ from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
+    RecoveryResult,
 )
 from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.engine.simulation.health.medical.tables import (
     first_aid_parameters,
     physician_parameters,
 )
-from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.resources import Item, Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -38,6 +39,223 @@ def seed(fp: int = 10, hp: int = 10) -> ResourceState:
             Pool(id="fp:a", current=fp, maximum=10, fatigue=FatigueStatus(profile_id=PROFILE)),
         )
     )
+
+
+def unconscious_seed(hp: int) -> ResourceState:
+    return ResourceState(
+        pools=(
+            Pool(
+                id="hp:a",
+                current=hp,
+                maximum=10,
+                injury=InjuryStatus(profile_id=PROFILE, unconscious=True),
+            ),
+            Pool(id="fp:a", current=10, maximum=10, fatigue=FatigueStatus(profile_id=PROFILE)),
+        )
+    )
+
+
+def finish_at(
+    state: ResourceState, task_id: str, at: int, dice: list[int]
+) -> tuple[ResourceState, RecoveryResult]:
+    state = state.model_copy(update={"game_time": at})
+    return apply_recovery(
+        state,
+        FinishRecovery(
+            id=f"finish:{task_id}:{at}",
+            actor_id="a",
+            expected_revision=state.revision,
+            task_id=task_id,
+        ),
+        CareContext(PROFILE, 10),
+        rng=RecordedDice(dice),
+        system=True,
+    )
+
+
+def test_unconsciousness_uses_persistent_hp_band_timers_and_hourly_retries() -> None:
+    context = CareContext(PROFILE, 10)
+    state, _ = apply_recovery(
+        unconscious_seed(1),
+        BeginRecovery(
+            id="wake-auto",
+            actor_id="a",
+            expected_revision=0,
+            kind="unconsciousness",
+            target_id="a",
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert state.recovery_tasks[0].due == 900
+    state, result = finish_at(state, "wake-auto", 900, [])
+    assert result.awakened
+    assert state.pools[0].injury is not None and not state.pools[0].injury.unconscious
+
+    state, _ = apply_recovery(
+        unconscious_seed(0),
+        BeginRecovery(
+            id="wake-hourly",
+            actor_id="a",
+            expected_revision=0,
+            kind="unconsciousness",
+            target_id="a",
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state, failed = finish_at(state, "wake-hourly", 3600, [4, 4, 4])
+    assert failed.check is not None and not failed.awakened
+    state = ResourceState.model_validate_json(state.model_dump_json())
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="wake-retry",
+            actor_id="a",
+            expected_revision=state.revision,
+            kind="unconsciousness",
+            target_id="a",
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state, recovered = finish_at(state, "wake-retry", 7200, [3, 3, 3])
+    assert recovered.awakened
+
+
+def test_deep_unconsciousness_has_one_wake_roll_then_twelve_hour_survival_rolls() -> None:
+    context = CareContext(PROFILE, 10)
+    state, _ = apply_recovery(
+        unconscious_seed(-10),
+        BeginRecovery(
+            id="deep-wake",
+            actor_id="a",
+            expected_revision=0,
+            kind="unconsciousness",
+            target_id="a",
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state, failed = finish_at(state, "deep-wake", 43200, [4, 4, 4])
+    assert failed.check is not None and not failed.awakened
+    assert state.recovery_tasks[0].wound_id == "unconsciousness:medical-only"
+    state = ResourceState.model_validate_json(state.model_dump_json())
+
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="survival",
+            actor_id="a",
+            expected_revision=state.revision,
+            kind="unconsciousness",
+            target_id="a",
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert state.recovery_tasks[-1].wound_id == "unconsciousness:survival"
+    state, survived = finish_at(state, "survival", 86400, [3, 3, 3])
+    assert survived.survived and not survived.awakened
+    assert state.pools[0].injury is not None and state.pools[0].injury.unconscious
+
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="survival-fail",
+            actor_id="a",
+            expected_revision=state.revision,
+            kind="unconsciousness",
+            target_id="a",
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state, fatal = finish_at(state, "survival-fail", 129600, [6, 6, 6])
+    assert not fatal.survived
+    assert state.pools[0].injury is not None and state.pools[0].injury.dead
+
+
+def test_authored_healing_drug_consumes_one_dose_and_settles_once() -> None:
+    state = ResourceState(
+        pools=(
+            Pool(id="hp:a", current=10, maximum=20, injury=InjuryStatus(profile_id=PROFILE)),
+            Pool(id="fp:a", current=5, maximum=10, fatigue=FatigueStatus(profile_id=PROFILE)),
+        ),
+        items=(Item(id="dose", definition_id="drug:restorative", owner_id="a"),),
+    )
+    context = CareContext(
+        PROFILE,
+        10,
+        technology_level=9,
+        drug_item_id="dose",
+        drug_form="injection",
+        drug_hp=2,
+        drug_fp=3,
+    )
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(id="drug", actor_id="a", expected_revision=0, kind="drug", target_id="a"),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert not state.items and state.expended_items[0].id == "dose"
+    state = state.model_copy(update={"game_time": 1})
+    finish = FinishRecovery(id="drug-finish", actor_id="a", expected_revision=1, task_id="drug")
+    state, result = apply_recovery(state, finish, context, rng=RecordedDice([]), system=True)
+    assert result.hp_recovered == 4 and result.fp_recovered == 3
+    assert (state.pools[0].current, state.pools[1].current) == (14, 8)
+    assert apply_recovery(state, finish, context, rng=RecordedDice([]), system=True) == (
+        state,
+        result,
+    )
+
+
+def test_interrupted_drug_consumes_the_dose_without_granting_full_effect() -> None:
+    state = ResourceState(
+        pools=(
+            Pool(id="hp:a", current=5, maximum=10, injury=InjuryStatus(profile_id=PROFILE)),
+            Pool(id="fp:a", current=10, maximum=10, fatigue=FatigueStatus(profile_id=PROFILE)),
+        ),
+        items=(Item(id="pill", definition_id="drug:healing", owner_id="a"),),
+    )
+    context = CareContext(
+        PROFILE,
+        10,
+        technology_level=9,
+        drug_item_id="pill",
+        drug_form="pill",
+        drug_hp=2,
+    )
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(id="drug", actor_id="a", expected_revision=0, kind="drug", target_id="a"),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state = state.model_copy(
+        update={
+            "game_time": 30,
+            "recovery_tasks": interrupt_tasks(state.recovery_tasks, frozenset({"a"}), 30),
+        }
+    )
+    state, result = apply_recovery(
+        state,
+        FinishRecovery(id="finish", actor_id="a", expected_revision=1, task_id="drug"),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.status == "interrupted" and result.hp_recovered == 0
+    assert state.pools[0].current == 5 and state.expended_items[0].id == "pill"
 
 
 @pytest.mark.parametrize(

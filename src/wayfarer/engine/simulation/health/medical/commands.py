@@ -17,6 +17,8 @@ class BeginRecovery(Command):
     kind: Literal[
         "rest",
         "natural",
+        "unconsciousness",
+        "drug",
         "bandage",
         "first-aid",
         "physician",
@@ -65,6 +67,10 @@ class CareContext:
     equipment_quality_modifier: int = 0
     infection_risk: bool = False
     infection_modifier: int = 0
+    drug_item_id: str | None = None
+    drug_form: Literal["pill", "contact", "aerosol", "injection"] | None = None
+    drug_hp: int = 0
+    drug_fp: int = 0
 
 
 class RecoveryResult(Record):
@@ -76,6 +82,8 @@ class RecoveryResult(Record):
     healing_die: int | None = None
     resuscitated: bool = False
     stabilized: bool = False
+    awakened: bool = Field(default=False, exclude_if=lambda v: not v)
+    survived: bool = Field(default=False, exclude_if=lambda v: not v)
     infection_check: CheckTrace | None = Field(default=None, exclude_if=lambda v: v is None)
     infection_schedule_id: str | None = Field(default=None, exclude_if=lambda v: v is None)
     repaired: bool = Field(default=False, exclude_if=lambda v: not v)

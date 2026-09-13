@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 from typing import Literal
 
-from wayfarer.engine.rules.checks import Outcome, RandomSource
+from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.hazard import blocked_fp, blocked_hp, require_hazards_settled
 from wayfarer.engine.rules.types.recovery import (
@@ -31,7 +31,7 @@ from wayfarer.engine.simulation.health.medical.tables import (
     first_aid_parameters,
     physician_parameters,
 )
-from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.resources import Pool, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
 
@@ -50,6 +50,135 @@ def _wound(state: ResourceState, wound_id: str | None, target: str) -> InjuryRes
     if result.injury <= 0:
         raise ValidationError("First aid requires an actual injury")
     return result
+
+
+def _prepare_special(
+    state: ResourceState,
+    command: BeginRecovery,
+    context: CareContext,
+    hp: Pool,
+    duration: int,
+) -> tuple[BeginRecovery, int]:
+    """Validate and snapshot uncommon procedures outside the core reducer ladder."""
+    assert hp.injury is not None
+    if command.kind == "unconsciousness":
+        if (
+            context.profile_id != "gurps-basic-set-4e-2004"
+            or command.actor_id != command.target_id
+            or not hp.injury.unconscious
+        ):
+            raise ValidationError("Unconsciousness recovery requires the Basic Set patient")
+        if hp.current >= 1:
+            duration, marker = 900, "unconsciousness:auto"
+        elif hp.current > -hp.maximum:
+            duration, marker = 3600, "unconsciousness:hourly"
+        else:
+            latest_injury = max(
+                (
+                    e.at
+                    for e in state.events
+                    if e.target_id == command.target_id and e.id.startswith("injury:")
+                ),
+                default=-1,
+            )
+            latest_stabilization = max(
+                (
+                    e.at
+                    for e in state.events
+                    if e.target_id == command.target_id
+                    and e.id.startswith("care:")
+                    and RecoveryResult.model_validate_json(e.kind).stabilized
+                ),
+                default=-1,
+            )
+            medical_only = any(
+                task.kind == "unconsciousness"
+                and task.target_id == command.target_id
+                and task.wound_id == "unconsciousness:medical-only"
+                and task.due >= max(latest_injury, latest_stabilization)
+                for task in state.recovery_tasks
+            )
+            duration = 43200
+            marker = "unconsciousness:survival" if medical_only else "unconsciousness:deep-wake"
+        command = command.model_copy(update={"wound_id": marker})
+    elif command.kind == "drug":
+        if context.profile_id != "gurps-basic-set-4e-2004" or context.technology_level < 9:
+            raise ValidationError("Healing drugs require an authored TL9+ Basic Set procedure")
+        if (
+            context.drug_item_id is None
+            or context.drug_form is None
+            or (context.drug_hp <= 0 and context.drug_fp <= 0)
+        ):
+            raise ValidationError("Healing drugs require an available authored dose and effect")
+        dose = next((item for item in state.items if item.id == context.drug_item_id), None)
+        if dose is None or dose.quantity != 1:
+            raise ValidationError("Healing drug dose is unavailable or not individually tracked")
+        duration = {"pill": 1800, "contact": 300, "aerosol": 1, "injection": 1}[context.drug_form]
+    return command, duration
+
+
+def _consume_special(state: ResourceState, task: RecoveryTask) -> ResourceState:
+    if task.kind != "drug":
+        return state
+    assert task.drug_item_id is not None
+    dose = next(item for item in state.items if item.id == task.drug_item_id)
+    return state.model_copy(
+        update={
+            "items": tuple(item for item in state.items if item.id != dose.id),
+            "expended_items": state.expended_items + (dose,),
+        }
+    )
+
+
+def _settle_special(
+    state: ResourceState,
+    task: RecoveryTask,
+    context: CareContext,
+    hp: Pool,
+    fp: Pool | None,
+    target: str,
+    multiplier: int,
+    rng: RandomSource,
+) -> tuple[ResourceState, RecoveryTask, Pool, Pool | None, int, int, CheckTrace | None, bool, bool]:
+    """Settle uncommon procedures; raise LookupError for the ordinary care ladder."""
+    if task.kind not in ("unconsciousness", "drug"):
+        raise LookupError
+    if task.status == "interrupted":
+        return state, task, hp, fp, 0, 0, None, False, False
+    if task.kind == "drug":
+        healed = task.drug_hp * multiplier
+        restored = 0
+        if fp is not None and fp.fatigue is not None:
+            restricted = fp.fatigue.starvation + fp.fatigue.dehydration + fp.fatigue.sleep
+            restored = min(task.drug_fp, max(0, fp.maximum - fp.current - restricted))
+            fp = fp.model_copy(update={"current": fp.current + restored})
+        return state, task, hp, fp, healed, restored, None, False, False
+
+    assert hp.injury is not None
+    check = None
+    awakened = survived = False
+    wake_marker = task.wound_id
+    if wake_marker == "unconsciousness:auto":
+        awakened = True
+    else:
+        check = success_roll(
+            context.profile_id,
+            task.ht + hp.injury.physical_traits.fitness,
+            check_modifiers(state, target, "ht"),
+            rng=rng,
+        )
+        if wake_marker == "unconsciousness:survival":
+            survived = check.outcome.succeeded
+            if not survived:
+                hp = hp.model_copy(update={"injury": hp.injury.model_copy(update={"dead": True})})
+        elif check.outcome.succeeded:
+            awakened = True
+        elif wake_marker == "unconsciousness:deep-wake":
+            task = task.model_copy(update={"wound_id": "unconsciousness:medical-only"})
+    if awakened:
+        assert hp.injury is not None
+        hp = hp.model_copy(update={"injury": hp.injury.model_copy(update={"unconscious": False})})
+    return state, task, hp, fp, 0, 0, check, awakened, survived
 
 
 def apply_recovery(
@@ -152,6 +281,8 @@ def apply_recovery(
     healed = restored = 0
     resuscitated = False
     stabilized = False
+    awakened = False
+    survived = False
     if isinstance(command, BeginRecovery) and command.kind == "mortal-check":
         if hp.injury.mortal_wound_due is None or state.game_time != hp.injury.mortal_wound_due:
             raise ValidationError("Mortal-wound survival check is not due")
@@ -207,6 +338,7 @@ def apply_recovery(
         duration = command.seconds
         bandaged = 0
         modifier = context.treatment_modifier
+        command, duration = _prepare_special(state, command, context, hp, duration)
         if command.kind == "resuscitate":
             if (context.technology_level < 7 and drowning is None) or command.actor_id == target:
                 raise ValidationError("Heart-attack resuscitation requires another TL7+ caregiver")
@@ -325,6 +457,8 @@ def apply_recovery(
         assert command.kind in (
             "rest",
             "natural",
+            "unconsciousness",
+            "drug",
             "bandage",
             "first-aid",
             "physician",
@@ -362,8 +496,12 @@ def apply_recovery(
             dehydration_entitlement=entitled[2],
             sleep_entitlement=entitled[3],
             hp_entitlement=hp.maximum - hp.current,
+            drug_item_id=context.drug_item_id,
+            drug_hp=context.drug_hp,
+            drug_fp=context.drug_fp,
         )
         tasks = state.recovery_tasks + (task,)
+        state = _consume_special(state, task)
         result = RecoveryResult(task_id=task.id, status="pending")
     else:
         assert task is not None
@@ -379,7 +517,13 @@ def apply_recovery(
             task.status != "interrupted" and state.game_time < task.due
         ):
             raise ValidationError("Recovery is not due in this profile")
-        multiplier = max(1, hp.maximum // 10)
+        multiplier = max(1, hp.maximum // 10) if task.profile_id == "gurps-basic-set-4e-2004" else 1
+        try:
+            state, task, hp, fp, healed, restored, check, awakened, survived = _settle_special(
+                state, task, context, hp, fp, target, multiplier, rng
+            )
+        except LookupError:
+            pass
         if task.status == "interrupted" and task.kind != "rest":
             pass
         elif task.kind == "rest":
@@ -493,27 +637,37 @@ def apply_recovery(
             )
             healed = multiplier * task.healing_rate if check.outcome.succeeded else 0
         else:
-            if task.skill is None or task.skill < 1:
-                raise ValidationError("Treatment requires a compiled medical skill")
-            check = success_roll(
-                context.profile_id, task.skill, check_modifiers(state, task.actor_id, "iq"), rng=rng
-            )
-            if check.outcome is Outcome.CRITICAL_FAILURE:
-                healed = -2 if task.kind == "first-aid" else -1
-            elif check.outcome.succeeded:
-                if task.kind == "first-aid":
-                    die = 6 if check.outcome is Outcome.CRITICAL_SUCCESS else rng.randbelow(6) + 1
-                    healed = max(
-                        0,
-                        min(
-                            max(1, die + first_aid_parameters(task.technology_level)[1])
-                            * multiplier,
-                            _wound(state, task.wound_id, target).injury,
+            try:
+                ("unconsciousness", "drug").index(task.kind)
+            except ValueError:
+                if task.skill is None or task.skill < 1:
+                    raise ValidationError("Treatment requires a compiled medical skill") from None
+                check = success_roll(
+                    context.profile_id,
+                    task.skill,
+                    check_modifiers(state, task.actor_id, "iq"),
+                    rng=rng,
+                )
+                if check.outcome is Outcome.CRITICAL_FAILURE:
+                    healed = -2 if task.kind == "first-aid" else -1
+                elif check.outcome.succeeded:
+                    if task.kind == "first-aid":
+                        die = (
+                            6 if check.outcome is Outcome.CRITICAL_SUCCESS else rng.randbelow(6) + 1
                         )
-                        - task.bandaged_hp,
-                    )
-                else:
-                    healed = (2 if check.outcome is Outcome.CRITICAL_SUCCESS else 1) * multiplier
+                        healed = max(
+                            0,
+                            min(
+                                max(1, die + first_aid_parameters(task.technology_level)[1])
+                                * multiplier,
+                                _wound(state, task.wound_id, target).injury,
+                            )
+                            - task.bandaged_hp,
+                        )
+                    else:
+                        healed = (
+                            2 if check.outcome is Outcome.CRITICAL_SUCCESS else 1
+                        ) * multiplier
         if healed < 0:
             state = state.model_copy(
                 update={
@@ -568,6 +722,8 @@ def apply_recovery(
             healing_die=die,
             resuscitated=resuscitated,
             stabilized=stabilized,
+            awakened=awakened,
+            survived=survived,
         )
     updated = state.model_copy(
         update={

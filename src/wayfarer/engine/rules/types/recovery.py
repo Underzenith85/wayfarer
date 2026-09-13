@@ -36,7 +36,15 @@ class RecoveryTask(Record):
     target_id: str
     profile_id: ProfileId
     kind: Literal[
-        "rest", "natural", "bandage", "first-aid", "physician", "resuscitate", "stabilize"
+        "rest",
+        "natural",
+        "unconsciousness",
+        "drug",
+        "bandage",
+        "first-aid",
+        "physician",
+        "resuscitate",
+        "stabilize",
     ]
     procedure: Literal["trauma-maintenance", "repair-lasting"] | None = Field(
         default=None, exclude_if=lambda v: v is None
@@ -96,6 +104,9 @@ class RecoveryTask(Record):
     sleep_granted: int = Field(default=0, ge=0)
     hp_entitlement: int = Field(default=0, ge=0)
     fp_recovered_total: int = Field(default=0, ge=0)
+    drug_item_id: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    drug_hp: int = Field(default=0, ge=0, exclude_if=lambda v: v == 0)
+    drug_fp: int = Field(default=0, ge=0, exclude_if=lambda v: v == 0)
 
 
 def rest_entitlement(task: RecoveryTask, at: int | None = None) -> tuple[int, int, int, int]:
