@@ -144,8 +144,8 @@ retained where previously recorded, but they do not replace the active owners.
 | #366 | Fortune-Telling and Savoir-Faire specialties. |
 | #367 | The Propaganda technology-level media context. |
 | #368 | Interrogation coercion and its reaction consequences. |
-| #369 | Teaching and Leadership advancement and group-activity bindings. |
-| #370 | Social skill audience reactions, income and material outcomes. |
+| #369 | Teaching and Leadership bind to advancement and NPC group activity; see `gurps-social-activity-bindings.md`. |
+| #370 | Social audience, income, outlay and hangover outcomes bind through `gurps-social-material-outcomes.md`. |
 
 Each procedure follow-up lists its exact candidate IDs and must reuse existing
 authoritative services. Accounting completion does not certify those procedures.
@@ -362,10 +362,8 @@ media-effect duration procedure (#367). Those rows are absent from the pin.
 
 A bound row can still leave a named part of its entry elsewhere. That is not a
 blocker — the roll runs — so it is published as `transferred_procedure_scope`
-rather than folded into the blocker list: coercion for Interrogation (#368),
-advancement and group activity for Teaching and Leadership (#369), and audience
-reactions, income and outlay for Carousing, Panhandling, Performance and Public
-Speaking (#370). Conditional and alternative defaults stay with #353.
+rather than folded into the blocker list. Interrogation coercion remains with
+#368. Conditional and alternative defaults stay with #353.
 
 The B97 Voice bonus reaches Diplomacy, Fast-Talk, Leadership, Performance,
 Politics, Public Speaking and Sex Appeal through
