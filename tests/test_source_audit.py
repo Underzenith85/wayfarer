@@ -16,8 +16,9 @@ def test_audit_integrity_and_unresolved_sources_block_certification() -> None:
     result = report(ROOT)
     assert result["audit_complete"] is False
     manifest = load(ROOT)
-    assert sum(f.status == "compared" for f in manifest.fixtures) == 59
-    assert not any(f.status == "reviewed" for f in manifest.fixtures)
+    assert sum(f.status == "reviewed" for f in manifest.fixtures) == 156
+    assert sum(f.status == "pending" for f in manifest.fixtures) == 98
+    assert not any(f.status == "compared" for f in manifest.fixtures)
     assert "source:sjg:gurps-lite-4e-2004" in blockers(manifest)
     assert any(b.startswith("scope:") for b in blockers(manifest))
 
@@ -27,7 +28,8 @@ def test_owner_inventory_exclusions_are_not_profile_exclusions() -> None:
     assert {112, 113, 119, 180} <= {r.owner for r in rows}
     supernatural = [r for r in rows if r.scope == "supernatural-skills"]
     assert supernatural and all(r.owner == 119 for r in supernatural)
-    assert all(r.source_review == "pending" for r in rows)
+    assert any(r.source_review == "reviewed" for r in rows)
+    assert any(r.source_review == "pending" for r in rows)
 
 
 def test_missing_fixture_review_rejected() -> None:
@@ -38,17 +40,17 @@ def test_missing_fixture_review_rejected() -> None:
 
 def test_stale_review_and_nonexistent_test_rejected() -> None:
     manifest = load(ROOT)
+    index = next(i for i, fixture in enumerate(manifest.fixtures) if fixture.status == "pending")
     mutations: list[tuple[dict[str, object], str]] = [
         ({"sha256": "0" * 64}, "Stale fixture"),
         ({"tests": ("tests/test_source_audit.py::test_invented",)}, "Missing fixture test"),
         ({"status": "reviewed"}, "independent review"),
     ]
     for change, message in mutations:
-        fixture = manifest.fixtures[0].model_copy(update=change)
+        fixtures = list(manifest.fixtures)
+        fixtures[index] = fixtures[index].model_copy(update=change)
         with pytest.raises(ValidationError, match=message):
-            validate(
-                ROOT, manifest.model_copy(update={"fixtures": (fixture, *manifest.fixtures[1:])})
-            )
+            validate(ROOT, manifest.model_copy(update={"fixtures": tuple(fixtures)}))
 
 
 def test_missing_source_and_invalid_scope_rejected() -> None:
@@ -96,15 +98,32 @@ def test_removed_required_scope_rejected() -> None:
         validate(ROOT, manifest.model_copy(update={"scopes": manifest.scopes[1:]}))
 
 
+def test_selected_basic_set_scopes_are_reviewed_but_lite_remains_blocked() -> None:
+    manifest = load(ROOT)
+    basic = tuple(scope for scope in manifest.scopes if "basic-set" in scope.source_id)
+    lite = tuple(scope for scope in manifest.scopes if "gurps-lite" in scope.source_id)
+    assert basic and all(scope.reviewed for scope in basic)
+    assert lite and all(not scope.reviewed for scope in lite)
+    assert next(source for source in manifest.sources if "gurps-lite" in source.id).blockers == (
+        121,
+    )
+
+
 def test_compared_fixture_cannot_be_promoted_without_source_reconciliation() -> None:
     manifest = load(ROOT)
-    index = next(i for i, f in enumerate(manifest.fixtures) if f.status == "compared")
     ledger = json.loads((ROOT / "tests/fixtures/gurps/conformance.json").read_text())
+    by_id = {case["id"]: case for case in ledger["cases"]}
+    index = next(
+        i
+        for i, fixture in enumerate(manifest.fixtures)
+        if fixture.status == "reviewed"
+        and by_id[fixture.id]["source_id"] != "sjg:gurps-lite-4e-2004"
+    )
     case = next(c for c in ledger["cases"] if c["id"] == manifest.fixtures[index].id)
     source_index = next(i for i, s in enumerate(manifest.sources) if s.id == case["source_id"])
     sources = list(manifest.sources)
     sources[source_index] = sources[source_index].model_copy(
-        update={"status": "compared", "blockers": (191,)}
+        update={"status": "different-printing", "blockers": (191,)}
     )
     fixtures = list(manifest.fixtures)
     fixtures[index] = fixtures[index].model_copy(update={"status": "reviewed"})
