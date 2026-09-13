@@ -15,6 +15,13 @@ from wayfarer.engine.simulation.campaign.administration import (
     CampaignAdministrationCommand,
     apply_administration,
 )
+from wayfarer.engine.simulation.campaign.development import (
+    AdvancementActorProfile,
+    CharacterDevelopmentCommand,
+    DevelopmentOutcome,
+    DevelopmentRules,
+    apply_development,
+)
 from wayfarer.engine.simulation.campaign.economics import (
     EconomicCommand,
     EconomicsOutcome,
@@ -34,8 +41,10 @@ if TYPE_CHECKING:
     from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
-CampaignOutcome = AdministrationOutcome | LawOutcome | EconomicsOutcome
-CampaignCommand = CampaignAdministrationCommand | LawCommand | EconomicCommand
+CampaignOutcome = AdministrationOutcome | LawOutcome | EconomicsOutcome | DevelopmentOutcome
+CampaignCommand = (
+    CampaignAdministrationCommand | LawCommand | EconomicCommand | CharacterDevelopmentCommand
+)
 
 
 class CampaignProcedureEngine:
@@ -48,12 +57,14 @@ class CampaignProcedureEngine:
         administration: AdministrationRules | None,
         law: LawRules | None,
         economics: EconomicsRules | None,
+        development: DevelopmentRules | None,
     ) -> None:
         self.resources = resources
         self.reviewer = reviewer
         self.administration = administration
         self.law = law
         self.economics = economics
+        self.development = development
 
     def _advance(
         self, actor_id: str, rng: RandomSource
@@ -74,6 +85,66 @@ class CampaignProcedureEngine:
 
         return advance
 
+    def _apply_development(
+        self,
+        state: PlayState,
+        command: CharacterDevelopmentCommand,
+        *,
+        rng: RandomSource,
+        system: bool,
+    ) -> tuple[PlayState, DevelopmentOutcome]:
+        if self.development is None:
+            raise ValidationError("Character-development command is not enabled")
+        builds = {}
+        build_revisions = {}
+        for actor in state.actors:
+            compiled = self.reviewer.compiler.compile(actor.proposal.draft).build
+            if compiled is None:
+                raise ValidationError("Character development requires valid actor builds")
+            build_revisions[actor.actor_id] = compiled.revision
+            builds[actor.actor_id] = AdvancementActorProfile(
+                actor_id=actor.actor_id,
+                levels=tuple(
+                    (value.target, int(value.value))
+                    for value in compiled.sheet.values
+                    if value.value.is_finite() and value.value == value.value.to_integral_value()
+                ),
+                points=tuple(
+                    (purchase.definition_id, purchase.amount) for purchase in compiled.purchases
+                ),
+                purchased_ids=tuple(purchase.definition_id for purchase in compiled.purchases),
+            )
+        if command.actor_id not in builds:
+            raise ValidationError("Character development actor is not playable")
+        development, resources, advancement, outcome = apply_development(
+            state.development,
+            state.resources,
+            state.administration,
+            state.advancement,
+            command,
+            self.development,
+            profiles=builds,
+            rng=rng,
+            build_revision=build_revisions[command.actor_id],
+            system=system,
+        )
+        if resources is state.resources:
+            return state, outcome
+        return (
+            state.model_copy(
+                update={
+                    "revision": resources.revision,
+                    "resources": resources,
+                    "advancement": advancement,
+                    "development": development,
+                    "rulings": expire_rulings(
+                        state.rulings, resources.revision, resources.game_time
+                    ),
+                }
+            ),
+            outcome,
+        )
+
     def apply(
         self,
         state: PlayState,
@@ -82,17 +153,26 @@ class CampaignProcedureEngine:
         rng: RandomSource,
         system: bool = False,
     ) -> tuple[PlayState, CampaignOutcome]:
+        if command.kind in {"adventure-improvement", "study-settlement", "quick-learning"}:
+            return self._apply_development(
+                state,
+                command,
+                rng=rng,
+                system=system,
+            )
         if command.kind in {"reaction", "knowledge", "award", "time-use", "trap"}:
             if self.administration is None:
                 raise ValidationError("Campaign administration command is not enabled")
-            actor = next((item for item in state.actors if item.actor_id == command.actor_id), None)
+            administration_actor = next(
+                (item for item in state.actors if item.actor_id == command.actor_id), None
+            )
             compiled = (
-                self.reviewer.compiler.compile(actor.proposal.draft).build
-                if actor is not None
+                self.reviewer.compiler.compile(administration_actor.proposal.draft).build
+                if administration_actor is not None
                 else None
             )
             build_revision = compiled.revision if compiled is not None else "unchanged"
-            admin, resources, world, advancement, outcome = apply_administration(
+            admin, resources, world, advancement, administration_outcome = apply_administration(
                 state.administration,
                 state.resources,
                 state.world,
@@ -105,7 +185,7 @@ class CampaignProcedureEngine:
                 system=system,
             )
             if resources is state.resources:
-                return state, outcome
+                return state, administration_outcome
             updated = state.model_copy(
                 update={
                     "revision": resources.revision,
@@ -118,7 +198,7 @@ class CampaignProcedureEngine:
                     ),
                 }
             )
-            return updated, outcome
+            return updated, administration_outcome
         if command.kind in {
             "trade",
             "exchange",
@@ -131,10 +211,12 @@ class CampaignProcedureEngine:
         }:
             if self.economics is None:
                 raise ValidationError("Economics command is not enabled")
-            actor = next((item for item in state.actors if item.actor_id == command.actor_id), None)
-            if actor is None:
+            economics_actor = next(
+                (item for item in state.actors if item.actor_id == command.actor_id), None
+            )
+            if economics_actor is None:
                 raise ValidationError("Economics actor is not a playable campaign actor")
-            compiled = self.reviewer.compiler.compile(actor.proposal.draft).build
+            compiled = self.reviewer.compiler.compile(economics_actor.proposal.draft).build
             if compiled is None:
                 raise ValidationError("Economics actor does not have a valid build")
             values = {value.target: value.value for value in compiled.sheet.values}

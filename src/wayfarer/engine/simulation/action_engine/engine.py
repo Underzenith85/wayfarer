@@ -57,6 +57,7 @@ from wayfarer.engine.simulation.campaign.access import validate_members
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.administration import validate_administration
 from wayfarer.engine.simulation.campaign.advancement import validate_ledgers
+from wayfarer.engine.simulation.campaign.development import validate_development
 from wayfarer.engine.simulation.campaign.economics import validate_economics
 from wayfarer.engine.simulation.campaign.encounter_context import activity_for, validate_contexts
 from wayfarer.engine.simulation.campaign.law import validate_law
@@ -109,7 +110,12 @@ class ActionEngine:
         _validate_check_rules(reviewer, resources, rules)
         self.combat = CombatEngine(rules.combat, resources) if rules.combat is not None else None
         self.campaign = CampaignProcedureEngine(
-            resources, reviewer, rules.administration, rules.law, rules.economics
+            resources,
+            reviewer,
+            rules.administration,
+            rules.law,
+            rules.economics,
+            rules.development,
         )
         if rules.combat is not None:
             _validate_gurps_equipment(reviewer, resources, rules.combat)
@@ -150,6 +156,13 @@ class ActionEngine:
         validate_ledgers(state)
         validate_administration(
             rules.administration, state.administration, state.world, state.advancement
+        )
+        validate_development(
+            rules.development,
+            state.development,
+            state.administration,
+            state.advancement,
+            frozenset(actor.actor_id for actor in state.actors),
         )
         validate_law(rules.law, state.law, frozenset(fact.id for fact in state.world.facts))
         compiled: dict[str, ValidatedBuild | None] = {}
