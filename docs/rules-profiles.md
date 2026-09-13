@@ -1,9 +1,9 @@
 # Rules profiles and explicit campaign migration
 
-Issue #96 adds registered, versioned rules profiles on top of the existing
-package/policy pins and the existing rules-migration ledger. It does not implement
-GURPS mechanics, does not reproduce rulebook text, and does not change any saved
-campaign.
+Wayfarer registers immutable, versioned rules profiles on top of package and
+policy pins. Profile selection never implies that every rule in a source is
+implemented: the registry separately reports whether all required conformance
+capabilities and explicitly selected features are available.
 
 ## Registration
 
@@ -19,8 +19,11 @@ profile it targets. Registration fails closed on:
 - policy pins that do not match the policy, or sources the policy does not permit;
 - an unknown conformance profile, an unknown capability, a capability outside the
   conformance profile, or a GURPS profile that omits a required capability;
-- any `optional_rules` entry (no optional rule is accepted until a reviewed
-  profile revision names it individually);
+- duplicate or unknown legacy `optional_rules` entries;
+- duplicate or unknown named optional-rule or content-boundary selections;
+- a Basic Set profile at version 9 or later without the exact named optional-rule
+  decision set, or one at version 10 or later without the exact content-boundary
+  decision set;
 - duplicate `(id, version)` registrations or two profiles with identical pins.
 
 Selection is exact. There is no latest-version lookup, no case folding and no
@@ -31,14 +34,21 @@ fallback from a GURPS profile to the prototype package.
 | `profile:wayfarer-lite` | 1 | `wayfarer-lite` | `package:wayfarer-lite@1.0.0` | supported; pins identical to the pre-#96 default |
 | `profile:gurps-lite-4e-2004` | 2 | `gurps-4e-2004` | `package:gurps-lite-4e-2004@0.2.0` | unsupported until every Lite capability is verified |
 | `profile:gurps-basic-set-4e-2004` | 2 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.2.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` (depends on the Characters package) | unsupported until every Basic Set capability is verified |
+| `profile:gurps-lite-4e-2004` | 3 | `gurps-4e-2004` | `package:gurps-lite-4e-2004@0.3.0` | unsupported; adds the skills catalog without certifying the full profile |
+| `profile:gurps-basic-set-4e-2004` | 3 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.3.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds skills and equipment definitions |
+| `profile:gurps-basic-set-4e-2004` | 4 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.4.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds the magic learning catalog |
+| `profile:gurps-basic-set-4e-2004` | 10 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.8.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; includes later construction/skill work, eleven disabled optional-rule decisions, and the Infinite Worlds exclusion |
 
 The GURPS packages register identity, edition, source provenance and dependencies.
 Version 0.2.0 of the Lite and Characters packages carries the #97 attribute and
 secondary-characteristic definitions from `wayfarer.engine.rules.gurps_characters`
-(identifiers and per-level costs only); later mechanics issues add skills, traits
-and equipment as further package versions and profile versions. Version 1 of each
-GURPS profile was never supported, so no campaign can reference it and it is not
-kept registered. Sources cite the frozen artifacts from
+(identifiers and per-level costs only); later mechanics work adds skills, traits,
+equipment, magic, construction context, and bound skill procedures through new
+immutable packages. Basic Set versions 5 through 9 are retained in code as that
+construction history but are not selectable entries in `DEFAULT_REGISTRY`; the
+registered latest selection is version 10. Version 1 of each GURPS profile was
+never supported, so no campaign can reference it and it is not kept registered.
+Sources cite the frozen artifacts from
 `docs/gurps-conformance.md` with rights `user-supplied-reference`, and
 `tests/test_profiles.py` checks those citations against the independent fixture
 metadata. GURPS policy budgets and ceilings reuse the prototype defaults; they are
@@ -48,10 +58,13 @@ profile compiles characters through the statistics module and the prototype
 profile keeps its original path.
 
 A profile is **supported** only when every required conformance capability is
-`verified`. The registry rejects `require_supported` for anything else and lists
-the unverified capability IDs, so an unsupported profile can never build a play
-engine, validate a scenario, compile a character, or receive an LLM proposal.
-Existing generic hooks or manual rulings do not change that answer.
+`verified`, every enabled named optional rule is executable, and every included
+content boundary is available. The registry rejects `require_supported` for
+anything else and lists the failing identifiers, so an unsupported profile can
+never build a play engine, validate a scenario, compile a character, or receive
+an LLM proposal. Existing generic hooks or manual rulings do not change that
+answer. Disabled optional rules and excluded content are explicit profile
+decisions, not support failures.
 
 ## Dispatch
 
@@ -120,9 +133,12 @@ document cannot change profile because the document's compatibility pins are par
 of what was published; publish a revision for the target profile and create a
 new game.
 
-## What this does not claim
+## What profile registration does not claim
 
-No capability moved to `verified`, and no GURPS mechanic executes. The coverage
-matrix in `docs/gurps-conformance.md` is unchanged except for recording that
-profile selection and migration now exist and fail closed. Certification (#121,
-#122) still requires the full inventory with independent evidence.
+The engine now has executable, independently tested GURPS mechanics and bounded
+capabilities marked `verified`. That does not make either complete GURPS profile
+supported: each still has required capabilities whose coverage is `partial` or
+`missing`. Likewise, completing a selected-source inventory or review records
+evidence and ownership; it does not promote absent runtime behavior. Full
+certification (#121, #122) still requires every required capability to have
+independent evidence.

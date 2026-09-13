@@ -12,5 +12,6 @@ limited Extra Life revival directly to the existing HP pool. Writes require
 actor authority and the expected resource revision; identical command retries
 return the recorded outcome and serialized histories restart unchanged.
 
-The inventory retains source-review blocker #191 after removing implementation
-blocker #235.
+The selected-source review completed in #191, and implementation blocker #235
+is removed from the covered rows. This opt-in package does not by itself certify
+the full profile.

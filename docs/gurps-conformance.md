@@ -76,7 +76,16 @@ Every mechanics PR in #94 must update the inventory and add independent cases fo
 
 No optional rule is enabled by default, and arbitrary optional-rule names are not accepted. Profile version 9 records explicit disabled decisions for every named Basic Set optional section, including separate bleeding, accumulated-wounds, and last-wounds identifiers. Version 10 retains those decisions and explicitly excludes Infinite Worlds B523-B546 from the generic profile. Enabling an unavailable rule or including unavailable content makes the profile unsupported, and direct runtime access rejects it. Broad family entries below describe future implementation targets, not permission to enable every variant. Tactical hex rules are a Basic target and are outside Lite. See [the optional-rule profile record](gurps-optional-rules.md) and [the Infinite Worlds boundary](gurps-infinite-worlds-boundary.md).
 
-These helpers expose a fail-closed contract for scenario/character validators. #96 wires selection through them: `wayfarer.engine.rules.profiles` registers `profile:gurps-lite-4e-2004@2` and `profile:gurps-basic-set-4e-2004@2` with exactly the required capability sets above, and a profile is selectable only when every required capability is `verified`. Today neither GURPS profile is selectable; new campaigns that name one are rejected with the unverified capability list, existing campaigns keep the prototype pins, and switching a paused campaign requires the explicit migration described in [rules profiles](rules-profiles.md). Mechanics implementation still belongs to the owners in the matrix, and each mechanics PR must move its capabilities to `verified` before its profile can activate.
+These helpers expose a fail-closed contract for scenario and character
+validators. `wayfarer.engine.rules.profiles` currently registers the prototype,
+Lite versions 2 and 3, and Basic Set versions 2, 3, 4, and 10 with their exact
+required capability sets and immutable package pins. No GURPS selection is
+supported yet: a new campaign that names one is rejected with its unverified
+capability list, existing campaigns keep the prototype pins, and switching a
+paused campaign requires the explicit migration described in
+[rules profiles](rules-profiles.md). Mechanics implementation still belongs to
+the owners in the matrix, and every required capability must become `verified`
+before its profile can activate.
 
 ## Attributes and secondary characteristics (#97)
 
@@ -128,9 +137,9 @@ The new profile remains opt-in and blocked by the existing certification gates.
 
 Thirty-six independent revision-2 cases in the conformance ledger cover damage,
 unsupported intermediate boundaries, inclusive purchase limits and their first
-out-of-limit values. The #191 source ledger binds each to its executable test.
-They are selected-source comparisons (Characters third printing, B15-17), not
-full conformance certification; item-level review remains open in #191.
+out-of-limit values. The source ledger reviewed in #191 binds each to its
+executable test. They are selected-source comparisons (Characters third
+printing, B15-17), not full conformance certification.
 
 ## Independent evidence
 
@@ -289,8 +298,8 @@ hex migration, authoritative movement/reach/LOS/range/armed retreat, safe player
 projections, generated contracts, keyboard choices and reconnect receipts.
 `tests/test_tactical.py` and the desktop/phone live tactical browser journeys
 exercise these boundaries. This does not enable or certify the Basic Set profile;
-remaining advanced ranged and unarmed gaps are tracked by #173 and #176, while
-#191 retains the source-reconciliation boundary.
+remaining advanced ranged and unarmed gaps are tracked by #173 and #176. The
+selected-source reconciliation completed in #191.
 
 ## Typed equipment profiles (#101)
 
@@ -331,7 +340,7 @@ and #107; these data structures do not authorize those unverified mechanics.
 
 ## Skill compilation (#98)
 
-`character.skills.SkillCompiler` runs inside the existing `CharacterCompiler` and
+`wayfarer.engine.character.skills.SkillCompiler` runs inside the existing `CharacterCompiler` and
 `ActionEngine` in `wayfarer.engine.simulation.action_engine`. Its typed `RuleDefinition.skill` metadata is included in package
 digests. No draft or action can supply a difficulty, default, prerequisite, or cap.
 The prototype four-skill dispatch and point restrictions are unchanged, including
@@ -387,7 +396,7 @@ gate. No source prose is bundled.
 
 ## Mundane skill inventory (#112)
 
-`rules.mundane_skills` is a dedicated, versioned candidate package and item-level
+`wayfarer.engine.rules.skills.mundane` is a dedicated, versioned candidate package and item-level
 inventory for the Basic Set skill chapter. It records skill families, aliases,
 weapon classes and representative expanded specialties/techniques with page
 references, controlling attributes, difficulty and numeric attribute defaults.
@@ -452,14 +461,15 @@ binds the remaining four families through campaign-authored subjects: only
 declared deterministic children become rollable and the source catalog remains
 unchanged. Those definitions are not yet in a package pin:
 two ids already exist in the pinned package on another hook, which is a
-deliberate migration.
-A bound row reports as `implemented` and stays blocked by the printing delta. Item-level owners and unsupported/listing-only states reach `source_audit`.
+deliberate migration. A bound row reports as `implemented`; selected-source
+review completed in #191. Item-level owners and unsupported/listing-only states
+reach `source_audit`.
 All candidates remain unavailable; no saved profile/package pin changes. See
 [the mundane skill inventory](gurps-mundane-skills.md) for the coverage matrix.
 
 ## Provisional social procedures (#111)
 
-`rules.gurps_social` implements reaction bands and typed status/reputation/
+`wayfarer.engine.rules.social.gurps_social` implements reaction bands and typed status/reputation/
 appearance modifiers, influence contests with Diplomacy fallback and Sex Appeal
 outcomes, self-control from catalog-validated TraitOptions, and Basic-only fright
 checks with the Rule of 14. Independent cases in `tests/test_social_completion.py`
@@ -470,14 +480,16 @@ specious intimidation, self-control modifiers, social/fright aftermath penalties
 and retching recovery. The registry's distinct frozen 2004/2007-errata baseline
 and Lite evidence remain pending certification.
 
-`rules.social_hooks` owns the two reaction sources no build binding covers, so a
+`wayfarer.engine.rules.social.social_hooks` owns the two reaction sources no build binding covers, so a
 scenario, a character sheet or a generated proposal selects a declared standing
 instead of inventing a number: the Appearance reaction columns (indifferent and
 attracted observers, B21) and Reputation from -4 to +4 with its affected class
 and its always/10-or-less/7-or-less recognition roll (B26-27), on the frozen
 2004/2007-errata baseline, hand-entered from model knowledge under the
-provisional policy below; the artifact audit is pending. Status, Charisma and
-Voice are deliberately absent here: `rules.mundane_traits.runtime` binds those to
+provisional policy below. The selected Basic Set source review completed in
+#191, but these hooks do not establish whole-profile certification. Status,
+Charisma and Voice are deliberately absent here:
+`wayfarer.engine.rules.traits.mundane.runtime` binds those to
 approved purchases of pinned definitions and dispatch derives them from the
 initiator's build (#113), so declaring them twice cannot double-count. Selected
 Appearance and Reputation entries also bind through approved purchases (#113);
@@ -505,7 +517,7 @@ rejected out-of-range standings, and `tests/test_social_hooks.py` runs them.
 The v2 `NPCSocialStanding` policy record carries authored standing and its
 audience into the same hooks; frozen v1 authoring is unchanged.
 
-`simulation.social` stores results and private traces in the existing resource
+`wayfarer.engine.simulation.social.social` stores results and private traces in the existing resource
 receipt/event ledger for atomic checkpoint commits. Duplicate command IDs replay;
 a second command cannot reroll the same subject/trigger. NPC trigger evidence is
 checked against the subject's knowledge. The explicit public projection excludes
@@ -516,7 +528,7 @@ do not reveal other facts or change NPC beliefs.
 
 ### Whole-entry social skill procedures (#345)
 
-`rules.mundane_skills.social` carries one procedure per B168–B233 social skill.
+`wayfarer.engine.rules.skills.mundane.social` carries one procedure per B168–B233 social skill.
 Each declares the shape that decides it — an unopposed success roll, a Quick
 Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
 it cannot proceed without, the modifiers it derives itself, and a named effect for
@@ -525,12 +537,14 @@ pin; Fortune-Telling and Savoir-Faire cannot be learned without their specialtie
 (#366) and Propaganda still lacks its media-effect duration procedure (#367), so those
 three keep `runtime-procedure` and are absent from the pin.
 
-Nothing here is a second engine: rolls are scored by `rules.gurps_checks` and
+Nothing here is a second engine: rolls are scored by
+`wayfarer.engine.rules.gurps_checks` and
 influence procedures call the existing `influence_roll`, so the Diplomacy
 fallback, the Sex Appeal outcome and the B359 trait exceptions keep their #111
 behaviour. Conditions are named facts about the situation, never numbers; a
 missing required condition rejects before dice. The B97 Voice skill bonus reaches
-the seven skills it improves through `character.social_traits.skill_conditions`,
+the seven skills it improves through
+`wayfarer.engine.character.traits.social.skill_conditions`,
 which reads approved purchases only. The `skill` command kind commits through the
 same receipt ledger and publishes only the effect identifier.
 `tests/fixtures/gurps/social_skills.json` pins the declared table and every
@@ -605,7 +619,7 @@ these explicitly authorized provisional implementations.
 
 ## Torso injury reducer (#102)
 
-`simulation.injury.apply_injury` applies server-owned wounds and ordered injury
+`wayfarer.engine.simulation.health.injury.apply_injury` applies server-owned wounds and ordered injury
 turns to the existing ResourceState/Pool checkpoint. Pool.injury opts in to an
 exact GURPS profile; signed HP are rejected on prototype and FP pools. Resource
 receipts persist the check traces and make repeated/deferred hit commits safe
@@ -694,7 +708,7 @@ ordering, alongside the existing live create/review/activate/advance journeys.
 
 ## Provisional spell lifecycle (#117)
 
-`simulation.spells` records named casts and typed effects in the existing resource
+`wayfarer.engine.simulation.magic.spells` records named casts and typed effects in the existing resource
 event/receipt ledger. It uses the existing success scorer, fatigue reducer and
 shared clock: no second pool, dice engine or timer. `orchestration.spells` supplies
 a private director-only CAS transaction seam, with target perception and profile
@@ -1042,7 +1056,7 @@ still fail the full-profile gate. Catalog vehicle listings remain non-operationa
 
 Source: the selected Basic Set: Campaigns Fourth Edition, fourth printing,
 B394-397, B430-432 and B466-469. Numeric tests are independently entered in
-`tests/test_transport.py`; item-level review remains under #191.
+`tests/test_transport.py`; the selected-source review completed in #191.
 
 | Implemented internal slice | Evidence and limitations |
 | --- | --- |
@@ -1114,8 +1128,8 @@ implementation prerequisites are closed. The inventory accounts for 100 spells,
 150 advantages, 42 disadvantages, six psi powers
 eight magic protocols and 28 transferred skills: 334 records in total. Every whole entry remains
 blocked, including narrower implemented subsets. Named runtime follow-ups
-#221–#243 and frozen-source reconciliation #191 remain visible blockers for
-#122. No family or profile is certified. The conformance gate consults this
+#221–#243 remain visible runtime blockers for #122; the frozen-source review
+completed in #191. No family or profile is certified. The conformance gate consults this
 inventory before accepting either supernatural family as verified, so a family
 flag alone cannot bypass missing item evidence.
 
@@ -1144,9 +1158,9 @@ when their tests execute the corresponding independent fixtures; register the
 journey only when it creates and plays a character through real services under
 the exact supported Lite profile, without bypassing capability checks.
 
-This is certification infrastructure, **not completed certification**. Hard merge
-prerequisites still open at preparation time: #96, #99, #102, #103, #106, #109,
-#111, #116. Required partial/absent mechanics and #95's source inventory audit
-also remain blocking. Do not close #121 or merge its certification PR on the
-strength of unit tests of the checker. The source/catalog audits must identify
-any remaining bounded follow-ups and link them before certification can finish.
+This is certification infrastructure, **not completed certification**. The
+manifest still records pending source and catalog evidence, required
+partial/absent mechanics, no executable fixture bindings, and no real-service
+character-to-adventure journey. Do not close #121 or treat checker unit tests as
+certification evidence. The source and catalog audits must identify every
+remaining bounded follow-up before certification can finish.

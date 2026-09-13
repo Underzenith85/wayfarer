@@ -2,7 +2,7 @@
 
 Issue #369 closes the B224 Teaching and B204 Leadership outcomes that cross the
 social-procedure boundary. The social roll remains in
-`rules.skills.mundane.social`; advancement and subgroup state remain owned by
+`wayfarer.engine.rules.skills.mundane.social`; advancement and subgroup state remain owned by
 their campaign services.
 
 ## Teaching

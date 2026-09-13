@@ -47,6 +47,5 @@ explicit attenuation factors. Resolution persists its inputs and damage evidence
 This does not certify a production equipment table or complete every explosive
 combat option. Contact shielding, internal explosions, secondary fires and other
 contextual environmental consequences remain outside this protocol. Evidence uses
-Campaigns fourth printing B407/B414–415 and the existing B377 defense procedure;
-selected-printing reconciliation remains #191 and overall ranged coverage stays
-partial.
+Campaigns fourth printing B407/B414–415 and the existing B377 defense procedure.
+The selected-printing review completed in #191; overall ranged coverage stays partial.

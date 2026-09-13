@@ -4,9 +4,10 @@ Issue #118 adds opt-in, pinned runtime bindings, not a complete supernatural
 catalog or Basic Set certification. Registered profile availability is unchanged.
 The numeric references are Characters third printing B46, B48, B61, B69-70,
 B106 and B111, and Campaigns fourth printing B366/B550; the historic baseline
-printing delta remains an audit item.
+printing reconciliation completed in #191.
 
-`rules.abilities.definition` supplies construction metadata for four families:
+`wayfarer.engine.rules.supernatural.abilities.definition` supplies construction
+metadata for four families:
 
 - Burning Innate Attack with mandatory Malediction 1: a resisted Will contest,
   -1 per yard, rule of 16, burning injury through the signed HP reducer. This is

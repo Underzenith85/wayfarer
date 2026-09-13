@@ -16,4 +16,5 @@ acting character or the GM.
 
 Free-form narrative consequences and procedures requiring broader combat,
 invention, influence, or knowledge adjudication remain explicit boundaries.
-Inventory rows stay `partial` pending source certification issue #191.
+The selected-source review completed in #191; rows remain `partial` for those
+runtime boundaries.

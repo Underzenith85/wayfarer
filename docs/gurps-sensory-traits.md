@@ -13,5 +13,6 @@ medium, and revealable fact IDs. The reducer checks actor authority and
 compare-and-set revision, records blocked and resisted outcomes, reveals only
 channel facts, and replays an identical command ID without repeating effects.
 
-Inventory entries retain #191 until the selected-printing source baseline is
-reconciled; #234 is removed only as an implementation blocker.
+The selected-printing review completed in #191, and #234 is removed as an
+implementation blocker for the covered rows. This opt-in package does not by
+itself certify the full profile.

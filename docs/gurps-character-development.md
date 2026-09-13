@@ -1,7 +1,7 @@
 # GURPS character development (#499)
 
 The engine implements the selected Basic Set procedures on B290-B294 through
-`simulation.campaign.development`. Character development is authored campaign
+`wayfarer.engine.simulation.campaign.development`. Character development is authored campaign
 data and deterministic settlement; it does not introduce another character
 compiler or bypass the existing build revision, approval, receipt, or replay
 boundaries.

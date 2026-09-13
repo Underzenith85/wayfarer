@@ -12,5 +12,5 @@ Failures and misjumps are recorded without inventing destinations. The reducer e
 actor authority, due time, compare-and-set revisions, exact build bindings, context
 continuity, identical-command replay, and restart-safe history.
 
-Inventory rows remain `partial` for source certification #191; runtime blocker #238 is
-removed from all three entries.
+The selected-source review completed in #191, and runtime blocker #238 is
+removed from all three entries. This bounded package does not certify the full profile.

@@ -3,20 +3,20 @@
 The audit accounts for every spell in the Basic Set spell index, every exotic
 or supernatural advantage/disadvantage row in the trait index, and the six
 listed psi powers. **This completes inventory accounting, not supernatural
-runtime coverage.** Every entry retains a named open runtime blocker and #191
-for frozen-source reconciliation. No entry is verified and no campaign profile
-or saved package is changed.
+runtime coverage.** The frozen-source reconciliation completed in #191. Later
+bounded runtime packages do not by themselves verify a whole inventory entry,
+campaign profile, or saved package.
 
 ## Source boundary
 
-`rules/supernatural/inventory.json` records observed artifact hashes, edition,
+`src/wayfarer/engine/rules/supernatural/inventory.json` records observed artifact hashes, edition,
 printing, page references, classification and source evidence separately from
 `gurps-4e-characters-3p-2008+campaigns-4p-2008`:
 
 | Observed source | Index and rule references | Reconciliation |
 | --- | --- | --- |
-| Characters, Fourth Edition, third printing, February 2008 | B297–300 trait index; B304–334 spell index; B34–101 and B122–165 traits; B235–257 magic/psi | Selected baseline; no additional errata overlay. #191 owns the remaining item-level source audit. |
-| Campaigns, Fourth Edition, fourth printing, 2008 | B479–482 enchantments and magic items, also indexed in Characters | Same unresolved baseline comparison; later-printing evidence does not certify the original baseline. |
+| Characters, Fourth Edition, third printing, February 2008 | B297–300 trait index; B304–334 spell index; B34–101 and B122–165 traits; B235–257 magic/psi | Selected baseline reviewed in #191; no additional errata overlay. |
+| Campaigns, Fourth Edition, fourth printing, 2008 | B479–482 enchantments and magic items, also indexed in Characters | Selected baseline reviewed in #191; later-printing evidence does not replace that pinned identity. |
 
 The inventory contains identifiers and descriptive metadata, not rulebook prose
 or an automatically executable transcription. Names, pages, difficulty, college
@@ -57,7 +57,7 @@ special modifiers and combinations.
 
 ## Runtime and validator contract
 
-The shared #191 source-audit report directly consumes all 334 records,
+The shared source-audit report completed in #191 directly consumes all 334 records,
 including the 28 transferred skills and their optional-profile boundaries.
 `inventory()` exposes typed immutable records. `lookup()` resolves exact audit
 IDs, and `coverage_blockers()` exposes the item-level follow-up list. Source
@@ -99,11 +99,12 @@ in PR #187. Both prerequisites are closed; their family capabilities remain
 partial. Earlier conformance sections describe historical implementation slices
 and do not override these acceptance decisions.
 
-The audit may close with the following concrete open blockers. #122 cannot
-claim Basic Set completeness until required entries have independent runtime
-and source evidence. #191 consumes this inventory for global source review.
+The catalog records the following implementation owners. Several now have
+bounded runtime packages, but #122 cannot claim Basic Set completeness until
+every required entry has independent whole-entry runtime evidence. The global
+source review completed in #191.
 
-| Follow-up | Exact family (entry lists are in each issue and inventory) |
+| Owner | Exact family (entry lists are in each issue and inventory) |
 | --- | --- |
 | #221 | Seven enchantment spells |
 | #222 | Knowledge, Light/Darkness and Meta spells |
@@ -128,7 +129,6 @@ and source evidence. #191 consumes this inventory for global source review.
 | #241 | Remaining magic class/ceremonial/area/item protocols and optional alternatives |
 | #242 | Cinematic and enthrallment skills transferred from #112 |
 | #243 | Alchemy, Herb Lore, Ritual Magic, Symbol Drawing and Thaumatology |
-| #191 | First-printing/errata reconciliation for every entry |
 
 `tests/test_supernatural_inventory.py` independently fixes the complete spell
 name set, supernatural advantage name set, source counts, cross-college

@@ -29,8 +29,8 @@ boundary and exposed as server-filtered tactical choices. Unsupported combinatio
 still fail before voluntary turn-start dice: non-thrust stop attacks, unobservable or
 off-map zones, equal/short-reach stop-thrust ordering, non-Attack deferred steps,
 invalid hand occupancy, and catalog modes without declared bracing/sight support.
-Broader ranged variants remain #173, and source-inventory reconciliation remains
-#191; this page does not claim whole-profile certification.
+Broader ranged variants remain #173, while source-inventory reconciliation
+completed in #191; this page does not claim whole-profile certification.
 
 `tests/test_gurps_maneuvers.py` and `tests/test_maneuver_followups.py` check independent targets/damage, bonus lifetime,
 defense prohibition, multiple attack timing, Aim, concentration, movement legality,

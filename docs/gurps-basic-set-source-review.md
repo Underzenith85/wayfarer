@@ -27,8 +27,9 @@ mechanic. The review records source identity and disposition only: it does not
 promote absent or partial runtime behavior.
 
 Every selected-source row is therefore reviewed and assigned either a concrete
-mechanics owner or a non-mechanics disposition. The named optional rules remain
-explicitly unresolved for #493, and the Chapter 20 setting/mechanics boundary
-remains explicitly unresolved for #494. Those are review outcomes, not hidden
-gaps. Exact behavior and fixture certification remain with their recorded child
-owners, while the unavailable Lite printing remains a separate blocker.
+mechanics owner or a non-mechanics disposition. Issue #493 records explicit
+disabled decisions for all eleven named optional rules, and #494 records the
+Chapter 20 Infinite Worlds exclusion in Basic Set profile version 10. Those are
+reviewed dispositions, not hidden gaps or claims of executable behavior. Exact
+behavior and fixture certification remain with their recorded child owners,
+while the unavailable Lite printing remains a separate blocker.

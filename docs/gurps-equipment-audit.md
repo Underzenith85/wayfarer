@@ -13,7 +13,7 @@ Row counts never imply source completeness. All fourteen B264-289 sections are
 now source-reconciled: every selected row, omitted physical row, non-row variant,
 cross-reference and special behavior is named against an inspected page. This
 completes #180's Basic Set workstream without enabling unsupported equipment or
-claiming that the wider Lite/#191 certification evidence is complete.
+claiming that the wider Lite or whole-profile certification evidence is complete.
 
 Run:
 
@@ -136,8 +136,9 @@ Every field of `Provenance`, `Damage`, `Parry`, `MeleeMode`, `RangedMode`,
 source anchor and either its executable coverage or an explicit gap. Adding or
 removing a schema field without updating the ledger fails the audit.
 
-All field records remain `pending` until the exhaustive #191 reconciliation, so
-`gurps.equipment.weapon_profiles` and `gurps.equipment.armor_profiles` stay
+All field records remain `pending` in the equipment ledger. Closing the selected
+source review in #191 did not promote these independent field-provenance records,
+so `gurps.equipment.weapon_profiles` and `gurps.equipment.armor_profiles` stay
 partial. The shield skill and profile fields now have direct B287 cases;
 `MeleeMode.kind` and `RangedMode.kind` still have none.
 

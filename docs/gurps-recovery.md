@@ -93,7 +93,7 @@ Basic Set deprivation, sleep, and foraging are described in
 
 ### One medical procedure API
 
-`simulation.medical` owns `CareContext`, `BeginRecovery`, `FinishRecovery`,
+`wayfarer.engine.simulation.health.medical` owns `CareContext`, `BeginRecovery`, `FinishRecovery`,
 `RecoveryResult`, and the procedure dispatcher. Trauma maintenance and lasting
 injury surgery use the same API as first aid and rest. The former
 `recovery_variants` imports are compatibility aliases.
