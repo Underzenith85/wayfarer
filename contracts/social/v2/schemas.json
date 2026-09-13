@@ -1711,7 +1711,8 @@
             "type": "integer"
           },
           "duration_seconds": {
-            "exclusiveMinimum": 0,
+            "maximum": 86400,
+            "minimum": 3600,
             "title": "Duration Seconds",
             "type": "integer"
           },
