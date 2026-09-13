@@ -1714,6 +1714,17 @@
             ],
             "default": null
           },
+          "economics": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EconomicsRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "inventions": {
             "anyOf": [
               {
@@ -3444,6 +3455,36 @@
         "title": "CrossSceneEffect",
         "type": "object"
       },
+      "CurrencyRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "world_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "World Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "world_id",
+          "name"
+        ],
+        "title": "CurrencyRule",
+        "type": "object"
+      },
       "CustomConstruction": {
         "additionalProperties": false,
         "description": "A named grouping of purchased catalog components, never new mechanics.",
@@ -3596,6 +3637,98 @@
           "mode"
         ],
         "title": "Discovery",
+        "type": "object"
+      },
+      "EconomicsRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "currencies": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CurrencyRule"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "price_contexts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PriceContext"
+            },
+            "title": "Price Contexts",
+            "type": "array"
+          },
+          "trades": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/TradeOffer"
+            },
+            "title": "Trades",
+            "type": "array"
+          },
+          "exchanges": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ExchangeOffer"
+            },
+            "title": "Exchanges",
+            "type": "array"
+          },
+          "profiles": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/FinancialProfile"
+            },
+            "title": "Profiles",
+            "type": "array"
+          },
+          "jobs": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/JobRule"
+            },
+            "title": "Jobs",
+            "type": "array"
+          },
+          "hirelings": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/HirelingRule"
+            },
+            "title": "Hirelings",
+            "type": "array"
+          },
+          "loyalty": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/LoyaltyCircumstance"
+            },
+            "title": "Loyalty",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "EconomicsRules",
         "type": "object"
       },
       "ElectronicsSuite": {
@@ -4607,6 +4740,67 @@
         "title": "EquipmentProfile",
         "type": "object"
       },
+      "ExchangeOffer": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "source_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source Account Id",
+            "type": "string"
+          },
+          "source_clearing_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source Clearing Account Id",
+            "type": "string"
+          },
+          "target_clearing_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Clearing Account Id",
+            "type": "string"
+          },
+          "target_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Account Id",
+            "type": "string"
+          },
+          "source_amount": {
+            "exclusiveMinimum": 0,
+            "title": "Source Amount",
+            "type": "integer"
+          },
+          "target_amount": {
+            "exclusiveMinimum": 0,
+            "title": "Target Amount",
+            "type": "integer"
+          },
+          "carried_only": {
+            "default": true,
+            "title": "Carried Only",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "source_account_id",
+          "source_clearing_account_id",
+          "target_clearing_account_id",
+          "target_account_id",
+          "source_amount",
+          "target_amount"
+        ],
+        "title": "ExchangeOffer",
+        "type": "object"
+      },
       "ExplosionSpec": {
         "additionalProperties": false,
         "properties": {
@@ -4768,6 +4962,87 @@
           "profile_id"
         ],
         "title": "FatigueStatus",
+        "type": "object"
+      },
+      "FinancialProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "wealth": {
+            "title": "Wealth",
+            "type": "string"
+          },
+          "status": {
+            "maximum": 8,
+            "minimum": -2,
+            "title": "Status",
+            "type": "integer"
+          },
+          "rank_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Rank Definition Ids",
+            "type": "array"
+          },
+          "relationship_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Relationship Definition Ids",
+            "type": "array"
+          },
+          "living_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Living Account Id",
+            "type": "string"
+          },
+          "cost_of_living_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Cost Of Living Account Id",
+            "type": "string"
+          },
+          "monthly_cost": {
+            "minimum": 0,
+            "title": "Monthly Cost",
+            "type": "integer"
+          },
+          "dependent_cost": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dependent Cost",
+            "type": "integer"
+          },
+          "unpaid_consequence": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Unpaid Consequence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "wealth",
+          "status",
+          "living_account_id",
+          "cost_of_living_account_id",
+          "monthly_cost",
+          "unpaid_consequence"
+        ],
+        "title": "FinancialProfile",
         "type": "object"
       },
       "FirearmFailure": {
@@ -5500,6 +5775,102 @@
           "cells"
         ],
         "title": "HexBattlefield",
+        "type": "object"
+      },
+      "HirelingRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "employer_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Employer Id",
+            "type": "string"
+          },
+          "hireling_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Hireling Id",
+            "type": "string"
+          },
+          "employer_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Employer Account Id",
+            "type": "string"
+          },
+          "hireling_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Hireling Account Id",
+            "type": "string"
+          },
+          "search_target_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Search Target Id",
+            "type": "string"
+          },
+          "competence": {
+            "title": "Competence",
+            "type": "integer"
+          },
+          "normal_pay": {
+            "exclusiveMinimum": 0,
+            "title": "Normal Pay",
+            "type": "integer"
+          },
+          "offered_pay": {
+            "minimum": 0,
+            "title": "Offered Pay",
+            "type": "integer"
+          },
+          "search_modifiers": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Modifier"
+            },
+            "title": "Search Modifiers",
+            "type": "array"
+          },
+          "loyalty_modifiers": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ReactionModifier"
+            },
+            "title": "Loyalty Modifiers",
+            "type": "array"
+          },
+          "private_motive": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Private Motive",
+            "type": "string"
+          },
+          "employment_kind": {
+            "const": "hireling",
+            "default": "hireling",
+            "title": "Employment Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "employer_id",
+          "hireling_id",
+          "employer_account_id",
+          "hireling_account_id",
+          "search_target_id",
+          "competence",
+          "normal_pay",
+          "offered_pay"
+        ],
+        "title": "HirelingRule",
         "type": "object"
       },
       "HumanBody": {
@@ -6455,6 +6826,142 @@
         "title": "Item",
         "type": "object"
       },
+      "JobRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "activity_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "employer_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Employer Account Id",
+            "type": "string"
+          },
+          "worker_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Worker Account Id",
+            "type": "string"
+          },
+          "prerequisite_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Prerequisite Id",
+            "type": "string"
+          },
+          "minimum_level": {
+            "title": "Minimum Level",
+            "type": "integer"
+          },
+          "roll_target_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Roll Target Id",
+            "type": "string"
+          },
+          "monthly_pay": {
+            "minimum": 0,
+            "title": "Monthly Pay",
+            "type": "integer"
+          },
+          "period_seconds": {
+            "exclusiveMinimum": 0,
+            "title": "Period Seconds",
+            "type": "integer"
+          },
+          "population": {
+            "exclusiveMinimum": 0,
+            "title": "Population",
+            "type": "integer"
+          },
+          "typical_status": {
+            "maximum": 8,
+            "minimum": -2,
+            "title": "Typical Status",
+            "type": "integer"
+          },
+          "simultaneous_jobs": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Simultaneous Jobs",
+            "type": "integer"
+          },
+          "advertising_steps": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Advertising Steps",
+            "type": "integer"
+          },
+          "advertising_amount": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Advertising Amount",
+            "type": "integer"
+          },
+          "advertising_account_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Advertising Account Id"
+          },
+          "variable_income": {
+            "default": false,
+            "title": "Variable Income",
+            "type": "boolean"
+          },
+          "critical_failure": {
+            "default": "no-pay",
+            "enum": [
+              "no-pay",
+              "pay-cut",
+              "job-loss",
+              "injury",
+              "arrest"
+            ],
+            "title": "Critical Failure",
+            "type": "string"
+          },
+          "employment_kind": {
+            "const": "employed",
+            "default": "employed",
+            "title": "Employment Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "activity_id",
+          "employer_account_id",
+          "worker_account_id",
+          "prerequisite_id",
+          "minimum_level",
+          "roll_target_id",
+          "monthly_pay",
+          "period_seconds",
+          "population",
+          "typical_status"
+        ],
+        "title": "JobRule",
+        "type": "object"
+      },
       "Jurisdiction": {
         "additionalProperties": false,
         "properties": {
@@ -6738,6 +7245,63 @@
           "legality_class"
         ],
         "title": "LegalityRule",
+        "type": "object"
+      },
+      "LoyaltyCircumstance": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "hireling_rule_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Hireling Rule Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "danger",
+              "temptation",
+              "rescue",
+              "service",
+              "competence"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "modifiers": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Modifier"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "loyalty_change_on_success": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": -10,
+            "title": "Loyalty Change On Success",
+            "type": "integer"
+          },
+          "loyalty_change_on_failure": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": -10,
+            "title": "Loyalty Change On Failure",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "hireling_rule_id",
+          "kind"
+        ],
+        "title": "LoyaltyCircumstance",
         "type": "object"
       },
       "MagicItemBinding": {
@@ -8581,6 +9145,43 @@
           "proposal"
         ],
         "title": "PregeneratedCharacter",
+        "type": "object"
+      },
+      "PriceContext": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "world_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "World Id",
+            "type": "string"
+          },
+          "currency_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Currency Id",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "world_id",
+          "currency_id",
+          "label"
+        ],
+        "title": "PriceContext",
         "type": "object"
       },
       "ProductionLot": {
@@ -10918,6 +11519,86 @@
           "partial"
         ],
         "title": "SurpriseState",
+        "type": "object"
+      },
+      "TradeOffer": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "context_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Context Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "purchase",
+              "sale",
+              "loot"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "payer_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Payer Account Id",
+            "type": "string"
+          },
+          "payee_account_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Payee Account Id",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "price": {
+            "minimum": 0,
+            "title": "Price",
+            "type": "integer"
+          },
+          "new_item_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "New Item Id"
+          }
+        },
+        "required": [
+          "id",
+          "context_id",
+          "kind",
+          "payer_account_id",
+          "payee_account_id",
+          "item_id",
+          "quantity",
+          "price"
+        ],
+        "title": "TradeOffer",
         "type": "object"
       },
       "TraitOptions": {

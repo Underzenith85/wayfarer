@@ -669,7 +669,7 @@
       "id": "section:characters:b018:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 18,
       "list_page": null,
       "profile_membership": [
@@ -921,7 +921,7 @@
       "id": "section:characters:b022:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 22,
       "list_page": null,
       "profile_membership": [
@@ -1145,7 +1145,7 @@
       "id": "section:characters:b025:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 25,
       "list_page": null,
       "profile_membership": [
@@ -1397,7 +1397,7 @@
       "id": "section:characters:b030:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 30,
       "list_page": null,
       "profile_membership": [
@@ -1725,7 +1725,7 @@
       "id": "section:characters:b034:what-s-allowed",
       "row_kind": "mechanic",
       "source_id": "characters-third",
-      "title": "What’s Allowed",
+      "title": "What\u2019s Allowed",
       "printed_page": 34,
       "list_page": null,
       "profile_membership": [
@@ -2115,7 +2115,7 @@
       "id": "section:characters:b116:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 116,
       "list_page": null,
       "profile_membership": [
@@ -2453,7 +2453,7 @@
       "id": "section:characters:b162:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 162,
       "list_page": null,
       "profile_membership": [
@@ -2531,7 +2531,7 @@
       "id": "section:characters:b164:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 164,
       "list_page": null,
       "profile_membership": [
@@ -6126,16 +6126,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:characters:b290:improvement-through-adventure",
       "classification": null,
@@ -6204,16 +6205,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 527,
-      "capability_id": "gurps.equipment.catalog",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:characters:b292:improvement-through-study",
       "classification": null,
@@ -10371,7 +10373,7 @@
       "id": "section:campaigns:b391:entering-a-foe-s-hex",
       "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
-      "title": "Entering a Foe’s Hex",
+      "title": "Entering a Foe\u2019s Hex",
       "printed_page": 391,
       "list_page": null,
       "profile_membership": [
@@ -10397,7 +10399,7 @@
       "id": "section:campaigns:b391:leaving-a-foe-s-hex",
       "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
-      "title": "Leaving a Foe’s Hex",
+      "title": "Leaving a Foe\u2019s Hex",
       "printed_page": 391,
       "list_page": null,
       "profile_membership": [
@@ -13283,7 +13285,7 @@
       "id": "section:campaigns:b445:how-gurps-works-character-templates-aren-t-rules",
       "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
-      "title": "How GURPS Works: Character Templates Aren’t Rules!",
+      "title": "How GURPS Works: Character Templates Aren\u2019t Rules!",
       "printed_page": 445,
       "list_page": null,
       "profile_membership": [
@@ -16906,16 +16908,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
       "classification": null,
@@ -16932,16 +16935,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -16958,16 +16962,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -16984,16 +16989,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -17010,16 +17016,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -17062,16 +17069,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.economics",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -17088,16 +17096,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -17114,16 +17123,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.hirelings",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -17140,16 +17150,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.employment",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -17192,16 +17203,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-economics.md",
+        "tests/test_economics.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 503,
+      "capability_id": "gurps.campaign.hirelings",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b514:economics",
       "classification": null,
@@ -17913,7 +17925,7 @@
       "id": "section:campaigns:b535:infinity-s-world-classes",
       "row_kind": "setting",
       "source_id": "campaigns-fourth",
-      "title": "Infinity’s World Classes",
+      "title": "Infinity\u2019s World Classes",
       "printed_page": 535,
       "list_page": null,
       "profile_membership": [
