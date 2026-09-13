@@ -1270,6 +1270,77 @@
         "title": "AdventureImprovementRule",
         "type": "object"
       },
+      "AfflictionEffect": {
+        "additionalProperties": false,
+        "description": "One typed, historical effect; activity is owned by ``active_effect_ids``.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "condition": {
+            "enum": [
+              "agony",
+              "attribute-penalty",
+              "blindness",
+              "choking",
+              "coma",
+              "coughing",
+              "daze",
+              "drowsy",
+              "drunk",
+              "ecstasy",
+              "euphoria",
+              "hallucinating",
+              "nauseated",
+              "pain",
+              "paralysis",
+              "retching",
+              "seizure",
+              "sleep",
+              "stun",
+              "tipsy",
+              "unconsciousness"
+            ],
+            "title": "Condition",
+            "type": "string"
+          },
+          "started_at": {
+            "minimum": 0,
+            "title": "Started At",
+            "type": "integer"
+          },
+          "expires_at": {
+            "minimum": 1,
+            "title": "Expires At",
+            "type": "integer"
+          },
+          "level": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "source_id",
+          "condition",
+          "started_at",
+          "expires_at"
+        ],
+        "title": "AfflictionEffect",
+        "type": "object"
+      },
       "AmmunitionLoad": {
         "additionalProperties": false,
         "description": "Reserved inventory rounds; they retain mass and cannot be traded/consumed.",
@@ -3082,6 +3153,15 @@
               }
             ],
             "default": null
+          },
+          "optional_rules": {
+            "default": [],
+            "items": {
+              "const": "gurps.techniques.dual-weapon-attack",
+              "type": "string"
+            },
+            "title": "Optional Rules",
+            "type": "array"
           }
         },
         "required": [
@@ -7163,6 +7243,14 @@
               "type": "string"
             },
             "title": "Active Effect Ids",
+            "type": "array"
+          },
+          "afflictions": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AfflictionEffect"
+            },
+            "title": "Afflictions",
             "type": "array"
           },
           "scheduled": {

@@ -219,8 +219,12 @@ def resolve_melee(
             - attacker.maneuver_state.feint_penalty * (2 if defender.unarmed_guard_dropped else 1),
             defense_derived.explanations,
         )
-    defense_derived = _visibility_adjustment(defense_derived, pending.visibility_defense_penalty)
-    second_derived = _visibility_adjustment(second_derived, pending.visibility_defense_penalty)
+    defense_derived = _visibility_adjustment(
+        defense_derived, pending.visibility_defense_penalty + pending.attention_defense_penalty
+    )
+    second_derived = _visibility_adjustment(
+        second_derived, pending.visibility_defense_penalty + pending.attention_defense_penalty
+    )
     attack = success_roll(
         equipment.profile_id,
         attack_target,

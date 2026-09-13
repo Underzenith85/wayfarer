@@ -111,6 +111,8 @@ async def setup(
     aware_of: tuple[str, ...] = (),
     placements: tuple[Placement, ...] | None = None,
     battlefield: Battlefield | HexBattlefield | None = None,
+    combat_optional_rules: tuple[Literal["gurps.techniques.dual-weapon-attack"], ...] = (),
+    extra_attacker_hands: tuple[tuple[str, Literal["left-hand", "right-hand"]], ...] = (),
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -482,6 +484,7 @@ async def setup(
         version=1,
         battlefields=(selected_battlefield,),
         gurps_equipment=equipment,
+        optional_rules=combat_optional_rules,
     )
     maximum_wait = 1800 if durability and durability.repair_skill_id else 100
     selected_rules = (
@@ -541,6 +544,7 @@ async def setup(
             held_item_hands=(
                 (f"sword-{a}", "right-hand"),
                 *(((("shield-b", "left-hand"),)) if a == "b" and not free_defender_hand else ()),
+                *(extra_attacker_hands if a == "a" else ()),
             )
             if human
             else (),

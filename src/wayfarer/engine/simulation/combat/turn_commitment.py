@@ -100,6 +100,41 @@ def _all_out_attack(
     )
 
 
+def _dual_weapon_attack(
+    participant: Combatant,
+    commitment: ManeuverState,
+    *,
+    item_id: str | None,
+    target_id: str | None,
+    second_item_id: str | None,
+    second_target_id: str | None,
+    second_mode_id: str | None,
+) -> ManeuverState:
+    if item_id is None or target_id is None or second_item_id is None:
+        raise ValidationError("Dual-Weapon Attack requires two weapons and declared targets")
+    hands = {item: hand for item, hand in participant.hand_bindings}
+    if (
+        item_id == second_item_id
+        or item_id not in participant.ready_item_ids
+        or second_item_id not in participant.ready_item_ids
+        or item_id not in hands
+        or second_item_id not in hands
+        or hands[item_id] == hands[second_item_id]
+    ):
+        raise ValidationError("Dual-Weapon Attack requires distinct ready weapons in two hands")
+    return commitment.model_copy(
+        update={
+            "attacks_remaining": 1,
+            "second_attack_item_id": second_item_id,
+            "second_attack_target_id": second_target_id or target_id,
+            "second_attack_mode_id": second_mode_id,
+            "attack_bonus": -4 + (-4 if hands[item_id] == "left-hand" else 0),
+            "second_attack_penalty": -4 + (-4 if hands[second_item_id] == "left-hand" else 0),
+            "dual_weapon_attack": True,
+        }
+    )
+
+
 def _wait(
     engine: CombatEngine,
     encounter: Encounter,
@@ -233,10 +268,24 @@ def prepare(
     basic: bool,
 ) -> Combatant:
     """Return the participant with the maneuver's lasting commitments recorded."""
+    dual_weapon = (
+        maneuver == "attack"
+        and second_item_id is not None
+        and "gurps.techniques.dual-weapon-attack" in engine.rules.optional_rules
+    )
     if any(v is not None for v in (second_item_id, second_target_id, second_mode_id)) and not (
-        maneuver == "all_out_attack" and attack_option == "double"
+        maneuver == "all_out_attack" and attack_option == "double" or dual_weapon
     ):
-        raise ValidationError("A second attack requires All-Out Attack (Double)")
+        raise ValidationError(
+            "A second attack requires All-Out Attack (Double) or enabled Dual-Weapon Attack"
+        )
+    if dual_weapon and (
+        target_id == actor_id
+        or target_id not in encounter.turn_order
+        or (second_target_id is not None and second_target_id not in encounter.turn_order)
+        or second_target_id == actor_id
+    ):
+        raise ValidationError("Dual-Weapon Attack requires declared opposing combatants")
     commitment = _carried_state(participant, maneuver)
     if maneuver == "all_out_attack":
         commitment = _all_out_attack(
@@ -245,6 +294,16 @@ def prepare(
             item_id=item_id,
             target_id=target_id,
             attack_option=attack_option,
+            second_item_id=second_item_id,
+            second_target_id=second_target_id,
+            second_mode_id=second_mode_id,
+        )
+    elif dual_weapon:
+        commitment = _dual_weapon_attack(
+            participant,
+            commitment,
+            item_id=item_id,
+            target_id=target_id,
             second_item_id=second_item_id,
             second_target_id=second_target_id,
             second_mode_id=second_mode_id,

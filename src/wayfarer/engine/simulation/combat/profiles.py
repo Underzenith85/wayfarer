@@ -94,6 +94,9 @@ class CombatRules(Record):
     attacks: tuple[AttackProfile, ...] = Field(default=(), exclude=True)
     protection: tuple[ProtectionProfile, ...] = Field(default=(), exclude=True)
     gurps_equipment: EquipmentCatalog | None = Field(default=None, exclude=True)
+    optional_rules: tuple[Literal["gurps.techniques.dual-weapon-attack"], ...] = Field(
+        default=(), exclude=True
+    )
 
     @model_validator(mode="after")
     def validate_unique(self) -> CombatRules:
@@ -113,4 +116,6 @@ class CombatRules(Record):
             {p.definition_id for p in self.protection}
         ) != len(self.protection):
             raise ValueError("Duplicate combat profile")
+        if len(set(self.optional_rules)) != len(self.optional_rules):
+            raise ValueError("Duplicate combat optional rule")
         return self

@@ -10973,7 +10973,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": null,
@@ -11057,7 +11057,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
@@ -11226,7 +11226,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b398:hit-location",
@@ -11599,7 +11599,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11625,7 +11625,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11707,7 +11707,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11761,7 +11761,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11815,7 +11815,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b407:special-ranged-combat-rules",
@@ -11975,15 +11975,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
-        191
+        191,
+        513
       ],
-      "completion_owner": 513,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
@@ -12001,15 +12004,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
-        191
+        191,
+        513
       ],
-      "completion_owner": 513,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b416:special-damage",
@@ -12027,15 +12033,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
-        191
+        191,
+        513
       ],
-      "completion_owner": 513,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b416:special-damage",
@@ -12053,15 +12062,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
-        191
+        191,
+        513
       ],
-      "completion_owner": 513,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
@@ -12079,15 +12091,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-afflictions-and-cinematic-combat.md",
+        "tests/test_special_damage.py"
       ],
       "historical_owners": [
-        191
+        191,
+        513
       ],
-      "completion_owner": 513,
+      "completion_owner": null,
       "capability_id": "gurps.injury.armor_divisors",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b417:cinematic-combat-rules",
@@ -13061,7 +13076,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 513,
+      "completion_owner": 94,
       "capability_id": "gurps.injury.hp_thresholds",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b428:hazards",
