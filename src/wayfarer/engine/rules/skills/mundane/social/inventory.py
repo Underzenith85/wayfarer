@@ -81,12 +81,6 @@ TECHNOLOGY_LEVEL_ISSUE: Final = 367
 COERCION_ISSUE: Final = 368
 
 
-ACTIVITY_ISSUE: Final = 369
-
-
-AUDIENCE_ISSUE: Final = 370
-
-
 DEFAULTS_ISSUE: Final = 383
 
 
@@ -353,13 +347,6 @@ _DECLARED_ROWS: Final = (
         (SkillDefault(A.HT, -4),),
         required_conditions=("social-gathering", "audience-perceptible"),
         resolved=(RUNTIME_PROCEDURE,),
-        unsupported=(
-            UnsupportedScope(
-                "carousing-outlay",
-                "The evening's cost and the hangover schedule are not carried",
-                AUDIENCE_ISSUE,
-            ),
-        ),
     ),
     SocialProcedure(
         "skill:diplomacy",
@@ -473,13 +460,6 @@ _DECLARED_ROWS: Final = (
         required_conditions=("followers-present", "audience-audible"),
         modifiers=(VOICE,),
         resolved=(RUNTIME_PROCEDURE,),
-        unsupported=(
-            UnsupportedScope(
-                "leadership-group-activity",
-                "Group-size modifiers and followed-group activity are not bound",
-                ACTIVITY_ISSUE,
-            ),
-        ),
     ),
     SocialProcedure(
         "skill:lip-reading",
@@ -505,13 +485,6 @@ _DECLARED_ROWS: Final = (
         required_conditions=("public-place", "audience-perceptible"),
         resolved=(RUNTIME_PROCEDURE,),
         transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
-        unsupported=(
-            UnsupportedScope(
-                "panhandling-yield",
-                "The money a successful attempt produces is not carried",
-                AUDIENCE_ISSUE,
-            ),
-        ),
     ),
     SocialProcedure(
         "skill:performance",
@@ -531,13 +504,6 @@ _DECLARED_ROWS: Final = (
         modifiers=(VOICE,),
         resolved=(RUNTIME_PROCEDURE,),
         transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
-        unsupported=(
-            UnsupportedScope(
-                "performance-audience",
-                "The audience reaction and the performer's pay are not carried",
-                AUDIENCE_ISSUE,
-            ),
-        ),
     ),
     SocialProcedure(
         "skill:politics",
@@ -585,13 +551,6 @@ _DECLARED_ROWS: Final = (
         required_conditions=("audience-audible", "shared-language"),
         modifiers=(VOICE,),
         resolved=(RUNTIME_PROCEDURE,),
-        unsupported=(
-            UnsupportedScope(
-                "public-speaking-crowd",
-                "The margin-scaled crowd reaction is not carried",
-                AUDIENCE_ISSUE,
-            ),
-        ),
     ),
     SocialProcedure(
         "skill:savoir-faire",
@@ -652,13 +611,6 @@ _DECLARED_ROWS: Final = (
         (SkillDefault(A.IQ, -5),),
         required_conditions=("student-attentive", "shared-language"),
         resolved=(RUNTIME_PROCEDURE,),
-        unsupported=(
-            UnsupportedScope(
-                "teaching-advancement",
-                "The study time a successful lesson grants is not bound to advancement",
-                ACTIVITY_ISSUE,
-            ),
-        ),
     ),
 )
 

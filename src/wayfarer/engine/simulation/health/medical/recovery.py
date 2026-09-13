@@ -18,6 +18,7 @@ from wayfarer.engine.rules.types.recovery import (
     rest_entitlement,
     retire_tasks,
 )
+from wayfarer.engine.rules.types.survival import require_survival_settled
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
 from wayfarer.engine.simulation.health.medical.advanced import _apply_advanced_recovery
@@ -33,6 +34,20 @@ from wayfarer.engine.simulation.health.medical.tables import (
 )
 from wayfarer.engine.simulation.resources import Pool, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
+
+
+def _require_survival_available(state: ResourceState, actor_ids: frozenset[str]) -> None:
+    require_survival_settled(
+        state.survival,
+        state.survival_tasks,
+        actor_ids,
+        state.game_time,
+    )
+    if any(
+        activity.status == "pending" and not activity.settled and activity.actor_id in actor_ids
+        for activity in state.survival_tasks
+    ):
+        raise ConflictError("Recovery is incompatible with an active survival activity")
 
 
 def _wound(state: ResourceState, wound_id: str | None, target: str) -> InjuryResult:
@@ -324,6 +339,7 @@ def apply_recovery(
         require_settled(
             state.recovery_tasks, frozenset({command.actor_id, target}), state.game_time
         )
+        _require_survival_available(state, frozenset({command.actor_id, target}))
         if any(
             t.status == "pending"
             and ({t.actor_id, t.target_id} & {command.actor_id, target})

@@ -10,20 +10,25 @@ from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter, model_validator
 
-from wayfarer.engine.rules.checks import Modifier, Outcome, RandomSource
+from wayfarer.engine.rules.checks import Modifier, Outcome, RandomSource, draw_dice
 from wayfarer.engine.rules.economics import (
     job_search_adjustment,
     loyalty_pay_bonus,
     monthly_income,
 )
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.social.gurps_social import ReactionModifier, reaction_roll
+from wayfarer.engine.rules.social.gurps_social import (
+    Reaction,
+    ReactionModifier,
+    reaction_outcome,
+    reaction_roll,
+)
 from wayfarer.engine.rules.traits.background import BackgroundTraits
 from wayfarer.engine.simulation.campaign.administration import (
     AdministrationRules,
     AdministrationState,
 )
-from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState, Scheduled
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -130,6 +135,39 @@ class LoyaltyCircumstance(Record):
     loyalty_change_on_failure: int = Field(default=0, ge=-10, le=10)
 
 
+class CarousingOutcomeRule(Record):
+    id: Id
+    trigger_id: Id
+    actor_account_id: Id
+    venue_account_id: Id
+    outlay: int = Field(ge=0)
+    duration_seconds: int = Field(ge=3600, le=86_400)
+    intoxication: Literal["sober", "tipsy", "drunk", "unconscious"] = "sober"
+
+
+class PanhandlingOutcomeRule(Record):
+    id: Id
+    trigger_id: Id
+    donor_account_id: Id
+    actor_account_id: Id
+
+
+class PerformanceOutcomeRule(Record):
+    id: Id
+    trigger_id: Id
+    payer_account_id: Id
+    actor_account_id: Id
+    base_pay: int = Field(ge=0)
+    pay_per_margin: int = Field(default=0, ge=0)
+    audience_actor_ids: tuple[Id, ...] = Field(min_length=1)
+
+
+class PublicSpeakingOutcomeRule(Record):
+    id: Id
+    trigger_id: Id
+    audience_actor_ids: tuple[Id, ...] = Field(min_length=1)
+
+
 class EconomicsRules(Record):
     id: Id
     version: int = Field(ge=1)
@@ -142,6 +180,18 @@ class EconomicsRules(Record):
     jobs: tuple[JobRule, ...] = ()
     hirelings: tuple[HirelingRule, ...] = ()
     loyalty: tuple[LoyaltyCircumstance, ...] = ()
+    carousing: tuple[CarousingOutcomeRule, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    panhandling: tuple[PanhandlingOutcomeRule, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    performances: tuple[PerformanceOutcomeRule, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    public_speaking: tuple[PublicSpeakingOutcomeRule, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def unique_rules(self) -> EconomicsRules:
@@ -154,6 +204,10 @@ class EconomicsRules(Record):
             self.jobs,
             self.hirelings,
             self.loyalty,
+            self.carousing,
+            self.panhandling,
+            self.performances,
+            self.public_speaking,
         )
         for values in groups:
             identifiers = tuple(
@@ -171,6 +225,20 @@ class EconomicsRules(Record):
         hirelings = {value.id for value in self.hirelings}
         if any(value.hireling_rule_id not in hirelings for value in self.loyalty):
             raise ValueError("Loyalty circumstance references an unknown hireling")
+        social_triggers = tuple(value.trigger_id for value in self.carousing)
+        social_triggers += tuple(value.trigger_id for value in self.panhandling)
+        social_triggers += tuple(value.trigger_id for value in self.performances)
+        social_triggers += tuple(value.trigger_id for value in self.public_speaking)
+        if len(set(social_triggers)) != len(social_triggers):
+            raise ValueError("A social trigger may bind only one material outcome")
+        if any(
+            len(set(value.audience_actor_ids)) != len(value.audience_actor_ids)
+            for value in self.performances
+        ) or any(
+            len(set(value.audience_actor_ids)) != len(value.audience_actor_ids)
+            for value in self.public_speaking
+        ):
+            raise ValueError("Social outcome audience contains duplicates")
         return self
 
 
@@ -185,7 +253,7 @@ class MoneyAccount(Record):
 
 class EconomicEntry(Record):
     id: Id
-    kind: Literal["trade", "exchange", "job", "living", "hireling-pay"]
+    kind: Literal["trade", "exchange", "job", "living", "hireling-pay", "social"]
     account_deltas: tuple[tuple[Id, int], ...]
     at: int = Field(ge=0)
     revision: int = Field(ge=1)
@@ -244,6 +312,24 @@ class LoyaltyCheck(Record):
     loyalty_after: int
 
 
+class SocialMaterialOutcome(Record):
+    id: Id
+    rule_id: Id
+    procedure_id: Literal[
+        "skill:carousing", "skill:panhandling", "skill:performance", "skill:public-speaking"
+    ]
+    actor_id: Id
+    margin: int
+    amount: int = Field(ge=0)
+    audience_actor_ids: tuple[Id, ...] = ()
+    audience_reaction: Reaction | None = None
+    started_at: int = Field(ge=0)
+    ends_at: int = Field(ge=0)
+    hangover_due: int | None = Field(default=None, ge=0)
+    hangover_seconds: int = Field(default=0, ge=0)
+    critical_bonus_requires_adjudication: bool = False
+
+
 class EconomicsState(Record):
     accounts: tuple[MoneyAccount, ...] = ()
     entries: tuple[EconomicEntry, ...] = ()
@@ -253,6 +339,9 @@ class EconomicsState(Record):
     living_periods: tuple[LivingPeriod, ...] = ()
     hirelings: tuple[HirelingContract, ...] = ()
     loyalty_checks: tuple[LoyaltyCheck, ...] = ()
+    social_outcomes: tuple[SocialMaterialOutcome, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
 
 class EconomicsCommand(Record):
@@ -400,6 +489,171 @@ def _move_money(
         for account in state.accounts
     )
     return state.model_copy(update={"accounts": updated}), tuple(sorted(deltas.items()))
+
+
+def _social_outcome_rule(
+    rules: EconomicsRules, procedure_id: str, trigger_id: str
+) -> (
+    CarousingOutcomeRule
+    | PanhandlingOutcomeRule
+    | PerformanceOutcomeRule
+    | PublicSpeakingOutcomeRule
+    | None
+):
+    if procedure_id == "skill:carousing":
+        return next((value for value in rules.carousing if value.trigger_id == trigger_id), None)
+    if procedure_id == "skill:panhandling":
+        return next((value for value in rules.panhandling if value.trigger_id == trigger_id), None)
+    if procedure_id == "skill:performance":
+        return next((value for value in rules.performances if value.trigger_id == trigger_id), None)
+    if procedure_id == "skill:public-speaking":
+        return next(
+            (value for value in rules.public_speaking if value.trigger_id == trigger_id), None
+        )
+    return None
+
+
+def bind_social_material_outcome(
+    state: EconomicsState,
+    resources: ResourceState,
+    rules: EconomicsRules | None,
+    *,
+    command_id: str,
+    trigger_id: str,
+    procedure_id: str,
+    actor_id: str,
+    margin: int,
+    outcome: str,
+    critical_success: bool,
+    ht: int,
+    purchased_ids: frozenset[str],
+    actor_ids: frozenset[str],
+    rng: RandomSource,
+) -> tuple[EconomicsState, ResourceState]:
+    """Apply B183/B212/B216 material results under the social receipt.
+
+    Money remains conserved between authored accounts. Crowd results retain the
+    exact audience set, and delayed hangovers use the resource schedule rather
+    than narrative state.
+    """
+    if rules is None:
+        return state, resources
+    if any(value.id == command_id for value in state.social_outcomes):
+        raise ConflictError("Social material outcome is already bound")
+    rule = _social_outcome_rule(rules, procedure_id, trigger_id)
+    if rule is None:
+        return state, resources
+
+    amount = 0
+    deltas: tuple[tuple[str, int], ...] = ()
+    audience: tuple[str, ...] = ()
+    reaction: Reaction | None = None
+    start = resources.game_time
+    end = start
+    hangover_due = None
+    hangover_seconds = 0
+    schedules = resources.scheduled
+    bonus = False
+    if isinstance(rule, CarousingOutcomeRule):
+        account = next(
+            (value for value in state.accounts if value.id == rule.actor_account_id), None
+        )
+        if account is None or account.owner_id != actor_id:
+            raise ValidationError("Carousing outlay requires the actor's money account")
+        state, deltas = _move_money(
+            state, ((rule.actor_account_id, rule.venue_account_id, rule.outlay),)
+        )
+        amount = rule.outlay
+        end = start + rule.duration_seconds
+        schedules += (
+            Scheduled(
+                id="social-evening:" + command_id,
+                due=end,
+                kind="consequence",
+                target_id=actor_id,
+            ),
+        )
+        no_hangover = any(value.endswith(":no-hangover") for value in purchased_ids)
+        if rule.intoxication != "sober" and not no_hangover:
+            horrible = any(value.endswith(":horrible-hangovers") for value in purchased_ids)
+            penalty = {"tipsy": 0, "drunk": -2, "unconscious": -4}[rule.intoxication]
+            if horrible:
+                penalty -= 3
+            check = success_roll(rules.profile_id, ht + penalty, rng=rng)
+            if not check.outcome.succeeded:
+                hangover_due = end + draw_dice(rng, 1)[0] * 3600
+                hangover_seconds = (-check.margin + 3 * int(horrible)) * 3600
+                schedules += (
+                    Scheduled(
+                        id="social-hangover:" + command_id,
+                        due=hangover_due,
+                        kind="consequence",
+                        target_id=actor_id,
+                        amount=hangover_seconds,
+                    ),
+                )
+    elif isinstance(rule, PanhandlingOutcomeRule):
+        account = next(
+            (value for value in state.accounts if value.id == rule.actor_account_id), None
+        )
+        if account is None or account.owner_id != actor_id:
+            raise ValidationError("Panhandling income requires the actor's money account")
+        amount = 2 * max(margin, 0) if outcome == "panhandling-given" else 0
+        state, deltas = _move_money(
+            state, ((rule.donor_account_id, rule.actor_account_id, amount),)
+        )
+        end = start + 3600
+        bonus = outcome == "panhandling-given" and critical_success
+    elif isinstance(rule, PerformanceOutcomeRule):
+        account = next(
+            (value for value in state.accounts if value.id == rule.actor_account_id), None
+        )
+        if account is None or account.owner_id != actor_id:
+            raise ValidationError("Performance pay requires the actor's money account")
+        succeeded = outcome in ("performance-acclaimed", "performance-received")
+        amount = rule.base_pay + rule.pay_per_margin * max(margin, 0) if succeeded else 0
+        state, deltas = _move_money(
+            state, ((rule.payer_account_id, rule.actor_account_id, amount),)
+        )
+        audience = rule.audience_actor_ids
+        reaction = reaction_outcome(10 + margin)
+    else:
+        audience = rule.audience_actor_ids
+        reaction = reaction_outcome(10 + margin)
+
+    if not set(audience) <= actor_ids:
+        raise ValidationError("Social outcome audience contains an unknown actor")
+    entry = EconomicEntry(
+        id=command_id,
+        kind="social",
+        account_deltas=deltas,
+        at=start,
+        revision=resources.revision,
+    )
+    material = SocialMaterialOutcome(
+        id=command_id,
+        rule_id=rule.id,
+        procedure_id=procedure_id,  # type: ignore[arg-type]
+        actor_id=actor_id,
+        margin=margin,
+        amount=amount,
+        audience_actor_ids=audience,
+        audience_reaction=reaction,
+        started_at=start,
+        ends_at=end,
+        hangover_due=hangover_due,
+        hangover_seconds=hangover_seconds,
+        critical_bonus_requires_adjudication=bonus,
+    )
+    return (
+        state.model_copy(
+            update={
+                "entries": state.entries + (entry,),
+                "social_outcomes": state.social_outcomes + (material,),
+            }
+        ),
+        resources.model_copy(update={"scheduled": schedules}),
+    )
 
 
 def _target(values: Mapping[str, Decimal], identifier: str) -> int:
@@ -905,6 +1159,7 @@ def validate_economics(
             raise ValidationError("Economics state requires authored rules")
         return
     entities = {entity.id for entity in world.entities}
+    actor_entities = {entity.id for entity in world.entities if entity.kind.value == "actor"}
     locations = {entity.id for entity in world.entities if entity.kind.value == "location"}
     currencies = {value.id for value in rules.currencies}
     accounts = {value.id: value for value in state.accounts}
@@ -925,6 +1180,7 @@ def validate_economics(
         (state.living_periods, "living period"),
         (state.hirelings, "hireling contract"),
         (state.loyalty_checks, "loyalty check"),
+        (state.social_outcomes, "social material outcome"),
     ):
         if len({value.id for value in values}) != len(values):
             raise ValidationError(f"Duplicate {label}")
@@ -971,6 +1227,12 @@ def validate_economics(
             raise ValidationError("Financial profile disagrees with Rank or relationship traits")
     for hireling in rules.hirelings:
         referenced_accounts.extend((hireling.employer_account_id, hireling.hireling_account_id))
+    for carousing in rules.carousing:
+        referenced_accounts.extend((carousing.actor_account_id, carousing.venue_account_id))
+    for panhandling in rules.panhandling:
+        referenced_accounts.extend((panhandling.donor_account_id, panhandling.actor_account_id))
+    for performance in rules.performances:
+        referenced_accounts.extend((performance.payer_account_id, performance.actor_account_id))
     if not set(referenced_accounts) <= set(accounts):
         raise ValidationError("Economics rule references an unknown account")
     _validate_market_bindings(rules, accounts, locations)
@@ -980,6 +1242,14 @@ def validate_economics(
         raise ValidationError("Job period lacks its authoritative Time Use entry")
     if any(value.revision > resources.revision for value in state.entries):
         raise ValidationError("Economics entry is ahead of campaign state")
+    if any(
+        value.actor_id not in actor_entities
+        or not set(value.audience_actor_ids) <= actor_entities
+        or value.ends_at < value.started_at
+        or (value.hangover_due is None) != (value.hangover_seconds == 0)
+        for value in state.social_outcomes
+    ):
+        raise ValidationError("Social material outcome references invalid campaign state")
     private_motives = {value.private_motive for value in state.hirelings if value.private_motive}
     if any(motive in event.kind for motive in private_motives for event in resources.events):
         raise ValidationError("Private hireling motive leaked into the public event stream")

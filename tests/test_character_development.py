@@ -21,7 +21,9 @@ from wayfarer.engine.simulation.campaign.development import (
     SettleAdventureImprovement,
     SettleStudy,
     StudyRule,
+    TeachingBinding,
     apply_development,
+    bind_teaching_outcome,
 )
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
@@ -237,6 +239,70 @@ def test_education_rejects_an_unqualified_teacher() -> None:
             rules,
             {"a": profile("a"), "teacher": profile("teacher", teaching=11, subject=14)},
         )
+
+
+def test_successful_teaching_lesson_is_consumed_by_the_students_study_command() -> None:
+    rules = DevelopmentRules(
+        id="development",
+        version=1,
+        study=(
+            StudyRule(
+                id="course",
+                activity_id="survival-books",
+                subject_id="skill:survival",
+                method="education",
+                teacher_id="teacher",
+            ),
+        ),
+        teaching=(
+            TeachingBinding(id="lesson", trigger_id="lesson-trigger", study_rule_id="course"),
+        ),
+    )
+    entry = time_use("course-time", "student", 8, 1)
+    command = SettleStudy(
+        id="settle-lesson",
+        actor_id="student",
+        expected_revision=0,
+        rule_id="course",
+        time_use_id=entry.id,
+    )
+    with pytest.raises(ValidationError, match="successful Teaching lesson"):
+        apply(
+            DevelopmentState(),
+            ResourceState(),
+            AdministrationState(time_use=(entry,)),
+            (),
+            command,
+            rules,
+            {
+                "student": profile("student"),
+                "teacher": profile("teacher", teaching=12, subject=12),
+            },
+        )
+
+    taught = bind_teaching_outcome(
+        DevelopmentState(),
+        rules,
+        command_id="teaching-roll",
+        trigger_id="lesson-trigger",
+        teacher_id="teacher",
+        student_id="student",
+        outcome="teaching-taught",
+    )
+    developed, _, _ = apply(
+        taught,
+        ResourceState(),
+        AdministrationState(time_use=(entry,)),
+        (),
+        command,
+        rules,
+        {
+            "student": profile("student"),
+            "teacher": profile("teacher", teaching=12, subject=12),
+        },
+    )
+    assert developed.consumed_lesson_ids == ("teaching-roll",)
+    assert developed.progress[0].learning_seconds == 8 * 3600
 
 
 def test_quick_learning_requires_a_stressful_default_and_prior_award() -> None:

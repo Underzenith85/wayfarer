@@ -25,6 +25,11 @@ from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.rules.types.recovery import require_settled, retire_tasks
+from wayfarer.engine.rules.types.survival import (
+    interrupt_survival_tasks,
+    require_survival_settled,
+)
+from wayfarer.engine.rules.types.toxin import require_toxins_settled
 from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
@@ -60,6 +65,32 @@ from wayfarer.errors import ConflictError, ValidationError
 def _require_splittable(item: Item) -> None:
     if item.enchantments:
         raise ValidationError("Enchanted items cannot be split")
+
+
+def _survival_before_command(state: ResourceState, command: ResourceCommand) -> ResourceState:
+    require_survival_settled(
+        state.survival,
+        state.survival_tasks,
+        frozenset({command.actor_id}),
+        state.game_time,
+    )
+    if isinstance(command, Schedule):
+        return state
+    return state.model_copy(
+        update={
+            "survival_tasks": interrupt_survival_tasks(
+                state.survival_tasks, frozenset({command.actor_id}), state.game_time
+            )
+        }
+    )
+
+
+def _require_survival_advance(state: ResourceState, to: int) -> None:
+    if any(status.next_due < to for status in state.survival) or any(
+        task.status == "pending" and not task.settled and task.due < to
+        for task in state.survival_tasks
+    ):
+        raise ConflictError("Advance to the survival deadline and settle it first")
 
 
 class ResourceEngine:
@@ -354,6 +385,10 @@ class ResourceEngine:
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
             require_health_settled(state, frozenset({command.actor_id}), state.game_time)
+            require_toxins_settled(
+                state.toxins, state.dependencies, frozenset({command.actor_id}), state.game_time
+            )
+            state = _survival_before_command(state, command)
         items = {i.id: i for i in state.items}
         updated = state
         if isinstance(command, (Transfer, Consume, Equip, Unequip)):
@@ -487,16 +522,29 @@ class ResourceEngine:
                 raise ConflictError("Advance to the mental-stun recovery deadline first")
             if command.to < state.game_time:
                 raise ValidationError("Game time cannot move backwards")
+            _require_survival_advance(state, command.to)
             living = {
                 p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
             }
             require_no_health_deadline_before(state, frozenset(living), command.to)
-            if any(
-                h.active and h.combat_turn is None and h.actor_id in living and h.due < command.to
-                for h in state.hazards
+            if (
+                any(
+                    h.active
+                    and h.combat_turn is None
+                    and h.actor_id in living
+                    and h.due < command.to
+                    for h in state.hazards
+                )
+                or any(
+                    t.active and t.actor_id in living and t.due < command.to for t in state.toxins
+                )
+                or any(
+                    d.active and d.actor_id in living and d.due < command.to
+                    for d in state.dependencies
+                )
             ):
                 raise ConflictError(
-                    "Advance to the hazard deadline and resolve it before continuing"
+                    "Advance to the hazard, toxin, or withdrawal deadline before continuing"
                 )
             if any(
                 p.injury is not None
