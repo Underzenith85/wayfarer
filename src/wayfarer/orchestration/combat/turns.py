@@ -222,6 +222,7 @@ def _preview_turn(
                 command.expected_revision + 1 if command.basic_move is not None else None
             ),
             suppression_fire=bool(command.suppression_zones),
+            enter_close_combat=command.enter_close_combat,
         )
         if command.suppression_zones:
             prepare_suppression_fire(
@@ -674,5 +675,6 @@ def _take_turn(
             command.expected_revision + 1 if command_for_turn.basic_move is not None else None
         ),
         suppression_fire=bool(command_for_turn.suppression_zones),
+        enter_close_combat=command_for_turn.enter_close_combat,
     )
     return _after_turn(state, command, encounter, context, command_for_turn, resources, result)

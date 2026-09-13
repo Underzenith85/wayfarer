@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.combat.close_combat import (
+    opponents_in_close_combat,
+    pair,
+    stray_target_order,
+)
 from wayfarer.engine.simulation.combat.encounter import Encounter, basic_distance
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
@@ -61,6 +67,16 @@ def prepare_attack(
         raise ValidationError("Shot count requires a ranged mode")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    close = bool(opponents_in_close_combat(encounter, attacker.actor_id))
+    defender_close = bool(opponents_in_close_combat(encounter, defender.actor_id))
+    bystanders = tuple(
+        actor.actor_id
+        for actor in encounter.participants
+        if actor.actor_id not in (attacker.actor_id, defender.actor_id)
+        and pair(actor.actor_id, defender.actor_id) in encounter.close_pairs
+    )
+    selectors = draw_dice(runtime.rng, len(bystanders)) if bystanders else ()
+    stray_order = stray_target_order(bystanders, selectors) if bystanders else ()
 
     validate_target(
         runtime, state, encounter, pending.attacker_id, pending.defender_id, selected, hit_location
@@ -97,6 +113,8 @@ def prepare_attack(
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
     for candidate in ("dodge", "parry", "block"):
+        if defender_close and candidate == "block":
+            continue
         if (
             target_item_id
             and next(i for i in state.resources.items if i.id == target_item_id).ground
@@ -127,6 +145,9 @@ def prepare_attack(
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
                     "target_item_id": target_item_id,
+                    "close_combat": close,
+                    "defender_close_combat": defender_close,
+                    "stray_target_order": stray_order,
                 }
             )
         }

@@ -166,17 +166,23 @@ def resolve(
             scene.distance,
             float(weapon.half_damage_range),
         )
+    range_modifier = (
+        weapon.bulk
+        if pending.close_combat
+        else range_penalty(scene.distance + scene.speed_yards_per_second)
+    )
     attack_target = (
         int(value.value)
         + bonus
         + scene.size_modifier
-        + range_penalty(scene.distance + scene.speed_yards_per_second)
+        + range_modifier
         + rapid_fire_bonus(effective_shots)
         # A mount bears the weapon, so the firer's own ST is not what limits it.
         - (0 if weapon.mount is not None else minimum_strength_penalty(weapon.minimum_st, st))
         + pending.vehicle_attack_penalty
         + (-2 if pending.tactical_approach == "pop-up" else 0)
     )
+    attack_target -= 2 * bool(pending.stray_target_order)
     if pending.laser_sight and scene.laser_visible_to_firer:
         attack_target += 1
     if pending.target_item_id:
