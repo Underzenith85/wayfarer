@@ -16,6 +16,7 @@ from pydantic import (
 
 from wayfarer.engine.rules.types.entangle import Entanglement
 from wayfarer.engine.rules.types.location import HitLocation
+from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.rules.types.special_combat import (
     MountedCombatRelationship,
     PersonalFlightState,
@@ -164,6 +165,8 @@ class PendingDefense(Record):
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     cover_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     overpenetration_target_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    area_aim_point: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
+    scatter_squared: bool = Field(default=False, exclude_if=lambda value: not value)
     transport_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     vehicle_attack_penalty: int = Field(default=0, ge=-30, le=0, exclude_if=lambda v: v == 0)
     vehicle_aim_lost: bool = Field(default=False, exclude_if=lambda v: not v)

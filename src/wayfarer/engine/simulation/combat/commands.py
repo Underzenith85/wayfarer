@@ -119,6 +119,8 @@ class TakeCombatTurn(CombatCommand):
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     cover_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     overpenetration_target_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    area_aim_point: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
+    scatter_squared: bool = Field(default=False, exclude_if=lambda value: not value)
     ready_hand: Hand | Literal["both"] | None = None
     attack_option: AttackOption | None = None
     defense_option: DefenseOption | None = None
@@ -189,6 +191,8 @@ class ResolveWeaponExplosion(CombatCommand):
     object_sizes: dict[str, int] = Field(default_factory=dict)
     center: GroundPosition | None = None
     environment: Literal["air", "water", "vacuum"]
+    contact_actor_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    internal_actor_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class DeclareThrownLanding(CombatCommand):

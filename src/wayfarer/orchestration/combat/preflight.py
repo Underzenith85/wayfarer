@@ -96,6 +96,8 @@ def _prepare_command(
                     "second_target_id": None,
                     "second_mode_id": None,
                     "braced": False,
+                    "area_aim_point": None,
+                    "scatter_squared": False,
                 }
             )
         command = saved.model_copy(

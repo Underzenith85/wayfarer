@@ -2,6 +2,8 @@
 
 import hashlib
 
+from pydantic import Field
+
 from wayfarer.engine.rules.types.explosion import ExplosionSpec
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
@@ -19,10 +21,16 @@ class BlastRecord(Record):
     direct_actor_id: str | None = None
     critical: int = 0
     follow_item: bool = False
+    destroy_source: bool = False
     resolved: bool = False
     fuse_dice: tuple[int, ...] = ()
     deferred_ticks: int = 0
     evidence: str = ""
+    aim_point: GroundPosition | None = None
+    attack_range: int | None = Field(default=None, ge=0)
+    attack_dice: tuple[int, ...] = ()
+    scatter_direction: int | None = Field(default=None, ge=1, le=6)
+    scatter_distance: int = Field(default=0, ge=0)
 
 
 def blasts(state: ResourceState) -> tuple[BlastRecord, ...]:

@@ -6,6 +6,7 @@ from typing import Literal
 
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HitLocation
+from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.close_combat import (
@@ -44,6 +45,8 @@ def prepare_attack(
     target_item_id: str | None = None,
     cover_item_id: str | None = None,
     overpenetration_target_id: str | None = None,
+    area_aim_point: GroundPosition | None = None,
+    scatter_squared: bool = False,
     shots: int = 1,
 ) -> Encounter:
     pending = encounter.pending_defense
@@ -85,8 +88,10 @@ def prepare_attack(
             target_item_id=target_item_id,
             cover_item_id=cover_item_id,
             overpenetration_target_id=overpenetration_target_id,
+            area_aim_point=area_aim_point,
+            scatter_squared=scatter_squared,
         )
-    if cover_item_id is not None or overpenetration_target_id is not None:
+    if cover_item_id is not None or overpenetration_target_id is not None or area_aim_point:
         raise ValidationError("Cover and overpenetration require a ranged mode")
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
