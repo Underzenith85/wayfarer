@@ -102,6 +102,23 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
         )
         for e in skills()
     ]
+    rows.extend(
+        InventoryItem(
+            identifier,
+            reference,
+            499,
+            "verified",
+            "character-development",
+        )
+        for identifier, reference in (
+            ("development:adventure", "B290-B292"),
+            ("development:gained-in-play", "B291"),
+            ("development:quick-learning", "B292"),
+            ("development:study", "B292-B294"),
+            ("development:teachers", "B293"),
+            ("development:learnable-advantages", "B294"),
+        )
+    )
     # A bound runtime effect is reported as implemented; naming one is still partial.
     rows.extend(
         InventoryItem(
