@@ -182,6 +182,7 @@ class SocialProcedure:
     # Scope a *bound* row still does not carry. Unlike a transferred blocker this
     # does not stop the procedure running; it names what its outcome leaves out.
     unsupported: tuple[UnsupportedScope, ...] = ()
+    technology_level_required: bool = False
 
     @property
     def blockers(self) -> tuple[str, ...]:
@@ -224,7 +225,13 @@ class SocialProcedure:
         return f"B{self.page}"
 
     def spec(self) -> SkillSpec:
-        return SkillSpec(self.attribute, self.difficulty, self.reference, self.defaults)
+        return SkillSpec(
+            self.attribute,
+            self.difficulty,
+            self.reference,
+            self.defaults,
+            technology_level_required=self.technology_level_required,
+        )
 
     def definition(self) -> RuleDefinition:
         if not self.dispatchable:
@@ -528,11 +535,17 @@ _DECLARED_ROWS: Final = (
         A.IQ,
         D.AVERAGE,
         Resolution.SUCCESS_ROLL,
+        (
+            (Verdict.CRITICAL_SUCCESS, Effect("propaganda-entrenched")),
+            (Verdict.SUCCESS, Effect("propaganda-received")),
+            (Verdict.FAILURE, Effect("propaganda-ignored")),
+            (Verdict.CRITICAL_FAILURE, Effect("propaganda-backfired")),
+        ),
         defaults=(SkillDefault(A.IQ, -5),),
-        transferred={
-            RUNTIME_PROCEDURE: (TECHNOLOGY_LEVEL_ISSUE,),
-            CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
-        },
+        required_conditions=("audience-perceptible",),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
+        technology_level_required=True,
     ),
     SocialProcedure(
         "skill:public-speaking",
