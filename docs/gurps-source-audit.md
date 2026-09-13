@@ -2,8 +2,9 @@
 
 The audit distinguishes implemented mechanics, comparisons against inspected
 printings, and reconciliation with the selected source baseline. These are separate
-claims. The current audit is **incomplete**; its integrity checks pass without
-claiming source completeness or enabling a profile.
+claims. The selected Basic Set audit is complete; the overall report remains
+**incomplete** because the exact August 2004 Lite artifact is unavailable and
+runtime mechanics retain their own blockers.
 
 ## Reviewed evidence
 
@@ -13,26 +14,24 @@ are in `tests/fixtures/gurps/source-audit.json`. The combined volume begins with
 the same third-printing Characters publication statement; it is duplicate source
 evidence. Source contents remain outside the repository.
 
-Eighteen Basic statistics fixtures were independently compared against Characters
-third printing B14-17: two primary costs, two Basic Lift cases, ten damage table
-rows, and four secondary-characteristic purchase/advisory cases. Their numbers
-agree. Each comparison names the reviewer, pages and executable test and binds
-the complete fixture with a digest. This remains `compared`, not independently
-`reviewed`. Other fixture expectations remain explicitly pending.
+All 156 Basic Set fixture records were compared against the selected Characters
+or Campaigns printing and retain a digest of the complete independently authored
+expectation plus an executable test binding. The 98 Lite fixtures remain pending
+because the exact selected Lite revision is unavailable.
 
-#215 adds 36 independently compared cases for opt-in statistics revision 2:
+#215 added 36 source cases for opt-in statistics revision 2:
 high-ST progression, unsupported intermediate rows, lowered Will/Per permission
-advisories and realistic Speed/Move purchase limits. Together with the original
-18, the ledger now contains 54 compared fixtures. B15-17 provides no rule for
+advisories and realistic Speed/Move purchase limits. B15-17 provides no rule for
 unlisted intermediate ST rows between 40 and 100; these explicitly remain
 unsupported rather than using invented interpolation. Profile v6 / Characters
 package 0.6.0 implements the supported changes without altering saved pins.
 The supplied Characters third printing and Campaigns fourth printing are now the
-selected baseline. These comparisons still do not claim full mechanics conformance.
+selected baseline. Reviewed expectations still do not claim full mechanics conformance.
 
 The exact August 2004 Lite revision was not available for direct inspection. No
-Lite source identity is asserted verified. The selected-printing baseline does
-not change existing profile/package identifiers or versions.
+Lite source identity is asserted verified; that blocker is owned by #121. The
+selected-printing baseline does not change existing profile/package identifiers or
+versions.
 
 ## Inventory integration and remaining enumeration
 
@@ -50,12 +49,14 @@ runtime definitions:
 | Lite equipment gaps | #121 | Recorded separately so deferred Basic work cannot satisfy the Lite claim |
 | Vehicle index | #207/#120 | Listing facts do not establish operating mechanics |
 
-The report never derives source completeness from inventory counts. Unenumerated
-rule/table/item coverage remains visible in required scope records for Lite,
-Characters and Campaigns. Those records are **coverage gaps**, not a claim that
-all rules have stable individual IDs. Full reconciliation with #112, #113, #119
-and #180 is still necessary to finish #191. Optional rules have explicit disabled
-scope decisions; exclusion from a mundane inventory is not exclusion from Basic.
+The report never derives source completeness from inventory counts. The
+711-section, 487-trait, and 87-modifier ledgers give every selected Basic Set row
+a stable identity, printed-page reference, profile membership, review state, and
+mechanics or disposition owner. The former Campaigns outline offset was corrected
+against printed footers. See
+[the selected-source review](gurps-basic-set-source-review.md). Optional-rule
+selection and the Infinite Worlds boundary remain explicit child decisions in
+#493 and #494; exclusion from a mundane inventory is not exclusion from Basic.
 
 ## Executable checks
 

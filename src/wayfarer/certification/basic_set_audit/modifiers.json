@@ -19,8 +19,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -33,7 +35,7 @@
       "construction_binding": "modifier:enhancement:accurate",
       "cost_owner": "modifier-catalog:modifier:enhancement:accurate",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:affects-insubstantial",
@@ -47,8 +49,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -61,7 +65,7 @@
       "construction_binding": "modifier:enhancement:affects-insubstantial",
       "cost_owner": "modifier-catalog:modifier:enhancement:affects-insubstantial",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:affects-substantial",
@@ -75,8 +79,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -89,7 +95,7 @@
       "construction_binding": "modifier:enhancement:affects-substantial",
       "cost_owner": "modifier-catalog:modifier:enhancement:affects-substantial",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:area-effect",
@@ -103,8 +109,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -117,7 +125,7 @@
       "construction_binding": "modifier:enhancement:area-effect",
       "cost_owner": "modifier-catalog:modifier:enhancement:area-effect",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:armor-divisor",
@@ -131,8 +139,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -145,7 +155,7 @@
       "construction_binding": "modifier:enhancement:armor-divisor",
       "cost_owner": "modifier-catalog:modifier:enhancement:armor-divisor",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:aura",
@@ -159,8 +169,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -173,7 +185,7 @@
       "construction_binding": "modifier:enhancement:aura",
       "cost_owner": "modifier-catalog:modifier:enhancement:aura",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:based-on-different-attribute",
@@ -187,8 +199,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -201,7 +215,7 @@
       "construction_binding": "modifier:enhancement:based-on-different-attribute",
       "cost_owner": "modifier-catalog:modifier:enhancement:based-on-different-attribute",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:blood-agent",
@@ -215,8 +229,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -229,7 +245,7 @@
       "construction_binding": "modifier:enhancement:blood-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:blood-agent",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:cone",
@@ -243,8 +259,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -257,7 +275,7 @@
       "construction_binding": "modifier:enhancement:cone",
       "cost_owner": "modifier-catalog:modifier:enhancement:cone",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:contact-agent",
@@ -271,8 +289,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -285,7 +305,7 @@
       "construction_binding": "modifier:enhancement:contact-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:contact-agent",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:cosmic",
@@ -299,8 +319,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -313,7 +335,7 @@
       "construction_binding": "modifier:enhancement:cosmic",
       "cost_owner": "modifier-catalog:modifier:enhancement:cosmic",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:cyclic",
@@ -327,8 +349,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -341,7 +365,7 @@
       "construction_binding": "modifier:enhancement:cyclic",
       "cost_owner": "modifier-catalog:modifier:enhancement:cyclic",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:damage-modifiers",
@@ -355,8 +379,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -369,7 +395,7 @@
       "construction_binding": "modifier:enhancement:damage-modifiers",
       "cost_owner": "modifier-catalog:modifier:enhancement:damage-modifiers",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:delay",
@@ -383,8 +409,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -397,7 +425,7 @@
       "construction_binding": "modifier:enhancement:delay",
       "cost_owner": "modifier-catalog:modifier:enhancement:delay",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:double-blunt-trauma-dbt",
@@ -411,8 +439,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -425,7 +455,7 @@
       "construction_binding": "modifier:enhancement:double-blunt-trauma-dbt",
       "cost_owner": "modifier-catalog:modifier:enhancement:double-blunt-trauma-dbt",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:double-knockback-dkb",
@@ -439,8 +469,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -453,7 +485,7 @@
       "construction_binding": "modifier:enhancement:double-knockback-dkb",
       "cost_owner": "modifier-catalog:modifier:enhancement:double-knockback-dkb",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:drifting",
@@ -467,8 +499,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -481,7 +515,7 @@
       "construction_binding": "modifier:enhancement:drifting",
       "cost_owner": "modifier-catalog:modifier:enhancement:drifting",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:explosion-exp",
@@ -495,8 +529,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -509,7 +545,7 @@
       "construction_binding": "modifier:enhancement:explosion-exp",
       "cost_owner": "modifier-catalog:modifier:enhancement:explosion-exp",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:extended-duration",
@@ -523,8 +559,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -537,7 +575,7 @@
       "construction_binding": "modifier:enhancement:extended-duration",
       "cost_owner": "modifier-catalog:modifier:enhancement:extended-duration",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:follow-up",
@@ -551,8 +589,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -565,7 +605,7 @@
       "construction_binding": "modifier:enhancement:follow-up",
       "cost_owner": "modifier-catalog:modifier:enhancement:follow-up",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:fragmentation-frag",
@@ -579,8 +619,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -593,7 +635,7 @@
       "construction_binding": "modifier:enhancement:fragmentation-frag",
       "cost_owner": "modifier-catalog:modifier:enhancement:fragmentation-frag",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:guided",
@@ -607,8 +649,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -621,7 +665,7 @@
       "construction_binding": "modifier:enhancement:guided",
       "cost_owner": "modifier-catalog:modifier:enhancement:guided",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:hazard",
@@ -635,8 +679,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -649,7 +695,7 @@
       "construction_binding": "modifier:enhancement:hazard",
       "cost_owner": "modifier-catalog:modifier:enhancement:hazard",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:homing",
@@ -663,8 +709,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -677,7 +725,7 @@
       "construction_binding": "modifier:enhancement:homing",
       "cost_owner": "modifier-catalog:modifier:enhancement:homing",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:incendiary-inc",
@@ -691,8 +739,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -705,7 +755,7 @@
       "construction_binding": "modifier:enhancement:incendiary-inc",
       "cost_owner": "modifier-catalog:modifier:enhancement:incendiary-inc",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:increased-range",
@@ -719,8 +769,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -733,7 +785,7 @@
       "construction_binding": "modifier:enhancement:increased-range",
       "cost_owner": "modifier-catalog:modifier:enhancement:increased-range",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:jet",
@@ -747,8 +799,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -761,7 +815,7 @@
       "construction_binding": "modifier:enhancement:jet",
       "cost_owner": "modifier-catalog:modifier:enhancement:jet",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:link",
@@ -775,8 +829,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -789,7 +845,7 @@
       "construction_binding": "modifier:enhancement:link",
       "cost_owner": "modifier-catalog:modifier:enhancement:link",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:low-signature",
@@ -803,8 +859,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -817,7 +875,7 @@
       "construction_binding": "modifier:enhancement:low-signature",
       "cost_owner": "modifier-catalog:modifier:enhancement:low-signature",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:malediction",
@@ -831,8 +889,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -845,7 +905,7 @@
       "construction_binding": "modifier:enhancement:malediction",
       "cost_owner": "modifier-catalog:modifier:enhancement:malediction",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:mobile",
@@ -859,8 +919,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -873,7 +935,7 @@
       "construction_binding": "modifier:enhancement:mobile",
       "cost_owner": "modifier-catalog:modifier:enhancement:mobile",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:no-signature",
@@ -887,8 +949,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -901,7 +965,7 @@
       "construction_binding": "modifier:enhancement:no-signature",
       "cost_owner": "modifier-catalog:modifier:enhancement:no-signature",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:overhead",
@@ -915,8 +979,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -929,7 +995,7 @@
       "construction_binding": "modifier:enhancement:overhead",
       "cost_owner": "modifier-catalog:modifier:enhancement:overhead",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:persistent",
@@ -943,8 +1009,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -957,7 +1025,7 @@
       "construction_binding": "modifier:enhancement:persistent",
       "cost_owner": "modifier-catalog:modifier:enhancement:persistent",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:radiation-rad",
@@ -971,8 +1039,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -985,7 +1055,7 @@
       "construction_binding": "modifier:enhancement:radiation-rad",
       "cost_owner": "modifier-catalog:modifier:enhancement:radiation-rad",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:ranged",
@@ -999,8 +1069,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1013,7 +1085,7 @@
       "construction_binding": "modifier:enhancement:ranged",
       "cost_owner": "modifier-catalog:modifier:enhancement:ranged",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:rapid-fire",
@@ -1027,8 +1099,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1041,7 +1115,7 @@
       "construction_binding": "modifier:enhancement:rapid-fire",
       "cost_owner": "modifier-catalog:modifier:enhancement:rapid-fire",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:reduced-fatigue-cost",
@@ -1055,8 +1129,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1069,7 +1145,7 @@
       "construction_binding": "modifier:enhancement:reduced-fatigue-cost",
       "cost_owner": "modifier-catalog:modifier:enhancement:reduced-fatigue-cost",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:reduced-time",
@@ -1083,8 +1159,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1097,7 +1175,7 @@
       "construction_binding": "modifier:enhancement:reduced-time",
       "cost_owner": "modifier-catalog:modifier:enhancement:reduced-time",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:respiratory-agent",
@@ -1111,8 +1189,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1125,7 +1205,7 @@
       "construction_binding": "modifier:enhancement:respiratory-agent",
       "cost_owner": "modifier-catalog:modifier:enhancement:respiratory-agent",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:selective-area",
@@ -1139,8 +1219,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1153,7 +1235,7 @@
       "construction_binding": "modifier:enhancement:selective-area",
       "cost_owner": "modifier-catalog:modifier:enhancement:selective-area",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:selectivity",
@@ -1167,8 +1249,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1181,7 +1265,7 @@
       "construction_binding": "modifier:enhancement:selectivity",
       "cost_owner": "modifier-catalog:modifier:enhancement:selectivity",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:sense-based",
@@ -1195,8 +1279,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1209,7 +1295,7 @@
       "construction_binding": "modifier:enhancement:sense-based",
       "cost_owner": "modifier-catalog:modifier:enhancement:sense-based",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:side-effect",
@@ -1223,8 +1309,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1237,7 +1325,7 @@
       "construction_binding": "modifier:enhancement:side-effect",
       "cost_owner": "modifier-catalog:modifier:enhancement:side-effect",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:surge-sur",
@@ -1251,8 +1339,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1265,7 +1355,7 @@
       "construction_binding": "modifier:enhancement:surge-sur",
       "cost_owner": "modifier-catalog:modifier:enhancement:surge-sur",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:symptoms",
@@ -1279,8 +1369,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1293,7 +1385,7 @@
       "construction_binding": "modifier:enhancement:symptoms",
       "cost_owner": "modifier-catalog:modifier:enhancement:symptoms",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:underwater",
@@ -1307,8 +1399,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1321,7 +1415,7 @@
       "construction_binding": "modifier:enhancement:underwater",
       "cost_owner": "modifier-catalog:modifier:enhancement:underwater",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:variable",
@@ -1335,8 +1429,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1349,7 +1445,7 @@
       "construction_binding": "modifier:enhancement:variable",
       "cost_owner": "modifier-catalog:modifier:enhancement:variable",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:enhancement:wall",
@@ -1363,8 +1459,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1377,7 +1475,7 @@
       "construction_binding": "modifier:enhancement:wall",
       "cost_owner": "modifier-catalog:modifier:enhancement:wall",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:accessibility",
@@ -1391,8 +1489,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1405,7 +1505,7 @@
       "construction_binding": "modifier:limitation:accessibility",
       "cost_owner": "modifier-catalog:modifier:limitation:accessibility",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:always-on",
@@ -1419,8 +1519,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1433,7 +1535,7 @@
       "construction_binding": "modifier:limitation:always-on",
       "cost_owner": "modifier-catalog:modifier:limitation:always-on",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:armor-divisor",
@@ -1447,8 +1549,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1461,7 +1565,7 @@
       "construction_binding": "modifier:limitation:armor-divisor",
       "cost_owner": "modifier-catalog:modifier:limitation:armor-divisor",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:blood-agent",
@@ -1475,8 +1579,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1489,7 +1595,7 @@
       "construction_binding": "modifier:limitation:blood-agent",
       "cost_owner": "modifier-catalog:modifier:limitation:blood-agent",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:bombardment",
@@ -1503,8 +1609,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1517,7 +1625,7 @@
       "construction_binding": "modifier:limitation:bombardment",
       "cost_owner": "modifier-catalog:modifier:limitation:bombardment",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:gadget-limitation:breakable",
@@ -1531,8 +1639,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1545,7 +1655,7 @@
       "construction_binding": "modifier:gadget-limitation:breakable",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:breakable",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:gadget-limitation:can-be-stolen",
@@ -1559,8 +1669,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1573,7 +1685,7 @@
       "construction_binding": "modifier:gadget-limitation:can-be-stolen",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:can-be-stolen",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:contact-agent",
@@ -1587,8 +1699,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1601,7 +1715,7 @@
       "construction_binding": "modifier:limitation:contact-agent",
       "cost_owner": "modifier-catalog:modifier:limitation:contact-agent",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:costs-fatigue",
@@ -1615,8 +1729,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1629,7 +1745,7 @@
       "construction_binding": "modifier:limitation:costs-fatigue",
       "cost_owner": "modifier-catalog:modifier:limitation:costs-fatigue",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:damage-limitations",
@@ -1643,8 +1759,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1657,7 +1775,7 @@
       "construction_binding": "modifier:limitation:damage-limitations",
       "cost_owner": "modifier-catalog:modifier:limitation:damage-limitations",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:dissipation",
@@ -1671,8 +1789,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1685,7 +1805,7 @@
       "construction_binding": "modifier:limitation:dissipation",
       "cost_owner": "modifier-catalog:modifier:limitation:dissipation",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:emanation",
@@ -1699,8 +1819,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1713,7 +1835,7 @@
       "construction_binding": "modifier:limitation:emanation",
       "cost_owner": "modifier-catalog:modifier:limitation:emanation",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:emergencies-only",
@@ -1727,8 +1849,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1741,7 +1865,7 @@
       "construction_binding": "modifier:limitation:emergencies-only",
       "cost_owner": "modifier-catalog:modifier:limitation:emergencies-only",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:extra-recoil",
@@ -1755,8 +1879,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1769,7 +1895,7 @@
       "construction_binding": "modifier:limitation:extra-recoil",
       "cost_owner": "modifier-catalog:modifier:limitation:extra-recoil",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:full-power-in-emergencies-only",
@@ -1783,8 +1909,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1797,7 +1925,7 @@
       "construction_binding": "modifier:limitation:full-power-in-emergencies-only",
       "cost_owner": "modifier-catalog:modifier:limitation:full-power-in-emergencies-only",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:inaccurate",
@@ -1811,8 +1939,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1825,7 +1955,7 @@
       "construction_binding": "modifier:limitation:inaccurate",
       "cost_owner": "modifier-catalog:modifier:limitation:inaccurate",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:limited-use",
@@ -1839,8 +1969,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1853,7 +1985,7 @@
       "construction_binding": "modifier:limitation:limited-use",
       "cost_owner": "modifier-catalog:modifier:limitation:limited-use",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:melee-attack",
@@ -1867,8 +1999,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1881,7 +2015,7 @@
       "construction_binding": "modifier:limitation:melee-attack",
       "cost_owner": "modifier-catalog:modifier:limitation:melee-attack",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:mitigator",
@@ -1895,8 +2029,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1909,7 +2045,7 @@
       "construction_binding": "modifier:limitation:mitigator",
       "cost_owner": "modifier-catalog:modifier:limitation:mitigator",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:no-blunt-trauma-nbt",
@@ -1923,8 +2059,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1937,7 +2075,7 @@
       "construction_binding": "modifier:limitation:no-blunt-trauma-nbt",
       "cost_owner": "modifier-catalog:modifier:limitation:no-blunt-trauma-nbt",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:no-knockback-nkb",
@@ -1951,8 +2089,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1965,7 +2105,7 @@
       "construction_binding": "modifier:limitation:no-knockback-nkb",
       "cost_owner": "modifier-catalog:modifier:limitation:no-knockback-nkb",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:no-wounding-nw",
@@ -1979,8 +2119,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -1993,7 +2135,7 @@
       "construction_binding": "modifier:limitation:no-wounding-nw",
       "cost_owner": "modifier-catalog:modifier:limitation:no-wounding-nw",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:nuisance-effect",
@@ -2007,8 +2149,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2021,7 +2165,7 @@
       "construction_binding": "modifier:limitation:nuisance-effect",
       "cost_owner": "modifier-catalog:modifier:limitation:nuisance-effect",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:onset",
@@ -2035,8 +2179,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2049,7 +2195,7 @@
       "construction_binding": "modifier:limitation:onset",
       "cost_owner": "modifier-catalog:modifier:limitation:onset",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:pact",
@@ -2063,8 +2209,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2077,7 +2225,7 @@
       "construction_binding": "modifier:limitation:pact",
       "cost_owner": "modifier-catalog:modifier:limitation:pact",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:preparation-required",
@@ -2091,8 +2239,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2105,7 +2255,7 @@
       "construction_binding": "modifier:limitation:preparation-required",
       "cost_owner": "modifier-catalog:modifier:limitation:preparation-required",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:reduced-range",
@@ -2119,8 +2269,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2133,7 +2285,7 @@
       "construction_binding": "modifier:limitation:reduced-range",
       "cost_owner": "modifier-catalog:modifier:limitation:reduced-range",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:resistible",
@@ -2147,8 +2299,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2161,7 +2315,7 @@
       "construction_binding": "modifier:limitation:resistible",
       "cost_owner": "modifier-catalog:modifier:limitation:resistible",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:sense-based",
@@ -2175,8 +2329,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2189,7 +2345,7 @@
       "construction_binding": "modifier:limitation:sense-based",
       "cost_owner": "modifier-catalog:modifier:limitation:sense-based",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:takes-extra-time",
@@ -2203,8 +2359,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2217,7 +2375,7 @@
       "construction_binding": "modifier:limitation:takes-extra-time",
       "cost_owner": "modifier-catalog:modifier:limitation:takes-extra-time",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:takes-recharge",
@@ -2231,8 +2389,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2245,7 +2405,7 @@
       "construction_binding": "modifier:limitation:takes-recharge",
       "cost_owner": "modifier-catalog:modifier:limitation:takes-recharge",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:temporary-disadvantage",
@@ -2259,8 +2419,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2273,7 +2435,7 @@
       "construction_binding": "modifier:limitation:temporary-disadvantage",
       "cost_owner": "modifier-catalog:modifier:limitation:temporary-disadvantage",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:trigger",
@@ -2287,8 +2449,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2301,7 +2465,7 @@
       "construction_binding": "modifier:limitation:trigger",
       "cost_owner": "modifier-catalog:modifier:limitation:trigger",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:unconscious-only",
@@ -2315,8 +2479,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2329,7 +2495,7 @@
       "construction_binding": "modifier:limitation:unconscious-only",
       "cost_owner": "modifier-catalog:modifier:limitation:unconscious-only",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:uncontrollable",
@@ -2343,8 +2509,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2357,7 +2525,7 @@
       "construction_binding": "modifier:limitation:uncontrollable",
       "cost_owner": "modifier-catalog:modifier:limitation:uncontrollable",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:gadget-limitation:unique",
@@ -2371,8 +2539,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2385,7 +2555,7 @@
       "construction_binding": "modifier:gadget-limitation:unique",
       "cost_owner": "modifier-catalog:modifier:gadget-limitation:unique",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:unreliable",
@@ -2399,8 +2569,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2413,7 +2585,7 @@
       "construction_binding": "modifier:limitation:unreliable",
       "cost_owner": "modifier-catalog:modifier:limitation:unreliable",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     },
     {
       "id": "modifier:limitation:untrainable",
@@ -2427,8 +2599,10 @@
       ],
       "disposition": "required",
       "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-set-source-review.md"
+      ],
       "historical_owners": [
         100
       ],
@@ -2441,7 +2615,7 @@
       "construction_binding": "modifier:limitation:untrainable",
       "cost_owner": "modifier-catalog:modifier:limitation:untrainable",
       "consequence_owner": 497,
-      "source_review_owner": 191
+      "source_review_owner": null
     }
   ]
 }

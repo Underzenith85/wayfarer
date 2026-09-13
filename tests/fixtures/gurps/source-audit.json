@@ -10,7 +10,7 @@
       "status": "unavailable",
       "sha256": null,
       "blockers": [
-        191
+        121
       ],
       "note": "Official entry point returned HTTP 403 on 2026-09-07; revision identity and rule/item enumeration remain unresolved."
     },
@@ -40,7 +40,7 @@
       "id": "lite-rules-and-catalog",
       "source_id": "sjg:gurps-lite-4e-2004",
       "reference": "August 2004 Lite, pp. 1-32",
-      "owner": 191,
+      "owner": 121,
       "decision": "required",
       "reviewed": false,
       "reason": "Complete rule and item enumeration requires the exact revision; existing representative definitions do not establish completeness."
@@ -50,18 +50,18 @@
       "source_id": "sjg:basic-set-characters-4e-2004",
       "reference": "B1-336",
       "owner": 191,
-      "decision": "unresolved",
-      "reviewed": false,
-      "reason": "Page coverage placeholder for rules outside reconciled item inventories, including character construction, advancement, templates, modifiers and tables. The exact source is pinned; rule enumeration remains incomplete."
+      "decision": "required",
+      "reviewed": true,
+      "reason": "The exhaustive section, trait, and modifier ledgers now enumerate this selected source. Each unresolved mechanic retains a concrete completion owner; reviewed enumeration does not imply runtime support."
     },
     {
       "id": "basic-campaign-rules",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B337-576",
       "owner": 191,
-      "decision": "unresolved",
-      "reviewed": false,
-      "reason": "Chapter/table/rule enumeration remains required; capability families are not individual source rules. The exact fourth-printing source is pinned."
+      "decision": "required",
+      "reviewed": true,
+      "reason": "The exhaustive section ledger now enumerates this selected source with corrected printed-page identities. Each unresolved mechanic retains a concrete completion owner; reviewed enumeration does not imply runtime support."
     },
     {
       "id": "mundane-skills",
@@ -69,7 +69,7 @@
       "reference": "B168-233",
       "owner": 112,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Consume the source-indexed skill inventory. Required specialty/TL expansions and frozen printing deltas remain explicit blockers."
     },
     {
@@ -78,7 +78,7 @@
       "reference": "B32-165",
       "owner": 113,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Selected constructions and backgrounds are integrated and seven of them have bound runtime effects; remaining traits, perks, quirks, variable constructions and every unbound effect must be enumerated by the owner."
     },
     {
@@ -87,7 +87,7 @@
       "reference": "B168-233",
       "owner": 119,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "All 28 exclusions from the mundane inventory are directly integrated through #119 with concrete runtime blockers #242/#243 and #191 source reconciliation. They are not profile exclusions."
     },
     {
@@ -96,7 +96,7 @@
       "reference": "B32-165; B234-257",
       "owner": 119,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "The #119 typed inventory accounts for all 100 indexed spells, 192 exotic/supernatural or psi-member traits, six psi powers and eight magic protocols. All rows retain concrete runtime blockers and #191 printing/errata reconciliation; no complete execution coverage is claimed."
     },
     {
@@ -105,7 +105,7 @@
       "reference": "B264-289",
       "owner": 180,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Registered equipment is representative; full item/mode/TL/armor/gear enumeration and errata reconciliation remain required."
     },
     {
@@ -114,7 +114,7 @@
       "reference": "B264-289",
       "owner": 180,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "The #180 ledger accounts for every audited row in an explicit table section and names each omitted row group. Four sections carry inspected page anchors (B271, B280, B283, B288); the remaining eleven are recorded against the B264-289 range with no item-level page reconciliation, so no section is complete."
     },
     {
@@ -123,7 +123,7 @@
       "reference": "B264-289",
       "owner": 180,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Every special gear behaviour is dispositioned as implemented with an executable binding or as an explicitly unsupported capability with an owning issue. Two implemented behaviours record a missing evidence case rather than claiming coverage; unsupported behaviours reject inventory conversion and package binding."
     },
     {
@@ -132,7 +132,7 @@
       "reference": "B264-289",
       "owner": 180,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "The #101 carry-forward records the unit, source anchor and executable coverage of every weapon, armor and profile schema field. All statuses stay pending: no field is reconciled with an inspected printing, and seven fields have no executable case at all."
     },
     {
@@ -141,7 +141,7 @@
       "reference": "B264-289",
       "owner": 180,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "No pinned package registers an equipment definition and the Basic Set rows cite a source ID no package declares, so neither audited catalog binds outside test doubles. Mechanically complete entries cannot be claimed until that registration exists."
     },
     {
@@ -159,7 +159,7 @@
       "reference": "B464-469",
       "owner": 207,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Catalog rows and additional locomotion/collision rules remain owned by #207 and runtime #120."
     },
     {
@@ -168,7 +168,7 @@
       "reference": "B347",
       "owner": 191,
       "decision": "optional-disabled",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
     },
     {
@@ -177,7 +177,7 @@
       "reference": "B420",
       "owner": 209,
       "decision": "optional-disabled",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
     },
     {
@@ -186,7 +186,7 @@
       "reference": "B420",
       "owner": 107,
       "decision": "optional-disabled",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
     },
     {
@@ -195,7 +195,7 @@
       "reference": "B357",
       "owner": 109,
       "decision": "optional-disabled",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
     },
     {
@@ -204,7 +204,7 @@
       "reference": "B417",
       "owner": 191,
       "decision": "optional-disabled",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
     },
     {
@@ -213,7 +213,7 @@
       "reference": "B234-257",
       "owner": 119,
       "decision": "optional-disabled",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
     },
     {
@@ -240,7 +240,7 @@
       "reference": "B15-17, third printing",
       "owner": 215,
       "decision": "required",
-      "reviewed": false,
+      "reviewed": true,
       "reason": "Source comparison identified unimplemented high-ST damage progression and secondary-characteristic permission boundaries. Runtime follow-up #215; frozen printing reconciliation remains #191."
     }
   ],
@@ -248,54 +248,54 @@
     {
       "id": "basic-campaign-administration-authority",
       "sha256": "197ff174fe2d548ab7bb3f19fadbe7e3c14a494923691f0987c3b1a3dca944ec",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": ["tests/test_campaign_administration.py::test_private_knowledge_reaction_and_award_are_authoritative_and_exact_once"],
       "owner": 501
     },
     {
       "id": "basic-character-knowledge-boundary",
       "sha256": "d985790179f4de6fb97e75b135fdb103a08f0cd4df059144716098f1a7491da7",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": ["tests/test_campaign_administration.py::test_private_knowledge_reaction_and_award_are_authoritative_and_exact_once"],
       "owner": 501
     },
     {
       "id": "basic-time-use-job-study-credit",
       "sha256": "dfae47f080476649ad666bbe6ba51ab604476c07e860ff80c10d77b0ba10646e",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": ["tests/test_campaign_administration.py::test_time_use_rejects_overlap_and_settles_shared_clock_in_order"],
       "owner": 501
     },
     {
       "id": "basic-trap-independent-stages",
       "sha256": "76e1fafdb376409bac4d76b36f4546f21f89476cb051f9fcb278df418d757d54",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": ["tests/test_campaign_administration.py::test_trap_discovery_disarm_trigger_and_replay_projection"],
       "owner": 501
     },
     {
       "id": "basic-ordinary-invention-lifecycle",
       "sha256": "9e81446986b96fdf2b1c54deea7fe265c73ac5b0dfe4a0867615660eda8dd0ab",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": ["tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"],
       "owner": 524
     },
     {
       "id": "basic-control-rating-legality",
       "sha256": "7e46c8dffa4099607946f7cfa794effefd940b78fe32d94e8c85ccb052236849",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": ["tests/test_campaign_administration.py::test_legality_permits_evidence_and_enforcement_time_are_replay_safe"],
       "owner": 502
     },
@@ -368,9 +368,9 @@
     {
       "id": "basic-hex-step-unit",
       "sha256": "e697b64e4bdb56d33bfa1e7ece499ff2a3b1f7928d6aad53915b0206120de3b3",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_source_audit.py::test_step_fixture_executes"
       ],
@@ -379,9 +379,9 @@
     {
       "id": "critical-five-at-15",
       "sha256": "a87d9b96c259c721c8b0da3ab4329040e9bbe15db5934ec58f4e7cf691ebfec4",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -390,9 +390,9 @@
     {
       "id": "five-at-14",
       "sha256": "72c0888849cf0842646a5c4c7fef334d78f33392e3fd109cb6c0c4cb24487383",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -401,9 +401,9 @@
     {
       "id": "seventeen-at-16",
       "sha256": "6f206666fdf36a8633aa768c506ff4a2cf25a288e9c8bef9dad163c9e8382194",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -412,9 +412,9 @@
     {
       "id": "seventeen-at-15",
       "sha256": "fa92090ed55d95dc621e4ac3ce4436e91328261293bc74770d78d6a276ea90b7",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -423,9 +423,9 @@
     {
       "id": "eighteen-at-20",
       "sha256": "daa5ff0fd4a36129d81368e61f098aa7d6bf8029314b4f4cfeb347962dd5157f",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -434,9 +434,9 @@
     {
       "id": "quick-contest-both-fail",
       "sha256": "f2317d4e181a5fbf95683ff4d2b6aad8de5037943ee1ce83492824d2d370797e",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
       ],
@@ -566,9 +566,9 @@
     {
       "id": "basic-repeated-single-chance",
       "sha256": "6e0658a815fce353a801527616f276c3ad944c57ee2591ece3e3560e31d62c7a",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
       ],
@@ -577,9 +577,9 @@
     {
       "id": "basic-repeated-retry-until-success",
       "sha256": "849e939288ae20cf4b04ef469f75cd3fbb023b3a1ca57a7c569e6eaf7c62c607",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
       ],
@@ -588,9 +588,9 @@
     {
       "id": "basic-repeated-unknown-until-later",
       "sha256": "1b7240f6b2f208c8e302449870d85efaa588f010359b7a140fca20386056f91d",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
       ],
@@ -599,9 +599,9 @@
     {
       "id": "basic-repeated-hazardous-failure",
       "sha256": "b6c7d308ad00f5f43fb4ac9a1e4acaeae7630b094b32dcac9501e32323b49d39",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
       ],
@@ -643,9 +643,9 @@
     {
       "id": "basic-quick-contest-both-fail-tie",
       "sha256": "262c1cf07879b305c8a8b1ac70a088f2a3612d491635f26046d3a4370ab44e56",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
       ],
@@ -654,9 +654,9 @@
     {
       "id": "basic-quick-contest-victory-margin-mixed",
       "sha256": "de0963df1daea70695bd83825d3f7d72d5c2d50733cdec2d55691dc7aef51b22",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
       ],
@@ -665,9 +665,9 @@
     {
       "id": "basic-quick-contest-margin-not-critical",
       "sha256": "de521f1bd9661a7a8a6ea425afc750505592635cade8f3b0e42a01fb1b709f8d",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
       ],
@@ -676,9 +676,9 @@
     {
       "id": "basic-regular-contest-second-round",
       "sha256": "a20f96914febfdabfa741194fd44a284479451558fc7e231403a8d5b4c55eef8",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
       ],
@@ -687,9 +687,9 @@
     {
       "id": "basic-regular-contest-both-fail-continues",
       "sha256": "404159dae05ac9300cadcc0c7115f63d7a03984e6d270be5a5a7d78874911176",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
       ],
@@ -698,9 +698,9 @@
     {
       "id": "basic-regular-contest-high-skill-levelling",
       "sha256": "f18e013f078dd1c8b8d5ea86bc9198796d70ecfca2de79de5a952306815f5600",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
       ],
@@ -709,9 +709,9 @@
     {
       "id": "basic-regular-contest-low-skill-levelling",
       "sha256": "556f501261ca11c38a3f0a498adc56fcc51fd7e449a7183734953a8493c72690",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
       ],
@@ -720,9 +720,9 @@
     {
       "id": "basic-regular-contest-no-levelling-at-14",
       "sha256": "0f6bdb72fe7d9bb3db56d10bcea975b887bbef2a871a7b318c2bd342afbd6fc2",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
       ],
@@ -731,9 +731,9 @@
     {
       "id": "basic-resistance-attacker-wins",
       "sha256": "1c2b3227761751dbfe250ea35b5e029f459ba5b075964393db2cdb491917714e",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
       ],
@@ -742,9 +742,9 @@
     {
       "id": "basic-resistance-tie-resists",
       "sha256": "8654e3a1117f4ea66b13a92c78db1cf331a66dc2fd421deb4c7803ec91cfa140",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
       ],
@@ -753,9 +753,9 @@
     {
       "id": "basic-resistance-both-fail",
       "sha256": "e617af1edcb5cbc67d7501079c7ae358e3c1e8fed24517187439e216ed5836be",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
       ],
@@ -764,9 +764,9 @@
     {
       "id": "basic-rule-of-16-caps-attacker",
       "sha256": "f236dd42ec0140f2fdd51cefe24e5cd523d1a9c79f18a8a11b5c876e737a9c12",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
       ],
@@ -775,9 +775,9 @@
     {
       "id": "basic-rule-of-16-high-resistance",
       "sha256": "1806a2c960fb9631e15de67c6328e11fec70828b7198ebc49da8a8625d001002",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
       ],
@@ -786,9 +786,9 @@
     {
       "id": "basic-rule-of-16-below-cap",
       "sha256": "39db01528a012c5dfe2114f1c40959d7a3b5036dd3291ac01217840568b9526d",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
       ],
@@ -797,9 +797,9 @@
     {
       "id": "basic-rule-of-16-not-declared",
       "sha256": "cc2f37fe0ab0f9e8c046ad3e70705e37bc42e5a85846ec01c568b2e748089039",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
       ],
@@ -808,9 +808,9 @@
     {
       "id": "basic-margin-of-success",
       "sha256": "7d4c2c101627b1f7d10a5348960e9cb2edac7a5e2aea072a46c33e68e0c3e00f",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -819,9 +819,9 @@
     {
       "id": "basic-margin-of-failure",
       "sha256": "fbfca5bdbedc08c6b04746a1840196e743c8af2d52ba204172489e1551e2c866",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -830,9 +830,9 @@
     {
       "id": "basic-margin-with-typed-modifiers",
       "sha256": "eddee1e3bc113f31a164599e6ac445cbbfb581e7b8441c9cb2754f1532150d51",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
       ],
@@ -863,9 +863,9 @@
     {
       "id": "basic-attribute-dx-reduced",
       "sha256": "a3d6a15d52d7df921641b82ed5c6d09bec69df530c0b03cf41c9862530610bdf",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_attribute_costs"
       ],
@@ -874,9 +874,9 @@
     {
       "id": "basic-attribute-st-high",
       "sha256": "1ee796f36ae7129151ca070d5419fbc06b547ad4689da12f4b16e39cc2133384",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_attribute_costs"
       ],
@@ -1061,9 +1061,9 @@
     {
       "id": "basic-basic-lift-st-8",
       "sha256": "b5f4e959d2211ca83389f3f335501f900989b0db0554df21267e2429096e0c50",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_basic_lift_rounding_point"
       ],
@@ -1072,9 +1072,9 @@
     {
       "id": "basic-basic-lift-st-20",
       "sha256": "09493347233fb14205673573a3150d175a1883e5b4e705706caf0e94206a50df",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_basic_lift_rounding_point"
       ],
@@ -1446,9 +1446,9 @@
     {
       "id": "basic-damage-st-21",
       "sha256": "40ad561cd9ac9b259640b2d0bc429fb0c25ddaa70e218b614c6090475e2425ce",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1457,9 +1457,9 @@
     {
       "id": "basic-damage-st-25",
       "sha256": "d71f068cab14171b6b90cf2706bfb63de1362aff05623fdb898000f02ebfa0c5",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1468,9 +1468,9 @@
     {
       "id": "basic-damage-st-27",
       "sha256": "2421aeb75574fa8828afaaddf3f33ff9889c0eebc9d025e250f94e73919b327a",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1479,9 +1479,9 @@
     {
       "id": "basic-damage-st-30",
       "sha256": "4dc2098734aa089338c33b1b8101644e0ba4e69722e5465ba3f81106cbe25bdf",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1490,9 +1490,9 @@
     {
       "id": "basic-damage-st-40",
       "sha256": "13bbec30d9c37452752e4a461130774f42adc2691c4ecc58b394080e6f5f59cf",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1501,9 +1501,9 @@
     {
       "id": "basic-damage-st-45",
       "sha256": "ff2f8407c5584730f5151c886d6a2124a958f4f1d40a9d0aba71b156976d2e7b",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1512,9 +1512,9 @@
     {
       "id": "basic-damage-st-50",
       "sha256": "7124b5504cfc0093dacf766f6e72b8622e4df14fd4e2dbec920577e6ea32f73d",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1523,9 +1523,9 @@
     {
       "id": "basic-damage-st-60",
       "sha256": "e573b145ecfedbc9057a97ff1fdb9f2322bacfc6ebb481cc639261face0cb306",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1534,9 +1534,9 @@
     {
       "id": "basic-damage-st-75",
       "sha256": "e2024e71e5a6e8b1ec79256e0976a80998cd49902a4886e4014af0a3c77f47e9",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1545,9 +1545,9 @@
     {
       "id": "basic-damage-st-100",
       "sha256": "73c99f726181851789dfef62a2d3c429be9ff43b935a2df17c4820befbdf6d01",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1556,9 +1556,9 @@
     {
       "id": "basic-secondary-hp-guideline-exceeded",
       "sha256": "e18a40bf906d8b98bb34b56445624530ce25af0eb83acef2b102174d68f5fe0f",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -1567,9 +1567,9 @@
     {
       "id": "basic-secondary-hp-guideline-boundary",
       "sha256": "b872f3299602e236e88c047a00a16728b292ff6c5c9c90f0cd5e2510740b2a5c",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -1578,9 +1578,9 @@
     {
       "id": "basic-secondary-will-above-20",
       "sha256": "c2a3b552e77e03e555fb871b4e8b2d1e13de5289f1291be7c3abcd86d800935f",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -1589,9 +1589,9 @@
     {
       "id": "basic-secondary-fp-guideline-exceeded",
       "sha256": "a6ea2b7f9fddc33a6fd90052cfdc76f5d03cec7bb8973851b8e27ac7b6103924",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -1864,9 +1864,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-1",
       "sha256": "94331586f36d728a8419193c609e7477f485d38640088a701631fd78e65f7cee",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1875,9 +1875,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-2",
       "sha256": "077b8a3cecac9d0105e3e7c4f0d5e8e6d4d7d155985a07a6a304af2a24b6e18c",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1886,9 +1886,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-3",
       "sha256": "a3089588b2930a5f62a10d2898d10e7e535f1a0dbec9a881fcfcbea114a146cb",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1897,9 +1897,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-4",
       "sha256": "09609b7776e6c73d5666c93dfa3121c1f183fde60138ff1466a080336da5e7a9",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1908,9 +1908,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-7",
       "sha256": "0fdda17a844f5065678b419d81b2ac005eb731e93d9cb8c6566ff2da35a2354e",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1919,9 +1919,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-8",
       "sha256": "958e45d998d9ac3f8873405f04d814906e3dd206f78e98c6597d3afe19994b4a",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1930,9 +1930,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-12",
       "sha256": "ebd39997ce3f8c67e236566f6e936d63fa8c34197c608f95b8c6569185813c64",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1941,9 +1941,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-easy-20",
       "sha256": "f76c5ec170a14e0d681fd7b157d98887bca90a2006ce113db031eade5d0e28c5",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1952,9 +1952,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-1",
       "sha256": "8c97456661271f7629aefc3d5db5e0d50639f4146aeddbe2ce642e12bf4b9b6a",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1963,9 +1963,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-2",
       "sha256": "da2fde86a0da930a1fab6220b75b32081b00aaa057d1b3f3e028488c2da84ece",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1974,9 +1974,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-3",
       "sha256": "8bc23c64c644725a0b9d5c8c5ed49b1c650a67ba99da743e3375288ae303fd62",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1985,9 +1985,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-4",
       "sha256": "98e64d3c2788e486a3eb2717f97c2d25066079bdd9ef6b7b73a5bb4525fb9292",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -1996,9 +1996,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-7",
       "sha256": "0902dc72cc4da281f7a81fd20d231858b57ef348eea51c38cdbb4931f67559e0",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2007,9 +2007,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-8",
       "sha256": "56d3a388e787871f92a47a16d8738b0e680e8971b4e154e88b7d9c9cccaa3373",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2018,9 +2018,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-12",
       "sha256": "e69433f175935e9ba1cd903b0443dea5f57408bcc7710428c1703471e959c201",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2029,9 +2029,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-average-20",
       "sha256": "02264fa79aecfab70f363046258b6839103b4ed0335efe6216e6f4ab92fa3ec2",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2040,9 +2040,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-1",
       "sha256": "333408fa36173147a1daf4c98d7c10d302ce85e87896a9662eb331109f1174fd",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2051,9 +2051,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-2",
       "sha256": "b4b0ed5060976df29dba73e13cb5d6b9e0f59e656d33ae22cd7eb52ba54704b7",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2062,9 +2062,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-3",
       "sha256": "ee33342211f7796efba439fb83fb6a215183363301c1737432ec1bbefeafdac5",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2073,9 +2073,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-4",
       "sha256": "9b0faaccc98e579db7d00c849276b44582aa0abd7810935e4cd78bcb2d26f497",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2084,9 +2084,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-7",
       "sha256": "bc4bf9226384809ea73b5e9d530de5c620a62f4637c09abf4fee50c1eb32c92f",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2095,9 +2095,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-8",
       "sha256": "ebfcb1888b35adf6d9c96fbde03de98b1aa7a71f13c6678922a51411259c66b0",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2106,9 +2106,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-12",
       "sha256": "9d3b4907a98eb53c501220788f2935c51a8a2d0b93392ed6a89a083ae1b114d2",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2117,9 +2117,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-hard-20",
       "sha256": "fe65467d52079d71e1f30e3d29cc26f2c5c7dfc0c84cc2301e4c4c19e60f18bc",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2128,9 +2128,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-1",
       "sha256": "5e4939445133505f5bd4ffaf56ecf96585da832f32020695e55e17a8e8be7909",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2139,9 +2139,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-2",
       "sha256": "e1e985e9cedc7a5a95e89f27ad5574a1623d2ab11128df3eba3492f37179c446",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2150,9 +2150,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-3",
       "sha256": "cb764979502a74d760fdee774d5d6edea12b8dd9fbbedc2a3b5b11ac2ecbf519",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2161,9 +2161,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-4",
       "sha256": "d061ed0861c7ee1492cfde942b6b471fee041f91cb9d757e72552af8a3b541d5",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2172,9 +2172,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-7",
       "sha256": "35902e377b881168e7da13e2edd2b25eec0cc938e7aa79607cc9b15e598be8e9",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2183,9 +2183,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-8",
       "sha256": "5a4e1e3fb308cf8cdf9717f02a8444a92a6c59d40b3a62a19059db747b69e97f",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2194,9 +2194,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-12",
       "sha256": "83f0df7c6c12fab9ea5c080cfcd1e747d13b4cfc3b875f4aabb60119024430e0",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2205,9 +2205,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-very-hard-20",
       "sha256": "a9cc6c9ec0c8c8a4d49dbf469a604132766c42b44b108e8cdfb6b05997b6406d",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2249,9 +2249,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-best-attribute",
       "sha256": "0a0bbc6fee5a57ed3ea4483f45b45f6b9c6228ee0877a174e4d6d7f3613bfce8",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2260,9 +2260,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-attribute-cap",
       "sha256": "1fbe5a7d54448c579aa71b58694f545edffac3a0bdac33cd55d45d9a6a43be92",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2271,9 +2271,9 @@
     {
       "id": "skill-gurps-basic-set-4e-2004-changed-attribute",
       "sha256": "7b18f3326e635f7376180f5a9258d93ea610e354b54cf345f8de850c95746cd3",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2282,9 +2282,9 @@
     {
       "id": "skill-default",
       "sha256": "f46da84fcecb55c5d9918cc8627476e032bcaafbb8d597dc95502ab6a8125dd5",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2293,9 +2293,9 @@
     {
       "id": "skill-credit",
       "sha256": "cbfa0195e045c679a5157cec804d60d639e3c001a6a380d7c35bc4f5ca37062c",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2304,9 +2304,9 @@
     {
       "id": "skill-partial-credit",
       "sha256": "58be8bf513852617a643d417c8a196479bb64d8acdebe2a28618d161800b1502",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2315,9 +2315,9 @@
     {
       "id": "skill-required-specialty",
       "sha256": "64f7f47c6cbf4f06818634d1269c46fd3b784b5f4a57ec8e89529a2881eb3db7",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2326,9 +2326,9 @@
     {
       "id": "skill-optional-specialty",
       "sha256": "9d2ee650e80610bb1049b773bd76c723c2fcf101627a6d67159a7d8017acca5f",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2337,9 +2337,9 @@
     {
       "id": "skill-optional-general-default",
       "sha256": "201a31d07bf83c71b6a7cf64af9fc7cd26ffa8189faf89598f422d27d9ea3955",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2348,9 +2348,9 @@
     {
       "id": "skill-general-optional-default",
       "sha256": "762b4836e5b0b2e2acfcba3361e3e2d32f28c9074b12c7bb6f26ec40b3c15430",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2359,9 +2359,9 @@
     {
       "id": "skill-hard-default",
       "sha256": "aeafc64b3a21f68d943c47cdfdad6c75780a8c9cd324cea47cfd446985660546",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2370,9 +2370,9 @@
     {
       "id": "skill-hard-first",
       "sha256": "dc60c154210838bd3d94e2776566ac0d89b0f8ec2f471e35478abcb74b6bc21c",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2381,9 +2381,9 @@
     {
       "id": "skill-hard-cap",
       "sha256": "42eb6e5f1f222b7eca1c6482f05e124c3146b170708450452b27e5061bf1c444",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2392,9 +2392,9 @@
     {
       "id": "skill-hard-over-cap",
       "sha256": "1541cc56d0e0ec0148624a3f8b40d3b23ed8ee9b5c5c47ae5e98d366c677d299",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2403,9 +2403,9 @@
     {
       "id": "skill-hard-one-point",
       "sha256": "3364f2e417e02e26900a1be41b4b291b8a103c27febea5b02dee5067bc49cdaf",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2414,9 +2414,9 @@
     {
       "id": "skill-hard-no-parent",
       "sha256": "15c55fe11419febd60b39896e865da594d970333f1d027432faac56f7c654b51",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2425,9 +2425,9 @@
     {
       "id": "skill-average-first",
       "sha256": "2a998403f6bc64666a1338716161572fa14a2eadb0289c8207214b3b8eef2508",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2436,9 +2436,9 @@
     {
       "id": "skill-average-cap",
       "sha256": "e21f450bd547d76c2c5a45b44d0e8aadcb89feb2c8abb8bc78f867b848540549",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2447,9 +2447,9 @@
     {
       "id": "skill-average-over-cap",
       "sha256": "b0f67acb65c8aedc80c69bb7473e63c9c47147406517227b0ae2ff4b9ff1e037",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_skills.py::test_source_referenced_golden_cases"
       ],
@@ -2458,9 +2458,9 @@
     {
       "id": "unarmed-karate-bonus",
       "sha256": "93aa050029c22116278eaf49b8b462055c5181574baafdcbf1a0d42150e6fc09",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
       ],
@@ -2469,9 +2469,9 @@
     {
       "id": "grapple-wrestling-st",
       "sha256": "aea7a3f33fe3325d0272f13afe3d8a65ccaf86fc36d7cdc89a113b9382ad907d",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
       ],
@@ -2480,9 +2480,9 @@
     {
       "id": "grapple-two-hand-escape",
       "sha256": "cd14400f064db036a078d4cc96846fbab68f0f9b53b07dfdc820bae4e5fa5c14",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
       ],
@@ -2491,9 +2491,9 @@
     {
       "id": "grapple-pin-undecided",
       "sha256": "28a94b44530e57e7428cbb165c6f70787251a3b37d8901c38fa6e4ea97ccc002",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
       ],
@@ -2502,9 +2502,9 @@
     {
       "id": "basic-height-three-feet-head",
       "sha256": "0ebfaf6e98cec62467f620a48ba7055ffcdfe73ae5ce3b351444b19a97078806",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_geometry_injury_followups.py::test_followup_fixture_ledger_executes_independent_expectations"
       ],
@@ -2513,9 +2513,9 @@
     {
       "id": "basic-unliving-torso-piercing",
       "sha256": "442ed8933affce60b32be825eca44f40c719e4fdc08b3abe19dfc3c38c68da08",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_geometry_injury_followups.py::test_followup_fixture_ledger_executes_independent_expectations"
       ],
@@ -2524,9 +2524,9 @@
     {
       "id": "basic-aim-brace-variable-scope",
       "sha256": "fe2ee177b7b3aca793e1f6579863dcf95ac360a177fa7caf1621309b32427ead",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
       ],
@@ -2535,9 +2535,9 @@
     {
       "id": "basic-stop-thrust-two-yard-charge",
       "sha256": "30dc3eaa75e415000836b8c63a97ad0a62b1dc55e2cf3f7c0e070655e4aca381",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_maneuver_followups.py::test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards"
       ],
@@ -2546,9 +2546,9 @@
     {
       "id": "basic-all-out-double-off-hand",
       "sha256": "f1384f3dc632e32c0b445379308c6181b3796872e39173c21a6e71a21b3f8c04",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_maneuver_followups.py::test_two_weapon_double_uses_declared_off_hand_with_minus_four"
       ],
@@ -2557,9 +2557,9 @@
     {
       "id": "basic-attack-then-step-order",
       "sha256": "4d4a638fe06251bad3de530d6e24e90507a570b126e46779b8af95abd743c39b",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_maneuver_followups.py::test_attack_then_step_is_deferred_until_defense_and_replays_once"
       ],
@@ -2568,9 +2568,9 @@
     {
       "id": "basic-statistics-v2-damage-40",
       "sha256": "6e85b1d66adbfb42018160ab206a346c08f34800c3bc4e7d6cc83e339de62436",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2579,9 +2579,9 @@
     {
       "id": "basic-statistics-v2-damage-45",
       "sha256": "a166f6a88dfe1bcbf19b8aaf62c6bd52d2705e72efe685639ecbdc1a6d4794f8",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2590,9 +2590,9 @@
     {
       "id": "basic-statistics-v2-damage-95",
       "sha256": "6807c0f0f7b26770a2bb148de6d288510f2f61372e7132e9149d316ce5b4562c",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2601,9 +2601,9 @@
     {
       "id": "basic-statistics-v2-damage-100",
       "sha256": "9a0f0e290692f9fe193b0cbd400655dc3973826167cc12816cd3da0c8f43efcf",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2612,9 +2612,9 @@
     {
       "id": "basic-statistics-v2-damage-101",
       "sha256": "469c9929e82a23ed44ef57046ed4a4d926cb6b9a9820de1bc05c279527d2a4af",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2623,9 +2623,9 @@
     {
       "id": "basic-statistics-v2-damage-109",
       "sha256": "93f2f9a0336725b33fe5db7343b50fff99b77502e30e0e6d0bfcbd3cdec38212",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2634,9 +2634,9 @@
     {
       "id": "basic-statistics-v2-damage-110",
       "sha256": "a7f9774c3fdd859ef1a40c4b53a2a03fc29bb70bf323fc96e57f3e85a1ce378a",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2645,9 +2645,9 @@
     {
       "id": "basic-statistics-v2-damage-119",
       "sha256": "8c76ef60f51432854fe2c86a873d48db2da8a29ddac71254f7e2b749e7d83899",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2656,9 +2656,9 @@
     {
       "id": "basic-statistics-v2-damage-120",
       "sha256": "1b1529adea38b843b5004642435a4fce76f518792b8a101d37f00006d7229f82",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2667,9 +2667,9 @@
     {
       "id": "basic-statistics-v2-damage-1000",
       "sha256": "00a9d6c789223e1cbc323c4baa2f064a1cc0168c594b47fcd3a2cb37fa429dc5",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2678,9 +2678,9 @@
     {
       "id": "basic-statistics-v2-damage-unsupported-0",
       "sha256": "a9c0afe0e6c048b1c021c15a3e7d00f1368126f97a6d3a9a2cc9ae67b787b770",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2689,9 +2689,9 @@
     {
       "id": "basic-statistics-v2-damage-unsupported-41",
       "sha256": "9743368a723784e98976f1f93470ada47d6b8b6dc7b6850c71e255084cf23fea",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2700,9 +2700,9 @@
     {
       "id": "basic-statistics-v2-damage-unsupported-44",
       "sha256": "fdf79b67fc30e7a82b64752ac63271b197c2fc7097cac3f017a7a12dccc61719",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2711,9 +2711,9 @@
     {
       "id": "basic-statistics-v2-damage-unsupported-46",
       "sha256": "446da18c4b5e8d41010350592e5fa4e6d3ab185bc97267f7469dcce9af5cae75",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2722,9 +2722,9 @@
     {
       "id": "basic-statistics-v2-damage-unsupported-94",
       "sha256": "47a179dadfa670e2880b175a628b52088c543c948c2fd4c123d078e22eb271b4",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2733,9 +2733,9 @@
     {
       "id": "basic-statistics-v2-damage-unsupported-96",
       "sha256": "2403b28336ce1e27c2b16d332ab244712407246efc00b62f15100c848402cada",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2744,9 +2744,9 @@
     {
       "id": "basic-statistics-v2-damage-unsupported-99",
       "sha256": "5b34a91b706e10ce37e5f25d2256593f03147047c23942d95e31d71f3943b86c",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2755,9 +2755,9 @@
     {
       "id": "basic-statistics-v2-will-minus4",
       "sha256": "8e665f722fa993868cb0c25ac19a89f2cedad6daa18403f6e23a283443447fea",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2766,9 +2766,9 @@
     {
       "id": "basic-statistics-v2-will-minus5",
       "sha256": "b0b86583c8da5b9c7144886f93f23bb3363d0513f550d6f68208048a1164bffc",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2777,9 +2777,9 @@
     {
       "id": "basic-statistics-v2-per-minus4",
       "sha256": "a5249e3f8c777df5ce27446fe94bb8f70a00172aba1c95d189420f486c045898",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2788,9 +2788,9 @@
     {
       "id": "basic-statistics-v2-per-minus5",
       "sha256": "c419766819a90c42eea7ce65e026eae8f756acea2cb9676f2c7804dbc82453d8",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2799,9 +2799,9 @@
     {
       "id": "basic-statistics-v2-will20",
       "sha256": "d8114e2958cd5f9899e1342144abfa2cb77367eb256218472f87b1c512cb64ac",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2810,9 +2810,9 @@
     {
       "id": "basic-statistics-v2-will21",
       "sha256": "42a38ef1fc1c35020811cdaef3a53fdcbd85a34950e2ba53cb9c6e56e0c4bd9f",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2821,9 +2821,9 @@
     {
       "id": "basic-statistics-v2-per20",
       "sha256": "0e00cb3cc9701c1596876d3c3ce37f0fedf8046bc93fc613c5fac87d306675ac",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2832,9 +2832,9 @@
     {
       "id": "basic-statistics-v2-per21",
       "sha256": "c62e916abd95d0e1db9cf250437e77f4535c2804bce460a67e7249abebd099fe",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2843,9 +2843,9 @@
     {
       "id": "basic-statistics-v2-speed-minus2",
       "sha256": "db75bdcd94704b5df9d9fdc384810a180d4d913366c223445cdd32c417acbe0a",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2854,9 +2854,9 @@
     {
       "id": "basic-statistics-v2-speed-minus225",
       "sha256": "8161a0eb9de27f3c40b8a1b6a310acfa7d6a668351a784abd0cc3d70d54e9ba4",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2865,9 +2865,9 @@
     {
       "id": "basic-statistics-v2-speed-plus2",
       "sha256": "e65de6e35c44ecf58d4eae0ef6a8ea8cf7d6968fdc86255a2bb6097f0e9fb8ce",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2876,9 +2876,9 @@
     {
       "id": "basic-statistics-v2-speed-plus225",
       "sha256": "01e0795f89d7c705d2ae3355f7a200dee97479bd0cddb2a2c15085f803fceaf2",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2887,9 +2887,9 @@
     {
       "id": "basic-statistics-v2-move-minus3",
       "sha256": "614b1070d2eff32d9a64f5f15892fbf5bc003640958a2e5889d56d41569a9b0e",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2898,9 +2898,9 @@
     {
       "id": "basic-statistics-v2-move-minus4",
       "sha256": "c2c17d6288bc1415e6b46282e4209bc758f8879803d7c603a79d9b69b3a9693f",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2909,9 +2909,9 @@
     {
       "id": "basic-statistics-v2-move-plus3",
       "sha256": "2ce98460c4e402ab52bf993a6e0b6f749ec16350ba1bd5bc0a1bc2d3dd9ed81b",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2920,9 +2920,9 @@
     {
       "id": "basic-statistics-v2-move-plus4",
       "sha256": "e031542198415678a07e25d12346df0c59a91cf33d29600059f3b802e5502fe6",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2931,9 +2931,9 @@
     {
       "id": "basic-statistics-v2-move-adjusted-base",
       "sha256": "4e2ddd1163e25b35788218af84578e0f7c55606c39bb1df526fd8567194f1495",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2942,9 +2942,9 @@
     {
       "id": "basic-statistics-v2-move-adjusted-base-plus4",
       "sha256": "57def297b185849b9f88ef7862dd13289f07128ff97caecbe2e960152439dc37",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2953,9 +2953,9 @@
     {
       "id": "basic-statistics-v2-will-per-iq-base",
       "sha256": "1da5edfc21412b9dbe37c23621795e1bc7a9eb2a12a692eda19c709d5cec1c89",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16; no interpolation or full conformance certification asserted.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2964,9 +2964,9 @@
     {
       "id": "basic-vehicle-movement-coverage",
       "sha256": "2335dbf3289c688d71a48cd0550597b1f75e85048b2d86d2e47db50acc8c4538",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-12",
-      "evidence": "Campaigns fourth printing, February 2008, B394-397, B430-432 and B466-470; independently checked each declared locomotion mode against the printed control-loss, collision, occupant-injury and restart procedures.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_vehicle_modes.py::test_b469_mode_specific_control"
       ],
@@ -2975,9 +2975,9 @@
     {
       "id": "basic-enchanting-project-lifecycle",
       "sha256": "897a28f409af205f8885761ae5309b228619417025d1d7c3e8146a0172ecd4d2",
-      "status": "pending",
-      "reviewer": null,
-      "evidence": null,
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_enchanting_projects.py::test_slow_project_interrupt_resume_restart_and_compile_item",
         "tests/test_enchanting_projects.py::test_item_activation_blocks_missing_family_and_spends_one_charge"
@@ -2987,9 +2987,9 @@
     {
       "id": "basic-vehicle-combat-coverage",
       "sha256": "7b5c4db39f6fe0318d4d735dd1469f5df8033783eaee6bebb7ed03e1843eb332",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-12",
-      "evidence": "Campaigns fourth printing, February 2008, B396-397, B407-408, B430-432, B469 and B483-484; independently checked the ramming, mounted-weapon, cover, pose, subsystem and stress expectations against the printed procedures.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_mounted_ranged_skills.py::test_vehicle_mount_uses_vehicle_pose_control_penalty_and_occupant_cover",
         "tests/test_vehicle_modes.py::test_declared_ram_has_separate_attack_and_dodge_before_collision_exchange",
@@ -3000,9 +3000,9 @@
     {
       "id": "basic-combat-maneuver-permission-matrix",
       "sha256": "6ed62a85bdb75f19aa2f1e4859fde391e86ebbaa9469eb73f4a64a198040aaac",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-12",
-      "evidence": "Campaigns fourth printing, February 2008, B363-366; independently checked all 13 maneuver rows for movement, attack, defense, concentration, and full-turn permissions.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_maneuvers.py::test_maneuver_permission_table"
       ],
@@ -3011,9 +3011,9 @@
     {
       "id": "basic-combat-step-posture-movement",
       "sha256": "e3792e7eb49ab271bc839d4ad8c93b2314e5d0ded2f7b8750f4a4f3f073b0bd9",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-12",
-      "evidence": "Campaigns fourth printing, February 2008, B363 and B367-368; independently checked Step rounding and posture-adjusted movement allowances.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_maneuvers.py::test_maneuver_movement_composes_move_posture_and_option"
       ],
@@ -3022,9 +3022,9 @@
     {
       "id": "basic-combat-turn-sequence-speed-dx",
       "sha256": "5e46945b9608022685003c3ecfc846a3b1384de7a377d1842b387bfac3980edb",
-      "status": "compared",
-      "reviewer": "Codex source comparison, 2026-09-12",
-      "evidence": "Campaigns fourth printing, February 2008, B362-363; independently checked fixed Basic Speed and DX turn ordering and one-second cycles.",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_combat_timing.py::test_turn_order_uses_basic_speed_then_dx_and_stays_fixed"
       ],
