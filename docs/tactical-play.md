@@ -128,9 +128,10 @@ supported by the typed v2 command and its visibility/occupancy checks. Tactical 
 also offers `Leave combat` after resolved movement reaches a safe Basic or hex
 boundary, including when Basic combat has no map projection. See
 [individual combat withdrawal](combat-withdrawal.md).
-Unarmed retreat/following-grapple timing, skill-specific retreat Parries, dragging
-and advanced unarmed maneuver/defense variants remain with #176. #152 supplies
-durable Wait zones and stop thrust, attack-then-step timing, two-weapon Double,
-and typed bracing/sights; advanced ranged handling remains with #173. Existing
+Issue #176 supplied bounded unarmed retreat, control, and defense integrations;
+the remaining capability limits are documented in [unarmed combat](gurps-unarmed.md).
+#152 supplies durable Wait zones and stop thrust, attack-then-step timing,
+two-weapon Double, and typed bracing/sights; #173 supplied the bounded advanced
+ranged handling documented in [ranged combat](gurps-ranged.md). Existing
 unsupported critical outcomes retain their durable block,
 never ordinary damage substituted for missing rules. Coverage rows remain partial.

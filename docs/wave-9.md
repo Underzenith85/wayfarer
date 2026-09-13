@@ -1,5 +1,9 @@
 # Wave 9: resolution, objectives, encounters, orchestration and concurrent scenes
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 Implements roadmap issues #17, #20, #35, #36 and #45 on the merged Wave 8
 foundations. The server owns rules, checks, costs, inventory, clocks and outcomes.
 All commands use the existing campaign transaction, optimistic revision, durable

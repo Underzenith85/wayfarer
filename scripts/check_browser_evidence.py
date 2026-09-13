@@ -25,7 +25,9 @@ REQUIRED_JOURNEYS: dict[str, tuple[str, ...]] = {
     ),
     "startup": (
         "solo production entry, illegal party, stale edit, lost activation, refresh and opening action",
+        "author a reusable scenario, then start a pinned game from it",
     ),
+    "pwa": ("production shell installs, excludes private routes, and reopens offline",),
 }
 
 

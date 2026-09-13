@@ -67,7 +67,9 @@ supports narrow screens and text zoom. Both themes use explicit focus and
 contrast tokens. Manual audit must cover new game → character → play →
 inventory → journal → end session with keyboard and VoiceOver/NVDA, at 200%
 zoom, in both themes. Native screen-reader and real-device sign-off is still
-required; automated semantics checks do not establish WCAG conformance.
+required; automated semantics checks do not establish WCAG conformance. The
+remaining manual browser, device, assistive-technology, upgrade, and latency
+checks are tracked in [issue #250](https://github.com/Underzenith85/wayfarer/issues/250).
 
 History uses accessible bounded pagination instead of variable-height virtual
 scrolling: at most 50 transcript rows mount for a 10,000-entry history, with

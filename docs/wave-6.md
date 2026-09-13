@@ -1,5 +1,9 @@
 # Wave 6: character compilation and resources
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 ## Character compiler (#8)
 
 `wayfarer.engine.character.compiler.CharacterCompiler` is configured by the server with

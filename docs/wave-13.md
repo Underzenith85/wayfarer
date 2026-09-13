@@ -1,5 +1,9 @@
 # Wave 13: adventure conclusions and campaign continuation
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 Issue #41 extends the authenticated `/setups` lifecycle from Wave 12. Completing
 an engine-determined adventure stores its immutable scenario and final play
 snapshot in the same revision-checked transaction. Success, partial success,

@@ -1,5 +1,9 @@
 # Wave 14 — The Last Lantern
 
+> Historical delivery record. Issue-status and roadmap statements below describe
+> the repository when this wave landed; use the [documentation index](README.md)
+> for current references.
+
 The installed reference adventure is `last-lantern-1`, with the authored successor
 `last-lantern-2` (A Favor Repaid). Both are versioned ScenarioGraph JSON files under
 `src/wayfarer/adventures/fixtures/`. `lantern.build_adventure()` is their reproducible
