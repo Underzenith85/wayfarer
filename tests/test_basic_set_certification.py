@@ -89,6 +89,9 @@ def test_every_reported_blocker_has_a_currently_open_owner() -> None:
     assert {blocker.owner_issue for blocker in report.blockers} == {
         94,
         106,
+        686,
+        689,
+        690,
     }
 
 
