@@ -54,9 +54,10 @@ The report never derives source completeness from inventory counts. The
 a stable identity, printed-page reference, profile membership, review state, and
 mechanics or disposition owner. The former Campaigns outline offset was corrected
 against printed footers. See
-[the selected-source review](gurps-basic-set-source-review.md). Optional-rule
-selection and the Infinite Worlds boundary remain explicit child decisions in
-#493 and #494; exclusion from a mundane inventory is not exclusion from Basic.
+[the selected-source review](gurps-basic-set-source-review.md). The named
+optional-rule decisions are recorded by
+[the exact profile disposition](gurps-optional-rules.md); the Infinite Worlds
+boundary remains an explicit child decision in #494.
 
 ## Executable checks
 
