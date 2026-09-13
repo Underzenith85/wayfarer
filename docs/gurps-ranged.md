@@ -6,9 +6,9 @@ GURPS equipment/statistics profile; prototype campaigns retain their dispatch.
 No frozen player-v1 endpoints or payloads are changed.
 
 The numerical baseline is GURPS Lite Fourth Edition, August 2004, pp. 27–29;
-Basic Set Fourth Edition (2004), B270, B372–375 and B550. The repository's
-selected-printing source audit remains pending. These are independently
-specified numeric expectations, not a claim of source certification.
+Basic Set Fourth Edition (2004), B270, B372–375 and B550. The supplied Basic Set
+printings have been independently reviewed; the separate Lite source audit
+remains pending. Source review does not promote incomplete ranged mechanics.
 
 | Behavior | Implementation and evidence |
 | --- | --- |
@@ -63,14 +63,14 @@ crossbow cannot be fired under Bow.
 
 Additional numeric regression evidence is in `tests/test_ranged_followups.py`,
 checked against Campaigns fourth printing, B373, B376, B382, B399-400 and
-B556-557, and Characters third printing, B147. Those printings do not certify the
-selected-printing profile. The authoritative errata endpoints
-were inaccessible during this change, so the audit gate remains open.
+B556-557, and Characters third printing, B147. The selected-printing review now
+records those comparisons. The authoritative errata endpoints were inaccessible,
+so no unrecorded overlay is claimed.
 
 Coverage is **partial**. `tests/test_ranged_critical_completion.py` adds
 independent critical-miss, weapon-quality, per-hit location and restart/retry
 fixtures, using Campaigns fourth printing B376, B382, B399 and B556-557.
-The selected-printing audit completed separately in #191.
+The selected-printing audit is complete; the remaining gate is mechanical coverage.
 New quality metadata is opt-in and Basic-only; it requires a durable individual
 weapon and does not alter saved catalog definitions. Disabled weapons cannot be
 Readied, and broken thrown items retain their condition in `expended_items`.
@@ -110,8 +110,10 @@ B407 precedence, single-shot stoppages, retained misfires, diagnosis, clearing,
 and mechanical repair with persisted consequences and receipts. The inspected
 B278 catalog slice supplies a conventional burst-capable revolver case with
 authoritative reload, malfunction, persistence and replay evidence. The broader
-catalog audit remains #180; [low-TL/exotic malfunction protocols](gurps-exotic-malfunctions.md) are explicit opt-ins. The printing reconciliation
-completed in #191. No malfunction number is inferred from a skill or damage type.
+catalog remains mechanically incomplete under #180;
+[low-TL/exotic malfunction protocols](gurps-exotic-malfunctions.md) are explicit
+opt-ins. Printing reconciliation is complete. No malfunction number is inferred
+from a skill or damage type.
 Named follow-ups retain the other required scope:
 #286 owns individual-round unloading, Fast-Draw and bow draw/hold fatigue;
 #287 owns bare-handed catches and thrown-item battlefield recovery. Those

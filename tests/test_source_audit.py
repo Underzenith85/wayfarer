@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from wayfarer.certification.source_audit import (
+    INVENTORY_SOURCE_REVIEW_EVIDENCE,
     blockers,
     inventory,
     load,
@@ -84,6 +85,12 @@ def test_source_review_cannot_hide_blockers_or_omit_artifact_digest() -> None:
 def test_documentation_drift_rejected(tmp_path: Path) -> None:
     (tmp_path / "tests").symlink_to(ROOT / "tests", target_is_directory=True)
     (tmp_path / "docs").mkdir()
+    (tmp_path / INVENTORY_SOURCE_REVIEW_EVIDENCE).symlink_to(
+        ROOT / INVENTORY_SOURCE_REVIEW_EVIDENCE
+    )
+    (tmp_path / "docs/gurps-equipment-source-review.md").symlink_to(
+        ROOT / "docs/gurps-equipment-source-review.md"
+    )
     docs = (ROOT / "docs/gurps-conformance.md").read_text()
     (tmp_path / "docs/gurps-conformance.md").write_text(
         docs.replace(
@@ -206,9 +213,14 @@ def test_owner_source_reviews_join_runtime_and_registered_catalog_rows() -> None
     skills = [row for row in rows if row.scope == "mundane-skills"]
     equipment = [row for row in rows if row.scope == "equipment-catalog"]
     registered = [row for row in rows if row.scope == "registered-catalog"]
+    traits = [row for row in rows if row.scope == "mundane-traits"]
+    vehicles = [row for row in rows if row.scope == "vehicle-catalog"]
 
     assert skills and all(row.source_review == "reviewed" for row in skills)
     assert equipment and all(row.source_review == "reviewed" for row in equipment)
+    assert traits and all(row.source_review == "reviewed" for row in traits)
+    assert vehicles and all(row.source_review == "reviewed" for row in vehicles)
+    assert all(INVENTORY_SOURCE_REVIEW_EVIDENCE in row.evidence for row in vehicles)
     assert all(
         row.source_review == "pending"
         for row in registered
@@ -221,12 +233,13 @@ def test_owner_source_reviews_join_runtime_and_registered_catalog_rows() -> None
     assert by_definition[("0.3.0", "skill:broadsword")].source_review == "reviewed"
     assert by_definition[("0.3.0", "equipment:broadsword")].source_review == "reviewed"
     assert by_definition[("0.4.0", "spell:ignite-fire")].source_review == "reviewed"
-    # Package-only equipment skill references have no reviewed owner row to join.
-    assert by_definition[("0.3.0", "skill:guns-gyroc")].source_review == "pending"
+    assert by_definition[("0.3.0", "skill:guns-gyroc")].source_review == "reviewed"
+    assert by_definition[("0.4.0", "trait:magery")].source_review == "reviewed"
     assert all(
-        row.source_review == "pending"
+        row.source_review == "reviewed"
         for row in registered
-        if row.id.partition("/")[2].startswith(("attribute:", "secondary:"))
+        if row.required_profiles == ("gurps-basic-set-4e-2004",)
+        and row.id.partition("/")[2].startswith(("attribute:", "secondary:"))
     )
 
 
