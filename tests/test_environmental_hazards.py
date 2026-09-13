@@ -27,6 +27,7 @@ from wayfarer.engine.simulation.equipment.objects import DamageObject
 from wayfarer.engine.simulation.events import ActorAudience, play_facts
 from wayfarer.engine.simulation.health.environmental_objects import apply_burning_object
 from wayfarer.engine.simulation.health.hazards import HazardCommand, HazardResult, apply_hazard
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
 
 
@@ -49,7 +50,7 @@ def _schedule(spec: HazardSpec, *, symptoms: int = 0) -> HazardSchedule:
 
 async def _resolve(
     tmp_path: Path, spec: HazardSpec, dice: list[int], *, symptoms: int = 0
-) -> tuple[object, HazardResult]:
+) -> tuple[ResourceState, HazardResult]:
     cid, play, _ = await setup(tmp_path)
     before = play._load(await play.store.read(cid))
     schedule = _schedule(spec, symptoms=symptoms)
