@@ -28,6 +28,10 @@ from wayfarer.engine.rules.types.recovery import require_settled, retire_tasks
 from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
+from wayfarer.engine.simulation.health.disease import (
+    require_health_settled,
+    require_no_health_deadline_before,
+)
 from wayfarer.engine.simulation.health.fright import advance
 from wayfarer.engine.simulation.health.fright_state import effects as fright_effects
 from wayfarer.engine.simulation.health.medical.rest import accrue_rest
@@ -349,6 +353,7 @@ class ResourceEngine:
             blast_guard(state)
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
+            require_health_settled(state, frozenset({command.actor_id}), state.game_time)
         items = {i.id: i for i in state.items}
         updated = state
         if isinstance(command, (Transfer, Consume, Equip, Unequip)):
@@ -485,6 +490,7 @@ class ResourceEngine:
             living = {
                 p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
             }
+            require_no_health_deadline_before(state, frozenset(living), command.to)
             if any(
                 h.active and h.combat_turn is None and h.actor_id in living and h.due < command.to
                 for h in state.hazards
