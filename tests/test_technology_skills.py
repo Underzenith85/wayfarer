@@ -393,7 +393,7 @@ def test_implemented_rows_reach_the_audit_report() -> None:
     report = audit_report()
     counts = cast(dict[str, int], report["implementation_counts"])
     # #343 adds 66 concrete physical and outdoor rows to the prior total.
-    assert counts["implemented"] == 466
+    assert counts["implemented"] == 467
     rows = {entry.id: entry for entry in inventory()}
     assert rows["skill:vacc-suit"].dispatch == "hazard.exposure"
     assert rows["skill:driving-automobile"].dispatch == "transport.vehicle-control"

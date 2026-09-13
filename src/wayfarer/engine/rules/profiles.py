@@ -631,7 +631,12 @@ GURPS_SOCIAL_SKILLS_PACKAGE: Final = replace(
     GURPS_RANGED_SKILLS_PACKAGE,
     version="0.8.0",
     definitions=_overlay_definitions(
-        GURPS_RANGED_SKILLS_PACKAGE.definitions, social_skills.definitions()
+        GURPS_RANGED_SKILLS_PACKAGE.definitions,
+        tuple(
+            definition
+            for definition in social_skills.definitions()
+            if definition.id != "skill:propaganda"
+        ),
     ),
 )
 GURPS_SOCIAL_SKILLS_PROFILE: Final = replace(
@@ -663,6 +668,32 @@ GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE: Final = replace(
     content_boundaries=BASIC_SET_CONTENT_BOUNDARY_SELECTIONS,
 )
 
+# #367 completes Propaganda/TL under a new explicit package pin. Earlier v8-v10
+# profiles retain the exact social package that deliberately omitted this row.
+GURPS_PROPAGANDA_PACKAGE: Final = replace(
+    GURPS_SOCIAL_SKILLS_PACKAGE,
+    version="0.9.0",
+    definitions=_overlay_definitions(
+        GURPS_SOCIAL_SKILLS_PACKAGE.definitions, social_skills.definitions()
+    ),
+)
+GURPS_PROPAGANDA_POLICY: Final = replace(
+    GURPS_BASIC_POLICY,
+    version=2,
+    technology_level=8,
+)
+GURPS_PROPAGANDA_PROFILE: Final = replace(
+    GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE,
+    version=11,
+    policy=GURPS_PROPAGANDA_POLICY,
+    packages=(GURPS_PROPAGANDA_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE.rules,
+        packages=(_pin(GURPS_PROPAGANDA_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+        policy_version=GURPS_PROPAGANDA_POLICY.version,
+    ),
+)
+
 # Keep the new pin opt-in while the overall Basic Set profile still has unrelated
 # unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
@@ -674,11 +705,12 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_BASIC_PROFILE,
         GURPS_MAGIC_PROFILE,
         GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE,
+        GURPS_PROPAGANDA_PROFILE,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(
     {
         GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
-        GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE.id: GURPS_INFINITE_WORLDS_BOUNDARY_PROFILE,
+        GURPS_PROPAGANDA_PROFILE.id: GURPS_PROPAGANDA_PROFILE,
     }
 )

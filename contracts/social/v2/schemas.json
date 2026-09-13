@@ -544,6 +544,20 @@
             "maxItems": 15,
             "title": "Conditions",
             "type": "array"
+          },
+          "medium_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Medium Id"
           }
         },
         "required": [
@@ -551,6 +565,132 @@
           "subject_id"
         ],
         "title": "NPCSocialTrigger",
+        "type": "object"
+      },
+      "PropagandaMedium": {
+        "additionalProperties": false,
+        "description": "One medium whose availability and effects are pinned by campaign policy.\n\nB216 does not prescribe a universal technology table. Campaign authors must\ntherefore state the medium's reach and timing instead of the engine inventing\neither value from a TL number.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "capability_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "minimum_technology_level": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Minimum Technology Level",
+            "type": "integer"
+          },
+          "maximum_technology_level": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Maximum Technology Level",
+            "type": "integer"
+          },
+          "audience_limit": {
+            "maximum": 1000000000,
+            "minimum": 2,
+            "title": "Audience Limit",
+            "type": "integer"
+          },
+          "attempt_seconds": {
+            "minimum": 1,
+            "title": "Attempt Seconds",
+            "type": "integer"
+          },
+          "persistence_seconds": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Persistence Seconds",
+            "type": "integer"
+          },
+          "required_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Definition Ids",
+            "type": "array"
+          },
+          "required_item_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Item Definition Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "capability_id",
+          "minimum_technology_level",
+          "maximum_technology_level",
+          "audience_limit",
+          "attempt_seconds"
+        ],
+        "title": "PropagandaMedium",
+        "type": "object"
+      },
+      "PropagandaRules": {
+        "additionalProperties": false,
+        "description": "Pinned media policy; configured media are not automatically executable.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/$defs/PropagandaMedium"
+            },
+            "minItems": 1,
+            "title": "Media",
+            "type": "array"
+          },
+          "executable_capability_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Executable Capability Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "media",
+          "executable_capability_ids"
+        ],
+        "title": "PropagandaRules",
         "type": "object"
       }
     },
@@ -583,6 +723,17 @@
         "minimum": 1,
         "title": "Checkpoint Budget",
         "type": "integer"
+      },
+      "propaganda": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/PropagandaRules"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
       }
     },
     "required": [
@@ -8686,6 +8837,17 @@
             "minimum": 1,
             "title": "Checkpoint Budget",
             "type": "integer"
+          },
+          "propaganda": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PropagandaRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -8862,6 +9024,20 @@
             "maxItems": 15,
             "title": "Conditions",
             "type": "array"
+          },
+          "medium_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Medium Id"
           }
         },
         "required": [
@@ -10210,6 +10386,132 @@
           "kind"
         ],
         "title": "ProjectileReadiness",
+        "type": "object"
+      },
+      "PropagandaMedium": {
+        "additionalProperties": false,
+        "description": "One medium whose availability and effects are pinned by campaign policy.\n\nB216 does not prescribe a universal technology table. Campaign authors must\ntherefore state the medium's reach and timing instead of the engine inventing\neither value from a TL number.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "capability_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "minimum_technology_level": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Minimum Technology Level",
+            "type": "integer"
+          },
+          "maximum_technology_level": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Maximum Technology Level",
+            "type": "integer"
+          },
+          "audience_limit": {
+            "maximum": 1000000000,
+            "minimum": 2,
+            "title": "Audience Limit",
+            "type": "integer"
+          },
+          "attempt_seconds": {
+            "minimum": 1,
+            "title": "Attempt Seconds",
+            "type": "integer"
+          },
+          "persistence_seconds": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Persistence Seconds",
+            "type": "integer"
+          },
+          "required_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Definition Ids",
+            "type": "array"
+          },
+          "required_item_definition_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Item Definition Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "capability_id",
+          "minimum_technology_level",
+          "maximum_technology_level",
+          "audience_limit",
+          "attempt_seconds"
+        ],
+        "title": "PropagandaMedium",
+        "type": "object"
+      },
+      "PropagandaRules": {
+        "additionalProperties": false,
+        "description": "Pinned media policy; configured media are not automatically executable.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/$defs/PropagandaMedium"
+            },
+            "minItems": 1,
+            "title": "Media",
+            "type": "array"
+          },
+          "executable_capability_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Executable Capability Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "media",
+          "executable_capability_ids"
+        ],
+        "title": "PropagandaRules",
         "type": "object"
       },
       "ProtectionProfile": {
