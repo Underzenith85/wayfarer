@@ -47,6 +47,10 @@ from wayfarer.engine.simulation.campaign.scenes import (
     SceneEvent,
     SceneRules,
 )
+from wayfarer.engine.simulation.campaign.world_context import (
+    WorldContextRules,
+    WorldContextState,
+)
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.recovery import RecoveryRules, RecoveryState
@@ -170,6 +174,7 @@ class ActionRules(Record):
     development: DevelopmentRules | None = Field(default=None, exclude=True)
     inventions: InventionRules | None = Field(default=None, exclude=True)
     enchanting: EnchantingRules | None = Field(default=None, exclude=True)
+    world_context: WorldContextRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -234,6 +239,9 @@ class PlayCheckpoint(Record):
     )
     development: DevelopmentState = Field(
         default=DevelopmentState(), exclude_if=lambda value: value == DevelopmentState()
+    )
+    world_context: WorldContextState = Field(
+        default=WorldContextState(), exclude_if=lambda value: value == WorldContextState()
     )
 
 

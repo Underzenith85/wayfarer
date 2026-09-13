@@ -61,6 +61,7 @@ def _configuration_digest(
         + (rules.development.model_dump_json() if rules.development else "")
         + (rules.inventions.model_dump_json() if rules.inventions else "")
         + (rules.enchanting.model_dump_json() if rules.enchanting else "")
+        + (rules.world_context.model_dump_json() if rules.world_context else "")
         + reviewer.policy.digest
         + repr(resources.rules)
         + repr(reviewer.compiler.effects)

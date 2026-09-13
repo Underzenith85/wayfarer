@@ -17204,15 +17204,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
@@ -17230,15 +17232,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b511:tech-levels",
@@ -17256,15 +17260,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b511:tech-levels",
@@ -17282,15 +17288,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b511:tech-levels",
@@ -17308,15 +17316,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b511:tech-levels",
@@ -17334,15 +17344,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b511:tech-levels",
@@ -17360,15 +17372,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b511:tech-levels",
@@ -17708,15 +17722,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:19-game-worlds",
@@ -17734,15 +17750,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b519:other-planes-of-existence",
@@ -17760,15 +17778,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b519:other-planes-of-existence",
@@ -17786,15 +17806,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b519:other-planes-of-existence",
@@ -17812,15 +17834,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "docs/gurps-world-context.md",
+        "tests/test_world_context.py"
       ],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
+      "completion_owner": null,
       "capability_id": "gurps.world.physical_feats",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b519:other-planes-of-existence",
