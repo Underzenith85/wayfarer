@@ -322,10 +322,74 @@ def test_selectivity_symptoms_variable_damage_and_jet_are_explicit() -> None:
         parameters=EnhancementParameters(disabled_enhancements=(ACCURATE,)),
     )
     switched = apply_attack_modifiers(
-        AttackProfile(), "innate-attack", (selectable, pick(ACCURATE))
+        AttackProfile(accuracy=0), "innate-attack", (selectable, pick(ACCURATE))
     ).modified
     assert switched.switchable_enhancements
     assert switched.disabled_enhancements == (ACCURATE,)
+    assert switched.accuracy == 0
+
+    enabled = apply_attack_modifiers(
+        AttackProfile(accuracy=0), "innate-attack", (pick(ACCURATE),)
+    ).modified
+    assert enabled.accuracy == 1
+
+
+def test_selectivity_removes_multiple_effects_before_stable_composition() -> None:
+    selectivity = pick(
+        "modifier:enhancement:selectivity",
+        parameters=EnhancementParameters(
+            disabled_enhancements=(ACCURATE, INCREASED_RANGE, RAPID_FIRE)
+        ),
+    )
+    rapid_fire = pick(
+        RAPID_FIRE,
+        option="rof-4-7",
+        parameters=EnhancementParameters(rate_of_fire=5, selective_fire=True),
+    )
+    selections = (
+        rapid_fire,
+        pick(INCREASED_RANGE, level=2),
+        selectivity,
+        pick(ACCURATE, level=3),
+        pick("modifier:enhancement:overhead"),
+    )
+    receipt = apply_attack_modifiers(AttackProfile(), "innate-attack", selections)
+
+    assert receipt.modified.accuracy == 0
+    assert receipt.modified.max_range == 100
+    assert receipt.modified.rate_of_fire == 1
+    assert not receipt.modified.selective_fire
+    assert receipt.modified.overhead
+    assert receipt.modified.disabled_enhancements == (
+        ACCURATE,
+        INCREASED_RANGE,
+        RAPID_FIRE,
+    )
+    assert ACCURATE not in receipt.applied_modifier_ids
+    assert INCREASED_RANGE not in receipt.applied_modifier_ids
+    assert RAPID_FIRE not in receipt.applied_modifier_ids
+
+    cost = modified_cost(10, "innate-attack", selections)
+    assert {component.definition_id for component in cost.components} == {
+        selection.definition_id for selection in selections
+    }
+
+
+def test_selectivity_rejects_unpurchased_limitations_and_itself() -> None:
+    for disabled in (
+        (ACCURATE,),
+        ("modifier:limitation:reduced-range",),
+        ("modifier:enhancement:selectivity",),
+    ):
+        selectivity = pick(
+            "modifier:enhancement:selectivity",
+            parameters=EnhancementParameters(disabled_enhancements=disabled),
+        )
+        selections: tuple[ModifierSelection, ...] = (selectivity,)
+        if disabled[0].startswith("modifier:limitation"):
+            selections += (pick(disabled[0], level=1),)
+        with pytest.raises(ValidationError, match="Selectivity must name selected enhancements"):
+            apply_attack_modifiers(AttackProfile(), "innate-attack", selections)
 
 
 def test_invalid_subjects_combinations_parameters_and_levels_fail_closed() -> None:

@@ -2279,7 +2279,28 @@ def apply_ability_modifiers(
     """Apply runtime consequences in a stable, source-independent phase order."""
     validate_selections(subject, selections, approvals)
     _validate_profile_compatibility(profile, selections)
-    ordered = tuple(sorted(selections, key=_runtime_order))
+    selectivity = next(
+        (
+            selection
+            for selection in selections
+            if selection.definition_id == "modifier:enhancement:selectivity"
+        ),
+        None,
+    )
+    disabled = frozenset(
+        selectivity.parameters.disabled_enhancements
+        if selectivity is not None and selectivity.parameters is not None
+        else ()
+    )
+    # Selectivity changes which purchased enhancements execute, not their
+    # construction cost.  Determine that execution set before phase ordering so
+    # an early adapter (Accurate, Area Effect, etc.) cannot leak into the result.
+    ordered = tuple(
+        sorted(
+            (selection for selection in selections if selection.definition_id not in disabled),
+            key=_runtime_order,
+        )
+    )
     result = profile
     for selection in ordered:
         definition = MODIFIER_INDEX[selection.definition_id]
