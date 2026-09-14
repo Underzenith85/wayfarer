@@ -8,6 +8,7 @@ accepting player-authored wound commands.
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Callable
 from decimal import Decimal
 from typing import Literal
 
@@ -15,6 +16,7 @@ from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.location import HitLocation, HumanLocation, LastingInjury
 from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled, retire_tasks
 from wayfarer.engine.simulation.equipment.catalog import DamageType
@@ -114,6 +116,19 @@ class InjuryResult(Record):
     uncapped_injury: int = 0
     effective_resistance: int = 0
     lasting_injury_ids: tuple[str, ...] = ()
+
+
+def _recover_stun(status: InjuryStatus, turn: int, attempt: Callable[[int], bool]) -> InjuryStatus:
+    electrical = status.electrical_stun
+    if electrical is None:
+        recovered = attempt(0)
+    elif turn >= electrical.recovery_starts_turn:
+        recovered = attempt(electrical.recovery_penalty)
+    else:
+        recovered = False
+    if not recovered:
+        return status
+    return status.model_copy(update={"stunned": False, "electrical_stun": None})
 
 
 _FACTORS = {
@@ -633,8 +648,11 @@ def apply_injury(
                 and not status.incapacitated
                 and command.do_nothing
             ):
-                if check("stun-recovery").outcome.succeeded:
-                    status = status.model_copy(update={"stunned": False})
+                status = _recover_stun(
+                    status,
+                    command.turn,
+                    lambda penalty: check("stun-recovery", penalty).outcome.succeeded,
+                )
             status = status.model_copy(
                 update={
                     "phase": "between",

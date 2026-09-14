@@ -2183,6 +2183,13 @@
             "title": "Shield Rush",
             "type": "boolean"
           },
+          "electrical_contact_seconds": {
+            "default": 0,
+            "maximum": 60,
+            "minimum": 0,
+            "title": "Electrical Contact Seconds",
+            "type": "integer"
+          },
           "relinquish_stuck_weapon_id": {
             "anyOf": [
               {

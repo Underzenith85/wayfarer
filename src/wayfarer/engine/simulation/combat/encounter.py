@@ -213,6 +213,9 @@ class PendingDefense(Record):
     mounted_skill_cap: int | None = Field(default=None, ge=1, le=50, exclude_if=lambda v: v is None)
     shield_rush: bool = Field(default=False, exclude_if=lambda value: not value)
     collision_velocity: int = Field(default=0, ge=0, le=400, exclude_if=lambda value: value == 0)
+    electrical_contact_seconds: int = Field(
+        default=0, ge=0, le=60, exclude_if=lambda value: value == 0
+    )
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()

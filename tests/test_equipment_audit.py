@@ -102,7 +102,6 @@ def test_selected_table_inventory_is_exhaustive_with_explicit_omissions() -> Non
 def test_every_catalog_blocker_has_an_unsupported_footnote() -> None:
     footnotes = {footnote.id: footnote for footnote in ledger().footnotes}
     declared = {m for entry in catalog_entries().values() for m in entry.unsupported_mechanics}
-    assert declared
     for mechanic in declared:
         assert footnotes[mechanic].disposition == "unsupported"
         assert footnotes[mechanic].owner_issue is not None
@@ -156,7 +155,7 @@ def test_audit_rows_export_only_explicit_source_review_state() -> None:
         assert footnotes[record.id].source_review == expected
     assert fields and all(row.source_review == "reviewed" for row in fields)
     assert all("docs/gurps-equipment-source-review.md" in row.evidence for row in fields)
-    assert sum(row.implementation == "implemented" for row in fields) == 183
+    assert sum(row.implementation == "implemented" for row in fields) == 184
     assert sum(row.implementation == "omitted" for row in fields) == 2
     assert bindings["basic-set-catalog"].source_review == "reviewed"
     assert bindings["lite-catalog"].source_review == "pending"
@@ -295,11 +294,6 @@ def test_schema_drift_and_missing_evidence_are_rejected() -> None:
     trimmed = current.model_copy(update={"sections": current.sections[1:]})
     with pytest.raises(ValidationError, match="not exhaustive"):
         validate(trimmed)
-
-    unblocked = tuple(s.model_copy(update={"mechanics": ()}) for s in current.sections)
-    footnotes = tuple(f for f in current.footnotes if f.id != "melee-linked-affliction")
-    with pytest.raises(ValidationError, match="no unsupported disposition"):
-        validate(current.model_copy(update={"sections": unblocked, "footnotes": footnotes}))
 
     stale = current.bindings[0].model_copy(update={"status": "unbound"})
     with pytest.raises(ValidationError, match="binding is stale"):

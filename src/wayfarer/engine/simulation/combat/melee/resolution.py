@@ -10,7 +10,7 @@ from __future__ import annotations
 import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
-from wayfarer.engine.rules.checks import Outcome, draw_dice
+from wayfarer.engine.rules.checks import Outcome, RandomSource, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty, strong_damage_bonus
@@ -26,6 +26,10 @@ from wayfarer.engine.simulation.combat.equipment_effects import defense_stress
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.melee.electrical import (
+    electrical_armor,
+    resolve_cattle_prod,
+)
 from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_parry
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.objects.combat import (
@@ -44,7 +48,7 @@ from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_flight
 from wayfarer.engine.simulation.combat.unarmed.records import striking_bonus
 from wayfarer.engine.simulation.combat.vocabulary import Defense
-from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.equipment.catalog import Armor, RangedMode
 from wayfarer.engine.simulation.equipment.silver import (
     attack_construction,
     silver_wounding_multiplier,
@@ -69,6 +73,42 @@ def _visibility_adjustment(value: DerivedValue | None, penalty: int) -> DerivedV
     if value is None:
         return None
     return DerivedValue(value.target, value.value + penalty, value.explanations)
+
+
+def _armor_resistance(cattle_prod: bool, armors: tuple[Armor, ...]) -> tuple[int, int, bool]:
+    if cattle_prod:
+        return electrical_armor(armors)
+    return max((armor.dr for armor in armors), default=0), 0, False
+
+
+def _apply_cattle_prod(
+    state: PlayState,
+    *,
+    enabled: bool,
+    event_id: str,
+    target_id: str,
+    ht: int,
+    armor_bonus: int,
+    insulated: bool,
+    contact_seconds: int,
+    rng: RandomSource,
+    effect_dice: tuple[int, ...],
+) -> tuple[PlayState, tuple[int, ...]]:
+    if not enabled:
+        return state, effect_dice
+    resources, electrical = resolve_cattle_prod(
+        state.resources,
+        event_id=event_id,
+        target_id=target_id,
+        ht=ht,
+        armor_bonus=armor_bonus,
+        insulated=insulated,
+        contact_seconds=contact_seconds,
+        rng=rng,
+    )
+    if electrical.resistance is not None:
+        effect_dice += electrical.resistance.dice
+    return state.model_copy(update={"resources": resources}), effect_dice
 
 
 def resolve_melee(
@@ -106,6 +146,8 @@ def resolve_melee(
             second_parry_mode_id=second_parry_mode_id,
             catch_thrown=catch_thrown,
         )
+    weapon_item = next(item for item in state.resources.items if item.id == pending.weapon_id)
+    cattle_prod = weapon_item.definition_id == "equipment:cattle-prod"
     damage_type = "cr" if pending.subdual_mode is not None else weapon.damage.damage_type
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
@@ -586,21 +628,21 @@ def resolve_melee(
             else:
                 location, location_dice = select_location(pending.hit_location, rng=runtime.rng)
     entries = {e.definition_id: e for e in equipment.entries}
-    resistance = max(
-        (
-            e.armor.dr
-            for i in state.resources.items
-            if i.owner_id == pending.defender_id
-            and i.equipped
-            and (i.condition is None or not i.condition.disabled)
-            for e in (entries[i.definition_id],)
-            if e.armor
-            and (
-                (location or "torso") in e.armor.locations
-                or (part(location) + "s" if location else "torso") in e.armor.locations
-            )
-        ),
-        default=0,
+    covering_armor = tuple(
+        e.armor
+        for i in state.resources.items
+        if i.owner_id == pending.defender_id
+        and i.equipped
+        and (i.condition is None or not i.condition.disabled)
+        for e in (entries[i.definition_id],)
+        if e.armor
+        and (
+            (location or "torso") in e.armor.locations
+            or (part(location) + "s" if location else "torso") in e.armor.locations
+        )
+    )
+    resistance, electrical_bonus, electrically_insulated = _armor_resistance(
+        cattle_prod, covering_armor
     )
 
     if runtime.rules.abilities is not None:
@@ -684,6 +726,18 @@ def resolve_melee(
         lasting_ids += result.lasting_injury_ids
         effect_dice += result.location_dice
         state = state.model_copy(update={"resources": resources})
+    state, effect_dice = _apply_cattle_prod(
+        state,
+        enabled=hit and cattle_prod and pending.target_item_id is None,
+        event_id=pending.id,
+        target_id=pending.defender_id,
+        ht=defend_build.statistics.ht,
+        armor_bonus=electrical_bonus,
+        insulated=electrically_insulated,
+        contact_seconds=pending.electrical_contact_seconds,
+        rng=runtime.rng,
+        effect_dice=effect_dice,
+    )
     updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
     status = updated_hp.injury
     assert status is not None

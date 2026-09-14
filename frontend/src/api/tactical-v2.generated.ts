@@ -900,6 +900,11 @@ export interface components {
        */
       shield_rush: boolean;
       /**
+       * Electrical Contact Seconds
+       * @default 0
+       */
+      electrical_contact_seconds: number;
+      /**
        * Relinquish Stuck Weapon Id
        * @default null
        */

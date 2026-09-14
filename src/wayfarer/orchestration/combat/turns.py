@@ -798,5 +798,6 @@ def _take_turn(
         suppression_fire=bool(command_for_turn.suppression_zones),
         enter_close_combat=command_for_turn.enter_close_combat,
         shield_rush=command_for_turn.shield_rush,
+        electrical_contact_seconds=command_for_turn.electrical_contact_seconds,
     )
     return _after_turn(state, command, encounter, context, command_for_turn, resources, result)

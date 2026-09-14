@@ -475,7 +475,6 @@ WEAPONS = (
         50,
         2000,
         melee("shortsword-burn", "shortsword", 3, "fixed", -3, "burn", (1,), dice=1),
-        unsupported=("melee-linked-affliction",),
         silver_construction=False,
     ),
     weapon(

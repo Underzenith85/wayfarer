@@ -343,6 +343,7 @@ def take_turn(
     suppression_fire: bool = False,
     enter_close_combat: bool = False,
     shield_rush: bool = False,
+    electrical_contact_seconds: int = 0,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     original, original_resources = encounter, resources
     interrupt = encounter.wait_interrupt
@@ -403,6 +404,7 @@ def take_turn(
         suppression_fire=suppression_fire,
         enter_close_combat=enter_close_combat,
         shield_rush=shield_rush,
+        electrical_contact_seconds=electrical_contact_seconds,
     )
     if engine.rules.gurps_equipment is not None and interrupt is None and command_json:
         interrupted = _wait_interruption(
@@ -552,6 +554,7 @@ def apply_turn(
     suppression_fire: bool = False,
     enter_close_combat: bool = False,
     shield_rush: bool = False,
+    electrical_contact_seconds: int = 0,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     if engine.rules.gurps_equipment is not None:
         command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -861,6 +864,7 @@ def apply_turn(
             opened_round=encounter.round,
             opened_turn=encounter.turn_index,
             shield_rush=shield_rush,
+            electrical_contact_seconds=electrical_contact_seconds,
             collision_velocity=(
                 len(hex_path)
                 + (
