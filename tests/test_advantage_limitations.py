@@ -194,7 +194,7 @@ def test_gadget_availability_reads_exact_custody_and_durability_state() -> None:
         update={"revision": 8, "items": (item.model_copy(update={"owner_id": "thief"}),)}
     )
     result = resolve_gadget_availability(stolen, binding, selections, {spec.definition_id: spec})
-    assert (result.revision, result.available, result.reason) == (8, False, "lost-unique")
+    assert (result.revision, result.available, result.reason) == (8, False, "stolen")
     broken = state.model_copy(
         update={
             "revision": 9,
@@ -204,6 +204,76 @@ def test_gadget_availability_reads_exact_custody_and_durability_state() -> None:
     assert (
         resolve_gadget_availability(broken, binding, selections, {spec.definition_id: spec}).reason
         == "broken"
+    )
+
+
+def test_gadget_variants_require_only_their_source_supported_authority() -> None:
+    facts = GadgetConstruction(
+        damage_resistance=5,
+        size_modifier=-3,
+        theft_method="quick-contest",
+        unique=False,
+    )
+    binding = GadgetAbilityBinding(
+        ability_id="luck", actor_id="hero", item_id="ring", definition_id="gadget:ring"
+    )
+    ordinary = EquipmentSpec(definition_id="gadget:ring", unit_weight=1)
+    ring = Item(id="ring", definition_id="gadget:ring", owner_id="hero")
+
+    # Can Be Stolen does not silently acquire Breakable's durability requirements.
+    stolen_only = (pick(STOLEN, gadget=facts),)
+    held = ResourceState(revision=1, items=(ring,))
+    assert resolve_gadget_availability(
+        held, binding, stolen_only, {ordinary.definition_id: ordinary}
+    ).available
+    stolen = held.model_copy(
+        update={"revision": 2, "items": (ring.model_copy(update={"owner_id": "thief"}),)}
+    )
+    assert (
+        resolve_gadget_availability(
+            stolen, binding, stolen_only, {ordinary.definition_id: ordinary}
+        ).reason
+        == "stolen"
+    )
+    reacquired = stolen.model_copy(
+        update={"revision": 3, "items": (ring.model_copy(update={"owner_id": "hero"}),)}
+    )
+    assert resolve_gadget_availability(
+        reacquired, binding, stolen_only, {ordinary.definition_id: ordinary}
+    ).available
+
+    # Breakable consults exact object state, while loss of a non-Unique exact item
+    # remains unavailable until campaign authority rebinds or restores that item.
+    durable = EquipmentSpec(
+        definition_id="gadget:ring",
+        unit_weight=1,
+        durability=ObjectProfile(construction="homogenous", hp=4, dr=5, ht=12, size_modifier=-3),
+    )
+    disabled = ResourceState(
+        revision=4,
+        items=(ring.model_copy(update={"condition": ObjectCondition(hp=0, disabled=True)}),),
+    )
+    assert (
+        resolve_gadget_availability(
+            disabled, binding, (pick(BREAKABLE, gadget=facts),), {durable.definition_id: durable}
+        ).reason
+        == "broken"
+    )
+    repaired = disabled.model_copy(
+        update={
+            "revision": 5,
+            "items": (ring.model_copy(update={"condition": ObjectCondition(hp=4)}),),
+        }
+    )
+    assert resolve_gadget_availability(
+        repaired, binding, (pick(BREAKABLE, gadget=facts),), {durable.definition_id: durable}
+    ).available
+    missing = ResourceState(revision=6)
+    assert (
+        resolve_gadget_availability(
+            missing, binding, stolen_only, {ordinary.definition_id: ordinary}
+        ).reason
+        == "not-held"
     )
 
 

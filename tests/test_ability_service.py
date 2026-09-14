@@ -12,10 +12,23 @@ from test_statistics import gurps_draft, profile_compiler, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.catalog import (
+    PROTOTYPE_SOURCE,
+    DefinitionKind,
+    ImplementationStatus,
+    RuleDefinition,
+    RulesCatalog,
+)
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.supernatural.abilities import MODIFIERS, PROFILE, definition
+from wayfarer.engine.rules.traits.modifiers import (
+    BREAKABLE,
+    STOLEN,
+    GadgetConstruction,
+    ModifierSelection,
+)
 from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
 from wayfarer.engine.rules.types.recovery import FatigueStatus, RecoveryTask
 from wayfarer.engine.simulation.abilities import apply_ability, damage_resistance, effects
 from wayfarer.engine.simulation.ability_types import AbilityRules, AbilitySpec
@@ -25,7 +38,7 @@ from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
-from wayfarer.engine.simulation.resources import Pool
+from wayfarer.engine.simulation.resources import EquipmentSpec, Item, Pool
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService
 from wayfarer.orchestration.combat import CombatService, StartEncounter, TakeCombatTurn
@@ -41,19 +54,48 @@ async def setup(
     magic: bool = False,
     hp: int = 10,
     injury: InjuryStatus | None = None,
+    gadget_spec: EquipmentSpec | None = None,
+    gadget_item: Item | None = None,
 ) -> tuple[str, PlayService]:
     from wayfarer.engine.rules.magic.gurps_magic import definitions
 
-    package = profile_package(PROFILE, definition(ability), *(definitions() if magic else ()))
+    gadget_definition = (
+        (
+            RuleDefinition(
+                gadget_spec.definition_id,
+                DefinitionKind.EQUIPMENT,
+                "Bound ability gadget",
+                PROTOTYPE_SOURCE.id,
+                0,
+                ImplementationStatus.IMPLEMENTED,
+            ),
+        )
+        if gadget_spec is not None
+        else ()
+    )
+    package = profile_package(
+        PROFILE,
+        definition(ability),
+        *(definitions() if magic else ()),
+        *gadget_definition,
+    )
     catalog = RulesCatalog((package,))
     base = profile_compiler(PROFILE, package=package)
     compiler = CharacterCompiler(
         catalog,
         base.rules,
-        replace(base.policy, allow_supernatural=True),
+        replace(
+            base.policy,
+            allow_supernatural=True,
+            allowed_equipment=(
+                frozenset({gadget_spec.definition_id}) if gadget_spec is not None else frozenset()
+            ),
+        ),
         statistics_profile=PROFILE,
         trait_runtime_hooks=frozenset(
-            ["ability:" + ability.kind] + [m.runtime_hook for m in MODIFIERS if m.runtime_hook]
+            ["ability:" + ability.kind]
+            + [m.runtime_hook for m in MODIFIERS if m.runtime_hook]
+            + (["ability:gadget"] if ability.gadget_modifiers else [])
         ),
     )
     ctx = context(ability)
@@ -75,17 +117,26 @@ async def setup(
     )
     engine = ActionEngine(
         PowerReviewer(compiler, PowerPolicy(id="power", version=1), frozenset({"gm"})),
-        ResourceEngine(world(), catalog, compiler.rules, compiler.policy, ()),
+        ResourceEngine(
+            world(),
+            catalog,
+            compiler.rules,
+            compiler.policy,
+            () if gadget_spec is None else (gadget_spec,),
+        ),
         configured,
     )
     play = PlayService(
         AsyncSQLiteStore(tmp_path / "abilities.sqlite", 10), engine, rng=RecordedDice([])
     )
     initial = campaign(engine)
+    seeded_resources = resources().model_copy(
+        update={"items": () if gadget_item is None else (gadget_item,)}
+    )
     initial_state = play.initial_state(
         initial,
         world(),
-        resources(),
+        seeded_resources,
         (
             ActorSetup(
                 actor_id="a",
@@ -116,7 +167,7 @@ async def setup(
                         p.model_copy(update={"current": hp, "injury": injury or p.injury})
                         if p.id == "hp:a"
                         else p
-                        for p in resources().pools
+                        for p in seeded_resources.pools
                     )
                     + tuple(
                         Pool(
@@ -165,6 +216,75 @@ async def test_actual_approved_reading_wait_resistance_private_replay(tmp_path: 
         await service.execute(
             cid, resolve.model_copy(update={"channel_id": "different"}), principal_id="a"
         )
+
+
+async def test_gadget_bound_ability_consumes_authoritative_item_state_and_replays(
+    tmp_path: Path,
+) -> None:
+    facts = GadgetConstruction(
+        damage_resistance=5,
+        size_modifier=-3,
+        theft_method="quick-contest",
+    )
+    gadget_modifiers = (
+        ModifierSelection(definition_id=BREAKABLE, gadget=facts),
+        ModifierSelection(definition_id=STOLEN, gadget=facts),
+    )
+    ability = AbilitySpec(
+        definition_id="trait:ability",
+        kind="damage-resistance",
+        modifiers=("costs-fatigue-2", BREAKABLE, STOLEN),
+        gadget_modifiers=gadget_modifiers,
+        gadget_actor_id="a",
+        gadget_item_id="ring",
+        gadget_definition_id="equipment:gadget-ring",
+    )
+    gadget_spec = EquipmentSpec(
+        definition_id="equipment:gadget-ring",
+        unit_weight=1,
+        durability=ObjectProfile(construction="homogenous", hp=4, dr=5, ht=12, size_modifier=-3),
+    )
+
+    unavailable_id, unavailable_play = await setup(
+        tmp_path / "stolen",
+        ability,
+        gadget_spec=gadget_spec,
+        gadget_item=Item(
+            id="ring",
+            definition_id="equipment:gadget-ring",
+            owner_id="b",
+            condition=ObjectCondition(hp=4),
+        ),
+    )
+    before = await unavailable_play.store.read(unavailable_id)
+    blocked = command().model_copy(update={"channel_id": None})
+    for _ in range(2):
+        with pytest.raises(ValidationError, match="Gadget ability unavailable: stolen"):
+            await AbilityService(unavailable_play).execute(
+                unavailable_id, blocked, principal_id="a"
+            )
+    assert await unavailable_play.store.read(unavailable_id) == before
+
+    available_id, available_play = await setup(
+        tmp_path / "reacquired",
+        ability,
+        gadget_spec=gadget_spec,
+        gadget_item=Item(
+            id="ring",
+            definition_id="equipment:gadget-ring",
+            owner_id="a",
+            condition=ObjectCondition(hp=4),
+        ),
+    )
+    service = AbilityService(available_play)
+    results = await asyncio.gather(
+        *(service.execute(available_id, blocked, principal_id="a") for _ in range(3))
+    )
+    assert all(result.outcome == "active" for result in results)
+    assert len({result.model_dump_json() for result in results}) == 1
+    assert await available_play.store.read(available_id) == await available_play.store.replay(
+        available_id
+    )
 
 
 async def test_malediction_executes_injury_on_signed_profile_pool(tmp_path: Path) -> None:

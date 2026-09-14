@@ -2227,18 +2227,22 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_advantage_limitations.py",
+        "tests/test_ability_service.py::test_gadget_bound_ability_consumes_authoritative_item_state_and_replays"
       ],
       "historical_owners": [
         191,
         497,
-        94
+        94,
+        683,
+        721
       ],
-      "completion_owner": 683,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",

@@ -66,32 +66,40 @@ def resolve_gadget_availability(
 ) -> GadgetAvailabilityReceipt:
     """Read one exact persisted item at one CAS revision and return a replayable receipt."""
     facts = _construction(selections)
+    selected = {selection.definition_id for selection in selections}
     item = next((candidate for candidate in state.items if candidate.id == binding.item_id), None)
-    unique = any(selection.definition_id == UNIQUE for selection in selections)
+    unique = UNIQUE in selected
     if item is None:
-        if unique:
-            return GadgetAvailabilityReceipt(
-                revision=state.revision,
-                ability_id=binding.ability_id,
-                actor_id=binding.actor_id,
-                item_id=binding.item_id,
-                available=False,
-                reason="lost-unique",
-            )
-        raise ValidationError(
-            "Bound gadget item is unavailable; reacquisition must bind an exact item"
+        return GadgetAvailabilityReceipt(
+            revision=state.revision,
+            ability_id=binding.ability_id,
+            actor_id=binding.actor_id,
+            item_id=binding.item_id,
+            available=False,
+            reason="lost-unique" if unique else "not-held",
         )
     if item.definition_id != binding.definition_id:
         raise ValidationError("Bound gadget definition changed")
-    spec = specs.get(item.definition_id)
-    if spec is None or spec.durability is None or item.condition is None:
-        raise ValidationError("Breakable gadget requires authoritative durability state")
-    durability = spec.durability
-    if durability.profile_id != PROFILE:
-        raise ValidationError("Gadget durability uses the wrong rules profile")
-    if durability.dr != facts.damage_resistance or durability.size_modifier != facts.size_modifier:
-        raise ValidationError("Gadget construction disagrees with authoritative item facts")
-    broken = item.condition.disabled or item.condition.destroyed
+    broken = False
+    if BREAKABLE in selected:
+        spec = specs.get(item.definition_id)
+        if spec is None or spec.durability is None or item.condition is None:
+            raise ValidationError("Breakable gadget requires authoritative durability state")
+        durability = spec.durability
+        if durability.profile_id != PROFILE:
+            raise ValidationError("Gadget durability uses the wrong rules profile")
+        if (
+            durability.dr != facts.damage_resistance
+            or durability.size_modifier != facts.size_modifier
+        ):
+            raise ValidationError("Gadget construction disagrees with authoritative item facts")
+        if not facts.repairable and (
+            durability.repair_skill_id is not None
+            or durability.repair_tools_definition is not None
+            or durability.repair_parts_definition is not None
+        ):
+            raise ValidationError("Irreparable gadget exposes an authoritative repair route")
+        broken = item.condition.disabled or item.condition.destroyed
     stolen = item.owner_id != binding.actor_id
     held = not stolen and item.ground is None
     projected = GadgetState(held=held, broken=broken, stolen=stolen)
@@ -100,9 +108,11 @@ def resolve_gadget_availability(
     if available:
         reason = "available"
     elif broken:
-        reason = "lost-unique" if unique and item.condition.destroyed else "broken"
+        reason = (
+            "lost-unique" if unique and item.condition and item.condition.destroyed else "broken"
+        )
     elif stolen:
-        reason = "lost-unique" if unique else "stolen"
+        reason = "stolen"
     else:
         reason = "not-held"
     return GadgetAvailabilityReceipt(

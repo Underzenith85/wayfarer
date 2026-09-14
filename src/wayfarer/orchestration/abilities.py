@@ -21,6 +21,10 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
+from wayfarer.engine.simulation.equipment.gadget_limitations import (
+    GadgetAbilityBinding,
+    resolve_gadget_availability,
+)
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import ConflictError, ValidationError
@@ -35,6 +39,32 @@ ABILITY_REFUSAL = "Ability actor is not controlled by principal"
 @dataclass(frozen=True)
 class AbilityExecutionContext:
     play: PlayService
+
+
+def _require_gadget_available(
+    state: PlayState,
+    command: AbilityCommand,
+    spec: AbilitySpec,
+    execution: AbilityExecutionContext,
+) -> None:
+    if not spec.gadget_modifiers:
+        return
+    if spec.gadget_actor_id != command.actor_id:
+        raise ValidationError("Gadget ability is bound to a different approved actor")
+    assert spec.gadget_item_id is not None and spec.gadget_definition_id is not None
+    availability = resolve_gadget_availability(
+        state.resources,
+        GadgetAbilityBinding(
+            ability_id=spec.definition_id,
+            actor_id=command.actor_id,
+            item_id=spec.gadget_item_id,
+            definition_id=spec.gadget_definition_id,
+        ),
+        spec.gadget_modifiers,
+        execution.play.engine.resources.specs,
+    )
+    if not availability.available:
+        raise ValidationError(f"Gadget ability unavailable: {availability.reason}")
 
 
 def _prepare_ability(
@@ -66,6 +96,7 @@ def _prepare_ability(
     # The pinned binding identifies the runtime family; approved purchases
     # choose only combinations that its compiler metadata can execute.
     spec = spec.model_copy(update={"modifiers": (purchased.trait or TraitOptions()).modifiers})
+    _require_gadget_available(state, command, spec, execution)
     values = {v.target: int(v.value) for v in build.sheet.values}
     channel = next((c for c in rules.channels if c.id == command.channel_id), None)
     if channel is not None and command.kind != "cancel":
