@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "issue": 729,
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+  "profile": "gurps-basic-set-4e-2004",
+  "sources": {
+    "characters": {
+      "id": "sjg:basic-set-characters-4e-2004",
+      "printing": "Third printing, February 2008",
+      "sha256": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e"
+    },
+    "campaigns": {
+      "id": "sjg:basic-set-campaigns-4e-2004",
+      "printing": "Fourth printing, April 2008",
+      "sha256": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80"
+    }
+  },
+  "capabilities": [
+    {
+      "capability_id": "gurps.skills.arts_trades",
+      "source": "characters",
+      "references": ["B178-B233", "B301-B304"],
+      "owner_rows": {"procedure_owner": 338, "count": 62},
+      "variants": [
+        "item-specific art, craft, trade, performance, concealment, and acquisition procedures",
+        "Armoury, Group Performance, Mimicry, and Smith concrete specialties",
+        "parent-bound Impersonate and technique execution",
+        "ordinary checks and quick contests with recorded entropy",
+        "contextual rows and missing subjects, parents, contexts, modifiers, or profiles fail closed"
+      ],
+      "execution_paths": [
+        "wayfarer.engine.rules.skills.mundane.arts_attempts.attempt",
+        "wayfarer.engine.rules.skills.mundane.arts_attempts.replay"
+      ],
+      "evidence": ["tests/test_arts_skills.py", "tests/fixtures/gurps/arts_skills.json"]
+    },
+    {
+      "capability_id": "gurps.skills.knowledge_investigation",
+      "source": "characters",
+      "references": ["B174-B233", "B301-B304"],
+      "owner_rows": {"procedure_owner": 341, "count": 27},
+      "variants": [
+        "administration, economics, finance, law, and source-pinned knowledge",
+        "Body Language, Detect Lies, and Gambling contests",
+        "Observation, Search, Shadowing, Stealth, and Speed-Reading procedures",
+        "subject-scoped academic and religious families",
+        "unknown-until-later retries and missing context, resistance, modifiers, subjects, or profiles fail closed"
+      ],
+      "execution_paths": [
+        "wayfarer.engine.rules.skills.mundane.procedures.attempt",
+        "wayfarer.engine.rules.skills.mundane.procedures.replay"
+      ],
+      "evidence": ["tests/test_knowledge_investigation_procedures.py"]
+    },
+    {
+      "capability_id": "gurps.skills.medicine_mental",
+      "source": "characters",
+      "references": ["B179-B233", "B301-B304"],
+      "owner_rows": {"procedure_owner": 342, "count": 22},
+      "variants": [
+        "diagnosis, first aid, esoteric medicine, physician, poison, surgery, and veterinary procedures",
+        "Autohypnosis, Dreaming, Meditation, and Mind Block mental procedures",
+        "Brain Hacking, Brainwashing, Erotic Art, Exorcism, and Hypnotism contests",
+        "Physiology and Psychology subject knowledge plus Scuba exposure handling",
+        "Herbal and Synthetic Pharmacy specialties",
+        "retry, context, resistance, modifier, subject, specialty, and profile validation fail closed"
+      ],
+      "execution_paths": [
+        "wayfarer.engine.rules.skills.mundane.procedures.attempt",
+        "wayfarer.engine.rules.skills.mundane.procedures.replay"
+      ],
+      "evidence": ["tests/test_medicine_mental_procedures.py", "tests/test_medical_service.py"]
+    },
+    {
+      "capability_id": "gurps.skills.physical_outdoors",
+      "source": "characters",
+      "references": ["B174-B233", "B301-B304"],
+      "owner_rows": {"procedure_owner": 343, "count": 70},
+      "variants": [
+        "physical feats and Lifesaving, Rope Up, Scaling, and Slip Handcuffs parent-bound techniques",
+        "overland, airborne, water, and assisted travel",
+        "survival, free-fall, breathing, parachuting, and fishing hazards",
+        "animal handling, riding, packing, teamster work, and mounting",
+        "field knowledge, tracking, scrounging, sport contests, and thrown actions",
+        "Meteorology, Navigation, and Survival concrete specialties",
+        "retry, context, resistance, modifier, subject, parent, specialty, and profile validation fail closed"
+      ],
+      "execution_paths": [
+        "wayfarer.engine.rules.skills.mundane.procedures.attempt",
+        "wayfarer.engine.rules.skills.mundane.procedures.replay"
+      ],
+      "evidence": ["tests/test_physical_outdoor_procedures.py", "tests/test_hazard_variants.py"]
+    },
+    {
+      "capability_id": "gurps.skills.technology_vehicles",
+      "source": "characters",
+      "references": ["B168-B169", "B174-B233", "B301-B304"],
+      "owner_rows": {"procedure_owner": 346, "count": 83},
+      "variants": [
+        "operation, repair, engineering, science, navigation, analysis, disguise, and trap procedures",
+        "seventeen finite specialty families expanded to concrete rows",
+        "technology-level difference and familiarity penalties",
+        "purchased-definition, parent-level, capability, equipment, and training activation requirements",
+        "critical success, success, failure, and critical failure material outcomes",
+        "recorded retries and unavailable, mismatched, or under-specified operations fail closed"
+      ],
+      "execution_paths": [
+        "wayfarer.engine.rules.skills.mundane.technology.attempts.attempt",
+        "wayfarer.engine.rules.skills.mundane.technology.attempts.replay"
+      ],
+      "evidence": [
+        "tests/test_technology_skills.py",
+        "tests/test_technology_specialties.py",
+        "tests/fixtures/gurps/technology_skills.json",
+        "tests/fixtures/gurps/technology_specialties.json"
+      ]
+    },
+    {
+      "capability_id": "gurps.world.physical_feats",
+      "source": "campaigns",
+      "references": ["B346", "B349-B356", "B430-B431"],
+      "owner_rows": {"source_ledger_capability": "gurps.world.physical_feats", "minimum": 1},
+      "variants": [
+        "climbing pace and combat pace",
+        "standing, running, and unprepared high and broad jumps",
+        "one-hand, two-hand, carry, shift, and extra-effort lifting",
+        "terrain-adjusted individual and group hiking",
+        "hard, flexible, and controlled falling impacts",
+        "long tasks, supervision, digging, breath holding, running, extra effort, and gravity",
+        "authorization, immutable routes, shared deadlines, injury constraints, CAS, retry, restart, and replay"
+      ],
+      "execution_paths": [
+        "wayfarer.engine.rules.physical",
+        "wayfarer.orchestration.physical.PhysicalService",
+        "wayfarer.engine.simulation.campaign.activities.apply_activity"
+      ],
+      "evidence": [
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py",
+        "tests/test_campaign_activities.py"
+      ]
+    },
+    {
+      "capability_id": "gurps.world.environmental_hazards",
+      "source": "campaigns",
+      "references": ["B428-B444"],
+      "owner_rows": {"source_ledger_capability": "gurps.world.environmental_hazards", "minimum": 1},
+      "variants": [
+        "acid splash, immersion, and swallowing",
+        "corrosive, pollutant, lethal, dense toxic, and unbreathable atmospheres",
+        "pressure crushing and decompression illness",
+        "cold, icy-water thermal shock, heat, and intense heat",
+        "nonlethal, lethal, and localized electricity",
+        "actor fire and material-class object ignition",
+        "acceleration, radiation exposure and decay, and seasickness",
+        "suffocation, drowning, vacuum, and explosive decompression",
+        "poison, intoxication, drugs, withdrawal, overdose, disease, and aging",
+        "explicit protection, immutable schedules, due ticks, injury and fatigue reducers, audience, CAS, retry, restart, and replay"
+      ],
+      "execution_paths": [
+        "wayfarer.engine.rules.environmental_hazards",
+        "wayfarer.engine.simulation.health.hazards.apply_hazard",
+        "wayfarer.orchestration.hazards.HazardService"
+      ],
+      "evidence": [
+        "tests/test_environmental_hazards.py",
+        "tests/test_gurps_hazards.py",
+        "tests/test_hazard_variants.py",
+        "tests/test_toxins.py",
+        "tests/test_disease_aging.py"
+      ]
+    }
+  ]
+}

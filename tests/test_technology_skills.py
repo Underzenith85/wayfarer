@@ -174,7 +174,7 @@ def test_issue_346_owner_inventory_and_capability_are_complete() -> None:
     assert all(row.bound and not row.blockers for row in rows)
     assert all(row.implementation == "implemented" for row in rows)
     declared = CAPABILITIES["gurps.skills.technology_vehicles"]
-    assert declared.status is CoverageStatus.PARTIAL and declared.owner_issue == 346
+    assert declared.status is CoverageStatus.VERIFIED and declared.owner_issue == 729
 
 
 def test_a_binding_may_only_resolve_or_keep_the_recorded_blockers() -> None:

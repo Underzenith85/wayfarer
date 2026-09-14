@@ -161,4 +161,4 @@ def test_only_concrete_skill_rows_publish_definitions() -> None:
     assert not {definition.id for definition in published} & set(FAMILIES)
     assert "skill:impersonate" not in {definition.id for definition in published}
     capability = CAPABILITIES["gurps.skills.arts_trades"]
-    assert capability.status is CoverageStatus.PARTIAL and capability.owner_issue == 338
+    assert capability.status is CoverageStatus.VERIFIED and capability.owner_issue == 729

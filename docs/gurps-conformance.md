@@ -228,13 +228,13 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.campaign.hirelings` | no | yes | verified | #503; [contracts, pay, and private loyalty](gurps-economics.md) |
 | `gurps.character.development` | no | yes | partial | #499; [adventure, study, quick-learning, and gained-trait settlement](gurps-character-development.md) |
 | `gurps.social.skill_procedures` | no | yes | partial | #345 parent audit and #366 specialties complete; [17 executable headline rows, seven Fortune-Telling children, and campaign Savoir-Faire milieus](gurps-mundane-skills.md#social-procedures-345); residual #368–#370 |
-| `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
+| `gurps.skills.arts_trades` | no | yes | verified | #729; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.combat.melee_weapon_skills` | no | yes | partial | #339; [bound melee, unarmed, defense and tactical skill procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |
 | `gurps.combat.technique_procedures` | no | yes | partial | #340; [parent-specific combat technique procedures](gurps-mundane-skills.md#combat-technique-procedures-340) |
-| `gurps.skills.knowledge_investigation` | no | yes | partial | #341; [knowledge, academic and investigation procedures](gurps-mundane-skills.md#knowledge-and-investigation-procedures-341) |
-| `gurps.skills.medicine_mental` | no | yes | partial | #342; [medicine and mental procedures](gurps-mundane-skills.md#medicine-and-mental-procedures-342) |
-| `gurps.skills.physical_outdoors` | no | yes | partial | #343; [physical, outdoor and animal procedures](gurps-mundane-skills.md#physical-outdoor-and-animal-procedures-343) |
-| `gurps.skills.technology_vehicles` | no | yes | partial | #346 parent audit complete; [83 implemented owner rows and explicit cross-family transfers](gurps-mundane-skills.md#technology-science-and-vehicle-procedures-346) |
+| `gurps.skills.knowledge_investigation` | no | yes | verified | #729; [knowledge, academic and investigation procedures](gurps-mundane-skills.md#knowledge-and-investigation-procedures-341) |
+| `gurps.skills.medicine_mental` | no | yes | verified | #729; [medicine and mental procedures](gurps-mundane-skills.md#medicine-and-mental-procedures-342) |
+| `gurps.skills.physical_outdoors` | no | yes | verified | #729; [physical, outdoor and animal procedures](gurps-mundane-skills.md#physical-outdoor-and-animal-procedures-343) |
+| `gurps.skills.technology_vehicles` | no | yes | verified | #729; #346 parent audit complete; [83 implemented owner rows and explicit cross-family transfers](gurps-mundane-skills.md#technology-science-and-vehicle-procedures-346) |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
@@ -264,8 +264,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.recovery.fatigue` | yes | yes | partial | #516; [Basic Set survival complete](gurps-survival.md), exact Lite source remains unavailable |
 | `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
-| `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
-| `gurps.world.environmental_hazards` | yes | yes | partial | #110, #154, #517, and #518; [typed persistent exposure schedules](gurps-hazards.md), [poisons, intoxication, drugs, withdrawal, and overdose](gurps-toxins.md); illness ownership remains separate |
+| `gurps.world.physical_feats` | yes | yes | verified | #729; [bounded authoritative procedures](gurps-hazards.md) |
+| `gurps.world.environmental_hazards` | yes | yes | verified | #729; #110, #154, #517, #518, and #519 implementation lineage; [typed persistent exposure schedules](gurps-hazards.md), [poisons, intoxication, drugs, withdrawal, and overdose](gurps-toxins.md) |
 | `gurps.magic.spellcasting` | no | yes | verified | #688; complete supernatural spell inventory with Fireball lifecycle, Aim, targeting, ranged criticals, replay and restart evidence |
 | `gurps.supernatural.abilities` | no | yes | verified | #688; complete supernatural ability inventory with all Injury Tolerance forms and shared injury/effect integration |
 | `gurps.vehicles.movement` | no | yes | verified | #358; [vehicle operation audit](gurps-vehicles.md); all ten modes complete in #392-#396 |

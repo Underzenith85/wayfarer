@@ -31,6 +31,7 @@ from wayfarer.errors import ValidationError
 FIXTURE = Path("tests/fixtures/gurps/conformance.json")
 SIZE_FIXTURE = Path("tests/fixtures/gurps/size_modifier_costs.json")
 LIMITATIONS_FIXTURE = Path("tests/fixtures/gurps/advantage-limitations.json")
+ISSUE_729_EVIDENCE = Path("src/wayfarer/certification/basic_set_audit/capability-evidence-729.json")
 CHECK_CAPABILITIES = {
     "gurps.check.success",
     "gurps.check.margin",
@@ -38,6 +39,13 @@ CHECK_CAPABILITIES = {
     "gurps.check.quick_contest",
     "gurps.check.regular_contest",
     "gurps.check.resistance",
+}
+# #729 certifies these shared mechanics against the selected Basic Set artifact.
+# The unavailable Lite artifact remains owned by Lite certification and must not
+# block the engine-only Basic Set target.
+BASIC_ONLY_VERIFICATIONS = {
+    "gurps.world.environmental_hazards",
+    "gurps.world.physical_feats",
 }
 
 
@@ -104,10 +112,17 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.campaign.hirelings",
         "gurps.magic.spellcasting",
         "gurps.supernatural.abilities",
+        "gurps.skills.arts_trades",
+        "gurps.skills.knowledge_investigation",
+        "gurps.skills.medicine_mental",
+        "gurps.skills.physical_outdoors",
+        "gurps.skills.technology_vehicles",
+        "gurps.world.environmental_hazards",
+        "gurps.world.physical_feats",
     }
     assert all(
         CAPABILITIES[identifier].owner_issue
-        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 683, 685, 688)
+        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 683, 685, 688, 729)
         for identifier in verified
     )
 
@@ -192,12 +207,20 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
     covered.add((size_data["capability_id"], "gurps-basic-set-4e-2004"))
     limitations_data = json.loads(LIMITATIONS_FIXTURE.read_text())
     covered.add(("gurps.character.ability_modifiers", limitations_data["profile"]))
+    issue_729 = json.loads(ISSUE_729_EVIDENCE.read_text())
+    covered.update(
+        (entry["capability_id"], issue_729["profile"]) for entry in issue_729["capabilities"]
+    )
     for entry in CAPABILITIES.values():
         if entry.status is not CoverageStatus.VERIFIED:
             continue
         assert (entry.id, "gurps-basic-set-4e-2004") in covered, entry.id
         # The frozen Lite artifact has no resisted supernatural attacks to cite.
-        if entry.lite_required and entry.id != "gurps.check.resistance":
+        if (
+            entry.lite_required
+            and entry.id != "gurps.check.resistance"
+            and entry.id not in BASIC_ONLY_VERIFICATIONS
+        ):
             assert (entry.id, "gurps-lite-4e-2004") in covered, entry.id
     assert CAPABILITIES["gurps.character.size_modifier_costs"].status is CoverageStatus.VERIFIED
     assert not CAPABILITIES["gurps.character.size_modifier_costs"].lite_required

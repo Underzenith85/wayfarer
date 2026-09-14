@@ -94,6 +94,6 @@ def test_subject_context_retry_policy_and_modifiers_fail_closed() -> None:
         )
 
 
-def test_capability_is_registered_as_partial() -> None:
+def test_capability_is_registered_as_verified() -> None:
     declared = CAPABILITIES["gurps.skills.knowledge_investigation"]
-    assert declared.status is CoverageStatus.PARTIAL and declared.owner_issue == 341
+    assert declared.status is CoverageStatus.VERIFIED and declared.owner_issue == 729
