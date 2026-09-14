@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.errors import ProviderError
 from wayfarer.orchestration.battlefield_templates import install_rules
 from wayfarer.orchestration.npcs import NPCService
+from wayfarer.orchestration.process_kinds import KINDS
 from wayfarer.orchestration.providers import ProviderWork
 from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.persistence.processes import Process
@@ -159,6 +160,28 @@ async def test_restart_fails_interrupted_jobs_explicitly(tmp_path: Path) -> None
     assert len(published) == 1 and published[0].status == "failed"
     await job_worker(store).start()
     assert await restarted.store.outbox("campaign", "gm", "gm") == published
+
+
+@pytest.mark.parametrize("kind", sorted(kind.name for kind in KINDS))
+async def test_restart_fails_every_kind_of_in_flight_process(tmp_path: Path, kind: str) -> None:
+    """Every registered kind has the same restart story, not just the provider calls."""
+    store = open_store(tmp_path, filename=f"restart-{kind}.sqlite")
+    worker = job_worker(store)
+    await worker.start()
+    await worker.store.create(
+        Process(
+            id=f"in-flight:{kind}",
+            kind=kind,
+            scope="campaign",
+            principal_id="gm",
+            actor_id="gm",
+            status="running",
+        )
+    )
+    await job_worker(store).start()
+    restarted = await worker.store.read(f"in-flight:{kind}")
+    assert restarted.status == "failed" and restarted.error == "worker_restarted"
+    assert len(await worker.store.outbox("campaign", "gm", "gm")) == 1
 
 
 async def test_another_partition_leaves_interrupted_work_alone(tmp_path: Path) -> None:

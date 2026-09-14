@@ -105,6 +105,22 @@ RETIRED_PRINCIPAL_SPELLINGS = frozenset(
     {"authenticated_actor_id", "authenticated_gm_id", "authenticated_principal_id", "gm_id"}
 )
 
+# The modules that still start work with a bare task instead of a process (#640).
+# `v1/service.py` and `v1/live.py` are the v1 action lifecycle, which step 9 (#641)
+# moves; `catalog_api.py` is the scenario generation job. This table may only shrink.
+BARE_TASK_OWNERS = frozenset(
+    {
+        "transport/catalog_api.py",
+        "transport/v1/live.py",
+        "transport/v1/service.py",
+    }
+)
+
+# A provider is called from the module that owns the contract, or from the worker
+# that bounds it. Nothing else names the raw call.
+PROVIDER_CALLERS = frozenset({"orchestration/providers.py", "orchestration/processes.py"})
+RAW_PROVIDER_CALLS = frozenset({"_call", "_reply", "complete"})
+
 # The store handles belong to the runtime. ``persistence`` builds them, the three
 # composition roots wire them, and nothing else names a store constructor.
 STORE_CONSTRUCTORS = frozenset(
@@ -384,6 +400,49 @@ class ArchitectureTests(unittest.TestCase):
                         f"{source.relative_to(package)}:{node.name}: "
                         "name the principal principal_id",
                     )
+
+    def test_provider_calls_stay_behind_the_process_worker(self) -> None:
+        """A provider is called where its contract lives, never inline elsewhere (#640)."""
+        package = Path(wayfarer.__file__).parent
+        for domain in ("orchestration", "transport"):
+            for source in sorted((package / domain).rglob("*.py")):
+                name = source.relative_to(package).as_posix()
+                if name in PROVIDER_CALLERS:
+                    continue
+                for node in ast.walk(ast.parse(source.read_text())):
+                    if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+                        continue
+                    if node.func.attr in RAW_PROVIDER_CALLS:
+                        self.assertNotIsInstance(
+                            node.func.value,
+                            ast.Name | ast.Attribute,
+                            f"{name}: ask for the call through a process instead",
+                        )
+
+    def test_background_work_belongs_to_the_process_worker(self) -> None:
+        """One worker starts background work; the rest ask it to (#640).
+
+        ``BARE_TASK_OWNERS`` is what step 9 (#641) still owns. It may only shrink.
+        """
+        package = Path(wayfarer.__file__).parent
+        starters = set()
+        for domain in ("orchestration", "transport"):
+            for source in sorted((package / domain).rglob("*.py")):
+                name = source.relative_to(package).as_posix()
+                if name == "orchestration/processes.py":
+                    continue
+                for node in ast.walk(ast.parse(source.read_text())):
+                    if (
+                        isinstance(node, ast.Call)
+                        and isinstance(node.func, ast.Attribute)
+                        and node.func.attr == "create_task"
+                    ):
+                        starters.add(name)
+        self.assertEqual(
+            sorted(starters - BARE_TASK_OWNERS),
+            [],
+            "run this through the process worker instead of a bare task",
+        )
 
     def test_command_families_plan_instead_of_committing(self) -> None:
         """No family commits for itself (#638, #639).
