@@ -235,16 +235,16 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.skills.medicine_mental` | no | yes | verified | #729; [medicine and mental procedures](gurps-mundane-skills.md#medicine-and-mental-procedures-342) |
 | `gurps.skills.physical_outdoors` | no | yes | verified | #729; [physical, outdoor and animal procedures](gurps-mundane-skills.md#physical-outdoor-and-animal-procedures-343) |
 | `gurps.skills.technology_vehicles` | no | yes | verified | #729; #346 parent audit complete; [83 implemented owner rows and explicit cross-family transfers](gurps-mundane-skills.md#technology-science-and-vehicle-procedures-346) |
-| `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
-| `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; field source review complete, broader runtime/catalog coverage partial) |
-| `gurps.equipment.catalog` | yes | yes | partial | #114 |
-| `gurps.equipment.object_durability` | no | yes | partial | #114/#181/#289/#290 mechanics complete; source certification remains #191/#492 |
-| `gurps.injury.damage_types` | yes | yes | partial | #102 |
-| `gurps.injury.damage_resistance` | yes | yes | partial | #102 |
-| `gurps.injury.hp_thresholds` | yes | yes | partial | #102 |
-| `gurps.injury.hit_locations` | no | yes | partial | #510; [living-human dispatch and blockers](gurps-hit-locations.md) |
-| `gurps.injury.armor_divisors` | no | yes | partial | #510; [numeric armor integration](gurps-hit-locations.md) |
-| `gurps.injury.lasting_wounds` | no | yes | partial | #107; [durable impairments and remaining effects](gurps-hit-locations.md) |
+| `gurps.equipment.weapon_profiles` | yes | yes | verified | #728; [variant/source/runtime matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.equipment.armor_profiles` | yes | yes | verified | #728; [variant/source/runtime matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.equipment.catalog` | yes | yes | verified | #728; all Basic Set equipment audit scopes joined in the [certification matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.equipment.object_durability` | no | yes | verified | #728; [object HP, damage, breakage, repair and replay matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.injury.damage_types` | yes | yes | verified | #728; [variant/source/runtime matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.injury.damage_resistance` | yes | yes | verified | #728; [variant/source/runtime matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.injury.hp_thresholds` | yes | yes | verified | #728; [variant/source/runtime matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.injury.hit_locations` | no | yes | verified | #728; [living-human variants](gurps-hit-locations.md) and [certification matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.injury.armor_divisors` | no | yes | verified | #728; [numeric armor integration](gurps-hit-locations.md) and [certification matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.injury.lasting_wounds` | no | yes | verified | #728; [durable impairments](gurps-hit-locations.md) and [certification matrix](gurps-equipment-injury-recovery-certification.md) |
 | `gurps.combat.melee_attack` | yes | yes | verified | #727 reconciles declaration, reach, defense, damage/injury, critical, durability and replay variants in the [combat certification matrix](gurps-combat-capability-certification.md) |
 | `gurps.combat.active_defense` | yes | yes | verified | #727 reconciles Dodge, Block, Parry, retreat, maneuver restrictions and heavy-weapon effects in the [combat certification matrix](gurps-combat-capability-certification.md) |
 | `gurps.combat.maneuvers` | yes | yes | verified | #727 reconciles the complete permission table and stateful maneuver variants in the [combat certification matrix](gurps-combat-capability-certification.md) |
@@ -261,9 +261,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.tactical.hex_movement` | no | yes | verified | #727 reconciles path costs, reach/LOS, close combat, multi-hex and high-speed movement in the [combat certification matrix](gurps-combat-capability-certification.md) |
 | `gurps.tactical.facing` | no | yes | verified | #727 reconciles arcs, turning costs, runaround attacks and multi-hex facing in the [combat certification matrix](gurps-combat-capability-certification.md) |
 | `gurps.tactical.visibility` | no | yes | verified | #727 reconciles darkness, unseen attacks, light, smoke and surprise in the [combat certification matrix](gurps-combat-capability-certification.md) |
-| `gurps.recovery.fatigue` | yes | yes | partial | #516; [Basic Set survival complete](gurps-survival.md), exact Lite source remains unavailable |
-| `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
-| `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
+| `gurps.recovery.fatigue` | yes | yes | verified | #728; [Basic Set recovery details](gurps-recovery.md) and [certification matrix](gurps-equipment-injury-recovery-certification.md); Lite source remains separately unavailable |
+| `gurps.recovery.healing` | yes | yes | verified | #728; [recovery details](gurps-recovery.md) and [certification matrix](gurps-equipment-injury-recovery-certification.md) |
+| `gurps.recovery.medical_treatment` | no | yes | verified | #728; [recovery details](gurps-recovery.md) and [certification matrix](gurps-equipment-injury-recovery-certification.md) |
 | `gurps.world.physical_feats` | yes | yes | verified | #729; [bounded authoritative procedures](gurps-hazards.md) |
 | `gurps.world.environmental_hazards` | yes | yes | verified | #729; #110, #154, #517, #518, and #519 implementation lineage; [typed persistent exposure schedules](gurps-hazards.md), [poisons, intoxication, drugs, withdrawal, and overdose](gurps-toxins.md) |
 | `gurps.magic.spellcasting` | no | yes | verified | #688; complete supernatural spell inventory with Fireball lifecycle, Aim, targeting, ranged criticals, replay and restart evidence |
