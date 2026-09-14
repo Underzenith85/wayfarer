@@ -255,6 +255,7 @@ describe("Tactical panel", () => {
       ready_hand: null,
       ready_reach: null,
       mounted_charge: false,
+      shield_rush: false,
       relinquish_stuck_weapon_id: null,
       attack_option: null,
       defense_option: null,

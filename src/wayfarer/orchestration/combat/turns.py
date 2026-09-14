@@ -33,6 +33,7 @@ from wayfarer.engine.simulation.combat.ranged.spraying import (
     prepare_spraying_fire,
     prepare_suppression_fire,
 )
+from wayfarer.engine.simulation.combat.shield_rush import validate_declaration
 from wayfarer.engine.simulation.combat.thrown.flight import retrieve
 from wayfarer.engine.simulation.combat.thrown.items import recover, undo_recovery
 from wayfarer.engine.simulation.combat.unarmed.fighters import grapple_ready
@@ -105,6 +106,8 @@ def _validate_turn(
     engine = context.engine
     resources = state.resources
 
+    validate_declaration(play.rules_context, state, encounter, command)
+
     if command.maneuver != "do_nothing":
         require_not_dazed(resources, command.actor_id)
 
@@ -158,10 +161,14 @@ def _validate_turn(
     ):
         raise ValidationError("Weapon mode requires GURPS attack dispatch")
     if (
-        command.maneuver in ATTACK_MANEUVERS | {"feint"}
-        or command.maneuver == "aim"
-        and command.transport_id is not None
-    ) and engine.rules.gurps_equipment is not None:
+        (
+            command.maneuver in ATTACK_MANEUVERS | {"feint"}
+            or command.maneuver == "aim"
+            and command.transport_id is not None
+        )
+        and engine.rules.gurps_equipment is not None
+        and not command.shield_rush
+    ):
         selected_mode = mode(
             play.rules_context,
             state,
@@ -287,6 +294,7 @@ def _preview_turn(
             ),
             suppression_fire=bool(command.suppression_zones),
             enter_close_combat=command.enter_close_combat,
+            shield_rush=command.shield_rush,
         )
         if command.suppression_zones:
             prepare_suppression_fire(
@@ -466,6 +474,7 @@ def _begin_turn(
                 "ready_hand": None,
                 "area_aim_point": None,
                 "scatter_squared": False,
+                "shield_rush": False,
             }
         )
     else:
@@ -788,5 +797,6 @@ def _take_turn(
         ),
         suppression_fire=bool(command_for_turn.suppression_zones),
         enter_close_combat=command_for_turn.enter_close_combat,
+        shield_rush=command_for_turn.shield_rush,
     )
     return _after_turn(state, command, encounter, context, command_for_turn, resources, result)

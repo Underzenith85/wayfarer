@@ -50,7 +50,7 @@ from wayfarer.engine.simulation.combat.tactical import (
 )
 from wayfarer.engine.simulation.combat.turn_commitment import prepare as prepare_commitment
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
-from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing, Pose
+from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex, HexFacing, Pose
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -73,6 +73,29 @@ def _square_occupancy(encounter: Encounter, actor_id: str) -> tuple[set[GridPoin
         and encounter.blocks_passage(actor_id, p.actor_id)
     }
     return occupied, blockers
+
+
+def _remember_hex_move(
+    engine: CombatEngine,
+    encounter: Encounter,
+    participant: Combatant,
+    start: Pose | None,
+    path: tuple[Hex, ...],
+) -> tuple[Encounter, Combatant]:
+    """Persist the immediately preceding mapped move for B371 relative velocity."""
+
+    if encounter.spatial_kind != "hex":
+        return encounter, participant
+    assert start is not None
+    last_direction = None
+    if path:
+        before_last = path[-2] if len(path) > 1 else start.position
+        delta = (path[-1].q - before_last.q, path[-1].r - before_last.r)
+        last_direction = DIRECTIONS.index(delta) if delta in DIRECTIONS else None
+    participant = participant.model_copy(
+        update={"last_hex_move": len(path), "last_hex_direction": last_direction}
+    )
+    return engine._replace(encounter, participant), participant
 
 
 def _apply_crouch(
@@ -319,6 +342,7 @@ def take_turn(
     spatial_revision: int | None = None,
     suppression_fire: bool = False,
     enter_close_combat: bool = False,
+    shield_rush: bool = False,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     original, original_resources = encounter, resources
     interrupt = encounter.wait_interrupt
@@ -378,6 +402,7 @@ def take_turn(
         basic_move=basic_move,
         suppression_fire=suppression_fire,
         enter_close_combat=enter_close_combat,
+        shield_rush=shield_rush,
     )
     if engine.rules.gurps_equipment is not None and interrupt is None and command_json:
         interrupted = _wait_interruption(
@@ -526,6 +551,7 @@ def apply_turn(
     basic_move: BasicMove | None = None,
     suppression_fire: bool = False,
     enter_close_combat: bool = False,
+    shield_rush: bool = False,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     if engine.rules.gurps_equipment is not None:
         command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -697,6 +723,9 @@ def apply_turn(
     if step_timing == "after" and maneuver != "attack":
         raise ValidationError("Post-attack movement requires Attack")
     if engine.rules.gurps_equipment is not None:
+        encounter, participant = _remember_hex_move(
+            engine, encounter, participant, start_hex_pose, hex_path
+        )
         participant = prepare_commitment(
             engine,
             encounter,
@@ -831,6 +860,19 @@ def apply_turn(
             allowed=("dodge", "parry", "none") if target.ready_item_ids else ("dodge", "none"),
             opened_round=encounter.round,
             opened_turn=encounter.turn_index,
+            shield_rush=shield_rush,
+            collision_velocity=(
+                len(hex_path)
+                + (
+                    target.last_hex_move
+                    if shield_rush
+                    and participant.last_hex_direction is not None
+                    and target.last_hex_direction == (participant.last_hex_direction + 3) % 6
+                    else 0
+                )
+                if shield_rush
+                else 0
+            ),
             tactical_approach=(
                 "pop-up"
                 if pop_up

@@ -895,6 +895,11 @@ export interface components {
        */
       mounted_charge: boolean;
       /**
+       * Shield Rush
+       * @default false
+       */
+      shield_rush: boolean;
+      /**
        * Relinquish Stuck Weapon Id
        * @default null
        */

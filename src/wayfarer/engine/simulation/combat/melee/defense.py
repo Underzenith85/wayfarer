@@ -102,6 +102,8 @@ def exert_defense(
     item_id: str | None,
     *,
     parry_mode_id: str | None = None,
+    incoming_item_id: str | None = None,
+    incoming_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, Defense]:
     """Spend the defender's effort and equipment; either failing leaves no active defense.
 
@@ -120,7 +122,14 @@ def exert_defense(
         return state, encounter, "none"
     participant = next(p for p in encounter.participants if p.actor_id == actor_id)
     _, used = defense_value(
-        runtime, state, participant, selected, item_id, parry_mode_id=parry_mode_id
+        runtime,
+        state,
+        participant,
+        selected,
+        item_id,
+        parry_mode_id=parry_mode_id,
+        incoming_item_id=incoming_item_id,
+        incoming_mode_id=incoming_mode_id,
     )
     bare = used in ("left-hand", "right-hand")
     state, encounter = defense_stress(
@@ -142,6 +151,8 @@ def validate_defense_choices(
     *,
     parry_mode_id: str | None = None,
     second_parry_mode_id: str | None = None,
+    incoming_item_id: str | None = None,
+    incoming_mode_id: str | None = None,
 ) -> None:
     pending = encounter.pending_defense
     if pending is None:
@@ -156,7 +167,14 @@ def validate_defense_choices(
     ):
         raise ValidationError("Parry damage mode requires the corresponding Parry defense")
     _, first_item = defense_value(
-        runtime, state, defender, selected, item_id, parry_mode_id=parry_mode_id
+        runtime,
+        state,
+        defender,
+        selected,
+        item_id,
+        parry_mode_id=parry_mode_id,
+        incoming_item_id=incoming_item_id,
+        incoming_mode_id=incoming_mode_id,
     )
     if second_defense is None:
         if second_item_id is not None:
@@ -169,7 +187,14 @@ def validate_defense_choices(
     ):
         raise ValidationError("Second defense requires All-Out Defense (Double)")
     _, second_item = defense_value(
-        runtime, state, defender, second_defense, second_item_id, parry_mode_id=second_parry_mode_id
+        runtime,
+        state,
+        defender,
+        second_defense,
+        second_item_id,
+        parry_mode_id=second_parry_mode_id,
+        incoming_item_id=incoming_item_id,
+        incoming_mode_id=incoming_mode_id,
     )
     if selected == second_defense and not (selected == "parry" and first_item != second_item):
         raise ValidationError(

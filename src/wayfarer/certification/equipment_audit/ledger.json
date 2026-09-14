@@ -1244,10 +1244,16 @@
       "reference": "B287 note 3; B368; B406",
       "anchor": "inspected",
       "behaviour": "An ordinary shield may rush through the Slam procedure; bucklers and force shields may not.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 714,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.melee_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_issue_714_shield_rush.py::test_shield_rush_uses_slam_damage_knockdown_and_durable_receipts",
+        "tests/test_issue_714_shield_rush.py::test_shield_rush_geometry_and_capability_fail_before_entropy",
+        "tests/test_issue_714_shield_rush.py::test_shield_rush_records_critical_attack_table_without_collision",
+        "tests/test_issue_714_shield_rush.py::test_shield_rush_critical_success_uses_existing_damage_table",
+        "tests/test_issue_714_shield_rush.py::test_shield_rush_fall_comparison_is_mutually_exclusive"
+      ],
       "evidence_gap": null
     },
     {

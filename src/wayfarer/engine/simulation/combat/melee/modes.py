@@ -300,6 +300,10 @@ def heavy_parry_weight(
         if pending.spell_cast_id is not None:
             return None
         incoming_item_id, mode_id = pending.weapon_id, pending.mode_id
+        if pending.shield_rush:
+            attacker = build(runtime, state, pending.attacker_id)
+            assert attacker.statistics is not None
+            return attacker.statistics.st * 1000
     item = next((i for i in state.resources.items if i.id == incoming_item_id), None)
     if item is None or not any(
         e.definition_id == item.definition_id and e.modes for e in equipment.entries

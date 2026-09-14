@@ -113,16 +113,21 @@ async def read_generation(request: web.Request) -> web.Response:
     # A queued/running row whose process is no longer in flight survived a restart.
     # Make that recovery explicit rather than leaving the row looking busy.
     if job.status in ("queued", "running") and await _interrupted(request.app, job.id):
-        job = await request.app[KEY].store.update_job(
-            job.model_copy(
-                update={
-                    "status": "failed",
-                    "error_code": "generation_interrupted",
-                    "error_message": "Generation was interrupted. Retry to continue.",
-                }
-            ),
-            job.version,
-        )
+        try:
+            job = await request.app[KEY].store.update_job(
+                job.model_copy(
+                    update={
+                        "status": "failed",
+                        "error_code": "generation_interrupted",
+                        "error_message": "Generation was interrupted. Retry to continue.",
+                    }
+                ),
+                job.version,
+            )
+        except ConflictError:
+            # The live worker won the race after our read; return its newer
+            # state instead of leaking an internal optimistic-lock conflict.
+            job = await request.app[KEY].read_generation_job(principal, job.id)
     return web.json_response(job.model_dump(mode="json"))
 
 

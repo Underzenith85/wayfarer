@@ -32,6 +32,9 @@ PDF page `B-335`. Printed footers were checked before comparing the records.
 - Characters B287 notes 2-5 were checked for shield bashes and spikes, buckler
   skill/rush handling, iron and plastic-riot construction, and the force
   shield's superscience marker, LC3, and hardened DR 100 with no finite HP.
+- Campaigns B368/B371/B406 shield rushes dispatch through the Slam collision
+  procedure: relative velocity and both HP totals determine damage, shield DB
+  augments the rusher's roll, and the shield receives reciprocal damage.
 - Characters B16, B178, B181, B195, B198, B205, B211, B222 and B270 were
   checked for rated ST, mounted/crew-served weapons, entangling attacks,
   readiness, sprayers and launcher-assisted throws.

@@ -91,7 +91,6 @@ def test_every_reported_blocker_has_a_currently_open_owner() -> None:
         106,
         682,
         683,
-        714,
         685,
     }
 

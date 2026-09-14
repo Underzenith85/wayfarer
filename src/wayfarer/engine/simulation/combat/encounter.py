@@ -96,6 +96,11 @@ class Combatant(Record):
     stream: Stream | None = Field(default=None, exclude_if=lambda v: v is None)
     forced_do_nothing: bool = False
     high_speed: HighSpeedState | None = Field(default=None, exclude_if=lambda value: value is None)
+    # B371: the next actor can add this move for a directly head-on Slam.
+    last_hex_move: int = Field(default=0, ge=0, le=400, exclude_if=lambda value: value == 0)
+    last_hex_direction: HexFacing | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     personal_flight: PersonalFlightState | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
@@ -206,6 +211,8 @@ class PendingDefense(Record):
     )
     mounted_lance_dice: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
     mounted_skill_cap: int | None = Field(default=None, ge=1, le=50, exclude_if=lambda v: v is None)
+    shield_rush: bool = Field(default=False, exclude_if=lambda value: not value)
+    collision_velocity: int = Field(default=0, ge=0, le=400, exclude_if=lambda value: value == 0)
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()
@@ -218,6 +225,12 @@ class PendingDefense(Record):
     post_attack_basic_direction: Literal["approach", "withdraw"] | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+
+    @model_validator(mode="after")
+    def shield_rush_velocity(self) -> Self:
+        if self.shield_rush != (self.collision_velocity > 0):
+            raise ValueError("Only a shield rush persists collision velocity")
+        return self
 
 
 class DefenseChoice(Record):
