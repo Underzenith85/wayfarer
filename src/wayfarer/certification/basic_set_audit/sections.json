@@ -1714,18 +1714,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1745,18 +1748,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1807,18 +1813,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b032:2-advantages",
@@ -1869,18 +1878,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
@@ -1900,18 +1912,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
@@ -1931,18 +1946,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b034:advantage-list",
@@ -2482,18 +2500,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2513,18 +2534,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2544,18 +2568,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
@@ -2575,18 +2602,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-trait-procedures.md",
+        "tests/test_trait_procedures.py"
       ],
       "historical_owners": [
         191,
         496,
-        94
+        94,
+        700
       ],
-      "completion_owner": 700,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": null,
       "parent_id": "section:characters:b119:3-disadvantages",
