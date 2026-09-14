@@ -122,6 +122,11 @@ def prepare_attack(
 
         return prepare_shield_rush(runtime, state, encounter)
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, mode_id)
+    item = next(
+        candidate for candidate in state.resources.items if candidate.id == pending.weapon_id
+    )
+    if pending.electrical_contact_seconds and item.definition_id != "equipment:cattle-prod":
+        raise ValidationError("Maintained electrical contact requires a cattle prod")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     validate_special_attack(
         runtime,

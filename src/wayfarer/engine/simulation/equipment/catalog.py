@@ -504,6 +504,9 @@ class Armor(Record):
     front_only: bool = False
     split_dr: tuple[tuple[DamageType, Nonnegative], ...] = ()
     concealment_penalty: int = Field(default=0, le=0)
+    electrical_conductivity: Literal["metallic", "nonmetallic", "insulated"] = Field(
+        default="metallic", exclude_if=lambda value: value == "metallic"
+    )
 
     @model_validator(mode="after")
     def unique_locations(self) -> Self:

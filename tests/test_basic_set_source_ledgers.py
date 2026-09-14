@@ -343,7 +343,7 @@ def test_characters_section_obligations_are_explicit_and_bounded() -> None:
         if row.obligation in {"construction-catalog", "reference-only", "structural-non-runtime"}
     )
     assert denominator_identity(bundle.rows, inventory(ROOT)) == (
-        "fef822d9aee328320c662a3089a10f5f3651b4c6bb5790c51fed7259b078ce83"
+        "c3987f2b8a441413e7cde3bec05c74a9270fd3cbe2b1b9422434b7c7a322428e"
     )
 
 

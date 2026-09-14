@@ -1807,6 +1807,16 @@
             "maximum": 0,
             "title": "Concealment Penalty",
             "type": "integer"
+          },
+          "electrical_conductivity": {
+            "default": "metallic",
+            "enum": [
+              "metallic",
+              "nonmetallic",
+              "insulated"
+            ],
+            "title": "Electrical Conductivity",
+            "type": "string"
           }
         },
         "required": [
@@ -5131,6 +5141,40 @@
           "version"
         ],
         "title": "EconomicsRules",
+        "type": "object"
+      },
+      "ElectricalStun": {
+        "additionalProperties": false,
+        "description": "Source-bound delay and recovery rule for a failed electrical affliction.",
+        "properties": {
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "contact_ends_turn": {
+            "minimum": 0,
+            "title": "Contact Ends Turn",
+            "type": "integer"
+          },
+          "recovery_starts_turn": {
+            "minimum": 1,
+            "title": "Recovery Starts Turn",
+            "type": "integer"
+          },
+          "recovery_penalty": {
+            "default": -3,
+            "maximum": 0,
+            "minimum": -30,
+            "title": "Recovery Penalty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source_id",
+          "contact_ends_turn",
+          "recovery_starts_turn"
+        ],
+        "title": "ElectricalStun",
         "type": "object"
       },
       "ElectronicsSuite": {
@@ -8753,6 +8797,17 @@
             "anyOf": [
               {
                 "$ref": "#/$defs/InjuryTolerance"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "electrical_stun": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ElectricalStun"
               },
               {
                 "type": "null"

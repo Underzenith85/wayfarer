@@ -15,7 +15,13 @@ ARMOR = tuple(
         weight_millipounds=weight,
         price=price,
         slot="body",
-        armor=Armor(locations=cast(tuple[Location, ...], locations), dr=dr),
+        armor=Armor(
+            locations=cast(tuple[Location, ...], locations),
+            dr=dr,
+            electrical_conductivity=(
+                "nonmetallic" if identifier == "equipment:leather-armor" else "metallic"
+            ),
+        ),
     )
     for identifier, tl, price, weight, locations, dr in (
         ("equipment:bronze-corselet", 1, 1300, 40000, ("torso", "groin"), 5),

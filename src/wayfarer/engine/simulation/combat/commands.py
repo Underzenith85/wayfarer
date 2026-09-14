@@ -139,6 +139,9 @@ class TakeCombatTurn(CombatCommand):
     enter_close_combat: bool = Field(default=False, exclude_if=lambda value: not value)
     mounted_charge: bool = Field(default=False, exclude_if=lambda value: not value)
     shield_rush: bool = Field(default=False, exclude_if=lambda value: not value)
+    electrical_contact_seconds: int = Field(
+        default=0, ge=0, le=60, exclude_if=lambda value: value == 0
+    )
     relinquish_stuck_weapon_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
@@ -152,6 +155,14 @@ class TakeCombatTurn(CombatCommand):
             or self.step_timing != "before"
         ):
             raise ValueError("Shield rush requires one ordinary GURPS attack declaration")
+        if self.electrical_contact_seconds and (
+            self.maneuver not in ("attack", "all_out_attack", "move_and_attack")
+            or self.item_id is None
+            or self.target_id is None
+            or self.target_item_id is not None
+            or self.shield_rush
+        ):
+            raise ValueError("Maintained electrical contact requires one actor-targeted attack")
         return self
 
 

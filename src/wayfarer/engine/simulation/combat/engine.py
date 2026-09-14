@@ -749,6 +749,7 @@ class CombatEngine:
         suppression_fire: bool = False,
         enter_close_combat: bool = False,
         shield_rush: bool = False,
+        electrical_contact_seconds: int = 0,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
 
         return take_turn(
@@ -781,6 +782,7 @@ class CombatEngine:
             suppression_fire=suppression_fire,
             enter_close_combat=enter_close_combat,
             shield_rush=shield_rush,
+            electrical_contact_seconds=electrical_contact_seconds,
         )
 
     def _take_turn(
@@ -813,6 +815,7 @@ class CombatEngine:
         suppression_fire: bool = False,
         enter_close_combat: bool = False,
         shield_rush: bool = False,
+        electrical_contact_seconds: int = 0,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
 
         return apply_turn(
@@ -844,6 +847,7 @@ class CombatEngine:
             suppression_fire=suppression_fire,
             enter_close_combat=enter_close_combat,
             shield_rush=shield_rush,
+            electrical_contact_seconds=electrical_contact_seconds,
         )
 
     def choose_defense(

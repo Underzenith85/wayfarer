@@ -1666,13 +1666,16 @@
     },
     {
       "id": "melee-linked-affliction",
-      "reference": "B273 Cattle Prod",
+      "reference": "Characters B273-B274 Cattle Prod; Campaigns B416/B432",
       "anchor": "inspected",
-      "behaviour": "The cattle prod linked stun remains independently owned outside the ranged equipment completion.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "behaviour": "A landed cattle-prod attack resolves its linked HT-3(0.5) electrical resistance independently of burning penetration, applies metal and nonmetal armor correctly, persists contact plus post-contact stun, and recovers through injury turns.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.melee_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_cattle_prod.py::test_cattle_prod_hit_damage_affliction_armor_and_miss",
+        "tests/test_cattle_prod.py::test_cattle_prod_contact_recovery_retry_and_replay"
+      ],
       "evidence_gap": null
     }
   ],
@@ -1791,6 +1794,19 @@
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Armor.electrical_conductivity",
+      "unit": "metallic/nonmetallic/insulated protection class",
+      "reference": "Campaigns B432 Electricity",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-14)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": [
+        "tests/test_cattle_prod.py::test_cattle_prod_hit_damage_affliction_armor_and_miss"
       ],
       "gap": null
     },

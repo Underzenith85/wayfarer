@@ -39,6 +39,7 @@ SUPPORTED_EQUIPMENT_IDS: Final = (
     "equipment:baton",
     "equipment:shortsword",
     "equipment:cutlass",
+    "equipment:cattle-prod",
     "equipment:short-staff",
     "equipment:smallsword",
     "equipment:spear",

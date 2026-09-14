@@ -9,6 +9,21 @@ from wayfarer.engine.rules.types.location import InjuryTolerance, LastingInjury
 from wayfarer.models import Record
 
 
+class ElectricalStun(Record):
+    """Source-bound delay and recovery rule for a failed electrical affliction."""
+
+    source_id: str
+    contact_ends_turn: int = Field(ge=0)
+    recovery_starts_turn: int = Field(ge=1)
+    recovery_penalty: int = Field(default=-3, ge=-30, le=0)
+
+    @model_validator(mode="after")
+    def ordered(self) -> Self:
+        if self.recovery_starts_turn <= self.contact_ends_turn:
+            raise ValueError("Electrical recovery must begin after contact ends")
+        return self
+
+
 class InjuryStatus(Record):
     profile_id: Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
     physical_traits: PhysicalTraits = Field(
@@ -29,6 +44,9 @@ class InjuryStatus(Record):
     anatomy: Literal["human", "creature", "swarm"] | None = None
     male_groin: bool = False
     tolerance: InjuryTolerance | None = Field(default=None, exclude_if=lambda v: v is None)
+    electrical_stun: ElectricalStun | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     lasting_injuries: tuple[LastingInjury, ...] = ()
 
     @model_validator(mode="after")
@@ -48,6 +66,10 @@ class InjuryStatus(Record):
             raise ValueError("Lasting locations require explicit Basic Set human anatomy")
         if self.male_groin and self.anatomy != "human":
             raise ValueError("Groin sensitivity requires explicit human anatomy")
+        if self.electrical_stun is not None and (
+            self.profile_id != "gurps-basic-set-4e-2004" or not self.stunned
+        ):
+            raise ValueError("Electrical stun requires a stunned Basic Set injury state")
         if len({w.id for w in self.lasting_injuries}) != len(self.lasting_injuries):
             raise ValueError("Duplicate lasting injury ID")
         return self
