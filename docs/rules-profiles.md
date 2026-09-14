@@ -24,6 +24,7 @@ profile it targets. Registration fails closed on:
 - a Basic Set profile at version 9 or later without the exact named optional-rule
   decision set, or one at version 10 or later without the exact content-boundary
   decision set;
+- selection of a Basic Set profile without its exact certification declaration;
 - duplicate `(id, version)` registrations or two profiles with identical pins.
 
 Selection is exact. There is no latest-version lookup, no case folding and no
@@ -33,12 +34,12 @@ fallback from a GURPS profile to the prototype package.
 | --- | --- | --- | --- | --- |
 | `profile:wayfarer-lite` | 1 | `wayfarer-lite` | `package:wayfarer-lite@1.0.0` | supported; pins identical to the pre-#96 default |
 | `profile:gurps-lite-4e-2004` | 2 | `gurps-4e-2004` | `package:gurps-lite-4e-2004@0.2.0` | unsupported until every Lite capability is verified |
-| `profile:gurps-basic-set-4e-2004` | 2 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.2.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` (depends on the Characters package) | unsupported until every Basic Set capability is verified |
+| `profile:gurps-basic-set-4e-2004` | 2 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.2.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` (depends on the Characters package) | historical mechanical selection; not the complete Basic Set certification claim |
 | `profile:gurps-lite-4e-2004` | 3 | `gurps-4e-2004` | `package:gurps-lite-4e-2004@0.3.0` | unsupported; adds the skills catalog without certifying the full profile |
 | `profile:gurps-basic-set-4e-2004` | 3 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.3.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds skills and equipment definitions |
 | `profile:gurps-basic-set-4e-2004` | 4 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.4.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds the magic learning catalog |
 | `profile:gurps-basic-set-4e-2004` | 10 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.8.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; includes later construction/skill work, eleven disabled optional-rule decisions, and the Infinite Worlds exclusion |
-| `profile:gurps-basic-set-4e-2004` | 11 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.9.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | unsupported; adds the Propaganda/TL procedure and pins policy version 2 with campaign TL 8 |
+| `profile:gurps-basic-set-4e-2004` | 11 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.9.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` | **supported**; certified engine-only Basic Set selection, with eleven optional rules disabled and Infinite Worlds excluded |
 
 The GURPS packages register identity, edition, source provenance and dependencies.
 Version 0.2.0 of the Lite and Characters packages carries the #97 attribute and

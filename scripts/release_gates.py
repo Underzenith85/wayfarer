@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -171,8 +172,11 @@ def main() -> None:
             f"GURPS Basic Set certification has {len(basic_set.blockers)} unresolved blocker(s)"
         )
     args.output.mkdir(parents=True, exist_ok=True)
+    revision = os.environ.get("GITHUB_SHA", "local")
+    if basic_set is not None and re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        errors.append("GURPS Basic Set certification requires an exact commit SHA")
     result = {
-        "revision": os.environ.get("GITHUB_SHA", "local"),
+        "revision": revision,
         "scope": "product" if args.product else "engine",
         "passed": not errors,
         "mechanics": rows,
@@ -181,6 +185,10 @@ def main() -> None:
         "product_prerequisites": product,
         "gurps_basic_set": basic_set.as_dict() if basic_set is not None else None,
     }
+    if basic_set is not None:
+        certification = result["gurps_basic_set"]
+        assert isinstance(certification, dict)
+        certification["repository_commit"] = result["revision"]
     (args.output / "mechanics.json").write_text(json.dumps(result, indent=2) + "\n")
     lines = [
         "# Release evidence",

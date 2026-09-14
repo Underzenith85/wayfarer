@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "repository": "Underzenith85/wayfarer",
-  "verified_at": "2026-09-13",
+  "verified_at": "2026-09-14",
   "issues": [
     {
       "issue": 94,
@@ -15,7 +15,7 @@
     },
     {
       "issue": 682,
-      "state": "open",
+      "state": "closed",
       "title": "Execute all remaining advantage enhancements"
     },
     {
@@ -290,7 +290,7 @@
     },
     {
       "issue": 513,
-      "state": "open",
+      "state": "closed",
       "title": "Implement afflictions and penetration"
     },
     {
@@ -370,47 +370,47 @@
     },
     {
       "issue": 683,
-      "state": "open",
+      "state": "closed",
       "title": "Execute all remaining limitations and gadget limitations"
     },
     {
       "issue": 684,
-      "state": "open",
+      "state": "closed",
       "title": "Complete remaining melee weapons and shield behavior"
     },
     {
       "issue": 685,
-      "state": "open",
+      "state": "closed",
       "title": "Complete remaining ranged, beam, and heavy-weapon equipment"
     },
     {
       "issue": 686,
-      "state": "open",
+      "state": "closed",
       "title": "Complete remaining general equipment and accessory behavior"
     },
     {
       "issue": 689,
-      "state": "open",
+      "state": "closed",
       "title": "Complete residual task and physical-activity procedures"
     },
     {
       "issue": 690,
-      "state": "open",
+      "state": "closed",
       "title": "Complete residual Campaigns economic procedures"
     },
     {
       "issue": 691,
-      "state": "open",
+      "state": "closed",
       "title": "Complete residual Characters magic procedures"
     },
     {
       "issue": 693,
-      "state": "open",
+      "state": "closed",
       "title": "Implement cross-species physiology modifiers"
     },
     {
       "issue": 700,
-      "state": "open",
+      "state": "closed",
       "title": "Complete residual Characters trait procedures"
     },
     {
@@ -420,7 +420,7 @@
     },
     {
       "issue": 714,
-      "state": "open",
+      "state": "closed",
       "title": "Execute shield rush through Slam combat"
     }
   ]

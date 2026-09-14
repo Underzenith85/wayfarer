@@ -3,8 +3,9 @@
 A registered profile binds exact package pins and a campaign policy to an optional
 GURPS conformance target. Registration is metadata only: it never reproduces
 rulebook text and never implements a second mechanics engine. The prototype pin
-is registered unchanged; GURPS profiles remain unsupported until every required
-capability has independent verified evidence.
+is registered unchanged; the Basic Set profile also requires an explicit
+certification declaration after every required capability has independent
+verified evidence.
 """
 
 from __future__ import annotations
@@ -177,6 +178,7 @@ class RegisteredProfile:
     optional_rules: tuple[str, ...] = ()
     named_optional_rules: tuple[OptionalRuleSelection, ...] = ()
     content_boundaries: tuple[ContentBoundarySelection, ...] = ()
+    certification_baseline: str | None = None
 
     @property
     def catalog(self) -> RulesCatalog:
@@ -196,10 +198,23 @@ class RegisteredProfile:
 
     @property
     def supported(self) -> bool:
+        return not self.support_blockers
+
+    @property
+    def support_blockers(self) -> tuple[str, ...]:
+        """Return exact runtime-selection blockers without consulting audit artifacts."""
+        missing_certification = (
+            ("certification:gurps-basic-set",)
+            if self.id == "profile:gurps-basic-set-4e-2004"
+            and self.version >= 11
+            and self.certification_baseline is None
+            else ()
+        )
         return (
-            not self.unverified_capabilities
-            and not self.unavailable_optional_rules
-            and not self.unavailable_content
+            self.unverified_capabilities
+            + self.unavailable_optional_rules
+            + self.unavailable_content
+            + missing_certification
         )
 
     @property
@@ -265,6 +280,7 @@ class RegisteredProfile:
             "required_capabilities": sorted(self.required_capabilities),
             "optional_rules": list(self.optional_rules),
             "named_optional_rules": [asdict(selection) for selection in self.named_optional_rules],
+            "certification_baseline": self.certification_baseline,
         }
         if self.content_boundaries:
             payload["content_boundaries"] = [
@@ -379,7 +395,12 @@ class ProfileRegistry:
         unverified = profile.unverified_capabilities
         unavailable = profile.unavailable_optional_rules
         unavailable_content = profile.unavailable_content
-        if unverified or unavailable or unavailable_content:
+        missing_certification = (
+            profile.id == "profile:gurps-basic-set-4e-2004"
+            and profile.version >= 11
+            and profile.certification_baseline is None
+        )
+        if unverified or unavailable or unavailable_content or missing_certification:
             details = []
             if unverified:
                 details.append(f"unverified capabilities: {', '.join(unverified)}")
@@ -387,6 +408,8 @@ class ProfileRegistry:
                 details.append(f"unavailable optional rules: {', '.join(unavailable)}")
             if unavailable_content:
                 details.append(f"unavailable content: {', '.join(unavailable_content)}")
+            if missing_certification:
+                details.append("missing Basic Set certification declaration")
             raise ValidationError(
                 f"Rules profile is not supported: {profile_id}@{version} ({'; '.join(details)})"
             )
@@ -692,10 +715,11 @@ GURPS_PROPAGANDA_PROFILE: Final = replace(
         packages=(_pin(GURPS_PROPAGANDA_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
         policy_version=GURPS_PROPAGANDA_POLICY.version,
     ),
+    certification_baseline="gurps-4e-characters-3p-2008+campaigns-4p-2008",
 )
 
-# Keep the new pin opt-in while the overall Basic Set profile still has unrelated
-# unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
+# Historic default-registry entries stay exactly resolvable. Only the latest
+# Basic Set selection carries the certification declaration established by #730.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
     (
         PROTOTYPE_PROFILE,

@@ -15,6 +15,8 @@ def test_release_gate_basic_set_flag_passes_and_publishes_report(
         return [], []
 
     output = tmp_path / "release"
+    revision = "a" * 40
+    monkeypatch.setenv("GITHUB_SHA", revision)
     monkeypatch.setattr(release_gates, "evaluate", passing_evidence)
     monkeypatch.setattr(
         "sys.argv",
@@ -33,4 +35,5 @@ def test_release_gate_basic_set_flag_passes_and_publishes_report(
     assert isinstance(certification, dict)
     assert certification["certified"] is True
     assert certification["profile_id"] == "profile:gurps-basic-set-4e-2004"
+    assert certification["repository_commit"] == revision
     assert certification["blockers"] == []

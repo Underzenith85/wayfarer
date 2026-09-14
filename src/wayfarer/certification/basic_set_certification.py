@@ -282,12 +282,20 @@ def evaluate(root: Path) -> CertificationReport:
                 detail="Registered profile capability set differs from frozen Basic Set target",
             )
         )
-    if selected.supported and blockers:
+    if selected.certification_baseline != source_baseline:
         blockers.append(
             CertificationBlocker(
                 kind="profile",
                 identifier=f"{selected.id}@{selected.version}",
-                detail="Profile advertises support before full Basic Set certification evidence passes",
+                detail="Registered profile lacks the exact selected-source certification declaration",
+            )
+        )
+    if selected.certification_baseline is not None and blockers:
+        blockers.append(
+            CertificationBlocker(
+                kind="profile",
+                identifier=f"{selected.id}@{selected.version}",
+                detail="Profile declares certification before all Basic Set evidence passes",
             )
         )
 

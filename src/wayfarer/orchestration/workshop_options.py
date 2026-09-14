@@ -96,7 +96,7 @@ def profile_option(profile: RegisteredProfile) -> ProfileOption:
         version=profile.version,
         title=profile.title,
         supported=profile.supported,
-        blockers=profile.unverified_capabilities,
+        blockers=profile.support_blockers,
     )
 
 

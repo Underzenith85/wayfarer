@@ -13,7 +13,7 @@ uv run --frozen python scripts/certify_gurps_basic_set.py \
 ```
 
 The command exits nonzero until every required dimension is complete. The JSON
-report records the exact registered profile version and digest, frozen source
+report records the exact repository commit, registered profile version and digest, frozen source
 baseline, required/verified capability counts, required item-level inventory
 count and every blocking item with its owning issue.
 
@@ -27,7 +27,8 @@ Certification requires all of the following at the same time:
   source-ledger row independently has a required, reviewed, `implemented` or
   `verified` disposition;
 - the latest registered Basic profile declares exactly the frozen required
-  capability set and does not silently enable optional rules;
+  capability set, carries the exact selected-source certification declaration,
+  and does not silently enable optional rules;
 - the profile cannot advertise support while any source, capability or item-level
   blocker remains.
 
@@ -43,8 +44,10 @@ reports the combined state when no profile is selected.
 
 ## Current status
 
-The frozen Basic Set profile is certified: all 73 required capabilities and all
-source-ledger and item-level inventory obligations pass the gate. Issue #726
-completed the character and social families after #728 completed equipment,
-injury, and recovery. Release processes making this claim must still run the
-command above and publish its report so regressions fail closed.
+The frozen Basic Set profile is certified: all 73 required capabilities, 3,129
+item-level inventory obligations, and 1,046 required source-ledger rows pass the
+gate. The latest registered profile (`profile:gurps-basic-set-4e-2004@11`) is
+selectable through the ordinary support check. Historical Basic profile versions
+remain resolvable as their narrower mechanical selections but do not carry the
+complete Basic Set claim. Package CI runs this command and publishes the commit-bound report so
+missing, stale, or downgraded evidence fails closed.

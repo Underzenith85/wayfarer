@@ -83,13 +83,13 @@ No optional rule is enabled by default, and arbitrary optional-rule names are no
 These helpers expose a fail-closed contract for scenario and character
 validators. `wayfarer.engine.rules.profiles` currently registers the prototype,
 Lite versions 2 and 3, and Basic Set versions 2, 3, 4, 10, and 11 with their exact
-required capability sets and immutable package pins. No GURPS selection is
-supported yet: a new campaign that names one is rejected with its unverified
-capability list, existing campaigns keep the prototype pins, and switching a
-paused campaign requires the explicit migration described in
-[rules profiles](rules-profiles.md). Mechanics implementation still belongs to
-the owners in the matrix, and every required capability must become `verified`
-before its profile can activate.
+required capability sets and immutable package pins. Basic Set version 11 is the
+only Basic selection carrying the final certification declaration and is
+selectable for a new campaign. Historical versions remain exactly resolvable as
+their narrower selections but do not carry the complete Basic Set claim; the
+separately uncertified Lite source remains outside this claim. Switching a paused campaign still requires the explicit migration
+described in [rules profiles](rules-profiles.md). The engine reads only registered
+profile metadata and executable rules—it never reads audit ledgers or source PDFs.
 
 ## Attributes and secondary characteristics (#97)
 

@@ -72,12 +72,13 @@ jobs:
       - run: uv run --frozen python scripts/check_quality_gates.py
       - run: uv run --frozen python scripts/audit_gurps_sources.py > /tmp/gurps-source-audit.json
       - run: uv run --frozen python scripts/audit_gurps_equipment.py > /tmp/gurps-equipment-audit.json
+      - run: uv run --frozen python scripts/certify_gurps_basic_set.py --output artifacts/release/gurps-basic-set.json
       - run: uv run --frozen python scripts/validate_contracts.py
       - run: uv run --frozen python -m scripts.validate_live_contracts
       - run: uv run --frozen pytest --junitxml=artifacts/pytest.xml --cov-report=xml:artifacts/coverage.xml --cov-report=term-missing
       - name: Verify and publish mechanics evidence
         if: always()
-        run: uv run --frozen python -m scripts.release_gates artifacts/pytest.xml
+        run: uv run --frozen python -m scripts.release_gates artifacts/pytest.xml --gurps-basic-set
       - uses: actions/upload-artifact@v7
         if: always()
         with:
