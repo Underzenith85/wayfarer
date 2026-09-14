@@ -1,6 +1,6 @@
 # Ranged combat
 
-Issue #106 uses the existing CombatService transaction, resource checkpoint,
+The ranged work originally tracked by #106 uses the existing CombatService transaction, resource checkpoint,
 command receipts, and signed injury reducer. It requires the exact selected
 GURPS equipment/statistics profile; prototype campaigns retain their dispatch.
 No frozen player-v1 endpoints or payloads are changed.
@@ -67,10 +67,12 @@ B556-557, and Characters third printing, B147. The selected-printing review now
 records those comparisons. The authoritative errata endpoints were inaccessible,
 so no unrecorded overlay is claimed.
 
-Coverage is **verified** by #685. `tests/test_ranged_critical_completion.py` adds
+Coverage is **verified** by #685, and #730 reconciles the superseded #106 rollup
+against its verified Aim, Ammunition, Ranged Attack, and Rapid Fire families.
+`tests/test_ranged_critical_completion.py` adds
 independent critical-miss, weapon-quality, per-hit location and restart/retry
 fixtures, using Campaigns fourth printing B376, B382, B399 and B556-557.
-The selected-printing audit is complete; the remaining gate is mechanical coverage.
+The selected-printing audit and selected Basic Set mechanical coverage are complete.
 New quality metadata is opt-in and Basic-only; it requires a durable individual
 weapon and does not alter saved catalog definitions. Disabled weapons cannot be
 Readied, and broken thrown items retain their condition in `expended_items`.

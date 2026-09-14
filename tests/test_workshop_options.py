@@ -31,7 +31,7 @@ def test_profile_preview_compiles_service_totals_and_keeps_gates() -> None:
     result = preview_profile(
         ProfilePreviewRequest(
             profile_id="profile:gurps-basic-set-4e-2004",
-            version=3,
+            version=11,
             proposal=CharacterProposal(draft=draft),
         )
     )

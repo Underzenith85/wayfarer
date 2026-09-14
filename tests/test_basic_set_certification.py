@@ -1,8 +1,13 @@
 """Basic Set certification passes only when every evidence dimension is complete."""
 
+from dataclasses import replace
 from pathlib import Path
 
+import pytest
+
+from wayfarer.certification import basic_set_certification as certification
 from wayfarer.certification.basic_set_certification import PROFILE_ID, evaluate, require_certified
+from wayfarer.certification.source_audit import report as source_audit_report
 from wayfarer.engine.rules.conformance import PROFILES
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +35,39 @@ def test_basic_set_gate_is_certified_without_blockers() -> None:
     assert result.certified is True
     assert result.verified_capabilities == result.required_capabilities
     assert result.blockers == ()
+
+
+def test_capability_promotion_cannot_bypass_incomplete_certification(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def incomplete(root: Path, *, profile_id: str) -> dict[str, object]:
+        report = dict(source_audit_report(root, profile_id=profile_id))
+        report["audit_complete"] = False
+        report["blockers"] = ("fixture:stale-selected-source-evidence",)
+        return report
+
+    monkeypatch.setattr(certification, "source_audit_report", incomplete)
+    result = certification.evaluate(ROOT)
+    assert result.certified is False
+    assert any(blocker.kind == "source" for blocker in result.blockers)
+    assert any("declares certification before" in blocker.detail for blocker in result.blockers)
+
+
+def test_missing_or_stale_profile_certification_declaration_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    selected = certification._latest_registered_profile()
+    monkeypatch.setattr(
+        certification,
+        "_latest_registered_profile",
+        lambda: replace(selected, certification_baseline="stale-baseline"),
+    )
+    result = certification.evaluate(ROOT)
+    assert result.certified is False
+    assert any("exact selected-source" in blocker.detail for blocker in result.blockers)
+
+    undeclared = replace(selected, certification_baseline=None)
+    assert undeclared.supported is False
 
 
 def test_inventory_uses_reconciled_bound_source_ledger_implementation() -> None:

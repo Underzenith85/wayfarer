@@ -34,6 +34,7 @@ from wayfarer.engine.rules.profiles import (
     GURPS_BASIC_PROFILE,
     GURPS_EQUIPMENT_SKILL_REFERENCES,
     GURPS_LITE_PROFILE,
+    GURPS_PROPAGANDA_PROFILE,
     PROTOTYPE_PROFILE,
     ProfileRegistry,
     RegisteredProfile,
@@ -268,7 +269,6 @@ def test_default_registry_preserves_pins_and_exposes_verified_gurps_profiles() -
             if conformance.CAPABILITIES[identifier].status
             is not conformance.CoverageStatus.VERIFIED
         }
-        assert profile.supported
         assert profile.rules.edition == "gurps-4e-2004"
         # Version 3 adds pinned #98 skill metadata; version 2 remains registered.
         carried = {d.id for p in profile.packages for d in p.definitions}
@@ -284,10 +284,20 @@ def test_default_registry_preserves_pins_and_exposes_verified_gurps_profiles() -
             expected.update(d.id for d in GURPS_EQUIPMENT_SKILL_REFERENCES)
         assert carried == expected
         assert profile.version == 3
+        assert profile.supported
         assert DEFAULT_REGISTRY.require_supported(profile.id, profile.version) is profile
     assert GURPS_BASIC_PROFILE.packages[1].dependencies == (GURPS_BASIC_PROFILE.packages[0].id,)
     assert "gurps.tactical.hex_movement" not in GURPS_LITE_PROFILE.required_capabilities
     assert "gurps.tactical.hex_movement" in GURPS_BASIC_PROFILE.required_capabilities
+
+    assert GURPS_PROPAGANDA_PROFILE.version == 11
+    assert GURPS_PROPAGANDA_PROFILE.supported
+    assert (
+        DEFAULT_REGISTRY.require_supported(
+            GURPS_PROPAGANDA_PROFILE.id, GURPS_PROPAGANDA_PROFILE.version
+        )
+        is GURPS_PROPAGANDA_PROFILE
+    )
 
 
 @pytest.mark.parametrize(
