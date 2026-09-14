@@ -227,7 +227,10 @@ def _use_equipment(
     selected = next((row for row in spec.uses if row.id == command.use_id), None)
     if selected is None:
         raise ValidationError("Equipment does not support the requested use")
-    if selected.minimum_technology_level is not None and effective_tl < selected.minimum_technology_level:
+    if (
+        selected.minimum_technology_level is not None
+        and effective_tl < selected.minimum_technology_level
+    ):
         raise ValidationError("Equipment use is unavailable at this technology level")
     items = state.items
     consumed_id = command.consumable_item_id
@@ -283,7 +286,9 @@ def _attach_equipment(
     if accessory is None:
         raise ValidationError("Item is not an attachable accessory")
     target = next((row for row in state.items if row.id == command.target_item_id), None)
-    if command.target_item_id is not None and (target is None or target.owner_id != command.actor_id):
+    if command.target_item_id is not None and (
+        target is None or target.owner_id != command.actor_id
+    ):
         raise ValidationError("Accessory target is unavailable")
     target_spec = engine.specs[target.definition_id] if target is not None else spec
     if not _compatible(accessory.compatible, target, target_spec):
@@ -294,8 +299,7 @@ def _attach_equipment(
     attachments = state.equipment_attachments
     if target is None:
         items = tuple(
-            row.model_copy(update={"equipped": True}) if row.id == item.id else row
-            for row in items
+            row.model_copy(update={"equipped": True}) if row.id == item.id else row for row in items
         )
     else:
         attachments = (
@@ -306,8 +310,10 @@ def _attach_equipment(
                 mounted_at=state.game_time,
             ),
         )
-    return items, attachments, EquipmentOutcome(
-        command_id=command.id, status="attached", item_id=item.id
+    return (
+        items,
+        attachments,
+        EquipmentOutcome(command_id=command.id, status="attached", item_id=item.id),
     )
 
 
@@ -328,8 +334,10 @@ def _detach_equipment(
         row.model_copy(update={"equipped": False}) if row.id == item.id else row
         for row in state.items
     )
-    return items, attachments, EquipmentOutcome(
-        command_id=command.id, status="detached", item_id=item.id
+    return (
+        items,
+        attachments,
+        EquipmentOutcome(command_id=command.id, status="detached", item_id=item.id),
     )
 
 
