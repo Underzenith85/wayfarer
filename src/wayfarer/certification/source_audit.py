@@ -489,6 +489,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             entry.source_review,
             entry.blockers,
             entry.gaps,
+            entry.evidence,
         )
         for entry in creatures()
     )

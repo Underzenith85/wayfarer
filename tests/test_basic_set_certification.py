@@ -64,18 +64,26 @@ def test_inventory_uses_reconciled_bound_source_ledger_implementation() -> None:
     assert "development:adventure" not in inventory_blockers
 
 
-def test_inventory_blocker_reports_itemized_creature_gaps() -> None:
+def test_completed_creature_inventory_has_no_fallback_blockers() -> None:
     result = evaluate(ROOT)
     blockers = {
         blocker.identifier: blocker for blocker in result.blockers if blocker.kind == "inventory"
     }
-    cat = blockers["creature:house-cat"]
-    assert cat.owner_issue == 94
-    assert "implementation=partial" in cat.detail
-    assert "gaps=catfall,combat-reflexes,domestic-animal" in cat.detail
-    assert "swarm:bees" in blockers
-    assert "swarm:bats" not in blockers
-    assert "swarm:rats" not in blockers
+    assert (
+        not {
+            "creature:house-cat",
+            "creature:large-guard-dog",
+            "creature:timber-wolf",
+            "creature:cavalry-horse",
+            "creature:draft-horse",
+            "creature:basilisk",
+            "creature:gryphon",
+            "swarm:bees",
+            "swarm:bats",
+            "swarm:rats",
+        }
+        & blockers.keys()
+    )
 
 
 def test_every_reported_blocker_has_a_currently_open_owner() -> None:

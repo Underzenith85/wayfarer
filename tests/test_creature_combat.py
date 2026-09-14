@@ -213,6 +213,7 @@ def swarm_state(kind: str = "bees", *, remaining: int | None = None) -> Resource
         ),
         remaining_hp=hp,
         next_attack_at=0,
+        origin=SwarmCell(q=0, r=0) if kind == "bees" else None,
     )
     return ResourceState(
         swarms=(swarm,),
@@ -347,7 +348,7 @@ def test_creature_combat_replays_from_json_without_new_randomness() -> None:
     assert replay_creature_combat(restored, (command,), rng=RecordedDice([])) == restored
 
 
-def test_special_monster_attack_rejects_without_a_trait_procedure() -> None:
+def test_basilisk_death_gaze_uses_registered_resistance_and_modifier_adapters() -> None:
     basilisk = catalog().compile("basilisk", "Basilisk", "creature:basilisk").creature
     dog = catalog().compile("dog", "Dog", "creature:large-guard-dog").creature
     state = ResourceState(
@@ -357,16 +358,76 @@ def test_special_monster_attack_rejects_without_a_trait_procedure() -> None:
             Pool(id="hp:dog", current=9, maximum=9, injury=InjuryStatus(profile_id=PROFILE)),
         ),
     )
-    with pytest.raises(ValidationError, match="trait procedure"):
+    command = natural(
+        id="gaze",
+        actor_id="basilisk",
+        attack_id="death-gaze",
+        maneuver="concentrate",
+        motivation="predatory",
+        target_will=10,
+        target_dr=99,
+        vision_contact=True,
+    )
+    changed, outcome = apply_creature_combat(
+        state,
+        command,
+        rng=RecordedDice([3, 3, 3, 4, 4, 4, 1, 1, 1]),
+        system=True,
+    )
+    assert isinstance(outcome, NaturalAttackOutcome) and outcome.hit
+    assert outcome.resistance is not None and outcome.resistance.affected
+    assert outcome.effect is not None
+    assert outcome.effect.modified.malediction_range == "yards"
+    assert outcome.effect.modified.penetration_sense == "vision"
+    assert outcome.effect.applied_modifier_ids == (
+        "modifier:enhancement:malediction",
+        "modifier:limitation:sense-based",
+    )
+    assert outcome.damage_dice == (1, 1, 1) and outcome.basic_damage == 3
+    assert next(pool.current for pool in changed.pools if pool.id == "hp:dog") == 6
+    restored = ResourceState.model_validate_json(changed.model_dump_json())
+    assert apply_creature_combat(restored, command, rng=RecordedDice([]), system=True) == (
+        restored,
+        outcome,
+    )
+
+    with pytest.raises(ValidationError, match="Vision-Based"):
         apply_creature_combat(
             state,
-            natural(
-                id="gaze",
-                actor_id="basilisk",
-                attack_id="death-gaze",
-                motivation="predatory",
-                target_dr=0,
-            ),
-            rng=RecordedDice([2, 2, 2]),
+            command.model_copy(update={"id": "blocked", "vision_contact": False}),
+            rng=RecordedDice([]),
             system=True,
         )
+
+
+def test_bees_disengage_at_fifty_yards_from_persisted_hive_and_replay() -> None:
+    seed = swarm_state()
+    swarm = Swarm.model_validate(
+        {
+            **seed.swarms[0].model_dump(),
+            "area": ({"q": 44, "r": 0},),
+            "occupants": (
+                {
+                    **seed.swarms[0].occupants[0].model_dump(),
+                    "position": {"q": 44, "r": 0},
+                },
+            ),
+        }
+    )
+    seed = seed.model_copy(update={"swarms": (swarm,)})
+    command = SetSwarmArea(
+        id="fifty-yards",
+        actor_id="swarm-actor",
+        expected_revision=0,
+        swarm_id="cloud",
+        area=(SwarmCell(q=50, r=0),),
+        occupants=(swarm.occupants[0].model_copy(update={"position": SwarmCell(q=50, r=0)}),),
+    )
+    changed, outcome = apply_creature_combat(seed, command, rng=RecordedDice([]), system=True)
+    assert outcome is None
+    ended = changed.swarms[0]
+    assert not ended.active and ended.disengaged_by_command_id == command.id
+    assert ended.occupants == () and ended.remaining_hp == 12
+    assert changed.receipts[-1].command_id == command.id
+    restored = ResourceState.model_validate_json(changed.model_dump_json())
+    assert replay_creature_combat(restored, (command,), rng=RecordedDice([])) == restored

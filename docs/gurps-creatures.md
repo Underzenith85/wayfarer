@@ -1,17 +1,14 @@
-# Creature construction and training (#521)
+# Creature construction, training, and combat (#521, #522, #687)
 
 The engine implements a bounded animal and monster catalog from the selected
 Campaigns fourth printing, B455-460. It does not claim a complete bestiary.
 The catalog currently contains a house cat, large guard dog, timber wolf,
 cavalry horse, draft horse, basilisk and gryphon.
 
-The source identities and recorded facts have been reviewed, but these seven
-creature rows remain `partial`: their templates do not yet carry every listed
-trait or skill, and the basilisk's death gaze is not executable. The B461 Bees
-row is also `partial` until its 50-yard hive-disengagement behavior exists.
-Bats and Rats are the only creature-workstream inventory rows currently eligible
-for `implemented` status. `certification.creature_audit` itemizes each missing
-mechanic so catalog compilation cannot promote an incomplete source row.
+The seven selected creature rows and three swarm examples are source-reviewed
+and implemented. Their exact traits, skill levels, natural attacks, special
+effects, and the bee swarm's hive-distance rule are pinned independently in
+`tests/fixtures/gurps/residual-creatures.json`.
 
 ## Construction boundary
 
@@ -32,8 +29,22 @@ add a narrated action or arbitrary rule field.
 Natural attacks retain their compiled damage basis, damage type and close-combat
 reach. The B460 damage adapter reads ST, Brawling and anatomy traits from that
 same creature, uses the profile damage table, and sends the resulting wound
-through the canonical DR, Injury Tolerance and injury reducer. Special monster
-attacks without a separately implemented trait procedure reject before rolling.
+through the canonical DR, Injury Tolerance and injury reducer.
+
+The basilisk's death gaze is an approved Toxic Attack construction. Its
+Malediction 1 and Vision-Based selections pass through the canonical ability
+modifier registry, while its Psychokinesis membership passes through the psi
+power registry. Resolution requires Concentrate, authoritative mutual vision
+contact and target Will, applies the per-yard penalty in the shared resisted
+supernatural check, ignores DR, and sends successful 3d toxic damage through
+the common injury reducer. The receipt retains the projected effect and all
+recorded dice. An unavailable or drifting effect, modifier, or power adapter
+fails before resolution.
+
+The gryphon's winged Flight is checked against the canonical movement-form
+binding and approved Air Move, and its sharp beak is checked against the
+natural-weapon binding. Its claw and large-piercing beak attacks then use the
+same natural-damage path as other creatures.
 
 ## Persistent training
 
@@ -81,11 +92,13 @@ specifications. A swarm persists its axial area and occupant facts, automatic
 attack cadence, dispersal HP, protection timing, and explicit immune or
 vulnerable countermeasures. It attacks only the occupants recorded inside its
 area. Target harm and diffuse swarm harm both use the common injury reducer;
-shared hex distance validates area connectivity. Dispersal clears occupants and
-records the one command that caused it. Receipts and embedded outcomes make
-retries and JSON replay exact-once.
+shared hex distance validates area connectivity. A bee swarm additionally
+persists its hive origin and disengages once its pursued occupant reaches 50
+yards, clearing occupants without changing dispersal HP and recording the exact
+command that ended pursuit. Dispersal likewise clears occupants and records its
+command. Receipts and embedded outcomes make retries and JSON replay exact-once.
 
 Unsupported adjacent behavior remains explicit: arbitrary narrated motives,
-unlisted countermeasures, disconnected swarm areas, and special monster powers
-without their own procedure are rejected. The engine does not infer tactics or
-new bestiary entries from descriptive prose.
+unlisted countermeasures, disconnected swarm areas, and unregistered special
+monster bindings are rejected. The engine does not infer tactics or new
+bestiary entries from descriptive prose.

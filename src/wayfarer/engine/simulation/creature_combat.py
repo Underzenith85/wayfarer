@@ -13,8 +13,15 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from wayfarer.engine.character.statistics import damage as strength_damage
-from wayfarer.engine.rules.checks import CheckTrace, RandomSource, draw_dice
-from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.checks import CheckTrace, Modifier, ModifierKind, RandomSource, draw_dice
+from wayfarer.engine.rules.creatures import creature_attack_effect
+from wayfarer.engine.rules.gurps_checks import (
+    Contestant,
+    ResistanceTrace,
+    resistance_roll,
+    success_roll,
+)
+from wayfarer.engine.rules.traits.modifiers import ModifierRuntimeReceipt
 from wayfarer.engine.rules.types.creature import (
     Creature,
     CreatureAttack,
@@ -56,14 +63,16 @@ class ResolveNaturalAttack(Command):
     kind: Literal["creature-natural-attack"] = "creature-natural-attack"
     target_id: Id
     attack_id: Id
-    maneuver: Literal["attack", "all-out-attack", "move-and-attack"] = "attack"
+    maneuver: Literal["attack", "all-out-attack", "concentrate", "move-and-attack"] = "attack"
     motivation: CreatureMotivation
     attacker_position: SwarmCell
     target_position: SwarmCell
     defense: Literal["none", "dodge", "parry"] = "dodge"
     defense_score: int | None = Field(default=None, ge=1, le=100)
     target_ht: int = Field(ge=1, le=100)
+    target_will: int | None = Field(default=None, ge=1, le=100)
     target_dr: int = Field(default=0, ge=0, le=1000)
+    vision_contact: bool = False
     mounted_transport_id: Id | None = None
 
 
@@ -72,8 +81,10 @@ class NaturalAttackOutcome(Record):
     target_id: Id
     attack_id: Id
     hit: bool
-    attack: CheckTrace
+    attack: CheckTrace | None = None
     defense: CheckTrace | None = None
+    resistance: ResistanceTrace | None = None
+    effect: ModifierRuntimeReceipt | None = None
     damage_dice: tuple[int, ...] = ()
     basic_damage: int = 0
     injury: InjuryResult | None = None
@@ -217,10 +228,13 @@ def propose_creature_actions(
         may_attack = False
     proposals: list[CreatureActionProposal] = []
     for maneuver in maneuvers:
-        if maneuver in ("attack", "all-out-attack", "move-and-attack"):
+        if maneuver in ("attack", "all-out-attack", "concentrate", "move-and-attack"):
             if not may_attack:
                 continue
             for attack_id in creature.combat_behavior.preferred_attack_ids:
+                attack = next(entry for entry in creature.attacks if entry.id == attack_id)
+                if (attack.effect is not None) != (maneuver == "concentrate"):
+                    continue
                 proposals.append(
                     CreatureActionProposal(
                         creature_id=creature_id,
@@ -323,6 +337,82 @@ def _append_event(
     )
 
 
+def _resolve_special_attack(
+    state: ResourceState,
+    command: ResolveNaturalAttack,
+    creature: Creature,
+    attack: CreatureAttack,
+    separation: int,
+    rng: RandomSource,
+) -> tuple[ResourceState, NaturalAttackOutcome]:
+    if command.maneuver != "concentrate":
+        raise ValidationError("Malediction creature attacks require Concentrate")
+    if not command.vision_contact:
+        raise ValidationError("Vision-Based creature attack requires mutual vision contact")
+    if command.target_will is None:
+        raise ValidationError("Malediction creature attack requires authoritative target Will")
+    defender = next(
+        (entry for entry in state.creatures if entry.actor_id == command.target_id), None
+    )
+    if defender is not None and command.target_will != defender.statistics.will:
+        raise ValidationError("Target Will disagrees with the compiled creature")
+    effect = creature_attack_effect(attack)
+    assert attack.effect is not None
+    resistance = resistance_roll(
+        PROFILE,
+        Contestant(
+            creature.actor_id,
+            creature.statistics.will,
+            (
+                Modifier(
+                    -separation,
+                    "Malediction 1 distance",
+                    attack.effect.definition_id,
+                    "characters-third-2008",
+                    ModifierKind.SITUATIONAL,
+                ),
+            ),
+        ),
+        Contestant(command.target_id, command.target_will),
+        rule_of_16=True,
+        rng=rng,
+    )
+    dice: tuple[int, ...] = ()
+    basic = 0
+    injury = None
+    updated = state
+    if resistance.affected:
+        dice = draw_dice(rng, attack.effect.damage_dice)
+        basic = sum(dice)
+        updated, injury = apply_injury(
+            state,
+            Wound(
+                id=EVENT_PREFIX + "injury:" + hashlib.sha256(command.id.encode()).hexdigest(),
+                actor_id=command.target_id,
+                expected_revision=state.revision,
+                basic_damage=basic,
+                resistance=0,
+                damage_type="tox",
+            ),
+            ht=command.target_ht,
+            rng=rng,
+            system=True,
+        )
+    outcome = NaturalAttackOutcome(
+        attacker_id=creature.actor_id,
+        target_id=command.target_id,
+        attack_id=attack.id,
+        hit=resistance.affected,
+        attack=resistance.attacker,
+        resistance=resistance,
+        effect=effect,
+        damage_dice=dice,
+        basic_damage=basic,
+        injury=injury,
+    )
+    return _append_event(updated, command, outcome, command.target_id), outcome
+
+
 def resolve_natural_attack(
     state: ResourceState,
     command: ResolveNaturalAttack,
@@ -365,12 +455,8 @@ def resolve_natural_attack(
         Hex(q=command.attacker_position.q, r=command.attacker_position.r),
         Hex(q=command.target_position.q, r=command.target_position.r),
     )
-    if separation > selected.reach:
+    if selected.effect is None and separation > selected.reach:
         raise ValidationError("Target is outside the compiled natural-attack reach")
-    if selected.damage_basis == "special" or selected.damage_type == "special":
-        raise ValidationError(
-            "Special monster attacks require their own implemented trait procedure"
-        )
     defender = next(
         (entry for entry in state.creatures if entry.actor_id == command.target_id), None
     )
@@ -378,6 +464,8 @@ def resolve_natural_attack(
         command.target_ht != defender.statistics.ht or command.target_dr < defender.statistics.dr
     ):
         raise ValidationError("Target facts disagree with the compiled creature")
+    if selected.effect is not None:
+        return _resolve_special_attack(state, command, creature, selected, separation, rng)
     attack_target = _attack_level(creature)
     if command.maneuver == "all-out-attack":
         attack_target += 4
@@ -415,6 +503,7 @@ def resolve_natural_attack(
             "crushing": "cr",
             "cutting": "cut",
             "impaling": "imp",
+            "large-piercing": "pi+",
             "toxic": "tox",
         }
         updated, injury = apply_injury(
@@ -474,7 +563,7 @@ def _protected(swarm: Swarm, occupant: SwarmOccupant, now: int) -> bool:
 def _set_swarm_area(state: ResourceState, command: SetSwarmArea) -> ResourceState:
     swarm = _swarm(state, command.swarm_id)
     if not swarm.active:
-        raise ConflictError("Dispersed swarm cannot change area")
+        raise ConflictError("Inactive swarm cannot change area")
     # Shared geometry owns adjacency: every destination cell must connect to the area.
     cells = tuple(Hex(q=entry.q, r=entry.r) for entry in command.area)
     if len(cells) > 1 and any(
@@ -486,9 +575,23 @@ def _set_swarm_area(state: ResourceState, command: SetSwarmArea) -> ResourceStat
         raise ValidationError("Swarm area movement exceeds its compiled Move")
     if any(entry.entered_at > state.game_time for entry in command.occupants):
         raise ValidationError("Swarm occupancy cannot begin in the future")
-    moved = Swarm.model_validate(
-        {**swarm.model_dump(), "area": command.area, "occupants": command.occupants}
-    )
+    changes: dict[str, object] = {"area": command.area, "occupants": command.occupants}
+    limit = swarm.spec.disengage_distance_from_origin
+    if limit:
+        assert swarm.origin is not None
+        hive = Hex(q=swarm.origin.q, r=swarm.origin.r)
+        if any(
+            distance(hive, Hex(q=entry.position.q, r=entry.position.r)) >= limit
+            for entry in command.occupants
+        ):
+            changes.update(
+                {
+                    "active": False,
+                    "occupants": (),
+                    "disengaged_by_command_id": command.id,
+                }
+            )
+    moved = Swarm.model_validate({**swarm.model_dump(), **changes})
     return _replace_swarm(state.model_copy(update={"revision": state.revision + 1}), moved)
 
 
@@ -497,7 +600,7 @@ def _resolve_swarm_turn(
 ) -> tuple[ResourceState, SwarmTurnOutcome]:
     swarm = _swarm(state, command.swarm_id)
     if not swarm.active:
-        raise ConflictError("Dispersed swarm cannot attack")
+        raise ConflictError("Inactive swarm cannot attack")
     if state.game_time < swarm.next_attack_at:
         raise ConflictError("Swarm attack cadence has not elapsed")
     updated = state
@@ -547,7 +650,9 @@ def _damage_swarm(
 ) -> tuple[ResourceState, SwarmDamageOutcome]:
     swarm = _swarm(state, command.swarm_id)
     if not swarm.active:
-        raise ConflictError("Swarm already dispersed")
+        if swarm.dispersed_by_command_id is not None:
+            raise ConflictError("Swarm already dispersed")
+        raise ConflictError("Swarm already disengaged")
     if command.countermeasure in swarm.spec.immune_countermeasures:
         return state.model_copy(update={"revision": state.revision + 1}), SwarmDamageOutcome(
             swarm_id=swarm.id,

@@ -17,60 +17,15 @@ class CreatureInventoryRow:
     source_review: str = "reviewed"
     blockers: tuple[int, ...] = ()
     gaps: tuple[str, ...] = ()
+    evidence: tuple[str, ...] = (
+        "tests/fixtures/gurps/residual-creatures.json",
+        "tests/test_creatures.py",
+        "tests/test_creature_combat.py",
+    )
 
 
-CREATURE_GAPS: Final = {
-    "creature:house-cat": (
-        "catfall",
-        "combat-reflexes",
-        "domestic-animal",
-        "night-vision-5",
-        "sharp-teeth",
-        "jumping-14",
-    ),
-    "creature:large-guard-dog": (
-        "chummy",
-        "discriminatory-smell",
-        "domestic-animal",
-    ),
-    "creature:timber-wolf": (
-        "discriminatory-smell",
-        "night-vision-2",
-        "temperature-tolerance-1",
-        "wild-animal",
-    ),
-    "creature:cavalry-horse": (
-        "combat-reflexes",
-        "domestic-animal",
-        "peripheral-vision",
-        "weak-bite",
-    ),
-    "creature:draft-horse": (
-        "domestic-animal",
-        "peripheral-vision",
-        "weak-bite",
-    ),
-    "creature:basilisk": (
-        "toxic-attack-3d",
-        "malediction-1",
-        "psychokinetic",
-        "vision-based",
-        "wild-animal",
-        "executable-death-gaze",
-    ),
-    "creature:gryphon": (
-        "acute-vision-3",
-        "combat-reflexes",
-        "winged-flight",
-        "sharp-beak",
-        "sharp-claws",
-        "wild-animal",
-    ),
-}
-
-SWARM_GAPS: Final = {
-    "swarm:bees": ("hive-distance-disengagement",),
-}
+CREATURE_GAPS: Final[dict[str, tuple[str, ...]]] = {}
+SWARM_GAPS: Final[dict[str, tuple[str, ...]]] = {}
 
 
 def _row(

@@ -66,6 +66,21 @@ class CreatureTrait(Record):
     parameters: tuple[tuple[str, str], ...] = ()
 
 
+class CreatureModifierBinding(Record):
+    definition_id: Id
+    option: str | None = None
+    sense: str | None = None
+
+
+class CreatureAttackEffect(Record):
+    """An approved ability construction consumed by the shared modifier adapters."""
+
+    definition_id: Id
+    damage_dice: int = Field(ge=1, le=100)
+    modifiers: tuple[CreatureModifierBinding, ...]
+    power_id: Id | None = None
+
+
 class CreatureSkill(Record):
     id: Id
     level: int = Field(ge=1, le=100)
@@ -73,14 +88,24 @@ class CreatureSkill(Record):
 
 class CreatureAttack(Record):
     id: Id
-    form: Literal["bite", "claw", "kick", "striker", "gaze", "special"]
+    form: Literal["bite", "beak", "claw", "kick", "striker", "gaze", "special"]
     damage_basis: Literal["thrust-1", "thrust", "special"]
-    damage_type: Literal["crushing", "cutting", "impaling", "toxic", "special"]
+    damage_type: Literal["crushing", "cutting", "impaling", "large-piercing", "toxic", "special"]
+    effect: CreatureAttackEffect | None = None
     # B461: an unqualified beast attack is close-combat only.
     reach: int = Field(default=0, ge=0, le=100)
 
+    @model_validator(mode="after")
+    def special_damage_requires_an_effect(self) -> Self:
+        special = self.damage_basis == "special" or self.damage_type == "special"
+        if special != (self.effect is not None):
+            raise ValueError("Special creature damage requires exactly one effect binding")
+        return self
 
-CreatureManeuver = Literal["attack", "all-out-attack", "move", "move-and-attack", "do-nothing"]
+
+CreatureManeuver = Literal[
+    "attack", "all-out-attack", "concentrate", "move", "move-and-attack", "do-nothing"
+]
 CreatureMotivation = Literal["predatory", "defensive", "territorial", "commanded", "panic"]
 
 
@@ -99,7 +124,9 @@ class CreatureCombatBehavior(Record):
             raise ValueError("Creature attack motivations must be unique")
         if len(set(self.preferred_attack_ids)) != len(self.preferred_attack_ids):
             raise ValueError("Creature preferred attacks must be unique")
-        attacking = {"attack", "all-out-attack", "move-and-attack"} & set(self.maneuvers)
+        attacking = {"attack", "all-out-attack", "concentrate", "move-and-attack"} & set(
+            self.maneuvers
+        )
         if bool(attacking) != bool(self.preferred_attack_ids):
             raise ValueError("Creature attack maneuvers and preferred attacks must agree")
         return self
@@ -308,6 +335,7 @@ class SwarmSpec(Record):
     vulnerable_countermeasures: tuple[SwarmCountermeasure, ...] = ()
     ordinary_clothing_seconds: int = Field(default=0, ge=0, le=3600)
     low_tech_armor_seconds: int = Field(default=0, ge=0, le=3600)
+    disengage_distance_from_origin: int = Field(default=0, ge=0, le=10000)
     reference: Literal["B461"] = "B461"
 
     @model_validator(mode="after")
@@ -347,6 +375,8 @@ class Swarm(Record):
     next_attack_at: int = Field(ge=0)
     active: bool = True
     dispersed_by_command_id: Id | None = None
+    origin: SwarmCell | None = None
+    disengaged_by_command_id: Id | None = None
 
     @model_validator(mode="after")
     def coherent_occupancy_and_dispersal(self) -> Self:
@@ -358,6 +388,14 @@ class Swarm(Record):
             raise ValueError("Swarm occupants must be inside its authoritative area")
         if self.remaining_hp > self.spec.dispersal_hp:
             raise ValueError("Swarm HP exceeds its dispersal threshold")
-        if self.active != (self.remaining_hp > 0 and self.dispersed_by_command_id is None):
+        if (self.spec.disengage_distance_from_origin > 0) != (self.origin is not None):
+            raise ValueError("Origin-bound swarm requires exactly one authoritative origin")
+        if self.dispersed_by_command_id is not None and self.disengaged_by_command_id is not None:
+            raise ValueError("A swarm cannot be both dispersed and disengaged")
+        if self.active != (
+            self.remaining_hp > 0
+            and self.dispersed_by_command_id is None
+            and self.disengaged_by_command_id is None
+        ):
             raise ValueError("Swarm active state and dispersal facts disagree")
         return self

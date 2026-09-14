@@ -1434,7 +1434,12 @@ def _validate_delivery_relationships(selection: ModifierSelection, selected: set
     }:
         raise ValidationError("Respiratory Agent requires Area Effect, Cone, or Jet")
     if selection.definition_id == "modifier:enhancement:malediction":
-        conventional = set(_PENETRATION) - {"modifier:enhancement:sense-based"}
+        # Sense-Based is the explicit B109 exception: with Malediction it is
+        # represented by the limitation row and remains a penetration adapter.
+        conventional = set(_PENETRATION) - {
+            "modifier:enhancement:sense-based",
+            "modifier:limitation:sense-based",
+        }
         if conventional & selected:
             raise ValidationError("Malediction is incompatible with this penetration modifier")
     params = selection.parameters
