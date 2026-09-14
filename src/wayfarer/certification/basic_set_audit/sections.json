@@ -2073,18 +2073,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         191,
         497,
-        94
+        94,
+        682,
+        720
       ],
-      "completion_owner": 682,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
@@ -2104,18 +2107,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_advantage_enhancements.py"
       ],
       "historical_owners": [
         191,
         497,
-        94
+        94,
+        682,
+        720
       ],
-      "completion_owner": 682,
+      "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",

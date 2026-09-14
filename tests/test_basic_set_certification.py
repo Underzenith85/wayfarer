@@ -94,11 +94,7 @@ def test_every_reported_blocker_has_a_currently_open_owner() -> None:
         blocker.owner_issue is None or owner_states[blocker.owner_issue] == "open"
         for blocker in report.blockers
     )
-    assert {blocker.owner_issue for blocker in report.blockers} == {
-        94,
-        682,
-        683,
-    }
+    assert {blocker.owner_issue for blocker in report.blockers} == {94, 683}
 
 
 def test_basic_set_release_rejects_current_incomplete_evidence() -> None:
