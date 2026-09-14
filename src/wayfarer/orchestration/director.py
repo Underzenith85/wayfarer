@@ -18,9 +18,11 @@ from wayfarer.engine.simulation.campaign.director import DirectorTurn
 from wayfarer.errors import AuthorizationError, ConflictError, ProviderError, ValidationError
 from wayfarer.orchestration.party import PartyCommand
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
+from wayfarer.orchestration.processes import Identity, ProcessKind, Step
 from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.providers import Intent, Narration, Orchestrator, TurnResponse
 from wayfarer.persistence.events import CommandOrigin
+from wayfarer.persistence.processes import Process
 
 
 @dataclass(frozen=True)
@@ -33,6 +35,44 @@ class DirectorRequest:
     checkpoint: Callable[[str], None] | None
     proposal: Mapping[str, object] | None
     request_json: str | None
+
+
+@dataclass(frozen=True)
+class DirectorWork:
+    """One turn, as the process that drives it sees it."""
+
+    director: DirectorService
+    request: DirectorRequest
+
+
+def director_identity(value: object) -> Identity:
+    if not isinstance(value, DirectorWork):
+        raise ValidationError("Director process requires a turn")
+    request = value.request
+    named = json.dumps((request.cid, request.principal_id, request.actor_id, request.command_id))
+    digest = hashlib.sha256(named.encode()).hexdigest()
+    return Identity(
+        id=digest,
+        scope=request.cid,
+        principal_id=request.principal_id,
+        actor_id=request.actor_id,
+        key=request.command_id,
+        # A turn's own phase checks decide whether a changed payload is a conflict,
+        # so the process answers a retry rather than refusing it here.
+        input_digest=digest,
+    )
+
+
+async def director_step(process: Process, value: object) -> Step:
+    """Advance the turn one durable boundary; a phase that answers ends the process."""
+    if not isinstance(value, DirectorWork):
+        raise ValidationError("Director process requires a turn")
+    response = await value.director.advance(value.request)
+    if response is None:
+        return Step(state=json.dumps({"stage": "advancing"}))
+    return Step(
+        state=json.dumps({"stage": "complete"}), done=True, result=response.model_dump_json()
+    )
 
 
 def reduce_director(state: PlayState, turn: DirectorTurn) -> PlayState:
@@ -98,6 +138,43 @@ class DirectorService:
             self.play, cid, self.plan(turn, revision, origin=origin), principal_id=turn.actor_id
         )
 
+    async def advance(self, request: DirectorRequest) -> TurnResponse | None:
+        """One durable boundary of a turn: reload, reauthorize, run the phase.
+
+        The process worker repeats this until a phase answers. Reloading here is
+        what makes a resumed turn safe: authority and identity are rechecked on
+        every pass, including the passes a restarted worker makes.
+        """
+        phases = {
+            "interpretation": self._interpret,
+            "resolution": self._resolve,
+            "waiting": self._finish,
+            "narration": self._finish,
+            "complete": self._response,
+            "clarification": self._response,
+        }
+        state = await self.access.checkpoint(request.cid)
+        member = self.access.member(state, request.principal_id)
+        self.access.control(member, request.actor_id)
+        turn = next((t for t in state.director if t.id == request.command_id), None)
+        if turn is not None and (turn.actor_id, turn.principal_id, turn.text) != (
+            request.actor_id,
+            request.principal_id,
+            request.text,
+        ):
+            raise ConflictError("Turn identity was already used for different input")
+        if (
+            turn is not None
+            and request.request_json is not None
+            and turn.request_json != request.request_json
+        ):
+            raise ConflictError("Turn request payload changed")
+        if state.lifecycle != "active" and (turn is None or turn.phase != "complete"):
+            raise ConflictError("Resume an active campaign before acting")
+        if turn is None:
+            return await self._begin(state, request)
+        return await phases[turn.phase](state, turn, request)
+
     async def run(
         self,
         cid: str,
@@ -109,6 +186,7 @@ class DirectorService:
         checkpoint: Callable[[str], None] | None = None,
         proposal: Mapping[str, object] | None = None,
     ) -> TurnResponse:
+        """Drive one turn to a terminal phase through the process worker."""
         request = DirectorRequest(
             cid,
             principal_id,
@@ -119,38 +197,8 @@ class DirectorService:
             proposal,
             json.dumps(dict(proposal), sort_keys=True) if proposal is not None else None,
         )
-        request_json = request.request_json
-        phases = {
-            "interpretation": self._interpret,
-            "resolution": self._resolve,
-            "waiting": self._finish,
-            "narration": self._finish,
-            "complete": self._response,
-            "clarification": self._response,
-        }
-        # Reload and reauthorize at every durable boundary, including retries.
-        for _ in range(8):
-            state = await self.access.checkpoint(cid)
-            member = self.access.member(state, principal_id)
-            self.access.control(member, actor_id)
-            turn = next((t for t in state.director if t.id == command_id), None)
-            if turn is not None and (turn.actor_id, turn.principal_id, turn.text) != (
-                actor_id,
-                principal_id,
-                text,
-            ):
-                raise ConflictError("Turn identity was already used for different input")
-            if turn is not None and request_json is not None and turn.request_json != request_json:
-                raise ConflictError("Turn request payload changed")
-            if state.lifecycle != "active" and (turn is None or turn.phase != "complete"):
-                raise ConflictError("Resume an active campaign before acting")
-            if turn is None:
-                response = await self._begin(state, request)
-            else:
-                response = await phases[turn.phase](state, turn, request)
-            if response is not None:
-                return response
-        raise ConflictError("Director phase budget exhausted; resume this turn")
+        process = await self.llm.processes.run("director_turn", DirectorWork(self, request))
+        return TurnResponse.model_validate_json(await self.llm.processes.result(process))
 
     async def _begin(self, state: PlayState, request: DirectorRequest) -> TurnResponse | None:
         cid = request.cid
@@ -500,8 +548,8 @@ class DirectorService:
         cid = request.cid
         principal_id = request.principal_id
         narration, available = turn.narration, turn.narration_available
-        await self.llm.jobs.start()
-        for job in await self.llm.jobs.store.outbox(cid, principal_id, request.actor_id):
+        await self.llm.processes.start()
+        for job in await self.llm.processes.store.outbox(cid, principal_id, request.actor_id):
             if job.kind == "narration" and job.key == request.command_id and job.result_json:
                 narration, available = Narration.model_validate_json(job.result_json).text, True
         return TurnResponse(
@@ -510,3 +558,12 @@ class DirectorService:
             narration=narration,
             narration_available=available,
         )
+
+
+DIRECTOR_TURN = ProcessKind(
+    name="director_turn",
+    identity=director_identity,
+    step=director_step,
+    steps=8,
+    retry="repeat",
+)

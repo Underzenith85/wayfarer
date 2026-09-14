@@ -15,7 +15,7 @@ from wayfarer.engine.simulation.actions import ActionRules, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.models import Record
-from wayfarer.orchestration.jobs import ProviderJobs
+from wayfarer.orchestration.processes import ProcessRegistry
 from wayfarer.persistence.events import CommandOrigin, CommandRecord
 
 if TYPE_CHECKING:
@@ -54,7 +54,7 @@ class CampaignContext(Protocol):
     `providers` no longer imports the runtime that composes it.
     """
 
-    jobs: ProviderJobs
+    processes: ProcessRegistry
     play: PlayService
 
     @property

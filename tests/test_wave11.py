@@ -48,19 +48,19 @@ async def test_director_restart_never_repeats_committed_action(
             text="wait",
             checkpoint=crash,
         )
-    await director.llm.jobs.close()
+    await director.llm.processes.close()
     restarted = PlayService(AsyncSQLiteStore(tmp_path / "wave9.sqlite", 10), play.engine)
     resumed = DirectorService(build_orchestrator(build_runtime(restarted), provider))
     response = await resumed.run(
         cid, principal_id="alice", actor_id="a", command_id="turn1", text="wait"
     )
     assert response.committed
-    await resumed.llm.jobs.drain()
+    await resumed.llm.processes.drain()
     response = await resumed.run(
         cid, principal_id="alice", actor_id="a", command_id="turn1", text="wait"
     )
     if boundary == "complete" and not response.narration_available:
-        jobs = await resumed.llm.jobs.store.outbox(cid, "alice", "a")
+        jobs = await resumed.llm.processes.store.outbox(cid, "alice", "a")
         narration_jobs = [j for j in jobs if j.kind == "narration"]
         assert len(narration_jobs) == 1 and narration_jobs[0].status == "failed"
     else:
@@ -448,7 +448,7 @@ async def test_explicit_question_cannot_be_interpreted_as_mutation(tmp_path: Pat
     )
     assert not result.committed
     assert play._load(await play.store.read(cid)).resources.game_time == 0
-    await director.llm.jobs.drain()
+    await director.llm.processes.drain()
     assert [r.operation for r in provider.requests] == ["narration"]
 
 

@@ -654,7 +654,7 @@ class SetupService:
                 for a in current_state.actors
                 if a.actor_id in player_ids
             )
-        raw = await llm._call(
+        raw = await llm.generate(
             ProviderRequest(
                 operation="scenario_draft",
                 session_id=f"setup:{cid}:{principal_id}",
@@ -672,7 +672,12 @@ class SetupService:
                 ),
                 prompt="Create a playable runtime scenario using only supported catalog mechanics. Preserve the supplied party exactly.",
                 output_schema=ScenarioGraph.model_json_schema(),
-            )
+            ),
+            kind="setup_generation",
+            cid=cid,
+            principal=principal_id,
+            actor=principal_id,
+            key=generation_id,
         )
         graph = ScenarioGraph.model_validate_json(raw)
         if party and {a.actor_id: a.proposal for a in party} != {

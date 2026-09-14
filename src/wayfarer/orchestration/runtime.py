@@ -24,11 +24,12 @@ from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.commands import Submission, family_for
-from wayfarer.orchestration.jobs import ProviderJobs
 from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.process_kinds import registered
+from wayfarer.orchestration.processes import ProcessRegistry
 from wayfarer.orchestration.projections import ViewRequest, project
 from wayfarer.orchestration.sessions import Store
 from wayfarer.orchestration.views import campaign_view
@@ -39,7 +40,7 @@ from wayfarer.orchestration.workshop_options import (
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.catalog import CatalogStore
 from wayfarer.persistence.events import CommandOrigin, CommandRecord
-from wayfarer.persistence.jobs import JobStore
+from wayfarer.persistence.processes import ProcessStore
 
 
 @dataclass(frozen=True)
@@ -48,12 +49,12 @@ class CampaignStores:
 
     campaigns: Store
     catalog: CatalogStore
-    jobs: JobStore
+    processes: ProcessStore
 
     @classmethod
     def on(cls, store: Store) -> CampaignStores:
         catalog = CatalogStore(store)
-        return cls(campaigns=store, catalog=catalog, jobs=JobStore(catalog))
+        return cls(campaigns=store, catalog=catalog, processes=ProcessStore(catalog))
 
 
 class CampaignRuntime:
@@ -63,15 +64,19 @@ class CampaignRuntime:
         medical_environment: EnvironmentResolver | None = None,
         *,
         stores: CampaignStores | None = None,
-        jobs: ProviderJobs | None = None,
+        processes: ProcessRegistry | None = None,
         partition: str = "default",
     ) -> None:
         self.play = play
         self.medical_environment = medical_environment
         self.stores = CampaignStores.on(play.store) if stores is None else stores
         # One worker per runtime, so two runtimes never contend for a partition.
-        self.jobs = ProviderJobs(self.stores.jobs, partition=partition) if jobs is None else jobs
-        self.partition = self.jobs.partition
+        self.processes = (
+            registered(ProcessRegistry(self.stores.processes, partition=partition))
+            if processes is None
+            else processes
+        )
+        self.partition = self.processes.partition
 
     def for_service(self, play: PlayService) -> CampaignRuntime:
         """The same runtime around another service over these stores.
@@ -86,7 +91,7 @@ class CampaignRuntime:
             play,
             self.medical_environment,
             stores=self.stores,
-            jobs=self.jobs,
+            processes=self.processes,
         )
 
     async def for_campaign(self, cid: str) -> CampaignRuntime:

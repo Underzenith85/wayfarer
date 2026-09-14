@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections import Counter
 from collections.abc import Iterable
@@ -756,15 +757,20 @@ class ScenarioStudio:
         }
         graph: ScenarioGraph | None = None
         report: StudioReport | None = None
-        for _ in range(attempts):
-            raw = await llm._call(
+        for attempt in range(attempts):
+            raw = await llm.generate(
                 ProviderRequest(
                     operation="scenario_draft",
                     session_id=f"studio:{principal_id}",
                     context_json=json.dumps(context),
                     prompt="Create a runtime-backed adventure with alternate progression routes. Never invent catalog IDs or unsupported mechanics.",
                     output_schema=ScenarioGraph.model_json_schema(),
-                )
+                ),
+                kind="scenario_generation",
+                cid=f"studio:{principal_id}",
+                principal=principal_id,
+                actor=principal_id,
+                key=f"{hashlib.sha256(brief.model_dump_json().encode()).hexdigest()}:{attempt}",
             )
             try:
                 graph = ScenarioGraph.model_validate_json(raw)

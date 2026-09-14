@@ -15,8 +15,10 @@ from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.errors import ProviderError
 from wayfarer.orchestration.battlefield_templates import install_rules
 from wayfarer.orchestration.npcs import NPCService
+from wayfarer.orchestration.process_kinds import KINDS
+from wayfarer.orchestration.providers import ProviderWork
 from wayfarer.orchestration.sessions import SessionRegistry
-from wayfarer.persistence.jobs import ProviderJob
+from wayfarer.persistence.processes import Process
 
 
 async def test_campaign_locks_serialize_and_idle_eviction_preserves_waiters(tmp_path: Path) -> None:
@@ -72,7 +74,7 @@ async def test_two_runtimes_over_two_stores_share_no_lock_or_partition(tmp_path:
     first = build_runtime(play)
     second = build_runtime(other_play, partition="second")
     assert first.play.sessions is not second.play.sessions
-    assert first.jobs is not second.jobs
+    assert first.processes is not second.processes
     assert (first.partition, second.partition) == ("default", "second")
 
     held = asyncio.Event()
@@ -108,31 +110,22 @@ async def test_jobs_do_not_block_and_publish_once_to_their_audience(
         await release.wait()
         return '{"text":"Only the captive sees this."}'
 
-    job = await asyncio.wait_for(
-        jobs.submit(
+    def narration(key: str) -> ProviderWork:
+        return ProviderWork(
             cid="campaign",
             revision=2,
             principal="captive",
             actor="a",
             kind="narration",
-            key="first",
+            key=key,
             request_json="{}",
             run=provider,
-        ),
-        2,
-    )
+        )
+
+    job = await asyncio.wait_for(jobs.run("narration", narration("first")), 2)
     await entered.wait()
     assert not jobs.tasks[job.id].done()
-    duplicate = await jobs.submit(
-        cid="campaign",
-        revision=2,
-        principal="captive",
-        actor="a",
-        kind="narration",
-        key="duplicate",
-        request_json="{}",
-        run=provider,
-    )
+    duplicate = await jobs.run("narration", narration("duplicate"))
     assert duplicate.id == job.id
     assert await jobs.store.outbox("campaign", "rescuer", "b") == ()
     release.set()
@@ -150,14 +143,12 @@ async def test_restart_fails_interrupted_jobs_explicitly(tmp_path: Path) -> None
     store = open_store(tmp_path, filename="restart.sqlite")
     jobs = job_worker(store)
     await jobs.start()
-    job = ProviderJob(
+    job = Process(
         id="interrupted",
-        campaign_id="campaign",
-        revision=1,
+        kind="proposal",
+        scope="campaign",
         principal_id="gm",
         actor_id="gm",
-        kind="proposal",
-        request_json="{}",
         status="running",
     )
     await jobs.store.create(job)
@@ -171,19 +162,39 @@ async def test_restart_fails_interrupted_jobs_explicitly(tmp_path: Path) -> None
     assert await restarted.store.outbox("campaign", "gm", "gm") == published
 
 
+@pytest.mark.parametrize("kind", sorted(kind.name for kind in KINDS))
+async def test_restart_fails_every_kind_of_in_flight_process(tmp_path: Path, kind: str) -> None:
+    """Every registered kind has the same restart story, not just the provider calls."""
+    store = open_store(tmp_path, filename=f"restart-{kind}.sqlite")
+    worker = job_worker(store)
+    await worker.start()
+    await worker.store.create(
+        Process(
+            id=f"in-flight:{kind}",
+            kind=kind,
+            scope="campaign",
+            principal_id="gm",
+            actor_id="gm",
+            status="running",
+        )
+    )
+    await job_worker(store).start()
+    restarted = await worker.store.read(f"in-flight:{kind}")
+    assert restarted.status == "failed" and restarted.error == "worker_restarted"
+    assert len(await worker.store.outbox("campaign", "gm", "gm")) == 1
+
+
 async def test_another_partition_leaves_interrupted_work_alone(tmp_path: Path) -> None:
     """Recovery is per partition, so a second worker never fails another's job."""
     store = open_store(tmp_path, filename="partitions.sqlite")
     owner = job_worker(store, partition="west")
     await owner.start()
-    job = ProviderJob(
+    job = Process(
         id="held",
-        campaign_id="campaign",
-        revision=1,
+        kind="proposal",
+        scope="campaign",
         principal_id="gm",
         actor_id="gm",
-        kind="proposal",
-        request_json="{}",
         partition="west",
         status="running",
     )
@@ -202,9 +213,9 @@ async def test_generated_npc_choice_is_durable_and_keeps_origin(tmp_path: Path) 
     assert state.revision == 1
     receipt = (await play.store.history(cid))[-1]
     assert receipt.origin is not None and receipt.origin.proposal_type == "npc"
-    jobs = await llm.jobs.store.outbox(cid, "gm", "gm")
+    jobs = await llm.processes.store.outbox(cid, "gm", "gm")
     assert len(jobs) == 1 and jobs[0].status == "succeeded"
-    assert await llm.jobs.store.outbox(cid, "alice", "a") == ()
+    assert await llm.processes.store.outbox(cid, "alice", "a") == ()
 
 
 async def test_migrated_configuration_reuses_its_compiled_engine(tmp_path: Path) -> None:

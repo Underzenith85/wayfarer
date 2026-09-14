@@ -47,9 +47,13 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
 async def test_provider_origin_and_replay_never_call_provider(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
     provider = FakeProvider()
-    await build_orchestrator(build_runtime(play), provider).interpret_and_execute(
+    llm = build_orchestrator(build_runtime(play), provider)
+    await llm.interpret_and_execute(
         cid, principal_id="alice", actor_id="a", command_id="wait", text="Wait"
     )
+    # The narration this command queued is its own process; let it finish before
+    # counting, so what replay does is the only thing this measures.
+    await llm.processes.drain()
     row = (await played(play.store, cid))[0]
     assert row.origin is not None and row.origin.proposal_type == "Intent"
     assert json.loads(row.origin.proposal_json)["ticks"] == 1

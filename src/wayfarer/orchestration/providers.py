@@ -9,7 +9,8 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from typing import Literal
+from dataclasses import dataclass
+from typing import Literal, get_args
 
 from pydantic import Field
 
@@ -25,6 +26,7 @@ from wayfarer.models import Record
 from wayfarer.orchestration.commands import parse as parse_command
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.orchestration.party import PartyCommand
+from wayfarer.orchestration.processes import Identity, Job, ProcessKind, Step
 from wayfarer.orchestration.provider_contracts import (
     CampaignContext,
     ProviderReply,
@@ -33,6 +35,112 @@ from wayfarer.orchestration.provider_contracts import (
     Usage,
 )
 from wayfarer.persistence.events import CommandOrigin
+from wayfarer.persistence.processes import Process
+
+# Every provider call is a process. The name says which operation it belongs to,
+# so a stalled generation is visible as itself rather than as an anonymous call.
+ProcessName = Literal[
+    "narration",
+    "proposal",
+    "character_generation",
+    "setup_generation",
+    "scenario_generation",
+]
+
+
+@dataclass(frozen=True)
+class ProviderWork:
+    """One provider call, as the process that owns it sees it.
+
+    The callable is the work; the rest is what makes two submissions the same
+    call. A narration is one per campaign revision and audience, so its identity
+    ignores the request: a second attempt reads the first one's result. A proposal
+    keys on its own request, so reusing a key with different input is a conflict.
+    """
+
+    cid: str
+    revision: int
+    principal: str
+    actor: str
+    kind: ProcessName
+    key: str
+    request_json: str
+    run: Job
+
+
+def _work(value: object) -> ProviderWork:
+    if not isinstance(value, ProviderWork):
+        raise ValidationError("Provider process requires provider work")
+    return value
+
+
+def _digest(*parts: object) -> str:
+    return hashlib.sha256(json.dumps(parts).encode()).hexdigest()
+
+
+def _identity(work: ProviderWork, process_id: str, *, input_digest: str) -> Identity:
+    return Identity(
+        id=process_id,
+        scope=work.cid,
+        principal_id=work.principal,
+        actor_id=work.actor,
+        key=work.key,
+        input_digest=input_digest,
+    )
+
+
+def narration_identity(value: object) -> Identity:
+    """One narration per campaign revision and audience, whatever prompted it."""
+    work = _work(value)
+    digest = _digest(work.cid, work.revision, work.principal, work.actor, work.kind)
+    return _identity(work, digest, input_digest=digest)
+
+
+def keyed_identity(value: object) -> Identity:
+    """One reply per key; reusing a key with different input is a conflict."""
+    work = _work(value)
+    digest = _digest(work.cid, work.revision, work.principal, work.actor, work.kind, work.key)
+    return _identity(
+        work, digest, input_digest=hashlib.sha256(work.request_json.encode()).hexdigest()
+    )
+
+
+def request_identity(value: object) -> Identity:
+    """One row per authoring request, re-entered whenever it is asked for again."""
+    work = _work(value)
+    digest = _digest(
+        work.cid,
+        work.principal,
+        work.actor,
+        work.kind,
+        work.key,
+        hashlib.sha256(work.request_json.encode()).hexdigest(),
+    )
+    return _identity(work, digest, input_digest=digest)
+
+
+async def provider_step(process: Process, value: object) -> Step:
+    """Call the provider once, then finish with what it returned."""
+    if isinstance(value, ProviderWork):
+        return Step(state=json.dumps({"stage": "calling"}), job=value.run)
+    if not isinstance(value, str):
+        raise ValidationError("Provider process expects a provider result")
+    return Step(state=json.dumps({"stage": "complete"}), done=True, result=value)
+
+
+PROVIDER_KINDS = (
+    ProcessKind(name="narration", identity=narration_identity, step=provider_step, steps=2),
+    ProcessKind(name="proposal", identity=keyed_identity, step=provider_step, steps=2),
+    # Authoring is not idempotent work: asking again for a draft means asking for
+    # another draft, so a retry re-enters the process rather than answering from it.
+    *(
+        ProcessKind(
+            name=name, identity=request_identity, step=provider_step, steps=2, retry="repeat"
+        )
+        for name in get_args(ProcessName)
+        if name.endswith("_generation")
+    ),
+)
 
 
 class ResponsesProvider:
@@ -194,7 +302,7 @@ class Orchestrator:
             raise ValueError("Invalid provider bounds")
 
         self.access, self.provider = access, provider
-        self.jobs = access.jobs
+        self.processes = access.processes
         self.timeout, self.attempts = timeout, attempts
         self.telemetry: list[ProviderTelemetry] = []
         # Usage is telemetry, not a lifetime cutoff for this long-running service.
@@ -213,7 +321,7 @@ class Orchestrator:
         async def run() -> str:
             return (await self._reply(request)).model_dump_json()
 
-        job = await self.jobs.submit(
+        work = ProviderWork(
             cid=cid,
             revision=revision,
             principal=principal,
@@ -223,7 +331,53 @@ class Orchestrator:
             request_json=request.model_dump_json(),
             run=run,
         )
-        return ProviderReply.model_validate_json(await self.jobs.result(job))
+        process = await self.processes.run(work.kind, work)
+        return ProviderReply.model_validate_json(await self.processes.result(process))
+
+    async def generate(
+        self,
+        request: ProviderRequest,
+        *,
+        kind: ProcessName,
+        cid: str,
+        principal: str,
+        actor: str,
+        key: str,
+        revision: int = 0,
+    ) -> str:
+        """One authoring call, run as its own process rather than inside the request.
+
+        A stalled provider therefore holds a worker slot and its own timeout, not
+        the request that asked for it.
+        """
+
+        async def run() -> str:
+            return await self._call(request)
+
+        work = ProviderWork(
+            cid=cid,
+            revision=revision,
+            principal=principal,
+            actor=actor,
+            kind=kind,
+            key=key,
+            request_json=request.model_dump_json(),
+            run=run,
+        )
+        process = await self.processes.run(kind, work)
+        return await self.processes.result(process)
+
+    async def interpretation(self, request: ProviderRequest) -> ProviderReply:
+        """One structured reply, for a caller already running inside a process."""
+        return await self._reply(request)
+
+    async def narrate(self, request: ProviderRequest) -> str:
+        """The narration text for one committed result.
+
+        Called from inside the narration process, which is why it is a plain call
+        and not another process: the work is already bounded by the one that runs it.
+        """
+        return Narration.model_validate_json(await self._call(request)).text
 
     async def queue_narration(
         self,
@@ -238,7 +392,7 @@ class Orchestrator:
         async def run() -> str:
             return Narration.model_validate_json(await self._call(request)).model_dump_json()
 
-        await self.jobs.submit(
+        work = ProviderWork(
             cid=cid,
             revision=revision,
             principal=principal,
@@ -248,6 +402,7 @@ class Orchestrator:
             request_json=request.model_dump_json(),
             run=run,
         )
+        await self.processes.run(work.kind, work)
 
     async def _call(self, request: ProviderRequest) -> str:
         return (await self._reply(request)).payload_json

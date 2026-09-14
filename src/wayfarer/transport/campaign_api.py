@@ -412,7 +412,7 @@ def create_campaign_app(
         runtime,
         tokens,
         v1_ledger_path,
-        jobs=runtime.jobs,
+        processes=runtime.processes,
         origins=v1_origins,
         allow_no_origin=v1_allow_no_origin,
     )

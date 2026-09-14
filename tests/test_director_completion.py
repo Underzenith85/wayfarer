@@ -61,7 +61,7 @@ async def test_scheduled_turn_waits_across_restart_without_narrating(
         cid, principal_id="alice", actor_id="a", command_id="wait-a", text="wait"
     )
     assert result.committed
-    await director.llm.jobs.drain()
+    await director.llm.processes.drain()
     result = await director.run(
         cid, principal_id="alice", actor_id="a", command_id="wait-a", text="wait"
     )
@@ -225,14 +225,14 @@ async def test_rejected_scheduled_action_is_not_narrated_as_success(tmp_path: Pa
         text="wait",
         proposal={"kind": "wait", "ticks": 1},
     )
-    await director.llm.jobs.drain()
+    await director.llm.processes.drain()
     calls = len(provider.requests)
     result = await director.run(
         cid, principal_id="alice", actor_id="a", command_id="shortcut", text="shortcut"
     )
     assert not result.committed and not result.narration_available
     assert result.narration == "activity.no_longer_feasible"
-    await director.llm.jobs.drain()
+    await director.llm.processes.drain()
     assert len(provider.requests) == calls
     state = play._load(await play.store.read(cid))
     assert next(t for t in state.director if t.id == "shortcut").phase == "clarification"
@@ -263,7 +263,7 @@ async def test_stalled_narration_never_blocks_committed_projection(tmp_path: Pat
     assert await play.store.stream(cid)
     assert play._load(await play.store.read(cid)).resources.game_time == 1
     release.set()
-    await director.llm.jobs.drain()
+    await director.llm.processes.drain()
     result = await director.run(
         cid, principal_id="alice", actor_id="a", command_id="slow", text="wait"
     )
