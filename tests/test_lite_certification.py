@@ -24,7 +24,7 @@ def test_current_lite_certification_is_explicitly_blocked(tmp_path: Path) -> Non
     assert result["profile_digest"] == GURPS_LITE_PROFILE.digest
     assert result["source_version"] == gate.SOURCE_VERSION
     errors = str(result["errors"])
-    assert "Unverified Lite mechanic" in errors
+    assert "Unverified Lite mechanic" not in errors
     assert "Missing real-service Lite" in errors
     assert "source audit pending" in errors
     assert "Lite equipment gap: lite-weapon-table (#121)" in errors

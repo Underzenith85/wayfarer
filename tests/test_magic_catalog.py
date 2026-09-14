@@ -153,13 +153,12 @@ def test_magery_and_effect_bonus_apply_once_and_propagate_to_prerequisites() -> 
     assert values["spell:daze"] == 11
 
 
-def test_new_version_requires_explicit_selection_and_remains_uncertified() -> None:
+def test_new_version_requires_explicit_selection_and_is_mechanically_supported() -> None:
     assert GURPS_BASIC_PROFILE.version == 3
     assert all(
         not d.id.startswith("spell:") for p in GURPS_BASIC_PROFILE.packages for d in p.definitions
     )
     assert DEFAULT_REGISTRY.get(GURPS_MAGIC_PROFILE.id, 4) == GURPS_MAGIC_PROFILE
     assert DEFAULT_REGISTRY.resolve(GURPS_BASIC_PROFILE.reference) == GURPS_BASIC_PROFILE
-    with pytest.raises(ValidationError, match="not supported"):
-        DEFAULT_REGISTRY.require_supported(GURPS_MAGIC_PROFILE.id, 4)
+    assert DEFAULT_REGISTRY.require_supported(GURPS_MAGIC_PROFILE.id, 4) is GURPS_MAGIC_PROFILE
     assert "gurps.magic.spellcasting" not in GURPS_MAGIC_PROFILE.unverified_capabilities

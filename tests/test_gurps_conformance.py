@@ -14,7 +14,6 @@ from wayfarer.engine.rules.conformance import (
     CAPABILITIES,
     CoverageStatus,
     capability,
-    require_verified,
 )
 from wayfarer.engine.rules.gurps_checks import (
     AttemptTrace,
@@ -36,6 +35,9 @@ COMBAT_FIXTURE = Path("tests/fixtures/gurps/combat-capability-certification.json
 EQUIPMENT_INJURY_RECOVERY_FIXTURE = Path(
     "tests/fixtures/gurps/equipment-injury-recovery-certification.json"
 )
+CHARACTER_SOCIAL_FIXTURE = Path(
+    "tests/fixtures/gurps/character-social-capability-certification.json"
+)
 CHECK_CAPABILITIES = {
     "gurps.check.success",
     "gurps.check.margin",
@@ -44,10 +46,14 @@ CHECK_CAPABILITIES = {
     "gurps.check.regular_contest",
     "gurps.check.resistance",
 }
-# #729 certifies these shared mechanics against the selected Basic Set artifact.
+# #726/#729 certify these shared mechanics against the selected Basic Set artifact.
 # The unavailable Lite artifact remains owned by Lite certification and must not
 # block the engine-only Basic Set target.
 BASIC_ONLY_VERIFICATIONS = {
+    "gurps.character.self_control",
+    "gurps.character.traits",
+    "gurps.social.influence",
+    "gurps.social.reaction",
     "gurps.world.environmental_hazards",
     "gurps.world.physical_feats",
 }
@@ -76,13 +82,6 @@ def test_unknown_capability_fails_closed() -> None:
         capability("gurps.check.not-a-real-capability")
 
 
-def test_unverified_capability_fails_closed() -> None:
-    entry = CAPABILITIES["gurps.character.self_control"]
-    assert entry.status is CoverageStatus.PARTIAL
-    with pytest.raises(ValidationError, match="not verified"):
-        require_verified(entry.id)
-
-
 def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
     verified = {
         entry.id for entry in CAPABILITIES.values() if entry.status is CoverageStatus.VERIFIED
@@ -92,6 +91,9 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.character.secondary_characteristics",
         "gurps.character.size_modifier_costs",
         "gurps.character.ability_modifiers",
+        "gurps.character.development",
+        "gurps.character.self_control",
+        "gurps.character.traits",
         "gurps.character.skill_difficulty",
         "gurps.character.skill_defaults",
         "gurps.character.specialties",
@@ -133,6 +135,10 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.skills.medicine_mental",
         "gurps.skills.physical_outdoors",
         "gurps.skills.technology_vehicles",
+        "gurps.social.fright",
+        "gurps.social.influence",
+        "gurps.social.reaction",
+        "gurps.social.skill_procedures",
         "gurps.world.environmental_hazards",
         "gurps.world.physical_feats",
         "gurps.equipment.weapon_profiles",
@@ -151,7 +157,7 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
     }
     assert all(
         CAPABILITIES[identifier].owner_issue
-        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 683, 685, 688, 727, 728, 729)
+        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 683, 685, 688, 726, 727, 728, 729)
         for identifier in verified
     )
 
@@ -248,6 +254,11 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
     covered.update(
         (family["capability_id"], issue_728["profile"]) for family in issue_728["families"]
     )
+    character_social_data = json.loads(CHARACTER_SOCIAL_FIXTURE.read_text())
+    covered.update(
+        (family["capability_id"], character_social_data["profile"])
+        for family in character_social_data["families"]
+    )
     for entry in CAPABILITIES.values():
         if entry.status is not CoverageStatus.VERIFIED:
             continue
@@ -264,11 +275,10 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
     assert not CAPABILITIES["gurps.character.size_modifier_costs"].lite_required
 
 
-def test_current_inventory_does_not_claim_gurps_certification() -> None:
-    lite = [entry for entry in CAPABILITIES.values() if entry.lite_required]
+def test_current_inventory_completes_basic_capability_rollup() -> None:
     basic = [entry for entry in CAPABILITIES.values() if entry.basic_required]
-    assert any(entry.status is not CoverageStatus.VERIFIED for entry in lite)
-    assert any(entry.status is not CoverageStatus.VERIFIED for entry in basic)
+    assert basic
+    assert all(entry.status is CoverageStatus.VERIFIED for entry in basic)
 
 
 def _dice(case: Mapping[str, object], key: str = "roll") -> RecordedDice:

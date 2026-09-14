@@ -36,7 +36,7 @@ def test_profile_preview_compiles_service_totals_and_keeps_gates() -> None:
         )
     )
     assert result.legal and result.spent == 8 and result.remaining == 92
-    assert not result.profile.supported and result.profile.blockers
+    assert result.profile.supported and not result.profile.blockers
     assert dict(result.derived)["secondary:hp"] == "12"
     assert any(d.skill and d.skill.technique for d in result.catalog)
     assert json.loads(Path("contracts/workshop/v1/openapi.json").read_text()) == json.loads(
@@ -64,7 +64,7 @@ async def test_http_workshop_metadata_and_profile_preview(tmp_path: Path) -> Non
             },
         )
         assert result.status == 200
-        assert (await result.json())["profile"]["supported"] is False
+        assert (await result.json())["profile"]["supported"] is True
         denied = await client.get(
             f"/campaigns/{cid}/workshop/a", headers={"Authorization": "Bearer bob-token"}
         )

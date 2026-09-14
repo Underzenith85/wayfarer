@@ -1,0 +1,530 @@
+{
+  "schema_version": 1,
+  "profile": "gurps-basic-set-4e-2004",
+  "baseline": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+  "owner_issue": 726,
+  "source_sha256": {
+    "characters-third": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
+    "campaigns-fourth": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80"
+  },
+  "families": [
+    {
+      "capability_id": "gurps.character.development",
+      "owner_inventory_rows": [
+        "capability:gurps.character.development",
+        "development:adventure",
+        "development:gained-in-play",
+        "development:quick-learning",
+        "development:study",
+        "development:teachers",
+        "development:learnable-advantages"
+      ],
+      "variants": [
+        {
+          "id": "adventure-awards-and-gained-traits",
+          "source_id": "characters-third",
+          "reference": "B290-B291",
+          "source_rows": [
+            "section:characters:b290:improvement-through-adventure",
+            "section:characters:b291:traits-gained-in-play"
+          ],
+          "expected": {
+            "award": "source-bound points limited to abilities used in play",
+            "gained_trait": "typed permission that still requires build approval",
+            "retry": "identical settlement without a second award"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/simulation/campaign/development.py",
+            "src/wayfarer/engine/simulation/campaign/advancement.py"
+          ],
+          "tests": ["tests/test_character_development.py"]
+        },
+        {
+          "id": "study-teaching-and-quick-learning",
+          "source_id": "characters-third",
+          "reference": "B292-B294",
+          "source_rows": [
+            "section:characters:b292:quick-learning-under-pressure",
+            "section:characters:b292:improvement-through-study",
+            "section:characters:b293:finding-a-teacher",
+            "section:characters:b294:learnable-advantages"
+          ],
+          "expected": {
+            "point_hours": 200,
+            "self_study_learning_hours_per_two_hours": 1,
+            "professional_teacher_minimum": 12,
+            "quick_learning": "one defaulted skill on a successful source-bound IQ roll"
+          },
+          "runtime_paths": ["src/wayfarer/engine/simulation/campaign/development.py"],
+          "tests": ["tests/test_character_development.py"]
+        },
+        {
+          "id": "body-mind-and-supernatural-transformations",
+          "source_id": "characters-third",
+          "reference": "B294-B296",
+          "source_rows": [
+            "section:characters:b294:transformations",
+            "section:characters:b294:body-modification",
+            "section:characters:b296:mind-transfer",
+            "section:characters:b296:supernatural-afflictions",
+            "section:characters:b296:death"
+          ],
+          "expected": {
+            "identity": "preserved across an approved body change",
+            "injury": "existing HP deficit is preserved",
+            "temporary_affliction": "expires to the exact prior build",
+            "replay": "persisted transformation state equals event replay"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/simulation/campaign/transformations.py",
+            "src/wayfarer/orchestration/transformations.py"
+          ],
+          "tests": ["tests/test_transformations.py"]
+        }
+      ]
+    },
+    {
+      "capability_id": "gurps.character.self_control",
+      "owner_inventory_rows": [
+        "capability:gurps.character.self_control",
+        "trait:bad-temper",
+        "trait:curious",
+        "trait:honesty",
+        "trait:overconfidence",
+        "trait:truthfulness",
+        "trait:disadvantage:berserk"
+      ],
+      "variants": [
+        {
+          "id": "ratings-cost-and-modifiers",
+          "source_id": "characters-third",
+          "reference": "B120-B121",
+          "source_rows": ["section:characters:b120:self-control-for-mental-disadvantages"],
+          "expected": {
+            "ratings": [6, 9, 12, 15],
+            "multipliers": [2.0, 1.5, 1.0, 0.5],
+            "stress_modifier": "applies to the rating rather than Will"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/traits/base.py",
+            "src/wayfarer/engine/rules/social/gurps_social.py"
+          ],
+          "tests": ["tests/test_traits.py", "tests/test_social_completion.py"]
+        },
+        {
+          "id": "give-in-roll-and-paid-success",
+          "source_id": "characters-third",
+          "reference": "B120-B121",
+          "source_rows": [
+            "section:characters:b120:self-control-for-mental-disadvantages",
+            "section:characters:b121:buying-off-disadvantages"
+          ],
+          "expected": {
+            "give_in": "no dice",
+            "roll": "one recorded 3d check",
+            "paid_success": "one character point only when the GM allows it"
+          },
+          "runtime_paths": ["src/wayfarer/engine/rules/traits/procedures.py"],
+          "tests": ["tests/test_trait_procedures.py"]
+        },
+        {
+          "id": "approved-trait-consequence-and-private-replay",
+          "source_id": "characters-third",
+          "reference": "B120-B121",
+          "source_rows": [
+            "section:characters:b120:restrictions-on-disadvantages",
+            "section:characters:b121:self-imposed-mental-disadvantages"
+          ],
+          "expected": {
+            "source": "approved purchased disadvantage",
+            "failure": "typed obligation without choosing the player's action",
+            "public_projection": "outcome only; target and modifier remain private",
+            "retry": "no reroll"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/traits/obligations.py",
+            "src/wayfarer/engine/simulation/social/social.py"
+          ],
+          "tests": ["tests/test_social_completion.py", "tests/test_trait_procedures.py"]
+        }
+      ]
+    },
+    {
+      "capability_id": "gurps.character.traits",
+      "owner_inventory_rows": [
+        "capability:gurps.character.traits",
+        "trait:advantage:absolute-direction",
+        "trait:quirk-careful",
+        "trait:code-of-honor-soldier",
+        "trait:ally-associate",
+        "trait:dependent-associate"
+      ],
+      "variants": [
+        {
+          "id": "construction-and-general-trait-procedures",
+          "source_id": "characters-third",
+          "reference": "B32-B121",
+          "source_rows": [
+            "section:characters:b033:advantage-origins",
+            "section:characters:b033:potential-advantages",
+            "section:characters:b034:turning-advantages-off-and-on",
+            "section:characters:b046:limited-defenses",
+            "section:characters:b061:alternative-attacks",
+            "section:characters:b120:secret-disadvantages"
+          ],
+          "expected": {
+            "catalog": "every required source row has a typed construction and runtime binding",
+            "activation": "one-second Ready or Attack boundary as declared",
+            "limited_defense": "source rarity percentage with higher-cost rounding",
+            "alternative_attacks": "primary at full cost and alternatives at one-fifth rounded up"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/character/compiler.py",
+            "src/wayfarer/engine/rules/traits/procedures.py"
+          ],
+          "tests": [
+            "tests/test_complete_mundane_traits.py",
+            "tests/test_trait_procedures.py",
+            "tests/test_traits.py"
+          ]
+        },
+        {
+          "id": "mundane-supernatural-and-obligation-execution",
+          "source_id": "characters-third",
+          "reference": "B34-B165",
+          "source_rows": [
+            "trait:advantage:absolute-direction",
+            "trait:disadvantage:berserk",
+            "trait:disadvantage:sense-of-duty"
+          ],
+          "expected": {
+            "dispatch": "catalog-specific typed effect",
+            "manual_fallback": "rejected",
+            "obligations": "GM-authored fulfillment or violation receipt",
+            "retry": "same receipt with no second state transition"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/traits/mundane/complete.py",
+            "src/wayfarer/engine/rules/traits/obligations.py",
+            "src/wayfarer/engine/rules/traits/registry.py"
+          ],
+          "tests": [
+            "tests/test_complete_mundane_traits.py",
+            "tests/test_trait_procedures.py",
+            "tests/test_attack_defense_traits.py",
+            "tests/test_physiology_traits.py"
+          ]
+        },
+        {
+          "id": "associated-npcs-and-templates",
+          "source_id": "characters-third",
+          "reference": "B36-B38, B258-B262, B445-B454",
+          "source_rows": [
+            "section:characters:b036:frequency-of-appearance",
+            "section:characters:b258:character-templates",
+            "section:campaigns:b445:character-templates"
+          ],
+          "expected": {
+            "relationship": "one stable associated-NPC identity and one recorded frequency roll",
+            "netting": "paired Ally and Dependent share one frequency",
+            "templates": "typed purchases with exact totals and cycle rejection",
+            "replay": "relationship state and roll survive restart"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/character/templates.py",
+            "src/wayfarer/engine/rules/traits/relationship_runtime.py"
+          ],
+          "tests": [
+            "tests/test_relationship_runtime.py",
+            "tests/test_mundane_traits.py",
+            "tests/test_character_construction.py"
+          ]
+        }
+      ]
+    },
+    {
+      "capability_id": "gurps.social.fright",
+      "owner_inventory_rows": [
+        "capability:gurps.social.fright",
+        "trait:combat-reflexes",
+        "trait:disadvantage:cowardice"
+      ],
+      "variants": [
+        {
+          "id": "check-target-rule-of-14-and-traits",
+          "source_id": "campaigns-fourth",
+          "reference": "B360",
+          "source_rows": [
+            "section:campaigns:b360:will-rolls",
+            "section:campaigns:b360:fright-checks"
+          ],
+          "expected": {
+            "maximum_target": 13,
+            "failure_at": 14,
+            "combat_reflexes_modifier": 2,
+            "unknown_profile": "rejected before dice"
+          },
+          "runtime_paths": ["src/wayfarer/engine/rules/social/gurps_social.py"],
+          "tests": ["tests/test_fright_completion.py", "tests/test_social_completion.py"]
+        },
+        {
+          "id": "complete-consequence-table",
+          "source_id": "campaigns-fourth",
+          "reference": "B360-B361",
+          "source_rows": ["section:campaigns:b360:fright-check-table"],
+          "expected": {
+            "index": "3d plus failure margin",
+            "range": "all table results through 40 or more",
+            "effects": "typed duration, recovery, HP/FP loss, condition or lasting proposal"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/fright.py",
+            "src/wayfarer/engine/simulation/health/fright.py"
+          ],
+          "tests": ["tests/test_fright_completion.py", "tests/test_fright_runtime.py"]
+        },
+        {
+          "id": "timed-recovery-injury-and-replay",
+          "source_id": "campaigns-fourth",
+          "reference": "B360-B361",
+          "source_rows": ["section:campaigns:b360:fright-check-table"],
+          "expected": {
+            "losses": "existing injury and fatigue reducers",
+            "recovery": "due check resolves once and cannot be skipped by time advancement",
+            "privacy": "table trace and lasting proposal remain audience-scoped",
+            "restart": "same scheduled state and no reroll"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/simulation/health/fright_state.py",
+            "src/wayfarer/engine/simulation/health/fright_transitions.py",
+            "src/wayfarer/orchestration/social.py"
+          ],
+          "tests": [
+            "tests/test_fright_conditions.py",
+            "tests/test_fright_runtime.py",
+            "tests/test_social_scenario_v2.py"
+          ]
+        }
+      ]
+    },
+    {
+      "capability_id": "gurps.social.influence",
+      "owner_inventory_rows": [
+        "capability:gurps.social.influence",
+        "skill:diplomacy",
+        "skill:fast-talk",
+        "skill:intimidation",
+        "skill:savoir-faire",
+        "skill:sex-appeal",
+        "skill:streetwise"
+      ],
+      "variants": [
+        {
+          "id": "six-procedures-and-outcomes",
+          "source_id": "campaigns-fourth",
+          "reference": "B359",
+          "source_rows": ["section:campaigns:b359:influence-rolls"],
+          "expected": {
+            "skills": ["diplomacy", "fast-talk", "intimidation", "savoir-faire", "sex-appeal", "streetwise"],
+            "ordinary_win": "Good reaction",
+            "sex_appeal_win": "Very Good reaction",
+            "tie": "not a win"
+          },
+          "runtime_paths": ["src/wayfarer/engine/rules/social/gurps_social.py"],
+          "tests": ["tests/test_social_completion.py"]
+        },
+        {
+          "id": "automatic-exceptions-and-diplomacy-fallback",
+          "source_id": "campaigns-fourth",
+          "reference": "B359",
+          "source_rows": ["section:campaigns:b359:influence-rolls"],
+          "expected": {
+            "indomitable_or_unfazeable": "automatic Bad unless the exact exception applies",
+            "slave_mentality": "automatic Good",
+            "diplomacy": "keeps the better ordinary reaction",
+            "specious_intimidation": "failure is Very Bad"
+          },
+          "runtime_paths": ["src/wayfarer/engine/rules/social/gurps_social.py"],
+          "tests": ["tests/test_social_completion.py", "tests/test_social.py"]
+        },
+        {
+          "id": "approved-build-dispatch-private-replay",
+          "source_id": "campaigns-fourth",
+          "reference": "B359",
+          "source_rows": ["section:campaigns:b359:influence-rolls"],
+          "expected": {
+            "skill_target": "compiled purchased skill",
+            "subject": "server-controlled NPC",
+            "retry": "persisted result without resolver or RNG re-entry",
+            "public_projection": "outcome without private targets, modifiers or source IDs"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/simulation/social/social.py",
+            "src/wayfarer/orchestration/social.py"
+          ],
+          "tests": [
+            "tests/test_social_dispatch.py",
+            "tests/test_live_social.py",
+            "tests/test_social_scenario_v2.py"
+          ]
+        }
+      ]
+    },
+    {
+      "capability_id": "gurps.social.reaction",
+      "owner_inventory_rows": [
+        "capability:gurps.social.reaction",
+        "trait:charisma",
+        "trait:voice",
+        "trait:appearance-handsome",
+        "trait:reputation-bravery"
+      ],
+      "variants": [
+        {
+          "id": "bands-standing-and-reaction-table",
+          "source_id": "campaigns-fourth",
+          "reference": "B494, B559-B560",
+          "source_rows": [
+            "section:campaigns:b494:reaction-rolls",
+            "section:campaigns:b559:npc-reactions",
+            "section:campaigns:b560:reaction-table"
+          ],
+          "expected": {
+            "roll": "3d plus declared modifiers",
+            "bands": "Disastrous through Excellent",
+            "table": "context selects the typed material outcome"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/social/gurps_social.py",
+            "src/wayfarer/engine/simulation/campaign/social_policy.py"
+          ],
+          "tests": ["tests/test_social_completion.py", "tests/test_social_material_outcomes.py"]
+        },
+        {
+          "id": "appearance-reputation-status-charisma-and-voice",
+          "source_id": "characters-third",
+          "reference": "B21, B26-B28, B41, B97",
+          "source_rows": [
+            "trait:advantage:appearance",
+            "trait:advantage:reputation",
+            "trait:advantage:status",
+            "trait:advantage:charisma",
+            "trait:advantage:voice"
+          ],
+          "expected": {
+            "source": "approved purchase or authored standing, never both for the same source",
+            "audience": "only perceived and affected modifiers apply",
+            "recognition": "one durable frequency result per person or group",
+            "voice": "audibility required"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/social/social_hooks.py",
+            "src/wayfarer/engine/rules/traits/mundane/runtime.py"
+          ],
+          "tests": [
+            "tests/test_social_hooks.py",
+            "tests/test_appearance_reputation_variants.py",
+            "tests/test_background_traits.py"
+          ]
+        },
+        {
+          "id": "material-outcomes-authorization-and-replay",
+          "source_id": "campaigns-fourth",
+          "reference": "B559-B560",
+          "source_rows": [
+            "section:campaigns:b559:npc-reactions",
+            "section:campaigns:b560:reaction-table"
+          ],
+          "expected": {
+            "resource_change": "typed conserved transfer",
+            "audience_change": "bounded NPC/group state only",
+            "authorization": "trusted trigger and GM/NPC ownership",
+            "retry": "same receipt and no duplicate material effect"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/simulation/social/noncombat.py",
+            "src/wayfarer/engine/simulation/social/social.py"
+          ],
+          "tests": [
+            "tests/test_social_material_outcomes.py",
+            "tests/test_social_scenario_v2.py",
+            "tests/test_live_social.py"
+          ]
+        }
+      ]
+    },
+    {
+      "capability_id": "gurps.social.skill_procedures",
+      "owner_inventory_rows": [
+        "capability:gurps.social.skill_procedures",
+        "skill:acting",
+        "skill:fortune-telling-astrology",
+        "skill:propaganda",
+        "skill:savoir-faire",
+        "skill:teaching"
+      ],
+      "variants": [
+        {
+          "id": "complete-owned-row-dispatch",
+          "source_id": "characters-third",
+          "reference": "B174-B224, B301-B304",
+          "source_rows": ["section:characters:b174:skill-list"],
+          "expected": {
+            "owner_rows": 26,
+            "unbound_rows": 0,
+            "family_selectors": "non-rollable while concrete children dispatch",
+            "missing_context": "rejected before dice"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/skills/mundane/social/inventory.py",
+            "src/wayfarer/engine/rules/skills/mundane/social/attempts.py"
+          ],
+          "tests": ["tests/test_social_skills.py", "tests/test_social_specialties.py"]
+        },
+        {
+          "id": "resolution-shapes-verdicts-and-specialties",
+          "source_id": "characters-third",
+          "reference": "B174-B224, B359",
+          "source_rows": ["section:campaigns:b359:influence-rolls"],
+          "expected": {
+            "resolution_shapes": ["success-roll", "quick-contest", "regular-contest", "influence"],
+            "verdicts": ["critical-success", "success", "tie", "failure", "critical-failure"],
+            "fortune_telling": "seven source-indexed traditions",
+            "savoir_faire": "campaign-declared matching milieu"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/skills/mundane/social/attempts.py",
+            "src/wayfarer/engine/rules/skills/mundane/social/specialties.py"
+          ],
+          "tests": ["tests/test_social_skills.py", "tests/test_social_specialties.py"]
+        },
+        {
+          "id": "material-effects-development-bindings-and-replay",
+          "source_id": "characters-third",
+          "reference": "B183, B195, B202, B204, B212, B216, B224",
+          "source_rows": [
+            "section:characters:b292:improvement-through-study",
+            "section:campaigns:b494:reaction-rolls"
+          ],
+          "expected": {
+            "carousing": "critical failure costs 1 FP and gives -2 reaction",
+            "fast_talk": "later realization gives -3 aftermath reaction",
+            "interrogation": "coercion and reaction consequence are persisted",
+            "teaching": "successful lesson is consumed once by study",
+            "replay": "identical effect without duplicate resource or development change"
+          },
+          "runtime_paths": [
+            "src/wayfarer/engine/rules/skills/mundane/social/attempts.py",
+            "src/wayfarer/engine/simulation/social/noncombat.py",
+            "src/wayfarer/engine/simulation/campaign/development.py"
+          ],
+          "tests": [
+            "tests/test_social_skills.py",
+            "tests/test_social_material_outcomes.py",
+            "tests/test_character_development.py"
+          ]
+        }
+      ]
+    }
+  ]
+}
