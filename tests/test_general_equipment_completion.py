@@ -25,11 +25,12 @@ from wayfarer.engine.simulation.equipment.general import (
 )
 from wayfarer.engine.simulation.health.hit_locations import (
     armor_concealment_penalty,
+    armor_layering_penalty,
     armor_resistance,
 )
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import EquipmentSpec, Item, ResourceState
-from wayfarer.errors import ConflictError
+from wayfarer.errors import ConflictError, ValidationError
 
 
 def test_all_94_general_equipment_blockers_are_executable() -> None:
@@ -91,14 +92,78 @@ def test_general_use_consumes_exact_fuel_and_replays() -> None:
         )
 
 
-def test_firearm_accessory_and_lanyard_are_target_bound() -> None:
+def test_cold_resistance_bonus_is_a_persisted_use_effect() -> None:
+    bag = next(
+        value
+        for value in BASIC_EQUIPMENT.entries
+        if value.definition_id == "equipment:insulated-sleeping-bag"
+    )
+    engine = cast(
+        ResourceEngine,
+        SimpleNamespace(
+            specs={bag.definition_id: bag.inventory_spec()}, validate=lambda state: None
+        ),
+    )
+    state = ResourceState(items=(Item(id="bag", definition_id=bag.definition_id, owner_id="a"),))
+    command = UseGeneralEquipment(id="sleep-warm", actor_id="a", expected_revision=0, item_id="bag")
+    used, result = apply_general_equipment(engine, state, command, actor_technology_level=7)
+    assert (result.modifier, result.feature.trait_id, result.feature.target) == (
+        3,
+        "hazard:freezing",
+        "actor",
+    )
+    assert apply_general_equipment(engine, used, command, actor_technology_level=7) == (
+        used,
+        result,
+    )
+
+
+def test_special_tool_effect_and_technology_gate_are_material() -> None:
+    entries = {value.definition_id: value for value in BASIC_EQUIPMENT.entries}
+    compass = entries["equipment:compass"]
+    kit = entries["equipment:portable-carpentry-tool-kit"]
+    engine = cast(
+        ResourceEngine,
+        SimpleNamespace(
+            specs={
+                compass.definition_id: compass.inventory_spec(),
+                kit.definition_id: kit.inventory_spec(),
+            },
+            validate=lambda state: None,
+        ),
+    )
+    state = ResourceState(
+        items=(
+            Item(id="compass", definition_id=compass.definition_id, owner_id="a"),
+            Item(id="kit", definition_id=kit.definition_id, owner_id="a"),
+        )
+    )
+    used, result = apply_general_equipment(
+        engine,
+        state,
+        UseGeneralEquipment(id="navigate", actor_id="a", expected_revision=0, item_id="compass"),
+        actor_technology_level=6,
+    )
+    assert (result.feature.skill_id, result.modifier) == ("skill:navigation", 1)
+    command = UseGeneralEquipment(id="carpentry", actor_id="a", expected_revision=1, item_id="kit")
+    with pytest.raises(ValidationError, match="technology level"):
+        apply_general_equipment(engine, used, command, actor_technology_level=0)
+    _, result = apply_general_equipment(engine, used, command, actor_technology_level=1)
+    assert result.feature.skill_id == "skill:carpentry"
+
+
+def test_weapon_accessories_change_only_the_bound_target() -> None:
     lanyard = next(
         value
         for value in BASIC_EQUIPMENT.entries
         if value.definition_id == "equipment:leather-lanyard"
     )
+    laser = next(
+        value for value in BASIC_EQUIPMENT.entries if value.definition_id == "equipment:laser-sight"
+    )
     specs = {
         lanyard.definition_id: lanyard.inventory_spec(),
+        laser.definition_id: laser.inventory_spec(),
         "weapon:pistol": EquipmentSpec(
             definition_id="weapon:pistol", unit_weight=2, stackable=False, slot="hand"
         ),
@@ -107,6 +172,12 @@ def test_firearm_accessory_and_lanyard_are_target_bound() -> None:
     state = ResourceState(
         items=(
             Item(id="line", definition_id=lanyard.definition_id, owner_id="a"),
+            Item(
+                id="laser",
+                definition_id=laser.definition_id,
+                owner_id="a",
+                charges=6 * 3600,
+            ),
             Item(id="pistol", definition_id="weapon:pistol", owner_id="a"),
         )
     )
@@ -132,7 +203,24 @@ def test_firearm_accessory_and_lanyard_are_target_bound() -> None:
         actor_technology_level=8,
     )
     assert result.status == "retrieved"
-    assert ResourceState.model_validate_json(retrieved.model_dump_json()) == retrieved
+    aimed, result = apply_general_equipment(
+        engine,
+        retrieved,
+        AttachAccessory(
+            id="sight",
+            actor_id="a",
+            expected_revision=2,
+            item_id="laser",
+            target_item_id="pistol",
+        ),
+        actor_technology_level=8,
+    )
+    assert (result.target_item_id, result.modifier, result.feature.duration_seconds) == (
+        "pistol",
+        1,
+        6 * 3600,
+    )
+    assert ResourceState.model_validate_json(aimed.model_dump_json()) == aimed
 
 
 def test_equipment_quality_and_ultratech_drug_source_math() -> None:
@@ -154,34 +242,64 @@ def test_equipment_quality_and_ultratech_drug_source_math() -> None:
         UltraTechDrug(id="bad", absolute_point_value=1, duration="very-long")
 
 
-def test_armor_layers_split_front_and_concealment() -> None:
+def test_split_dr_selects_the_authored_damage_type() -> None:
     mail = Armor(
         locations=("torso",),
         dr=4,
         split_dr=(("cr", 2),),
-        layer=0,
-        concealment_penalty=-1,
     )
-    plate = Armor(locations=("torso",), dr=5, layer=1, front_only=True, concealment_penalty=-2)
-    assert armor_resistance((mail, plate), "torso", damage_type="cut") == 9
-    assert armor_resistance((mail, plate), "torso", damage_type="cr") == 7
-    assert armor_resistance((mail, plate), "torso", damage_type="cr", attack_from_front=False) == 2
+    assert armor_resistance((mail,), "torso", damage_type="cut") == 4
+    assert armor_resistance((mail,), "torso", damage_type="cr") == 2
+
+
+def test_front_only_dr_rejects_a_rear_attack() -> None:
+    breastplate = Armor(locations=("torso",), dr=5, front_only=True)
+    assert armor_resistance((breastplate,), "torso", attack_from_front=True) == 5
+    assert armor_resistance((breastplate,), "torso", attack_from_front=False) == 0
+
+
+def test_layered_armor_combines_dr_and_applies_the_dx_cost() -> None:
+    mail = Armor(locations=("torso",), dr=4, flexible=True)
+    plate = Armor(locations=("torso",), dr=5, layer=1)
+    assert armor_resistance((mail, plate), "torso") == 9
+    assert armor_layering_penalty((mail, plate), "torso") == -1
+    assert armor_layering_penalty((mail, plate), "skull") == 0
+
+
+def test_concealed_armor_accumulates_the_reaction_penalty() -> None:
+    mail = Armor(locations=("torso",), dr=4, concealment_penalty=-1)
+    plate = Armor(locations=("torso",), dr=5, concealment_penalty=-2)
     assert armor_concealment_penalty((mail, plate)) == -3
 
 
-def test_starting_wealth_and_legality_are_authored_context_bindings() -> None:
+def test_starting_wealth_bounds_equipment_budget() -> None:
     assert BackgroundTraits(wealth="comfortable").starting_assets(1_000) == 2_000
+    stove = next(
+        value for value in BASIC_EQUIPMENT.entries if value.definition_id == "equipment:camp-stove"
+    )
+    assert BackgroundTraits(wealth="poor").starting_assets(1_000) == stove.price * 4
+
+
+def test_legality_class_uses_the_catalog_rating_and_jurisdiction() -> None:
+    shield = next(
+        value
+        for value in BASIC_EQUIPMENT.entries
+        if value.definition_id == "equipment:force-shield"
+    )
+    assert shield.legality_class == 3
     laws = LawRules(
         id="law",
         version=1,
         jurisdictions=(Jurisdiction(id="city", control_rating=3),),
-        legality=(LegalityRule(definition_id="equipment:laser-sight", legality_class=3),),
+        legality=(
+            LegalityRule(definition_id=shield.definition_id, legality_class=shield.legality_class),
+        ),
     )
     result = availability(
         laws,
         LawState(),
         jurisdiction_id="city",
-        definition_id="equipment:laser-sight",
+        definition_id=shield.definition_id,
         actor_id="a",
     )
     assert result.availability == "registered"

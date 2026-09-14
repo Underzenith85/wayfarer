@@ -25,15 +25,15 @@ def test_basic_set_report_binds_exact_profile_and_source_baseline() -> None:
     assert result.inventory_obligation_rollups["executable-mechanic"] > 0
     assert result.inventory_obligation_rollups["construction-catalog"] > 0
     assert result.inventory_obligation_rollups["reference-only"] > 0
-    assert result.inventory_obligation_rollups["unsupported-required"] > 0
+    assert "unsupported-required" not in result.inventory_obligation_rollups
     assert result.excluded_content == ("gurps.content.infinite-worlds",)
 
 
-def test_basic_set_gate_exposes_capability_source_and_inventory_blockers() -> None:
+def test_basic_set_gate_exposes_only_remaining_capability_blockers() -> None:
     result = evaluate(ROOT)
     assert result.certified is False
     kinds = {blocker.kind for blocker in result.blockers}
-    assert {"capability", "inventory"} <= kinds
+    assert kinds == {"capability"}
     assert "ledger" not in kinds
     capabilities = [blocker for blocker in result.blockers if blocker.kind == "capability"]
     assert capabilities
