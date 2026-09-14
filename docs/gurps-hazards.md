@@ -136,3 +136,10 @@ retains the original hazard barriers and concurrent retry evidence.
 `tests/test_environmental_hazards.py` supplies protected and unprotected
 boundaries for every #517 family, independently entered table outcomes, durable
 radiation decay, object-reducer composition, replay and audience evidence.
+
+Issue #729 joined these execution paths, the reviewed source-ledger rows, and
+the complete rule-variant matrix in
+`src/wayfarer/certification/basic_set_audit/capability-evidence-729.json`.
+`gurps.world.physical_feats` and `gurps.world.environmental_hazards` are verified
+for the selected Basic Set profile. The unavailable Lite source artifact remains
+a separate Lite-certification concern and does not weaken this Basic Set claim.

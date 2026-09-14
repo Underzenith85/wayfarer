@@ -152,6 +152,6 @@ def test_subject_technique_retry_contest_and_validation_fail_closed() -> None:
         )
 
 
-def test_capability_is_registered_as_partial() -> None:
+def test_capability_is_registered_as_verified() -> None:
     declared = CAPABILITIES["gurps.skills.physical_outdoors"]
-    assert declared.status is CoverageStatus.PARTIAL and declared.owner_issue == 343
+    assert declared.status is CoverageStatus.VERIFIED and declared.owner_issue == 729

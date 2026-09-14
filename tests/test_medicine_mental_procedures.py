@@ -127,6 +127,6 @@ def test_subject_retry_context_modifiers_and_profile_fail_closed() -> None:
         )
 
 
-def test_capability_is_registered_as_partial() -> None:
+def test_capability_is_registered_as_verified() -> None:
     declared = CAPABILITIES["gurps.skills.medicine_mental"]
-    assert declared.status is CoverageStatus.PARTIAL and declared.owner_issue == 342
+    assert declared.status is CoverageStatus.VERIFIED and declared.owner_issue == 729
