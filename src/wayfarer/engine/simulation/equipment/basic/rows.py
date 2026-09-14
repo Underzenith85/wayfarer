@@ -104,6 +104,7 @@ def weapon(
     *modes: MeleeMode | RangedMode,
     unsupported: tuple[str, ...] = (),
     durability_dr: int | None = None,
+    silver_construction: bool = True,
 ) -> EquipmentProfile:
     """Construct one physical row, merging alternate skill rows into its mode list."""
     return EquipmentProfile(
@@ -116,6 +117,7 @@ def weapon(
         durability=None if durability_dr is None else solid(weight, durability_dr),
         modes=modes,
         unsupported_mechanics=unsupported,
+        silver_construction="melee-weapon" if silver_construction else None,
     )
 
 

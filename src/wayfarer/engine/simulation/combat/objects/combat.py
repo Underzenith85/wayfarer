@@ -31,6 +31,7 @@ from wayfarer.engine.simulation.equipment.catalog import (
     RangedMode,
 )
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
+from wayfarer.engine.simulation.equipment.silver import breakage_quality
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
@@ -79,6 +80,7 @@ def critical_breakage(
     item = next(i for i in state.resources.items if i.id == item_id)
     entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
     profile = entry.durability
+    quality = breakage_quality(item.silver_construction, entry.critical_breakage)
     number = sum(table)
     drop = number in (9, 10, 11) or (
         number == 14
@@ -87,11 +89,9 @@ def critical_breakage(
             or any(m.id == pending.mode_id and m.damage.basis != "swing" for m in entry.modes)
         )
     )
-    if number not in (3, 4, 17, 18) and not (
-        drop and profile and entry.critical_breakage == "cheap"
-    ):
+    if number not in (3, 4, 17, 18) and not (drop and profile and quality == "cheap"):
         return state, encounter, (), False
-    if profile is None or item.condition is None or entry.critical_breakage is None:
+    if profile is None or item.condition is None or quality is None:
         return state, encounter, (), False
     event_id = "critical-breakage:" + hashlib.sha256(pending.id.encode()).hexdigest()
     prior = next((e for e in state.resources.events if e.id == event_id), None)
@@ -107,7 +107,7 @@ def critical_breakage(
         )
     confirmation = None
     broken = True
-    if entry.critical_breakage == "resistant":
+    if quality == "resistant":
         confirmation = draw_dice(runtime.rng, 3)
         broken = sum(confirmation) in (3, 4, 17, 18)
     residual = (
@@ -145,6 +145,7 @@ def critical_breakage(
             owner_id=item.owner_id,
             ground=ground_position(encounter, subject),
             condition=ObjectCondition(hp=detached_profile.hp) if detached_profile else None,
+            silver_construction=item.silver_construction,
         )
     saved = BreakageResult.model_validate(
         {

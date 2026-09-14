@@ -47,6 +47,7 @@ from wayfarer.engine.simulation.projects.inventions import InventionProject
 from wayfarer.models import Count, Id, Record, Tick
 
 ExactWeight = Annotated[int | Fraction, Field(ge=0)]
+SilverConstruction = Literal["solid-silver", "silver-coated"]
 
 
 def decimal_weight(value: int | Fraction) -> Decimal:
@@ -87,6 +88,9 @@ class EquipmentSpec(Record):
         default=(), exclude_if=lambda value: not value
     )
     minimum_technology_level: int = Field(default=0, ge=0)
+    silver_construction: Literal["melee-weapon", "arrowhead"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class Item(Record):
@@ -117,6 +121,9 @@ class Item(Record):
     )
     stuck_permanently: bool = Field(default=False, exclude_if=lambda value: not value)
     enchantments: tuple[MagicItemInstance, ...] = Field(default=(), exclude_if=lambda v: not v)
+    silver_construction: SilverConstruction | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def coherent_melee_state(self) -> Item:

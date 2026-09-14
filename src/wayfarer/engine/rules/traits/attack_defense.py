@@ -167,6 +167,7 @@ BINDINGS: Final = (
         "Vulnerability",
         -10,
         parameters=(
+            parameter("source", "text", "natural-attacks", "silver"),
             parameter("rarity", "text", "very-common", "common", "occasional", "rare"),
             parameter("multiplier", "integer", 2, 3, 4),
         ),

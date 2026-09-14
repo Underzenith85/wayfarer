@@ -344,23 +344,22 @@ def apply_trait_attack(
             raise ValidationError("Damaging trait attack requires positive authored damage")
         if attacker.natural_damage_type(command.definition_id) != channel.damage_type:
             raise ValidationError("Damage type differs from the approved natural attack")
-        multiplier = target.injury_multiplier("very-common")
-        damage = channel.basic_damage * multiplier
         if (
             attacker.purchase("disadvantage:weak-bite") is not None
             and command.definition_id == "advantage:teeth"
         ):
-            damage = max(0, damage - 1)
+            channel = channel.model_copy(update={"basic_damage": max(0, channel.basic_damage - 1)})
         state, result = apply_injury(
             _bind_target_tolerance(resources, channel.target_id, target),
             Wound(
                 id=_id(command.id, "injury"),
                 actor_id=channel.target_id,
                 expected_revision=resources.revision,
-                basic_damage=damage,
+                basic_damage=channel.basic_damage,
                 resistance=target.damage_resistance(),
                 damage_type=channel.damage_type,
                 armor_divisor=channel.armor_divisor,
+                vulnerability_multiplier=Decimal(target.injury_multiplier("natural-attacks")),
             ),
             ht=target_ht,
             rng=rng,

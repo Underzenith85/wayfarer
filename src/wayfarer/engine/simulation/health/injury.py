@@ -11,7 +11,7 @@ import hashlib
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -53,6 +53,21 @@ class Wound(Command):
     from_behind: bool = False
     critical_eye: bool = False
     injury_source: Literal["attack", "area", "internal"] = "attack"
+    vulnerability_multiplier: Decimal = Field(default=Decimal(1), ge=1, le=4, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def source_exact_vulnerability(self) -> Wound:
+        if self.vulnerability_multiplier not in {
+            Decimal(1),
+            Decimal("1.5"),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
+        }:
+            raise ValueError("Vulnerability requires a printed wounding multiplier")
+        if self.injury_source != "attack" and self.vulnerability_multiplier != 1:
+            raise ValueError("Only attacks can trigger a vulnerability")
+        return self
 
 
 class ResolveCrippling(Command):
@@ -296,7 +311,18 @@ def apply_injury(
         if ignore_dr:
             resistance = 0
         penetration = max(0, command.basic_damage - resistance)
-        injury = max(1, penetration * numerator // denominator) if penetration else 0
+        injury = (
+            max(
+                1,
+                int(
+                    Decimal(penetration * numerator)
+                    * command.vulnerability_multiplier
+                    / Decimal(denominator)
+                ),
+            )
+            if penetration
+            else 0
+        )
         if (
             status.tolerance is not None
             and status.tolerance.structure == "diffuse"

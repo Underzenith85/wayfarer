@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.character.statistics import damage as strength_damage
+from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.rules.checks import Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -44,6 +45,10 @@ from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_fl
 from wayfarer.engine.simulation.combat.unarmed.records import striking_bonus
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.equipment.silver import (
+    attack_construction,
+    silver_wounding_multiplier,
+)
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
@@ -107,6 +112,11 @@ def resolve_melee(
     attack_build = build(runtime, state, pending.attacker_id)
     defend_build = build(runtime, state, pending.defender_id)
     assert attack_build.statistics is not None and defend_build.statistics is not None
+    construction = attack_construction(state.resources, pending.weapon_id)
+    target_traits = attack_defense_traits(defend_build, runtime.reviewer.compiler.definitions)
+    vulnerability_multiplier = silver_wounding_multiplier(
+        target_traits.injury_multiplier("silver"), construction
+    )
     attack_value = level(attack_build, weapon.skill_id)
     hp = next(p for p in state.resources.pools if p.id == f"hp:{pending.defender_id}")
     attacker_hp = next(p for p in state.resources.pools if p.id == f"hp:{pending.attacker_id}")
@@ -640,6 +650,7 @@ def resolve_melee(
                 armor_divisor=weapon.damage.armor_divisor * (2 if pending.armor_chink else 1),
                 tight_beam=weapon.damage.tight_beam,
                 critical_eye=critical_eye,
+                vulnerability_multiplier=vulnerability_multiplier,
             ),
             ht=defend_build.statistics.ht,
             rng=runtime.rng,
