@@ -2182,6 +2182,108 @@
         "title": "AmmunitionLoad",
         "type": "object"
       },
+      "AmmunitionVariant": {
+        "additionalProperties": false,
+        "description": "One explicit alternative to a launcher's ordinary ammunition.",
+        "properties": {
+          "base_definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Base Definition Id",
+            "type": "string"
+          },
+          "damage_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cr",
+                  "cut",
+                  "imp",
+                  "pi-",
+                  "pi",
+                  "pi+",
+                  "pi++",
+                  "burn",
+                  "cor",
+                  "tox",
+                  "fat"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Damage Type"
+          },
+          "armor_divisor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Armor Divisor"
+          },
+          "damage_add": {
+            "default": 0,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Damage Add",
+            "type": "integer"
+          },
+          "damage_add_per_die": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": -10,
+            "title": "Damage Add Per Die",
+            "type": "integer"
+          },
+          "range_multiplier": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Range Multiplier"
+          },
+          "follow_up_payload_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Follow Up Payload Id"
+          }
+        },
+        "required": [
+          "base_definition_id"
+        ],
+        "title": "AmmunitionVariant",
+        "type": "object"
+      },
       "Approach": {
         "additionalProperties": false,
         "properties": {
@@ -3120,6 +3222,37 @@
           "reason"
         ],
         "title": "AwardRule",
+        "type": "object"
+      },
+      "BackBlastSpec": {
+        "additionalProperties": false,
+        "description": "Burning hazard created behind a launcher when it fires.",
+        "properties": {
+          "dice": {
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Dice",
+            "type": "integer"
+          },
+          "adds": {
+            "default": 0,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Adds",
+            "type": "integer"
+          },
+          "range_yards": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Range Yards",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "dice",
+          "range_yards"
+        ],
+        "title": "BackBlastSpec",
         "type": "object"
       },
       "BackfireAlternative": {
@@ -5292,6 +5425,17 @@
             "default": false,
             "title": "Tight Beam",
             "type": "boolean"
+          },
+          "multiplier": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Multiplier",
+            "type": "integer"
+          },
+          "surge": {
+            "default": false,
+            "title": "Surge",
+            "type": "boolean"
           }
         },
         "required": [
@@ -6490,6 +6634,28 @@
             "title": "Ammunition",
             "type": "boolean"
           },
+          "ammunition_variant": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AmmunitionVariant"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "follow_up": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FollowUpSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "modes": {
             "default": [],
             "items": {
@@ -7091,7 +7257,8 @@
               "breechloader",
               "beam",
               "single-use",
-              "grenade"
+              "grenade",
+              "launcher"
             ],
             "title": "Action",
             "type": "string"
@@ -7154,6 +7321,82 @@
           "action"
         ],
         "title": "FirearmSpec",
+        "type": "object"
+      },
+      "FollowUpSpec": {
+        "additionalProperties": false,
+        "description": "A separately resisted affliction or toxin carried by a hit.",
+        "properties": {
+          "payload_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Payload Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "poison",
+              "drug",
+              "affliction"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "resistance_penalty": {
+            "default": 0,
+            "maximum": 0,
+            "minimum": -20,
+            "title": "Resistance Penalty",
+            "type": "integer"
+          },
+          "armor_divisor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Armor Divisor"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "enum": [
+                  "stun",
+                  "unconsciousness"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Condition"
+          },
+          "requires_penetration": {
+            "default": true,
+            "title": "Requires Penetration",
+            "type": "boolean"
+          },
+          "duration_minutes_per_margin": {
+            "default": 0,
+            "maximum": 60,
+            "minimum": 0,
+            "title": "Duration Minutes Per Margin",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "payload_id",
+          "kind"
+        ],
+        "title": "FollowUpSpec",
         "type": "object"
       },
       "GadgetContext": {
@@ -10850,6 +11093,18 @@
             "default": false,
             "title": "Vehicle Mounted",
             "type": "boolean"
+          },
+          "required_mount_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Required Mount Definition Id"
           }
         },
         "required": [
@@ -13096,6 +13351,12 @@
             "gt": 0,
             "title": "Maximum Range"
           },
+          "minimum_range": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Minimum Range",
+            "type": "integer"
+          },
           "rate_of_fire": {
             "default": 1,
             "minimum": 1,
@@ -13325,6 +13586,101 @@
               }
             ],
             "default": null
+          },
+          "back_blast": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/BackBlastSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "attachment": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/WeaponAttachmentSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "linked_follow_up": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FollowUpSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "loses_armor_divisor_at_half_range": {
+            "default": false,
+            "title": "Loses Armor Divisor At Half Range",
+            "type": "boolean"
+          },
+          "requires_atmosphere": {
+            "default": false,
+            "title": "Requires Atmosphere",
+            "type": "boolean"
+          },
+          "ready_hands": {
+            "anyOf": [
+              {
+                "enum": [
+                  1,
+                  2
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ready Hands"
+          },
+          "one_handed_minimum_st_multiplier": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 1.0,
+                "maximum": 3.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "One Handed Minimum St Multiplier"
+          },
+          "one_handed_unready_st_multiplier": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 1.0,
+                "maximum": 5.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "One Handed Unready St Multiplier"
           }
         },
         "required": [
@@ -16818,6 +17174,61 @@
           "capability_id"
         ],
         "title": "TravelLink",
+        "type": "object"
+      },
+      "WeaponAttachmentSpec": {
+        "additionalProperties": false,
+        "description": "Launcher whose handling is supplied by an authored host weapon.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "under-barrel",
+              "integral"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "minimum_host_tl": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Minimum Host Tl",
+            "type": "integer"
+          },
+          "host_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Host Definition Id"
+          },
+          "host_skill_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Host Skill Ids",
+            "type": "array"
+          },
+          "inherit_bulk": {
+            "default": true,
+            "title": "Inherit Bulk",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "minimum_host_tl"
+        ],
+        "title": "WeaponAttachmentSpec",
         "type": "object"
       },
       "World": {

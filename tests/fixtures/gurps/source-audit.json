@@ -2545,6 +2545,72 @@
       "owner": 107
     },
     {
+      "id": "lite-ranged-range-and-half-damage",
+      "sha256": "773a6c1e895a5012c1f485b2937cae59509746295b66f1f2f5cf811944f447f1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_aim_range_speed_size_and_half_damage"
+      ],
+      "owner": 685
+    },
+    {
+      "id": "basic-ranged-range-and-half-damage",
+      "sha256": "bfb50971f82163a34ef9193d13bf2adef9009eaa13c3f5f564da46ac099f1a66",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-14",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": [
+        "tests/test_gurps_ranged.py::test_aim_range_speed_size_and_half_damage"
+      ],
+      "owner": 685
+    },
+    {
+      "id": "lite-aim-accuracy",
+      "sha256": "ce6570be9a88cd819dec67922d171fb200f7487364814fea0b7b5bbae6857700",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_aim_range_speed_size_and_half_damage"
+      ],
+      "owner": 685
+    },
+    {
+      "id": "lite-ammunition-conservation",
+      "sha256": "393fbe7d9bcb62cb2a572d39d2cfdf215de0b704a671716427ef40b56f3da76c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_missed_single_shot_restart_and_lost_response_conserve_ammo"
+      ],
+      "owner": 685
+    },
+    {
+      "id": "basic-ammunition-reservation-conservation",
+      "sha256": "0c6ef58b7ac145a3326d052d12bc03c470c48da958b465ad2b3cef928913663e",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-14",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": [
+        "tests/test_gurps_ranged.py::test_missed_single_shot_restart_and_lost_response_conserve_ammo"
+      ],
+      "owner": 685
+    },
+    {
+      "id": "basic-rapid-fire-recoil-hits",
+      "sha256": "96babee154a3a46ae836a940cff92cc2d94f53834b9c53479f27e84564d5e0e7",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-09-14",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": [
+        "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
+      ],
+      "owner": 685
+    },
+    {
       "id": "basic-aim-brace-variable-scope",
       "sha256": "fe2ee177b7b3aca793e1f6579863dcf95ac360a177fa7caf1621309b32427ead",
       "status": "reviewed",

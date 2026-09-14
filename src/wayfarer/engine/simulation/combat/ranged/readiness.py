@@ -11,6 +11,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.readiness import ProjectileProgress
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
+from wayfarer.engine.simulation.combat.ranged.equipment import ammunition_matches
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
@@ -67,7 +68,8 @@ def reload(
     if old and old.readiness is None:
         raise ValidationError("Existing loads require explicit unloading before protocol migration")
     rounds = old.rounds if old else 0
-    if rounds >= weapon.shots or ammo.definition_id != weapon.ammunition_id:
+    ammo_entry = next(e for e in catalog(runtime).entries if e.definition_id == ammo.definition_id)
+    if rounds >= weapon.shots or not ammunition_matches(weapon, ammo_entry):
         raise ValidationError("Weapon is full or ammunition does not match")
     reserved = sum(v.rounds for v in resources.ammunition_loads if v.ammunition_item_id == ammo.id)
     available = ammo.quantity - reserved

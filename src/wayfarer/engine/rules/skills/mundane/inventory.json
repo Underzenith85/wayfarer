@@ -10619,6 +10619,15 @@
         ]
       },
       {
+        "target": "gunner-catapult",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
         "target": "gunner-machine-gun",
         "modifier": -4,
         "conditions": [
@@ -10678,6 +10687,91 @@
     "skill_defaults": [
       {
         "target": "gunner-beams",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
+        "target": "gunner-catapult",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
+        "target": "gunner-machine-gun",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
+        "target": "gunner-rockets",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
+        "target": "gunner-torpedoes",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gunner-catapult",
+    "name": "Gunner (Catapult)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "gunner",
+      "name": "catapult"
+    },
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      384
+    ],
+    "procedure_owner": 344,
+    "skill_defaults": [
+      {
+        "target": "gunner-beams",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
+        "target": "gunner-cannon",
         "modifier": -4,
         "conditions": [
           {
@@ -10762,6 +10856,15 @@
         ]
       },
       {
+        "target": "gunner-catapult",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
         "target": "gunner-rockets",
         "modifier": -4,
         "conditions": [
@@ -10829,6 +10932,15 @@
         ]
       },
       {
+        "target": "gunner-catapult",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
         "target": "gunner-machine-gun",
         "modifier": -4,
         "conditions": [
@@ -10888,6 +11000,15 @@
       },
       {
         "target": "gunner-cannon",
+        "modifier": -4,
+        "conditions": [
+          {
+            "kind": "matching-technology-level"
+          }
+        ]
+      },
+      {
+        "target": "gunner-catapult",
         "modifier": -4,
         "conditions": [
           {

@@ -1541,6 +1541,12 @@ export interface components {
        */
       size_modifier: number;
       /**
+       * Environment
+       * @default air
+       * @enum {string}
+       */
+      environment: "air" | "trace" | "vacuum";
+      /**
        * Beam Environment Dr
        * @default 0
        */

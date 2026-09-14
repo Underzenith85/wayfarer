@@ -86,10 +86,10 @@ _CAPABILITIES: Final = (
     Capability("gurps.combat.active_defense", True, True, CoverageStatus.PARTIAL, 103),
     Capability("gurps.combat.maneuvers", True, True, CoverageStatus.PARTIAL, 104),
     Capability("gurps.combat.turn_timing", True, True, CoverageStatus.PARTIAL, 104),
-    Capability("gurps.combat.ranged_attack", True, True, CoverageStatus.PARTIAL, 106),
-    Capability("gurps.combat.aim", True, True, CoverageStatus.PARTIAL, 106),
-    Capability("gurps.combat.ammunition", True, True, CoverageStatus.PARTIAL, 106),
-    Capability("gurps.combat.rapid_fire", False, True, CoverageStatus.PARTIAL, 106),
+    Capability("gurps.combat.ranged_attack", True, True, CoverageStatus.VERIFIED, 685),
+    Capability("gurps.combat.aim", True, True, CoverageStatus.VERIFIED, 685),
+    Capability("gurps.combat.ammunition", True, True, CoverageStatus.VERIFIED, 685),
+    Capability("gurps.combat.rapid_fire", False, True, CoverageStatus.VERIFIED, 685),
     # Whole-entry ranged weapon skill procedures, separate from the shared
     # ranged attack machinery: an implemented row dispatches its own weapon class.
     Capability("gurps.combat.ranged_weapon_skills", False, True, CoverageStatus.PARTIAL, 344),

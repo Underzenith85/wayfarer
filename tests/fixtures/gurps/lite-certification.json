@@ -6,7 +6,7 @@
   "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
   "source_id": "sjg:gurps-lite-4e-2004",
   "source_version": "August 2004 electronic edition, Rev. 07/12/04; no errata overlay",
-  "fixture_digest": "99c14993a74302feaf3ffbe90d0487b758ec013470cd1b88055f3379e04454a9",
+  "fixture_digest": "9eca6ffe10cf48dd0187ad25da22e13ec322e8e20b7f758e004783ee8f700206",
   "source_audit": "pending",
   "catalog_audit": "pending",
   "pending": [
@@ -17,7 +17,6 @@
     "#109 recovery integration",
     "#111 social integration",
     "#116 character UI integration",
-    "#106 ranged integration",
     "#95 exhaustive frozen-source inventory and review"
   ],
   "capabilities": [

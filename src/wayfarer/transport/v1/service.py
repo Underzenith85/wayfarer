@@ -65,6 +65,7 @@ class V1Service:
         self.interpret: Interpreter | None = None
         self.narrate: Narrator | None = None
         self.tasks: set[asyncio.Task[None]] = set()
+        self.action_locks: dict[str, asyncio.Lock] = {}
 
     async def start(self) -> None:
         await self.processes.start()
@@ -294,6 +295,11 @@ class V1Service:
         return {"kind": "move", "destination_id": destination}
 
     async def resolve(self, aid: str) -> None:
+        """Serialize recovery and scheduled dispatches for one durable action."""
+        async with self.action_locks.setdefault(aid, asyncio.Lock()):
+            await self._resolve(aid)
+
+    async def _resolve(self, aid: str) -> None:
         # Interpretation is advisory and happens outside every database transaction.
         committed = False
         try:

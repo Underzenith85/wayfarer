@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
+from wayfarer.engine.simulation.combat.ranged.equipment import ammunition_matches
 from wayfarer.engine.simulation.combat.ranged.readiness import reload, unload
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
 from wayfarer.engine.simulation.combat.thrown.items import landed
@@ -102,7 +103,8 @@ def reload_weapon(
             reload_seconds = 8 if difference > 0 else 4
     if weapon.reload_protocol == "per-round" and equipment.profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Per-round reload requires the exact Basic Set profile")
-    if ammo.definition_id != weapon.ammunition_id or item.quantity != 1:
+    ammo_entry = next(e for e in equipment.entries if e.definition_id == ammo.definition_id)
+    if not ammunition_matches(weapon, ammo_entry) or item.quantity != 1:
         raise ValidationError("Reload ammunition does not match this individual weapon")
     old = next(
         (loaded for loaded in state.resources.ammunition_loads if loaded.weapon_id == item.id), None

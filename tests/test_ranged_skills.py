@@ -267,7 +267,7 @@ def test_no_listed_row_is_left_transferred() -> None:
 def test_issue_344_owner_inventory_is_complete() -> None:
     """The parent stays complete after all bounded ranged child work lands."""
     rows = [row for row in inventory() if row.procedure_owner == 344]
-    assert len(rows) == 51
+    assert len(rows) == 52
     assert all(row.bound and not row.blockers for row in rows)
     assert all(row.implementation == "implemented" for row in rows)
 

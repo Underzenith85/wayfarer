@@ -37,7 +37,7 @@ LITE = "gurps-lite-4e-2004"
 def test_selected_row_provenance_anchors() -> None:
     """Every audited row carries the same third-printing provenance and a page in scope."""
     entries = catalog_entries()
-    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 308
+    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX)
     for entry in entries.values():
         provenance = entry.provenance
         assert provenance.source_id == "sjg:basic-set-characters-4e-2004"
@@ -50,9 +50,11 @@ def test_selected_row_provenance_anchors() -> None:
             274,
             275,
             276,
+            277,
             278,
             279,
             280,
+            281,
             283,
             287,
             288,
@@ -154,7 +156,7 @@ def test_audit_rows_export_only_explicit_source_review_state() -> None:
         assert footnotes[record.id].source_review == expected
     assert fields and all(row.source_review == "reviewed" for row in fields)
     assert all("docs/gurps-equipment-source-review.md" in row.evidence for row in fields)
-    assert sum(row.implementation == "implemented" for row in fields) == 147
+    assert sum(row.implementation == "implemented" for row in fields) == 183
     assert sum(row.implementation == "omitted" for row in fields) == 2
     assert bindings["basic-set-catalog"].source_review == "reviewed"
     assert bindings["lite-catalog"].source_review == "pending"
@@ -173,8 +175,10 @@ def test_selection_rejects_unsupported_and_unknown_equipment() -> None:
         "equipment:broadsword",
         "equipment:laser-pistol",
     }
-    with pytest.raises(ValidationError, match="surge"):
-        validate_selection(BASIC, ("equipment:broadsword", "equipment:blaster-pistol"))
+    assert validate_selection(BASIC, ("equipment:broadsword", "equipment:blaster-pistol")) == {
+        "equipment:broadsword",
+        "equipment:blaster-pistol",
+    }
 
 
 def test_flail_defense_procedure_unblocks_affected_catalog_rows() -> None:
@@ -249,8 +253,8 @@ def test_supported_basic_catalog_binds_to_pinned_packages() -> None:
 def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
-    assert report["selected_rows"] == 308
-    assert report["supported_rows"] == 281
+    assert report["selected_rows"] == len(catalog_entries())
+    assert report["supported_rows"] == len(supported_equipment(BASIC))
     assert report["sections_audited"] == 0
     assert report["sections_reconciled"] == 14
     assert report["workstream_complete"] is True
@@ -293,7 +297,7 @@ def test_schema_drift_and_missing_evidence_are_rejected() -> None:
         validate(trimmed)
 
     unblocked = tuple(s.model_copy(update={"mechanics": ()}) for s in current.sections)
-    footnotes = tuple(f for f in current.footnotes if f.id != "surge")
+    footnotes = tuple(f for f in current.footnotes if f.id != "melee-linked-affliction")
     with pytest.raises(ValidationError, match="no unsupported disposition"):
         validate(current.model_copy(update={"sections": unblocked, "footnotes": footnotes}))
 

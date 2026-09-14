@@ -58,7 +58,14 @@ TECHNOLOGY_LEVEL: Final = "technology-level-context"
 Hands = Literal[1, 2]
 MATCHING_TL: Final = (DefaultCondition(DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL),)
 BEAM_SPECIALTIES: Final = ("pistol", "rifle", "projector")
-GUNNER_SPECIALTIES: Final = ("beams", "cannon", "machine-gun", "rockets", "torpedoes")
+GUNNER_SPECIALTIES: Final = (
+    "beams",
+    "cannon",
+    "catapult",
+    "machine-gun",
+    "rockets",
+    "torpedoes",
+)
 GUNS_SPECIALTIES: Final = (
     "pistol",
     "rifle",
@@ -699,6 +706,18 @@ _DECLARED_ROWS: Final = (
         + specialty_defaults("gunner", "cannon", GUNNER_SPECIALTIES, -4, same_tl=True),
         MOUNTED,
         Specialty("gunner", "cannon"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+    ),
+    RangedProcedure(
+        "skill:gunner-catapult",
+        "Gunner (Catapult)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),)
+        + specialty_defaults("gunner", "catapult", GUNNER_SPECIALTIES, -4, same_tl=True),
+        MOUNTED,
+        Specialty("gunner", "catapult"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
     ),
     RangedProcedure(

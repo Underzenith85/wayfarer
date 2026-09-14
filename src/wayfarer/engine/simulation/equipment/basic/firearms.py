@@ -218,7 +218,6 @@ FIREARMS = (
             "muzzleloader",
             hands=2,
         ),
-        unsupported=("conditional-one-handed-firearm",),
     ),
     ranged_weapon(
         "flintlock-musket-75",
@@ -246,7 +245,6 @@ FIREARMS = (
             "muzzleloader",
             hands=2,
         ),
-        unsupported=("conditional-one-handed-firearm",),
     ),
     ranged_weapon(
         "rifle-musket-577",
@@ -274,7 +272,6 @@ FIREARMS = (
             "muzzleloader",
             hands=2,
         ),
-        unsupported=("conditional-one-handed-firearm",),
     ),
     ranged_weapon(
         "cartridge-rifle-45",
@@ -302,7 +299,6 @@ FIREARMS = (
             "breechloader",
             hands=2,
         ),
-        unsupported=("conditional-one-handed-firearm",),
     ),
     ranged_weapon(
         "blunderbuss-8g",
@@ -447,6 +443,5 @@ FIREARMS = (
             hands=2,
             minimum_shots_per_attack=2,
         ),
-        unsupported=("conditional-one-handed-firearm",),
     ),
 )

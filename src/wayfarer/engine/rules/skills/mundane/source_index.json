@@ -2066,6 +2066,16 @@
       "parent": "gunner"
     },
     {
+      "id": "gunner-catapult",
+      "name": "Gunner (Catapult)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "gunner-catapult"
+      ],
+      "parent": "gunner"
+    },
+    {
       "id": "gunner-machine-gun",
       "name": "Gunner (Machine Gun)",
       "page": 198,

@@ -37,7 +37,6 @@ REPEATING_RIFLES = tuple(
             chamber_capacity=chamber_capacity,
             hands=2,
         ),
-        unsupported=("conditional-one-handed-firearm",),
     )
     for (
         identifier,

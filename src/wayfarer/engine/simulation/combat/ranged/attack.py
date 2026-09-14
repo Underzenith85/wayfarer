@@ -20,6 +20,7 @@ from wayfarer.engine.simulation.combat.firearm_transitions import validate_attac
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import target_geometry
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
+from wayfarer.engine.simulation.combat.ranged.equipment import ammunition_profile, effective_mode
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.special import validate_cover_geometry
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
@@ -128,6 +129,15 @@ def _area_attack_distance(
     return float(separation(position(encounter, actor), aim_point))
 
 
+def _validate_range(distance: float, weapon: RangedMode, range_st: int, environment: str) -> None:
+    if distance > float(weapon.maximum_range) * (range_st if weapon.range_basis == "st" else 1):
+        raise ValidationError("Target exceeds maximum ranged weapon range")
+    if distance < weapon.minimum_range:
+        raise ValidationError("Target is inside minimum ranged weapon range")
+    if weapon.requires_atmosphere and environment != "air":
+        raise ValidationError("Weapon requires a normal atmosphere")
+
+
 def prepare(
     runtime: RulesContext,
     state: PlayState,
@@ -145,6 +155,10 @@ def prepare(
 
     pending = encounter.pending_defense
     assert pending is not None
+    weapon = effective_mode(
+        weapon,
+        ammunition_profile(catalog(runtime), state.resources, pending.weapon_id, weapon),
+    )
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     _validate_dual_weapon(actor, weapon)
@@ -199,10 +213,7 @@ def prepare(
     st = fatigue_value(fp, stats.st)
     validate_rated_strength(catalog(runtime).profile_id, weapon, st)
     range_st = weapon.rated_strength.st if weapon.rated_strength is not None else st
-    if attack_distance > float(weapon.maximum_range) * (
-        range_st if weapon.range_basis == "st" else 1
-    ):
-        raise ValidationError("Target exceeds maximum ranged weapon range")
+    _validate_range(attack_distance, weapon, range_st, scene.environment)
     if shots > weapon.rate_of_fire or (
         shots > 1 and catalog(runtime).profile_id != "gurps-basic-set-4e-2004"
     ):
