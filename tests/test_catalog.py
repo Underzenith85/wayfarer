@@ -57,10 +57,12 @@ async def test_generation_publishes_safe_provider_diagnostic(tmp_path: Path) -> 
         job = await response.json()
         async with asyncio.timeout(5):
             while job["status"] in ("queued", "running"):
-                job = await (
-                    await client.get(PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS)
-                ).json()
-                await asyncio.sleep(0)
+                response = await client.get(
+                    PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS
+                )
+                assert response.status == 200, await response.text()
+                job = await response.json()
+                await asyncio.sleep(0.01)
         assert job["status"] == "failed"
         assert job["error_code"] == "codex_subscription_limit"
         assert "turn execution" in job["error_message"]
@@ -310,10 +312,11 @@ async def test_guided_generation_is_recoverable_and_never_overwrites_edits(
         job = await response.json()
         for _ in range(20):
             response = await client.get(PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS)
+            assert response.status == 200, await response.text()
             job = await response.json()
             if job["status"] not in ("queued", "running"):
                 break
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.01)
         assert job["status"] == "succeeded"
         assert job["proposal_json"]
         assert job["report"]["status"] == "playable"
@@ -358,10 +361,11 @@ async def test_guided_generation_keeps_an_earlier_portable_candidate(config: Set
         job = await response.json()
         for _ in range(20):
             response = await client.get(PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS)
+            assert response.status == 200, await response.text()
             job = await response.json()
             if job["status"] not in ("queued", "running"):
                 break
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.01)
         assert provider.calls == 2
         assert job["status"] == "needs_review"
         assert job["proposal_json"]
