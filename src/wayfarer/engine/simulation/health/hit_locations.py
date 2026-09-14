@@ -270,3 +270,15 @@ def armor_resistance(
 def armor_concealment_penalty(armors: Iterable[Armor]) -> int:
     """Combine only authored concealment penalties for worn armor."""
     return sum(armor.concealment_penalty for armor in armors)
+
+
+def armor_layering_penalty(armors: Iterable[Armor], location: HumanLocation) -> int:
+    """B286: each additional non-head armor layer gives -1 to DX-based actions."""
+    if location in {"skull", "face", "neck", "left-eye", "right-eye"}:
+        return 0
+    layers = {
+        armor.layer
+        for armor in armors
+        if location in armor.locations or part(location) + "s" in armor.locations
+    }
+    return -max(0, len(layers) - 1)

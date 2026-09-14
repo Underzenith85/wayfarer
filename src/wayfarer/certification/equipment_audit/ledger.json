@@ -231,13 +231,8 @@
         "steel-corselet",
         "steel-laminate-plate"
       ],
-      "omitted_rows": "The eight selected simple body rows are the executable subset. Every other B283-286 row is itemized in armor-split-dr, including simple-location pieces, flexible armor, split/front/partial DR, advanced suits and horse barding; none is silently inferred from this subset.",
-      "mechanics": [
-        "split-dr",
-        "front-only-dr",
-        "layered-armor",
-        "concealed-armor"
-      ]
+      "omitted_rows": "The eight selected simple body rows are the executable subset. Every other B283-286 row is itemized in armor-split-dr, including simple-location pieces, advanced suits and horse barding; generic split-DR, facing, layering and reaction-penalty behavior is implemented without inventing the omitted inventory rows.",
+      "mechanics": []
     },
     {
       "id": "general-equipment-b288",
@@ -311,13 +306,8 @@
         "transistor-radio",
         "mini-tv"
       ],
-      "omitted_rows": "No fixed-TL physical B288 item or embedded purchasable variant is omitted. Piton is an alias for the recorded Iron Spike rather than another item. Behavior-bearing rows remain inventory-only and fail closed on the listed mechanics.",
-      "mechanics": [
-        "fuel-consumption",
-        "cold-resistance-bonus",
-        "battery-and-computer-operation",
-        "special-tool-effects"
-      ]
+      "omitted_rows": "No fixed-TL physical B288 item or embedded purchasable variant is omitted. Piton is an alias for the recorded Iron Spike rather than another item. Typed fuel, cold-protection, electronics and task effects execute through the shared resource procedures.",
+      "mechanics": []
     },
     {
       "id": "wealth-and-legality",
@@ -327,11 +317,8 @@
       "owner_issue": 180,
       "status": "reconciled",
       "selected": [],
-      "omitted_rows": "B264-266 Starting Wealth, Trading Points for Money, Finding a Job, Monthly Pay, Cost of Living and Status, and B267 Legality Class are reconciled as economic/legal rules rather than physical equipment rows. B268-270 equipment availability, weapon statistics, money, technology and weapon-quality rules are likewise explicit behavior omissions; no price band or LC is invented on a selected item.",
-      "mechanics": [
-        "starting-wealth",
-        "legality-class"
-      ]
+      "omitted_rows": "B264-266 Starting Wealth and B267 Legality Class are bound to the existing economics and jurisdiction services rather than physical equipment rows. Other B264-270 campaign and weapon rules remain separately dispositioned; no price band or LC is invented on a selected item.",
+      "mechanics": []
     },
     {
       "id": "muscle-powered-ranged",
@@ -592,15 +579,8 @@
       "owner_issue": 180,
       "status": "reconciled",
       "selected": [],
-      "omitted_rows": "B283 low-tech omissions: Fur Loincloth, Fur Tunic, Bronze Breastplate, Cloth Armor, Leather Jacket, Mail Hauberk, Mail Shirt, Double Mail Hauberk, Steel Breastplate, Buff Coat; Bronze Armbands/Greaves, Cloth Sleeves, Heavy Leather Leggings/Sleeves, Leather Leggings/Pants, Studded Leather Skirt, Mail Leggings/Sleeves, Scale Leggings/Sleeves, Heavy Plate Arms/Legs, Plate Arms/Legs; Bronze Helmet/Pot-Helm, Cloth/Leather Cap, Leather Helm, Legionary Helmet, Mail Coif, Barrel Helm, Face Mask, Greathelm, Pot-Helm; Cloth/Leather Gloves, Gauntlets, Heavy Gauntlets; Sandals, Shoes, Boots and Sollerets. B284-285 omissions: Flak Jacket, Frag/Ballistic/Tactical Vest and inserts/plates, Ballistic/Tactical Suit, Reinforced/Assault Boots, Ballistic Gloves, Gas Mask, Steel Pot, Frag/Ballistic Helmet and visors, NBC/Space/Vacc Suit and helmets, Battlesuit, Combat Hardsuit and Space Armor with helmets. B286 omissions are every named Leather-and-Cloth, Mail, Scale and Plate horse face, head/neck, partial/full barding and legging row. Split/front/partial DR, flexibility, concealment, suit systems, add-ons and mount anatomy remain explicit unsupported mechanics.",
-      "mechanics": [
-        "split-dr",
-        "front-only-dr",
-        "layered-armor",
-        "concealed-armor",
-        "technology-level-variants",
-        "special-tool-effects"
-      ]
+      "omitted_rows": "B283 low-tech omissions: Fur Loincloth, Fur Tunic, Bronze Breastplate, Cloth Armor, Leather Jacket, Mail Hauberk, Mail Shirt, Double Mail Hauberk, Steel Breastplate, Buff Coat; Bronze Armbands/Greaves, Cloth Sleeves, Heavy Leather Leggings/Sleeves, Leather Leggings/Pants, Studded Leather Skirt, Mail Leggings/Sleeves, Scale Leggings/Sleeves, Heavy Plate Arms/Legs, Plate Arms/Legs; Bronze Helmet/Pot-Helm, Cloth/Leather Cap, Leather Helm, Legionary Helmet, Mail Coif, Barrel Helm, Face Mask, Greathelm, Pot-Helm; Cloth/Leather Gloves, Gauntlets, Heavy Gauntlets; Sandals, Shoes, Boots and Sollerets. B284-285 omissions: Flak Jacket, Frag/Ballistic/Tactical Vest and inserts/plates, Ballistic/Tactical Suit, Reinforced/Assault Boots, Ballistic Gloves, Gas Mask, Steel Pot, Frag/Ballistic Helmet and visors, NBC/Space/Vacc Suit and helmets, Battlesuit, Combat Hardsuit and Space Armor with helmets. B286 omissions are every named Leather-and-Cloth, Mail, Scale and Plate horse face, head/neck, partial/full barding and legging row. Generic split/front DR, layering and reaction effects are implemented; unselected inventory rows, suit systems, add-ons and mount anatomy remain explicit omissions.",
+      "mechanics": []
     },
     {
       "id": "higher-tl-variants",
@@ -611,9 +591,7 @@
       "status": "reconciled",
       "selected": [],
       "omitted_rows": "No scoped table row is omitted; independently owned mechanics outside issues #685, #702, and #703 remain explicitly dispositioned elsewhere.",
-      "mechanics": [
-        "technology-level-variants"
-      ]
+      "mechanics": []
     },
     {
       "id": "weapon-accessories",
@@ -636,10 +614,8 @@
         "pistol-smg-silencer",
         "web-gear"
       ],
-      "omitted_rows": "No B289 weapon-accessory item is omitted. Every row is recorded with its fixed inventory facts and fails closed until attachment, protection, retrieval, concealment, sight, silencer and quiver behavior is typed.",
-      "mechanics": [
-        "weapon-accessories"
-      ]
+      "omitted_rows": "No B289 weapon-accessory item is omitted. Every row is recorded with fixed inventory facts and a typed actor- or weapon-bound effect; target validation, attachment and lanyard retrieval use the shared resource ledger.",
+      "mechanics": []
     },
     {
       "id": "general-equipment-remainder",
@@ -703,11 +679,8 @@
         "portable-electronics-repair-tool-kit",
         "suitcase-lab"
       ],
-      "omitted_rows": "No B289 physical row is omitted. Skill-relative medical/laboratory rows preserve their printed variable TL, and the seven named portable tool-kit variants preserve their individual TL, cost and weight. Transportation is a cross-reference, not an equipment row. Behavior-bearing rows remain selection-blocked.",
-      "mechanics": [
-        "special-tool-effects",
-        "technology-level-variants"
-      ]
+      "omitted_rows": "No B289 physical row is omitted. Skill-relative medical/laboratory rows preserve their printed variable TL, and the seven named portable tool-kit variants preserve their individual TL, cost, weight and task binding. Transportation is a cross-reference, not an equipment row.",
+      "mechanics": []
     }
   ],
   "footnotes": [
@@ -1138,10 +1111,12 @@
       "reference": "B288",
       "anchor": "inspected",
       "behaviour": "Fuel-burning gear consumes a fuel supply over time.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_general_use_consumes_exact_fuel_and_replays"
+      ],
       "evidence_gap": null
     },
     {
@@ -1149,10 +1124,12 @@
       "reference": "B288",
       "anchor": "inspected",
       "behaviour": "Insulated gear modifies cold environment exposure while it is in use.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.world.environmental_hazards",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_cold_resistance_bonus_is_a_persisted_use_effect"
+      ],
       "evidence_gap": null
     },
     {
@@ -1160,10 +1137,12 @@
       "reference": "B288",
       "anchor": "inspected",
       "behaviour": "Battery-powered computing gear runs tasks while charge remains.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_electronics.py::test_computer_returns_task_support_without_executing_the_task"
+      ],
       "evidence_gap": null
     },
     {
@@ -1250,11 +1229,13 @@
       "id": "split-dr",
       "reference": "B283-286 armor tables and notes",
       "anchor": "inspected",
-      "behaviour": "One armor row grants different DR to different covered locations.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "behaviour": "One armor row grants lower DR against its explicitly named damage type.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_split_dr_selects_the_authored_damage_type"
+      ],
       "evidence_gap": null
     },
     {
@@ -1262,32 +1243,38 @@
       "reference": "B283-286 armor tables and notes",
       "anchor": "inspected",
       "behaviour": "One armor row protects only one facing of the locations it covers.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_front_only_dr_rejects_a_rear_attack"
+      ],
       "evidence_gap": null
     },
     {
       "id": "layered-armor",
       "reference": "B283-286 armor tables and notes",
       "anchor": "inspected",
-      "behaviour": "Armor worn over other armor combines DR at an encumbrance and flexibility cost.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "behaviour": "Armor worn over other armor combines DR and applies the printed DX penalty for each extra non-head layer.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_layered_armor_combines_dr_and_applies_the_dx_cost"
+      ],
       "evidence_gap": null
     },
     {
       "id": "concealed-armor",
       "reference": "B283-285 armor tables and notes",
       "anchor": "inspected",
-      "behaviour": "Armor concealment under clothing changes what observers can notice.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "behaviour": "Visible or discovered armor applies the printed cumulative reaction penalty.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.armor_profiles",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_concealed_armor_accumulates_the_reaction_penalty"
+      ],
       "evidence_gap": null
     },
     {
@@ -1574,11 +1561,14 @@
       "id": "technology-level-variants",
       "reference": "B268-289 equipment tables and notes",
       "anchor": "inspected",
-      "behaviour": "A row's higher-TL variant substitutes weight, cost or performance values.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "behaviour": "Fixed and skill-relative TL variants preserve their distinct availability, weight, cost and task bindings.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_special_tool_effect_and_technology_gate_are_material",
+        "tests/test_basic_equipment.py::test_b289_specialist_tool_kit_rows_are_exact"
+      ],
       "evidence_gap": null
     },
     {
@@ -1586,10 +1576,12 @@
       "reference": "B289 Weapon and Combat Accessories",
       "anchor": "inspected",
       "behaviour": "Accessories attach to a weapon and change its handling or accuracy.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_weapon_accessories_change_only_the_bound_target"
+      ],
       "evidence_gap": null
     },
     {
@@ -1597,10 +1589,12 @@
       "reference": "B288-289 General Equipment",
       "anchor": "inspected",
       "behaviour": "Ordinary tools grant task or skill effects rather than combat values.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_special_tool_effect_and_technology_gate_are_material"
+      ],
       "evidence_gap": null
     },
     {
@@ -1634,10 +1628,12 @@
       "reference": "B267 Legality Class",
       "anchor": "inspected",
       "behaviour": "A row's legality class governs where it may lawfully be carried.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.world.law",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_legality_class_uses_the_catalog_rating_and_jurisdiction"
+      ],
       "evidence_gap": null
     },
     {
@@ -1645,10 +1641,13 @@
       "reference": "B264-266 Starting Wealth and economics",
       "anchor": "inspected",
       "behaviour": "Starting wealth and cost of living bound what equipment a character may buy.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.campaign.economics",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_general_equipment_completion.py::test_starting_wealth_bounds_equipment_budget",
+        "tests/test_economics.py::test_trade_conserves_money_and_item_across_retry_and_conflict"
+      ],
       "evidence_gap": null
     },
     {
@@ -1780,7 +1779,7 @@
       "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
-        "tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"
+        "tests/test_general_equipment_completion.py::test_concealed_armor_accumulates_the_reaction_penalty"
       ],
       "gap": null
     },
@@ -1832,7 +1831,7 @@
       "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
-        "tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"
+        "tests/test_general_equipment_completion.py::test_front_only_dr_rejects_a_rear_attack"
       ],
       "gap": null
     },
@@ -1845,7 +1844,7 @@
       "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
-        "tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"
+        "tests/test_general_equipment_completion.py::test_layered_armor_combines_dr_and_applies_the_dx_cost"
       ],
       "gap": null
     },
@@ -1871,7 +1870,7 @@
       "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": [
-        "tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"
+        "tests/test_general_equipment_completion.py::test_split_dr_selects_the_authored_damage_type"
       ],
       "gap": null
     },
