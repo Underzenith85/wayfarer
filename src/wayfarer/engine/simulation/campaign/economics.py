@@ -28,7 +28,13 @@ from wayfarer.engine.simulation.campaign.administration import (
     AdministrationRules,
     AdministrationState,
 )
-from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState, Scheduled
+from wayfarer.engine.simulation.resources import (
+    Item,
+    Receipt,
+    ResourceEvent,
+    ResourceState,
+    Scheduled,
+)
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -168,6 +174,44 @@ class PublicSpeakingOutcomeRule(Record):
     audience_actor_ids: tuple[Id, ...] = Field(min_length=1)
 
 
+class CraftRule(Record):
+    """One B515 recipe with an exact parts-to-finished-price binding."""
+
+    id: Id
+    target_id: Id
+    output_definition_id: Id
+    output_price: int = Field(gt=0)
+    work_seconds: int = Field(gt=0)
+    materials: tuple[tuple[Id, int], ...] = Field(min_length=1)
+    material_value: int = Field(gt=0)
+    required_tool_definition_ids: tuple[Id, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def source_cost(self) -> CraftRule:
+        if self.material_value * 5 != self.output_price:
+            raise ValueError("Craft parts must be exactly 20% of finished price")
+        if any(quantity < 1 for _, quantity in self.materials):
+            raise ValueError("Craft material quantities must be positive")
+        return self
+
+
+class BondedLaborRule(Record):
+    """A B518 legal context; its subject is an actor and never inventory."""
+
+    id: Id
+    subject_actor_id: Id
+    seller_account_id: Id
+    buyer_account_id: Id
+    monthly_pay: int = Field(gt=0)
+    jurisdiction_id: Id
+    legal: bool
+    kind_of_slavery: str = Field(min_length=1, max_length=200)
+    initial_loyalty: int = Field(default=10, ge=0, le=20)
+    kind_treatment: bool = False
+    private_disposition: str = Field(default="", max_length=1000)
+    visible_to_actor_ids: tuple[Id, ...] = ()
+
+
 class EconomicsRules(Record):
     id: Id
     version: int = Field(ge=1)
@@ -192,6 +236,10 @@ class EconomicsRules(Record):
     public_speaking: tuple[PublicSpeakingOutcomeRule, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
+    crafts: tuple[CraftRule, ...] = Field(default=(), exclude_if=lambda value: not value)
+    bonded_labor: tuple[BondedLaborRule, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def unique_rules(self) -> EconomicsRules:
@@ -208,6 +256,8 @@ class EconomicsRules(Record):
             self.panhandling,
             self.performances,
             self.public_speaking,
+            self.crafts,
+            self.bonded_labor,
         )
         for values in groups:
             identifiers = tuple(
@@ -253,7 +303,16 @@ class MoneyAccount(Record):
 
 class EconomicEntry(Record):
     id: Id
-    kind: Literal["trade", "exchange", "job", "living", "hireling-pay", "social"]
+    kind: Literal[
+        "trade",
+        "exchange",
+        "job",
+        "living",
+        "hireling-pay",
+        "social",
+        "craft",
+        "bonded-labor",
+    ]
     account_deltas: tuple[tuple[Id, int], ...]
     at: int = Field(ge=0)
     revision: int = Field(ge=1)
@@ -330,6 +389,30 @@ class SocialMaterialOutcome(Record):
     critical_bonus_requires_adjudication: bool = False
 
 
+class CraftedGood(Record):
+    id: Id
+    rule_id: Id
+    maker_id: Id
+    item_id: Id | None = None
+    outcome: Outcome
+    catastrophic_defect: bool = False
+    material_value: int = Field(gt=0)
+    finished_value: int = Field(gt=0)
+    started_at: int = Field(ge=0)
+    completed_at: int = Field(ge=0)
+
+
+class BondedLaborContract(Record):
+    id: Id
+    rule_id: Id
+    subject_actor_id: Id
+    custody_owner_id: Id
+    loyalty: int = Field(ge=0, le=20)
+    status: Literal["active", "released", "escaped"] = "active"
+    private_disposition: str = ""
+    visible_to_actor_ids: tuple[Id, ...] = ()
+
+
 class EconomicsState(Record):
     accounts: tuple[MoneyAccount, ...] = ()
     entries: tuple[EconomicEntry, ...] = ()
@@ -340,6 +423,10 @@ class EconomicsState(Record):
     hirelings: tuple[HirelingContract, ...] = ()
     loyalty_checks: tuple[LoyaltyCheck, ...] = ()
     social_outcomes: tuple[SocialMaterialOutcome, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    crafted_goods: tuple[CraftedGood, ...] = Field(default=(), exclude_if=lambda value: not value)
+    bonded_labor: tuple[BondedLaborContract, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
 
@@ -393,6 +480,29 @@ class CheckLoyalty(EconomicsCommand):
     circumstance_id: Id
 
 
+class MakeGoods(EconomicsCommand):
+    kind: Literal["make-goods"] = "make-goods"
+    craft_rule_id: Id
+    output_item_id: Id
+    material_item_ids: tuple[Id, ...] = Field(min_length=1)
+    tool_item_ids: tuple[Id, ...] = Field(min_length=1)
+
+
+class AcquireBondedLabor(EconomicsCommand):
+    kind: Literal["acquire-bonded-labor"] = "acquire-bonded-labor"
+    rule_id: Id
+
+
+class ReleaseBondedLabor(EconomicsCommand):
+    kind: Literal["release-bonded-labor"] = "release-bonded-labor"
+    contract_id: Id
+
+
+class EscapeBondedLabor(EconomicsCommand):
+    kind: Literal["escape-bonded-labor"] = "escape-bonded-labor"
+    contract_id: Id
+
+
 EconomicCommand = Annotated[
     ExecuteTrade
     | ExecuteExchange
@@ -401,7 +511,11 @@ EconomicCommand = Annotated[
     | PayCostOfLiving
     | FindHireling
     | PayHireling
-    | CheckLoyalty,
+    | CheckLoyalty
+    | MakeGoods
+    | AcquireBondedLabor
+    | ReleaseBondedLabor
+    | EscapeBondedLabor,
     Field(discriminator="kind"),
 ]
 ECONOMIC_COMMAND_ADAPTER: TypeAdapter[EconomicCommand] = TypeAdapter(EconomicCommand)
@@ -666,7 +780,7 @@ def _target(values: Mapping[str, Decimal], identifier: str) -> int:
 def _entry(
     state: EconomicsState,
     command: EconomicCommand,
-    kind: Literal["trade", "exchange", "job", "living", "hireling-pay"],
+    kind: Literal["trade", "exchange", "job", "living", "hireling-pay", "craft", "bonded-labor"],
     deltas: tuple[tuple[str, int], ...],
     resources: ResourceState,
 ) -> EconomicsState:
@@ -979,6 +1093,208 @@ def _check_loyalty(
     return state, EconomicsOutcome(status="loyal" if passed else "self-interest")
 
 
+def _make_goods(
+    state: EconomicsState,
+    resources: ResourceState,
+    command: MakeGoods,
+    rules: EconomicsRules,
+    build_values: Mapping[str, Decimal],
+    rng: RandomSource,
+    advance: Callable[[ResourceState, int, str], ResourceState] | None,
+) -> tuple[EconomicsState, ResourceState, EconomicsOutcome]:
+    rule = _rule(rules.crafts, command.craft_rule_id, "craft recipe")
+    if advance is None:
+        raise ValidationError("Making goods requires the shared campaign clock")
+    if any(value.id == command.output_item_id for value in resources.items):
+        raise ConflictError("Craft output item ID already exists")
+    items = {value.id: value for value in resources.items}
+    tools = [items.get(identifier) for identifier in command.tool_item_ids]
+    if any(value is None or value.owner_id != command.actor_id for value in tools) or {
+        value.definition_id for value in tools if value is not None
+    } != set(rule.required_tool_definition_ids):
+        raise ValidationError("Crafting requires the exact owned authored tools")
+    selected = [items.get(identifier) for identifier in command.material_item_ids]
+    required = dict(rule.materials)
+    supplied: dict[str, int] = defaultdict(int)
+    if any(value is None or value.owner_id != command.actor_id for value in selected):
+        raise ValidationError("Craft materials must be owned by the maker")
+    for value in selected:
+        assert value is not None
+        supplied[value.definition_id] += value.quantity
+    if supplied != required:
+        raise ValidationError("Craft materials must match the authored conserved recipe")
+
+    consumed_ids = set(command.material_item_ids)
+    consumed = tuple(value for value in resources.items if value.id in consumed_ids)
+    resources = resources.model_copy(
+        update={
+            "items": tuple(value for value in resources.items if value.id not in consumed_ids),
+            "expended_items": resources.expended_items + consumed,
+        }
+    )
+    started = resources.game_time
+    resources = advance(resources, started + rule.work_seconds, command.id)
+    check = success_roll(rules.profile_id, _target(build_values, rule.target_id), rng=rng)
+    creates_item = check.outcome in (
+        Outcome.SUCCESS,
+        Outcome.CRITICAL_SUCCESS,
+        Outcome.CRITICAL_FAILURE,
+    )
+    output = (
+        Item(
+            id=command.output_item_id,
+            definition_id=rule.output_definition_id,
+            owner_id=command.actor_id,
+        )
+        if creates_item
+        else None
+    )
+    if output is not None:
+        resources = resources.model_copy(update={"items": resources.items + (output,)})
+    record = CraftedGood(
+        id=command.id,
+        rule_id=rule.id,
+        maker_id=command.actor_id,
+        item_id=output.id if output is not None else None,
+        outcome=check.outcome,
+        catastrophic_defect=check.outcome is Outcome.CRITICAL_FAILURE,
+        material_value=rule.material_value,
+        finished_value=rule.output_price,
+        started_at=started,
+        completed_at=resources.game_time,
+    )
+    state = state.model_copy(update={"crafted_goods": state.crafted_goods + (record,)})
+    consequence = "catastrophic-hidden-defect" if record.catastrophic_defect else ""
+    return (
+        state,
+        resources,
+        EconomicsOutcome(
+            status="crafted" if output is not None else "materials-ruined", consequence=consequence
+        ),
+    )
+
+
+def _acquire_bonded_labor(
+    state: EconomicsState,
+    command: AcquireBondedLabor,
+    rules: EconomicsRules,
+    rng: RandomSource,
+) -> tuple[EconomicsState, EconomicsOutcome, tuple[tuple[str, int], ...]]:
+    rule = _rule(rules.bonded_labor, command.rule_id, "bonded-labor context")
+    buyer = _rule(state.accounts, rule.buyer_account_id, "buyer account")
+    if command.actor_id != buyer.owner_id:
+        raise ValidationError("Only the authored buyer may acquire custody")
+    if not rule.legal:
+        raise ValidationError("This jurisdiction does not permit the authored contract")
+    if any(value.rule_id == rule.id and value.status == "active" for value in state.bonded_labor):
+        raise ConflictError("Subject already has an active custody contract")
+    price = 60 * rule.monthly_pay
+    state, deltas = _move_money(state, ((rule.buyer_account_id, rule.seller_account_id, price),))
+    roll = sum(draw_dice(rng, 2))
+    modifier = (
+        -1 if roll == 8 else -2 if roll == 9 else 2 if roll == 10 and rule.kind_treatment else 0
+    )
+    loyalty = (
+        20 if roll == 12 else 0 if roll == 11 else max(0, min(20, rule.initial_loyalty + modifier))
+    )
+    contract = BondedLaborContract(
+        id="bonded-labor:" + rule.id,
+        rule_id=rule.id,
+        subject_actor_id=rule.subject_actor_id,
+        custody_owner_id=command.actor_id,
+        loyalty=loyalty,
+        private_disposition=rule.private_disposition,
+        visible_to_actor_ids=rule.visible_to_actor_ids,
+    )
+    state = state.model_copy(update={"bonded_labor": state.bonded_labor + (contract,)})
+    return (
+        state,
+        EconomicsOutcome(
+            status="custody-acquired",
+            amount=price,
+            consequence="escape-driven" if roll == 11 else "",
+        ),
+        deltas,
+    )
+
+
+def _transition_bonded_labor(
+    state: EconomicsState,
+    command: ReleaseBondedLabor | EscapeBondedLabor,
+) -> tuple[EconomicsState, EconomicsOutcome]:
+    contract = _rule(state.bonded_labor, command.contract_id, "bonded-labor contract")
+    if contract.status != "active":
+        raise ConflictError("Custody contract is no longer active")
+    if isinstance(command, ReleaseBondedLabor):
+        if command.actor_id != contract.custody_owner_id:
+            raise ValidationError("Only the custody owner may release the subject")
+        status: Literal["released", "escaped"] = "released"
+    else:
+        if command.actor_id != contract.subject_actor_id:
+            raise ValidationError("Only the subject may execute an escape transition")
+        status = "escaped"
+    update = contract.model_copy(update={"status": status})
+    state = state.model_copy(
+        update={
+            "bonded_labor": tuple(
+                update if value.id == contract.id else value for value in state.bonded_labor
+            )
+        }
+    )
+    return state, EconomicsOutcome(status=status)
+
+
+def _pay_hireling(
+    state: EconomicsState, command: PayHireling, rules: EconomicsRules
+) -> tuple[EconomicsState, EconomicsOutcome, tuple[tuple[str, int], ...]]:
+    contract = _rule(state.hirelings, command.contract_id, "hireling contract")
+    rule = _rule(rules.hirelings, contract.rule_id, "hireling")
+    if command.actor_id != contract.employer_id or not contract.active:
+        raise ValidationError("Hireling payment requires the active employer")
+    state, deltas = _move_money(
+        state, ((rule.employer_account_id, rule.hireling_account_id, rule.offered_pay),)
+    )
+    update = contract.model_copy(update={"paid_periods": contract.paid_periods + 1})
+    state = state.model_copy(
+        update={
+            "hirelings": tuple(
+                update if value.id == contract.id else value for value in state.hirelings
+            )
+        }
+    )
+    return state, EconomicsOutcome(status="hireling-paid", amount=rule.offered_pay), deltas
+
+
+def _residual_economics(
+    state: EconomicsState,
+    resources: ResourceState,
+    command: PayHireling | MakeGoods | AcquireBondedLabor | ReleaseBondedLabor | EscapeBondedLabor,
+    rules: EconomicsRules,
+    build_values: Mapping[str, Decimal],
+    rng: RandomSource,
+    advance: Callable[[ResourceState, int, str], ResourceState] | None,
+) -> tuple[
+    EconomicsState,
+    ResourceState,
+    EconomicsOutcome,
+    tuple[tuple[str, int], ...],
+    Literal["hireling-pay", "craft", "bonded-labor"],
+]:
+    if isinstance(command, PayHireling):
+        state, outcome, deltas = _pay_hireling(state, command, rules)
+        return state, resources, outcome, deltas, "hireling-pay"
+    if isinstance(command, MakeGoods):
+        state, resources, outcome = _make_goods(
+            state, resources, command, rules, build_values, rng, advance
+        )
+        return state, resources, outcome, (), "craft"
+    if isinstance(command, AcquireBondedLabor):
+        state, outcome, deltas = _acquire_bonded_labor(state, command, rules, rng)
+        return state, resources, outcome, deltas, "bonded-labor"
+    state, outcome = _transition_bonded_labor(state, command)
+    return state, resources, outcome, (), "bonded-labor"
+
+
 def apply_economics(
     state: EconomicsState,
     resources: ResourceState,
@@ -991,6 +1307,7 @@ def apply_economics(
     purchased_ids: frozenset[str],
     rng: RandomSource,
     transfer: Callable[[ResourceState, str, int, str, str | None, str], ResourceState],
+    advance: Callable[[ResourceState, int, str], ResourceState] | None = None,
     system: bool = False,
 ) -> tuple[EconomicsState, ResourceState, EconomicsOutcome]:
     """Apply one trusted campaign-economics command."""
@@ -1005,7 +1322,10 @@ def apply_economics(
         raise ValidationError("Economics actor is not in the world")
 
     deltas: tuple[tuple[str, int], ...] = ()
-    entry_kind: Literal["trade", "exchange", "job", "living", "hireling-pay"] | None = None
+    entry_kind: (
+        Literal["trade", "exchange", "job", "living", "hireling-pay", "craft", "bonded-labor"]
+        | None
+    ) = None
     if isinstance(command, ExecuteTrade):
         state, resources, outcome, deltas = _execute_trade(
             state, resources, command, rules, transfer
@@ -1060,30 +1380,12 @@ def apply_economics(
         entry_kind = "living"
     elif isinstance(command, FindHireling):
         state, outcome = _find_hireling(state, command, rules, build_values, rng)
-    elif isinstance(command, PayHireling):
-        paid_contract = _rule(state.hirelings, command.contract_id, "hireling contract")
-        pay_rule = _rule(rules.hirelings, paid_contract.rule_id, "hireling")
-        if command.actor_id != paid_contract.employer_id or not paid_contract.active:
-            raise ValidationError("Hireling payment requires the active employer")
-        state, deltas = _move_money(
-            state,
-            ((pay_rule.employer_account_id, pay_rule.hireling_account_id, pay_rule.offered_pay),),
-        )
-        paid_update = paid_contract.model_copy(
-            update={"paid_periods": paid_contract.paid_periods + 1}
-        )
-        state = state.model_copy(
-            update={
-                "hirelings": tuple(
-                    paid_update if value.id == paid_contract.id else value
-                    for value in state.hirelings
-                )
-            }
-        )
-        outcome = EconomicsOutcome(status="hireling-paid", amount=pay_rule.offered_pay)
-        entry_kind = "hireling-pay"
-    else:
+    elif isinstance(command, CheckLoyalty):
         state, outcome = _check_loyalty(state, command, rules, rng)
+    else:
+        state, resources, outcome, deltas, entry_kind = _residual_economics(
+            state, resources, command, rules, build_values, rng, advance
+        )
 
     if entry_kind is not None:
         state = _entry(state, command, entry_kind, deltas, resources)
@@ -1144,6 +1446,34 @@ def _validate_work_bindings(
         raise ValidationError("Hireling accounts disagree with contract parties")
 
 
+def _validate_bonded_labor(
+    rules: EconomicsRules,
+    state: EconomicsState,
+    resources: ResourceState,
+    actor_entities: set[str],
+    locations: set[str],
+) -> None:
+    if any(
+        value.subject_actor_id not in actor_entities
+        or value.jurisdiction_id not in locations
+        or not set(value.visible_to_actor_ids) <= actor_entities
+        for value in rules.bonded_labor
+    ):
+        raise ValidationError("Bonded-labor rule references an unknown actor or jurisdiction")
+    if any(
+        value.subject_actor_id not in actor_entities
+        or value.custody_owner_id not in actor_entities
+        or not set(value.visible_to_actor_ids) <= actor_entities
+        for value in state.bonded_labor
+    ):
+        raise ValidationError("Bonded-labor contract references invalid actors")
+    if any(
+        value.subject_actor_id in {item.id for item in resources.items}
+        for value in state.bonded_labor
+    ):
+        raise ValidationError("A bonded-labor actor cannot be represented as inventory")
+
+
 def validate_economics(
     rules: EconomicsRules | None,
     state: EconomicsState,
@@ -1181,6 +1511,8 @@ def validate_economics(
         (state.hirelings, "hireling contract"),
         (state.loyalty_checks, "loyalty check"),
         (state.social_outcomes, "social material outcome"),
+        (state.crafted_goods, "crafted good"),
+        (state.bonded_labor, "bonded-labor contract"),
     ):
         if len({value.id for value in values}) != len(values):
             raise ValidationError(f"Duplicate {label}")
@@ -1233,8 +1565,11 @@ def validate_economics(
         referenced_accounts.extend((panhandling.donor_account_id, panhandling.actor_account_id))
     for performance in rules.performances:
         referenced_accounts.extend((performance.payer_account_id, performance.actor_account_id))
+    for bonded in rules.bonded_labor:
+        referenced_accounts.extend((bonded.seller_account_id, bonded.buyer_account_id))
     if not set(referenced_accounts) <= set(accounts):
         raise ValidationError("Economics rule references an unknown account")
+    _validate_bonded_labor(rules, state, resources, actor_entities, locations)
     _validate_market_bindings(rules, accounts, locations)
     _validate_work_bindings(rules, accounts, administration_rules)
     time_use_ids = {value.id for value in administration.time_use}
@@ -1250,6 +1585,8 @@ def validate_economics(
         for value in state.social_outcomes
     ):
         raise ValidationError("Social material outcome references invalid campaign state")
-    private_motives = {value.private_motive for value in state.hirelings if value.private_motive}
+    private_motives = {
+        value.private_motive for value in state.hirelings if value.private_motive
+    } | {value.private_disposition for value in state.bonded_labor if value.private_disposition}
     if any(motive in event.kind for motive in private_motives for event in resources.events):
         raise ValidationError("Private hireling motive leaked into the public event stream")
