@@ -15,7 +15,9 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.magic.protocols import (
     AreaSelection,
     CeremonialPlan,
+    HeldSpell,
     ceremonial_skill_bonus,
+    dispose_held_spell,
     hex_area,
     item_energy_cost,
     square_area,
@@ -148,6 +150,8 @@ class SpellCommand(Command):
         "complete",
         "maintain",
         "cancel",
+        "dissipate",
+        "drop",
         "expand",
         "release",
         "remember",
@@ -175,6 +179,23 @@ def casting_seconds(seconds: int, skill: int, *, missile: bool = False) -> int:
         return seconds
     divisor = 1 << (1 + (skill - 20) // 5)
     return max(1, (seconds + divisor - 1) // divisor)
+
+
+def _validate_spell_scale(spec: SpellSpec, context: SpellContext) -> None:
+    """Keep class-specific area and energy bounds outside the command dispatcher."""
+    if (
+        spec.kind != "area"
+        and context.radius != 1
+        or spec.kind != "missile"
+        and context.energy != 1
+    ):
+        raise ValidationError("Spell does not accept this area or energy")
+    if context.area is not None:
+        if spec.kind != "area" or context.position != context.area.center:
+            raise ValidationError("Area selection must match an Area spell destination")
+        (hex_area if context.geometry == "hex" else square_area)(context.area, context.radius)
+    if spec.kind == "missile" and context.energy > context.magery:
+        raise ValidationError("Initial missile energy exceeds Magery")
 
 
 def _spend_ceremonial_energy(
@@ -267,7 +288,14 @@ def apply_spell(
     require_hazards_settled(
         state.hazards, frozenset({command.actor_id, context.target_id}), state.game_time
     )
-    if command.hp_energy and command.kind in ("concentrate", "release", "focus", "remember"):
+    if command.hp_energy and command.kind in (
+        "concentrate",
+        "release",
+        "focus",
+        "remember",
+        "dissipate",
+        "drop",
+    ):
         raise ValidationError("This maneuver does not consume spell energy")
 
     backfires_settled(state, command.actor_id)
@@ -306,12 +334,15 @@ def apply_spell(
     spent = 0
     hp_spent = 0
     hp_budget = command.hp_energy
+    disposition = None
     outcome: Literal[
         "casting",
         "active",
         "failed",
         "resisted",
         "cancelled",
+        "dissipated",
+        "dropped",
         "interrupted",
         "critical-failure",
         "released",
@@ -345,19 +376,7 @@ def apply_spell(
             spec.magery == 0 and context.mana in ("high", "very-high")
         ):
             raise ValidationError("Required Magery unavailable")
-        if (
-            spec.kind != "area"
-            and context.radius != 1
-            or spec.kind != "missile"
-            and context.energy != 1
-        ):
-            raise ValidationError("Spell does not accept this area or energy")
-        if context.area is not None:
-            if spec.kind != "area" or context.position != context.area.center:
-                raise ValidationError("Area selection must match an Area spell destination")
-            (hex_area if context.geometry == "hex" else square_area)(context.area, context.radius)
-        if spec.kind == "missile" and context.energy > context.magery:
-            raise ValidationError("Initial missile energy exceeds Magery")
+        _validate_spell_scale(spec, context)
         ritual_skill = context.skill - (5 if context.mana == "low" else 0)
         ceremonial = context.ceremonial
         if ceremonial is not None and context.skill < 15:
@@ -445,7 +464,24 @@ def apply_spell(
     else:
         if effect is None or effect.phase == "ended":
             raise ConflictError("Cast is not available")
-        if command.kind == "cancel":
+        if command.kind in ("dissipate", "drop"):
+            if spec.kind != "missile" or effect.phase != "active":
+                raise ValidationError("Only a held Melee or Missile spell can dissipate")
+            disposition = dispose_held_spell(
+                HeldSpell(
+                    cast_id=effect.cast_id,
+                    actor_id=effect.actor_id,
+                    spell_class="missile",
+                    energy=effect.energy,
+                    burning=effect.spell_id == "fireball",
+                ),
+                "drop" if command.kind == "drop" else "dissipate",
+            )
+            effect = effect.model_copy(update={"phase": "ended"})
+            outcome = "dropped" if command.kind == "drop" else "dissipated"
+        elif command.kind == "cancel":
+            if spec.kind == "missile":
+                raise ValidationError("Held missiles use dissipate or drop, not cancellation")
             if (
                 effect.phase == "active"
                 and effect.expires_at is not None
@@ -711,7 +747,11 @@ def apply_spell(
         }
     )
     result = SpellResult(
-        outcome=outcome, energy_spent=spent, hp_spent=hp_spent, checks=tuple(checks)
+        outcome=outcome,
+        energy_spent=spent,
+        hp_spent=hp_spent,
+        checks=tuple(checks),
+        held_disposition=disposition,
     )
     event = SpellEvent(effect=effect, result=result)
     return state.model_copy(

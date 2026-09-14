@@ -27,8 +27,8 @@ obligation:
   retain their existing profile decisions outside this 161-row batch.
 
 The result is 67 construction/catalog rows, 68 executable rows, 15 reference
-rows, and 11 structural rows. Of the executable rows, 43 are joined to existing
-independent behavior tests and 25 remain visible certification blockers.
+rows, and 11 structural rows. Of the executable rows, 50 are joined to existing
+independent behavior tests and 18 remain visible certification blockers.
 
 ## Existing executable evidence
 
@@ -58,11 +58,11 @@ runtime inventory and exact trait/modifier source ledgers.
 | #683 | Gadget limitations |
 | #684 | Silver weapons; shields |
 | #685 | Bodkin points; hand grenades/incendiaries; smartgun electronics |
-| #691 | Limits on effect; spell classes; magic staffs; dissipating held spells; long-distance modifiers; psi/magic interactions |
-| #693 | Cross-species physiology modifiers and their specialty bypasses |
 
 Issues #691, #693, and #700 were opened by this review because the selected
 printing exposes residual magic/psi interactions, cross-species skill
 procedures, and section-level trait procedures that were neither fully evidenced
 nor owned by another bounded completion issue. No unresolved Characters section
-row falls back to roadmap #94.
+row falls back to roadmap #94. Issues #691 and #693 are now complete; their rows
+are joined to independent behavior tests, including
+`tests/test_characters_magic_residuals.py` for the six residual magic rows.

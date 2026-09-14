@@ -4355,18 +4355,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_characters_magic_residuals.py"
       ],
       "historical_owners": [
         191,
         500,
-        94
+        94,
+        691
       ],
-      "completion_owner": 691,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b235:casting-spells",
@@ -4588,18 +4590,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_characters_magic_residuals.py"
       ],
       "historical_owners": [
         191,
         500,
-        94
+        94,
+        691
       ],
-      "completion_owner": 691,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4654,18 +4658,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_characters_magic_residuals.py"
       ],
       "historical_owners": [
         191,
         500,
-        94
+        94,
+        691
       ],
-      "completion_owner": 691,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4685,18 +4691,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_characters_magic_residuals.py"
       ],
       "historical_owners": [
         191,
         500,
-        94
+        94,
+        691
       ],
-      "completion_owner": 691,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -4716,18 +4724,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_characters_magic_residuals.py"
       ],
       "historical_owners": [
         191,
         500,
-        94
+        94,
+        691
       ],
-      "completion_owner": 691,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b239:different-kinds-of-magic",
@@ -5647,18 +5657,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_characters_magic_residuals.py"
       ],
       "historical_owners": [
         191,
         500,
-        94
+        94,
+        691
       ],
-      "completion_owner": 691,
+      "completion_owner": null,
       "capability_id": "gurps.supernatural.abilities",
       "runtime_binding": null,
       "parent_id": "section:characters:b255:psionic-powers",

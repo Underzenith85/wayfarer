@@ -102,7 +102,7 @@ def approved_context(
     ):
         raise AuthorizationError("Spell channel does not authorize this actor and spell")
     entities = {e.id: e for e in state.world.entities}
-    if command.kind != "cancel" and any(
+    if command.kind not in ("cancel", "dissipate", "drop") and any(
         entities[e].location_id != channel.location_id
         for e in (command.actor_id, channel.target_id)
     ):

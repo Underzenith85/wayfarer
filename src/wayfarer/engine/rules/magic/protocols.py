@@ -22,6 +22,7 @@ SpellClass = Literal[
     "information",
     "melee",
     "missile",
+    "resisted",
     "special",
 ]
 MagicTradition = Literal["standard", "clerical", "ritual"]
@@ -40,6 +41,110 @@ class BlockingCast(Record):
 
     effective_skill: int = Field(ge=1)
     energy_cost: int = Field(ge=0)
+
+
+class EffectLimit(Record):
+    """Finite B237 levels after the optional Magery override is applied."""
+
+    standard_levels: int | None = Field(default=None, ge=1)
+    magery: int = Field(ge=0)
+    maximum_levels: int | None = Field(default=None, ge=1)
+
+
+def effect_limit(standard_levels: int | None, magery: int) -> EffectLimit:
+    """Resolve a spell's source-supplied finite cap; ``None`` remains uncapped."""
+    if standard_levels is not None and (type(standard_levels) is not int or standard_levels < 1):
+        raise ValidationError("Finite spell effect limit must be positive")
+    if type(magery) is not int or magery < 0:
+        raise ValidationError("Magery must be a nonnegative integer")
+    maximum = None if standard_levels is None else max(standard_levels, magery)
+    return EffectLimit(
+        standard_levels=standard_levels,
+        magery=magery,
+        maximum_levels=maximum,
+    )
+
+
+def validate_effect_levels(requested: int, standard_levels: int | None, magery: int) -> int:
+    """Fail closed before energy is spent when a finite source limit is exceeded."""
+    if type(requested) is not int or requested < 1:
+        raise ValidationError("Spell effect levels must be a positive integer")
+    maximum = effect_limit(standard_levels, magery).maximum_levels
+    if maximum is not None and requested > maximum:
+        raise ValidationError("Selected spell effect exceeds its finite Magery limit")
+    return requested
+
+
+class SpellClassProcedure(Record):
+    """Executable common contract for one B239-241 spell-class combination."""
+
+    primary: Literal["regular", "area", "melee", "missile", "blocking", "information"]
+    resisted: bool = False
+    attack_roll: Literal["none", "melee", "innate-attack", "defense"]
+    legal_defenses: tuple[Literal["dodge", "block", "parry", "weapon-parry"], ...] = ()
+    distance_rule: Literal["regular", "area-edge", "none", "long-distance"]
+    secret_roll: bool = False
+    momentary: bool = False
+    resistance_contest: bool = False
+    physical_barriers_apply: bool = False
+
+
+def spell_class_procedure(
+    primary: Literal["regular", "area", "melee", "missile", "blocking", "information"],
+    *,
+    resisted: bool = False,
+    ignores_armor: bool = False,
+) -> SpellClassProcedure:
+    """Return defenses, targeting, secrecy, duration, and resistance semantics."""
+    if ignores_armor and primary != "melee":
+        raise ValidationError("Armor-bypassing defense rules apply only to Melee spells")
+    attacks: dict[str, Literal["none", "melee", "innate-attack", "defense"]] = {
+        "regular": "none",
+        "area": "none",
+        "melee": "melee",
+        "missile": "innate-attack",
+        "blocking": "defense",
+        "information": "none",
+    }
+    defenses: dict[str, tuple[Literal["dodge", "block", "parry", "weapon-parry"], ...]] = {
+        "regular": (),
+        "area": (),
+        "melee": ("dodge", "weapon-parry") if ignores_armor else ("dodge", "block", "parry"),
+        "missile": ("dodge", "block"),
+        "blocking": (),
+        "information": (),
+    }
+    distance: dict[str, Literal["regular", "area-edge", "none", "long-distance"]] = {
+        "regular": "regular",
+        "area": "area-edge",
+        "melee": "none",
+        "missile": "none",
+        "blocking": "none",
+        "information": "long-distance",
+    }
+    return SpellClassProcedure(
+        primary=primary,
+        resisted=resisted,
+        attack_roll=attacks[primary],
+        legal_defenses=defenses[primary],
+        distance_rule=distance[primary],
+        secret_roll=primary == "information",
+        momentary=primary == "information",
+        resistance_contest=resisted,
+        physical_barriers_apply=primary == "missile",
+    )
+
+
+class BlockingInterruption(Record):
+    preparing_spell_lost: bool = True
+    held_melee_retained: bool = True
+    held_missile_retained: bool = True
+    held_missile_can_enlarge: bool = False
+
+
+def blocking_interruption() -> BlockingInterruption:
+    """B241 interruption state produced by attempting a Blocking spell."""
+    return BlockingInterruption()
 
 
 def blocking_cast(
@@ -187,6 +292,120 @@ def ready_melee_spell(
     return MeleeSpellCharge(cast_id=cast_id, actor_id=actor_id, carrier_item_id=carrier_item_id)
 
 
+StaffForm = Literal["wand", "short-staff", "full-staff"]
+StaffMaterial = Literal["wood", "bone", "ivory", "coral"]
+
+
+class MagicStaff(Record):
+    """An exact B240 staff construction and its combat reach binding."""
+
+    item_id: Id
+    form: StaffForm
+    material: StaffMaterial
+    length_yards: int = Field(ge=0, le=2)
+
+    @model_validator(mode="after")
+    def legal_form(self) -> MagicStaff:
+        expected = {"wand": 0, "short-staff": 1, "full-staff": 2}[self.form]
+        if self.length_yards != expected:
+            raise ValueError("Magic-staff form and reach disagree")
+        return self
+
+    @property
+    def reach(self) -> Literal["C", "1", "2"]:
+        return ("C", "1", "2")[self.length_yards]
+
+    @property
+    def weapon_skills(self) -> tuple[str, ...]:
+        return {
+            "wand": ("knife", "main-gauche"),
+            "short-staff": ("shortsword", "smallsword"),
+            "full-staff": ("staff", "two-handed-sword"),
+        }[self.form]
+
+
+class StaffCastingBenefit(Record):
+    effective_distance_yards: int = Field(ge=0)
+    touch_without_distance_penalty: bool
+    melee_reach: Literal["C", "1", "2"]
+    pointing_declared: bool
+
+
+def staff_casting_benefit(
+    staff: MagicStaff,
+    distance_yards: int,
+    *,
+    touching_with_staff: bool = False,
+    pointing_declared_at_start: bool = False,
+) -> StaffCastingBenefit:
+    """Apply the three staff benefits without inferring a late pointing declaration."""
+    if type(distance_yards) is not int or distance_yards < 0:
+        raise ValidationError("Staff casting distance must be a nonnegative integer")
+    effective = 0 if touching_with_staff else distance_yards
+    if not touching_with_staff and pointing_declared_at_start:
+        effective = max(0, effective - staff.length_yards)
+    return StaffCastingBenefit(
+        effective_distance_yards=effective,
+        touch_without_distance_penalty=touching_with_staff,
+        melee_reach=staff.reach,
+        pointing_declared=pointing_declared_at_start,
+    )
+
+
+class HeldSpell(Record):
+    cast_id: Id
+    actor_id: Id
+    spell_class: Literal["melee", "missile"]
+    energy: int = Field(default=1, ge=1)
+    staff_item_id: Id | None = None
+    explosive: bool = False
+    burning: bool = False
+
+
+class HeldSpellDisposition(Record):
+    outcome: Literal["held", "dissipated", "dropped", "contact-triggered"]
+    free_action: bool = True
+    ground_damage_dice: int = Field(default=0, ge=0)
+    affects_caster: bool = False
+    ignition_possible: bool = False
+    target_id: Id | None = None
+
+
+def dispose_held_spell(
+    held: HeldSpell,
+    action: Literal["dissipate", "drop"],
+) -> HeldSpellDisposition:
+    """Plan the free action; canonical damage/fire services consume its consequences."""
+    if action == "dissipate":
+        return HeldSpellDisposition(outcome="dissipated")
+    if held.spell_class != "missile":
+        raise ValidationError("Only a held Missile spell can be dropped")
+    return HeldSpellDisposition(
+        outcome="dropped",
+        ground_damage_dice=held.energy,
+        affects_caster=held.explosive,
+        ignition_possible=held.burning,
+    )
+
+
+def staff_custody_transition(
+    held: HeldSpell,
+    *,
+    caster_still_holds: bool,
+    jointly_held_by: Id | None = None,
+    casters_turn: bool = False,
+    wrench_attempt: bool = False,
+) -> HeldSpellDisposition:
+    """Resolve loss of staff custody and the joint-custody contact exception."""
+    if held.spell_class != "melee" or held.staff_item_id is None:
+        raise ValidationError("Staff custody applies to a staff-carried Melee spell")
+    if jointly_held_by is not None and casters_turn and wrench_attempt and caster_still_holds:
+        return HeldSpellDisposition(outcome="contact-triggered", target_id=jointly_held_by)
+    if not caster_still_holds:
+        return HeldSpellDisposition(outcome="dissipated")
+    return HeldSpellDisposition(outcome="held")
+
+
 def hex_area(selection: AreaSelection, radius: int) -> frozenset[tuple[int, int]]:
     """Validate an explicitly selected axial-hex subset against the paid radius."""
     if type(radius) is not int or radius < 1:
@@ -283,6 +502,64 @@ def information_attempt_allowed(
         == (candidate.caster_id, candidate.spell_id, candidate.subject_id, candidate.day)
         for a in attempts
     )
+
+
+LONG_DISTANCE_YARDS: tuple[tuple[int, int], ...] = (
+    (200, 0),
+    (880, -1),
+    (1_760, -2),
+    (5_280, -3),
+    (17_600, -4),
+    (52_800, -5),
+    (176_000, -6),
+    (528_000, -7),
+    (1_760_000, -8),
+)
+
+
+def long_distance_modifier(distance_yards: int) -> int:
+    """B241 Information/advantage range table, including every further decade."""
+    if type(distance_yards) is not int or distance_yards < 0:
+        raise ValidationError("Long-distance range must be a nonnegative integer")
+    for maximum, penalty in LONG_DISTANCE_YARDS:
+        if distance_yards <= maximum:
+            return penalty
+    maximum = LONG_DISTANCE_YARDS[-1][0]
+    penalty = -8
+    while distance_yards > maximum:
+        maximum *= 10
+        penalty -= 2
+    return penalty
+
+
+SupernaturalFamily = Literal["magic", "psi"]
+InteractionEffect = Literal["fire", "healing", "mind", "detection", "neutralization"]
+
+
+def supernatural_counter_applies(
+    counter_family: SupernaturalFamily, target_family: SupernaturalFamily
+) -> bool:
+    """Detection and neutralization never cross the psi/magic boundary."""
+    return counter_family == target_family
+
+
+def supernatural_interaction_route(
+    source_family: SupernaturalFamily, effect: InteractionEffect
+) -> Literal[
+    "hazard:fire",
+    "health:healing",
+    "resistance:mind-shield",
+    "supernatural:magic",
+    "supernatural:psi",
+]:
+    """Route resulting effects to canonical services, while keeping powers distinct."""
+    if effect == "fire":
+        return "hazard:fire"
+    if effect == "healing":
+        return "health:healing"
+    if effect == "mind":
+        return "resistance:mind-shield"
+    return "supernatural:magic" if source_family == "magic" else "supernatural:psi"
 
 
 def validate_tradition(

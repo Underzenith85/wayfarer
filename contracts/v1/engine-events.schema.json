@@ -1172,6 +1172,61 @@
       "title": "HazardResult",
       "type": "object"
     },
+    "HeldSpellDisposition": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "held",
+            "dissipated",
+            "dropped",
+            "contact-triggered"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "free_action": {
+          "default": true,
+          "title": "Free Action",
+          "type": "boolean"
+        },
+        "ground_damage_dice": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Ground Damage Dice",
+          "type": "integer"
+        },
+        "affects_caster": {
+          "default": false,
+          "title": "Affects Caster",
+          "type": "boolean"
+        },
+        "ignition_possible": {
+          "default": false,
+          "title": "Ignition Possible",
+          "type": "boolean"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        }
+      },
+      "required": [
+        "outcome"
+      ],
+      "title": "HeldSpellDisposition",
+      "type": "object"
+    },
     "InjuryCheck": {
       "additionalProperties": false,
       "properties": {
@@ -2386,6 +2441,8 @@
             "failed",
             "resisted",
             "cancelled",
+            "dissipated",
+            "dropped",
             "interrupted",
             "critical-failure",
             "released",
@@ -2412,6 +2469,17 @@
           },
           "title": "Checks",
           "type": "array"
+        },
+        "held_disposition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HeldSpellDisposition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
