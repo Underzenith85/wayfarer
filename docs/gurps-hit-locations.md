@@ -6,7 +6,7 @@ random locations are rolled only for a hit that defeats defense. The resulting
 location, dice, effective DR, HP loss and lasting injury IDs are recorded in the
 combat receipt. Restarting or retrying a command cannot reroll them.
 
-This is a partial, explicit human-layout implementation. Trusted scenario actors
+This is an explicit human-layout implementation. Trusted scenario actors
 declare `body: {anatomy: "human", male_groin: false}` and `held_item_hands` pairs.
 An omitted body remains undeclared; unsupported anatomy is rejected instead of
 becoming human. Existing campaigns are not silently migrated. Location attacks
@@ -31,7 +31,8 @@ uses the engine's explicit 30-day interval. Timed shoulder and funny-bone effect
 expire on shared game time. Weapon use, active defenses, standing and supported
 walking consult these records. Unsupported assisted movement cannot bypass them
 through ordinary scene travel. Lost eyes affect melee targeting and defenses;
-broader sensory/trait interactions remain outside this partial capability.
+broader sensory/trait interactions remain outside this capability's reviewed
+human-layout boundary.
 
 Critical head blows use their own numeric table, including eye conversion,
 maximum damage, DR rounding, major-wound forcing, the forced Do Nothing turn and weapon drops. Ordinary
@@ -51,9 +52,10 @@ injury, divisor rounding, random locations, temporary/lasting/permanent duration
 critical head arithmetic and aftermath, shield impairment and SQLite replay. Runtime arithmetic
 was checked against the selected *Basic Set: Campaigns*, Fourth Edition, fourth
 printing, B379, B398-400, B420-422, B552 and B556-557. These cases do not certify
-the full rules profile. The capability gates
-and coverage matrix remain partial until that evidence and the named remaining
-mechanics are complete.
+the full rules profile. Issue #728 joins the complete Basic Set human-layout
+variants to reviewed source and inventory evidence and promotes the three owned
+injury capability rollups. The separately scoped nonhumanoid, optional and broader
+cross-system features below remain excluded or owned outside those rollups.
 
 ## Injury Tolerance and targeted near misses (#107/#688 follow-up)
 
@@ -84,7 +86,7 @@ height. Melee and ranged receipts keep the original roll and actual location.
 
 Independent numeric and persistence tests are in
 `tests/test_geometry_injury_followups.py`, including executed entries in the
-conformance ledger. The executable registry records hit locations and lasting
-wounds as partial. Issue #688 separately verifies the complete Injury Tolerance
-inventory row; #153 and the nonhumanoid/assisted-movement boundaries above remain
-unfinished.
+conformance ledger. The executable registry records the Basic Set hit-location
+and lasting-wound families as verified by #728. Issue #688 separately verifies
+the complete Injury Tolerance inventory row; #153 and the nonhumanoid/assisted-
+movement boundaries above remain outside this human-layout capability rollup.
