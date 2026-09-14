@@ -115,15 +115,40 @@ def test_a_reused_identifier_without_the_pinned_binding_contributes_nothing() ->
     assert reaction_modifiers(build, {}, "reaction") == ()
 
 
-def test_manual_obligations_and_unbound_effects_cannot_activate() -> None:
+def test_unbound_effects_cannot_activate() -> None:
     engine = runtime_compiler()
-    for identifier, options in (
-        ("trait:code-of-honor-soldier", None),
-        ("trait:ally-associate", None),
-    ):
+    for identifier, options in (("trait:ally-associate", None),):
         result = engine.compile(gurps_draft(Purchase(definition_id=identifier, trait=options)))
         assert result.build is None
         assert "definition.not_implemented" in {d.code for d in result.diagnostics}
+
+
+@pytest.mark.parametrize(
+    "identifier",
+    (
+        "trait:quirk-careful",
+        "trait:code-of-honor-soldier",
+        "trait:sense-of-duty-individual",
+        "trait:sense-of-duty-small-group",
+        "trait:sense-of-duty-large-group",
+        "trait:sense-of-duty-race",
+        "trait:sense-of-duty-all-living",
+    ),
+)
+def test_authored_obligation_traits_activate_only_with_the_registered_runtime(
+    identifier: str,
+) -> None:
+    build, engine = approved(Purchase(definition_id=identifier))
+    assert [purchase.definition_id for purchase in build.trait_purchases] == [identifier]
+    without_runtime = CharacterCompiler(
+        RulesCatalog((combined_package(),)),
+        engine.rules,
+        engine.policy,
+        statistics_profile=PROFILE,
+    )
+    rejected = without_runtime.compile(gurps_draft(Purchase(definition_id=identifier)))
+    assert rejected.build is None
+    assert "trait.runtime_unavailable" in {diagnostic.code for diagnostic in rejected.diagnostics}
 
 
 def test_approved_self_control_disadvantage_uses_the_existing_roll() -> None:

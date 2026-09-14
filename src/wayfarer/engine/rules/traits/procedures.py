@@ -14,6 +14,7 @@ from pydantic import Field, model_validator
 from wayfarer.engine.rules.checks import Modifier, RandomSource
 from wayfarer.engine.rules.social.gurps_social import self_control_roll
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules, cost
+from wayfarer.engine.rules.traits.obligations import OBLIGATION_BINDINGS
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -377,6 +378,11 @@ SELF_IMPOSED_IDS: Final = frozenset(
         "trait:sense-of-duty",
         "trait:trademark",
         "trait:vow",
+    }
+    | {
+        identifier
+        for identifier, binding in OBLIGATION_BINDINGS.items()
+        if binding.kind != "careful"
     }
 )
 ImpositionMethod = Literal[

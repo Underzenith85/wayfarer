@@ -33,7 +33,8 @@ def test_basic_set_gate_exposes_capability_source_and_inventory_blockers() -> No
     result = evaluate(ROOT)
     assert result.certified is False
     kinds = {blocker.kind for blocker in result.blockers}
-    assert {"ledger", "capability", "inventory"} <= kinds
+    assert {"capability", "inventory"} <= kinds
+    assert "ledger" not in kinds
     capabilities = [blocker for blocker in result.blockers if blocker.kind == "capability"]
     assert capabilities
     assert all(blocker.owner_issue is not None for blocker in capabilities)

@@ -30,6 +30,7 @@ from wayfarer.engine.rules.traits.mundane.runtime import (
     REPUTATION_BINDINGS,
     SUPPORTED_HOOKS,
 )
+from wayfarer.engine.rules.traits.obligations import OBLIGATION_BINDINGS, OBLIGATION_HOOK
 from wayfarer.engine.rules.traits.physical import PHYSICAL_BINDINGS, PHYSICAL_HOOKS
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
@@ -201,7 +202,6 @@ EFFECT_OWNERS: Final = {
             "trait.creativity",
             "trait.shyness",
             "trait.penetrating_voice",
-            "trait.manual_obligation",
             "trait.honesty",
             "trait.truthfulness",
             "trait.self_control",
@@ -210,6 +210,7 @@ EFFECT_OWNERS: Final = {
         ),
         333,
     ),
+    OBLIGATION_HOOK: 722,
     **dict.fromkeys(
         (
             "trait.wealth",
@@ -303,7 +304,7 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
             "Careful",
             -1,
             163,
-            "trait.manual_obligation",
+            OBLIGATION_HOOK,
             category="quirk",
             obligations=("extra-preparation-time-and-expense",),
         ),
@@ -312,7 +313,7 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
             "Code of Honor (Soldier)",
             -10,
             127,
-            "trait.manual_obligation",
+            OBLIGATION_HOOK,
             obligations=("soldier-code",),
         ),
     ]
@@ -473,7 +474,7 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                 f"Sense of Duty ({scope})",
                 points,
                 153,
-                "trait.manual_obligation",
+                OBLIGATION_HOOK,
                 group="sense-of-duty",
                 obligations=(f"protect-{scope}",),
             )
@@ -629,8 +630,12 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
         binding = REACTION_BINDINGS.get(entry.id)
         if binding is not None and (binding.hook != entry.effect or not entry.implemented):
             raise ValidationError("Runtime binding disagrees with its trait effect")
-        if entry.implemented and entry.obligations:
-            raise ValidationError("A manual obligation is not an executable effect")
+        if entry.implemented and entry.obligations and entry.id not in OBLIGATION_BINDINGS:
+            raise ValidationError("An executable obligation requires an exact trait binding")
+        if entry.id in OBLIGATION_BINDINGS and (
+            entry.effect != OBLIGATION_HOOK or not entry.obligations
+        ):
+            raise ValidationError("Authored obligation binding disagrees with its catalog trait")
         if (entry.effect == "trait.appearance" and entry.id not in APPEARANCE_BINDINGS) or (
             entry.effect == "trait.reputation" and entry.id not in REPUTATION_BINDINGS
         ):
