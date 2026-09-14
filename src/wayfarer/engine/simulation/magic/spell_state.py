@@ -6,7 +6,11 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.rules.checks import CheckTrace
-from wayfarer.engine.rules.magic.protocols import AreaSelection, CeremonialPlan
+from wayfarer.engine.rules.magic.protocols import (
+    AreaSelection,
+    CeremonialPlan,
+    HeldSpellDisposition,
+)
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.models import Id, Record
 
@@ -59,6 +63,8 @@ class SpellResult(Record):
         "failed",
         "resisted",
         "cancelled",
+        "dissipated",
+        "dropped",
         "interrupted",
         "critical-failure",
         "released",
@@ -68,6 +74,9 @@ class SpellResult(Record):
     energy_spent: int = 0
     hp_spent: int = Field(default=0, exclude_if=lambda value: value == 0)
     checks: tuple[CheckTrace, ...] = ()
+    held_disposition: HeldSpellDisposition | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class SpellEvent(Record):

@@ -1,0 +1,25 @@
+{
+  "profile": "gurps-basic-set-4e-2004",
+  "source": "Basic Set: Characters, third printing (February 2008)",
+  "rows": [
+    ["section:characters:b237:limits-on-effect", 237, "effect_limit"],
+    ["section:characters:b239:spell-classes", 239, "spell_class_procedure"],
+    ["section:characters:b240:magic-staffs", 240, "staff_casting_benefit"],
+    ["section:characters:b241:dissipating-held-melee-and-missile-spells", 241, "dispose_held_spell"],
+    ["section:characters:b241:long-distance-modifiers", 241, "long_distance_modifier"],
+    ["section:characters:b256:psionics-and-magic", 256, "supernatural_interaction_route"]
+  ],
+  "long_distance_yards": [
+    [200, 0],
+    [880, -1],
+    [1760, -2],
+    [5280, -3],
+    [17600, -4],
+    [52800, -5],
+    [176000, -6],
+    [528000, -7],
+    [1760000, -8],
+    [17600000, -10],
+    [176000000, -12]
+  ]
+}

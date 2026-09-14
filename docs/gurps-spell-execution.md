@@ -103,3 +103,22 @@ low-mana penalty, and an unmet Magery restriction all fail before dice. Power's
 energy reduction is halved in low mana and doubled in high or very-high mana.
 The spell-family PR still owns the item's concrete effect and cannot treat this
 binding as a generic effect hook.
+
+Issue #691 completes the remaining Characters magic procedures. Finite effect
+levels now use the greater of the printed limit and Magery; uncapped spells stay
+uncapped. Each Regular, Area, Melee, Missile, Blocking, Information, and Resisted
+combination exposes its targeting, defense, secrecy, duration, barrier, and
+interruption contract. Magic staffs validate once-living construction and exact
+wand/short/full reach, require pointing to be declared when concentration starts,
+remove touch penalties, and carry Melee charges through explicit custody/contact
+transitions. Held charges may dissipate harmlessly as a free action; only Missile
+spells may be dropped, and the resulting plan routes object damage, explosion,
+and ignition consequences to their existing services.
+
+The B241 long-distance table is complete through 1,000 miles and continues at
+-2 per additional factor of ten. Psi and magic detection or neutralization remain
+strictly family-specific, while resulting fire, healing, and mental resistance
+route through the canonical hazard, health, and Mind Shield paths. Independent
+expectations live in `tests/fixtures/gurps/characters-magic-residuals.json` and
+`tests/test_characters_magic_residuals.py`; no engine version changes for this
+prerelease work.
