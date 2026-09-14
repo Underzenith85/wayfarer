@@ -152,11 +152,11 @@ def test_melee_mode_and_shield_authoring_fail_closed() -> None:
         )
 
 
-def test_only_concrete_rows_publish_definitions_and_capability_is_partial() -> None:
+def test_only_concrete_rows_publish_definitions_and_capability_is_verified() -> None:
     published = {definition.id for definition in definitions()}
     assert published
     assert not set(FAMILIES) & published
     assert not {"skill:combat-art", "skill:combat-sport", "skill:melee-weapon"} & published
     capability = CAPABILITIES["gurps.combat.melee_weapon_skills"]
-    assert capability.status is CoverageStatus.PARTIAL
-    assert capability.owner_issue == 339
+    assert capability.status is CoverageStatus.VERIFIED
+    assert capability.owner_issue == 727

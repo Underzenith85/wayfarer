@@ -229,8 +229,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.character.development` | no | yes | partial | #499; [adventure, study, quick-learning, and gained-trait settlement](gurps-character-development.md) |
 | `gurps.social.skill_procedures` | no | yes | partial | #345 parent audit and #366 specialties complete; [17 executable headline rows, seven Fortune-Telling children, and campaign Savoir-Faire milieus](gurps-mundane-skills.md#social-procedures-345); residual #368–#370 |
 | `gurps.skills.arts_trades` | no | yes | verified | #729; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
-| `gurps.combat.melee_weapon_skills` | no | yes | partial | #339; [bound melee, unarmed, defense and tactical skill procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |
-| `gurps.combat.technique_procedures` | no | yes | partial | #340; [parent-specific combat technique procedures](gurps-mundane-skills.md#combat-technique-procedures-340) |
+| `gurps.combat.melee_weapon_skills` | no | yes | verified | #727; [variant/source/runtime matrix](gurps-combat-capability-certification.md) and [bound procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |
+| `gurps.combat.technique_procedures` | no | yes | verified | #727; [parent-specific variant/source/runtime matrix](gurps-combat-capability-certification.md) |
 | `gurps.skills.knowledge_investigation` | no | yes | verified | #729; [knowledge, academic and investigation procedures](gurps-mundane-skills.md#knowledge-and-investigation-procedures-341) |
 | `gurps.skills.medicine_mental` | no | yes | verified | #729; [medicine and mental procedures](gurps-mundane-skills.md#medicine-and-mental-procedures-342) |
 | `gurps.skills.physical_outdoors` | no | yes | verified | #729; [physical, outdoor and animal procedures](gurps-mundane-skills.md#physical-outdoor-and-animal-procedures-343) |
@@ -245,22 +245,22 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.injury.hit_locations` | no | yes | partial | #510; [living-human dispatch and blockers](gurps-hit-locations.md) |
 | `gurps.injury.armor_divisors` | no | yes | partial | #510; [numeric armor integration](gurps-hit-locations.md) |
 | `gurps.injury.lasting_wounds` | no | yes | partial | #107; [durable impairments and remaining effects](gurps-hit-locations.md) |
-| `gurps.combat.melee_attack` | yes | yes | partial | #103; declared critical-Parry damage modes and restart evidence in [melee integration](gurps-melee.md); #324 adds fact-gated [Basic/mapless reach](mapless-combat.md) |
-| `gurps.combat.active_defense` | yes | yes | partial | #103; B376 heavy-weapon quality, BL limits and durable breakage in [melee integration](gurps-melee.md); #324 adds fact-gated Basic retreat |
-| `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md); #324 adds Basic Move and Step without promoting wider coverage |
-| `gurps.combat.turn_timing` | yes | yes | partial | #104, #152, #324, #325, #326, #328, and #330; [actor-relative turns, overlapping subgroup clocks, Wait ordering, Basic replay, decisive partial-cycle settlement](combat-timing.md), [atomic reinforcement admission](combat-reinforcements.md), [mixed Basic/hex activity evidence](mixed-activity.md), and [individual withdrawal](combat-withdrawal.md) |
+| `gurps.combat.melee_attack` | yes | yes | verified | #727 reconciles declaration, reach, defense, damage/injury, critical, durability and replay variants in the [combat certification matrix](gurps-combat-capability-certification.md) |
+| `gurps.combat.active_defense` | yes | yes | verified | #727 reconciles Dodge, Block, Parry, retreat, maneuver restrictions and heavy-weapon effects in the [combat certification matrix](gurps-combat-capability-certification.md) |
+| `gurps.combat.maneuvers` | yes | yes | verified | #727 reconciles the complete permission table and stateful maneuver variants in the [combat certification matrix](gurps-combat-capability-certification.md) |
+| `gurps.combat.turn_timing` | yes | yes | verified | #727 reconciles initiative, actor-relative turns, Wait, surprise, retries and settlement in the [combat certification matrix](gurps-combat-capability-certification.md) |
 | `gurps.combat.ranged_attack` | yes | yes | verified | #685 reconciles #106's source-derived golden cases and completes the selected ranged catalog; [ranged dispatch and evidence](gurps-ranged.md) |
 | `gurps.combat.aim` | yes | yes | verified | #685 reconciles target-bound Aim, bracing, scopes, guidance, and selected ranged equipment against independent cases |
 | `gurps.combat.ammunition` | yes | yes | verified | #685/#702 reconcile reservations, reload conservation, projectile readiness, typed variants, and single-use launchers |
 | `gurps.combat.rapid_fire` | no | yes | verified | #685 reconciles burst, recoil, automatic-only, spraying, suppression, and burst-critical evidence |
-| `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344 row-complete; [all 51 reconciled ranged rows and residual cross-system scope](gurps-mundane-skills.md#ranged-combat-procedures-344) |
-| `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
-| `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
+| `gurps.combat.ranged_weapon_skills` | no | yes | verified | #727 reconciles all 52 inventory rows, defaults, special attack families and runtime dispatch in the [combat certification matrix](gurps-combat-capability-certification.md) |
+| `gurps.combat.unarmed` | yes | yes | verified | #727 reconciles strikes, defenses, criticals, maneuvers, Wait and close combat in the [combat certification matrix](gurps-combat-capability-certification.md) |
+| `gurps.combat.grappling` | yes | yes | verified | #727 reconciles control, escape, takedown, pin, locks, choking and close movement in the [combat certification matrix](gurps-combat-capability-certification.md) |
 | `gurps.combat.mounted` | no | yes | verified | #528; [separate rider/mount identities, training-gated action context and atomic separation](gurps-special-combat-situations.md#mounted-and-personal-flying-combat-528) |
 | `gurps.combat.personal_flight` | no | yes | verified | #528; [personal aerial movement, stalls and aerial attack/retreat context](gurps-special-combat-situations.md#mounted-and-personal-flying-combat-528) |
-| `gurps.tactical.hex_movement` | no | yes | partial | #105; #329 adds lossless [hex-to-Basic conversion](mapless-combat.md#hex-to-basic-conversion) for representable battlefields; #507 and #509 add source-reviewed tactical and [personal high-speed movement](gurps-special-combat-situations.md) |
-| `gurps.tactical.facing` | no | yes | partial | #105 |
-| `gurps.tactical.visibility` | no | yes | partial | #105; #509 adds source-reviewed [surprise and directed combat visibility](gurps-special-combat-situations.md) |
+| `gurps.tactical.hex_movement` | no | yes | verified | #727 reconciles path costs, reach/LOS, close combat, multi-hex and high-speed movement in the [combat certification matrix](gurps-combat-capability-certification.md) |
+| `gurps.tactical.facing` | no | yes | verified | #727 reconciles arcs, turning costs, runaround attacks and multi-hex facing in the [combat certification matrix](gurps-combat-capability-certification.md) |
+| `gurps.tactical.visibility` | no | yes | verified | #727 reconciles darkness, unseen attacks, light, smoke and surprise in the [combat certification matrix](gurps-combat-capability-certification.md) |
 | `gurps.recovery.fatigue` | yes | yes | partial | #516; [Basic Set survival complete](gurps-survival.md), exact Lite source remains unavailable |
 | `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |

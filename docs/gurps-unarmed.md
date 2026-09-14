@@ -35,15 +35,12 @@ The declared source is the selected Basic Set baseline: Characters third printin
 errata overlay. Numeric references: Characters B182, B203, B228 and B271;
 Campaigns B349, B366, B370-371, B379, B400, B403 and B436. Tests contain numeric
 expectations and references, not rulebook prose. Independent cases are in the
-common conformance ledger and `tests/test_unarmed.py`. The selected-source review
-and #176 implementation scope are complete; broader close-combat and multi-hex
-work remains under #508, so this is not a whole-profile conformance certificate.
+common conformance ledger and `tests/test_unarmed.py`. The selected-source review,
+#176 integrations, and #508 close-combat/multi-hex work are complete. Issue #727
+verifies `gurps.combat.unarmed` and `gurps.combat.grappling` through the explicit
+[variant/source/runtime matrix](gurps-combat-capability-certification.md).
 
-Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which
-keeps the existing scenario/character capability checks fail-closed. Issues #108
-and [#176](https://github.com/Underzenith85/wayfarer/issues/176) are closed for
-their bounded deliveries; broader close-combat and multi-hex work remains under
-#508. The capability boundaries still include:
+The historical delivery boundaries closed by those follow-ups included:
 
 - Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), torn-muscle lasting penalties (15), and selecting among multiple ready impaling modes (5/6/16). Armed critical-parry failures use the existing weapon consequence reducer; cases lacking sufficient weapon metadata still halt with recorded dice.
 - All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks. Wait is integrated below; Evaluate, Feint, Aim and Concentrate while a grip is held remain explicitly rejected.
@@ -63,7 +60,9 @@ The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejec
 - Punches and kicks can target torso, neck, arms or legs. A neck strike missed by one resolves against the torso and records both intent and resolved location. Hex retreat is supported against strikes, with the trained unarmed parry bonus. Legacy square coordinates are unchanged.
 - Ready while grappling requires explicitly selected free hands. A grappled actor makes a DX check (including applicable shock/control penalties); failure drops only the selected item. The check and result survive restart and command replay. Partial release does not consume an attack or release other hands.
 
-`tests/test_unarmed_integrations.py` contains independent numeric cases and transaction/replay tests; `tests/test_tactical.py` verifies the v1/v2 HTTP boundary. Both capability families remain partial; these integrations do not establish whole-profile certification.
+`tests/test_unarmed_integrations.py` contains independent numeric cases and
+transaction/replay tests; `tests/test_tactical.py` verifies the v1/v2 HTTP
+boundary. Their cross-family certification joins are owned by #727.
 
 ### Critical consequences and Judo follow-up
 
