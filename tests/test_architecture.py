@@ -106,11 +106,10 @@ RETIRED_PRINCIPAL_SPELLINGS = frozenset(
 )
 
 # The modules that still start work with a bare task instead of a process (#640).
-# `v1/service.py` and `v1/live.py` are the v1 action lifecycle, which step 9 (#641)
-# moves; `catalog_api.py` is the scenario generation job. This table may only shrink.
+# Both are the v1 action lifecycle, which step 9 (#641) moves. Scenario authoring
+# left this table when it became a process kind. It may only shrink.
 BARE_TASK_OWNERS = frozenset(
     {
-        "transport/catalog_api.py",
         "transport/v1/live.py",
         "transport/v1/service.py",
     }

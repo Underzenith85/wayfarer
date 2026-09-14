@@ -1,6 +1,5 @@
 """Scenario authoring API v1: additive to, and independent of, frozen play v1."""
 
-import asyncio
 from collections.abc import AsyncIterator
 
 from aiohttp import web
@@ -9,24 +8,21 @@ from pydantic import Field
 from wayfarer.engine.simulation.campaign.scenario_catalog import (
     CatalogCommand,
     InstantiateRevision,
-    ScenarioGenerationJob,
     ScenarioGenerationRequest,
 )
 from wayfarer.engine.simulation.campaign.scenario_document import PublicBrief
 from wayfarer.errors import (
     ConflictError,
     ProviderError,
-    ProviderTimeoutError,
     ValidationError,
-    provider_diagnostic,
 )
 from wayfarer.models import Record
 from wayfarer.orchestration.catalog import ScenarioCatalog
+from wayfarer.orchestration.scenario_authoring import SCENARIO_AUTHORING, AuthoringWork
 from wayfarer.orchestration.scenario_documents import ScenarioDocuments, adapt_graph
 from wayfarer.transport.common import ORCHESTRATOR_KEY, TEMPLATES_KEY, _identity
 
 KEY = web.AppKey("scenario-catalog", ScenarioCatalog)
-TASKS_KEY = web.AppKey("scenario-generation-tasks", dict[str, asyncio.Task[None]])
 MAX_BODY = 12_100_000  # Worst-case JSON escaping of the 2 MB document string.
 
 
@@ -99,42 +95,6 @@ async def instantiate(request: web.Request) -> web.Response:
     return web.json_response(result, status=201)
 
 
-async def _generate(app: web.Application, principal: str, job_id: str) -> None:
-
-    service = app[KEY]
-    try:
-        await service.run_generation_job(principal, job_id, app[ORCHESTRATOR_KEY])
-    except asyncio.CancelledError:
-        return
-    except (ProviderTimeoutError, ProviderError, ValidationError, ValueError) as exc:
-        try:
-            job = await service.read_generation_job(principal, job_id)
-            if job.status != "cancelled":
-                if isinstance(exc, ProviderError):
-                    diagnostic = provider_diagnostic(exc)
-                    code, message = diagnostic.code, diagnostic.message
-                else:
-                    code = "invalid_provider_output"
-                    message = "The provider returned an invalid scenario. Edit the brief and retry."
-                await service.store.update_job(
-                    job.model_copy(
-                        update={"status": "failed", "error_code": code, "error_message": message}
-                    ),
-                    job.version,
-                )
-        except ConflictError:
-            pass
-    finally:
-        app[TASKS_KEY].pop(job_id, None)
-
-
-def _start(app: web.Application, principal: str, job: ScenarioGenerationJob) -> None:
-    if job.status == "queued" and job.id not in app[TASKS_KEY]:
-        app[TASKS_KEY][job.id] = asyncio.create_task(
-            _generate(app, principal, job.id), name=f"scenario-generation:{job.id}"
-        )
-
-
 async def create_generation(request: web.Request) -> web.Response:
 
     if ORCHESTRATOR_KEY not in request.app:
@@ -143,15 +103,16 @@ async def create_generation(request: web.Request) -> web.Response:
     job = await request.app[KEY].create_generation_job(
         principal, ScenarioGenerationRequest.model_validate_json(await body(request))
     )
-    _start(request.app, principal, job)
+    await _author(request.app, principal, job.id)
     return web.json_response(job.model_dump(mode="json"), status=202)
 
 
 async def read_generation(request: web.Request) -> web.Response:
     principal = _identity(request)
     job = await request.app[KEY].read_generation_job(principal, request.match_info["jid"])
-    # A queued/running row with no local task survived a restart. Make recovery explicit.
-    if job.status in ("queued", "running") and job.id not in request.app[TASKS_KEY]:
+    # A queued/running row whose process is no longer in flight survived a restart.
+    # Make that recovery explicit rather than leaving the row looking busy.
+    if job.status in ("queued", "running") and await _interrupted(request.app, job.id):
         job = await request.app[KEY].store.update_job(
             job.model_copy(
                 update={
@@ -168,9 +129,6 @@ async def read_generation(request: web.Request) -> web.Response:
 async def cancel_generation(request: web.Request) -> web.Response:
     principal = _identity(request)
     job = await request.app[KEY].cancel_generation_job(principal, request.match_info["jid"])
-    task = request.app[TASKS_KEY].get(job.id)
-    if task:
-        task.cancel()
     return web.json_response(job.model_dump(mode="json"))
 
 
@@ -201,13 +159,32 @@ async def retry_generation(request: web.Request) -> web.Response:
         ),
         job.version,
     )
-    _start(request.app, principal, job)
+    await _author(request.app, principal, job.id)
     return web.json_response(job.model_dump(mode="json"), status=202)
+
+
+async def _author(app: web.Application, principal: str, job_id: str) -> None:
+    """Hand the job to the process worker, which owns its bounds and its restart."""
+    llm = app[ORCHESTRATOR_KEY]
+    await llm.processes.run(
+        SCENARIO_AUTHORING.name, AuthoringWork(app[KEY], llm, principal, job_id)
+    )
+
+
+async def _interrupted(app: web.Application, job_id: str) -> bool:
+    """Whether this job's process is no longer running anywhere."""
+    if ORCHESTRATOR_KEY not in app:
+        return True
+    processes = app[ORCHESTRATOR_KEY].processes
+    try:
+        process = await processes.status("scenario-authoring:" + job_id)
+    except ConflictError:
+        return True
+    return process.status in ("failed", "succeeded") and process.id not in processes.tasks
 
 
 def install(app: web.Application, service: ScenarioCatalog) -> None:
     app[KEY] = service
-    app[TASKS_KEY] = {}
     prefix = "/authoring/v1/scenarios"
     app.add_routes(
         [
@@ -228,10 +205,7 @@ def install(app: web.Application, service: ScenarioCatalog) -> None:
 
     async def generation_lifespan(application: web.Application) -> AsyncIterator[None]:
         yield
-        tasks = tuple(application[TASKS_KEY].values())
-        for task in tasks:
-            task.cancel()
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+        if ORCHESTRATOR_KEY in application:
+            await application[ORCHESTRATOR_KEY].processes.close()
 
     app.cleanup_ctx.append(generation_lifespan)
