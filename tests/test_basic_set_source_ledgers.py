@@ -36,7 +36,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 38
+    assert len(ledger_blockers(bundle.rows)) == 25
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -110,15 +110,10 @@ def test_campaigns_section_audit_has_exact_reviewed_obligations_and_bounded_resi
         "structural-non-runtime": 7,
     }
     assert Counter(row.implementation for row in rows) == {
-        "verified": 57,
+        "verified": 68,
         "not-applicable": 51,
-        "absent": 11,
     }
-    assert Counter(row.completion_owner for row in rows if row.completion_owner) == {
-        686: 3,
-        689: 6,
-        690: 2,
-    }
+    assert not any(row.completion_owner for row in rows)
     assert all(row.completion_owner != 94 for row in rows)
 
     appendix = tuple(row for row in rows if row.id in CAMPAIGNS_APPENDIX_REVIEW_IDS)
@@ -294,13 +289,14 @@ def test_infinite_worlds_boundary_drift_is_rejected() -> None:
 
 def test_campaigns_section_obligations_cannot_fall_back_to_the_roadmap() -> None:
     bundle = load_source_ledgers(ROOT)
-    row = next(
-        row
-        for row in bundle.rows
-        if CAMPAIGNS_SECTION_AUDIT_OWNER in row.historical_owners
-        and row.completion_owner is not None
+    row = next(row for row in bundle.rows if CAMPAIGNS_SECTION_AUDIT_OWNER in row.historical_owners)
+    changed = row.model_copy(
+        update={
+            "implementation": "absent",
+            "completion_owner": 94,
+            "listed_value": "bounded-follow-up",
+        }
     )
-    changed = row.model_copy(update={"completion_owner": 94})
     rows = tuple(changed if item.id == row.id else item for item in bundle.rows)
     with pytest.raises(ValidationError, match="falls back to roadmap"):
         _validate(replace(bundle, rows=rows))
@@ -309,7 +305,7 @@ def test_campaigns_section_obligations_cannot_fall_back_to_the_roadmap() -> None
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 38
+    assert len(ledger) == 25
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
@@ -322,13 +318,10 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         "683": 1,
         "684": 2,
         "685": 3,
-        "686": 5,
-        "689": 6,
-        "690": 2,
         "691": 6,
         "700": 10,
         "94": 1,
-        "none": 1_247,
+        "none": 1_260,
     }
 
 
@@ -344,13 +337,12 @@ def test_characters_section_obligations_are_explicit_and_bounded() -> None:
     }
     assert not any(row.completion_owner == 94 for row in reviewed)
     unresolved = tuple(row for row in reviewed if row.completion_owner is not None)
-    assert len(unresolved) == 26
+    assert len(unresolved) == 24
     assert Counter(row.completion_owner for row in unresolved) == {
         682: 2,
         683: 1,
         684: 2,
         685: 3,
-        686: 2,
         691: 6,
         700: 10,
     }
@@ -363,7 +355,7 @@ def test_characters_section_obligations_are_explicit_and_bounded() -> None:
         if row.obligation in {"construction-catalog", "reference-only", "structural-non-runtime"}
     )
     assert denominator_identity(bundle.rows, inventory(ROOT)) == (
-        "bb5504331c4518f2c3ad213f64627aaba2f2ff8c311e42ef1d80133066ff7390"
+        "16462589aceccd90b10b73b0e4d7ff5bcab5998858747f08243b1fd300c48c75"
     )
 
 

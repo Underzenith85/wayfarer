@@ -2097,6 +2097,50 @@
       "gap": null
     },
     {
+      "id": "Armor.layer",
+      "unit": "explicit worn layer index",
+      "reference": "B286; Campaigns B409",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"],
+      "gap": null
+    },
+    {
+      "id": "Armor.front_only",
+      "unit": "directional coverage flag",
+      "reference": "B283-285",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"],
+      "gap": null
+    },
+    {
+      "id": "Armor.split_dr",
+      "unit": "damage-type-specific DR",
+      "reference": "B283-285",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"],
+      "gap": null
+    },
+    {
+      "id": "Armor.concealment_penalty",
+      "unit": "concealment roll modifier",
+      "reference": "B283-285",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_general_equipment_completion.py::test_armor_layers_split_front_and_concealment"],
+      "gap": null
+    },
+    {
       "id": "Shield.skill_id",
       "unit": "skill reference",
       "reference": "B287 Shield Table",
@@ -3105,6 +3149,17 @@
       "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
       "evidence": "docs/gurps-equipment-source-review.md",
       "tests": ["tests/test_electronics.py::test_basic_catalog_pins_executable_device_profiles_and_operating_time"],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.general",
+      "unit": "typed general-equipment capability suite",
+      "reference": "Characters B288-289; Campaigns B345, B411",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-13)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_general_equipment_completion.py::test_all_94_general_equipment_blockers_are_executable"],
       "gap": null
     }
   ],

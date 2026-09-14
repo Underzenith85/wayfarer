@@ -25,7 +25,7 @@
     "author": "Wayfarer example author",
     "source": null,
     "generator": "synthetic-example (no live model call)",
-    "source_digest": "fc02d464f9845425aa968db5ba53b0298b6132d12ad56334e2cd7c7ded5ca6c5"
+    "source_digest": "de3aad587f87e7fd5aacab2bf4ca86b9f6b8a280b0cc6a8732095b07f0a01381"
   },
   "compatibility": {
     "rules": {
@@ -40,7 +40,7 @@
       "policy_id": "policy:wayfarer-demo",
       "policy_version": 1
     },
-    "engine_digest": "da7ed45c363cf2395bc9fcc8c1b9479091626922d4c678a4cfcdecfe1e2d7345",
+    "engine_digest": "b7b125c42cf2bbedeaf49ccfb5d78e985a92522ad9138c33d8efe587c11246ab",
     "capabilities": [
       "actions-v1",
       "scenes-v1",

@@ -349,6 +349,18 @@ class ResourceEngine:
         if spec.electronics is not None and spec.electronics.power_capacity_seconds is not None:
             capacity = spec.electronics.power_capacity_seconds
             message = "Electronic device requires explicit charge within pinned capacity"
+        general_capacity = max(
+            (
+                feature.duration_seconds or 0
+                for feature in spec.general
+                if feature.kind in {"communication", "fuel", "light", "recording", "sensor"}
+                and feature.consumable_definition_id is None
+            ),
+            default=0,
+        )
+        if capacity is None and general_capacity:
+            capacity = general_capacity
+            message = "General equipment requires explicit charge within pinned duration"
         if capacity is not None and (
             item.quantity != 1 or item.charges is None or item.charges > capacity
         ):

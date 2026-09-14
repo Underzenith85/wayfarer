@@ -27,8 +27,8 @@ obligation:
   retain their existing profile decisions outside this 161-row batch.
 
 The result is 67 construction/catalog rows, 68 executable rows, 15 reference
-rows, and 11 structural rows. Of the executable rows, 41 are joined to existing
-independent behavior tests and 27 remain visible certification blockers.
+rows, and 11 structural rows. Of the executable rows, 43 are joined to existing
+independent behavior tests and 25 remain visible certification blockers.
 
 ## Existing executable evidence
 
@@ -58,7 +58,6 @@ runtime inventory and exact trait/modifier source ledgers.
 | #683 | Gadget limitations |
 | #684 | Silver weapons; shields |
 | #685 | Bodkin points; hand grenades/incendiaries; smartgun electronics |
-| #686 | Wearing armor; carrying weapons and gear |
 | #691 | Limits on effect; spell classes; magic staffs; dissipating held spells; long-distance modifiers; psi/magic interactions |
 | #693 | Cross-species physiology modifiers and their specialty bypasses |
 
