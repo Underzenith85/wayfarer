@@ -32,6 +32,7 @@ from wayfarer.engine.rules.traits.mundane.runtime import (
 )
 from wayfarer.engine.rules.traits.obligations import OBLIGATION_BINDINGS, OBLIGATION_HOOK
 from wayfarer.engine.rules.traits.physical import PHYSICAL_BINDINGS, PHYSICAL_HOOKS
+from wayfarer.engine.rules.traits.relationship_runtime import RELATIONSHIP_BINDINGS
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -89,6 +90,7 @@ class TraitEntry:
     prerequisites: tuple[str, ...] = ()
     followup_issues: tuple[int, ...] = (113, 122)
     parameters: tuple[TraitParameter, ...] = ()
+    evidence: tuple[str, ...] = ()
 
     @property
     def implemented(self) -> bool:
@@ -163,6 +165,7 @@ def _entry(
     obligations: tuple[str, ...] = (),
     category: Literal["advantage", "disadvantage", "perk", "quirk", "background"] | None = None,
     identity: str | None = None,
+    evidence: tuple[str, ...] = (),
 ) -> TraitEntry:
     return TraitEntry(
         f"trait:{key}",
@@ -176,7 +179,15 @@ def _entry(
         group,
         obligations,
         identity,
+        evidence=evidence,
     )
+
+
+def _relationship_effect(kind: str, person_id: str) -> str:
+    binding = RELATIONSHIP_BINDINGS.get(f"trait:{kind}-{person_id}")
+    if binding is not None:
+        return binding.hook
+    return "trait.contact" if kind == "contact" else "trait.associated_npc"
 
 
 DEFAULT_VOCABULARY = Vocabulary()
@@ -211,6 +222,7 @@ EFFECT_OWNERS: Final = {
         333,
     ),
     OBLIGATION_HOOK: 722,
+    **dict.fromkeys(("trait.associated_npc.bound", "trait.contact.bound"), 723),
     **dict.fromkeys(
         (
             "trait.wealth",
@@ -537,6 +549,11 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                 )
             )
     for person in sorted(vocabulary.people):
+        relationship_evidence = (
+            ("tests/test_character_construction.py", "tests/test_relationship_runtime.py")
+            if person == "associate"
+            else ()
+        )
         entries.extend(
             (
                 _entry(
@@ -544,47 +561,52 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                     f"Ally ({person}; 100%; 9 or less)",
                     5,
                     36,
-                    "trait.associated_npc",
+                    _relationship_effect("ally", person),
                     category="background",
                     identity=person,
                     obligations=("protect-ally",),
+                    evidence=relationship_evidence,
                 ),
                 _entry(
                     f"contact-{person}",
                     f"Contact ({person}; skill 12; usually reliable; 9 or less)",
                     2,
                     44,
-                    "trait.contact",
+                    _relationship_effect("contact", person),
                     category="background",
                     identity=person,
+                    evidence=relationship_evidence,
                 ),
                 _entry(
                     f"patron-{person}",
                     f"Patron ({person}; powerful individual; 9 or less)",
                     10,
                     72,
-                    "trait.associated_npc",
+                    _relationship_effect("patron", person),
                     category="background",
                     identity=person,
+                    evidence=relationship_evidence,
                 ),
                 _entry(
                     f"dependent-{person}",
                     f"Dependent ({person}; 50%; friend; 9 or less)",
                     -5,
                     131,
-                    "trait.associated_npc",
+                    _relationship_effect("dependent", person),
                     category="background",
                     identity=person,
                     obligations=("protect-dependent",),
+                    evidence=relationship_evidence,
                 ),
                 _entry(
                     f"enemy-{person}",
                     f"Enemy ({person}; equal power; hunter; 9 or less)",
                     -10,
                     135,
-                    "trait.associated_npc",
+                    _relationship_effect("enemy", person),
                     category="background",
                     identity=person,
+                    evidence=relationship_evidence,
                 ),
             )
         )
@@ -630,12 +652,24 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
         binding = REACTION_BINDINGS.get(entry.id)
         if binding is not None and (binding.hook != entry.effect or not entry.implemented):
             raise ValidationError("Runtime binding disagrees with its trait effect")
-        if entry.implemented and entry.obligations and entry.id not in OBLIGATION_BINDINGS:
+        if (
+            entry.implemented
+            and entry.obligations
+            and entry.id not in OBLIGATION_BINDINGS
+            and entry.id not in RELATIONSHIP_BINDINGS
+        ):
             raise ValidationError("An executable obligation requires an exact trait binding")
         if entry.id in OBLIGATION_BINDINGS and (
             entry.effect != OBLIGATION_HOOK or not entry.obligations
         ):
             raise ValidationError("Authored obligation binding disagrees with its catalog trait")
+        relationship = RELATIONSHIP_BINDINGS.get(entry.id)
+        if relationship is not None and (
+            entry.effect != relationship.hook or entry.identity != relationship.person_id
+        ):
+            raise ValidationError("Associated-NPC binding disagrees with its catalog trait")
+        if relationship is not None and not entry.evidence:
+            raise ValidationError("Associated-NPC binding requires executable evidence")
         if (entry.effect == "trait.appearance" and entry.id not in APPEARANCE_BINDINGS) or (
             entry.effect == "trait.reputation" and entry.id not in REPUTATION_BINDINGS
         ):

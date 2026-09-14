@@ -32,6 +32,11 @@ from wayfarer.engine.rules.traits.mental import (
     relationship_cost,
     validate_relationships,
 )
+from wayfarer.engine.rules.traits.relationship_runtime import (
+    RELATIONSHIP_BINDINGS,
+    relationship_definition_id,
+    validate_relationship_binding,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -210,6 +215,7 @@ def _validate_physical(
 
 def _compile_relationships(
     draft: ConstructionDraft,
+    build: ValidatedBuild | None,
     definitions: Mapping[str, RuleDefinition],
     diagnostics: list[Diagnostic],
 ) -> tuple[tuple[Relationship, ...], int]:
@@ -219,8 +225,13 @@ def _compile_relationships(
         relationships = draft.relationships
         _error(diagnostics, "relationship.invalid", ("relationships",), str(exc))
     points = 0
+    purchased = (
+        set() if build is None else {purchase.definition_id for purchase in build.trait_purchases}
+    )
+    bound = set()
     for index, relationship in enumerate(relationships):
-        definition_id = f"trait:{relationship.kind}-{relationship.person_id}"
+        definition_id = relationship_definition_id(relationship)
+        bound.add(definition_id)
         definition = definitions.get(definition_id)
         if definition is None or definition.point_cost is None:
             _error(
@@ -230,7 +241,33 @@ def _compile_relationships(
                 "Relationship has no campaign-bound trait definition",
             )
             continue
-        points += relationship_cost(relationship)
+        try:
+            validate_relationship_binding(definition_id, relationship)
+        except ValidationError as exc:
+            _error(diagnostics, "relationship.binding_mismatch", ("relationships", index), str(exc))
+            continue
+        if definition_id not in purchased:
+            _error(
+                diagnostics,
+                "relationship.unpurchased",
+                ("relationships", index),
+                "Relationship requires its exact approved trait purchase",
+            )
+            continue
+        if relationship_cost(relationship) != definition.point_cost:
+            _error(
+                diagnostics,
+                "relationship.cost_mismatch",
+                ("relationships", index),
+                "Relationship cost differs from its exact catalog purchase",
+            )
+    for definition_id in sorted(purchased & RELATIONSHIP_BINDINGS.keys() - bound):
+        _error(
+            diagnostics,
+            "relationship.missing_facts",
+            ("relationships",),
+            f"Purchased relationship lacks authored NPC facts: {definition_id}",
+        )
     return relationships, points
 
 
@@ -397,7 +434,7 @@ class CharacterConstructionCompiler:
         _validate_technology(draft, self.context, diagnostics)
         _validate_physical(draft, self.context, diagnostics)
         relationships, relationship_points = _compile_relationships(
-            draft, self.compiler.definitions, diagnostics
+            draft, base.build, self.compiler.definitions, diagnostics
         )
         background = _compile_background(
             draft, base.build, self.compiler.definitions, self.context, diagnostics
