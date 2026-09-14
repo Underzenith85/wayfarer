@@ -12,6 +12,7 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import Modifier, ModifierKind, RandomSource, success_check
 from wayfarer.engine.rules.skills.cinematic import BINDING_BY_ID, PACKAGE_ID
 from wayfarer.engine.simulation.resources import Pool, Receipt, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.skills.physiology import PhysiologyAdjustment
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Record
@@ -67,6 +68,7 @@ class CinematicSkillOutcome(Record):
     outcome: Literal["critical-success", "success", "failure", "critical-failure"]
     margin: int
     fatigue_spent: int = Field(ge=0)
+    physiology: PhysiologyAdjustment | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 def _digest(command: CinematicSkillCommand) -> str:
@@ -108,6 +110,21 @@ def _time_modifier(turns: int) -> int:
     return -10
 
 
+def _physiology_modifiers(
+    command: CinematicSkillCommand, physiology: PhysiologyAdjustment | None
+) -> tuple[Modifier, ...]:
+    physiology_skill = command.skill_id in {"skill:pressure-points", "skill:pressure-secrets"}
+    if physiology_skill and (
+        physiology is None
+        or physiology.actor_id != command.actor_id
+        or physiology.target_actor_id != command.target_actor_id
+    ):
+        raise ValidationError("Pressure-point skills require authoritative species context")
+    if not physiology_skill and physiology is not None:
+        raise ValidationError("Physiology context does not apply to this cinematic skill")
+    return () if physiology is None else physiology.modifier()
+
+
 def apply_cinematic_skill(
     state: ResourceState,
     world: World,
@@ -116,6 +133,7 @@ def apply_cinematic_skill(
     *,
     authorized_actor_id: str,
     rng: RandomSource,
+    physiology: PhysiologyAdjustment | None = None,
 ) -> tuple[ResourceState, CinematicSkillOutcome]:
     """Commit one catalog-owned attempt under CAS and the shared receipt ledger."""
     digest = _digest(command)
@@ -152,6 +170,7 @@ def apply_cinematic_skill(
         or target.location_id != actor.location_id
     ):
         raise ValidationError("Cinematic skill target is unavailable")
+    physiology_modifiers = _physiology_modifiers(command, physiology)
     levels = {value.target: int(value.value) for value in build.sheet.values}
     level = levels.get(command.skill_id)
     if level is None:
@@ -168,7 +187,7 @@ def apply_cinematic_skill(
         )
         if procedure.focus
         else ()
-    )
+    ) + physiology_modifiers
     trace = success_check(
         level,
         modifiers,
@@ -199,6 +218,7 @@ def apply_cinematic_skill(
         outcome=trace.outcome.value,
         margin=trace.margin,
         fatigue_spent=procedure.fatigue,
+        physiology=physiology,
     )
     return (
         state.model_copy(
