@@ -3319,6 +3319,17 @@
       "gap": null
     },
     {
+      "id": "EquipmentProfile.silver_construction",
+      "unit": "typed construction eligibility",
+      "reference": "B275 Silver Weapons",
+      "anchor": "inspected",
+      "status": "reviewed",
+      "reviewer": "OpenAI Codex (source comparison, 2026-09-14)",
+      "evidence": "docs/gurps-equipment-source-review.md",
+      "tests": ["tests/test_issue_712_silver_weapons.py::test_source_exact_choices_cost_constraints_and_mode_identity"],
+      "gap": null
+    },
+    {
       "id": "EquipmentProfile.legality_class",
       "unit": "legality class",
       "reference": "B267; B287 Force Shield row",

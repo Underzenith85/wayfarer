@@ -111,7 +111,7 @@ def test_registry_and_inventory_account_for_all_18_entries() -> None:
         (
             Purchase(
                 definition_id="disadvantage:vulnerability",
-                trait=options(rarity="very-common", multiplier=4),
+                trait=options(source="natural-attacks", rarity="very-common", multiplier=4),
             ),
             -80,
         ),
@@ -155,7 +155,7 @@ def test_projection_feeds_defense_damage_and_survival_values() -> None:
         Purchase(definition_id="advantage:unkillable", amount=2),
         Purchase(
             definition_id="disadvantage:vulnerability",
-            trait=options(rarity="very-common", multiplier=3),
+            trait=options(source="natural-attacks", rarity="very-common", multiplier=3),
         ),
     )
     traits = attack_defense_traits(build, engine.definitions)
@@ -163,7 +163,8 @@ def test_projection_feeds_defense_damage_and_survival_values() -> None:
     assert traits.striking_st(11) == 14
     assert traits.injury_tolerance() == "unliving"
     assert traits.injury_tolerance_profile() is not None
-    assert traits.injury_multiplier("very-common") == 3
+    assert traits.injury_multiplier("natural-attacks") == 3
+    assert traits.injury_multiplier("silver") == 1
     assert traits.death_thresholds_ignored() == 2
 
 
@@ -283,7 +284,7 @@ def test_damage_uses_target_build_dr_and_vulnerability_in_shared_injury_reducer(
         Purchase(definition_id="advantage:damage-resistance", amount=2),
         Purchase(
             definition_id="disadvantage:vulnerability",
-            trait=options(rarity="very-common", multiplier=2),
+            trait=options(source="natural-attacks", rarity="very-common", multiplier=2),
         ),
     )
     state, result = apply_trait_attack(
@@ -299,8 +300,9 @@ def test_damage_uses_target_build_dr_and_vulnerability_in_shared_injury_reducer(
         authorized_actor_id="a",
         system=True,
     )
-    assert result.injury is not None and result.injury.injury == 10
-    assert next(pool for pool in state.pools if pool.id == "hp:b").current == 0
+    # Vulnerability is a wounding multiplier after DR, not extra basic damage.
+    assert result.injury is not None and result.injury.injury == 8
+    assert next(pool for pool in state.pools if pool.id == "hp:b").current == 2
     restarted = ResourceState.model_validate_json(state.model_dump_json())
     assert apply_trait_attack(
         restarted,

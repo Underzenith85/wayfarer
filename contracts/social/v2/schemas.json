@@ -5858,6 +5858,22 @@
             },
             "title": "General",
             "type": "array"
+          },
+          "silver_construction": {
+            "anyOf": [
+              {
+                "enum": [
+                  "melee-weapon",
+                  "arrowhead"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Silver Construction"
           }
         },
         "required": [
@@ -8982,6 +8998,22 @@
             },
             "title": "Enchantments",
             "type": "array"
+          },
+          "silver_construction": {
+            "anyOf": [
+              {
+                "enum": [
+                  "solid-silver",
+                  "silver-coated"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Silver Construction"
           }
         },
         "required": [

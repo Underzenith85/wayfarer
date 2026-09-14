@@ -195,6 +195,7 @@ class ResourceEngine:
                 ):
                     raise ValidationError("Equipment effect provenance mismatch")
         self.rules = rules
+        self.technology_level = policy.technology_level
         self.actors = frozenset(e.id for e in world.entities if e.kind is EntityKind.ACTOR)
 
     def for_world(self, world: World) -> ResourceEngine:
@@ -267,6 +268,12 @@ class ResourceEngine:
             spec = self.specs.get(item.definition_id)
             if spec is None or item.owner_id not in owners:
                 raise ValidationError("Unknown equipment or owner")
+            if item.silver_construction is not None and spec.silver_construction is None:
+                raise ValidationError("This equipment cannot use silver construction")
+            if item.silver_construction is not None and (
+                self.technology_level is not None and self.technology_level < 1
+            ):
+                raise ValidationError("Silver construction requires TL1 or later")
             if (
                 not spec.stackable or spec.container_capacity is not None or item.equipped
             ) and item.quantity != 1:
@@ -483,6 +490,7 @@ class ResourceEngine:
                         owner_id=command.owner_id,
                         quantity=command.quantity,
                         container_id=command.container_id,
+                        silver_construction=item.silver_construction,
                     )
             elif isinstance(command, Consume):
                 if command.require_ammunition and not spec.ammunition:

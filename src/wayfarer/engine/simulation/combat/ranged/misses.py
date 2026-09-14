@@ -7,6 +7,7 @@ from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.thrown.flight import position
+from wayfarer.engine.simulation.equipment.silver import breakage_quality
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -44,14 +45,13 @@ def resolve_miss(
     subject = next(p for p in encounter.participants if p.actor_id == subject_id)
     item = next(i for i in state.resources.items if i.id == item_id)
     entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
-    broken = number in (3, 4, 17, 18) or (
-        number in (9, 10, 11, 14) and entry.critical_breakage == "cheap"
-    )
+    quality = breakage_quality(item.silver_construction, entry.critical_breakage)
+    broken = number in (3, 4, 17, 18) or (number in (9, 10, 11, 14) and quality == "cheap")
     if broken:
         # Do not infer quality or firearm construction from damage type or skill name.
-        if entry.critical_breakage is None or item.condition is None:
+        if quality is None or item.condition is None:
             return state, encounter, result, blocker
-        if entry.critical_breakage == "resistant":
+        if quality == "resistant":
             roll = draw_dice(runtime.rng, 3)
             result = result.model_copy(update={"table_rolls": result.table_rolls + (roll,)})
             broken = sum(roll) in (3, 4, 17, 18)
