@@ -131,17 +131,17 @@ def test_relationship_availability_uses_recorded_dice() -> None:
 
 
 @pytest.mark.parametrize(
-    ("kind", "facts"),
+    "kind",
     (
-        ("ally", {"character_points_percent": 100}),
-        ("contact", {"contact_skill": 12}),
-        ("patron", {"patron_power": "wealthy"}),
-        ("dependent", {"character_points_percent": 50}),
-        ("enemy", {}),
+        "ally",
+        "contact",
+        "patron",
+        "dependent",
+        "enemy",
     ),
 )
 def test_relationships_require_exact_purchased_traits_and_authored_npc_facts(
-    kind: RelationshipKind, facts: dict[str, object]
+    kind: RelationshipKind,
 ) -> None:
     base = exact_draft()
     purchases = tuple(
@@ -151,13 +151,46 @@ def test_relationships_require_exact_purchased_traits_and_authored_npc_facts(
         for purchase in base.character.purchases
         if purchase.definition_id != "trait:ally-associate"
     ) + (Purchase(definition_id=f"trait:{kind}-associate"),)
-    relationship = Relationship(
-        id=f"{kind}:associate",
-        person_id="associate",
-        kind=kind,
-        frequency=9,
-        **facts,
-    )
+    match kind:
+        case "ally":
+            relationship = Relationship(
+                id="ally:associate",
+                person_id="associate",
+                kind="ally",
+                frequency=9,
+                character_points_percent=100,
+            )
+        case "contact":
+            relationship = Relationship(
+                id="contact:associate",
+                person_id="associate",
+                kind="contact",
+                frequency=9,
+                contact_skill=12,
+            )
+        case "patron":
+            relationship = Relationship(
+                id="patron:associate",
+                person_id="associate",
+                kind="patron",
+                frequency=9,
+                patron_power="wealthy",
+            )
+        case "dependent":
+            relationship = Relationship(
+                id="dependent:associate",
+                person_id="associate",
+                kind="dependent",
+                frequency=9,
+                character_points_percent=50,
+            )
+        case "enemy":
+            relationship = Relationship(
+                id="enemy:associate",
+                person_id="associate",
+                kind="enemy",
+                frequency=9,
+            )
     draft = base.model_copy(
         update={
             "character": base.character.model_copy(update={"purchases": purchases}),
