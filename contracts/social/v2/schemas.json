@@ -992,6 +992,56 @@
             },
             "title": "Modifiers",
             "type": "array"
+          },
+          "gadget_modifiers": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ModifierSelection"
+            },
+            "title": "Gadget Modifiers",
+            "type": "array"
+          },
+          "gadget_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Gadget Actor Id"
+          },
+          "gadget_item_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Gadget Item Id"
+          },
+          "gadget_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Gadget Definition Id"
           }
         },
         "required": [
@@ -5717,6 +5767,341 @@
         "title": "EnforcementProcedure",
         "type": "object"
       },
+      "EnhancementParameters": {
+        "additionalProperties": false,
+        "description": "Source-bounded authored facts for variable enhancement consequences.\n\nCost approval and runtime meaning are intentionally separate.  In particular,\napproving a percentage never grants an unnamed Cosmic bypass or an arbitrary\nscheduled effect.",
+        "properties": {
+          "width_yards": {
+            "anyOf": [
+              {
+                "maximum": 1000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Width Yards"
+          },
+          "cosmic_effect": {
+            "anyOf": [
+              {
+                "enum": [
+                  "remove-built-in-restriction",
+                  "cosmic-defense",
+                  "enduring-effect",
+                  "irresistible-attack"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cosmic Effect"
+          },
+          "interval_seconds": {
+            "anyOf": [
+              {
+                "maximum": 86400,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Interval Seconds"
+          },
+          "cycles": {
+            "anyOf": [
+              {
+                "maximum": 1000,
+                "minimum": 2,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cycles"
+          },
+          "contagious": {
+            "anyOf": [
+              {
+                "enum": [
+                  "none",
+                  "mild",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Contagious"
+          },
+          "stop_condition": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stop Condition"
+          },
+          "delay_seconds": {
+            "anyOf": [
+              {
+                "maximum": 31536000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Delay Seconds"
+          },
+          "variable_delay_max_seconds": {
+            "anyOf": [
+              {
+                "maximum": 31536000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Variable Delay Max Seconds"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Trigger"
+          },
+          "carrier_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Carrier Id"
+          },
+          "homing_sense": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Homing Sense"
+          },
+          "linked_ability_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Linked Ability Id"
+          },
+          "rate_of_fire": {
+            "anyOf": [
+              {
+                "maximum": 300,
+                "minimum": 2,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rate Of Fire"
+          },
+          "selective_fire": {
+            "default": false,
+            "title": "Selective Fire",
+            "type": "boolean"
+          },
+          "resistance_attribute": {
+            "anyOf": [
+              {
+                "enum": [
+                  "st",
+                  "dx",
+                  "iq",
+                  "ht",
+                  "per",
+                  "will"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Resistance Attribute"
+          },
+          "hazard": {
+            "anyOf": [
+              {
+                "enum": [
+                  "dehydration",
+                  "drowning",
+                  "freezing",
+                  "missed-sleep",
+                  "starvation",
+                  "suffocation"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hazard"
+          },
+          "symptom": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symptom"
+          },
+          "symptom_threshold": {
+            "anyOf": [
+              {
+                "enum": [
+                  "one-third",
+                  "one-half",
+                  "two-thirds"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symptom Threshold"
+          },
+          "permanent_end_condition": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Permanent End Condition"
+          },
+          "disabled_enhancements": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Disabled Enhancements",
+            "type": "array"
+          },
+          "damage_fraction": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Damage Fraction"
+          },
+          "damage_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "burning",
+                  "corrosion",
+                  "crushing",
+                  "cutting",
+                  "fatigue",
+                  "impaling",
+                  "piercing",
+                  "toxic"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Damage Kind"
+          }
+        },
+        "title": "EnhancementParameters",
+        "type": "object"
+      },
       "EntangleSpec": {
         "additionalProperties": false,
         "description": "Explicit binding facts for one entangling weapon mode.",
@@ -6710,6 +7095,56 @@
           "kind"
         ],
         "title": "FollowUpSpec",
+        "type": "object"
+      },
+      "GadgetConstruction": {
+        "additionalProperties": false,
+        "description": "Construction facts used for trusted gadget limitation percentages.",
+        "properties": {
+          "damage_resistance": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Damage Resistance",
+            "type": "integer"
+          },
+          "size_modifier": {
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Size Modifier",
+            "type": "integer"
+          },
+          "repairable": {
+            "default": true,
+            "title": "Repairable",
+            "type": "boolean"
+          },
+          "theft_method": {
+            "enum": [
+              "grabbable",
+              "quick-contest",
+              "stealth-trickery",
+              "forceful"
+            ],
+            "title": "Theft Method",
+            "type": "string"
+          },
+          "works_for_thief": {
+            "default": true,
+            "title": "Works For Thief",
+            "type": "boolean"
+          },
+          "unique": {
+            "default": false,
+            "title": "Unique",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "damage_resistance",
+          "size_modifier",
+          "theft_method"
+        ],
+        "title": "GadgetConstruction",
         "type": "object"
       },
       "GadgetContext": {
@@ -9874,6 +10309,190 @@
         "title": "LegalityRule",
         "type": "object"
       },
+      "LimitationParameters": {
+        "additionalProperties": false,
+        "description": "Authored facts which give a variable limitation exact runtime meaning.",
+        "properties": {
+          "condition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Condition Id"
+          },
+          "always_on_severity": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cosmetic",
+                  "inconvenient",
+                  "dangerous"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Always On Severity"
+          },
+          "bombardment_skill": {
+            "anyOf": [
+              {
+                "enum": [
+                  8,
+                  10,
+                  12,
+                  14
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Bombardment Skill"
+          },
+          "mitigator_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mitigator Id"
+          },
+          "nuisance_effect_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Nuisance Effect Id"
+          },
+          "pact_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pact Id"
+          },
+          "preparation_weakened": {
+            "default": false,
+            "title": "Preparation Weakened",
+            "type": "boolean"
+          },
+          "resistance_modifier": {
+            "anyOf": [
+              {
+                "maximum": 4,
+                "minimum": -5,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Resistance Modifier"
+          },
+          "sense": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sense"
+          },
+          "temporary_disadvantage_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Temporary Disadvantage Ids",
+            "type": "array"
+          },
+          "trigger_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Trigger Id"
+          },
+          "trigger_dangerous": {
+            "default": false,
+            "title": "Trigger Dangerous",
+            "type": "boolean"
+          },
+          "exposure_time": {
+            "default": false,
+            "title": "Exposure Time",
+            "type": "boolean"
+          },
+          "half_damage_range_only": {
+            "default": false,
+            "title": "Half Damage Range Only",
+            "type": "boolean"
+          },
+          "limited_use_reload": {
+            "default": "none",
+            "enum": [
+              "none",
+              "fast",
+              "slow"
+            ],
+            "title": "Limited Use Reload",
+            "type": "string"
+          },
+          "uncontrollable_harmful": {
+            "default": false,
+            "title": "Uncontrollable Harmful",
+            "type": "boolean"
+          }
+        },
+        "title": "LimitationParameters",
+        "type": "object"
+      },
       "LoyaltyCircumstance": {
         "additionalProperties": false,
         "properties": {
@@ -10403,6 +11022,84 @@
         ],
         "title": "ModifierKind",
         "type": "string"
+      },
+      "ModifierSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "pattern": "^modifier:(enhancement|limitation|gadget-limitation):",
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "level": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Level",
+            "type": "integer"
+          },
+          "option": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Option"
+          },
+          "limited_by": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ModifierSelection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "gadget": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/GadgetConstruction"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EnhancementParameters"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "limitation": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/LimitationParameters"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "definition_id"
+        ],
+        "title": "ModifierSelection",
+        "type": "object"
       },
       "MountCapabilities": {
         "additionalProperties": false,
