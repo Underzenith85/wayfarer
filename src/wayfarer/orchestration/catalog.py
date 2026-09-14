@@ -27,7 +27,13 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
 )
 from wayfarer.engine.simulation.campaign.setup import CreateSetup
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph, StudioFinding
-from wayfarer.errors import ConflictError, NotFoundError, ValidationError
+from wayfarer.errors import (
+    ConflictError,
+    NotFoundError,
+    ProviderError,
+    ValidationError,
+    provider_diagnostic,
+)
 from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.scenario_documents import (
@@ -316,6 +322,33 @@ class ScenarioCatalog:
         return current.model_copy(
             update={name: getattr(generated, name) for name in fields[section]}
         )
+
+    async def fail_generation_job(
+        self, principal: str, job_id: str, exc: Exception
+    ) -> ScenarioGenerationJob | None:
+        """Record on the authoring row why a generation stopped.
+
+        The process row says a process failed; the author needs to know what to do
+        about it, so the diagnostic the provider gave lands here, scrubbed.
+        """
+        try:
+            job = await self.read_generation_job(principal, job_id)
+            if job.status == "cancelled":
+                return job
+            if isinstance(exc, ProviderError):
+                diagnostic = provider_diagnostic(exc)
+                code, message = diagnostic.code, diagnostic.message
+            else:
+                code = "invalid_provider_output"
+                message = "The provider returned an invalid scenario. Edit the brief and retry."
+            return await self.store.update_job(
+                job.model_copy(
+                    update={"status": "failed", "error_code": code, "error_message": message}
+                ),
+                job.version,
+            )
+        except ConflictError:
+            return None
 
     async def run_generation_job(
         self, principal: str, job_id: str, llm: Orchestrator

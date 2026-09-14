@@ -10,8 +10,9 @@ from __future__ import annotations
 from wayfarer.orchestration.director import DIRECTOR_TURN
 from wayfarer.orchestration.processes import ProcessKind, ProcessRegistry
 from wayfarer.orchestration.providers import PROVIDER_KINDS
+from wayfarer.orchestration.scenario_authoring import SCENARIO_AUTHORING
 
-KINDS: tuple[ProcessKind, ...] = (*PROVIDER_KINDS, DIRECTOR_TURN)
+KINDS: tuple[ProcessKind, ...] = (*PROVIDER_KINDS, DIRECTOR_TURN, SCENARIO_AUTHORING)
 
 
 def registered(registry: ProcessRegistry) -> ProcessRegistry:
