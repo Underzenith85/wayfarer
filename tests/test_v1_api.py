@@ -431,6 +431,41 @@ async def test_single_use_invitation_and_cross_operation_receipt_conflict(
             assert response.status == 404
 
 
+async def test_two_services_racing_one_action_commit_once(
+    api: tuple[str, str, V1Service],
+) -> None:
+    """Dispatch holds no ledger transaction (#641), so the engine is what serialises."""
+    base, cid, service = api
+    root = f"{base}/api/v1/campaigns/{cid}"
+    async with aiohttp.ClientSession(headers={"Authorization": "Bearer alice-key"}) as client:
+        request = await command(client, root)
+        request["intent"] = {"kind": "inspect", "target_id": "chest"}
+        async with client.post(root + "/actions", json=request) as response:
+            action = obj(await response.json())
+        await finish(client, root, action)
+        before = (await service.play.store.read(cid))["revision"]
+        async with service.ledger.transaction() as tx:
+            record = await tx.get("action:" + str(action["id"]))
+            assert record is not None
+            service.transition(record, "resolving", at=tx.instant.isoformat())
+            await tx.put("action:" + str(action["id"]), record)
+        rivals = [
+            V1Service(service.runtime, service.ledger.path, processes=service.processes)
+            for _ in range(2)
+        ]
+        try:
+            for rival in rivals:
+                await rival.start()
+            await asyncio.gather(*(rival.resolve(str(action["id"])) for rival in rivals))
+            resolved = await finish(client, root, action)
+            assert resolved["status"] == "succeeded"
+            # The command's own identity is what makes the second dispatch a replay.
+            assert (await service.play.store.read(cid))["revision"] == before
+        finally:
+            for rival in rivals:
+                await rival.close()
+
+
 async def test_recover_after_engine_commit_before_receipt_finalization(
     api: tuple[str, str, V1Service],
 ) -> None:

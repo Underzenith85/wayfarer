@@ -41,6 +41,11 @@ Interpreter = Callable[[Obj, str], Awaitable[Obj | Interpretation]]
 Narrator = Callable[[Obj, Obj], Awaitable[str]]
 
 
+# The statuses an action stops at. Only a settled action is pinned to the policy
+# it was settled under.
+TERMINAL = frozenset({"succeeded", "rejected", "cancelled", "needs_clarification"})
+
+
 class V1Service:
     def __init__(
         self,
@@ -153,7 +158,11 @@ class V1Service:
         if view.member.role == "gm":
             if principal not in array(record.get("gm_readers", [])):
                 raise Fault(404, "not_found")
-        elif record["policy"] != view.policy:
+        elif obj(record["wire"])["status"] in TERMINAL and record["policy"] != view.policy:
+            # A settled action carries the policy it was settled under, and a later
+            # reunion never inherits it. One still in flight has not been settled:
+            # its engine commit may already have moved the reader's own policy on,
+            # and its submitting principal keeps reading it until the receipt lands.
             raise Fault(404, "not_found")
         return record
 
@@ -384,104 +393,72 @@ class V1Service:
                     }
                 self.transition(record, "resolving", at=tx.instant.isoformat())
                 await tx.put("action:" + aid, record)
+            # Claim the dispatch and take what it needs with it. Everything the
+            # engine call touches is captured here, so the ledger holds no
+            # transaction while the campaign session lock is taken (#641).
             async with self.ledger.transaction() as tx:
                 record = await self.recovery_action(tx, aid, cid, principal)
                 if obj(record["wire"])["status"] != "resolving":
                     return
+                claimed = obj(record["wire"])["version"]
                 command = obj(record["engine"])
+                saved_request = obj(record["request"])
                 meta = await tx.get("campaign:" + cid)
                 assert meta is not None
-
-                def authorize(raw: Campaign) -> None:
-                    current = self.projector.make(raw, principal, str(meta["stamp"]))
-                    self.scope(
-                        current, str(request["actor_id"]), str(request["scene_id"]), write=True
-                    )
-                    if current.state.lifecycle != "active":
-                        raise Fault(409, "stale_version")
-                    self.versions(current, obj(record["request"]))
-
-                # Hidden-only revision races may be retried under the same visible
-                # versions; never overwrite the saved attempt after an uncertain commit.
+                stamp = str(meta["stamp"])
+                # The campaign's own bound service, taken while the ledger is open
+                # and used once it is closed.
+                bound = (await self.view(tx, cid, principal)).runtime
                 origin = (
                     CommandOrigin.model_validate(record["origin"]) if record.get("origin") else None
                 )
-                try:
-                    with origin_scope(origin):
-                        if command["kind"] == "travel_scene":
-                            event = await SceneService(view.runtime).execute(
-                                cid,
-                                command,
-                                principal_id=str(request["actor_id"]),
-                                authorize=authorize,
-                            )
-                            result = ActionResult(
-                                status="committed",
-                                revision=event.revision,
-                                code="scene.travelled",
-                                command_id=aid,
-                            )
-                        else:
-                            result = await view.runtime.execute(
-                                cid,
-                                command,
-                                principal_id=str(request["actor_id"]),
-                                authorize=authorize,
-                            )
-                except ConflictError:
-                    current_view = await self.view(tx, cid, principal)
-                    self.versions(current_view, obj(record["request"]))
-                    attempts = int(str(record.get("attempts", 0))) + 1
-                    if attempts > 3 or current_view.state.revision == command["expected_revision"]:
-                        raise Fault(409, "stale_version") from None
-                    record["attempts"] = attempts
-                    command = {**command, "expected_revision": current_view.state.revision}
-                    record["engine"] = command
-                    await tx.put("action:" + aid, record)
-                    # Persist the replacement attempt before a future dispatch.
-                    self.transition(record, "submitted", at=tx.instant.isoformat())
-                    await tx.put("action:" + aid, record)
+
+            def authorize(raw: Campaign) -> None:
+                current = self.projector.make(raw, principal, stamp)
+                self.scope(current, str(request["actor_id"]), str(request["scene_id"]), write=True)
+                if current.state.lifecycle != "active":
+                    raise Fault(409, "stale_version")
+                self.versions(current, saved_request)
+
+            # Hidden-only revision races may be retried under the same visible
+            # versions; never overwrite the saved attempt after an uncertain commit.
+            try:
+                with origin_scope(origin):
+                    if command["kind"] == "travel_scene":
+                        event = await SceneService(bound).execute(
+                            cid,
+                            command,
+                            principal_id=str(request["actor_id"]),
+                            authorize=authorize,
+                        )
+                        result = ActionResult(
+                            status="committed",
+                            revision=event.revision,
+                            code="scene.travelled",
+                            command_id=aid,
+                        )
+                    else:
+                        result = await bound.execute(
+                            cid,
+                            command,
+                            principal_id=str(request["actor_id"]),
+                            authorize=authorize,
+                        )
+            except ConflictError:
+                if await self.reattempt(aid, cid, principal, saved_request, command, claimed):
                     self.schedule(aid)
-                    return
-                if result.status != "committed":
-                    code = (
-                        "unsupported_action"
-                        if result.status in ("unsupported", "question", "adjudication_required")
-                        else "illegal_action"
-                    )
-                    raise Fault(422, code)
-                committed = True
-                after = await self.view(tx, cid, principal)
-                checks: list[Obj] = []
-                if result.check is not None:
-                    c = result.check
-                    checks.append(
-                        {
-                            "label": "Authoritative check",
-                            "dice": list(c.dice),
-                            "target": c.effective_target,
-                            "margin": c.margin,
-                            "outcome": c.outcome.value.replace("-", "_"),
-                        }
-                    )
-                changed = self.resources(after, str(request["actor_id"]), str(request["scene_id"]))
-                self.transition(
-                    record,
-                    "succeeded",
-                    resolution={
-                        "summary": "Action resolved by the engine.",
-                        "checks": checks,
-                        "changed_resources": changed,
-                        "game_time": after.campaign["game_time"],
-                    },
-                    at=tx.instant.isoformat(),
+                return
+            if result.status != "committed":
+                code = (
+                    "unsupported_action"
+                    if result.status in ("unsupported", "question", "adjudication_required")
+                    else "illegal_action"
                 )
-                # Knowledge-changing actions remain readable to their submitting
-                # principal under the new view, but no other principal inherits them.
-                record["result_revision"] = after.state.revision
-                record["policy"] = after.policy
-                record["receipt_scene_id"] = after.actor_scenes[str(request["actor_id"])]
-                await tx.put("action:" + aid, record)
+                raise Fault(422, code)
+            committed = True
+            # The engine has committed. Finishing the receipt is its own short
+            # transaction, and a crash before it leaves the saved attempt to recover.
+            await self.publish(aid, cid, principal, request, result, claimed)
         except asyncio.CancelledError:
             raise
         except (Fault, ValidationError, NotFoundError, TimeoutError, ProviderError) as exc:
@@ -503,6 +480,82 @@ class V1Service:
                         error.update(message=diagnostic.message, retryable=diagnostic.retryable)
                     self.transition(failed, "rejected", error=error, at=tx.instant.isoformat())
                     await tx.put("action:" + aid, failed)
+
+    async def reattempt(
+        self,
+        aid: str,
+        cid: str,
+        principal: str,
+        saved_request: Obj,
+        command: Obj,
+        claimed: object,
+    ) -> bool:
+        """Save a replacement attempt for an action the engine refused as stale.
+
+        Returns whether this dispatch still owns the action and should reschedule it.
+        """
+        async with self.ledger.transaction() as tx:
+            record = await self.recovery_action(tx, aid, cid, principal)
+            if obj(record["wire"])["version"] != claimed:
+                return False  # Another dispatch owns this attempt now.
+            current_view = await self.view(tx, cid, principal)
+            self.versions(current_view, saved_request)
+            attempts = int(str(record.get("attempts", 0))) + 1
+            if attempts > 3 or current_view.state.revision == command["expected_revision"]:
+                raise Fault(409, "stale_version") from None
+            record["attempts"] = attempts
+            record["engine"] = {**command, "expected_revision": current_view.state.revision}
+            # Persist the replacement attempt before a future dispatch.
+            self.transition(record, "submitted", at=tx.instant.isoformat())
+            await tx.put("action:" + aid, record)
+        return True
+
+    async def publish(
+        self,
+        aid: str,
+        cid: str,
+        principal: str,
+        request: Obj,
+        result: ActionResult,
+        claimed: object,
+    ) -> None:
+        """Write the receipt for a committed action, if this dispatch still owns it."""
+        async with self.ledger.transaction() as tx:
+            record = await self.recovery_action(tx, aid, cid, principal)
+            wire = obj(record["wire"])
+            if wire["version"] != claimed or wire["status"] != "resolving":
+                return  # Another dispatch already published this result.
+            after = await self.view(tx, cid, principal)
+            checks: list[Obj] = []
+            if result.check is not None:
+                c = result.check
+                checks.append(
+                    {
+                        "label": "Authoritative check",
+                        "dice": list(c.dice),
+                        "target": c.effective_target,
+                        "margin": c.margin,
+                        "outcome": c.outcome.value.replace("-", "_"),
+                    }
+                )
+            changed = self.resources(after, str(request["actor_id"]), str(request["scene_id"]))
+            self.transition(
+                record,
+                "succeeded",
+                resolution={
+                    "summary": "Action resolved by the engine.",
+                    "checks": checks,
+                    "changed_resources": changed,
+                    "game_time": after.campaign["game_time"],
+                },
+                at=tx.instant.isoformat(),
+            )
+            # Knowledge-changing actions remain readable to their submitting
+            # principal under the new view, but no other principal inherits them.
+            record["result_revision"] = after.state.revision
+            record["policy"] = after.policy
+            record["receipt_scene_id"] = after.actor_scenes[str(request["actor_id"])]
+            await tx.put("action:" + aid, record)
 
     @staticmethod
     def transition(record: Obj, status: str, *, at: str, **extra: object) -> None:

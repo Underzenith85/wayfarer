@@ -68,7 +68,7 @@ ORCHESTRATION_BRANCHING: dict[tuple[str, str], int] = {
     ("transport/tactical_api.py", "execute"): 18,
     ("transport/v1/http.py", "route"): 28,
     ("transport/v1/live.py", "live"): 62,
-    ("transport/v1/service.py", "resolve"): 20,
+    ("transport/v1/service.py", "resolve"): 19,
 }
 
 # #638 converted the play-side families onto ``CommandPlan`` and #639 the rest, so
