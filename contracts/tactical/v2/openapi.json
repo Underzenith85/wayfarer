@@ -2007,6 +2007,19 @@
             "default": null,
             "title": "Ready Hand"
           },
+          "ready_reach": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ready Reach"
+          },
           "attack_option": {
             "anyOf": [
               {
@@ -2159,6 +2172,25 @@
             "default": false,
             "title": "Enter Close Combat",
             "type": "boolean"
+          },
+          "mounted_charge": {
+            "default": false,
+            "title": "Mounted Charge",
+            "type": "boolean"
+          },
+          "relinquish_stuck_weapon_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Relinquish Stuck Weapon Id"
           }
         },
         "required": [

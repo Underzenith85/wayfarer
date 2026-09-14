@@ -96,7 +96,7 @@ class MeleeMode(Record):
     kind: Literal["melee"] = "melee"
     id: Id
     skill_id: Id
-    minimum_st: Positive
+    minimum_st: Positive | None = None
     hands: Literal[1, 2] = 1
     damage: Damage
     reach: tuple[Nonnegative, ...] = Field(min_length=1)  # 0 is close combat
@@ -105,6 +105,12 @@ class MeleeMode(Record):
     ready_after_attack_below_st_multiple: Fraction | None = Field(
         default=None, gt=0, exclude_if=lambda value: value is None
     )
+    reach_requires_ready: bool = Field(default=False, exclude_if=lambda value: not value)
+    long_reach_ready_turns: Literal[1, 2] = Field(default=1, exclude_if=lambda value: value == 1)
+    can_stick: bool = Field(default=False, exclude_if=lambda value: not value)
+    mounted_lance: bool = Field(default=False, exclude_if=lambda value: not value)
+    punch_damage: bool = Field(default=False, exclude_if=lambda value: not value)
+    shield_attack: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def unique_reach(self) -> Self:
@@ -114,6 +120,27 @@ class MeleeMode(Record):
             raise ValueError(
                 "Post-attack readiness cannot be both unconditional and ST-conditional"
             )
+        if self.can_stick and not (
+            self.damage.basis == "swing" and self.damage.damage_type == "imp"
+        ):
+            raise ValueError("Only swinging impaling modes can become stuck")
+        if self.long_reach_ready_turns > 1 and (
+            not self.reach_requires_ready or max(self.reach) < 3
+        ):
+            raise ValueError("Long reach timing requires an adjustable reach of at least three")
+        if self.mounted_lance and not (
+            self.skill_id == "skill:lance" and self.damage.damage_type == "imp"
+        ):
+            raise ValueError("Mounted-lance damage requires an impaling Lance mode")
+        if self.punch_damage and not (
+            self.reach == (0,)
+            and self.damage.basis == "thrust"
+            and self.damage.damage_type == "cr"
+            and self.skill_id in {"attribute:dx", "skill:boxing", "skill:brawling", "skill:karate"}
+        ):
+            raise ValueError("Punch implements require a close crushing thrust mode")
+        if self.shield_attack and not self.skill_id.startswith("skill:shield-"):
+            raise ValueError("Shield attacks require a concrete Shield specialty")
         return self
 
     def becomes_unready_after_attack(self, strength: int) -> bool:
@@ -121,6 +148,7 @@ class MeleeMode(Record):
         threshold = self.ready_after_attack_below_st_multiple
         return self.ready_after_attack or (
             threshold is not None
+            and self.minimum_st is not None
             and strength * threshold.denominator < self.minimum_st * threshold.numerator
         )
 
@@ -379,6 +407,18 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         launched=isinstance(mode, RangedMode) and mode.launcher is not None,
     )
     if isinstance(mode, MeleeMode) and profile_id == "gurps-basic-set-4e-2004":
+        if mode.punch_damage:
+            if mode.skill_id not in {
+                "attribute:dx",
+                "skill:boxing",
+                "skill:brawling",
+                "skill:karate",
+            }:
+                raise ValidationError("Punch implement requires a striking skill")
+            return
+        if mode.shield_attack:
+            require_shield(profile_id, mode.skill_id)
+            return
         parry = mode.parry
         require_melee_mode(
             profile_id,
@@ -419,6 +459,11 @@ class Shield(Record):
     skill_id: Id
     defense_bonus: Positive
     can_block: bool = True
+    buckler: bool = Field(default=False, exclude_if=lambda value: not value)
+    can_rush: bool = True
+    hardened_dr: bool = Field(default=False, exclude_if=lambda value: not value)
+    dr: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
+    occupies_hand: bool = True
 
 
 class EquipmentProfile(Record):
@@ -427,6 +472,9 @@ class EquipmentProfile(Record):
     weight_millipounds: ExactWeight
     price: Money
     technology_level: TechnologyLevel
+    legality_class: int | None = Field(
+        default=None, ge=0, le=4, exclude_if=lambda value: value is None
+    )
     slot: Id | None = None
     ammunition: bool = False
     modes: tuple[WeaponMode, ...] = ()
@@ -453,10 +501,10 @@ class EquipmentProfile(Record):
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
         relative = any(feature.technology_relative for feature in self.general)
-        if not isinstance(self.technology_level, int) and not (
+        if self.technology_level == "skill-relative" and not (
             self.unsupported_mechanics or relative
         ):
-            raise ValueError("Non-numeric technology levels must remain explicitly unsupported")
+            raise ValueError("Skill-relative technology must remain explicitly accounted for")
         if self.power_cell_capacity is not None and (not self.ammunition or self.warhead):
             raise ValueError("Power cell requires nonexplosive ammunition metadata")
         if self.warhead is not None and not (
@@ -485,12 +533,14 @@ class EquipmentProfile(Record):
                 "Equipment has unsupported mechanics: " + ", ".join(self.unsupported_mechanics)
             )
         relative = any(feature.technology_relative for feature in self.general)
-        if not isinstance(self.technology_level, int) and not relative:
+        if self.technology_level == "skill-relative" and not relative:
             raise ValidationError("Supported equipment requires a concrete technology level")
         return EquipmentSpec(
             definition_id=self.definition_id,
             unit_weight=self.weight_millipounds,
             technology_level=self.technology_level if isinstance(self.technology_level, int) else 0,
+            superscience=self.technology_level == "superscience",
+            legality_class=self.legality_class,
             stackable=not bool(
                 self.modes
                 or self.armor

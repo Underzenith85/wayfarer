@@ -161,16 +161,18 @@ def ready(declared: Declaration) -> Outcome:
         raise ValidationError("Ready requires exactly one item")
     resources = declared.resources
     if item_id is not None:
-        resources = declared.engine.resources.apply(
-            resources,
-            Equip(
-                id=f"{declared.command_id}:ready",
-                actor_id=declared.actor_id,
-                expected_revision=resources.revision,
-                item_id=item_id,
-                ready=True,
-            ),
-        )
+        item = next((i for i in resources.items if i.id == item_id), None)
+        if item is None or item.stuck_target_id is None or item.owner_id != declared.actor_id:
+            resources = declared.engine.resources.apply(
+                resources,
+                Equip(
+                    id=f"{declared.command_id}:ready",
+                    actor_id=declared.actor_id,
+                    expected_revision=resources.revision,
+                    item_id=item_id,
+                    ready=True,
+                ),
+            )
     taken = participant.model_copy(
         update={
             "ready_item_ids": tuple(

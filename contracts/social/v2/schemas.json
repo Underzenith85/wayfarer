@@ -5670,6 +5670,20 @@
             ],
             "title": "Technology Level"
           },
+          "legality_class": {
+            "anyOf": [
+              {
+                "maximum": 4,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Legality Class"
+          },
           "slot": {
             "anyOf": [
               {
@@ -8884,6 +8898,83 @@
             "title": "Mount Crew",
             "type": "array"
           },
+          "melee_reach": {
+            "anyOf": [
+              {
+                "maximum": 20,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Melee Reach"
+          },
+          "pending_melee_reach": {
+            "anyOf": [
+              {
+                "maximum": 20,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pending Melee Reach"
+          },
+          "melee_reach_ready_progress": {
+            "default": 0,
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Melee Reach Ready Progress",
+            "type": "integer"
+          },
+          "stuck_target_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stuck Target Id"
+          },
+          "stuck_injury": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Stuck Injury",
+            "type": "integer"
+          },
+          "stuck_damage_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cr",
+                  "cut",
+                  "imp"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stuck Damage Type"
+          },
+          "stuck_permanently": {
+            "default": false,
+            "title": "Stuck Permanently",
+            "type": "boolean"
+          },
           "enchantments": {
             "default": [],
             "items": {
@@ -9785,9 +9876,17 @@
             "type": "string"
           },
           "minimum_st": {
-            "minimum": 1,
-            "title": "Minimum St",
-            "type": "integer"
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Minimum St"
           },
           "hands": {
             "default": 1,
@@ -9839,12 +9938,45 @@
             ],
             "default": null,
             "title": "Ready After Attack Below St Multiple"
+          },
+          "reach_requires_ready": {
+            "default": false,
+            "title": "Reach Requires Ready",
+            "type": "boolean"
+          },
+          "long_reach_ready_turns": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Long Reach Ready Turns",
+            "type": "integer"
+          },
+          "can_stick": {
+            "default": false,
+            "title": "Can Stick",
+            "type": "boolean"
+          },
+          "mounted_lance": {
+            "default": false,
+            "title": "Mounted Lance",
+            "type": "boolean"
+          },
+          "punch_damage": {
+            "default": false,
+            "title": "Punch Damage",
+            "type": "boolean"
+          },
+          "shield_attack": {
+            "default": false,
+            "title": "Shield Attack",
+            "type": "boolean"
           }
         },
         "required": [
           "id",
           "skill_id",
-          "minimum_st",
           "damage",
           "reach"
         ],
@@ -14286,6 +14418,32 @@
           "can_block": {
             "default": true,
             "title": "Can Block",
+            "type": "boolean"
+          },
+          "buckler": {
+            "default": false,
+            "title": "Buckler",
+            "type": "boolean"
+          },
+          "can_rush": {
+            "default": true,
+            "title": "Can Rush",
+            "type": "boolean"
+          },
+          "hardened_dr": {
+            "default": false,
+            "title": "Hardened Dr",
+            "type": "boolean"
+          },
+          "dr": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dr",
+            "type": "integer"
+          },
+          "occupies_hand": {
+            "default": true,
+            "title": "Occupies Hand",
             "type": "boolean"
           }
         },

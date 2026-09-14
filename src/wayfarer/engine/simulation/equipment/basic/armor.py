@@ -3,7 +3,7 @@
 from typing import cast
 
 from wayfarer.engine.rules.types.object import ObjectProfile
-from wayfarer.engine.simulation.equipment.basic.rows import source
+from wayfarer.engine.simulation.equipment.basic.rows import melee, source
 from wayfarer.engine.simulation.equipment.catalog import Armor, EquipmentProfile, Location, Shield
 
 # B283: complete rigid, unsplit body-armor rows without special footnotes.
@@ -29,25 +29,91 @@ ARMOR = tuple(
     )
 )
 
-# B287: ordinary shield rows. Durability uses the table's explicit DR/HP
-# columns rather than deriving HP from weight. Cloaks are the same physical
-# rows already recorded on B276; the superscience force shield cannot fit the
-# integer TL or finite-HP schema and remains an explicit audit omission.
-SHIELDS = tuple(
-    EquipmentProfile(
-        definition_id=identifier,
+_SHIELD_ROWS = (
+    ("light", 0, 1, 25, 2000, 5, 20),
+    ("small", 0, 1, 40, 8000, 6, 30),
+    ("medium", 1, 2, 60, 15000, 7, 40),
+    ("large", 1, 3, 90, 25000, 9, 60),
+)
+
+
+def _shield(
+    identifier: str,
+    tl: int,
+    db: int,
+    price: int,
+    weight: int,
+    dr: int,
+    hp: int,
+    *,
+    skill: str = "shield-standard",
+    buckler: bool = False,
+    spiked: bool = False,
+) -> EquipmentProfile:
+    return EquipmentProfile(
+        definition_id=f"equipment:{identifier}",
         provenance=source(287),
         technology_level=tl,
         weight_millipounds=weight,
         price=price,
         slot="shield",
-        shield=Shield(skill_id="skill:shield", defense_bonus=db),
+        shield=Shield(
+            skill_id=f"skill:{skill}",
+            defense_bonus=db,
+            buckler=buckler,
+            can_rush=not buckler,
+        ),
+        modes=(
+            melee(
+                "shield-bash-spike" if spiked else "shield-bash",
+                skill,
+                None,
+                "thrust",
+                1 if spiked else 0,
+                "cr",
+                (1,),
+                parry=None,
+                shield_attack=True,
+            ),
+        ),
         durability=ObjectProfile(construction="homogenous", hp=hp, dr=dr, ht=12),
     )
-    for identifier, tl, db, price, weight, dr, hp in (
-        ("equipment:light-shield", 0, 1, 25, 2000, 5, 20),
-        ("equipment:small-shield", 0, 1, 40, 8000, 6, 30),
-        ("equipment:medium-shield", 1, 2, 60, 15000, 7, 40),
-        ("equipment:large-shield", 1, 3, 90, 25000, 9, 60),
+
+
+# B287 notes 2-4: base shields, TL2 spikes, bucklers, TL3 iron, and TL7
+# plastic-riot construction are distinct inventory profiles so their physical
+# and procedural differences survive serialization and replay.
+SHIELDS = (
+    tuple(
+        _shield(f"{name}-shield", tl, db, price, weight, dr, hp)
+        for name, tl, db, price, weight, dr, hp in _SHIELD_ROWS
+    )
+    + tuple(
+        _shield(
+            f"spiked-{name}-shield", max(tl, 2), db, price + 20, weight + 5000, dr, hp, spiked=True
+        )
+        for name, tl, db, price, weight, dr, hp in _SHIELD_ROWS
+    )
+    + tuple(
+        _shield(
+            f"{name}-buckler",
+            tl,
+            db,
+            price,
+            weight,
+            dr,
+            hp,
+            skill="shield-buckler",
+            buckler=True,
+        )
+        for name, tl, db, price, weight, dr, hp in _SHIELD_ROWS[:3]
+    )
+    + tuple(
+        _shield(f"iron-{name}-shield", max(tl, 3), db, price * 5, weight * 2, dr + 3, hp * 2)
+        for name, tl, db, price, weight, dr, hp in _SHIELD_ROWS
+    )
+    + tuple(
+        _shield(f"plastic-riot-{name}-shield", max(tl, 7), db, price, weight // 2, dr, hp)
+        for name, tl, db, price, weight, dr, hp in _SHIELD_ROWS
     )
 )

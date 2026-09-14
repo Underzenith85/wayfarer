@@ -37,7 +37,7 @@ LITE = "gurps-lite-4e-2004"
 def test_selected_row_provenance_anchors() -> None:
     """Every audited row carries the same third-printing provenance and a page in scope."""
     entries = catalog_entries()
-    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 285
+    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 308
     for entry in entries.values():
         provenance = entry.provenance
         assert provenance.source_id == "sjg:basic-set-characters-4e-2004"
@@ -154,7 +154,7 @@ def test_audit_rows_export_only_explicit_source_review_state() -> None:
         assert footnotes[record.id].source_review == expected
     assert fields and all(row.source_review == "reviewed" for row in fields)
     assert all("docs/gurps-equipment-source-review.md" in row.evidence for row in fields)
-    assert sum(row.implementation == "implemented" for row in fields) == 134
+    assert sum(row.implementation == "implemented" for row in fields) == 146
     assert sum(row.implementation == "omitted" for row in fields) == 2
     assert bindings["basic-set-catalog"].source_review == "reviewed"
     assert bindings["lite-catalog"].source_review == "pending"
@@ -249,8 +249,8 @@ def test_supported_basic_catalog_binds_to_pinned_packages() -> None:
 def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
-    assert report["selected_rows"] == 285
-    assert report["supported_rows"] == 240
+    assert report["selected_rows"] == 308
+    assert report["supported_rows"] == 281
     assert report["sections_audited"] == 0
     assert report["sections_reconciled"] == 14
     assert report["workstream_complete"] is True

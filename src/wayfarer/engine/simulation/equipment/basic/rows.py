@@ -44,7 +44,7 @@ def solid(weight: int, dr: int) -> ObjectProfile:
 def melee(
     identifier: str,
     skill: str,
-    minimum_st: int,
+    minimum_st: int | None,
     basis: Literal["thrust", "swing", "fixed"],
     adds: int,
     damage_type: DamageType,
@@ -59,6 +59,12 @@ def melee(
     bonus_dice: int = 0,
     ready_after_attack: bool = False,
     ready_after_attack_below_st_multiple: Fraction | None = None,
+    reach_requires_ready: bool = False,
+    long_reach_ready_turns: Literal[1, 2] = 1,
+    can_stick: bool = False,
+    mounted_lance: bool = False,
+    punch_damage: bool = False,
+    shield_attack: bool = False,
 ) -> MeleeMode:
     """Construct one independently transcribed melee-table mode."""
     return MeleeMode(
@@ -80,6 +86,12 @@ def melee(
         ),
         ready_after_attack=ready_after_attack,
         ready_after_attack_below_st_multiple=ready_after_attack_below_st_multiple,
+        reach_requires_ready=reach_requires_ready,
+        long_reach_ready_turns=long_reach_ready_turns,
+        can_stick=can_stick,
+        mounted_lance=mounted_lance,
+        punch_damage=punch_damage,
+        shield_attack=shield_attack,
     )
 
 

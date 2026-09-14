@@ -71,6 +71,10 @@ class EquipmentSpec(Record):
     slot: str | None = None
     ammunition: bool = False
     technology_level: int = Field(default=0, ge=0)
+    superscience: bool = Field(default=False, exclude_if=lambda value: not value)
+    legality_class: int | None = Field(
+        default=None, ge=0, le=4, exclude_if=lambda value: value is None
+    )
     required_definitions: tuple[str, ...] = ()
     effects: tuple[Effect, ...] = ()
     durability: ObjectProfile | None = Field(default=None, exclude_if=lambda v: v is None)
@@ -101,7 +105,31 @@ class Item(Record):
     authorized_actor_ids: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)
     # Everyone currently serving a mounted weapon, the gunner included (#357).
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
+    melee_reach: int | None = Field(default=None, ge=0, le=20, exclude_if=lambda v: v is None)
+    pending_melee_reach: int | None = Field(
+        default=None, ge=0, le=20, exclude_if=lambda v: v is None
+    )
+    melee_reach_ready_progress: int = Field(default=0, ge=0, le=1, exclude_if=lambda v: v == 0)
+    stuck_target_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    stuck_injury: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+    stuck_damage_type: Literal["cr", "cut", "imp"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    stuck_permanently: bool = Field(default=False, exclude_if=lambda value: not value)
     enchantments: tuple[MagicItemInstance, ...] = Field(default=(), exclude_if=lambda v: not v)
+
+    @model_validator(mode="after")
+    def coherent_melee_state(self) -> Item:
+        stuck = self.stuck_target_id is not None
+        if stuck != (self.stuck_damage_type is not None) or stuck != bool(self.stuck_injury):
+            raise ValueError("Stuck weapon state requires target, damage, and damage type")
+        if self.stuck_permanently and not stuck:
+            raise ValueError("Permanent stuck state requires a target")
+        if stuck and self.ready:
+            raise ValueError("A stuck weapon cannot be ready")
+        if (self.pending_melee_reach is None) != (self.melee_reach_ready_progress == 0):
+            raise ValueError("Pending melee reach requires one completed Ready maneuver")
+        return self
 
 
 class Owner(Record):

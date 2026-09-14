@@ -302,8 +302,13 @@ def score_defense(
                     (
                         (
                             int(value.value)
-                            - minimum_strength_penalty(
-                                weapon_mode.minimum_st, fatigue_value(fp, compiled.statistics.st)
+                            - (
+                                minimum_strength_penalty(
+                                    weapon_mode.minimum_st,
+                                    fatigue_value(fp, compiled.statistics.st),
+                                )
+                                if weapon_mode.minimum_st is not None
+                                else 0
                             )
                         )
                         // 2

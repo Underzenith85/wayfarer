@@ -140,11 +140,20 @@ def _validate_bindings(runtime: RulesContext, state: PlayState, participant: Com
 def bind_initial_hands(runtime: RulesContext, state: PlayState, encounter: Encounter) -> Encounter:
     actors = {a.actor_id: a for a in state.actors}
     live = {i.id for i in state.resources.items if i.ready and i.equipped}
+    definitions = {entry.definition_id: entry for entry in catalog(runtime).entries}
+    hand_free = {
+        item.id
+        for item in state.resources.items
+        if (shield := definitions[item.definition_id].shield) is not None
+        and not shield.occupies_hand
+    }
     participants = tuple(
         p.model_copy(
             update={
                 "hand_bindings": tuple(
-                    (i, h) for i, h in actors[p.actor_id].held_item_hands if i in live
+                    (i, h)
+                    for i, h in actors[p.actor_id].held_item_hands
+                    if i in live and i not in hand_free
                 )
             }
         )
@@ -164,16 +173,36 @@ def bind_ready_hand(
     hand: Hand | Literal["both"] | None,
 ) -> Encounter:
     participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+    item = next((i for i in state.resources.items if i.id == item_id), None)
+    shield = (
+        next(e.shield for e in catalog(runtime).entries if e.definition_id == item.definition_id)
+        if item is not None
+        else None
+    )
+    if shield is not None and not shield.occupies_hand:
+        participant = participant.model_copy(
+            update={
+                "hand_bindings": tuple(
+                    (bound, held) for bound, held in participant.hand_bindings if bound != item_id
+                )
+            }
+        )
+        _validate_bindings(runtime, state, participant)
+        return encounter.model_copy(
+            update={
+                "participants": tuple(
+                    participant if p.actor_id == actor_id else p for p in encounter.participants
+                )
+            }
+        )
     if hand is None:
         if disabled(state.resources, actor_id):
             raise ValidationError("Ready requires an explicit usable hand after crippling")
         return encounter
+    if item is None:
+        raise ValidationError("Ready requires an existing equipment item")
     hands: tuple[Hand, ...] = ("left-hand", "right-hand") if hand == "both" else (hand,)
 
-    item = next(i for i in state.resources.items if i.id == item_id)
-    shield = next(
-        e.shield for e in catalog(runtime).entries if e.definition_id == item.definition_id
-    )
     unavailable = disabled(state.resources, actor_id)
     if any(
         h.replace("hand", "arm") in unavailable if shield else unavailable_hand(unavailable, h)

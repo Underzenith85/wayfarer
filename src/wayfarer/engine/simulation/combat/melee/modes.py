@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from wayfarer.engine.rules.checks import Outcome
+from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.skills.mundane.ranged import require_technology
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
@@ -14,8 +16,109 @@ from wayfarer.engine.simulation.equipment.catalog import (
     require_skill_procedure,
 )
 from wayfarer.engine.simulation.health.hit_locations import disabled
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
+
+
+def ready_reach(
+    runtime: RulesContext,
+    state: PlayState,
+    actor_id: str,
+    item_id: str,
+    mode_id: str | None,
+    reach: int,
+) -> ResourceState:
+    """Spend a Ready maneuver selecting one starred table reach."""
+    item = next((i for i in state.resources.items if i.id == item_id), None)
+    if item is None or item.owner_id != actor_id or not item.equipped or not item.ready:
+        raise ValidationError("Reach adjustment requires an owned, equipped, ready weapon")
+    entry = effective_entry(runtime, item)
+    candidates = tuple(
+        m for m in entry.modes if isinstance(m, MeleeMode) and (mode_id is None or m.id == mode_id)
+    )
+    if len(candidates) != 1 or not candidates[0].reach_requires_ready:
+        raise ValidationError("Select exactly one variable-reach melee mode")
+    if reach not in candidates[0].reach:
+        raise ValidationError("Selected reach is unavailable for this weapon mode")
+    delayed = candidates[0].long_reach_ready_turns == 2 and reach >= 3
+    continuing = delayed and item.pending_melee_reach == reach
+    changed = item.model_copy(
+        update={
+            "melee_reach": reach if not delayed or continuing else item.melee_reach,
+            "pending_melee_reach": reach if delayed and not continuing else None,
+            "melee_reach_ready_progress": 1 if delayed and not continuing else 0,
+        }
+    )
+    return state.resources.model_copy(
+        update={
+            "items": tuple(
+                changed if other.id == item_id else other for other in state.resources.items
+            )
+        }
+    )
+
+
+def recover_stuck_weapon(
+    runtime: RulesContext, state: PlayState, actor_id: str, item_id: str, command_id: str
+) -> ResourceState:
+    """Resolve B274's Ready/ST attempt to pull a pick from its target."""
+    item = next((i for i in state.resources.items if i.id == item_id), None)
+    if item is None or item.owner_id != actor_id or item.stuck_target_id is None:
+        return state.resources
+    if item.stuck_permanently:
+        raise ValidationError("A critically stuck weapon cannot be freed during combat")
+    actor = build(runtime, state, actor_id)
+    assert actor.statistics is not None
+    check = success_roll(catalog(runtime).profile_id, actor.statistics.st, rng=runtime.rng)
+    if check.outcome is Outcome.CRITICAL_FAILURE:
+        changed = item.model_copy(update={"stuck_permanently": True})
+        return state.resources.model_copy(
+            update={
+                "items": tuple(changed if i.id == item_id else i for i in state.resources.items)
+            }
+        )
+    if not check.outcome.succeeded:
+        return state.resources
+    target = build(runtime, state, item.stuck_target_id)
+    assert target.statistics is not None
+    resources, _ = apply_injury(
+        state.resources,
+        Wound(
+            id=f"{command_id}:free-stuck",
+            actor_id=item.stuck_target_id,
+            expected_revision=state.resources.revision,
+            basic_damage=item.stuck_injury // 2,
+            resistance=0,
+            # ``stuck_injury`` stores injury already inflicted; crushing
+            # with no DR applies exactly half again without a second impaling multiplier.
+            damage_type="cr",
+        ),
+        ht=target.statistics.ht,
+        dx=target.statistics.dx,
+        rng=runtime.rng,
+        system=True,
+        ignore_dr=True,
+    )
+    cleared = item.model_copy(
+        update={
+            "stuck_target_id": None,
+            "stuck_injury": 0,
+            "stuck_damage_type": None,
+            "stuck_permanently": False,
+        }
+    )
+    return resources.model_copy(
+        update={"items": tuple(cleared if i.id == item_id else i for i in resources.items)}
+    )
+
+
+def _held_reach(selected: MeleeMode | RangedMode, held: int | None) -> MeleeMode | RangedMode:
+    if not isinstance(selected, MeleeMode) or not selected.reach_requires_ready:
+        return selected
+    chosen = held if held in selected.reach else min(selected.reach)
+    return selected.model_copy(update={"reach": (chosen,)})
 
 
 def launched_mode(
@@ -53,7 +156,13 @@ def mode(
     runtime: RulesContext, state: PlayState, actor_id: str, item_id: str, mode_id: str | None
 ) -> MeleeMode | RangedMode:
     item = next((i for i in state.resources.items if i.id == item_id), None)
-    if item is None or item.owner_id != actor_id or not item.equipped or not item.ready:
+    if (
+        item is None
+        or item.owner_id != actor_id
+        or not item.equipped
+        or not item.ready
+        or item.stuck_target_id is not None
+    ):
         raise ValidationError("Melee requires an owned, equipped, ready weapon")
     entry = next(
         (e for e in catalog(runtime).entries if e.definition_id == item.definition_id), None
@@ -66,6 +175,7 @@ def mode(
     if len(modes) != 1:
         raise ValidationError("Select exactly one supported weapon mode")
     selected = modes[0]
+    selected = _held_reach(selected, item.melee_reach)
     if (
         isinstance(selected, RangedMode)
         and selected.smartgun is not None
@@ -128,13 +238,14 @@ def mode(
         # is not consumed, and without it in hand this mode does not exist.
         selected = launched_mode(runtime, state, actor_id, selected)
     require_skill_procedure(catalog(runtime).profile_id, selected)
-    if not isinstance(entry.technology_level, int):
+    if entry.technology_level == "skill-relative":
         raise ValidationError("A usable weapon requires a concrete technology level")
-    require_technology(
-        selected.skill_id,
-        runtime.reviewer.compiler.policy.technology_level,
-        entry.technology_level,
-    )
+    if isinstance(entry.technology_level, int):
+        require_technology(
+            selected.skill_id,
+            runtime.reviewer.compiler.policy.technology_level,
+            entry.technology_level,
+        )
     level(build(runtime, state, actor_id), selected.skill_id)
     return selected
 

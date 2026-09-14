@@ -204,6 +204,8 @@ class PendingDefense(Record):
     attention_defense_penalty: int = Field(
         default=0, ge=-1, le=0, exclude_if=lambda value: value == 0
     )
+    mounted_lance_dice: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+    mounted_skill_cap: int | None = Field(default=None, ge=1, le=50, exclude_if=lambda v: v is None)
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()
