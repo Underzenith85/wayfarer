@@ -1,6 +1,7 @@
 # GURPS fatigue and medical recovery (#109, #515, #516)
 
-The profile as a whole remains **partial**. It adds deterministic mechanics and an
+The profile as a whole remains **partial**, while #728 verifies the three recovery
+capability families against the selected Basic Set artifacts. It adds deterministic mechanics and an
 internal authoritative service; it does not certify or enable a GURPS profile in
 the campaign selector. Existing prototype rules and saved profile pins remain
 unchanged. The coverage ledger is [GURPS conformance](gurps-conformance.md).
