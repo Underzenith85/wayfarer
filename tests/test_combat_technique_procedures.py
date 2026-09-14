@@ -157,6 +157,6 @@ def test_weapon_family_rejects_nonmembers_despite_identifier_shape(parent: str) 
         )
 
 
-def test_capability_is_registered_as_partial() -> None:
+def test_capability_is_registered_as_verified() -> None:
     declared = CAPABILITIES["gurps.combat.technique_procedures"]
-    assert declared.status is CoverageStatus.PARTIAL and declared.owner_issue == 340
+    assert declared.status is CoverageStatus.VERIFIED and declared.owner_issue == 727

@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "profile": "gurps-basic-set-4e-2004",
+  "baseline": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+  "owner_issue": 727,
+  "families": [
+    {
+      "capability_id": "gurps.combat.active_defense",
+      "owner_inventory_rows": ["capability:gurps.combat.active_defense", "skill:shield-standard", "skill:broadsword", "skill:judo"],
+      "variants": [
+        {"id": "dodge-block-parry", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B374-B376", "source_rows": ["section:campaigns:b374:active-defense-rolls", "section:campaigns:b374:dodging", "section:campaigns:b375:blocking", "section:campaigns:b376:parrying"], "expected": {"defenses": ["dodge", "block", "parry"], "success_roll": "3d6 at or below defense"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/melee/defense.py"], "tests": ["tests/test_gurps_melee.py", "tests/test_defense_scoring.py"]},
+        {"id": "retreat-and-defense-options", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B377", "source_rows": ["section:campaigns:b377:active-defense-options"], "expected": {"retreat_dodge_bonus": 3, "single_retreat_per_turn": true}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/melee/defense.py"], "tests": ["tests/test_gurps_melee.py", "tests/test_unarmed_integrations.py"]},
+        {"id": "defense-restrictions-and-durability", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B365-B366, B376", "source_rows": ["section:campaigns:b365:all-out-attack", "section:campaigns:b366:all-out-defense", "section:campaigns:b376:parrying-heavy-weapons"], "expected": {"all_out_attack_defense": "forbidden", "all_out_defense_bonus": 2, "heavy_parry": "checks weapon weight and breakage"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/melee/defense.py", "src/wayfarer/engine/simulation/combat/melee/resolution.py"], "tests": ["tests/test_issue_684_melee_shields.py", "tests/test_melee_parry_modes.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.grappling",
+      "owner_inventory_rows": ["capability:gurps.combat.grappling", "skill:wrestling", "skill:judo", "skill:arm-lock-judo", "skill:choke-hold"],
+      "variants": [
+        {"id": "grip-control-and-escape", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B370-B371", "source_rows": ["section:campaigns:b370:unarmed-combat", "section:campaigns:b371:actions-after-being-grappled"], "expected": {"grapple_damage": 0, "controlled_dx_penalty": -4, "escape": "quick contest"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/unarmed/control.py"], "tests": ["tests/test_unarmed.py", "tests/test_close_combat.py"]},
+        {"id": "takedown-pin-and-lock", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B370-B371, B403-B404", "source_rows": ["section:campaigns:b370:unarmed-combat", "section:campaigns:b371:actions-after-being-grappled"], "expected": {"takedown": "quick contest", "pin": "regular contest", "arm_lock": "persistent limb control and damage"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/unarmed/control.py", "src/wayfarer/engine/simulation/combat/unarmed/resolution.py"], "tests": ["tests/test_unarmed.py", "tests/test_unarmed_parry_lock.py"]},
+        {"id": "choke-release-and-close-movement", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B391-B392, B404, B436", "source_rows": ["section:campaigns:b391:close-combat", "section:campaigns:b391:entering-a-foe-s-hex", "section:campaigns:b392:multiple-close-combat"], "expected": {"choke_hold": "one FP at each due holder turn", "release": "ends grip and future exposure", "replay": "no duplicate fatigue"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/unarmed/choke.py", "src/wayfarer/engine/simulation/combat/close_combat.py"], "tests": ["tests/test_choke_hold.py", "tests/test_close_combat.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.maneuvers",
+      "owner_inventory_rows": ["capability:gurps.combat.maneuvers"],
+      "variants": [
+        {"id": "permission-table", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B363-B366", "source_rows": ["section:campaigns:b363:maneuvers", "section:campaigns:b364:do-nothing", "section:campaigns:b364:move", "section:campaigns:b364:change-posture", "section:campaigns:b364:aim", "section:campaigns:b364:evaluate", "section:campaigns:b365:feint", "section:campaigns:b366:concentrate", "section:campaigns:b366:ready", "section:campaigns:b366:wait"], "expected": {"complete_rows": 13, "ordinary_maneuvers_per_turn": 1}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/maneuver_rules.py"], "tests": ["tests/test_gurps_maneuvers.py"]},
+        {"id": "all-out-and-move-attack-options", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B365-B366", "source_rows": ["section:campaigns:b365:all-out-attack", "section:campaigns:b365:move-and-attack", "section:campaigns:b366:all-out-defense"], "expected": {"determined_bonus": 4, "melee_move_attack_penalty": -4, "melee_move_attack_cap": 9, "all_out_defense_bonus": 2}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/maneuver_rules.py"], "tests": ["tests/test_gurps_maneuvers.py", "tests/test_maneuver_followups.py"]},
+        {"id": "wait-ready-and-posture-movement", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B366-B368, B382-B383", "source_rows": ["section:campaigns:b366:ready", "section:campaigns:b366:wait", "section:campaigns:b367:movement", "section:campaigns:b368:step", "section:campaigns:b382:readying-weapons-and-other-gear", "section:campaigns:b383:when-is-a-weapon-ready"], "expected": {"wait": "one declared interrupt", "step_at_move_11": 2, "readiness": "persistent item state"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/turns.py", "src/wayfarer/engine/simulation/combat/maneuver_rules.py"], "tests": ["tests/test_maneuver_followups.py", "tests/test_gurps_maneuvers.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.melee_attack",
+      "owner_inventory_rows": ["capability:gurps.combat.melee_attack", "skill:broadsword", "skill:knife", "skill:flail"],
+      "variants": [
+        {"id": "declaration-skill-reach-and-hit", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B365, B369-B370", "source_rows": ["section:campaigns:b365:attack", "section:campaigns:b369:attacking", "section:campaigns:b369:melee-attacks", "section:campaigns:b369:melee-attack-options"], "expected": {"attack": "3d6 against selected skill", "reach": "selected mode must reach target", "critical": "bypasses active defense"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/melee/attack.py"], "tests": ["tests/test_gurps_melee.py", "tests/test_special_melee_procedures.py"]},
+        {"id": "defense-damage-and-injury", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B374-B381", "source_rows": ["section:campaigns:b374:defending", "section:campaigns:b377:damage-and-injury", "section:campaigns:b378:damage-roll", "section:campaigns:b378:damage-resistance-and-penetration", "section:campaigns:b379:wounding-modifiers-and-injury", "section:campaigns:b381:special-damage"], "expected": {"penetrating_damage": "max(0, basic damage - effective DR)", "injury": "penetration times damage-type modifier", "state": "authoritative HP and injury effects"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/melee/resolution.py"], "tests": ["tests/test_gurps_melee.py", "tests/test_special_melee_procedures.py"]},
+        {"id": "critical-and-object-effects", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B376, B381-B382", "source_rows": ["section:campaigns:b376:parrying-heavy-weapons", "section:campaigns:b381:critical-hits-and-misses", "section:campaigns:b381:critical-hits", "section:campaigns:b382:critical-misses"], "expected": {"critical_tables": "recorded and replayable", "weapon_breakage": "durable condition change", "retry": "same receipt and no duplicate injury"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/melee/resolution.py", "src/wayfarer/engine/simulation/combat/critical.py"], "tests": ["tests/test_melee_parry_modes.py", "tests/test_critical_continuation.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.melee_weapon_skills",
+      "owner_inventory_rows": ["capability:gurps.combat.melee_weapon_skills", "skill:broadsword", "skill:rapier", "skill:shield-standard", "skill:fast-draw-knife", "skill:tactics"],
+      "variants": [
+        {"id": "weapon-class-dispatch", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B168-B233", "source_rows": ["section:characters:b326:attacking", "section:campaigns:b369:melee-attacks"], "expected": {"owned_rows": 56, "unbound_rows": 0, "unknown_mode": "rejected before dice"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/melee.py"], "tests": ["tests/test_melee_skill_procedures.py"]},
+        {"id": "fencing-shield-and-unarmed-contracts", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B182-B228", "source_rows": ["section:characters:b326:defending", "section:campaigns:b374:active-defense-rolls"], "expected": {"specialties": "exact concrete family member", "fencing": "mode must declare fencing", "shield": "block dispatch"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/melee.py"], "tests": ["tests/test_melee_skill_procedures.py", "tests/test_issue_684_melee_shields.py"]},
+        {"id": "procedure-replay", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B168-B233", "source_rows": ["section:characters:b326:attacking", "section:characters:b326:defending"], "expected": {"dispatchable_rows": "execute their distinct effect", "replay": "identical typed result"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/procedures.py"], "tests": ["tests/test_melee_skill_procedures.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.ranged_weapon_skills",
+      "owner_inventory_rows": ["capability:gurps.combat.ranged_weapon_skills", "skill:bow", "skill:crossbow", "skill:guns-pistol", "skill:artillery-cannon", "skill:innate-attack-beam"],
+      "variants": [
+        {"id": "launchers-thrown-and-entangling", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B178-B226, B270", "source_rows": ["section:characters:b326:ranged-attacks", "section:campaigns:b372:ranged-attacks", "section:campaigns:b373:thrown-weapon-attacks", "section:campaigns:b373:missile-weapon-attacks"], "expected": {"owned_rows": 52, "unbound_rows": 0, "projectile": "conserved or expended by mode"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/ranged.py"], "tests": ["tests/test_ranged_skills.py", "tests/test_entangling_attacks.py"]},
+        {"id": "tl-mount-stream-and-innate", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B178-B205, B301-B304", "source_rows": ["section:characters:b326:ranged-attacks", "section:campaigns:b372:ranged-attacks"], "expected": {"technology_level": "must match selected weapon", "served_mount": "requires complete crew", "innate_attack": "uses no inventory projectile"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/ranged.py"], "tests": ["tests/test_tl_indexed_ranged_skills.py", "tests/test_mounted_ranged_skills.py", "tests/test_innate_attack_specialties.py"]},
+        {"id": "defaults-and-runtime-dispatch", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B168-B233", "source_rows": ["section:characters:b326:attacking", "section:campaigns:b373:missile-weapon-attacks"], "expected": {"family_selector": "rejected", "concrete_specialty": "dispatches exact weapon class", "conditional_default": "requires matching context"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/ranged.py", "src/wayfarer/engine/simulation/combat/ranged/resolution.py"], "tests": ["tests/test_ranged_skills.py", "tests/test_ranged_default_gaps.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.technique_procedures",
+      "owner_inventory_rows": ["capability:gurps.combat.technique_procedures", "skill:arm-lock", "skill:disarming", "skill:feint", "skill:horse-archery", "skill:retain-weapon", "skill:kicking-karate"],
+      "variants": [
+        {"id": "parent-specific-techniques", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B229-B233", "source_rows": ["section:characters:b326:attacking", "section:characters:b326:defending"], "expected": {"owned_rows": 20, "unbound_rows": 0, "parent_mismatch": "rejected before dice"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/techniques.py"], "tests": ["tests/test_combat_technique_procedures.py"]},
+        {"id": "offensive-defensive-and-mounted-effects", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B230-B233", "source_rows": ["section:campaigns:b365:feint", "section:campaigns:b370:unarmed-combat", "section:campaigns:b374:active-defense-rolls"], "expected": {"effects": ["apply-arm-lock", "disarm-opponent", "impose-defense-penalty", "shoot-from-mount", "retain-weapon", "karate-kick"]}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/techniques.py"], "tests": ["tests/test_combat_technique_procedures.py", "tests/test_unarmed_parry_lock.py"]},
+        {"id": "optional-technique-boundary", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B230-B233", "source_rows": ["section:characters:b326:attacking"], "expected": {"dual_weapon_attack": "requires explicit optional rule", "whirlwind_attack": "requires explicit optional rule", "replay": "identical typed result"}, "runtime_paths": ["src/wayfarer/engine/rules/skills/mundane/procedures.py"], "tests": ["tests/test_combat_technique_procedures.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.turn_timing",
+      "owner_inventory_rows": ["capability:gurps.combat.turn_timing"],
+      "variants": [
+        {"id": "initiative-and-one-second-turns", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B362-B363", "source_rows": ["section:campaigns:b362:combat-turn-sequence", "section:campaigns:b363:multiple-maneuvers-and-full-turn-maneuvers"], "expected": {"turn_seconds": 1, "order": "Basic Speed, then DX, then stable tie break", "ordinary_actions": 1}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/turns.py"], "tests": ["tests/test_combat_timing.py"]},
+        {"id": "wait-pause-resume", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B366", "source_rows": ["section:campaigns:b366:wait"], "expected": {"interrupt": "declared waiter acts first", "resume": "interrupted command continues once", "retry": "no duplicate turn or resource effects"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/turns.py"], "tests": ["tests/test_maneuver_followups.py", "tests/test_unarmed_wait.py"]},
+        {"id": "surprise-and-partial-cycle-settlement", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B393", "source_rows": ["section:campaigns:b393:surprise-attacks-and-initiative"], "expected": {"surprised_actor": "forced do nothing until recovery", "settlement": "actor-relative deadlines advance exactly once", "replay": "stable encounter checkpoint"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/surprise.py", "src/wayfarer/engine/simulation/combat/turns.py"], "tests": ["tests/test_special_combat_situations.py", "tests/test_combat_timing.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.combat.unarmed",
+      "owner_inventory_rows": ["capability:gurps.combat.unarmed", "skill:boxing", "skill:brawling", "skill:karate", "skill:judo", "skill:wrestling"],
+      "variants": [
+        {"id": "punch-kick-and-training", "source_id": "sjg:basic-set-characters-4e-2004", "reference": "B182, B203, B228; B370", "source_rows": ["section:campaigns:b370:unarmed-combat"], "expected": {"punch": "thrust-1 crushing", "kick": "thrust crushing", "karate_dx_plus_1_bonus_per_die": 2}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/unarmed/attack.py"], "tests": ["tests/test_unarmed.py"]},
+        {"id": "unarmed-defense-and-critical-effects", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B376, B381-B382, B556-B557", "source_rows": ["section:campaigns:b376:parrying", "section:campaigns:b381:critical-hits-and-misses", "section:campaigns:b382:critical-misses"], "expected": {"trained_parry": "skill/2 + 3 with contextual modifiers", "critical_effects": "durable fall, drop, strain, or injury", "replay": "table dice and effects applied once"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/unarmed/resolution.py"], "tests": ["tests/test_unarmed_critical_followups.py", "tests/test_unarmed_double_defense.py"]},
+        {"id": "maneuver-wait-and-close-combat", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B365-B366, B391-B392", "source_rows": ["section:campaigns:b365:all-out-attack", "section:campaigns:b365:move-and-attack", "section:campaigns:b366:wait", "section:campaigns:b391:close-combat", "section:campaigns:b392:defense-in-close-combat"], "expected": {"all_out_determined_bonus": 4, "wait": "declared strike executes once", "entry": "explicit close-combat position"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/unarmed/declaration.py", "src/wayfarer/engine/simulation/combat/close_combat.py"], "tests": ["tests/test_unarmed_integrations.py", "tests/test_unarmed_wait.py", "tests/test_close_combat.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.tactical.facing",
+      "owner_inventory_rows": ["capability:gurps.tactical.facing"],
+      "variants": [
+        {"id": "front-side-rear-arcs", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B385, B389-B391", "source_rows": ["section:campaigns:b385:facing", "section:campaigns:b388:attacking-in-tactical-combat", "section:campaigns:b390:defending-in-tactical-combat", "section:campaigns:b391:runaround-attacks"], "expected": {"arcs": ["front", "side", "rear"], "rear_defense": "normally forbidden", "runaround": "treated as side attack"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/tactical.py", "src/wayfarer/engine/simulation/combat/spatial.py"], "tests": ["tests/test_hex_geometry.py", "tests/test_special_combat_situations.py"]},
+        {"id": "facing-change-costs", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B386-B387", "source_rows": ["section:campaigns:b386:movement-in-tactical-combat", "section:campaigns:b387:movement-point-costs"], "expected": {"step_facing_change": "free within declared step", "pre_move_turn": "costs movement points", "invalid_path": "rejected before state change"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/tactical.py"], "tests": ["tests/test_hex_geometry.py"]},
+        {"id": "multi-hex-facing", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B392", "source_rows": ["section:campaigns:b392:multi-hex-figures"], "expected": {"occupied_hexes": "derived from pose and footprint", "rotation": "atomic collision-checked transition", "replay": "same footprint"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/close_combat.py", "src/wayfarer/engine/simulation/combat/tactical.py"], "tests": ["tests/test_close_combat.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.tactical.hex_movement",
+      "owner_inventory_rows": ["capability:gurps.tactical.hex_movement"],
+      "variants": [
+        {"id": "hex-distance-path-and-cost", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B384, B386-B388", "source_rows": ["section:campaigns:b384:hexes", "section:campaigns:b386:movement-in-tactical-combat", "section:campaigns:b387:movement-point-costs", "section:campaigns:b388:attacking-in-tactical-combat"], "expected": {"hex_yards": 1, "path": "contiguous and on map", "cost": "terrain plus facing within allowance"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/tactical.py"], "tests": ["tests/test_hex_geometry.py"]},
+        {"id": "reach-los-and-close-combat", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B388-B392", "source_rows": ["section:campaigns:b388:melee-attacks", "section:campaigns:b389:ranged-attacks", "section:campaigns:b391:close-combat", "section:campaigns:b391:entering-a-foe-s-hex", "section:campaigns:b391:leaving-a-foe-s-hex", "section:campaigns:b392:multiple-close-combat"], "expected": {"melee": "declared reach and clear path", "ranged": "hex distance and line of sight", "close_combat": "shared hex relationships remain explicit"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/spatial.py", "src/wayfarer/engine/simulation/combat/close_combat.py"], "tests": ["tests/test_close_combat.py", "tests/test_gurps_melee.py"]},
+        {"id": "high-speed-movement", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B394-B395", "source_rows": ["section:campaigns:b394:high-speed-movement"], "expected": {"trigger": "velocity above Basic Move", "turning_radius": "velocity divided by Basic Move, rounded down", "transition": "velocity and heading persist"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/high_speed.py"], "tests": ["tests/test_special_combat_situations.py"]}
+      ]
+    },
+    {
+      "capability_id": "gurps.tactical.visibility",
+      "owner_inventory_rows": ["capability:gurps.tactical.visibility"],
+      "variants": [
+        {"id": "attacker-visibility", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B394", "source_rows": ["section:campaigns:b394:visibility"], "expected": {"cannot_see_anything": -10, "cannot_see_foe": -6, "known_location_only": -4}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/visibility.py"], "tests": ["tests/test_special_combat_situations.py"]},
+        {"id": "unseen-attacker-defense", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B394", "source_rows": ["section:campaigns:b394:visibility"], "expected": {"unaware": "no defense", "aware": "dodge at -4; parry or block after hearing at -4", "known_invisible": "defend normally once attack is located"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/visibility.py", "src/wayfarer/engine/simulation/combat/melee/defense.py"], "tests": ["tests/test_special_combat_situations.py"]},
+        {"id": "light-smoke-and-surprise", "source_id": "sjg:basic-set-campaigns-4e-2004", "reference": "B393-B394", "source_rows": ["section:campaigns:b393:surprise-attacks-and-initiative", "section:campaigns:b394:visibility"], "expected": {"light": "reduces darkness penalty within authored radius", "smoke": "directed visibility modifier", "surprise": "awareness gates action and defense"}, "runtime_paths": ["src/wayfarer/engine/simulation/combat/visibility.py", "src/wayfarer/engine/simulation/combat/surprise.py"], "tests": ["tests/test_special_combat_situations.py"]}
+      ]
+    }
+  ]
+}

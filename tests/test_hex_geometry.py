@@ -314,11 +314,10 @@ def test_duplicate_map_cells_and_occupants_fail_closed() -> None:
         movement(board(Cell(position=h(0, 0), blocked=True)), pose, (), move=5)
 
 
-def test_tactical_capabilities_remain_fail_closed() -> None:
+def test_tactical_capabilities_are_verified() -> None:
     from wayfarer.engine.rules.conformance import CoverageStatus, capability, require_verified
 
     for name in ("hex_movement", "facing", "visibility"):
         identifier = f"gurps.tactical.{name}"
-        assert capability(identifier).status is CoverageStatus.PARTIAL
-        with pytest.raises(ValidationError, match="not verified"):
-            require_verified(identifier)
+        assert capability(identifier).status is CoverageStatus.VERIFIED
+        assert require_verified(identifier).owner_issue == 727

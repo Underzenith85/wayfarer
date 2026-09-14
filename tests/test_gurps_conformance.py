@@ -32,6 +32,7 @@ FIXTURE = Path("tests/fixtures/gurps/conformance.json")
 SIZE_FIXTURE = Path("tests/fixtures/gurps/size_modifier_costs.json")
 LIMITATIONS_FIXTURE = Path("tests/fixtures/gurps/advantage-limitations.json")
 ISSUE_729_EVIDENCE = Path("src/wayfarer/certification/basic_set_audit/capability-evidence-729.json")
+COMBAT_FIXTURE = Path("tests/fixtures/gurps/combat-capability-certification.json")
 CHECK_CAPABILITIES = {
     "gurps.check.success",
     "gurps.check.margin",
@@ -96,10 +97,22 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.vehicles.combat",
         "gurps.combat.mounted",
         "gurps.combat.personal_flight",
+        "gurps.combat.active_defense",
+        "gurps.combat.grappling",
+        "gurps.combat.maneuvers",
+        "gurps.combat.melee_attack",
+        "gurps.combat.melee_weapon_skills",
         "gurps.combat.ranged_attack",
         "gurps.combat.aim",
         "gurps.combat.ammunition",
         "gurps.combat.rapid_fire",
+        "gurps.combat.ranged_weapon_skills",
+        "gurps.combat.technique_procedures",
+        "gurps.combat.turn_timing",
+        "gurps.combat.unarmed",
+        "gurps.tactical.facing",
+        "gurps.tactical.hex_movement",
+        "gurps.tactical.visibility",
         "gurps.campaign.administration",
         "gurps.campaign.knowledge",
         "gurps.campaign.time_use",
@@ -122,7 +135,7 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
     }
     assert all(
         CAPABILITIES[identifier].owner_issue
-        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 683, 685, 688, 729)
+        in (97, 98, 99, 192, 358, 501, 502, 503, 524, 526, 528, 683, 685, 688, 727, 729)
         for identifier in verified
     )
 
@@ -211,6 +224,10 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
     covered.update(
         (entry["capability_id"], issue_729["profile"]) for entry in issue_729["capabilities"]
     )
+    combat_data = json.loads(COMBAT_FIXTURE.read_text())
+    covered.update(
+        (family["capability_id"], combat_data["profile"]) for family in combat_data["families"]
+    )
     for entry in CAPABILITIES.values():
         if entry.status is not CoverageStatus.VERIFIED:
             continue
@@ -220,6 +237,7 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
             entry.lite_required
             and entry.id != "gurps.check.resistance"
             and entry.id not in BASIC_ONLY_VERIFICATIONS
+            and entry.owner_issue != 727
         ):
             assert (entry.id, "gurps-lite-4e-2004") in covered, entry.id
     assert CAPABILITIES["gurps.character.size_modifier_costs"].status is CoverageStatus.VERIFIED

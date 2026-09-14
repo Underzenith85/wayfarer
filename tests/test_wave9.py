@@ -985,7 +985,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
 
     assert restarted_play.engine.reviewer.compiler.statistics_profile == ("gurps-basic-set-4e-2004")
     assert all(
-        CAPABILITIES[identifier].status is CoverageStatus.PARTIAL
+        CAPABILITIES[identifier].status is CoverageStatus.VERIFIED
         for identifier in (
             "gurps.combat.melee_attack",
             "gurps.combat.active_defense",
