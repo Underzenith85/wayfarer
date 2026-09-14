@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.combat.lite_resolution import resolve_injury
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
 from wayfarer.engine.simulation.combat.melee.defense import exert_defense, validate_defense_choices
 from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
+from wayfarer.engine.simulation.combat.shield_rush import resolve as resolve_shield_rush
 from wayfarer.engine.simulation.combat.thrown.items import validate_catch
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.errors import ValidationError
@@ -57,6 +58,8 @@ def _defend(
             command.second_item_id,
             parry_mode_id=command.parry_mode_id,
             second_parry_mode_id=command.second_parry_mode_id,
+            incoming_item_id=pending.weapon_id,
+            incoming_mode_id=pending.mode_id,
         )
         state, encounter, selected_defense = exert_defense(
             play.rules_context,
@@ -67,21 +70,30 @@ def _defend(
             selected_defense,
             command.item_id,
             parry_mode_id=command.parry_mode_id,
+            incoming_item_id=pending.weapon_id,
+            incoming_mode_id=pending.mode_id,
         )
-        state, encounter, injury = resolve_melee(
-            play.rules_context,
-            state,
-            encounter,
-            selected_defense,
-            command.item_id,
-            second_defense=command.second_defense if selected_defense != "none" else None,
-            second_item_id=command.second_item_id if selected_defense != "none" else None,
-            parry_mode_id=command.parry_mode_id if selected_defense != "none" else None,
-            second_parry_mode_id=command.second_parry_mode_id
-            if selected_defense != "none"
-            else None,
-            catch_thrown=command.catch_thrown,
-        )
+        if pending.shield_rush:
+            if command.second_defense is not None or command.catch_thrown:
+                raise ValidationError("Shield rush accepts one ordinary active defense")
+            state, encounter, injury = resolve_shield_rush(
+                play.rules_context, state, encounter, selected_defense, command.item_id
+            )
+        else:
+            state, encounter, injury = resolve_melee(
+                play.rules_context,
+                state,
+                encounter,
+                selected_defense,
+                command.item_id,
+                second_defense=command.second_defense if selected_defense != "none" else None,
+                second_item_id=command.second_item_id if selected_defense != "none" else None,
+                parry_mode_id=command.parry_mode_id if selected_defense != "none" else None,
+                second_parry_mode_id=command.second_parry_mode_id
+                if selected_defense != "none"
+                else None,
+                catch_thrown=command.catch_thrown,
+            )
 
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         if (

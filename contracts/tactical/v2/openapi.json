@@ -2178,6 +2178,11 @@
             "title": "Mounted Charge",
             "type": "boolean"
           },
+          "shield_rush": {
+            "default": false,
+            "title": "Shield Rush",
+            "type": "boolean"
+          },
           "relinquish_stuck_weapon_id": {
             "anyOf": [
               {

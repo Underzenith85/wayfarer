@@ -116,6 +116,11 @@ def prepare_attack(
 ) -> Encounter:
     pending = encounter.pending_defense
     assert pending is not None
+    if pending.shield_rush:
+        # deferred: shield-rush preparation imports melee defense scoring.
+        from wayfarer.engine.simulation.combat.shield_rush import prepare as prepare_shield_rush
+
+        return prepare_shield_rush(runtime, state, encounter)
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, mode_id)
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     validate_special_attack(

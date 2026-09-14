@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import Field, TypeAdapter
+from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.engine.rules.types.explosion import BlastResponse
 from wayfarer.engine.rules.types.location import Hand, HitLocation
@@ -138,7 +138,21 @@ class TakeCombatTurn(CombatCommand):
     basic_move: BasicMove | None = Field(default=None, exclude_if=lambda value: value is None)
     enter_close_combat: bool = Field(default=False, exclude_if=lambda value: not value)
     mounted_charge: bool = Field(default=False, exclude_if=lambda value: not value)
+    shield_rush: bool = Field(default=False, exclude_if=lambda value: not value)
     relinquish_stuck_weapon_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+
+    @model_validator(mode="after")
+    def validate_shield_rush_shape(self) -> TakeCombatTurn:
+        if self.shield_rush and (
+            self.maneuver not in ("attack", "all_out_attack", "move_and_attack")
+            or self.attack_option == "double"
+            or self.mode_id is not None
+            or self.hit_location is not None
+            or self.target_item_id is not None
+            or self.step_timing != "before"
+        ):
+            raise ValueError("Shield rush requires one ordinary GURPS attack declaration")
+        return self
 
 
 class TakeUnarmedTurn(CombatCommand):
