@@ -41,6 +41,7 @@ from wayfarer.engine.simulation.combat.ranged.resolution import resolve
 from wayfarer.engine.simulation.combat.special_melee import actor_reaches, targeted_attack_penalty
 from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_flight
+from wayfarer.engine.simulation.combat.unarmed.records import striking_bonus
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
@@ -149,12 +150,16 @@ def resolve_melee(
     elif second_item_id is not None:
         raise ValidationError("Second defense equipment requires a second defense")
     attack_target = (
-        int(attack_value.value)
+        min(int(attack_value.value), pending.mounted_skill_cap or int(attack_value.value))
         + pending.visibility_attack_penalty
         + attacker_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
         - attacker_hp.injury.shock
-        - minimum_strength_penalty(
-            weapon.minimum_st, fatigue_value(attacker_fp, attack_build.statistics.st)
+        - (
+            minimum_strength_penalty(
+                weapon.minimum_st, fatigue_value(attacker_fp, attack_build.statistics.st)
+            )
+            if weapon.minimum_st is not None
+            else 0
         )
     )
 
@@ -506,8 +511,23 @@ def resolve_melee(
         else (attack_build.statistics.thrust, attack_build.statistics.swing)
     )
     expression = swing if weapon.damage.basis == "swing" else thrust
-    dice_count = (weapon.damage.dice or expression.dice) + weapon.damage.bonus_dice
-    adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
+    dice_count = pending.mounted_lance_dice or (
+        (weapon.damage.dice or expression.dice) + weapon.damage.bonus_dice
+    )
+    adds = (
+        3
+        if pending.mounted_lance_dice
+        else weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
+    )
+    if weapon.punch_damage:
+        adds += (
+            striking_bonus(
+                weapon.skill_id,
+                attack_build.statistics.dx,
+                int(level(attack_build, weapon.skill_id).value),
+            )
+            * dice_count
+        )
     adds -= int(pending.subdual_mode == "blunt-end")
     adds += attacker.maneuver_state.stop_thrust_damage_bonus
     if attacker.maneuver_state.strong:
@@ -843,13 +863,27 @@ def resolve_melee(
         injured=injury > 0,
     )
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
-    if weapon.becomes_unready_after_attack(attack_build.statistics.st):
+    stuck = weapon.can_stick and injury > 0 and hit
+    if weapon.becomes_unready_after_attack(attack_build.statistics.st) or stuck:
         state = state.model_copy(
             update={
                 "resources": state.resources.model_copy(
                     update={
                         "items": tuple(
-                            i.model_copy(update={"ready": False})
+                            i.model_copy(
+                                update={
+                                    "ready": False,
+                                    **(
+                                        {
+                                            "stuck_target_id": pending.defender_id,
+                                            "stuck_injury": injury,
+                                            "stuck_damage_type": damage_type,
+                                        }
+                                        if stuck
+                                        else {}
+                                    ),
+                                }
+                            )
                             if i.id == pending.weapon_id
                             else i
                             for i in state.resources.items

@@ -412,6 +412,16 @@
       "issue": 700,
       "state": "open",
       "title": "Complete residual Characters trait procedures"
+    },
+    {
+      "issue": 712,
+      "state": "open",
+      "title": "Implement silver weapon construction variants"
+    },
+    {
+      "issue": 714,
+      "state": "open",
+      "title": "Execute shield rush through Slam combat"
     }
   ]
 }

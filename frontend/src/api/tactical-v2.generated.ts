@@ -819,6 +819,11 @@ export interface components {
        */
       ready_hand: ("left-hand" | "right-hand") | "both" | null;
       /**
+       * Ready Reach
+       * @default null
+       */
+      ready_reach: number | null;
+      /**
        * Attack Option
        * @default null
        */
@@ -884,6 +889,16 @@ export interface components {
        * @default false
        */
       enter_close_combat: boolean;
+      /**
+       * Mounted Charge
+       * @default false
+       */
+      mounted_charge: boolean;
+      /**
+       * Relinquish Stuck Weapon Id
+       * @default null
+       */
+      relinquish_stuck_weapon_id: string | null;
     };
     /** TakeUnarmedTurn */
     TakeUnarmedTurn: {

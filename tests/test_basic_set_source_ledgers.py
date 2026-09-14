@@ -36,7 +36,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert len(ledger_blockers(bundle.rows)) == 9
+    assert len(ledger_blockers(bundle.rows)) == 8
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 9
@@ -305,7 +305,7 @@ def test_campaigns_section_obligations_cannot_fall_back_to_the_roadmap() -> None
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert len(ledger) == 9
+    assert len(ledger) == 8
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
@@ -316,10 +316,10 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.source_ledger_rollups["completion_owner"] == {
         "682": 2,
         "683": 1,
-        "684": 2,
+        "712": 1,
         "685": 3,
         "94": 1,
-        "none": 1_276,
+        "none": 1_277,
     }
 
 
@@ -335,11 +335,11 @@ def test_characters_section_obligations_are_explicit_and_bounded() -> None:
     }
     assert not any(row.completion_owner == 94 for row in reviewed)
     unresolved = tuple(row for row in reviewed if row.completion_owner is not None)
-    assert len(unresolved) == 8
+    assert len(unresolved) == 7
     assert Counter(row.completion_owner for row in unresolved) == {
         682: 2,
         683: 1,
-        684: 2,
+        712: 1,
         685: 3,
     }
     assert all(row.obligation == "executable-mechanic" for row in unresolved)
@@ -351,7 +351,7 @@ def test_characters_section_obligations_are_explicit_and_bounded() -> None:
         if row.obligation in {"construction-catalog", "reference-only", "structural-non-runtime"}
     )
     assert denominator_identity(bundle.rows, inventory(ROOT)) == (
-        "16462589aceccd90b10b73b0e4d7ff5bcab5998858747f08243b1fd300c48c75"
+        "f84c68bffcbc87c9bdc5173196e9fab0e2e4d97a55e4d3686d969dc053fa15d7"
     )
 
 

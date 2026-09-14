@@ -1,6 +1,6 @@
 # GURPS equipment field source review
 
-Reviewer: OpenAI Codex, 2026-09-13.
+Reviewer: OpenAI Codex, 2026-09-14.
 
 This review compares the typed equipment ledger with the supplied selected
 printings. It covers every field declared by `AUDITED_MODELS` and every special
@@ -26,6 +26,12 @@ PDF page `B-335`. Printed footers were checked before comparing the records.
 - The B270 double-dagger marker supplies the exact 1.5x minimum-ST threshold
   for post-attack readiness. The B272 monowire-whip expression supplies a
   separate d6 term added to ST-based swing damage; it is not a fixed-damage row.
+- Characters B272-B274 and Campaigns B397/B405-B406 were checked for starred
+  reach changes, lodged picks, couched-lance damage, cutlass-hilt strikes,
+  purchased whip lengths, and chainsaw bonus-die/readiness behavior.
+- Characters B287 notes 2-5 were checked for shield bashes and spikes, buckler
+  skill/rush handling, iron and plastic-riot construction, and the force
+  shield's superscience marker, LC3, and hardened DR 100 with no finite HP.
 - Characters B16, B178, B181, B195, B198, B205, B211, B222 and B270 were
   checked for rated ST, mounted/crew-served weapons, entangling attacks,
   readiness, sprayers and launcher-assisted throws.

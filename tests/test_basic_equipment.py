@@ -64,6 +64,8 @@ MELEE_ROWS = (
     ("thrusting-greatsword", 274, 3, 900, 7000),
     ("force-sword", 272, "superscience", 10000, 2000),
     ("monowire-whip", 272, "superscience", 900, 500),
+    *((f"whip-{yards}-yard", 274, 1, 20 * yards, 2000 * yards) for yards in range(1, 8)),
+    ("chainsaw", 274, 6, 150, 13000),
 )
 
 RANGED_ROWS = (
@@ -839,7 +841,7 @@ def test_b287_shields_preserve_independent_table_columns() -> None:
         ) == ((287,), tl, cost, weight, "shield")
         assert entry.shield is not None
         assert (entry.shield.skill_id, entry.shield.defense_bonus, entry.shield.can_block) == (
-            "skill:shield",
+            "skill:shield-standard",
             db,
             True,
         )
@@ -936,8 +938,7 @@ def test_non_numeric_technology_levels_fail_closed() -> None:
         "equipment:monowire-whip",
         "equipment:force-shield",
     ):
-        with pytest.raises(ValidationError, match="unsupported"):
-            entries[identifier].inventory_spec()
+        assert entries[identifier].inventory_spec().superscience
     for identifier in set(expected) - {
         "equipment:force-sword",
         "equipment:monowire-whip",

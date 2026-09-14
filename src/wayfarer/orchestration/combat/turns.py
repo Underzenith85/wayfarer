@@ -13,7 +13,13 @@ from wayfarer.engine.simulation.combat.firearm_transitions import service
 from wayfarer.engine.simulation.combat.maneuver_transitions import observe
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack, waive_off_hand_penalty
-from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach, require_two_weapon_modes
+from wayfarer.engine.simulation.combat.melee.modes import (
+    mode,
+    mode_reach,
+    ready_reach,
+    recover_stuck_weapon,
+    require_two_weapon_modes,
+)
 from wayfarer.engine.simulation.combat.mounts import assign_crew
 from wayfarer.engine.simulation.combat.objects.locations import (
     bind_ready_hand,
@@ -46,6 +52,8 @@ def _validate_special_strike_command(command: TakeCombatTurn, *, gurps: bool) ->
         raise ValidationError("Armor-chink targeting requires a single GURPS attack")
     if (command.strike_strength is not None or command.subdual_mode is not None) and invalid:
         raise ValidationError("Subdual striking requires a single GURPS attack")
+    if command.ready_reach is not None and (command.maneuver != "ready" or not gurps):
+        raise ValidationError("Reach adjustment requires a GURPS Ready maneuver")
 
 
 def _validate_area_command(command: TakeCombatTurn, *, gurps: bool) -> None:
@@ -53,6 +61,41 @@ def _validate_area_command(command: TakeCombatTurn, *, gurps: bool) -> None:
         command.maneuver not in ATTACK_MANEUVERS or not gurps or command.attack_option == "double"
     ):
         raise ValidationError("Area aim requires a single GURPS ranged attack")
+
+
+def _stuck_weapon_choice(resources: ResourceState, command: TakeCombatTurn) -> ResourceState:
+    held = next(
+        (
+            i
+            for i in resources.items
+            if i.owner_id == command.actor_id
+            and i.stuck_target_id is not None
+            and i.stuck_target_id != command.actor_id
+        ),
+        None,
+    )
+    if held is not None and not (
+        command.relinquish_stuck_weapon_id == held.id
+        or command.maneuver == "ready"
+        and command.item_id == held.id
+    ):
+        raise ValidationError("A stuck weapon must be relinquished or pulled free this turn")
+    if command.relinquish_stuck_weapon_id is None:
+        return resources
+    stuck = next((i for i in resources.items if i.id == command.relinquish_stuck_weapon_id), None)
+    if (
+        stuck is None
+        or stuck.owner_id != command.actor_id
+        or stuck.stuck_target_id is None
+        or stuck.stuck_target_id == command.actor_id
+    ):
+        raise ValidationError("Only the wielder may relinquish a weapon stuck in its target")
+    released = stuck.model_copy(
+        update={"owner_id": stuck.stuck_target_id, "equipped": False, "ready": False}
+    )
+    return resources.model_copy(
+        update={"items": tuple(released if i.id == stuck.id else i for i in resources.items)}
+    )
 
 
 def _validate_turn(
@@ -67,6 +110,7 @@ def _validate_turn(
 
     validate_command(play.rules_context, state, encounter, command)
     resources = interrupt_concentration(resources, command.actor_id, command.id)
+    resources = _stuck_weapon_choice(resources, command)
     state = state.model_copy(update={"resources": resources})
     if command.maneuver == "ready" and command.item_id:
         if command.recover_thrown_item:
@@ -268,6 +312,7 @@ def _preview_turn(
                 cover_item_id=command.cover_item_id,
                 overpenetration_target_id=command.overpenetration_target_id,
                 area_aim_point=command.area_aim_point,
+                mounted_charge=command.mounted_charge,
                 scatter_squared=command.scatter_squared,
                 shots=(
                     preview.pending_defense.shots
@@ -496,6 +541,7 @@ def _prepare_attack_turn(
         area_aim_point=command.area_aim_point,
         scatter_squared=command.scatter_squared,
         shots=command.shots,
+        mounted_charge=command.mounted_charge,
     )
     encounter = prepare_spraying_fire(context.play.rules_context, state, encounter, command)
     assert encounter.pending_defense is not None
@@ -532,6 +578,32 @@ def _prepare_attack_turn(
     assert encounter.pending_defense is not None
     result = result.model_copy(update={"available": encounter.pending_defense.allowed})
     return CombatStep(state, encounter, resources, result)
+
+
+def _apply_melee_ready(
+    state: PlayState,
+    command: TakeCombatTurn,
+    context: CombatContext,
+    resources: ResourceState,
+) -> ResourceState:
+    if command.ready_reach is not None:
+        resources = ready_reach(
+            context.play.rules_context,
+            state.model_copy(update={"resources": resources}),
+            command.actor_id,
+            command.item_id or "",
+            command.mode_id,
+            command.ready_reach,
+        )
+    if command.item_id is not None:
+        resources = recover_stuck_weapon(
+            context.play.rules_context,
+            state.model_copy(update={"resources": resources}),
+            command.actor_id,
+            command.item_id,
+            command.id,
+        )
+    return resources
 
 
 def _after_turn(
@@ -602,6 +674,7 @@ def _after_turn(
                 encounter,
                 command_for_turn,
             )
+        resources = _apply_melee_ready(state, command_for_turn, context, resources)
 
         encounter = bind_ready_hand(
             play.rules_context,

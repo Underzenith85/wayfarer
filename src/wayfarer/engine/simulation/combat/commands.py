@@ -122,6 +122,7 @@ class TakeCombatTurn(CombatCommand):
     area_aim_point: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
     scatter_squared: bool = Field(default=False, exclude_if=lambda value: not value)
     ready_hand: Hand | Literal["both"] | None = None
+    ready_reach: int | None = Field(default=None, ge=0, exclude_if=lambda value: value is None)
     attack_option: AttackOption | None = None
     defense_option: DefenseOption | None = None
     wait_trigger: WaitTrigger | None = None
@@ -136,6 +137,8 @@ class TakeCombatTurn(CombatCommand):
     enter_high_speed: bool = Field(default=False, exclude_if=lambda value: not value)
     basic_move: BasicMove | None = Field(default=None, exclude_if=lambda value: value is None)
     enter_close_combat: bool = Field(default=False, exclude_if=lambda value: not value)
+    mounted_charge: bool = Field(default=False, exclude_if=lambda value: not value)
+    relinquish_stuck_weapon_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class TakeUnarmedTurn(CombatCommand):

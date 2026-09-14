@@ -244,6 +244,7 @@ def validate_command(
         and not command.unload_ammunition
         and not command.let_down_bow
         and command.firearm_service is None
+        and command.ready_reach is None
     ):
         raise ValidationError("Ready mode selection requires a reload")
     if command.shots != 1 and command.maneuver not in ATTACK_MANEUVERS:

@@ -32,6 +32,39 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 
+def _mounted_lance_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    attacker_id: str,
+    selected: MeleeMode,
+    mounted_charge: bool,
+) -> tuple[int, int | None]:
+    if not mounted_charge:
+        return 0, None
+    if not selected.mounted_lance:
+        raise ValidationError("Mounted charge requires a lance mode")
+    relationship = next((r for r in encounter.mounted_combat if r.rider_id == attacker_id), None)
+    if (
+        relationship is None
+        or not relationship.saddle
+        or not relationship.stirrups
+        or relationship.control != "controlled"
+    ):
+        raise ValidationError("A couched lance requires a controlled mount, saddle, and stirrups")
+    transport = next(
+        (t for t in state.resources.transports if t.id == relationship.transport_id), None
+    )
+    if transport is None or transport.locomotion != "ground-mount" or transport.straight_yards < 1:
+        raise ValidationError("Mounted lance damage requires recorded forward movement")
+    mount = build(runtime, state, relationship.mount_id)
+    assert mount.statistics is not None
+    dice = mount.statistics.st * transport.straight_yards // 100
+    if dice < 1:
+        raise ValidationError("Mounted lance charge is too slow to inflict one die")
+    return dice, relationship.riding_skill
+
+
 def _validate_dual_weapon_targets(
     encounter: Encounter,
     attacker: Combatant,
@@ -79,6 +112,7 @@ def prepare_attack(
     area_aim_point: GroundPosition | None = None,
     scatter_squared: bool = False,
     shots: int = 1,
+    mounted_charge: bool = False,
 ) -> Encounter:
     pending = encounter.pending_defense
     assert pending is not None
@@ -127,6 +161,9 @@ def prepare_attack(
         raise ValidationError("Cover and overpenetration require a ranged mode")
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
+    lance_dice, riding_cap = _mounted_lance_damage(
+        runtime, state, encounter, pending.attacker_id, selected, mounted_charge
+    )
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     _validate_dual_weapon_targets(encounter, attacker, defender, selected)
     visibility = combat_visibility(encounter, attacker.actor_id, defender.actor_id)
@@ -230,6 +267,8 @@ def prepare_attack(
                     "close_combat": close,
                     "defender_close_combat": defender_close,
                     "stray_target_order": stray_order,
+                    "mounted_lance_dice": lance_dice,
+                    "mounted_skill_cap": riding_cap,
                 }
             )
         }

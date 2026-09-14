@@ -1,10 +1,10 @@
 """Superscience melee and shield rows, kept apart from the audited TL listings."""
 
 from wayfarer.engine.simulation.equipment.basic.rows import melee, source, weapon
-from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile
+from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, Shield
 
 # The selected table prints ``^`` instead of an integer TL for superscience.
-# These rows retain their exact inventory facts but remain selection-blocked.
+# Campaign equipment allowlists provide the explicit setting authorization.
 SUPERSCIENCE_MELEE = (
     weapon(
         "force-sword",
@@ -23,7 +23,6 @@ SUPERSCIENCE_MELEE = (
             dice=8,
             divisor="5",
         ),
-        unsupported=("superscience-technology-level",),
     ),
     EquipmentProfile(
         definition_id="equipment:monowire-whip",
@@ -45,11 +44,8 @@ SUPERSCIENCE_MELEE = (
                 unbalanced=True,
                 divisor="10",
                 bonus_dice=1,
+                reach_requires_ready=True,
             ),
-        ),
-        unsupported_mechanics=(
-            "superscience-technology-level",
-            "variable-reach-ready",
         ),
     ),
 )
@@ -61,9 +57,15 @@ SUPERSCIENCE_SHIELDS = (
         technology_level="superscience",
         price=1500,
         weight_millipounds=500,
-        unsupported_mechanics=(
-            "superscience-technology-level",
-            "shield-material-variants",
+        legality_class=3,
+        slot="shield",
+        shield=Shield(
+            skill_id="skill:shield-force",
+            defense_bonus=3,
+            can_rush=False,
+            hardened_dr=True,
+            dr=100,
+            occupies_hand=False,
         ),
     ),
 )
