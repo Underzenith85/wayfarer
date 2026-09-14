@@ -867,8 +867,7 @@ def apply_turn(
                     target.last_hex_move
                     if shield_rush
                     and participant.last_hex_direction is not None
-                    and target.last_hex_direction
-                    == (participant.last_hex_direction + 3) % 6
+                    and target.last_hex_direction == (participant.last_hex_direction + 3) % 6
                     else 0
                 )
                 if shield_rush

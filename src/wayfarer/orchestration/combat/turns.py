@@ -161,10 +161,14 @@ def _validate_turn(
     ):
         raise ValidationError("Weapon mode requires GURPS attack dispatch")
     if (
-        command.maneuver in ATTACK_MANEUVERS | {"feint"}
-        or command.maneuver == "aim"
-        and command.transport_id is not None
-    ) and engine.rules.gurps_equipment is not None and not command.shield_rush:
+        (
+            command.maneuver in ATTACK_MANEUVERS | {"feint"}
+            or command.maneuver == "aim"
+            and command.transport_id is not None
+        )
+        and engine.rules.gurps_equipment is not None
+        and not command.shield_rush
+    ):
         selected_mode = mode(
             play.rules_context,
             state,
