@@ -152,6 +152,7 @@ MUSCLE_POWERED_AMMUNITION = tuple(
         price=price,
         technology_level=tl,
         ammunition=True,
+        silver_construction="arrowhead" if identifier == "arrow" else None,
     )
     for identifier, tl, price, weight in (
         ("blowpipe-dart", 0, Decimal("0.1"), 50),

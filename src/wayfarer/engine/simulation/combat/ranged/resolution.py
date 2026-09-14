@@ -11,6 +11,7 @@ from decimal import ROUND_CEILING, Decimal
 from typing import TYPE_CHECKING, cast
 
 from wayfarer.engine.character.statistics import damage as strength_damage
+from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.rules.checks import Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -65,6 +66,10 @@ from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
 from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
+from wayfarer.engine.simulation.equipment.silver import (
+    attack_construction,
+    silver_wounding_multiplier,
+)
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
@@ -288,6 +293,11 @@ def resolve(
     stats = compiled.statistics
     defender_stats = defender_build.statistics
     assert stats is not None and defender_stats is not None
+    construction = attack_construction(original_resources, pending.weapon_id, weapon)
+    target_traits = attack_defense_traits(defender_build, runtime.reviewer.compiler.definitions)
+    vulnerability_multiplier = silver_wounding_multiplier(
+        target_traits.injury_multiplier("silver"), construction
+    )
     value = level(compiled, weapon.skill_id)
     actor_hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
@@ -934,6 +944,7 @@ def resolve(
                 critical_eye=critical_eye and index == 0,
                 armor_divisor=weapon.damage.armor_divisor * (2 if pending.armor_chink else 1),
                 tight_beam=weapon.damage.tight_beam,
+                vulnerability_multiplier=vulnerability_multiplier,
             ),
             ht=defender_stats.ht,
             rng=runtime.rng,

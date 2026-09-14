@@ -41,6 +41,7 @@ from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
     ExactWeight,
     ResourceState,
+    SilverConstruction,
     decimal_weight,
 )
 from wayfarer.errors import ValidationError
@@ -497,6 +498,9 @@ class EquipmentProfile(Record):
     general: tuple[GeneralEquipmentFeature, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
+    silver_construction: Literal["melee-weapon", "arrowhead"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
@@ -525,7 +529,23 @@ class EquipmentProfile(Record):
             raise ValueError("Usable equipment requires an inventory slot")
         if self.ammunition and (self.modes or self.armor or self.shield):
             raise ValueError("Ammunition cannot also be wearable or a weapon")
+        if self.silver_construction == "melee-weapon" and not any(
+            isinstance(mode, MeleeMode) for mode in self.modes
+        ):
+            raise ValueError("Silver melee construction requires a melee weapon")
+        if self.silver_construction == "arrowhead" and (
+            not self.ammunition or self.definition_id != "equipment:arrow"
+        ):
+            raise ValueError("Silver arrowhead construction requires the pinned arrow row")
         return self
+
+    def price_for(self, construction: SilverConstruction | None = None) -> Money:
+        """Return B275's source-authored list price without creating catalog rows."""
+        if construction is None:
+            return self.price
+        if self.silver_construction is None:
+            raise ValidationError("This equipment cannot use silver construction")
+        return self.price * (20 if construction == "solid-silver" else 3)
 
     def inventory_spec(self) -> EquipmentSpec:
         if self.unsupported_mechanics:
@@ -555,6 +575,7 @@ class EquipmentProfile(Record):
             minimum_technology_level=(
                 self.technology_level if isinstance(self.technology_level, int) else 0
             ),
+            silver_construction=self.silver_construction,
             smartgun=any(
                 isinstance(mode, RangedMode) and mode.smartgun is not None for mode in self.modes
             ),
@@ -606,6 +627,11 @@ def _validate_object_extensions(
         raise ValueError("Recovered salvage material must be stackable")
 
 
+def _validate_silver_extension(profile_id: str, entry: EquipmentProfile) -> None:
+    if entry.silver_construction is not None and profile_id != "gurps-basic-set-4e-2004":
+        raise ValueError("Silver construction requires the exact Basic Set profile")
+
+
 class EquipmentCatalog(Record):
     profile_id: Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
     entries: tuple[EquipmentProfile, ...]
@@ -616,6 +642,7 @@ class EquipmentCatalog(Record):
         if len(entries) != len(self.entries):
             raise ValueError("Duplicate equipment definition")
         for entry in self.entries:
+            _validate_silver_extension(self.profile_id, entry)
             if (
                 entry.warhead is not None or entry.power_cell_capacity is not None
             ) and self.profile_id != "gurps-basic-set-4e-2004":

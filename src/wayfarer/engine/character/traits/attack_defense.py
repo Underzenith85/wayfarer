@@ -73,9 +73,9 @@ class AttackDefenseTraits(Record):
             no_vitals=selected["no_vitals"] or kind in {"homogeneous", "diffuse"},
         )
 
-    def injury_multiplier(self, source_rarity: str) -> int:
+    def injury_multiplier(self, source: str) -> int:
         purchase = self.purchase("disadvantage:vulnerability")
-        if purchase is None or dict(purchase.parameters).get("rarity") != source_rarity:
+        if purchase is None or dict(purchase.parameters).get("source") != source:
             return 1
         return int(dict(purchase.parameters)["multiplier"])
 

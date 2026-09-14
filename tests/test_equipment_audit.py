@@ -154,7 +154,7 @@ def test_audit_rows_export_only_explicit_source_review_state() -> None:
         assert footnotes[record.id].source_review == expected
     assert fields and all(row.source_review == "reviewed" for row in fields)
     assert all("docs/gurps-equipment-source-review.md" in row.evidence for row in fields)
-    assert sum(row.implementation == "implemented" for row in fields) == 146
+    assert sum(row.implementation == "implemented" for row in fields) == 147
     assert sum(row.implementation == "omitted" for row in fields) == 2
     assert bindings["basic-set-catalog"].source_review == "reviewed"
     assert bindings["lite-catalog"].source_review == "pending"

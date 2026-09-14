@@ -228,6 +228,7 @@ WEAPONS = (
             -2,
             armor_divisor=Decimal("0.5"),
         ),
+        silver_construction=False,
     ),
     weapon(
         "dagger",
@@ -475,6 +476,7 @@ WEAPONS = (
         2000,
         melee("shortsword-burn", "shortsword", 3, "fixed", -3, "burn", (1,), dice=1),
         unsupported=("linked-affliction",),
+        silver_construction=False,
     ),
     weapon(
         "short-staff",
@@ -757,5 +759,6 @@ WEAPONS = (
             bonus_dice=1,
             ready_after_attack_below_st_multiple=Fraction(3, 2),
         ),
+        silver_construction=False,
     ),
 )
