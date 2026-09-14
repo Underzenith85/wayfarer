@@ -1,0 +1,32 @@
+{
+  "source": "GURPS Basic Set: Campaigns, fourth printing, B456-B461",
+  "creatures": {
+    "creature:house-cat": {
+      "traits": ["catfall", "combat-reflexes", "domestic-animal", "night-vision", "quadruped", "sharp-claws", "sharp-teeth"],
+      "skills": {"skill:brawling": 16, "skill:jumping": 14, "skill:stealth": 14}
+    },
+    "creature:large-guard-dog": {
+      "traits": ["chummy", "discriminatory-smell", "domestic-animal", "quadruped", "sharp-teeth"]
+    },
+    "creature:timber-wolf": {
+      "traits": ["discriminatory-smell", "night-vision", "quadruped", "sharp-teeth", "temperature-tolerance", "wild-animal"]
+    },
+    "creature:cavalry-horse": {
+      "traits": ["combat-reflexes", "domestic-animal", "hooves", "peripheral-vision", "quadruped", "weak-bite"]
+    },
+    "creature:draft-horse": {
+      "traits": ["domestic-animal", "hooves", "peripheral-vision", "quadruped", "weak-bite"]
+    },
+    "creature:basilisk": {
+      "traits": ["vermiform", "wild-animal"],
+      "attacks": ["death-gaze"]
+    },
+    "creature:gryphon": {
+      "traits": ["acute-vision", "combat-reflexes", "quadruped", "sharp-beak", "sharp-claws", "wild-animal", "winged-flight"],
+      "attacks": ["claw", "beak"]
+    }
+  },
+  "bees": {
+    "disengage_distance_from_origin": 50
+  }
+}

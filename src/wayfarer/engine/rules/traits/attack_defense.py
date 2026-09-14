@@ -150,7 +150,7 @@ BINDINGS: Final = (
         "advantage:teeth",
         "Teeth",
         0,
-        parameters=(parameter("kind", "text", "blunt", "sharp", "fangs"),),
+        parameters=(parameter("kind", "text", "blunt", "sharp", "sharp-beak", "fangs"),),
     ),
     AttackDefenseBinding("advantage:unkillable", "Unkillable", 50, 3),
     AttackDefenseBinding("advantage:vampiric-bite", "Vampiric Bite", 30),

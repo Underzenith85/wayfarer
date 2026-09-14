@@ -4789,6 +4789,7 @@
           "form": {
             "enum": [
               "bite",
+              "beak",
               "claw",
               "kick",
               "striker",
@@ -4812,11 +4813,23 @@
               "crushing",
               "cutting",
               "impaling",
+              "large-piercing",
               "toxic",
               "special"
             ],
             "title": "Damage Type",
             "type": "string"
+          },
+          "effect": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CreatureAttackEffect"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "reach": {
             "default": 0,
@@ -4835,6 +4848,52 @@
         "title": "CreatureAttack",
         "type": "object"
       },
+      "CreatureAttackEffect": {
+        "additionalProperties": false,
+        "description": "An approved ability construction consumed by the shared modifier adapters.",
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "damage_dice": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Damage Dice",
+            "type": "integer"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/$defs/CreatureModifierBinding"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "power_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Power Id"
+          }
+        },
+        "required": [
+          "definition_id",
+          "damage_dice",
+          "modifiers"
+        ],
+        "title": "CreatureAttackEffect",
+        "type": "object"
+      },
       "CreatureCombatBehavior": {
         "additionalProperties": false,
         "description": "Trusted limits on proposals; these are species facts, not AI narration.",
@@ -4848,6 +4907,7 @@
               "enum": [
                 "attack",
                 "all-out-attack",
+                "concentrate",
                 "move",
                 "move-and-attack",
                 "do-nothing"
@@ -4884,6 +4944,46 @@
           }
         },
         "title": "CreatureCombatBehavior",
+        "type": "object"
+      },
+      "CreatureModifierBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "option": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Option"
+          },
+          "sense": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sense"
+          }
+        },
+        "required": [
+          "definition_id"
+        ],
+        "title": "CreatureModifierBinding",
         "type": "object"
       },
       "CreatureMovement": {
@@ -16061,6 +16161,31 @@
             ],
             "default": null,
             "title": "Dispersed By Command Id"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SwarmCell"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "disengaged_by_command_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Disengaged By Command Id"
           }
         },
         "required": [
@@ -16289,6 +16414,13 @@
             "maximum": 3600,
             "minimum": 0,
             "title": "Low Tech Armor Seconds",
+            "type": "integer"
+          },
+          "disengage_distance_from_origin": {
+            "default": 0,
+            "maximum": 10000,
+            "minimum": 0,
+            "title": "Disengage Distance From Origin",
             "type": "integer"
           },
           "reference": {

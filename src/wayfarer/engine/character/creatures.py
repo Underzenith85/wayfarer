@@ -7,6 +7,7 @@ import json
 from dataclasses import dataclass
 
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.rules.creatures import validate_creature_template
 from wayfarer.engine.rules.types.creature import (
     Creature,
     CreatureStatistics,
@@ -38,6 +39,8 @@ class CreatureCatalog:
         if compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Creatures require the exact Basic Set statistics profile")
         checked = tuple(CreatureTemplate.model_validate(value) for value in templates)
+        for template in checked:
+            validate_creature_template(template)
         self.templates = {entry.id: entry for entry in checked}
         if len(self.templates) != len(checked):
             raise ValidationError("Duplicate creature template identifier")

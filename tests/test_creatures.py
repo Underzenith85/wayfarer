@@ -1,5 +1,8 @@
 """Independent Campaigns fourth-printing creature cases, B455-460."""
 
+import json
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError as SchemaError
 from test_statistics import BASIC, profile_package
@@ -18,10 +21,12 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.creatures import (
     command_training_days,
+    creature_attack_effect,
     representative_creatures,
+    representative_swarms,
     training_days,
 )
-from wayfarer.engine.rules.types.creature import CreatureVariation
+from wayfarer.engine.rules.types.creature import CreatureModifierBinding, CreatureVariation
 from wayfarer.engine.simulation.creatures import (
     CompleteCreatureTraining,
     DirectCreature,
@@ -34,6 +39,8 @@ from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
+
+FIXTURE = Path(__file__).parent / "fixtures/gurps/residual-creatures.json"
 
 
 def creature_compiler() -> CharacterCompiler:
@@ -100,23 +107,25 @@ def test_representative_rows_compile_deterministically_through_character_engine(
         assert {entry.origin for entry in first.creature.point_provenance} == {"template"}
 
 
-def test_creature_audit_does_not_promote_incomplete_source_rows() -> None:
+def test_creature_audit_promotes_completed_source_rows() -> None:
     rows = {row.id: row for row in creature_audit_inventory()}
-    assert {
-        identifier for identifier, row in rows.items() if row.implementation == "implemented"
-    } == {"swarm:bats", "swarm:rats"}
+    assert all(row.implementation == "implemented" for row in rows.values())
     assert all(row.source_review == "reviewed" for row in rows.values())
-    assert all(bool(row.gaps) == (row.implementation == "partial") for row in rows.values())
-    assert rows["creature:house-cat"].gaps == (
-        "catfall",
-        "combat-reflexes",
-        "domestic-animal",
-        "night-vision-5",
-        "sharp-teeth",
-        "jumping-14",
-    )
-    assert "executable-death-gaze" in rows["creature:basilisk"].gaps
-    assert rows["swarm:bees"].gaps == ("hive-distance-disengagement",)
+    assert all(not row.gaps and not row.blockers for row in rows.values())
+
+
+def test_residual_creature_builds_match_independent_source_fixture() -> None:
+    expected = json.loads(FIXTURE.read_text())
+    templates = {entry.id: entry for entry in representative_creatures()}
+    for identifier, facts in expected["creatures"].items():
+        template = templates[identifier]
+        assert [entry.id for entry in template.traits] == facts["traits"]
+        if "skills" in facts:
+            assert {entry.id: entry.level for entry in template.skills} == facts["skills"]
+        if "attacks" in facts:
+            assert [entry.id for entry in template.attacks] == facts["attacks"]
+    bees = next(entry for entry in representative_swarms() if entry.id == "swarm:bees")
+    assert bees.disengage_distance_from_origin == expected["bees"]["disengage_distance_from_origin"]
 
 
 def test_individual_variation_is_separate_and_keeps_point_origin() -> None:
@@ -325,3 +334,34 @@ def test_closed_creature_schemas_reject_unknown_behavior_and_bad_mounts() -> Non
     forward = CreatureCatalog(representative_creatures(), creature_compiler())
     reverse = CreatureCatalog(tuple(reversed(representative_creatures())), creature_compiler())
     assert forward.digest == reverse.digest
+
+
+def test_monster_builds_fail_closed_when_registered_adapters_drift() -> None:
+    templates = {entry.id: entry for entry in representative_creatures()}
+    gryphon = templates["creature:gryphon"]
+    wrong_flight = tuple(
+        entry.model_copy(update={"parameters": (("air-move", "11"),)})
+        if entry.id == "winged-flight"
+        else entry
+        for entry in gryphon.traits
+    )
+    with pytest.raises(ValidationError, match="approved air movement"):
+        CreatureCatalog((gryphon.model_copy(update={"traits": wrong_flight}),), creature_compiler())
+
+    gaze = templates["creature:basilisk"].attacks[0]
+    assert gaze.effect is not None
+    broken = gaze.model_copy(
+        update={
+            "effect": gaze.effect.model_copy(
+                update={
+                    "modifiers": (
+                        CreatureModifierBinding(
+                            definition_id="modifier:enhancement:not-registered"
+                        ),
+                    )
+                }
+            )
+        }
+    )
+    with pytest.raises(ValidationError, match="unavailable"):
+        creature_attack_effect(broken)
