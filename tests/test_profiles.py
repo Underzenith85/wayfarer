@@ -242,7 +242,7 @@ def migration(
     )
 
 
-def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verified() -> None:
+def test_default_registry_preserves_pins_and_exposes_verified_gurps_profiles() -> None:
     assert [p.id for p in DEFAULT_REGISTRY.profiles] == [
         "profile:wayfarer-lite",
         "profile:gurps-lite-4e-2004",
@@ -268,7 +268,7 @@ def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verif
             if conformance.CAPABILITIES[identifier].status
             is not conformance.CoverageStatus.VERIFIED
         }
-        assert not profile.supported
+        assert profile.supported
         assert profile.rules.edition == "gurps-4e-2004"
         # Version 3 adds pinned #98 skill metadata; version 2 remains registered.
         carried = {d.id for p in profile.packages for d in p.definitions}
@@ -284,8 +284,7 @@ def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verif
             expected.update(d.id for d in GURPS_EQUIPMENT_SKILL_REFERENCES)
         assert carried == expected
         assert profile.version == 3
-        with pytest.raises(ValidationError, match="not supported"):
-            DEFAULT_REGISTRY.require_supported(profile.id, profile.version)
+        assert DEFAULT_REGISTRY.require_supported(profile.id, profile.version) is profile
     assert GURPS_BASIC_PROFILE.packages[1].dependencies == (GURPS_BASIC_PROFILE.packages[0].id,)
     assert "gurps.tactical.hex_movement" not in GURPS_LITE_PROFILE.required_capabilities
     assert "gurps.tactical.hex_movement" in GURPS_BASIC_PROFILE.required_capabilities
@@ -434,7 +433,9 @@ async def test_new_campaigns_select_exact_profiles_and_old_ones_stay_unchanged(
     # The creation receipt is the command, profile selection included (#634).
     stored = await profiles.store.read(str(default["id"]))
     assert json.loads(SetupService.load(stored).creation_json)["rules_profile"] is None
-    with pytest.raises(ValidationError, match="not supported"):
+    # The mechanically complete profile is selectable; this prototype-shaped
+    # graph then fails its GURPS-specific character validation.
+    with pytest.raises(ValidationError, match="Secondary characteristics"):
         await setup.create(
             CreateSetup(id="gurps", brief=graph.brief, graph=graph, rules_profile=GURPS_LITE),
             principal_id="alice",
@@ -544,7 +545,7 @@ async def test_migration_is_explicit_authorized_atomic_and_idempotent(
         await migrations.preview(cid, EXTENDED, principal_id="bob")
     with pytest.raises(NotFoundError):
         await migrations.apply(cid, command, principal_id="bob")
-    with pytest.raises(ValidationError, match="not supported"):
+    with pytest.raises(ValidationError, match="Secondary characteristics"):
         await migrations.preview(cid, GURPS_LITE, principal_id="alice")
     with pytest.raises(ValidationError, match="already uses"):
         await migrations.preview(cid, PROTOTYPE, principal_id="alice")
@@ -709,7 +710,7 @@ async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> N
             rule["enabled"] for rule in listed[("profile:test-extended", 1)]["named_optional_rules"]
         )
         lite = listed[("profile:gurps-lite-4e-2004", 3)]
-        assert lite["supported"] is False and lite["conformance_profile_id"] == "gurps-lite-4e-2004"
+        assert lite["supported"] is True and lite["conformance_profile_id"] == "gurps-lite-4e-2004"
         assert lite["unverified_capabilities"] == list(GURPS_LITE_PROFILE.unverified_capabilities)
         assert lite["packages"][0]["source_ids"] == ["sjg:gurps-lite-4e-2004"]
         response = await client.post(
@@ -722,7 +723,10 @@ async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> N
                 "rules_profile": {"id": "profile:gurps-lite-4e-2004", "version": 3},
             },
         )
-        assert response.status == 400 and "not supported" in (await response.json())["error"]
+        assert (
+            response.status == 400
+            and "Secondary characteristics" in (await response.json())["error"]
+        )
         response = await client.post(
             "/setups",
             headers=ALICE,

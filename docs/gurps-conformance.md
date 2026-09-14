@@ -175,7 +175,7 @@ Explicit engine interpretations, recorded here because the frozen sources do not
 
 Integration boundary: campaign play still resolves through the prototype package. Selecting a GURPS profile for a saved campaign is the explicit migration in [rules profiles](rules-profiles.md), which stays rejected until every required capability of that profile is verified; these services are ready for it and for the scenario/character validators, but nothing in this change alters existing campaign behaviour.
 
-## Outstanding acceptance blockers
+## Certification evidence history
 
 The following matrix is a **mechanics-family inventory**, not an exhaustive catalog audit. Issue #95 must remain open until a reviewer with the selected source artifacts accounts for every rule and catalog entry, confirms page references and errata effects, and records exclusions individually. Do not infer completeness from the row count or from green tests.
 
@@ -193,7 +193,7 @@ attribute-loss boundary described in [disease, infection, and aging](gurps-disea
 
 ## Mechanics-family coverage matrix
 
-Status and implementation ownership mirror `CAPABILITIES`. None is certified. References name source sections without reproducing prose; precise item/page verification remains part of the source audit above.
+Status and implementation ownership mirror `CAPABILITIES`. All Basic-required rows are verified and the frozen Basic Set profile passes its certification gate. References name source sections without reproducing prose; precise item/page evidence remains part of the source audit above.
 
 | Capability | Lite required | Basic required | State | Owner |
 | --- | --- | --- | --- | --- |
@@ -204,8 +204,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.character.skill_defaults` | yes | yes | verified | #98 |
 | `gurps.character.specialties` | no | yes | verified | #98 |
 | `gurps.character.techniques` | no | yes | verified | #98 |
-| `gurps.character.traits` | yes | yes | partial | #100, #113 ([selected construction inventory](gurps-mundane-traits.md)) |
-| `gurps.character.self_control` | yes | yes | partial | #100 |
+| `gurps.character.traits` | yes | yes | verified | #726; [variant/source/runtime matrix](gurps-character-social-capability-certification.md) |
+| `gurps.character.self_control` | yes | yes | verified | #726; [choice, roll, consequence and replay matrix](gurps-character-social-capability-certification.md) |
 | `gurps.character.ability_modifiers` | no | yes | verified | #683 |
 | `gurps.check.success` | yes | yes | verified | #99 |
 | `gurps.check.margin` | yes | yes | verified | #99 |
@@ -213,9 +213,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.quick_contest` | yes | yes | verified | #99 |
 | `gurps.check.regular_contest` | no | yes | verified | #99 |
 | `gurps.check.resistance` | yes | yes | verified | #99 |
-| `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
-| `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
-| `gurps.social.fright` | no | yes | partial | #111; complete B360-361 consequence runtime #520 |
+| `gurps.social.reaction` | yes | yes | verified | #726; standing, trait, material-outcome and replay evidence in the [certification matrix](gurps-character-social-capability-certification.md) |
+| `gurps.social.influence` | yes | yes | verified | #726; all six B359 procedures, exceptions and dispatch in the [certification matrix](gurps-character-social-capability-certification.md) |
+| `gurps.social.fright` | no | yes | verified | #726; B360-361 check, table, timed state and replay evidence in the [certification matrix](gurps-character-social-capability-certification.md) |
 | `gurps.campaign.administration` | no | yes | verified | #501; [authoritative reactions and exact-once awards](gurps-campaign-administration.md) |
 | `gurps.campaign.knowledge` | no | yes | verified | #501; [audience-scoped knowledge](gurps-campaign-administration.md) |
 | `gurps.campaign.time_use` | no | yes | verified | #501; [shared-clock Time Use settlement](gurps-campaign-administration.md) |
@@ -226,8 +226,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.campaign.economics` | no | yes | verified | #503; [conserved trade, exchange, and living costs](gurps-economics.md) |
 | `gurps.campaign.employment` | no | yes | verified | #503; [job search and Time Use-bound income](gurps-economics.md) |
 | `gurps.campaign.hirelings` | no | yes | verified | #503; [contracts, pay, and private loyalty](gurps-economics.md) |
-| `gurps.character.development` | no | yes | partial | #499; [adventure, study, quick-learning, and gained-trait settlement](gurps-character-development.md) |
-| `gurps.social.skill_procedures` | no | yes | partial | #345 parent audit and #366 specialties complete; [17 executable headline rows, seven Fortune-Telling children, and campaign Savoir-Faire milieus](gurps-mundane-skills.md#social-procedures-345); residual #368–#370 |
+| `gurps.character.development` | no | yes | verified | #726; adventure, study, quick learning, transformations and replay in the [certification matrix](gurps-character-social-capability-certification.md) |
+| `gurps.social.skill_procedures` | no | yes | verified | #726; 26 owned procedure rows and every resolution shape in the [certification matrix](gurps-character-social-capability-certification.md) |
 | `gurps.skills.arts_trades` | no | yes | verified | #729; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.combat.melee_weapon_skills` | no | yes | verified | #727; [variant/source/runtime matrix](gurps-combat-capability-certification.md) and [bound procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |
 | `gurps.combat.technique_procedures` | no | yes | verified | #727; [parent-specific variant/source/runtime matrix](gurps-combat-capability-certification.md) |
@@ -286,11 +286,12 @@ self-control multipliers (6/9/12/15), additive modifiers, the net -80% discount
 floor, and final rounding toward higher point cost, including negative totals.
 The rules are selected by exact profile; Basic Set modifiers cannot enter Lite.
 
-These three coverage rows remain **partial**: costing is implemented, but runtime
-self-control checks (#111), catalog content (#113), and supernatural execution
-(#118) remain visible blockers. Disadvantage-specific modifiers and non-percentage
-special constructions are unavailable; they require catalog-specific rules in
-#118 before activation. No generic hook or manual ruling certifies coverage.
+Issue #726 reconciles this construction work with the complete trait source ledger,
+catalog-specific runtime procedures, self-control choices and consequences, and
+mundane and supernatural execution suites. The trait and self-control rows are
+verified by the explicit
+[character/social certification matrix](gurps-character-social-capability-certification.md);
+no generic hook or manual ruling counts as evidence.
 
 ## Tactical geometry (#105)
 
@@ -558,9 +559,9 @@ same receipt ledger and publishes only the effect identifier.
 `tests/fixtures/gurps/social_skills.json` pins the declared table and every
 expected result by hand; `tests/test_social_skills.py` runs them.
 
-Reaction/influence/fright coverage remains **partial**, and runtime self-control
-is partial: these are server-only procedures, with full NPC play dispatch and
-timed consequence execution in #137. The #520 completion pass source-reviewed
+Issue #726 reconciles reaction, influence, fright, self-control and social-skill
+procedures against their independent behavior suites and promotes those complete
+families. The #520 completion pass source-reviewed
 the complete numeric fright table and reconciled the earlier #137/#299 runtime.
 It is represented by typed FrightEffect records: durations, recovery attributes and
 intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
@@ -598,9 +599,9 @@ use compiled skills, and self-control uses its rating plus situation modifiers.
 Campaign commands expose care/panic decisions and owner-proposed, GM-approved
 lasting changes. See [runtime details](gurps-social-runtime.md) and the
 `test_fright_builds`, `test_fright_conditions`, and `test_social_scenario_v2`
-suites for executable #520 evidence. Coverage remains partial for the separate
-source/errata and catalog certification gates; this bounded integration does not
-waive them.
+suites for executable #520 evidence. The selected-printing source and catalog
+joins are verified by #726; the separate Lite artifact remains outside this Basic
+Set-only certification claim.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
 coma deadlines, recovery retries, privacy and unchanged approved builds.

@@ -43,7 +43,8 @@ reports the combined state when no profile is selected.
 
 ## Current status
 
-The repository is expected to remain **blocked** while the dependency issues
-listed on #122 are open or their coverage records remain incomplete. Green
-ordinary engine CI is not a Basic Set certification claim. A release process that
-wants to make that claim must run the command above and publish its report.
+The frozen Basic Set profile is certified: all 73 required capabilities and all
+source-ledger and item-level inventory obligations pass the gate. Issue #726
+completed the character and social families after #728 completed equipment,
+injury, and recovery. Release processes making this claim must still run the
+command above and publish its report so regressions fail closed.
