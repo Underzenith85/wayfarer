@@ -9096,16 +9096,19 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md"
+        "docs/gurps-basic-set-source-review.md",
+        "tests/test_trait_procedures.py::test_b163_careful_records_only_authored_preparation_without_a_penalty",
+        "tests/test_mundane_trait_runtime.py::test_authored_obligation_traits_activate_only_with_the_registered_runtime"
       ],
       "historical_owners": [
         113,
-        496
+        496,
+        722
       ],
-      "completion_owner": 94,
+      "completion_owner": null,
       "capability_id": "gurps.character.traits",
       "runtime_binding": "trait:quirk-careful",
       "parent_id": null,
@@ -9113,7 +9116,7 @@
       "listed_value": "-1",
       "construction_binding": "trait:quirk-careful",
       "cost_owner": "trait:quirk-careful",
-      "consequence_owner": 113,
+      "consequence_owner": 722,
       "source_review_owner": null
     },
     {

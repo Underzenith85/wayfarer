@@ -14,6 +14,7 @@ from typing import Final, Literal
 from wayfarer.engine.rules.traits.background import BACKGROUND_HOOKS
 from wayfarer.engine.rules.traits.mental import MENTAL_HOOKS
 from wayfarer.engine.rules.traits.mundane.complete import HOOKS as COMPLETE_MUNDANE_HOOKS
+from wayfarer.engine.rules.traits.obligations import OBLIGATION_HOOK
 from wayfarer.engine.rules.traits.physical import PHYSICAL_HOOKS
 
 Check = Literal["reaction", "influence"]
@@ -172,7 +173,7 @@ REPUTATION_BINDINGS: Final = MappingProxyType(
 )
 STANDING_HOOKS: Final = frozenset({"trait.appearance", "trait.reputation"})
 SUPPORTED_HOOKS: Final = frozenset(
-    {SELF_CONTROL_HOOK, GADGETEERING_HOOK}
+    {SELF_CONTROL_HOOK, GADGETEERING_HOOK, OBLIGATION_HOOK}
     | BACKGROUND_HOOKS
     | {binding.hook for binding in REACTION_BINDINGS.values()}
     | STANDING_HOOKS

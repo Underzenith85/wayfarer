@@ -1,5 +1,6 @@
 """Independent expectations from Basic Set: Characters B33-34, B36, B46, B61, B120-121."""
 
+from types import SimpleNamespace
 from typing import cast
 
 import pytest
@@ -13,6 +14,12 @@ from wayfarer.engine.rules.traits.mental import (
     Relationship,
     frequency_roll,
     relationship_cost,
+)
+from wayfarer.engine.rules.traits.obligations import (
+    ObligationClause,
+    ObligationCommand,
+    ObligationState,
+    record_obligation,
 )
 from wayfarer.engine.rules.traits.procedures import (
     AdvantageActivation,
@@ -39,7 +46,7 @@ from wayfarer.engine.rules.traits.procedures import (
     select_alternative,
     settle_secret,
 )
-from wayfarer.errors import ValidationError
+from wayfarer.errors import ConflictError, ValidationError
 
 
 def test_b33_unusual_advantage_origin_is_required_and_campaign_scoped() -> None:
@@ -218,6 +225,162 @@ def test_b121_self_imposed_traits_reject_quick_alteration_and_allow_pacts() -> N
         with pytest.raises(ValidationError, match="Quick behavior"):
             impose_self_imposed("trait:vow", method)
     assert impose_self_imposed("trait:honesty", "magic").method == "magic"
+    assert impose_self_imposed("trait:code-of-honor-soldier", "chosen").method == "chosen"
+    assert impose_self_imposed("trait:sense-of-duty-small-group", "chosen").method == "chosen"
+    with pytest.raises(ValidationError, match="not a Basic Set self-imposed"):
+        impose_self_imposed("trait:quirk-careful", "chosen")
+
+
+def test_b163_careful_records_only_authored_preparation_without_a_penalty() -> None:
+    build = SimpleNamespace(trait_purchases=(SimpleNamespace(definition_id="trait:quirk-careful"),))
+    command = ObligationCommand(
+        id="careful-1",
+        actor_id="hero",
+        definition_id="trait:quirk-careful",
+        situation_id="enter-dangerous-ruin",
+        expected_revision=0,
+        clause="prepare-before-danger",
+        outcome="fulfilled",
+        preparation_time=30,
+        preparation_expense=12,
+        reason="The GM authored the rope, lamps, and planning required here.",
+    )
+    state, receipt = record_obligation(
+        ObligationState(), build, command, principal_id="gm", gm_ids=frozenset({"gm"})
+    )
+    assert state.revision == 1
+    assert (receipt.command.preparation_time, receipt.command.preparation_expense) == (30, 12)
+    assert not receipt.compulsory_roll
+    assert receipt.point_change == 0 and receipt.mechanical_penalty is None
+
+    # A retry returns the exact persisted judgment without consuming a revision.
+    repeated, replayed = record_obligation(
+        state, build, command, principal_id="gm", gm_ids=frozenset({"gm"})
+    )
+    assert repeated == state and replayed == receipt
+    with pytest.raises(ConflictError, match="different facts"):
+        record_obligation(
+            state,
+            build,
+            command.model_copy(update={"reason": "changed"}),
+            principal_id="gm",
+            gm_ids=frozenset({"gm"}),
+        )
+
+
+@pytest.mark.parametrize(
+    ("definition_id", "clause", "beneficiaries", "kind", "scope"),
+    (
+        ("trait:code-of-honor-soldier", "obey-rules-of-war", ("enemy-unit",), "soldier-code", None),
+        (
+            "trait:sense-of-duty-individual",
+            "never-abandon",
+            ("ward",),
+            "sense-of-duty",
+            "individual",
+        ),
+        (
+            "trait:sense-of-duty-small-group",
+            "share-equipment",
+            ("party",),
+            "sense-of-duty",
+            "small-group",
+        ),
+        (
+            "trait:sense-of-duty-large-group",
+            "render-aid",
+            ("town",),
+            "sense-of-duty",
+            "large-group",
+        ),
+        ("trait:sense-of-duty-race", "prevent-suffering", ("humans",), "sense-of-duty", "race"),
+        (
+            "trait:sense-of-duty-all-living",
+            "prevent-hunger",
+            ("refugees",),
+            "sense-of-duty",
+            "all-living",
+        ),
+    ),
+)
+def test_b127_b153_obligations_are_exact_gm_judgments_without_invented_mechanics(
+    definition_id: str,
+    clause: str,
+    beneficiaries: tuple[str, ...],
+    kind: str,
+    scope: str | None,
+) -> None:
+    build = SimpleNamespace(trait_purchases=(SimpleNamespace(definition_id=definition_id),))
+    command = ObligationCommand(
+        id="decision",
+        actor_id="hero",
+        definition_id=definition_id,
+        situation_id="scene",
+        expected_revision=0,
+        clause=cast(ObligationClause, clause),
+        outcome="breached",
+        beneficiary_ids=beneficiaries,
+        reason="GM judgment from the played scene",
+    )
+    with pytest.raises(ValidationError, match="GM authority"):
+        record_obligation(
+            ObligationState(),
+            build,
+            command,
+            principal_id="hero",
+            gm_ids=frozenset({"gm"}),
+        )
+    _, receipt = record_obligation(
+        ObligationState(), build, command, principal_id="gm", gm_ids=frozenset({"gm"})
+    )
+    assert (receipt.kind, receipt.scope) == (kind, scope)
+    assert receipt.mechanical_penalty is None and receipt.point_change == 0
+
+
+def test_authored_obligation_rejects_player_mechanics_wrong_traits_and_stale_state() -> None:
+    with pytest.raises(SchemaError, match="Only Careful"):
+        ObligationCommand(
+            id="expense",
+            actor_id="hero",
+            definition_id="trait:code-of-honor-soldier",
+            situation_id="scene",
+            expected_revision=0,
+            clause="maintain-kit",
+            outcome="fulfilled",
+            preparation_expense=1,
+            reason="player supplied cost",
+        )
+    build = SimpleNamespace(
+        trait_purchases=(SimpleNamespace(definition_id="trait:code-of-honor-soldier"),)
+    )
+    wrong = ObligationCommand(
+        id="wrong",
+        actor_id="hero",
+        definition_id="trait:sense-of-duty-individual",
+        situation_id="scene",
+        expected_revision=0,
+        clause="never-betray",
+        outcome="fulfilled",
+        beneficiary_ids=("ward",),
+        reason="wrong approved build",
+    )
+    with pytest.raises(ValidationError, match="approved obligation"):
+        record_obligation(
+            ObligationState(), build, wrong, principal_id="gm", gm_ids=frozenset({"gm"})
+        )
+    with pytest.raises(ConflictError, match="state changed"):
+        record_obligation(
+            ObligationState(revision=1),
+            build,
+            wrong.model_copy(
+                update={
+                    "definition_id": "trait:code-of-honor-soldier",
+                    "clause": "obey-orders",
+                }
+            ),
+            principal_id="gm",
+            gm_ids=frozenset({"gm"}),
+        )
 
 
 def test_b121_buyoff_uses_compiled_cost_difference_one_step_at_a_time() -> None:
