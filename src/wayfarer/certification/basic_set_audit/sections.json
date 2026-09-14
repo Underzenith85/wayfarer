@@ -3604,19 +3604,20 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "implemented",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "tests/test_physiology_modifiers.py"
       ],
       "historical_owners": [
         191,
         94
       ],
-      "completion_owner": 693,
+      "completion_owner": null,
       "capability_id": "gurps.character.primary_attributes",
-      "runtime_binding": null,
+      "runtime_binding": "skill:body-language",
       "parent_id": "section:characters:b174:skill-list",
       "classification": null,
       "listed_value": null,
