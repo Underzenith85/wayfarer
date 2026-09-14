@@ -277,7 +277,7 @@ def test_starting_wealth_bounds_equipment_budget() -> None:
     stove = next(
         value for value in BASIC_EQUIPMENT.entries if value.definition_id == "equipment:camp-stove"
     )
-    assert BackgroundTraits(wealth="poor").starting_assets(1_000) // stove.price == 4
+    assert BackgroundTraits(wealth="poor").starting_assets(1_000) == stove.price * 4
 
 
 def test_legality_class_uses_the_catalog_rating_and_jurisdiction() -> None:
