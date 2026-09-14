@@ -1,6 +1,7 @@
 """Independent B181 expectations for cross-species physiology modifiers."""
 
 from decimal import Decimal
+from typing import Final, Literal
 
 import pytest
 
@@ -32,7 +33,7 @@ from wayfarer.engine.simulation.skills.physiology import (
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import ValidationError
 
-PROFILE = "gurps-basic-set-4e-2004"
+PROFILE: Final[Literal["gurps-basic-set-4e-2004"]] = "gurps-basic-set-4e-2004"
 
 
 def build(*skills: tuple[str, int]) -> ValidatedBuild:
