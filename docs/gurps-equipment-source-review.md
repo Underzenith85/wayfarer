@@ -67,3 +67,18 @@ special weapon is available only when its equipment row supplies the complete
 adapter; technology level and weapon names never imply guidance support. Cover
 remains an object-durability concern documented in
 `gurps-special-ranged-procedures.md`.
+
+## Ranged and heavy-equipment completion (#685, #702, #703)
+
+Characters B275-B281 was rechecked row by row for the combined ranged-equipment
+completion. Every muscle-powered, firearm, beam, and heavy-weapon row in scope
+now has a typed catalog profile. B281's 13 weapon rows are paired with separate
+ammunition or fuel records, including missile and rocket explosive warheads.
+
+The review also checked the applicable notes for bodkin and lead missiles,
+alternative firearm ammunition, poison or drug follow-ups, electrolaser linked
+afflictions, surge, Bulk-based Holdout, rated crossbows, minimum range,
+guidance, crew and mounting, integral launchers, back blast, and liquid-projector
+streams. Their ledger dispositions point to executable tests in
+`tests/test_issue_685_ranged_heavy.py`; unrelated melee linked-affliction work
+remains separately fail-closed.

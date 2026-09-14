@@ -40,7 +40,7 @@ def test_inventory_and_references() -> None:
     } <= ids
     assert len(entries) > 180
     # #338-#343 add bound procedures without changing a package pin.
-    assert audit_report()["available"] == 435
+    assert audit_report()["available"] == 436
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -405,7 +405,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert report["implementation_counts"] == {
         # #343 binds 66 concrete physical/outdoor rows and four templates.
         "contextual": 28,
-        "implemented": 476,
+        "implemented": 477,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -470,7 +470,7 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     # #344 and its children expand Thrown Weapon, the two TL-indexed weapon
     # families, the crew-served ones, the liquid projectors and Innate Attack;
     # #346 the vehicle and crew families and #356 the discipline-keyed ones.
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 229
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 230
     assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182

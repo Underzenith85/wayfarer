@@ -1,5 +1,6 @@
 """Independent selected-row audit: Characters third printing B271-289."""
 
+from decimal import Decimal
 from fractions import Fraction
 
 import pytest
@@ -218,9 +219,9 @@ SHIELD_ROWS = (
         ("camp-stove", 6, 50, 2000),
         ("insulated-sleeping-bag", 7, 100, 15000),
         ("laptop", 8, 1500, 3000),
-        ("electrolaser-pistol", 9, 1800, 2200),
+        ("electrolaser-pistol", 9, 1800, 1700),
         ("laser-pistol", 10, 2800, 2800),
-        ("blaster-pistol", 11, 2200, 1600),
+        ("blaster-pistol", 11, 2200, 1100),
     ],
 )
 def test_selected_source_rows(key: str, tl: int, cost: int, weight: int) -> None:
@@ -391,7 +392,9 @@ def test_b275_276_launcher_rows_have_independent_inventory_and_mode_facts() -> N
     assert longbow.rated_strength.model_dump() == {"kind": "bow", "st": 11}
     crossbow = entries["crossbow"].modes[0]
     assert isinstance(crossbow, RangedMode) and crossbow.reload_seconds == 4
-    assert entries["pistol-crossbow"].unsupported_mechanics == ("one-handed-rated-crossbow",)
+    assert not entries["pistol-crossbow"].unsupported_mechanics
+    pistol_crossbow = entries["pistol-crossbow"].modes[0]
+    assert isinstance(pistol_crossbow, RangedMode) and pistol_crossbow.ready_hands == 2
 
 
 def test_b276_ammunition_keeps_fractional_prices_and_weights() -> None:
@@ -547,9 +550,11 @@ def test_b279_single_shot_long_guns_preserve_independent_columns() -> None:
         entry = entries[key]
         assert (entry.provenance.pages, entry.technology_level, entry.price) == ((279,), tl, cost)
         assert entry.weight_millipounds == weight
-        assert entry.unsupported_mechanics == ("conditional-one-handed-firearm",)
+        assert not entry.unsupported_mechanics
         assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
         mode = entry.modes[0]
+        assert mode.one_handed_minimum_st_multiplier == Decimal("1.5")
+        assert mode.one_handed_unready_st_multiplier == Decimal("3")
         assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (
             dice,
             adds,
@@ -609,9 +614,11 @@ def test_b279_repeating_rifles_reconstruct_loaded_table_weight() -> None:
         ) = row
         entry = entries[key]
         assert (entry.provenance.pages, entry.technology_level, entry.price) == ((279,), tl, cost)
-        assert entry.unsupported_mechanics == ("conditional-one-handed-firearm",)
+        assert not entry.unsupported_mechanics
         assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
         mode = entry.modes[0]
+        assert mode.one_handed_minimum_st_multiplier == Decimal("1.5")
+        assert mode.one_handed_unready_st_multiplier == Decimal("3")
         assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (dice, adds, "pi")
         assert (
             mode.accuracy,
@@ -774,9 +781,11 @@ def test_b278_conventional_smgs_reconstruct_loaded_table_weight() -> None:
         ) = row
         entry = entries[key]
         assert (entry.provenance.pages, entry.technology_level, entry.price) == ((278,), tl, cost)
-        assert entry.unsupported_mechanics == ("conditional-one-handed-firearm",)
+        assert not entry.unsupported_mechanics
         assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
         mode = entry.modes[0]
+        assert mode.one_handed_minimum_st_multiplier == Decimal("1.5")
+        assert mode.one_handed_unready_st_multiplier == Decimal("3")
         assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (
             dice,
             adds,

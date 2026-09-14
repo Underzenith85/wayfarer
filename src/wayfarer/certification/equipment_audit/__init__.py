@@ -34,6 +34,12 @@ from wayfarer.engine.rules.types.explosion import ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmSpec
 from wayfarer.engine.rules.types.launcher import LauncherSpec
 from wayfarer.engine.rules.types.mount import MountSpec
+from wayfarer.engine.rules.types.ranged_equipment import (
+    AmmunitionVariant,
+    BackBlastSpec,
+    FollowUpSpec,
+    WeaponAttachmentSpec,
+)
 from wayfarer.engine.rules.types.readiness import ProjectileReadiness
 from wayfarer.engine.rules.types.special_ranged import GuidanceSpec
 from wayfarer.engine.rules.types.spray import SprayerSpec
@@ -82,6 +88,10 @@ AUDITED_MODELS = (
     MountSpec,
     SprayerSpec,
     LauncherSpec,
+    AmmunitionVariant,
+    FollowUpSpec,
+    BackBlastSpec,
+    WeaponAttachmentSpec,
     Armor,
     Shield,
     EquipmentProfile,

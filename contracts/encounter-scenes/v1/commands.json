@@ -176,6 +176,16 @@
             "title": "Size Modifier",
             "type": "integer"
           },
+          "environment": {
+            "default": "air",
+            "enum": [
+              "air",
+              "trace",
+              "vacuum"
+            ],
+            "title": "Environment",
+            "type": "string"
+          },
           "beam_environment_dr": {
             "default": 0,
             "minimum": 0,

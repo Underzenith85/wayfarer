@@ -1,14 +1,77 @@
-"""Muscle-powered ranged weapons and their ammunition (B275-276)."""
+"""Complete muscle-powered ranged weapons and ammunition (B275-277)."""
 
 from decimal import Decimal
 
+from wayfarer.engine.rules.types.entangle import EntangleSpec
+from wayfarer.engine.rules.types.launcher import LauncherSpec
+from wayfarer.engine.rules.types.ranged_equipment import AmmunitionVariant, FollowUpSpec
 from wayfarer.engine.simulation.equipment.basic.rows import ranged, ranged_weapon, source
-from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile
+from wayfarer.engine.simulation.equipment.catalog import Damage, EquipmentProfile, RangedMode
 
-# B275-276. The table's slash-separated weights are split into the reusable
-# launcher and one separately inventoried missile. Rows whose damage is
-# ``spec.`` remain indexed and unavailable until their binding procedure can be
-# stated without inventing a damage value.
+
+def _binding(
+    identifier: str,
+    page: int,
+    tl: int,
+    price: int,
+    weight: int,
+    skill: str,
+    st: int,
+    accuracy: int,
+    maximum: Decimal | int,
+    bulk: int,
+    *,
+    damage: Damage | None = None,
+    immobilizes: bool = True,
+) -> EquipmentProfile:
+    return ranged_weapon(
+        identifier,
+        page,
+        tl,
+        price,
+        weight,
+        RangedMode(
+            id="throw",
+            skill_id="skill:" + skill,
+            minimum_st=st,
+            damage=damage or Damage(basis="fixed", dice=1, damage_type="cr"),
+            accuracy=accuracy,
+            range_basis="st" if not identifier.endswith("cloak") else "yards",
+            maximum_range=maximum,
+            shots=1,
+            reload_seconds=0,
+            bulk=bulk,
+            thrown=True,
+            entangle=EntangleSpec(
+                binding_st=st,
+                attack_penalty=-4,
+                defense_penalty=-2,
+                immobilizes=immobilizes,
+                attached=True,
+                escape_skill_id="attribute:dx",
+            ),
+        ),
+    )
+
+
+_pistol = ranged(
+    "shot",
+    "crossbow",
+    7,
+    "thrust",
+    2,
+    "imp",
+    1,
+    15,
+    20,
+    -4,
+    "bolt",
+    reload_seconds=4,
+    rated_kind="crossbow",
+    hands=1,
+    ready_hands=2,
+)
+
 MUSCLE_POWERED_RANGED = (
     ranged_weapon(
         "blowpipe",
@@ -17,7 +80,6 @@ MUSCLE_POWERED_RANGED = (
         30,
         1000,
         ranged("shot", "blowpipe", 2, "fixed", -3, "pi-", 1, None, 4, -6, "blowpipe-dart", dice=1),
-        unsupported=("follow-up-poison-or-drug",),
     ),
     ranged_weapon(
         "longbow",
@@ -73,29 +135,7 @@ MUSCLE_POWERED_RANGED = (
             rated_kind="crossbow",
         ),
     ),
-    ranged_weapon(
-        "pistol-crossbow",
-        276,
-        3,
-        150,
-        4000,
-        ranged(
-            "shot",
-            "crossbow",
-            7,
-            "thrust",
-            2,
-            "imp",
-            1,
-            15,
-            20,
-            -4,
-            "bolt",
-            reload_seconds=4,
-            rated_kind="crossbow",
-        ),
-        unsupported=("one-handed-rated-crossbow",),
-    ),
+    ranged_weapon("pistol-crossbow", 276, 3, 150, 4000, _pistol),
     ranged_weapon(
         "prodd",
         276,
@@ -134,13 +174,93 @@ MUSCLE_POWERED_RANGED = (
         2000,
         ranged("shot", "sling", 7, "swing", 1, "pi", 1, 10, 15, -6, "sling-stone"),
     ),
-    ranged_weapon("bolas", 275, 0, 20, 2000, unsupported=("entangling-special-damage",)),
-    ranged_weapon("heavy-cloak", 275, 1, 50, 5000, unsupported=("entangling-special-damage",)),
-    ranged_weapon("light-cloak", 275, 1, 20, 2000, unsupported=("entangling-special-damage",)),
-    ranged_weapon("lariat", 276, 1, 40, 3000, unsupported=("entangling-special-damage",)),
-    ranged_weapon("large-net", 276, 0, 40, 20000, unsupported=("entangling-special-damage",)),
-    ranged_weapon("melee-net", 276, 2, 20, 5000, unsupported=("entangling-special-damage",)),
-    ranged_weapon("atlatl", 276, 0, 20, 1000, unsupported=("launcher-assisted-throw",)),
+    _binding(
+        "bolas",
+        275,
+        0,
+        20,
+        2000,
+        "bolas",
+        7,
+        0,
+        3,
+        -2,
+        damage=Damage(basis="thrust", adds=-1, damage_type="cr"),
+    ),
+    _binding("heavy-cloak", 275, 1, 50, 5000, "cloak", 8, 1, 2, -6, immobilizes=False),
+    _binding("light-cloak", 275, 1, 20, 2000, "cloak", 5, 1, 2, -4, immobilizes=False),
+    _binding("lariat", 276, 1, 40, 3000, "lasso", 7, 0, 10, -2),
+    _binding("large-net", 276, 0, 40, 20000, "net", 11, 1, Decimal("0.5"), -6),
+    _binding("melee-net", 276, 2, 20, 5000, "net", 8, 1, 1, -4),
+    ranged_weapon("atlatl", 276, 0, 20, 1000),
+    ranged_weapon(
+        "atlatl-dart",
+        276,
+        0,
+        20,
+        1000,
+        RangedMode(
+            id="launched",
+            skill_id="skill:spear-thrower",
+            minimum_st=5,
+            damage=Damage(basis="swing", adds=-1, damage_type="imp"),
+            accuracy=1,
+            range_basis="st",
+            half_damage_range=3,
+            maximum_range=4,
+            shots=1,
+            reload_seconds=0,
+            bulk=-3,
+            thrown=True,
+            launcher=LauncherSpec(
+                launcher_definition_id="equipment:atlatl",
+                range_multiplier=Decimal(1),
+                damage_bonus=1,
+            ),
+        ),
+    ),
+    ranged_weapon(
+        "harpoon",
+        276,
+        2,
+        60,
+        6000,
+        RangedMode(
+            id="throw",
+            skill_id="skill:thrown-weapon-harpoon",
+            minimum_st=11,
+            damage=Damage(basis="thrust", adds=5, damage_type="imp"),
+            accuracy=2,
+            range_basis="st",
+            half_damage_range=1,
+            maximum_range=Decimal("1.5"),
+            shots=1,
+            reload_seconds=0,
+            bulk=-6,
+            thrown=True,
+        ),
+    ),
+    ranged_weapon(
+        "shuriken",
+        276,
+        3,
+        3,
+        100,
+        RangedMode(
+            id="throw",
+            skill_id="skill:thrown-weapon-shuriken",
+            minimum_st=5,
+            damage=Damage(basis="thrust", adds=-1, damage_type="cut"),
+            accuracy=1,
+            range_basis="st",
+            half_damage_range=Decimal("0.5"),
+            maximum_range=1,
+            shots=1,
+            reload_seconds=0,
+            bulk=0,
+            thrown=True,
+        ),
+    ),
     ranged_weapon("goats-foot", 276, 3, 50, 2000),
 )
 
@@ -161,4 +281,58 @@ MUSCLE_POWERED_AMMUNITION = tuple(
         ("lead-pellet", 2, Decimal("0.1"), 60),
         ("sling-stone", 0, 0, 50),
     )
+)
+
+MUSCLE_POWERED_VARIANTS = (
+    EquipmentProfile(
+        definition_id="equipment:arrow-bodkin",
+        provenance=source(277),
+        weight_millipounds=100,
+        price=2,
+        technology_level=3,
+        ammunition=True,
+        ammunition_variant=AmmunitionVariant(
+            base_definition_id="equipment:arrow", damage_type="pi", armor_divisor=Decimal(2)
+        ),
+    ),
+    EquipmentProfile(
+        definition_id="equipment:bolt-bodkin",
+        provenance=source(277),
+        weight_millipounds=60,
+        price=2,
+        technology_level=3,
+        ammunition=True,
+        ammunition_variant=AmmunitionVariant(
+            base_definition_id="equipment:bolt", damage_type="pi", armor_divisor=Decimal(2)
+        ),
+    ),
+    EquipmentProfile(
+        definition_id="equipment:sling-lead-bullet",
+        provenance=source(276),
+        weight_millipounds=60,
+        price=Decimal("0.1"),
+        technology_level=2,
+        ammunition=True,
+        ammunition_variant=AmmunitionVariant(
+            base_definition_id="equipment:sling-stone", damage_add=1, range_multiplier=Decimal(2)
+        ),
+    ),
+    EquipmentProfile(
+        definition_id="equipment:blowpipe-tranquilizer-dart",
+        provenance=source(276),
+        weight_millipounds=50,
+        price=Decimal("0.1"),
+        technology_level=0,
+        ammunition=True,
+        ammunition_variant=AmmunitionVariant(
+            base_definition_id="equipment:blowpipe-dart", follow_up_payload_id="drug:tranquilizer"
+        ),
+        follow_up=FollowUpSpec(
+            payload_id="drug:tranquilizer",
+            kind="drug",
+            resistance_penalty=-3,
+            condition="unconsciousness",
+            duration_minutes_per_margin=1,
+        ),
+    ),
 )

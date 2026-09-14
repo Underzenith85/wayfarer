@@ -45,6 +45,6 @@ class Stream(Record):
     def exhausted(self) -> bool:
         return self.seconds >= self.sustained_seconds
 
-    def sustain(self, target_id: str) -> Stream:
+    def sustain(self, target_id: str) -> Self:
         """Hold the stream for another second, walking it to a new target if asked."""
         return self.model_copy(update={"seconds": self.seconds + 1, "target_id": target_id})

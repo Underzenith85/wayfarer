@@ -37,7 +37,8 @@ ARTILLERY = tuple(
     for key in ("beams", "bombs", "cannon", "catapult", "guided-missile", "torpedoes")
 )
 GUNNER = tuple(
-    f"skill:gunner-{key}" for key in ("beams", "cannon", "machine-gun", "rockets", "torpedoes")
+    f"skill:gunner-{key}"
+    for key in ("beams", "cannon", "catapult", "machine-gun", "rockets", "torpedoes")
 )
 # A two-person direct-fire mount, and a three-person mount laid indirectly.
 DIRECT = MountSpec(crew=2, laying_seconds=0, vehicle_mounted=True)
@@ -124,7 +125,7 @@ def test_both_families_expand_into_their_indexed_specialties() -> None:
         assert entry.definition.skill.attribute.value == attribute
         defaults = entry.definition.skill.defaults
         assert (defaults[0].target, defaults[0].modifier) == (attribute, default)
-        assert len(defaults) == (1 if identifier in ARTILLERY else 5)
+        assert len(defaults) == (1 if identifier in ARTILLERY else 6)
         assert "conditional-or-skill-defaults" not in entry.blockers
 
 

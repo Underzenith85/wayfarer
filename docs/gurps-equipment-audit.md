@@ -42,22 +42,22 @@ mechanically supported and which therefore omits nothing:
 | Section | Anchor | Rows recorded | Omitted |
 | --- | --- | --- | --- |
 | `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
-| `muscle-powered-ranged` | B275-276 | 18 | duplicated thrown modes, special binding damage, launcher/cocking-aid behavior and remaining material/ammunition variants |
-| `firearms` | B278-279 | 35 | remaining firearm rows, Gauss armor division, musket rests, bipods and integral launchers |
-| `ammunition` | B275-279 | 40 | remaining firearm rounds, alternative missiles, ammunition variants and explosive warheads |
-| `beam-weapons-b280` | B280 | 4 | Laser Pistol and its cell are executable; Electrolaser and Blaster remain blocked with every other beam row omitted |
+| `muscle-powered-ranged` | B275-276 | 21 | no scoped row omitted; entangling attacks, the atlatl, rated crossbows, and special missiles are typed |
+| `firearms` | B278-279 | 42 | no scoped row omitted; every firearm row has an executable mode and exact ammunition binding |
+| `ammunition` | B275-279 | 51 | no scoped row omitted; ordinary rounds, bodkins, lead sling bullets, and typed variants are recorded |
+| `beam-weapons-b280` | B280 | 109 | no scoped row omitted; all beam rows, eligible typed ammunition variants, cells, linked follow-ups, and surge are executable |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `shields` | B287 | 4 | duplicate cloak appearances, the unrepresentable force shield, and buckler, material and offensive variants |
 | `general-equipment-b288` | B288 | 63 | no fixed-TL physical row; behavior-bearing items remain fail-closed |
 | `weapon-accessories` | B289 | 12 | no physical row; accessory behavior remains fail-closed |
 | `general-equipment-remainder` | B289 | 53 | no physical row; special effects remain fail-closed |
 | `wealth-and-legality` | B264-270 | 0 | economic, legal, availability and quality rules are explicitly non-row omissions |
-| `heavy-weapons` | B281 | 0 | all 12 heavy-weapon rows and the Liquid Projector row are named and unsupported |
+| `heavy-weapons` | B281 | 26 | all 13 weapon rows and their ammunition or fuel records are executable |
 | `armor-split-dr` | B283-286 | 0 | every remaining armor row and its split, layered, suit or mount behavior is named |
 | `higher-tl-variants` | B268-289 | 0 | every non-row quality, material, ammunition, armor, shield and TL substitution family is named |
 
-Four sections select no executable catalog rows: wealth and legality, heavy
-weapons, split/special armor, and higher-TL variants. They nevertheless enumerate
+Three sections select no executable catalog rows: wealth and legality,
+split/special armor, and higher-TL variants. They nevertheless enumerate
 their source rows and rules explicitly against inspected B264-289 pages. Their
 unsupported status remains visible to certification and selection gates.
 
@@ -75,11 +75,11 @@ per-round ammunition mass as an exact rational number of millipounds. This
 allows the TL6 9mm automatic pistol's 0.4-pound, nine-round load to remain
 exactly `400/9` millipounds per round without inventing a rounded unit value.
 Four ordinary single-shot B279 long guns also preserve every numeric column and
-their exact one-shot load units. They remain selection-blocked until the
-dagger-marked, ST-conditioned one-hand exception can be represented directly.
+their exact one-shot load units. The dagger-marked, ST-conditioned one-hand
+exception is enforced by the wielding and post-attack readiness procedures.
 Seven ordinary repeating rifles preserve chambered `+1` separately from
 magazine capacity and reconstruct loaded table weight from exact rational
-per-round mass. They share the same explicit one-hand blocker.
+per-round mass and the same executable one-hand thresholds.
 The four B279 shotgun rows likewise preserve shells separately from their nine
 projectiles and retain exact per-shell load mass, including `850/7`
 millipounds for the automatic shotgun.
@@ -89,9 +89,15 @@ row, individual rockets, typed close-range acceleration and smartgun behavior.
 The B278 TL6 9mm SMG records its `8!` automatic-only RoF as an eight-shot
 maximum and a two-shot minimum burst. Its exact 32-round load reconstructs the
 listed 1.5-pound loaded-ammunition weight.
-Three conventional two-handed SMG/PDW rows now preserve the same columns and
-exact load reconstruction; like the long guns, they remain blocked only on the
-dagger-marked one-hand exception.
+Three conventional two-handed SMG/PDW rows preserve the same columns, exact load
+reconstruction, and dagger-marked one-hand thresholds.
+
+Issues #685, #702, and #703 complete the remaining ranged scope. Typed
+ammunition variants modify the loaded weapon's damage, divisor, and range;
+follow-up payloads, surge, minimum range, guidance, mounts, attachments,
+back-blast metadata, sprayers, and explosive warheads bind to the shared combat
+and equipment procedures. B281 contributes all 13 printed weapon rows plus
+separate authoritative ammunition or fuel records.
 
 The four ordinary B287 shields now provide direct cases for Shield and
 EquipmentProfile.shield, including exact DB, cost, weight, DR and HP columns.
@@ -127,8 +133,8 @@ engine-authorized command that names the power source; retries return the saved
 receipt and cannot add charge twice. Smartguns require an explicit authorized
 owner, grant their service bonus, and expose the built-in laser only when the
 scene says its dot is visible. The selected Laser Pistol also requires authored
-obscurant DR. Linked afflictions and surge damage remain unsupported, so the
-Electrolaser and Blaster index rows still fail closed. `weapon-breakage` is implemented as of #173,
+obscurant DR. Electrolaser follow-ups and blaster surge damage use typed,
+executable profiles and no longer fail selection. `weapon-breakage` is implemented as of #173,
 but no audited row declares a weapon quality, so the column has no
 selected-table case behind its executable one.
 
@@ -138,7 +144,7 @@ Every field of the audited equipment schema models has one record giving its
 unit, its source anchor and either its executable coverage or an explicit gap.
 Adding or removing a schema field without updating the ledger fails the audit.
 
-All 125 field records have been independently compared with the selected
+All 184 field records have been independently compared with the selected
 Characters and Campaigns printings. The shield skill and profile fields have
 direct B287 cases. `MeleeMode.kind` and `RangedMode.kind` are reviewed adapter
 discriminators with no corresponding source column; that explicit schema gap

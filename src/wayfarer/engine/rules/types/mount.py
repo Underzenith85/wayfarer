@@ -29,6 +29,9 @@ class MountSpec(Record):
     indirect: bool = False
     # A vehicle mount travels with its vehicle; a ground mount is emplaced.
     vehicle_mounted: bool = False
+    required_mount_definition_id: str | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def coherent(self) -> Self:

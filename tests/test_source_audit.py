@@ -25,8 +25,8 @@ def test_audit_integrity_and_unresolved_sources_block_certification() -> None:
     result = report(ROOT)
     assert result["audit_complete"] is False
     manifest = load(ROOT)
-    assert sum(f.status == "reviewed" for f in manifest.fixtures) == 168
-    assert sum(f.status == "pending" for f in manifest.fixtures) == 98
+    assert sum(f.status == "reviewed" for f in manifest.fixtures) == 171
+    assert sum(f.status == "pending" for f in manifest.fixtures) == 101
     assert not any(f.status == "compared" for f in manifest.fixtures)
     assert "source:sjg:gurps-lite-4e-2004" in blockers(manifest)
     assert any(b.startswith("scope:") for b in blockers(manifest))
@@ -121,7 +121,7 @@ def test_documentation_drift_rejected(tmp_path: Path) -> None:
     docs = (ROOT / "docs/gurps-conformance.md").read_text()
     (tmp_path / "docs/gurps-conformance.md").write_text(
         docs.replace(
-            "| `gurps.combat.aim` | yes | yes | partial",
+            "| `gurps.combat.aim` | yes | yes | verified",
             "| `gurps.combat.aim` | yes | yes | absent",
         )
     )
@@ -204,7 +204,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     from wayfarer.engine.rules.skills.mundane import PROFILE, coverage_blockers
 
     rows = [r for r in inventory() if r.scope == "mundane-skills"]
-    assert len(rows) == 504
+    assert len(rows) == 505
     assert all(r.owner == 112 and r.blockers for r in rows)
     assert all(r.evidence and all((ROOT / path).is_file() for path in r.evidence) for r in rows)
     assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
@@ -214,7 +214,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     # #338-#343, #344 (with its children), #345, #346 and #356: a bound procedure
     # reaches certification as implemented, and a transferred one reaches it
     # naming the concrete open child that owns it.
-    assert sum(r.implementation == "implemented" for r in rows) == 476
+    assert sum(r.implementation == "implemented" for r in rows) == 477
     assert next(r for r in rows if r.id == "skill:photography").blockers == (
         112,
         336,

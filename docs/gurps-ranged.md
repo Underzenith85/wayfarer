@@ -67,7 +67,7 @@ B556-557, and Characters third printing, B147. The selected-printing review now
 records those comparisons. The authoritative errata endpoints were inaccessible,
 so no unrecorded overlay is claimed.
 
-Coverage is **partial**. `tests/test_ranged_critical_completion.py` adds
+Coverage is **verified** by #685. `tests/test_ranged_critical_completion.py` adds
 independent critical-miss, weapon-quality, per-hit location and restart/retry
 fixtures, using Campaigns fourth printing B376, B382, B399 and B556-557.
 The selected-printing audit is complete; the remaining gate is mechanical coverage.
@@ -143,8 +143,9 @@ up front and fail closed without exact hex geometry.
 preparation/drawing/cocking, exact ammunition Fast-Draw specialties, and authored
 individual-round unloading. Legacy catalogs retain their existing protocols.
 
-The B278/B280 higher-TL slice is covered by `tests/test_higher_tl_weapons.py`.
+The B278/B280 higher-TL slice is covered by `tests/test_higher_tl_weapons.py`
+and `tests/test_issue_685_ranged_heavy.py`.
 Power-cell recharge is engine-authorized, capacity-bounded and source-stamped;
 ordinary unload/reload supplies cell switching while preserving each cell's
-identity and charge. Electrolaser and Blaster remain selection-blocked until
-their linked-affliction and surge behavior exists.
+identity and charge. Electrolaser follow-ups persist their resistance result,
+and penetrating surge attacks disable authored electrical targets.

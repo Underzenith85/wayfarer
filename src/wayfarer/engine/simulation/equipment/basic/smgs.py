@@ -36,7 +36,6 @@ ORDINARY_SMGS = tuple(
             chamber_capacity=1,
             hands=2,
         ),
-        unsupported=("conditional-one-handed-firearm",),
     )
     for (
         identifier,

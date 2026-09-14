@@ -1,6 +1,6 @@
 """Opt-in B407 conventional firearm facts and durable failure state."""
 
-from typing import Literal
+from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
@@ -10,15 +10,22 @@ from wayfarer.models import Record
 class FirearmSpec(Record):
     technology_level: int = Field(ge=3, le=12)
     action: Literal[
-        "repeating", "revolver", "muzzleloader", "breechloader", "beam", "single-use", "grenade"
+        "repeating",
+        "revolver",
+        "muzzleloader",
+        "breechloader",
+        "beam",
+        "single-use",
+        "grenade",
+        "launcher",
     ]
     fuse_seconds: int | None = Field(default=None, ge=1, le=60, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
-    def construction(self) -> FirearmSpec:
+    def construction(self) -> Self:
         if self.action == "grenade" and self.fuse_seconds is None:
             raise ValueError("Grenade requires its authored normal fuse duration")
-        if self.action != "grenade" and self.fuse_seconds is not None:
+        if self.action not in ("grenade", "launcher") and self.fuse_seconds is not None:
             raise ValueError("Only grenades have a fuse duration")
         if self.action == "beam" and self.technology_level < 6:
             raise ValueError("Beam construction requires TL6 or later")

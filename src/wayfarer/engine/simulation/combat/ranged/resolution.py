@@ -22,6 +22,7 @@ from wayfarer.engine.rules.tables.ranged import (
     rapid_fire_bonus,
 )
 from wayfarer.engine.rules.types.location import HumanLocation
+from wayfarer.engine.rules.types.ranged_equipment import FollowUpSpec
 from wayfarer.engine.rules.types.spray import Stream
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
@@ -50,10 +51,18 @@ from wayfarer.engine.simulation.combat.objects.combat import (
     target_geometry,
     target_modifier,
 )
-from wayfarer.engine.simulation.combat.objects.locations import from_behind
+from wayfarer.engine.simulation.combat.objects.locations import from_behind, item_hands
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.ranged.ammunition import expend
 from wayfarer.engine.simulation.combat.ranged.critical import RangedCritical, save_ranged_critical
+from wayfarer.engine.simulation.combat.ranged.equipment import (
+    ammunition_profile,
+    effective_mode,
+    persist_back_blast,
+    persist_follow_up,
+    persist_surge,
+    resolve_follow_up,
+)
 from wayfarer.engine.simulation.combat.ranged.lingering_fire import _schedule_lingering_fire
 from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 from wayfarer.engine.simulation.combat.ranged.situation import situation
@@ -89,6 +98,64 @@ def _visibility_adjustment(value: DerivedValue | None, penalty: int) -> DerivedV
     if value is None:
         return None
     return DerivedValue(value.target, value.value + penalty, value.explanations)
+
+
+def _apply_one_handed_readiness(
+    state: PlayState,
+    actor_id: str,
+    weapon_item_id: str,
+    weapon: RangedMode,
+    st: int,
+) -> PlayState:
+    if not (
+        weapon.one_handed_unready_st_multiplier is not None
+        and len(item_hands(state, actor_id, weapon_item_id)) == 1
+        and Decimal(st) < Decimal(weapon.minimum_st) * weapon.one_handed_unready_st_multiplier
+    ):
+        return state
+    resources = state.resources.model_copy(
+        update={
+            "items": tuple(
+                item.model_copy(update={"ready": False}) if item.id == weapon_item_id else item
+                for item in state.resources.items
+            )
+        }
+    )
+    return state.model_copy(update={"resources": resources})
+
+
+def _resolve_follow_up_hit(
+    runtime: RulesContext,
+    state: PlayState,
+    *,
+    event_id: str,
+    target_actor_id: str,
+    target_ht: int,
+    resistance_dr: int,
+    injury: int,
+    spec: FollowUpSpec | None,
+) -> tuple[PlayState, tuple[int, ...]]:
+    if spec is None:
+        return state, ()
+    dice: tuple[int, ...] = (
+        () if spec.requires_penetration and injury <= 0 else draw_dice(runtime.rng, 3)
+    )
+    roll = cast(tuple[int, int, int], dice if dice else (0, 0, 0))
+    result = resolve_follow_up(
+        spec,
+        penetrated_damage=injury,
+        target_ht=target_ht,
+        resistance_dice=roll,
+        resistance_dr=resistance_dr,
+    )
+    resources = persist_follow_up(
+        state.resources,
+        event_id=event_id,
+        target_actor_id=target_actor_id,
+        spec=spec,
+        result=result,
+    )
+    return state.model_copy(update={"resources": resources}), dice
 
 
 def _resolve_overpenetration(
@@ -261,6 +328,12 @@ def resolve(
     original_resources = state.resources
     pending = encounter.pending_defense
     assert pending is not None
+    equipment = catalog(runtime)
+    loaded_ammunition = ammunition_profile(equipment, state.resources, pending.weapon_id, weapon)
+    weapon = effective_mode(weapon, loaded_ammunition)
+    follow_up = weapon.linked_follow_up or (
+        loaded_ammunition.follow_up if loaded_ammunition is not None else None
+    )
     if selected not in pending.allowed or (
         second_defense and second_defense not in pending.allowed
     ):
@@ -287,7 +360,6 @@ def resolve(
         if pending.area_aim_point is not None
         else scene.distance
     )
-    equipment = catalog(runtime)
     compiled = build(runtime, state, actor.actor_id)
     defender_build = build(runtime, state, target.actor_id)
     stats = compiled.statistics
@@ -432,6 +504,7 @@ def resolve(
     state = state.model_copy(
         update={"resources": before_attack(state.resources, pending.weapon_id, weapon)}
     )
+    state = _apply_one_handed_readiness(state, actor.actor_id, pending.weapon_id, weapon, st)
     attack = success_roll(
         equipment.profile_id,
         attack_target,
@@ -807,9 +880,14 @@ def resolve(
     adds = (
         weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
     ) * close_projectile_multiplier
-    half = weapon.half_damage_range is not None and scene.distance >= float(
-        weapon.half_damage_range
-    ) * (range_st if weapon.range_basis == "st" else 1)
+    # Guided/homing tables use the apparent 1/2D cell as projectile speed,
+    # not as a damage falloff threshold (B281 notes 3-4).
+    half = (
+        weapon.guidance is None
+        and weapon.half_damage_range is not None
+        and scene.distance
+        >= float(weapon.half_damage_range) * (range_st if weapon.range_basis == "st" else 1)
+    )
     resistance_damage = (
         weapon.damage
         if close_projectile_multiplier == 1
@@ -819,6 +897,8 @@ def resolve(
             }
         )
     )
+    if half and weapon.loses_armor_divisor_at_half_range:
+        resistance_damage = resistance_damage.model_copy(update={"armor_divisor": Decimal(1)})
     resistance_weapon = (
         weapon
         if close_projectile_multiplier == 1
@@ -847,9 +927,12 @@ def resolve(
         )
         dice = () if maximum else draw_dice(runtime.rng, count)
         damage_dice.extend(dice)
-        damage = max(
-            0 if weapon.damage.damage_type == "cr" else 1,
-            (6 * count if maximum else sum(dice)) + adds,
+        damage = (
+            max(
+                0 if weapon.damage.damage_type == "cr" else 1,
+                (6 * count if maximum else sum(dice)) + adds,
+            )
+            * weapon.damage.multiplier
         )
         damage *= (
             3
@@ -893,6 +976,27 @@ def resolve(
             hit_resistances[-1] = object_result.effective_dr if object_result else 0
             if object_result:
                 effect_dice += tuple(d for roll in object_result.checks for d in roll)
+            target_item = next(i for i in state.resources.items if i.id == pending.target_item_id)
+            target_profile = entries[target_item.definition_id]
+            state = state.model_copy(
+                update={
+                    "resources": persist_surge(
+                        state.resources,
+                        event_id=f"{pending.id}:surge:{index}",
+                        target_item_id=target_item.id,
+                        penetrating_damage=object_result.injury if object_result else 0,
+                        target_is_electrical=bool(
+                            target_profile.electronics
+                            or any(
+                                isinstance(mode, RangedMode) and mode.smartgun is not None
+                                for mode in target_profile.modes
+                            )
+                        ),
+                    )
+                    if weapon.damage.surge
+                    else state.resources
+                }
+            )
             continue
         state, encounter, intervening_dr = _resolve_cover_impact(
             runtime,
@@ -942,7 +1046,12 @@ def resolve(
                 damage_type=weapon.damage.damage_type,
                 location=location,
                 critical_eye=critical_eye and index == 0,
-                armor_divisor=weapon.damage.armor_divisor * (2 if pending.armor_chink else 1),
+                armor_divisor=(
+                    Decimal(1)
+                    if half and weapon.loses_armor_divisor_at_half_range
+                    else weapon.damage.armor_divisor
+                )
+                * (2 if pending.armor_chink else 1),
                 tight_beam=weapon.damage.tight_beam,
                 vulnerability_multiplier=vulnerability_multiplier,
             ),
@@ -985,6 +1094,17 @@ def resolve(
         injuries.append(result.injury)
         lasting_ids += result.lasting_injury_ids
         effect_dice += result.location_dice
+        state, follow_up_dice = _resolve_follow_up_hit(
+            runtime,
+            state,
+            event_id=f"{pending.id}:follow-up:{index}",
+            target_actor_id=target.actor_id,
+            target_ht=defender_stats.ht,
+            resistance_dr=armor_dr() + dr_bonus,
+            injury=result.injury,
+            spec=follow_up,
+        )
+        effect_dice += follow_up_dice
         state, encounter = _resolve_overpenetration(
             runtime,
             state,
@@ -1212,6 +1332,17 @@ def resolve(
                 )
             }
         )
+    state = state.model_copy(
+        update={
+            "resources": persist_back_blast(
+                state.resources,
+                event_id=pending.id + ":back-blast",
+                weapon_item_id=pending.weapon_id,
+                mode=weapon,
+                shots_fired=shots_fired,
+            )
+        }
+    )
     if (
         weapon.firearm
         and weapon.firearm.action == "single-use"

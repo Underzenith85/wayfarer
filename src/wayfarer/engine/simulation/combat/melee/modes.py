@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from wayfarer.engine.rules.checks import Outcome
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.skills.mundane.ranged import require_technology
@@ -11,6 +13,7 @@ from wayfarer.engine.simulation.combat.encounter import Combatant
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.objects.locations import item_hands, unavailable_hand
 from wayfarer.engine.simulation.equipment.catalog import (
+    EquipmentProfile,
     MeleeMode,
     RangedMode,
     require_skill_procedure,
@@ -20,6 +23,81 @@ from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
+
+
+def _validate_hand_count(
+    runtime: RulesContext,
+    state: PlayState,
+    actor_id: str,
+    selected: MeleeMode | RangedMode,
+    hands: tuple[str, ...],
+    *,
+    human: bool,
+    mounted: bool,
+) -> None:
+    if mounted or not human or len(hands) == selected.hands:
+        return
+    if not isinstance(selected, RangedMode) or not (
+        len(hands) == 1
+        and selected.hands == 2
+        and selected.one_handed_minimum_st_multiplier is not None
+    ):
+        raise ValidationError("Human weapon mode requires explicit matching hand bindings")
+    compiled = build(runtime, state, actor_id)
+    assert compiled.statistics is not None
+    assert selected.minimum_st is not None
+    required = Decimal(selected.minimum_st) * selected.one_handed_minimum_st_multiplier
+    if Decimal(compiled.statistics.st) < required:
+        raise ValidationError("One-handed firearm use requires 1.5 times listed ST")
+
+
+def _attached_mode(
+    runtime: RulesContext,
+    state: PlayState,
+    actor_id: str,
+    item_id: str,
+    selected: MeleeMode | RangedMode,
+) -> MeleeMode | RangedMode:
+    if not isinstance(selected, RangedMode) or selected.attachment is None:
+        return selected
+    attachment = selected.attachment
+    entries = {entry.definition_id: entry for entry in catalog(runtime).entries}
+    hosts: list[tuple[EquipmentProfile, RangedMode]] = []
+    for item in state.resources.items:
+        if item.id == item_id or item.owner_id != actor_id or not item.equipped or not item.ready:
+            continue
+        profile = entries[item.definition_id]
+        hosts.extend(
+            (profile, mode)
+            for mode in profile.modes
+            if isinstance(mode, RangedMode)
+            and isinstance(profile.technology_level, int)
+            and profile.technology_level >= attachment.minimum_host_tl
+            and (
+                profile.definition_id == attachment.host_definition_id
+                if attachment.kind == "integral"
+                else mode.skill_id in attachment.host_skill_ids
+            )
+        )
+    if not hosts:
+        raise ValidationError("Attached launcher requires its authored ready host weapon")
+    return (
+        selected.model_copy(update={"bulk": hosts[0][1].bulk})
+        if attachment.inherit_bulk
+        else selected
+    )
+
+
+def _validate_required_mount(
+    state: PlayState,
+    actor_id: str,
+    required_definition_id: str | None,
+) -> None:
+    if required_definition_id is not None and not any(
+        item.owner_id == actor_id and item.definition_id == required_definition_id and item.equipped
+        for item in state.resources.items
+    ):
+        raise ValidationError("Mounted weapon requires its authored support equipment")
 
 
 def ready_reach(
@@ -176,6 +254,7 @@ def mode(
         raise ValidationError("Select exactly one supported weapon mode")
     selected = modes[0]
     selected = _held_reach(selected, item.melee_reach)
+    selected = _attached_mode(runtime, state, actor_id, item_id, selected)
     if (
         isinstance(selected, RangedMode)
         and selected.smartgun is not None
@@ -201,6 +280,7 @@ def mode(
         # The mount bears the weapon: the crew, not a grip, is what validates
         # the shot, and everyone it needs must still be serving it (#357).
         crew = item.mount_crew
+        _validate_required_mount(state, actor_id, mount.required_mount_definition_id)
         if actor_id not in crew:
             raise ValidationError("A mounted weapon is fired by its own crew")
         if len(crew) != mount.crew:
@@ -209,12 +289,23 @@ def mode(
             pool = next((p for p in state.resources.pools if p.id == f"hp:{member}"), None)
             if pool is None or pool.injury is None or pool.injury.incapacitated:
                 raise ValidationError("A mounted weapon needs every crew member serving it")
-    elif hp.injury and hp.injury.anatomy == "human" and len(hands) != selected.hands:
-        raise ValidationError("Human weapon mode requires explicit matching hand bindings")
+    _validate_hand_count(
+        runtime,
+        state,
+        actor_id,
+        selected,
+        hands,
+        human=bool(hp.injury and hp.injury.anatomy == "human"),
+        mounted=mount is not None,
+    )
     if (
         mount is None
         and unavailable
-        and (len(hands) != selected.hands or any(unavailable_hand(unavailable, h) for h in hands))
+        and (
+            len(hands)
+            not in ({1, selected.hands} if isinstance(selected, RangedMode) else {selected.hands})
+            or any(unavailable_hand(unavailable, h) for h in hands)
+        )
     ):
         raise ValidationError(
             "Selected grip uses a crippled hand or requires explicit hand bindings"

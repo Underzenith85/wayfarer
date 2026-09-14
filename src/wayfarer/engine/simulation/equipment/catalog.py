@@ -34,6 +34,12 @@ from wayfarer.engine.rules.types.launcher import LauncherSpec
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.rules.types.mount import MountSpec
 from wayfarer.engine.rules.types.object import ObjectProfile
+from wayfarer.engine.rules.types.ranged_equipment import (
+    AmmunitionVariant,
+    BackBlastSpec,
+    FollowUpSpec,
+    WeaponAttachmentSpec,
+)
 from wayfarer.engine.rules.types.readiness import ProjectileReadiness
 from wayfarer.engine.rules.types.special_ranged import GuidanceSpec
 from wayfarer.engine.rules.types.spray import SprayerSpec
@@ -77,6 +83,8 @@ class Damage(Record):
     damage_type: DamageType
     armor_divisor: Decimal = Field(default=Decimal(1), gt=0, allow_inf_nan=False)
     tight_beam: bool = False
+    multiplier: Positive = Field(default=1, exclude_if=lambda value: value == 1)
+    surge: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def valid_basis(self) -> Self:
@@ -201,6 +209,7 @@ class RangedMode(Record):
     range_basis: Literal["yards", "st"]
     half_damage_range: Annotated[Decimal | int, Field(gt=0, allow_inf_nan=False)] | None = None
     maximum_range: Annotated[Decimal | int, Field(gt=0, allow_inf_nan=False)]
+    minimum_range: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
     rate_of_fire: Positive = 1
     minimum_shots_per_attack: Positive = Field(default=1, exclude_if=lambda value: value == 1)
     shots: Positive
@@ -238,6 +247,24 @@ class RangedMode(Record):
     smartgun: SmartgunSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     beam_environment_dr: bool = Field(default=False, exclude_if=lambda value: not value)
     guidance: GuidanceSpec | None = Field(default=None, exclude_if=lambda value: value is None)
+    back_blast: BackBlastSpec | None = Field(default=None, exclude_if=lambda value: value is None)
+    attachment: WeaponAttachmentSpec | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    linked_follow_up: FollowUpSpec | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    loses_armor_divisor_at_half_range: bool = Field(
+        default=False, exclude_if=lambda value: not value
+    )
+    requires_atmosphere: bool = Field(default=False, exclude_if=lambda value: not value)
+    ready_hands: Literal[1, 2] | None = Field(default=None, exclude_if=lambda value: value is None)
+    one_handed_minimum_st_multiplier: Decimal | None = Field(
+        default=None, gt=1, le=3, exclude_if=lambda value: value is None
+    )
+    one_handed_unready_st_multiplier: Decimal | None = Field(
+        default=None, gt=1, le=5, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def guidance_adapter(self) -> Self:
@@ -246,6 +273,32 @@ class RangedMode(Record):
                 raise ValueError("Guidance requires a ranged projectile with explicit speed")
             if self.rate_of_fire != 1:
                 raise ValueError("Guidance does not duplicate special rapid-fire weapon families")
+        return self
+
+    @model_validator(mode="after")
+    def extended_ranged_facts(self) -> Self:
+        if self.minimum_range >= self.maximum_range:
+            raise ValueError("Minimum range must be below maximum range")
+        if self.loses_armor_divisor_at_half_range and (
+            self.half_damage_range is None or self.damage.armor_divisor == 1
+        ):
+            raise ValueError("Half-range divisor loss requires a divided-damage range")
+        if (
+            self.back_blast is not None
+            and self.firearm is not None
+            and self.firearm.action == "beam"
+        ):
+            raise ValueError("Beam weapons do not create launcher back-blast")
+        if self.attachment is not None and (self.thrown or self.hands != 2):
+            raise ValueError("Attached launchers use the host weapon's two-handed grip")
+        if self.requires_atmosphere and (self.firearm is None or self.firearm.action != "beam"):
+            raise ValueError("Atmosphere requirements belong to beam weapons")
+        if self.ready_hands is not None and self.ready_hands < self.hands:
+            raise ValueError("Ready hands cannot be fewer than attack hands")
+        if (self.one_handed_minimum_st_multiplier is None) != (
+            self.one_handed_unready_st_multiplier is None
+        ):
+            raise ValueError("Conditional one-handed use requires both ST thresholds")
         return self
 
     @model_validator(mode="after")
@@ -292,7 +345,7 @@ class RangedMode(Record):
                 raise ValueError("Firearm readiness requires pinned firearm facts")
         if (
             self.firearm is not None
-            and self.firearm.action not in ("beam", "grenade", "single-use")
+            and self.firearm.action not in ("beam", "grenade", "single-use", "launcher")
             and (
                 self.thrown
                 or self.blockable
@@ -315,7 +368,12 @@ class RangedMode(Record):
                 self.thrown or self.shots != 1 or self.rate_of_fire != 1
             ):
                 raise ValueError("Single-use launcher requires one loaded shot")
-            if self.readiness is not None and action in ("beam", "grenade", "single-use"):
+            if self.readiness is not None and action in (
+                "beam",
+                "grenade",
+                "single-use",
+                "launcher",
+            ):
                 raise ValueError("Exotic weapons do not use conventional Fast-Draw readiness")
         if self.half_damage_range is not None and self.half_damage_range > self.maximum_range:
             raise ValueError("Half-damage range exceeds maximum range")
@@ -336,7 +394,7 @@ class RangedMode(Record):
             self.thrown
             or self.shots != 1
             or self.rate_of_fire != 1
-            or self.hands != 2
+            or (self.hands != 2 and self.ready_hands != 2)
             or self.range_basis != "st"
             or self.damage.basis != "thrust"
             or self.reload_protocol != "magazine"
@@ -402,7 +460,7 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         entangling=isinstance(mode, RangedMode) and mode.entangle is not None,
         conventional_firearm=isinstance(mode, RangedMode)
         and mode.firearm is not None
-        and mode.firearm.action not in ("beam", "grenade"),
+        and mode.firearm.action not in ("beam", "grenade", "single-use", "launcher"),
         mounted=isinstance(mode, RangedMode) and mode.mount is not None,
         spraying=isinstance(mode, RangedMode) and mode.sprayer is not None,
         launched=isinstance(mode, RangedMode) and mode.launcher is not None,
@@ -478,6 +536,10 @@ class EquipmentProfile(Record):
     )
     slot: Id | None = None
     ammunition: bool = False
+    ammunition_variant: AmmunitionVariant | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    follow_up: FollowUpSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     modes: tuple[WeaponMode, ...] = ()
     armor: Armor | None = None
     shield: Shield | None = None
@@ -537,6 +599,10 @@ class EquipmentProfile(Record):
             not self.ammunition or self.definition_id != "equipment:arrow"
         ):
             raise ValueError("Silver arrowhead construction requires the pinned arrow row")
+        if self.ammunition_variant is not None and not self.ammunition:
+            raise ValueError("Ammunition variants must be ammunition inventory choices")
+        if self.follow_up is not None and not self.ammunition:
+            raise ValueError("Inventory follow-up payloads must be ammunition")
         return self
 
     def price_for(self, construction: SilverConstruction | None = None) -> Money:

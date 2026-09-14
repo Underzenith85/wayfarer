@@ -6642,18 +6642,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-equipment-source-review.md",
+        "tests/test_issue_685_ranged_heavy.py"
       ],
       "historical_owners": [
         191,
         527,
-        94
+        94,
+        685
       ],
-      "completion_owner": 685,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -6673,18 +6676,22 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-equipment-source-review.md",
+        "tests/test_area_attacks.py",
+        "tests/test_explosions.py"
       ],
       "historical_owners": [
         191,
         527,
-        94
+        94,
+        685
       ],
-      "completion_owner": 685,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
@@ -6735,18 +6742,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "partial",
+      "implementation": "verified",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-characters-section-obligations.md"
+        "docs/gurps-characters-section-obligations.md",
+        "docs/gurps-equipment-source-review.md",
+        "tests/test_higher_tl_weapons.py"
       ],
       "historical_owners": [
         191,
         527,
-        94
+        94,
+        685
       ],
-      "completion_owner": 685,
+      "completion_owner": null,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",

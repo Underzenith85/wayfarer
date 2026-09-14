@@ -175,6 +175,7 @@ def ranged(
     hands: Literal[1, 2] = 2,
     reload_seconds: int = 2,
     rated_kind: Literal["bow", "crossbow"] | None = None,
+    ready_hands: Literal[1, 2] | None = None,
 ) -> RangedMode:
     """Construct one B275-276 muscle-powered launcher mode."""
     return RangedMode(
@@ -199,6 +200,7 @@ def ranged(
         rated_strength=(
             None if rated_kind is None else RatedStrength(kind=rated_kind, st=minimum_st)
         ),
+        ready_hands=ready_hands,
         readiness=(
             None
             if rated_kind is None
@@ -285,6 +287,8 @@ def firearm(
         bulk=bulk,
         recoil=recoil,
         ammunition_id="equipment:" + ammunition_id,
+        one_handed_minimum_st_multiplier=Decimal("1.5") if hands == 2 else None,
+        one_handed_unready_st_multiplier=Decimal(3) if hands == 2 else None,
         firearm=FirearmSpec(
             technology_level=tl,
             action=action,
