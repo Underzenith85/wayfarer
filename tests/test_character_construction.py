@@ -17,7 +17,12 @@ from wayfarer.engine.character.construction import (
     LanguageUse,
 )
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.traits.mental import Relationship, frequency_roll, relationship_cost
+from wayfarer.engine.rules.traits.mental import (
+    Relationship,
+    RelationshipKind,
+    frequency_roll,
+    relationship_cost,
+)
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.identities import (
     identity_events,
@@ -38,6 +43,7 @@ def exact_draft(**changes: object) -> ConstructionDraft:
             Purchase(definition_id="attribute:iq", amount=10),
             Purchase(definition_id="attribute:ht", amount=10),
             Purchase(definition_id="trait:fit"),
+            Purchase(definition_id="trait:ally-associate"),
         ),
     )
     values: dict[str, object] = {
@@ -96,7 +102,7 @@ def test_exact_budget_build_settles_wealth_and_keeps_provenance() -> None:
 
 def test_budget_tl_language_and_equipment_failures_are_typed() -> None:
     under = construction().compile(exact_draft(relationships=()))
-    assert "budget.unspent" in {diagnostic.code for diagnostic in under.diagnostics}
+    assert "relationship.missing_facts" in {diagnostic.code for diagnostic in under.diagnostics}
     mismatch = construction().compile(
         exact_draft(
             personal_technology_level=7,
@@ -122,6 +128,102 @@ def test_relationship_availability_uses_recorded_dice() -> None:
     ally = exact_draft().relationships[0]
     assert frequency_roll(ally, RecordedDice([3, 3, 3])).appears
     assert not frequency_roll(ally, RecordedDice([4, 4, 4])).appears
+
+
+@pytest.mark.parametrize(
+    "kind",
+    (
+        "ally",
+        "contact",
+        "patron",
+        "dependent",
+        "enemy",
+    ),
+)
+def test_relationships_require_exact_purchased_traits_and_authored_npc_facts(
+    kind: RelationshipKind,
+) -> None:
+    base = exact_draft()
+    purchases = tuple(
+        purchase.model_copy(update={"amount": 16})
+        if purchase.definition_id == "attribute:dx"
+        else purchase
+        for purchase in base.character.purchases
+        if purchase.definition_id != "trait:ally-associate"
+    ) + (Purchase(definition_id=f"trait:{kind}-associate"),)
+    match kind:
+        case "ally":
+            relationship = Relationship(
+                id="ally:associate",
+                person_id="associate",
+                kind="ally",
+                frequency=9,
+                character_points_percent=100,
+            )
+        case "contact":
+            relationship = Relationship(
+                id="contact:associate",
+                person_id="associate",
+                kind="contact",
+                frequency=9,
+                contact_skill=12,
+            )
+        case "patron":
+            relationship = Relationship(
+                id="patron:associate",
+                person_id="associate",
+                kind="patron",
+                frequency=9,
+                patron_power="wealthy",
+            )
+        case "dependent":
+            relationship = Relationship(
+                id="dependent:associate",
+                person_id="associate",
+                kind="dependent",
+                frequency=9,
+                character_points_percent=50,
+            )
+        case "enemy":
+            relationship = Relationship(
+                id="enemy:associate",
+                person_id="associate",
+                kind="enemy",
+                frequency=9,
+            )
+    draft = base.model_copy(
+        update={
+            "character": base.character.model_copy(update={"purchases": purchases}),
+            "relationships": (relationship,),
+        }
+    )
+    configured = construction()
+    relaxed = CharacterConstructionCompiler(
+        configured.compiler,
+        configured.context.model_copy(update={"require_exact_point_budget": False}),
+    )
+    result = relaxed.compile(draft)
+    assert result.legal and result.character is not None
+    assert result.character.relationships == (relationship,)
+    assert f"trait:{kind}-associate" in {
+        purchase.definition_id for purchase in result.character.build.trait_purchases
+    }
+
+    missing = relaxed.compile(draft.model_copy(update={"relationships": ()}))
+    assert "relationship.missing_facts" in {diagnostic.code for diagnostic in missing.diagnostics}
+    unpurchased = relaxed.compile(
+        draft.model_copy(
+            update={"character": draft.character.model_copy(update={"purchases": purchases[:-1]})}
+        )
+    )
+    assert "relationship.unpurchased" in {diagnostic.code for diagnostic in unpurchased.diagnostics}
+
+
+def test_relationship_construction_rejects_unpurchased_frequency_variants() -> None:
+    draft = exact_draft()
+    varied = draft.relationships[0].model_copy(update={"frequency": 12})
+    result = construction().compile(draft.model_copy(update={"relationships": (varied,)}))
+    assert "relationship.binding_mismatch" in {diagnostic.code for diagnostic in result.diagnostics}
 
 
 def test_secret_identity_never_enters_an_unrelated_public_projection() -> None:

@@ -28,7 +28,7 @@ from wayfarer.engine.rules.catalog import ImplementationStatus, RuleDefinition, 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.social.gurps_social import ReactionModifier
 from wayfarer.engine.rules.traits.base import TraitOptions
-from wayfarer.engine.rules.traits.mundane import PROFILE
+from wayfarer.engine.rules.traits.mundane import PROFILE, Vocabulary, inventory
 from wayfarer.engine.rules.traits.mundane.runtime import Audience, Check
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
@@ -116,11 +116,12 @@ def test_a_reused_identifier_without_the_pinned_binding_contributes_nothing() ->
 
 
 def test_unbound_effects_cannot_activate() -> None:
-    engine = runtime_compiler()
-    for identifier, options in (("trait:ally-associate", None),):
-        result = engine.compile(gurps_draft(Purchase(definition_id=identifier, trait=options)))
-        assert result.build is None
-        assert "definition.not_implemented" in {d.code for d in result.diagnostics}
+    friend = next(
+        entry
+        for entry in inventory(Vocabulary(people=("friend",)))
+        if entry.id == "trait:ally-friend"
+    )
+    assert not friend.implemented and friend.effect == "trait.associated_npc"
 
 
 @pytest.mark.parametrize(

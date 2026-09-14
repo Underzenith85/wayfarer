@@ -346,6 +346,7 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             "implemented" if e.implemented else "partial",
             "mundane-traits",
             blockers=e.followup_issues,
+            evidence=e.evidence,
         )
         for e in traits()
     )

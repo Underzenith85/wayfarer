@@ -43,6 +43,7 @@ from wayfarer.engine.rules.traits.mundane.runtime import (
     SUPPORTED_HOOKS,
 )
 from wayfarer.engine.rules.traits.obligations import OBLIGATION_BINDINGS
+from wayfarer.engine.rules.traits.relationship_runtime import RELATIONSHIP_BINDINGS
 from wayfarer.errors import ValidationError
 
 TEMPLATE_CASES = json.loads(
@@ -256,6 +257,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
         | set(APPEARANCE_BINDINGS)
         | set(REPUTATION_BINDINGS)
         | set(OBLIGATION_BINDINGS)
+        | set(RELATIONSHIP_BINDINGS)
         | {spec.id for spec in COMPLETE_SPECS}
     )
     assert report["available"] == len(implemented)
@@ -266,7 +268,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
     )
     unbound = report["unbound_effects"]
     assert isinstance(unbound, tuple)
-    assert "trait.associated_npc" in unbound and "trait.rank" not in unbound
+    assert not unbound
     bound = next(e for e in entries if e.id == "trait:voice")
     assert bound.blockers == ()
     assert any(e.obligations for e in entries)
