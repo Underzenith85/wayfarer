@@ -91,6 +91,18 @@ class DefaultContext:
         return cls({}, frozenset())
 
 
+def _validate_purchased_levels(context: DefaultContext) -> None:
+    if any(
+        identifier not in context.purchased_definition_ids
+        or type(level) is not int
+        or level < 1
+        for identifier, level in context.purchased_definition_levels.items()
+    ):
+        raise SkillError(
+            "skill.context", "Purchased levels need selected IDs and positive integers"
+        )
+
+
 def materialize_open_specialty(
     definition: RuleDefinition,
     family: VariableFamily,
@@ -486,15 +498,7 @@ class SkillCompiler:
             for identifier in context.purchased_definition_ids | context.capabilities
         ):
             raise SkillError("skill.context", "Acquisition context needs nonempty identifiers")
-        if any(
-            identifier not in context.purchased_definition_ids
-            or type(level) is not int
-            or level < 1
-            for identifier, level in context.purchased_definition_levels.items()
-        ):
-            raise SkillError(
-                "skill.context", "Purchased levels need selected IDs and positive integers"
-            )
+        _validate_purchased_levels(context)
         if context.campaign_technology_level is not None and (
             type(context.campaign_technology_level) is not int
             or context.campaign_technology_level < 0
