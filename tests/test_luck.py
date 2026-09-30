@@ -77,7 +77,8 @@ def invoke(
 
 @pytest.mark.parametrize(("points", "seconds"), [(15, 3600), (30, 1800), (60, 600)])
 def test_tiers_use_elapsed_real_play_time_not_clock_hour_or_campaign_time(
-    points: int, seconds: int,
+    points: int,
+    seconds: int,
 ) -> None:
     build, definitions = approved(points)
     assert luck_cooldown(build, definitions) == seconds
