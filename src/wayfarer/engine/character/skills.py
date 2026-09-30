@@ -93,9 +93,7 @@ class DefaultContext:
 
 def _validate_purchased_levels(context: DefaultContext) -> None:
     if any(
-        identifier not in context.purchased_definition_ids
-        or type(level) is not int
-        or level < 1
+        identifier not in context.purchased_definition_ids or type(level) is not int or level < 1
         for identifier, level in context.purchased_definition_levels.items()
     ):
         raise SkillError(
