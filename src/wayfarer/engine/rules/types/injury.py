@@ -65,9 +65,7 @@ class InjuryStatus(Record):
             self.anatomy != "human" or self.profile_id != "gurps-basic-set-4e-2004"
         ):
             raise ValueError("Lasting locations require explicit Basic Set human anatomy")
-        if self.machine and (
-            self.anatomy is None or self.profile_id != "gurps-basic-set-4e-2004"
-        ):
+        if self.machine and (self.anatomy is None or self.profile_id != "gurps-basic-set-4e-2004"):
             raise ValueError("Machine physiology requires explicit Basic Set anatomy")
         if self.male_groin and self.anatomy != "human":
             raise ValueError("Groin sensitivity requires explicit human anatomy")

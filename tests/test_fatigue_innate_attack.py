@@ -101,11 +101,14 @@ def test_fatigue_innate_attack_costs_ten_points_per_level(levels: int) -> None:
             trait=options(**{"damage-type": "fat"}),
         )
     )
-    assert next(
-        purchase.cost
-        for purchase in build.purchases
-        if purchase.definition_id == "advantage:innate-attack"
-    ) == 10 * levels
+    assert (
+        next(
+            purchase.cost
+            for purchase in build.purchases
+            if purchase.definition_id == "advantage:innate-attack"
+        )
+        == 10 * levels
+    )
 
 
 def test_fatigue_damage_reduces_fp_after_dr_without_direct_hp_injury() -> None:
