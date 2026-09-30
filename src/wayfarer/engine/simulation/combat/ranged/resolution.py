@@ -63,6 +63,7 @@ from wayfarer.engine.simulation.combat.ranged.equipment import (
     persist_surge,
     resolve_follow_up,
 )
+from wayfarer.engine.simulation.combat.ranged.gunslinger import accuracy_bonus
 from wayfarer.engine.simulation.combat.ranged.lingering_fire import _schedule_lingering_fire
 from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 from wayfarer.engine.simulation.combat.ranged.situation import situation
@@ -401,6 +402,13 @@ def resolve(
             bonus = min(-2, weapon.bulk)
         elif actor.last_maneuver == "all_out_attack":
             bonus += 1
+    bonus += accuracy_bonus(
+        compiled,
+        runtime.reviewer.compiler.definitions,
+        weapon,
+        aimed=aimed,
+        suppressed=pending.suppression_zone_id is not None,
+    )
     effective_shots = pending.shots
     close_projectile_multiplier = 1
     if weapon.multiple_projectiles is not None:
