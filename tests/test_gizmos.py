@@ -164,7 +164,10 @@ def test_reset_requires_gm_new_session_and_keeps_existing_items() -> None:
         begin_session(state, command, authorized_actor_id="gm")
     updated, outcome = begin_session(state, command, authorized_actor_id="gm", system=True)
     assert updated.items == state.items
-    assert begin_session(updated, command, authorized_actor_id="gm", system=True) == (updated, outcome)
+    assert begin_session(updated, command, authorized_actor_id="gm", system=True) == (
+        updated,
+        outcome,
+    )
     approved = approval("new").model_copy(update={"session_id": "two"})
     updated = reveal(updated, approved)
     assert len(updated.items) == 2
