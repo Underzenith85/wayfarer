@@ -154,7 +154,20 @@ def apply_physiology_interval(
             for entry in history(resources)
             if entry.outcome.kind == "revived" and entry.outcome.actor_id == command.actor_id
         )
-        if before > -hp.maximum or used >= traits.level("advantage:extra-life"):
+        if hp.injury is None or hp.injury.profile_id != "gurps-basic-set-4e-2004":
+            raise ValidationError("Extra Life requires canonical Basic Set HP")
+        purchase = traits.purchase(required)
+        assert purchase is not None
+        if purchase.modifiers:
+            raise ValidationError("Extra Life modifiers require a separately supported revival")
+        if any(
+            entry.outcome.kind == "revived"
+            and entry.outcome.actor_id == command.actor_id
+            and entry.outcome.interval_id == interval.id
+            for entry in history(resources)
+        ):
+            raise ConflictError("Extra Life interval was already consumed")
+        if not hp.injury.dead or used >= traits.level("advantage:extra-life"):
             kind, after = "unavailable", before
         else:
             kind, after = "revived", hp.maximum
@@ -165,10 +178,29 @@ def apply_physiology_interval(
         hp_after=after,
         interval_id=interval.id,
     )
-    pools = tuple(
-        pool if pool.id != hp.id else pool.model_copy(update={"current": after})
-        for pool in resources.pools
-    )
+    updated_hp = hp.model_copy(update={"current": after})
+    if kind == "revived":
+        assert hp.injury is not None
+        # Revival is distinct from healing: remove fatal and transient injury
+        # conditions while retaining the actor's anatomy and durable injuries.
+        updated_hp = updated_hp.model_copy(
+            update={
+                "injury": hp.injury.model_copy(
+                    update={
+                        "dead": False,
+                        "unconscious": False,
+                        "mortal_wound": False,
+                        "mortal_wound_due": None,
+                        "mortal_wound_started": 0,
+                        "shock": 0,
+                        "shock_expires": 0,
+                        "stunned": False,
+                        "electrical_stun": None,
+                    }
+                )
+            }
+        )
+    pools = tuple(pool if pool.id != hp.id else updated_hp for pool in resources.pools)
     event = PhysiologyEvent(
         command_id=command.id, outcome=outcome, interval=interval, request_digest=digest
     )
