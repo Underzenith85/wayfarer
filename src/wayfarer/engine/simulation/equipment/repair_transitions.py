@@ -6,13 +6,31 @@ from typing import Literal
 
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.skills.mundane.arts import OBJECT_REPAIR_SKILLS, PROCEDURES
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
+from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode
 from wayfarer.engine.simulation.equipment.repairs import RepairTask, record, tasks
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
+
+
+def _repair_binding(entry: EquipmentProfile, skill_id: str) -> tuple[str | None, str | None]:
+    """Bind supported Armoury tasks only to matching equipment specialties."""
+    if skill_id not in OBJECT_REPAIR_SKILLS:
+        return None, None
+    procedure = PROCEDURES[skill_id]
+    assert procedure.task is not None
+    matches = (
+        entry.armor is not None
+        if skill_id == "skill:armoury-body-armor"
+        else any(isinstance(mode, MeleeMode) for mode in entry.modes)
+    )
+    if not matches:
+        raise ValidationError("Armoury specialty does not match the equipment")
+    return procedure.id, procedure.task.effect
 
 
 def repair(
@@ -26,7 +44,6 @@ def repair(
     task_id: str | None,
     preview: bool = False,
 ) -> tuple[PlayState, RepairTask]:
-
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Repairs require the exact Basic Set profile")
     resources = state.resources
@@ -68,6 +85,7 @@ def repair(
             raise ValidationError("Equipment does not need repair")
         if not profile.repair_skill_id or not profile.repair_tools_definition:
             raise ValidationError("Repairs require pinned skill and equipment bindings")
+        procedure_id, effect = _repair_binding(entry, profile.repair_skill_id)
         tool = next(
             (
                 i
@@ -150,6 +168,8 @@ def repair(
             condition=item.condition,
             parts_die=parts_die,
             parts_quantity=quantity,
+            procedure_id=procedure_id,
+            effect=effect,
         )
     else:
         assert task_id is not None

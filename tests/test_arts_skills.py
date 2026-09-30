@@ -8,7 +8,11 @@ import pytest
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import CAPABILITIES, CoverageStatus
 from wayfarer.engine.rules.skills.mundane import inventory
-from wayfarer.engine.rules.skills.mundane.arts import PROCEDURES, definitions
+from wayfarer.engine.rules.skills.mundane.arts import (
+    OBJECT_REPAIR_SKILLS,
+    PROCEDURES,
+    definitions,
+)
 from wayfarer.engine.rules.skills.mundane.arts_attempts import (
     Performer,
     Situation,
@@ -86,6 +90,10 @@ def test_source_referenced_expected_results(case: dict[str, object]) -> None:
     dice = (
         [3, 3, 3, 6, 6, 6] if procedure.task.resolution is Resolution.QUICK_CONTEST else [3, 3, 3]
     )
+    if identifier in OBJECT_REPAIR_SKILLS:
+        with pytest.raises(ValidationError, match="owned-equipment repair"):
+            attempt(performer, Situation(required), rng=RecordedDice([]))
+        return
     result = attempt(
         performer,
         Situation(required, resistance=10),
@@ -101,7 +109,7 @@ def test_source_referenced_expected_results(case: dict[str, object]) -> None:
 
 def test_every_concrete_row_executes_and_produces_a_replayable_receipt() -> None:
     for procedure in PROCEDURES.values():
-        if not procedure.dispatchable:
+        if not procedure.dispatchable or procedure.id in OBJECT_REPAIR_SKILLS:
             continue
         task = procedure.task
         assert task is not None
