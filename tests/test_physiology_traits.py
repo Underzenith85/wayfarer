@@ -6,9 +6,11 @@ from trait_support import approved_build, options, trait_compiler
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.physiology import BINDINGS, PROFILE, RUNTIME_HOOKS
 from wayfarer.engine.rules.traits.physiology import package as physiology_package
-from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.injury import ElectricalStun, InjuryStatus
+from wayfarer.engine.rules.types.location import LastingInjury
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.traits.physiology import (
     PhysiologyCommand,
@@ -158,7 +160,7 @@ def test_weakness_and_extra_life_use_the_same_hp_ledger_and_limits() -> None:
     assert result.kind == "injured" and injured.pools[0].current == 2
     life, life_engine = approved(Purchase(definition_id="advantage:extra-life"))
     revived, result = apply_physiology_interval(
-        state(-10),
+        extra_life_state(-10),
         command(identifier="life"),
         PhysiologyInterval(id="life", actor_id="a", kind="extra-life", due=60),
         life,
@@ -357,6 +359,260 @@ def test_regeneration_clamps_to_maximum_and_refuses_dead_patients() -> None:
             dead,
             command(),
             interval,
+            build,
+            engine.definitions,
+            authorized_actor_id="a",
+            system=True,
+        )
+
+
+def extra_life_state(current: int = -10, *, dead: bool = True) -> ResourceState:
+    return state(current).model_copy(
+        update={
+            "pools": (
+                Pool(
+                    id="hp:a",
+                    current=current,
+                    maximum=10,
+                    injury=InjuryStatus(profile_id=PROFILE, dead=dead),
+                ),
+            )
+        }
+    )
+
+
+def life_interval(identifier: str = "life") -> PhysiologyInterval:
+    return PhysiologyInterval(id=identifier, actor_id="a", kind="extra-life", due=60)
+
+
+def test_extra_life_restores_living_state_and_preserves_actor_anatomy() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:extra-life"))
+    lasting = LastingInjury(
+        id="old-scar",
+        location="face",
+        kind="scarred",
+        duration="permanent",
+        inflicted_at=0,
+        injury=1,
+    )
+    injury = InjuryStatus(
+        profile_id=PROFILE,
+        anatomy="human",
+        male_groin=True,
+        dead=True,
+        unconscious=True,
+        mortal_wound=True,
+        mortal_wound_due=120,
+        mortal_wound_started=10,
+        shock=4,
+        shock_expires=2,
+        stunned=True,
+        prone=True,
+        electrical_stun=ElectricalStun(
+            source_id="wire",
+            contact_ends_turn=0,
+            recovery_starts_turn=1,
+        ),
+        lasting_injuries=(lasting,),
+    )
+    resources = extra_life_state().model_copy(
+        update={
+            "pools": (
+                extra_life_state().pools[0].model_copy(update={"injury": injury}),
+                Pool(id="hp:b", current=7, maximum=10, injury=InjuryStatus(profile_id=PROFILE)),
+            )
+        }
+    )
+    updated, outcome = apply_physiology_interval(
+        resources,
+        command(identifier="life"),
+        life_interval(),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    restored = updated.pools[0]
+    assert outcome.kind == "revived" and restored.current == restored.maximum == 10
+    assert restored.injury is not None and not restored.injury.incapacitated
+    assert not restored.injury.dead and not restored.injury.unconscious
+    assert not restored.injury.mortal_wound and restored.injury.mortal_wound_due is None
+    assert restored.injury.mortal_wound_started == 0
+    assert restored.injury.shock == restored.injury.shock_expires == 0
+    assert not restored.injury.stunned and restored.injury.electrical_stun is None
+    assert restored.injury.anatomy == "human" and restored.injury.male_groin
+    assert restored.injury.lasting_injuries == (lasting,) and restored.injury.prone
+    assert updated.pools[1] == resources.pools[1]
+    assert resources.pools[0].injury == injury
+    assert ResourceState.model_validate_json(updated.model_dump_json()) == updated
+
+
+@pytest.mark.parametrize("current", [-50, -10, -1, 0, 5])
+def test_extra_life_negative_hp_is_not_proof_of_death(current: int) -> None:
+    build, engine = approved(Purchase(definition_id="advantage:extra-life"))
+    resources = extra_life_state(current, dead=False)
+    updated, outcome = apply_physiology_interval(
+        resources,
+        command(identifier="life"),
+        life_interval(),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert outcome.kind == "unavailable"
+    assert updated.pools == resources.pools
+    assert not any(entry.outcome.kind == "revived" for entry in history(updated))
+
+
+def test_extra_life_actual_death_can_revive_without_negative_hp_threshold() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:extra-life"))
+    updated, outcome = apply_physiology_interval(
+        extra_life_state(5),
+        command(identifier="life"),
+        life_interval(),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert outcome.kind == "revived" and updated.pools[0].current == 10
+    assert updated.pools[0].injury is not None and not updated.pools[0].injury.dead
+
+
+def test_extra_life_receipts_and_remaining_lives_survive_restart() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:extra-life"))
+    request = command(identifier="life")
+    interval = life_interval()
+    updated, outcome = apply_physiology_interval(
+        extra_life_state(),
+        request,
+        interval,
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    restarted = ResourceState.model_validate_json(updated.model_dump_json())
+    assert apply_physiology_interval(
+        restarted,
+        request,
+        interval,
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    ) == (restarted, outcome)
+    with pytest.raises(ConflictError, match="already used"):
+        apply_physiology_interval(
+            restarted,
+            request,
+            interval.model_copy(update={"amount": 2}),
+            build,
+            engine.definitions,
+            authorized_actor_id="a",
+            system=True,
+        )
+    new_death = restarted.model_copy(update={"pools": extra_life_state().pools})
+    exhausted, unavailable = apply_physiology_interval(
+        new_death,
+        command(revision=1, identifier="second"),
+        life_interval("second"),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert unavailable.kind == "unavailable" and exhausted.pools == new_death.pools
+    assert sum(entry.outcome.kind == "revived" for entry in history(exhausted)) == 1
+
+
+def test_extra_life_interval_alias_cannot_spend_another_life() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:extra-life", amount=2))
+    updated, _ = apply_physiology_interval(
+        extra_life_state(),
+        command(identifier="life"),
+        life_interval(),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    new_death = updated.model_copy(update={"pools": extra_life_state().pools})
+    alias = command(revision=1, identifier="life").model_copy(update={"id": "alias"})
+    with pytest.raises(ConflictError, match="already consumed"):
+        apply_physiology_interval(
+            new_death,
+            alias,
+            life_interval(),
+            build,
+            engine.definitions,
+            authorized_actor_id="a",
+            system=True,
+        )
+    second, outcome = apply_physiology_interval(
+        new_death,
+        command(revision=1, identifier="second"),
+        life_interval("second"),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert outcome.kind == "revived" and second.pools[0].injury is not None
+    assert not second.pools[0].injury.dead
+    assert sum(entry.outcome.kind == "revived" for entry in history(second)) == 2
+
+
+@pytest.mark.parametrize(("authority", "system"), [("b", True), ("a", False)])
+def test_extra_life_rejects_unauthorized_retries(authority: str, system: bool) -> None:
+    build, engine = approved(Purchase(definition_id="advantage:extra-life"))
+    updated, _ = apply_physiology_interval(
+        extra_life_state(),
+        command(identifier="life"),
+        life_interval(),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    with pytest.raises(ValidationError, match="authority"):
+        apply_physiology_interval(
+            updated,
+            command(identifier="life"),
+            life_interval(),
+            build,
+            engine.definitions,
+            authorized_actor_id=authority,
+            system=system,
+        )
+
+
+def test_extra_life_rejects_stale_new_commands() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:extra-life"))
+    resources = extra_life_state().model_copy(update={"revision": 1})
+    with pytest.raises(ConflictError, match="revision changed"):
+        apply_physiology_interval(
+            resources,
+            command(identifier="life"),
+            life_interval(),
+            build,
+            engine.definitions,
+            authorized_actor_id="a",
+            system=True,
+        )
+
+
+@pytest.mark.parametrize("modifier", ["copy", "reincarnation", "requires-body"])
+def test_extra_life_unimplemented_modifiers_do_not_claim_generic_revival(modifier: str) -> None:
+    build, engine = approved(
+        Purchase(definition_id="advantage:extra-life", trait=TraitOptions(modifiers=(modifier,)))
+    )
+    with pytest.raises(ValidationError, match="separately supported"):
+        apply_physiology_interval(
+            extra_life_state(),
+            command(identifier="life"),
+            life_interval(),
             build,
             engine.definitions,
             authorized_actor_id="a",

@@ -7,10 +7,10 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.character.traits.physiology import physiology_traits
+from wayfarer.engine.character.traits.physiology import PhysiologyTraits, physiology_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.simulation.health.healing import restore_hp
-from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.resources import Command, Pool, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
 
@@ -86,6 +86,61 @@ def _require_regeneration_due(
         raise ConflictError("Regeneration interval was already consumed or is too early")
 
 
+def _extra_life_outcome(
+    resources: ResourceState,
+    interval: PhysiologyInterval,
+    hp: Pool,
+    traits: PhysiologyTraits,
+) -> tuple[Literal["revived", "unavailable"], int]:
+    used = sum(
+        1
+        for entry in history(resources)
+        if entry.outcome.kind == "revived" and entry.outcome.actor_id == interval.actor_id
+    )
+    if hp.injury is None or hp.injury.profile_id != "gurps-basic-set-4e-2004":
+        raise ValidationError("Extra Life requires canonical Basic Set HP")
+    purchase = traits.purchase("advantage:extra-life")
+    assert purchase is not None
+    if purchase.modifiers:
+        raise ValidationError("Extra Life modifiers require a separately supported revival")
+    if any(
+        entry.outcome.kind == "revived"
+        and entry.outcome.actor_id == interval.actor_id
+        and entry.outcome.interval_id == interval.id
+        for entry in history(resources)
+    ):
+        raise ConflictError("Extra Life interval was already consumed")
+    if not hp.injury.dead or used >= traits.level("advantage:extra-life"):
+        return "unavailable", hp.current
+    return "revived", hp.maximum
+
+
+def _settled_hp(hp: Pool, after: int, *, revived: bool) -> Pool:
+    updated_hp = hp.model_copy(update={"current": after})
+    if not revived:
+        return updated_hp
+    assert hp.injury is not None
+    # Revival is distinct from healing: remove fatal and transient injury
+    # conditions while retaining the actor's anatomy and durable injuries.
+    return updated_hp.model_copy(
+        update={
+            "injury": hp.injury.model_copy(
+                update={
+                    "dead": False,
+                    "unconscious": False,
+                    "mortal_wound": False,
+                    "mortal_wound_due": None,
+                    "mortal_wound_started": 0,
+                    "shock": 0,
+                    "shock_expires": 0,
+                    "stunned": False,
+                    "electrical_stun": None,
+                }
+            )
+        }
+    )
+
+
 def apply_physiology_interval(
     resources: ResourceState,
     command: PhysiologyCommand,
@@ -149,15 +204,7 @@ def apply_physiology_interval(
     elif interval.kind in {"dependency", "weakness"}:
         kind, after = "injured", before - interval.amount
     else:
-        used = sum(
-            1
-            for entry in history(resources)
-            if entry.outcome.kind == "revived" and entry.outcome.actor_id == command.actor_id
-        )
-        if before > -hp.maximum or used >= traits.level("advantage:extra-life"):
-            kind, after = "unavailable", before
-        else:
-            kind, after = "revived", hp.maximum
+        kind, after = _extra_life_outcome(resources, interval, hp, traits)
     outcome = PhysiologyOutcome(
         actor_id=command.actor_id,
         kind=kind,
@@ -165,10 +212,8 @@ def apply_physiology_interval(
         hp_after=after,
         interval_id=interval.id,
     )
-    pools = tuple(
-        pool if pool.id != hp.id else pool.model_copy(update={"current": after})
-        for pool in resources.pools
-    )
+    updated_hp = _settled_hp(hp, after, revived=kind == "revived")
+    pools = tuple(pool if pool.id != hp.id else updated_hp for pool in resources.pools)
     event = PhysiologyEvent(
         command_id=command.id, outcome=outcome, interval=interval, request_digest=digest
     )
