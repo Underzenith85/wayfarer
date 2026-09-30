@@ -662,6 +662,16 @@ def _reproject_aging(schedule: AgingSchedule, traits: PhysiologyTraits, at: int)
     rules = _project_aging_rules(schedule.rules, traits)
     if rules == schedule.rules and schedule.active == (not rules.unaging):
         return schedule
+    if schedule.last_check_at is None and schedule.checks:
+        # Old checkpoints have checks but predate the explicit last-check tick.
+        tick = schedule.started + max(
+            0,
+            int(50 * YEAR_SECONDS * _aging_scale(schedule.rules))
+            - schedule.age_seconds_at_start,
+        )
+        for _ in range(len(schedule.checks) // 4 - 1):
+            tick += _aging_interval(schedule.rules, _age_at(schedule, tick))
+        schedule = schedule.model_copy(update={"last_check_at": tick})
     if not rules.unaging and schedule.suspended_at is not None:
         elapsed = at - schedule.suspended_at
         schedule = schedule.model_copy(
@@ -749,7 +759,7 @@ def apply_aging(
         result = HealthResult(
             subject_id=schedule.id,
             active=schedule.active,
-            due=schedule.due if schedule.active else None
+            due=schedule.due if schedule.active else None,
         )
     else:
         found_schedule = next(
@@ -772,7 +782,9 @@ def apply_aging(
                     state,
                     command,
                     result,
-                    (_event(AGING_PREFIX, command.id, schedule, state.game_time, command.actor_id),),
+                    (
+                        _event(AGING_PREFIX, command.id, schedule, state.game_time, command.actor_id),
+                    ),
                 )
         if not schedule.active:
             raise ConflictError("Aging schedule is suspended")

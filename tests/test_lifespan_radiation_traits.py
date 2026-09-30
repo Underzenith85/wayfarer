@@ -161,6 +161,15 @@ def test_live_lifespan_removal_retimes_without_double_application() -> None:
     )
     assert result.due == YEAR_SECONDS and len(result.checks) == 4
     assert aging_schedules(updated)[0].rules.extended_lifespan_levels == 0
+    # Simulate a persisted checkpoint from before last_check_at existed.
+    legacy_schedule = aging_schedules(updated)[0].model_copy(update={"last_check_at": None})
+    events = tuple(
+        event.model_copy(update={"kind": legacy_schedule.model_dump_json()})
+        if event.id.startswith("aging-runtime:") and event.id.endswith(":removed")
+        else event
+        for event in updated.events
+    )
+    updated = updated.model_copy(update={"events": events})
     transformed, result = apply_aging(
         updated,
         ResolveAging(id="transformed", actor_id="a", expected_revision=2, schedule_id="age"),
