@@ -2,6 +2,10 @@ name: Python package
 
 on:
   workflow_call:
+    inputs:
+      require-basic-set-certification:
+        type: boolean
+        default: false
   push:
     branches: ["main"]
     paths:
@@ -72,13 +76,15 @@ jobs:
       - run: uv run --frozen python scripts/check_quality_gates.py
       - run: uv run --frozen python scripts/audit_gurps_sources.py > /tmp/gurps-source-audit.json
       - run: uv run --frozen python scripts/audit_gurps_equipment.py > /tmp/gurps-equipment-audit.json
-      - run: uv run --frozen python scripts/certify_gurps_basic_set.py --output artifacts/release/gurps-basic-set.json
       - run: uv run --frozen python scripts/validate_contracts.py
       - run: uv run --frozen python -m scripts.validate_live_contracts
       - run: uv run --frozen pytest --junitxml=artifacts/pytest.xml --cov-report=xml:artifacts/coverage.xml --cov-report=term-missing
+      - name: Publish Basic Set execution accounting
+        if: always()
+        run: uv run --frozen python scripts/certify_gurps_basic_set.py --execution-report artifacts/pytest.xml --output artifacts/release/gurps-basic-set.json ${{ inputs.require-basic-set-certification && '--require-certified' || '--report-only' }}
       - name: Verify and publish mechanics evidence
         if: always()
-        run: uv run --frozen python -m scripts.release_gates artifacts/pytest.xml --gurps-basic-set
+        run: uv run --frozen python -m scripts.release_gates artifacts/pytest.xml ${{ inputs.require-basic-set-certification && '--gurps-basic-set' || '--basic-set-report-only' }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:

@@ -41,11 +41,16 @@ def test_selected_printing_mundane_denominator_is_exact() -> None:
     assert {spec.owner_issue for spec in SPECS if spec.kind == "disadvantage"} == {681}
 
 
-def test_no_completed_mundane_row_remains_a_certification_blocker() -> None:
+def test_completed_mundane_catalog_still_requires_executed_effect_evidence() -> None:
     root = Path(__file__).resolve().parents[1]
     target_ids = {spec.id for spec in SPECS}
     blockers = evaluate(root).blockers
-    assert not target_ids.intersection(blocker.identifier for blocker in blockers)
+    assert not target_ids.intersection(
+        blocker.identifier for blocker in blockers if blocker.kind == "inventory"
+    )
+    assert target_ids.intersection(
+        blocker.identifier for blocker in blockers if blocker.kind == "execution"
+    )
 
 
 @pytest.mark.parametrize(

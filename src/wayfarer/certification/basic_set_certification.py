@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Final, Literal, cast
 
+from wayfarer.certification.executable_evidence import evaluate_execution
 from wayfarer.certification.source_audit import InventoryItem, inventory
 from wayfarer.certification.source_audit import report as source_audit_report
 from wayfarer.certification.source_ledgers import (
@@ -34,7 +35,7 @@ PROFILE_ID: Final = "gurps-basic-set-4e-2004"
 
 @dataclass(frozen=True, slots=True)
 class CertificationBlocker:
-    kind: Literal["source", "ledger", "capability", "inventory", "profile"]
+    kind: Literal["source", "ledger", "capability", "inventory", "profile", "execution"]
     identifier: str
     detail: str
     owner_issue: int | None = None
@@ -163,7 +164,7 @@ def _inventory_blocker_detail(item: InventoryItem, source_row: SourceLedgerRow |
     )
 
 
-def evaluate(root: Path) -> CertificationReport:
+def evaluate(root: Path, *, execution_report: Path | None = None) -> CertificationReport:
     """Return complete Basic Set certification accounting without mutating state."""
     target = PROFILES[PROFILE_ID]
     selected = _latest_registered_profile()
@@ -178,6 +179,25 @@ def evaluate(root: Path) -> CertificationReport:
     source_baseline = cast(str, audit["baseline_id"])
     source_complete = cast(bool, audit["audit_complete"])
     blockers: list[CertificationBlocker] = []
+    execution = evaluate_execution(root, execution_report)
+    executable_obligations = {
+        f"capability:{identifier}" for identifier in target.required_capabilities
+    }
+    executable_obligations.update(
+        item.id
+        for item in inventory(root)
+        if PROFILE_ID in item.required_profiles and item.obligation == "executable-mechanic"
+    )
+    executable_obligations.update(
+        row.id
+        for row in source_ledgers.rows
+        if row.disposition == "required"
+        and (row.obligation == "executable-mechanic" or row.row_kind == "mechanic")
+    )
+    for identifier in sorted(executable_obligations):
+        problem = execution.problem(identifier)
+        if problem is not None:
+            blockers.append(CertificationBlocker("execution", identifier, problem, ROADMAP_OWNER))
 
     for identifier in audit_blockers:
         if identifier.startswith("ledger:"):
@@ -308,6 +328,7 @@ def evaluate(root: Path) -> CertificationReport:
         required_capabilities=len(required_capabilities),
         verified_capabilities=sum(
             CAPABILITIES[identifier].status is CoverageStatus.VERIFIED
+            and execution.problem(f"capability:{identifier}") is None
             for identifier in required_capabilities
         ),
         required_inventory_items=len(required_inventory),
@@ -326,9 +347,9 @@ def evaluate(root: Path) -> CertificationReport:
     )
 
 
-def require_certified(root: Path) -> CertificationReport:
+def require_certified(root: Path, *, execution_report: Path | None = None) -> CertificationReport:
     """Reject a Basic Set release unless every certification dimension is green."""
-    result = evaluate(root)
+    result = evaluate(root, execution_report=execution_report)
     if result.blockers:
         preview = ", ".join(blocker.identifier for blocker in result.blockers[:5])
         suffix = "" if len(result.blockers) <= 5 else f" (+{len(result.blockers) - 5} more)"

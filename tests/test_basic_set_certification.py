@@ -20,7 +20,7 @@ def test_basic_set_report_binds_exact_profile_and_source_baseline() -> None:
     assert len(result.profile_digest) == 64
     assert result.source_baseline == "gurps-4e-characters-3p-2008+campaigns-4p-2008"
     assert result.required_capabilities == len(PROFILES[PROFILE_ID].required_capabilities)
-    assert 0 < result.verified_capabilities <= result.required_capabilities
+    assert 0 <= result.verified_capabilities <= result.required_capabilities
     assert result.required_inventory_items > 0
     assert sum(result.inventory_obligation_rollups.values()) == result.required_inventory_items
     assert result.inventory_obligation_rollups["executable-mechanic"] > 0
@@ -30,11 +30,11 @@ def test_basic_set_report_binds_exact_profile_and_source_baseline() -> None:
     assert result.excluded_content == ("gurps.content.infinite-worlds",)
 
 
-def test_basic_set_gate_is_certified_without_blockers() -> None:
+def test_basic_set_gate_blocks_status_only_evidence() -> None:
     result = evaluate(ROOT)
-    assert result.certified is True
-    assert result.verified_capabilities == result.required_capabilities
-    assert result.blockers == ()
+    assert result.certified is False
+    assert result.verified_capabilities == 0
+    assert any(blocker.kind == "execution" for blocker in result.blockers)
 
 
 def test_capability_promotion_cannot_bypass_incomplete_certification(
@@ -105,21 +105,23 @@ def test_completed_creature_inventory_has_no_fallback_blockers() -> None:
     )
 
 
-def test_certified_report_has_no_blocker_owners() -> None:
-    assert evaluate(ROOT).blockers == ()
+def test_unverified_execution_has_an_open_roadmap_owner() -> None:
+    assert all(b.owner_issue == 94 for b in evaluate(ROOT).blockers if b.kind == "execution")
 
 
-def test_basic_set_release_accepts_complete_evidence() -> None:
-    result = require_certified(ROOT)
-    assert result.certified is True
-    assert result == evaluate(ROOT)
+def test_basic_set_release_rejects_unexecuted_evidence() -> None:
+    from wayfarer.errors import ValidationError
+
+    with pytest.raises(ValidationError, match="certification blocked"):
+        require_certified(ROOT)
 
 
 def test_report_serialization_keeps_blockers_machine_readable() -> None:
     payload = evaluate(ROOT).as_dict()
     assert payload["inventory_obligation_rollups"] == evaluate(ROOT).inventory_obligation_rollups
-    assert payload["certified"] is True
+    assert payload["certified"] is False
     assert payload["excluded_content"] == ["gurps.content.infinite-worlds"]
     blockers = payload["blockers"]
     assert isinstance(blockers, list)
-    assert blockers == []
+    assert blockers
+    assert all(isinstance(blocker, dict) for blocker in blockers)
