@@ -1314,13 +1314,13 @@
         ]
       },
       "expected": {
-        "affected": true,
+        "affected": false,
         "decision": "margin-of-failure"
       },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+      "provenance": "Reviewed against Campaigns fourth printing B348: a failed attacker cannot affect the subject, even when its margin of failure is smaller."
     },
     {
       "id": "basic-rule-of-16-caps-attacker",

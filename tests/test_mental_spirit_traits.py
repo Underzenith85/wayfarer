@@ -325,3 +325,131 @@ def test_persistent_control_can_be_interrupted_before_expiry_once() -> None:
     )
     assert outcome.outcome == "interrupted" and result.effect_id not in stopped.active_effect_ids
     assert stopped.scheduled == ()
+
+
+@pytest.mark.parametrize(
+    ("actor", "roll", "resister", "resist_roll", "scope", "expected", "effective"),
+    [
+        # B349: 30 becomes 16 against Will 15; 4 loses to 7.
+        (30, 12, 15, 8, {}, "resisted", 16),
+        (30, 12, 15, 11, {}, "resisted", 16),  # ties favor the subject (B348)
+        (30, 12, 15, 12, {}, "successful", 16),
+        (30, 12, 20, 8, {}, "resisted", 20),  # higher actual resistance sets the cap
+        (14, 10, 12, 11, {}, "successful", 14),
+        (10, 12, 8, 15, {}, "resisted", 10),  # attack must succeed, even if both fail
+        (30, 17, 15, 18, {}, "resisted", 16),  # automatic failure beats raw margin
+        (30, 18, 15, 18, {}, "resisted", 16),  # critical failure cannot affect target
+        (30, 12, 15, 17, {}, "successful", 16),  # defender critical failure
+        (16, 6, 20, 8, {}, "resisted", 16),  # critical success does not trump margins
+        (10, 10, 1, 4, {}, "successful", 10),  # defender critical success uses its margin
+        (30, 12, 15, 8, {"supernatural_attack": False}, "successful", 30),
+        (30, 12, 15, 8, {"target_living_or_sapient": False}, "successful", 30),
+        (30, 17, 15, 18, {"supernatural_attack": False}, "resisted", 30),
+    ],
+)
+def test_source_resistance_changes_persistent_state_and_replays(
+    actor: int,
+    roll: int,
+    resister: int,
+    resist_roll: int,
+    scope: dict[str, bool],
+    expected: str,
+    effective: int,
+) -> None:
+    from wayfarer.engine.rules.gurps_checks import replay_resistance
+
+    build, engine = approved(Purchase(definition_id="advantage:mind-control"))
+    authored = channel(
+        definition_id="advantage:mind-control",
+        kind="influence",
+        fact_ids=(),
+        actor_score=actor,
+        actor_roll=roll,
+        resistance_score=resister,
+        resistance_roll=resist_roll,
+        **scope,
+    )
+    use = command().model_copy(update={"definition_id": "advantage:mind-control"})
+    initial = ResourceState(pools=(Pool(id="fp:a", current=10, maximum=10),))
+    state, current_world, outcome = apply_mental_use(
+        initial,
+        world(),
+        use,
+        build,
+        engine.definitions,
+        (authored,),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert outcome.outcome == expected
+    assert state.pools[0].current == 8 and state.revision == 1
+    assert current_world == world()
+    assert outcome.resistance is not None
+    assert outcome.resistance.attacker.effective_target == effective
+    assert outcome.resistance.attacker.total == roll
+    assert outcome.resistance.resister.total == resist_roll
+    assert replay_resistance(outcome.resistance) == outcome.resistance
+    if expected == "successful":
+        assert outcome.effect_id in state.active_effect_ids
+        assert len(state.scheduled) == 1
+        assert state.scheduled[0].target_id == outcome.effect_id
+    else:
+        assert outcome.effect_id is None and outcome.expires_at is None
+        assert state.active_effect_ids == () and state.scheduled == ()
+    restarted = ResourceState.model_validate_json(state.model_dump_json())
+    assert history(restarted)[0].outcome == outcome
+    assert apply_mental_use(
+        restarted,
+        current_world,
+        use,
+        build,
+        engine.definitions,
+        (authored,),
+        authorized_actor_id="a",
+        system=True,
+    ) == (restarted, current_world, outcome)
+    with pytest.raises(ConflictError, match="already used"):
+        apply_mental_use(
+            restarted,
+            current_world,
+            use.model_copy(update={"kind": "interrupt"}),
+            build,
+            engine.definitions,
+            (authored,),
+            authorized_actor_id="a",
+            system=True,
+        )
+
+
+def test_failed_read_never_reveals_authored_facts() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:mind-reading"))
+    resources = ResourceState(pools=(Pool(id="fp:a", current=10, maximum=10),))
+    state, learned, outcome = apply_mental_use(
+        resources,
+        world(),
+        command(),
+        build,
+        engine.definitions,
+        (channel(actor_score=30, actor_roll=12, resistance_score=15, resistance_roll=8),),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert outcome.outcome == "resisted" and outcome.revealed_fact_ids == ()
+    assert learned == world() and state.active_effect_ids == () and state.scheduled == ()
+
+
+def test_unopposed_authored_check_still_requires_success() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:mind-reading"))
+    resources = ResourceState(pools=(Pool(id="fp:a", current=10, maximum=10),))
+    _, learned, outcome = apply_mental_use(
+        resources,
+        world(),
+        command(),
+        build,
+        engine.definitions,
+        (channel(actor_score=10, actor_roll=12, resistance_score=None, resistance_roll=None),),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert outcome.outcome == "resisted" and outcome.resistance is None
+    assert learned == world()

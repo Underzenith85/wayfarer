@@ -40,3 +40,14 @@ selected generic profile, rather than required/verified through armor-divisor
 evidence. Standard Basic Set magic and psi remain required; they are not a
 blanket optional exclusion. Source identity review still does not certify their
 unresolved behavioral effects.
+
+## Resistance fixture correction (#754, 2026-09-30)
+
+The supplied Campaigns fourth printing, B348 Resistance Rolls, requires the
+attacker to succeed as well as win the contest; ties favor the subject. The
+`basic-resistance-both-fail` fixture has an attack target of 12 and a total of
+13. Its previous `affected: true` expectation incorrectly applied the ordinary
+Quick Contest rule for two failures. Independent re-review changes that
+expectation to `false`; the ordinary contest still records its margin-of-failure
+winner. The fixture review fingerprint now covers the corrected expectation
+and provenance. This correction does not promote any other source or mechanic.

@@ -140,7 +140,7 @@ def test_rule_of_16_caps_attacker_at_higher_of_16_and_resistance(
     )
     assert trace.attacker.effective_target == min(attacker, max(16, resister))
     assert trace.resister.effective_target == resister
-    assert trace.affected == (trace.contest.winner == "caster")
+    assert trace.affected == (trace.attacker.outcome.succeeded and trace.contest.winner == "caster")
     assert not (trace.contest.decision == "tie" and trace.affected)
     assert replay_resistance(trace) == trace
 
