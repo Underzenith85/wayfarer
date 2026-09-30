@@ -314,6 +314,9 @@ def _apply_fatigue_attack(
         or channel.resistance_score is not None
     ):
         raise ValidationError("Fatigue damage requires an approved Fatigue Innate Attack")
+    purchase = attacker.purchase(command.definition_id)
+    if purchase is None or purchase.modifiers or channel.armor_divisor != 1:
+        raise ValidationError("Fatigue attack requires the modifier-free baseline channel")
     ResourceState.model_validate(resources)
     hp = next((pool for pool in resources.pools if pool.id == "hp:" + channel.target_id), None)
     if hp is None or hp.injury is None or hp.injury.profile_id != "gurps-basic-set-4e-2004":
@@ -347,6 +350,8 @@ def _apply_fatigue_attack(
             rng=rng,
             system=True,
         )
+        if fatigue.hp_lost:
+            state = _apply_survival_traits(state, channel.target_id, target)
         result_kind = "injured" if amount else "unaffected"
     return state, TraitAttackOutcome(
         outcome=result_kind,

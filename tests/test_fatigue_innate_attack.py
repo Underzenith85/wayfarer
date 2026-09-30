@@ -5,6 +5,7 @@ Reopening the supplied printings is pending; these cases do not certify variants
 """
 
 from dataclasses import replace
+from decimal import Decimal
 
 import pytest
 from test_attack_defense_traits import (
@@ -67,16 +68,21 @@ def attack(
     *,
     damage: int = 6,
     dr: int = 0,
+    target_purchases: tuple[Purchase, ...] = (),
+    modifiers: tuple[str, ...] = (),
     attack_channel: AttackChannel | None = None,
     attack_command: TraitAttackCommand | None = None,
     authorized_actor_id: str = "a",
     system: bool = True,
 ) -> tuple[ResourceState, TraitAttackOutcome]:
     attacker, engine = approved(
-        Purchase(definition_id="advantage:innate-attack", trait=options(**{"damage-type": "fat"}))
+        Purchase(
+            definition_id="advantage:innate-attack",
+            trait=options(**{"damage-type": "fat"}).model_copy(update={"modifiers": modifiers}),
+        )
     )
     purchases = (Purchase(definition_id="advantage:damage-resistance", amount=dr),) if dr else ()
-    target, _ = approved(*purchases)
+    target, _ = approved(*purchases, *target_purchases)
     return apply_trait_attack(
         state,
         world(),
@@ -273,3 +279,41 @@ def test_fatigue_attack_preserves_authority_revision_context_and_purchase_checks
 def test_nonmachine_requires_explicit_canonical_fp_pool() -> None:
     with pytest.raises(ValidationError, match="FP and HP"):
         attack(resources())
+
+
+@pytest.mark.parametrize("modifier", ["armor-divisor", "melee"])
+def test_modified_fatigue_build_cannot_use_the_generic_baseline_channel(modifier: str) -> None:
+    initial = fatigue_resources()
+    with pytest.raises(ValidationError, match="modifier-free"):
+        attack(initial, modifiers=(modifier,))
+    assert initial == fatigue_resources()
+
+
+def test_baseline_fatigue_channel_cannot_supply_an_unpurchased_armor_divisor() -> None:
+    with pytest.raises(ValidationError, match="modifier-free"):
+        attack(
+            fatigue_resources(),
+            attack_channel=channel(damage_type="fat", armor_divisor=Decimal(2)),
+        )
+
+
+def test_fp_overflow_reconciles_fragile_unnatural_death_and_replays_it() -> None:
+    initial = fatigue_resources(0)
+    initial = initial.model_copy(
+        update={
+            "pools": tuple(
+                pool.model_copy(update={"current": -9}) if pool.id == "hp:b" else pool
+                for pool in initial.pools
+            )
+        }
+    )
+    fragile = Purchase(definition_id="disadvantage:fragile", trait=options(kind="unnatural"))
+    state, outcome = attack(initial, damage=1, target_purchases=(fragile,))
+    hp = next(pool for pool in state.pools if pool.id == "hp:b")
+    fp = next(pool for pool in state.pools if pool.id == "fp:b")
+    assert (hp.current, fp.current) == (-10, -1)
+    assert hp.injury is not None and hp.injury.dead and hp.injury.unconscious
+    assert outcome.fatigue is not None and outcome.fatigue.hp_lost == 1
+    restored = ResourceState.model_validate_json(state.model_dump_json())
+    retried, replay = attack(restored, damage=1, target_purchases=(fragile,))
+    assert retried == restored and replay == outcome
