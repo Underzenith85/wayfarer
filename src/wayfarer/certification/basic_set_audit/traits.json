@@ -3037,7 +3037,9 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_complete_mundane_traits.py"
+        "tests/test_complete_mundane_traits.py",
+        "docs/gurps-gunslinger.md",
+        "tests/test_gunslinger.py"
       ],
       "historical_owners": [
         113,

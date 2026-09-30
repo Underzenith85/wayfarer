@@ -98,6 +98,7 @@ async def setup(
     darkness_penalty: int = 0,
     extra_definitions: tuple[RuleDefinition, ...] = (),
     extra_purchases: tuple[Purchase, ...] = (),
+    trait_runtime_hooks: frozenset[str] = frozenset(),
     campaign_technology_level: int | None = None,
     extra_equipment: tuple[EquipmentProfile, ...] = (),
     warhead: ExplosionSpec | None = None,
@@ -460,7 +461,7 @@ async def setup(
         if ability_defense
         else PHYSICAL_HOOKS
         if physical_purchases
-        else frozenset(),
+        else trait_runtime_hooks,
     )
     reviewer = PowerReviewer(
         compiler, PowerPolicy(id="power", version=1, automatic_approval=True), frozenset({"gm"})

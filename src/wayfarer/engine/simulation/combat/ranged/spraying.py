@@ -6,6 +6,7 @@ from math import sqrt
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -13,6 +14,7 @@ from wayfarer.engine.simulation.combat.firearm_transitions import validate_attac
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
+from wayfarer.engine.simulation.combat.ranged.gunslinger import accuracy_bonus
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.suppression import ActiveSuppressionZone, PendingSprayTarget
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
@@ -186,7 +188,12 @@ def prepare_suppression_fire(
         raise ValidationError("Suppression fire requires all declared ammunition")
     aim = actor.maneuver_state
     aim_bonus = (
-        aim.aim_bonus if (aim.aim_item_id, aim.aim_mode_id) == (command.item_id, selected.id) else 0
+        aim.aim_bonus
+        if (aim.aim_item_id, aim.aim_mode_id) == (command.item_id, selected.id)
+        and aim.aim_seconds > 0
+        else accuracy_bonus(
+            build(runtime, state, command.actor_id), runtime.reviewer.compiler.definitions, selected
+        )
     )
     zones = tuple(
         ActiveSuppressionZone(
