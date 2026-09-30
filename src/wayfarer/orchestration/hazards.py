@@ -245,7 +245,7 @@ class HazardService:
                 physiology=physiology_traits(
                     _build(play, before, command.actor_id),
                     play.engine.reviewer.compiler.definitions,
-                )
+                ),
             )
             updated = before.model_copy(
                 update={"revision": resources.revision, "resources": resources}

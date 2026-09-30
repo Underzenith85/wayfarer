@@ -666,8 +666,7 @@ def _reproject_aging(schedule: AgingSchedule, traits: PhysiologyTraits, at: int)
         # Old checkpoints have checks but predate the explicit last-check tick.
         tick = schedule.started + max(
             0,
-            int(50 * YEAR_SECONDS * _aging_scale(schedule.rules))
-            - schedule.age_seconds_at_start,
+            int(50 * YEAR_SECONDS * _aging_scale(schedule.rules)) - schedule.age_seconds_at_start,
         )
         for _ in range(len(schedule.checks) // 4 - 1):
             tick += _aging_interval(schedule.rules, _age_at(schedule, tick))
@@ -783,7 +782,9 @@ def apply_aging(
                     command,
                     result,
                     (
-                        _event(AGING_PREFIX, command.id, schedule, state.game_time, command.actor_id),
+                        _event(
+                            AGING_PREFIX, command.id, schedule, state.game_time, command.actor_id
+                        ),
                     ),
                 )
         if not schedule.active:
