@@ -43,6 +43,7 @@ class InjuryStatus(Record):
     shock_expires: int = Field(default=0, ge=0)
     anatomy: Literal["human", "creature", "swarm"] | None = None
     male_groin: bool = False
+    machine: bool = Field(default=False, exclude_if=lambda value: not value)
     tolerance: InjuryTolerance | None = Field(default=None, exclude_if=lambda v: v is None)
     electrical_stun: ElectricalStun | None = Field(
         default=None, exclude_if=lambda value: value is None
@@ -64,6 +65,8 @@ class InjuryStatus(Record):
             self.anatomy != "human" or self.profile_id != "gurps-basic-set-4e-2004"
         ):
             raise ValueError("Lasting locations require explicit Basic Set human anatomy")
+        if self.machine and (self.anatomy is None or self.profile_id != "gurps-basic-set-4e-2004"):
+            raise ValueError("Machine physiology requires explicit Basic Set anatomy")
         if self.male_groin and self.anatomy != "human":
             raise ValueError("Groin sensitivity requires explicit human anatomy")
         if self.electrical_stun is not None and (
