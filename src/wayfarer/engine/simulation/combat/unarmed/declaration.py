@@ -98,6 +98,7 @@ def require_declared(encounter: Encounter, command: TakeUnarmedTurn) -> None:
         command.maneuver != reaction
         or command.attack_option != option
         or command.enter_close_combat
+        or command.second_attack is not None
         or (declaration.reaction_target_id or command.target_id) != command.target_id
         or (declared.action, declared.skill, declared.foot, declared.location, declared.grip_id)
         != (command.action, command.skill, command.foot, command.location, command.grip_id)
@@ -110,20 +111,9 @@ def validate_action(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
 ) -> None:
     require_basic(catalog(runtime).profile_id)
-    if command.maneuver == "all_out_attack":
-        if command.attack_option not in ("determined", "strong"):
-            raise ValidationError(
-                "Unarmed All-Out Attack requires Determined or Strong; combined attacks remain unsupported"
-            )
-        if command.action not in ("punch", "kick", "grapple", "arm_lock"):
-            raise ValidationError("This control action requires the ordinary Attack maneuver")
-        if command.attack_option == "strong" and command.action not in ("punch", "kick"):
-            raise ValidationError("Strong requires a damaging strike")
-    elif command.attack_option is not None:
-        raise ValidationError("Attack options require All-Out Attack")
-    if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
-        raise ValidationError("Move and Attack requires a strike or grapple")
+    validate_options(command)
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)
+    validate_feint_visibility(runtime, encounter, command, actor, target)
     validate_choke_hold(encounter, command, actor, target)
     if actor.actor_id == target.actor_id:
         raise ValidationError("Unarmed action requires another actor")
@@ -428,3 +418,89 @@ def interrupt_wait(
             available=engine.available(paused, waiter_id),
         )
     return None
+
+
+def followup(command: TakeUnarmedTurn) -> TakeUnarmedTurn:
+    """B365: the second attack stays against the same foe, without another step."""
+    declaration = command.second_attack
+    choices = declaration.model_dump() if declaration is not None else {}
+    return command.model_copy(
+        update={
+            **choices,
+            "id": command.id + ":second",
+            "enter_close_combat": False,
+            "maneuver": "attack",
+            "attack_option": None,
+            "second_attack": None,
+            "choke_hold": False,
+        }
+    )
+
+
+def validate_sequence(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
+) -> None:
+    """Validate the whole declaration before consuming randomness or moving."""
+    validate_action(runtime, state, encounter, command)
+    if command.attack_option != "double":
+        return
+    second = followup(command)
+    # Both attacks share the first step; validate attack two at the resulting pose.
+    anticipated = encounter.model_copy(update={"wait_interrupt": None})
+    if command.enter_close_combat:
+        if isinstance(anticipated.spatial, BasicSpatialContext):
+            anticipated = move_basic(
+                anticipated,
+                actor_id=command.actor_id,
+                reference_actor_id=command.target_id,
+                direction="approach",
+                yards=1,
+                command_id=command.id,
+                revision=state.revision,
+            )
+        else:
+            actor, target = (
+                fighter(anticipated, command.actor_id),
+                fighter(anticipated, command.target_id),
+            )
+            anticipated = CombatEngine._replace(
+                anticipated, actor.model_copy(update={"position": target.position})
+            )
+    validate_action(runtime, state, anticipated, second)
+    if command.action in ("grapple", "arm_lock") and set(command.hands) & set(second.hands):
+        raise ValidationError("Double cannot reserve the same hands for a grip and another attack")
+
+
+def validate_options(command: TakeUnarmedTurn) -> None:
+    if command.maneuver == "all_out_attack":
+        if command.attack_option not in ("determined", "strong", "double", "feint"):
+            raise ValidationError("Choose a melee All-Out Attack option")
+        if command.action not in ("punch", "kick", "grapple", "arm_lock"):
+            raise ValidationError("This control action requires the ordinary Attack maneuver")
+        if command.attack_option == "strong" and command.action not in ("punch", "kick"):
+            raise ValidationError("Strong requires a damaging strike")
+    elif command.attack_option is not None:
+        raise ValidationError("Attack options require All-Out Attack")
+    if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
+        raise ValidationError("Move and Attack requires a strike or grapple")
+    if command.second_attack is not None and command.attack_option != "double":
+        raise ValidationError("A second unarmed attack requires All-Out Attack (Double)")
+    if command.attack_option == "feint" and command.skill == "attribute:dx":
+        raise ValidationError("An unarmed feint requires an unarmed combat skill")
+
+
+def validate_feint_visibility(
+    runtime: RulesContext,
+    encounter: Encounter,
+    command: TakeUnarmedTurn,
+    actor: Combatant,
+    target: Combatant,
+) -> None:
+    if command.attack_option == "feint":
+        visible = (
+            basic_visible(encounter, actor.actor_id, target.actor_id)
+            if isinstance(encounter.spatial, BasicSpatialContext)
+            else sight(encounter, target, actor, board=runtime.hex_map(encounter))
+        )
+        if not visible:
+            raise ValidationError("Feint requires a foe who can observe the attacker")

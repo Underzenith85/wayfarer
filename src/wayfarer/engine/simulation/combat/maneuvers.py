@@ -72,6 +72,9 @@ class ManeuverState(Record):
     wait: WaitTrigger | None = None
     defended: bool = False
     attacks_remaining: int = Field(default=0, ge=0, le=1)
+    second_unarmed_attack: UnarmedReaction | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     second_attack_item_id: str | None = None
     second_attack_target_id: str | None = None
     second_attack_mode_id: str | None = None

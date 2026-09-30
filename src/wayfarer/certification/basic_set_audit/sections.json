@@ -9632,7 +9632,8 @@
         "tests/test_gurps_ranged.py",
         "tests/test_geometry_injury_followups.py",
         "tests/test_critical_miss_completion.py",
-        "tests/test_choke_hold.py"
+        "tests/test_choke_hold.py",
+        "tests/test_unarmed_all_out_sequences.py"
       ],
       "historical_owners": [
         191,

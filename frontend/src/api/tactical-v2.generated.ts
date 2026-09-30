@@ -1000,6 +1000,8 @@ export interface components {
        */
       attack_option:
         ("determined" | "strong" | "double" | "feint" | "suppression") | null;
+      /** @default null */
+      second_attack: components["schemas"]["UnarmedReaction"] | null;
     };
     /**
      * UnarmedReaction

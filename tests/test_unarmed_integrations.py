@@ -182,8 +182,8 @@ async def test_maneuver_commitments(
     assert play.rng.exhausted()
 
 
-@pytest.mark.parametrize("option", ["double", "feint", None])
-async def test_unsupported_all_out_combinations_reject_before_dice(
+@pytest.mark.parametrize("option", ["suppression", None])
+async def test_invalid_all_out_options_reject_before_dice(
     tmp_path: Path, option: str | None
 ) -> None:
     cid, play = await setup(tmp_path)

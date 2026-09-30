@@ -2369,6 +2369,17 @@
             ],
             "default": null,
             "title": "Attack Option"
+          },
+          "second_attack": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnarmedReaction"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
