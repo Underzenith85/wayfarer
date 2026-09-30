@@ -7,21 +7,30 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import catalog, exertion, injury_turn
-from wayfarer.engine.simulation.combat.commands import ChooseDefense
+from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.unarmed.control import control
-from wayfarer.engine.simulation.combat.unarmed.declaration import interrupt_wait, validate_action
+from wayfarer.engine.simulation.combat.unarmed.declaration import (
+    followup,
+    interrupt_wait,
+    validate_action,
+    validate_sequence,
+)
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, settle_control
-from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed, require_basic
+from wayfarer.engine.simulation.combat.unarmed.records import (
+    PendingUnarmed,
+    UnarmedReaction,
+    require_basic,
+)
 from wayfarer.engine.simulation.combat.unarmed.resolution import defend
+from wayfarer.engine.simulation.combat.unarmed.sequence import feint
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
-    from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeUnarmedTurn
     from wayfarer.engine.simulation.rules_context import RulesContext
 
 
@@ -48,7 +57,7 @@ def execute_unarmed(
                     ),
                 }
             )
-        validate_action(runtime, state, encounter, command)
+        validate_sequence(runtime, state, encounter, command)
         if not reacting:
             fired = interrupt_wait(runtime, state, encounter, command)
             if fired is not None:
@@ -135,6 +144,14 @@ def execute_unarmed(
                     else 0,
                     attack_cap=9 if command.maneuver == "move_and_attack" else None,
                     strong=command.attack_option == "strong",
+                    attacks_remaining=int(command.attack_option == "double"),
+                    second_unarmed_attack=UnarmedReaction.model_validate(
+                        followup(command).model_dump(
+                            include={"action", "skill", "hands", "foot", "location", "grip_id"}
+                        )
+                    )
+                    if command.attack_option == "double"
+                    else None,
                 ),
             }
         )
@@ -169,78 +186,49 @@ def execute_unarmed(
                     encounter = CombatEngine._replace(encounter, actor).model_copy(
                         update={"close_pairs": tuple(sorted(pairs))}
                     )
-            allowed_defenses: list[str] = ["none"]
-            for choice in () if command.choke_hold else ("dodge", "parry"):
-                try:
-                    unarmed_defense(
-                        runtime,
-                        state,
-                        encounter,
-                        command.target_id,
-                        choice,
-                        None,
-                        attacker_id=actor.actor_id,
-                        location=command.location,
-                    )
-                except ValidationError:
-                    if choice != "parry":
-                        continue
-                    candidates = (
-                        (i.id, m.id)
-                        for i in state.resources.items
-                        if i.id in fighter(encounter, command.target_id).ready_item_ids
-                        for e in catalog(runtime).entries
-                        if e.definition_id == i.definition_id
-                        for m in e.modes
-                    )
-                    for item, selected_mode in candidates:
-                        try:
-                            unarmed_defense(
-                                runtime,
-                                state,
-                                encounter,
-                                command.target_id,
-                                choice,
-                                item,
-                                attacker_id=actor.actor_id,
-                                location=command.location,
-                                mode_id=selected_mode,
-                            )
-                        except ValidationError:
-                            continue
-                        break
-                    else:
-                        continue
-                allowed_defenses.insert(0, choice)
-            pending = PendingUnarmed.model_validate(
-                {
-                    "id": "unarmed:" + hashlib.sha256(command.id.encode()).hexdigest(),
-                    "actor_id": actor.actor_id,
-                    "target_id": command.target_id,
-                    "action": command.action,
-                    "grip_id": command.grip_id,
-                    "choke_hold": command.choke_hold,
-                    "skill": command.skill,
-                    "foot": command.foot,
-                    "hands": command.hands,
-                    "location": command.location,
-                    "allowed": tuple(allowed_defenses),
-                }
-            )
-            encounter = encounter.model_copy(update={"pending_unarmed": pending})
-            return (
-                state,
-                encounter,
-                CombatResult(
-                    encounter_id=encounter.id,
-                    code="combat.unarmed_defense_required",
-                    round=encounter.round,
-                    current_actor_id=encounter.current_actor_id,
-                    pending_defense_id=pending.id,
-                    available=pending.allowed,
-                ),
-            )
+            if command.attack_option == "feint":
+                encounter = feint(runtime, state, encounter, command)
+            return state, *declare_pending(runtime, state, encounter, command)
         state, encounter, trace = control(runtime, state, encounter, command)
+    encounter = settle_control(state, encounter)
+    actor = fighter(encounter, trace.actor_id)
+    second = actor.maneuver_state.second_unarmed_attack
+    if second is not None and not trace.blocked_reason:
+        encounter = CombatEngine._replace(
+            encounter,
+            actor.model_copy(
+                update={
+                    "maneuver_state": actor.maneuver_state.model_copy(
+                        update={"attacks_remaining": 0, "second_unarmed_attack": None}
+                    )
+                }
+            ),
+        ).model_copy(
+            update={
+                "pending_unarmed": None,
+                "unarmed_history": encounter.unarmed_history + (trace,),
+            }
+        )
+        continued = TakeUnarmedTurn(
+            id=trace.intent.id + ":second" if trace.intent is not None else command.id + ":second",
+            actor_id=trace.actor_id,
+            expected_revision=state.revision,
+            encounter_id=encounter.id,
+            target_id=trace.target_id,
+            **second.model_dump(),
+        )
+        try:
+            if actor.unarmed_balance_lost:
+                raise ValidationError("Lost balance cancels the remaining attack")
+            validate_action(
+                runtime, state, encounter.model_copy(update={"wait_interrupt": None}), continued
+            )
+        except ValidationError:
+            pass  # Injury, a lost limb, a fall or a changed grip can cancel attack two.
+        else:
+            return state, *declare_pending(runtime, state, encounter, continued)
+        # The first attack was already appended above; completion appends it once.
+        encounter = encounter.model_copy(update={"unarmed_history": encounter.unarmed_history[:-1]})
     if not reacting:
         state = injury_turn(
             runtime, state, trace.actor_id, command.id, start=False, do_nothing=False
@@ -266,3 +254,80 @@ def execute_unarmed(
             unarmed=trace,
         ),
     )
+
+
+def declare_pending(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
+) -> tuple[Encounter, CombatResult]:
+    actor = fighter(encounter, command.actor_id)
+    allowed_defenses: list[str] = ["none"]
+    for choice in () if command.choke_hold else ("dodge", "parry"):
+        try:
+            unarmed_defense(
+                runtime,
+                state,
+                encounter,
+                command.target_id,
+                choice,
+                None,
+                attacker_id=actor.actor_id,
+                location=command.location,
+            )
+        except ValidationError:
+            if choice != "parry":
+                continue
+            candidates = (
+                (i.id, m.id)
+                for i in state.resources.items
+                if i.id in fighter(encounter, command.target_id).ready_item_ids
+                for e in catalog(runtime).entries
+                if e.definition_id == i.definition_id
+                for m in e.modes
+            )
+            for item, selected_mode in candidates:
+                try:
+                    unarmed_defense(
+                        runtime,
+                        state,
+                        encounter,
+                        command.target_id,
+                        choice,
+                        item,
+                        attacker_id=actor.actor_id,
+                        location=command.location,
+                        mode_id=selected_mode,
+                    )
+                except ValidationError:
+                    continue
+                break
+            else:
+                continue
+        allowed_defenses.insert(0, choice)
+    pending = PendingUnarmed.model_validate(
+        {
+            "id": "unarmed:" + hashlib.sha256(command.id.encode()).hexdigest(),
+            "actor_id": actor.actor_id,
+            "target_id": command.target_id,
+            "action": command.action,
+            "grip_id": command.grip_id,
+            "choke_hold": command.choke_hold,
+            "skill": command.skill,
+            "foot": command.foot,
+            "hands": command.hands,
+            "location": command.location,
+            "allowed": tuple(allowed_defenses),
+        }
+    )
+    encounter = encounter.model_copy(update={"pending_unarmed": pending})
+    return (
+        encounter,
+        CombatResult(
+            encounter_id=encounter.id,
+            code="combat.unarmed_defense_required",
+            round=encounter.round,
+            current_actor_id=encounter.current_actor_id,
+            pending_defense_id=pending.id,
+            available=pending.allowed,
+        ),
+    )
+

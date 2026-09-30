@@ -56,7 +56,7 @@ The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejec
 - All B556 non-head critical-hit table entries resolve for the supported strikes. Critical hits bypass active defenses, while damage, DR reduction, major-wound checks, double shock, transient limb injury and forced item drops use authoritative injury/equipment state.
 - B557 strain (4/17), solid-object self-injury without an impaling-weapon exception (5/6/16), falls (8 and parrying 7/14), lost balance (9-11), and trip checks (12) execute immediately. Limb strain lasts 1,800 seconds and self-injury uses the attacking limb, without treating it as a breakable weapon. A subject already prone takes the table's general injury for an unarmed-table fall. B382 critical Dodge failure falls without table dice; critical defense success applies the attacker's unarmed miss table. Contextual results listed above remain blockers.
 - Armed parries roll a separate weapon-skill check to injure the attacking arm or leg. Judo/Karate attacks impose the B376 -4 on that check. The selected weapon mode supplies damage type, armor divisor and damage dice. Extra checks and dice persist in the unarmed trace and in injury receipts.
-- All-Out Attack (Determined/Strong) and stationary/close-entry Move and Attack retain their attack modifiers and defense restrictions. Existing Evaluate/Feint benefits apply to the immediately following unarmed attack and cannot be reused on later attacks. Judo/Karate use encumbrance penalties; Boxing's kick-parry penalty participates in automatic best-defense selection.
+- All-Out Attack (Determined/Strong/Double/Feint) and stationary/close-entry Move and Attack retain their attack modifiers and defense restrictions. Existing Evaluate/Feint benefits apply to the immediately following unarmed attack and cannot be reused on later attacks. Judo/Karate use encumbrance penalties; Boxing's kick-parry penalty participates in automatic best-defense selection.
 - Punches and kicks can target torso, neck, arms or legs. A neck strike missed by one resolves against the torso and records both intent and resolved location. Hex retreat is supported against strikes, with the trained unarmed parry bonus. Legacy square coordinates are unchanged.
 - Ready while grappling requires explicitly selected free hands. A grappled actor makes a DX check (including applicable shock/control penalties); failure drops only the selected item. The check and result survive restart and command replay. Partial release does not consume an attack or release other hands.
 
@@ -148,3 +148,26 @@ rejected explicitly. Source review used Campaigns fourth printing B404 and B436,
 `79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80`.
 
 No engine version increment is made while the profile remains prerelease.
+
+### All-Out Attack sequences (B365, selected Campaigns fourth printing)
+
+`Double` repeats the declared unarmed attack against the same foe by default.
+An optional `second_attack` declaration fixes a different unarmed action, skill,
+limb and location before attack one. Both choices are validated before any dice
+or movement, and the second attack shares the first attack's close-combat entry.
+A first grapple/arm lock cannot reserve hands also needed by attack two. Each
+attack has its own durable pending defense and trace; the turn advances only
+after both attacks. An injury, lost balance, disabled limb, changed grip or a
+failed kick's fall cancels an unavailable second action, without restoring defenses.
+
+`Feint` requires a selected unarmed combat skill, an observable foe and a legal
+attack within reach. Its Quick Contest precedes the attack, using the defender's
+best usable combat skill or DX. If the attacker succeeds, the defense penalty
+is the attacker's success margin minus the defender's nonnegative success
+margin, floored at zero. It applies to the single same-turn attack. Evaluate is
+consumed by the Feint; no additional +4 to hit or Strong damage bonus applies.
+Both sequences forfeit active defenses until the actor's next turn and preserve
+exact receipt replay across pending defenses and Wait interruptions.
+
+Mixed armed/unarmed Double declarations and mixed-action Wait reactions remain
+unsupported; a Wait's unarmed Double repeats its fixed declaration.

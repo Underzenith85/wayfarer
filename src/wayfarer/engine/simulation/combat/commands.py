@@ -26,6 +26,7 @@ from wayfarer.engine.simulation.combat.suppression import SprayTarget, Suppressi
 from wayfarer.engine.simulation.combat.unarmed.records import (
     GrappleLocation,
     UnarmedAction,
+    UnarmedReaction,
     UnarmedSkill,
 )
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
@@ -182,6 +183,7 @@ class TakeUnarmedTurn(CombatCommand):
         default="attack", exclude_if=lambda value: value == "attack"
     )
     attack_option: AttackOption | None = Field(default=None, exclude_if=lambda value: value is None)
+    second_attack: UnarmedReaction | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class ResolveChokeEffects(CombatCommand):
