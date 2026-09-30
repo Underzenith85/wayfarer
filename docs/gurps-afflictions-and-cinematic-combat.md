@@ -38,6 +38,11 @@ multiplier.
 
 ## Cinematic combat selection
 
+B417 is optional in the selected source. Both its cinematic section and the
+Dual-Weapon Attacks box are disabled in the generic Basic Set profile. The
+source ledger no longer certifies either through unrelated armor-divisor tests;
+#744 reconciles this scope without removing custom-profile implementations.
+
 Dual-Weapon Attack is enabled only by the exact profile rule ID
 `gurps.techniques.dual-weapon-attack`. Supplying a second Attack weapon while
 that rule is disabled is rejected during command validation, before dice are

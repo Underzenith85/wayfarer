@@ -697,6 +697,28 @@ def validate(root: Path, manifest: Manifest) -> None:
     validate_coverage()
     source_ledgers = load_source_ledgers(root)
     validate_source_ledgers(source_ledgers, inventory(root), frozenset(CAPABILITIES), root)
+    scope_by_id = {scope.id: scope for scope in manifest.scopes}
+    for identifier in (
+        "optional-influencing-success",
+        "optional-bleeding",
+        "optional-accumulated-wounds",
+        "optional-extra-effort-combat",
+        "optional-cinematic-combat",
+    ):
+        optional_scope = scope_by_id.get(identifier)
+        if (
+            optional_scope is None
+            or optional_scope.decision != "optional-disabled"
+            or not optional_scope.reviewed
+        ):
+            raise ValidationError(f"Optional profile scope drift: {identifier}")
+    standard_magic = scope_by_id.get("basic-standard-magic-psi")
+    if (
+        standard_magic is None
+        or standard_magic.decision != "required"
+        or not standard_magic.reviewed
+    ):
+        raise ValidationError("Standard Basic Set magic/psi cannot be excluded")
 
 
 def blockers(manifest: Manifest) -> tuple[str, ...]:

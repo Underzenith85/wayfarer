@@ -693,7 +693,7 @@
       "id": "section:characters:b018:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 18,
       "list_page": null,
       "profile_membership": [
@@ -945,7 +945,7 @@
       "id": "section:characters:b022:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 22,
       "list_page": null,
       "profile_membership": [
@@ -1169,7 +1169,7 @@
       "id": "section:characters:b025:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 25,
       "list_page": null,
       "profile_membership": [
@@ -1421,7 +1421,7 @@
       "id": "section:characters:b030:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 30,
       "list_page": null,
       "profile_membership": [
@@ -1775,7 +1775,7 @@
       "id": "section:characters:b034:what-s-allowed",
       "row_kind": "catalog-item",
       "source_id": "characters-third",
-      "title": "What’s Allowed",
+      "title": "What\u2019s Allowed",
       "printed_page": 34,
       "list_page": null,
       "profile_membership": [
@@ -2172,11 +2172,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -2186,7 +2187,8 @@
       "runtime_binding": null,
       "parent_id": "section:characters:b101:modifiers",
       "classification": "gurps.optional.limited-enhancements",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:characters:b114:examples-of-modified-attacks",
@@ -2255,7 +2257,7 @@
       "id": "section:characters:b116:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 116,
       "list_page": null,
       "profile_membership": [
@@ -2670,7 +2672,7 @@
       "id": "section:characters:b162:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 162,
       "list_page": null,
       "profile_membership": [
@@ -2760,7 +2762,7 @@
       "id": "section:characters:b164:example-of-character-creation-cont-d",
       "row_kind": "example",
       "source_id": "characters-third",
-      "title": "Example of Character Creation (cont’d)",
+      "title": "Example of Character Creation (cont\u2019d)",
       "printed_page": 164,
       "list_page": null,
       "profile_membership": [
@@ -3557,11 +3559,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -3571,7 +3574,8 @@
       "runtime_binding": null,
       "parent_id": "section:characters:b174:skill-list",
       "classification": "gurps.optional.wildcard-skills",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:characters:b176:geographical-and-temporal-scope",
@@ -6531,11 +6535,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -6545,7 +6550,8 @@
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": "gurps.optional.modifying-dice-adds",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:characters:b271:melee-weapons",
@@ -6786,11 +6792,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -6800,7 +6807,8 @@
       "runtime_binding": null,
       "parent_id": "section:characters:b267:weapons",
       "classification": "gurps.optional.malfunction",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:characters:b281:heavy-weapons",
@@ -7267,11 +7275,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -7281,7 +7290,8 @@
       "runtime_binding": null,
       "parent_id": "section:characters:b292:improvement-through-study",
       "classification": "gurps.optional.maintaining-skills",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:characters:b294:learnable-advantages",
@@ -8338,11 +8348,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -8352,7 +8363,8 @@
       "runtime_binding": null,
       "parent_id": "section:campaigns:b343:10-success-rolls",
       "classification": "gurps.optional.influencing-success-rolls",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:campaigns:b348:repeated-attempts",
@@ -8738,11 +8750,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -8752,7 +8765,8 @@
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
       "classification": "gurps.optional.detailed-jumping",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:campaigns:b353:lifting-and-moving-things",
@@ -8971,7 +8985,7 @@
       "runtime_binding": null,
       "parent_id": "section:campaigns:b349:physical-activities",
       "classification": "executable-mechanic",
-      "listed_value": "joined-executable-evidence"
+      "listed_value": "Required physical extra effort; optional B357 combat choices are disabled"
     },
     {
       "id": "section:campaigns:b358:sense-rolls",
@@ -11720,7 +11734,7 @@
       "id": "section:campaigns:b391:entering-a-foe-s-hex",
       "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
-      "title": "Entering a Foe’s Hex",
+      "title": "Entering a Foe\u2019s Hex",
       "printed_page": 391,
       "list_page": null,
       "profile_membership": [
@@ -11748,7 +11762,7 @@
       "id": "section:campaigns:b391:leaving-a-foe-s-hex",
       "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
-      "title": "Leaving a Foe’s Hex",
+      "title": "Leaving a Foe\u2019s Hex",
       "printed_page": 391,
       "list_page": null,
       "profile_membership": [
@@ -12097,11 +12111,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -12111,7 +12126,8 @@
       "runtime_binding": null,
       "parent_id": "section:campaigns:b394:special-movement",
       "classification": "gurps.optional.posture-in-armor",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:campaigns:b396:mounted-combat",
@@ -13076,7 +13092,7 @@
     },
     {
       "id": "section:campaigns:b417:cinematic-combat-rules",
-      "row_kind": "mechanic",
+      "row_kind": "optional-rule",
       "source_id": "campaigns-fourth",
       "title": "Cinematic Combat Rules",
       "printed_page": 417,
@@ -13084,28 +13100,29 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "verified",
+      "disposition": "optional-disabled",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191,
         513
       ],
       "completion_owner": null,
-      "capability_id": "gurps.injury.armor_divisors",
+      "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b393:13-special-combat-situations",
-      "classification": null,
-      "listed_value": null
+      "classification": "scope:optional-cinematic-combat",
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:campaigns:b417:dual-weapon-attacks",
-      "row_kind": "mechanic",
+      "row_kind": "optional-rule",
       "source_id": "campaigns-fourth",
       "title": "Dual-Weapon Attacks",
       "printed_page": 417,
@@ -13113,24 +13130,25 @@
       "profile_membership": [
         "gurps-basic-set-4e-2004"
       ],
-      "disposition": "required",
-      "implementation": "verified",
+      "disposition": "optional-disabled",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191,
         513
       ],
       "completion_owner": null,
-      "capability_id": "gurps.injury.armor_divisors",
+      "capability_id": null,
       "runtime_binding": null,
       "parent_id": "section:campaigns:b417:cinematic-combat-rules",
-      "classification": null,
-      "listed_value": null
+      "classification": "gurps.techniques.dual-weapon-attack",
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:campaigns:b418:14-injuries-illness-and-fatigue",
@@ -13381,11 +13399,12 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "optional-disabled",
-      "implementation": "unsupported",
+      "implementation": "not-applicable",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "docs/gurps-optional-rules.md"
+        "docs/gurps-optional-rules.md",
+        "tests/test_optional_scope_reconciliation.py"
       ],
       "historical_owners": [
         191
@@ -13395,7 +13414,8 @@
       "runtime_binding": null,
       "parent_id": "section:campaigns:b418:injuries",
       "classification": "gurps.optional.injury.bleeding|gurps.optional.injury.accumulated-wounds|gurps.optional.injury.last-wounds",
-      "listed_value": "disabled"
+      "listed_value": "disabled",
+      "obligation": "profile-excluded"
     },
     {
       "id": "section:campaigns:b421:patient-status",
@@ -15052,7 +15072,7 @@
       "id": "section:campaigns:b445:how-gurps-works-character-templates-aren-t-rules",
       "row_kind": "mechanic",
       "source_id": "campaigns-fourth",
-      "title": "How GURPS Works: Character Templates Aren’t Rules!",
+      "title": "How GURPS Works: Character Templates Aren\u2019t Rules!",
       "printed_page": 445,
       "list_page": null,
       "profile_membership": [
@@ -20168,7 +20188,7 @@
       "id": "section:campaigns:b535:infinity-s-world-classes",
       "row_kind": "setting",
       "source_id": "campaigns-fourth",
-      "title": "Infinity’s World Classes",
+      "title": "Infinity\u2019s World Classes",
       "printed_page": 535,
       "list_page": null,
       "profile_membership": [

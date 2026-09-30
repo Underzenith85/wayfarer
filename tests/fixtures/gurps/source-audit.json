@@ -97,7 +97,7 @@
       "owner": 119,
       "decision": "required",
       "reviewed": true,
-      "reason": "The #119 typed inventory accounts for all 100 indexed spells, 192 exotic/supernatural or psi-member traits, six psi powers and eight magic protocols. The selected printing is reconciled; #688 completes the residual Fireball and Injury Tolerance mechanics."
+      "reason": "The source-indexed Basic Set spell, exotic/supernatural trait and psi catalogs are required under the supplied third/fourth printings. Construction coverage and verified behavioral execution are distinct; #742 tracks remaining semantic repairs and verification."
     },
     {
       "id": "equipment-catalog",
@@ -169,7 +169,7 @@
       "owner": 191,
       "decision": "optional-disabled",
       "reviewed": true,
-      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+      "reason": "Disabled in the selected Characters third / Campaigns fourth printing profile; optional scope is reviewed in #744. Activation requires a separately reviewed profile and bounded implementation evidence."
     },
     {
       "id": "optional-bleeding",
@@ -178,7 +178,7 @@
       "owner": 209,
       "decision": "optional-disabled",
       "reviewed": true,
-      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+      "reason": "Disabled in the selected Characters third / Campaigns fourth printing profile; optional scope is reviewed in #744. Activation requires a separately reviewed profile and bounded implementation evidence."
     },
     {
       "id": "optional-accumulated-wounds",
@@ -187,7 +187,7 @@
       "owner": 107,
       "decision": "optional-disabled",
       "reviewed": true,
-      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+      "reason": "Disabled in the selected Characters third / Campaigns fourth printing profile; optional scope is reviewed in #744. Activation requires a separately reviewed profile and bounded implementation evidence."
     },
     {
       "id": "optional-extra-effort-combat",
@@ -196,7 +196,7 @@
       "owner": 109,
       "decision": "optional-disabled",
       "reviewed": true,
-      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+      "reason": "Disabled in the selected Characters third / Campaigns fourth printing profile; optional scope is reviewed in #744. Activation requires a separately reviewed profile and bounded implementation evidence."
     },
     {
       "id": "optional-cinematic-combat",
@@ -205,16 +205,16 @@
       "owner": 191,
       "decision": "optional-disabled",
       "reviewed": true,
-      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+      "reason": "Disabled in the selected Characters third / Campaigns fourth printing profile; optional scope is reviewed in #744. Activation requires a separately reviewed profile and bounded implementation evidence."
     },
     {
-      "id": "optional-optional-magic-psi",
+      "id": "basic-standard-magic-psi",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "reference": "B234-257",
       "owner": 119,
-      "decision": "optional-disabled",
+      "decision": "required",
       "reviewed": true,
-      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+      "reason": "Standard Basic Set magic, spell construction and psi are included. Alternative systems and Other Powers are reference construction guidance, not a blanket magic/psi exclusion. Behavioral gaps remain owned by #745-#848 and do not certify through catalog presence."
     },
     {
       "id": "excluded-later-printings",
@@ -223,7 +223,7 @@
       "owner": 191,
       "decision": "excluded",
       "reviewed": true,
-      "reason": "Outside the selected historical baseline; may be comparison evidence but cannot silently replace the target."
+      "reason": "The supplied Characters third printing (February 2008) and Campaigns fourth printing (April 2008) are the selected baseline. Other printings and later errata overlays may be comparison evidence but cannot replace those exact source identities."
     },
     {
       "id": "excluded-supplements-and-faq",

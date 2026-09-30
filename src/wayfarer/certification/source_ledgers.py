@@ -67,6 +67,20 @@ CHARACTERS_SECTION_REVIEW_SHA256: Final = (
     "d5d4c5ad7b0457c74c92502dd3beb77feebddcd3f858df78839826ac45bfe9b1"
 )
 
+OPTIONAL_SECTION_CLASSIFICATIONS: Final = {
+    "section:characters:b111:optional-rule-limited-enhancements": "gurps.optional.limited-enhancements",
+    "section:characters:b175:optional-rule-wildcard-skills": "gurps.optional.wildcard-skills",
+    "section:characters:b269:optional-rule-modifying-dice-adds": "gurps.optional.modifying-dice-adds",
+    "section:characters:b279:optional-rule-malfunction": "gurps.optional.malfunction",
+    "section:characters:b294:optional-rule-maintaining-skills": "gurps.optional.maintaining-skills",
+    "section:campaigns:b347:optional-rule-influencing-success-rolls": "gurps.optional.influencing-success-rolls",
+    "section:campaigns:b352:optional-jumping-rules": "gurps.optional.detailed-jumping",
+    "section:campaigns:b395:optional-rule-changing-posture-in-armor": "gurps.optional.posture-in-armor",
+    "section:campaigns:b420:optional-rules-for-injury": "gurps.optional.injury.bleeding|gurps.optional.injury.accumulated-wounds|gurps.optional.injury.last-wounds",
+    "section:campaigns:b417:cinematic-combat-rules": "scope:optional-cinematic-combat",
+    "section:campaigns:b417:dual-weapon-attacks": "gurps.techniques.dual-weapon-attack",
+}
+
 
 class AuditRecord(Record):
     model_config = ConfigDict(str_min_length=1)
@@ -428,6 +442,27 @@ def validate_source_ledgers(
                 raise ValidationError(f"Campaigns structural obligation drift: {row.id}")
         elif row.row_kind != "reference":
             raise ValidationError(f"Campaigns reference obligation drift: {row.id}")
+    # Exact source section joins stop a disabled rule acquiring unrelated
+    # capability evidence. The B417 sub-box is independently optional.
+    by_id = {row.id: row for row in bundle.rows}
+    for identifier, classification in OPTIONAL_SECTION_CLASSIFICATIONS.items():
+        optional_row = by_id.get(identifier)
+        if optional_row is None or (
+            optional_row.row_kind != "optional-rule"
+            or optional_row.source_review != "reviewed"
+            or optional_row.disposition != "optional-disabled"
+            or optional_row.implementation != "not-applicable"
+            or optional_row.classification != classification
+            or optional_row.listed_value != "disabled"
+            or optional_row.capability_id is not None
+            or optional_row.runtime_binding is not None
+            or optional_row.obligation != "profile-excluded"
+        ):
+            raise ValidationError(f"Optional source disposition drift: {identifier}")
+    if {row.id for row in bundle.rows if row.disposition == "optional-disabled"} != set(
+        OPTIONAL_SECTION_CLASSIFICATIONS
+    ):
+        raise ValidationError("Unknown optional source section")
     bindings: list[str] = []
     characters_section_reviewed = tuple(
         row for row in bundle.rows if row.obligation_review_issue == CHARACTERS_SECTION_REVIEW_ISSUE

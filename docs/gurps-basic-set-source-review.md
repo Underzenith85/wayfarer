@@ -33,3 +33,10 @@ Chapter 20 Infinite Worlds exclusion in Basic Set profile version 10. Those are
 reviewed dispositions, not hidden gaps or claims of executable behavior. Exact
 behavior and fixture certification remain with their recorded child owners,
 while the unavailable Lite printing remains a separate blocker.
+
+#744 reconciles the optional section joins with those profile decisions. B417's
+cinematic rules and independent Dual-Weapon Attacks box are disabled in the
+selected generic profile, rather than required/verified through armor-divisor
+evidence. Standard Basic Set magic and psi remain required; they are not a
+blanket optional exclusion. Source identity review still does not certify their
+unresolved behavioral effects.
