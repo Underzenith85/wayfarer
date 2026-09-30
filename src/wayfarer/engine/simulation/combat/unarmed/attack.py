@@ -158,35 +158,7 @@ def execute_unarmed(
         )
         encounter = CombatEngine._replace(encounter, actor)
         if command.action in ("punch", "kick", "grapple", "arm_lock"):
-            if command.enter_close_combat:
-                target = fighter(encounter, command.target_id)
-                pairs = set(encounter.close_pairs)
-                if isinstance(encounter.spatial, BasicSpatialContext):
-                    pairs.add(
-                        (
-                            min(actor.actor_id, target.actor_id),
-                            max(actor.actor_id, target.actor_id),
-                        )
-                    )
-                    encounter = move_basic(
-                        encounter,
-                        actor_id=actor.actor_id,
-                        reference_actor_id=target.actor_id,
-                        direction="approach",
-                        yards=1,
-                        command_id=command.id,
-                        revision=state.revision,
-                    ).model_copy(update={"close_pairs": tuple(sorted(pairs))})
-                else:
-                    actor = actor.model_copy(update={"position": target.position})
-                    pairs.update(
-                        (min(actor.actor_id, p.actor_id), max(actor.actor_id, p.actor_id))
-                        for p in encounter.participants
-                        if p.actor_id != actor.actor_id and p.position == target.position
-                    )
-                    encounter = CombatEngine._replace(encounter, actor).model_copy(
-                        update={"close_pairs": tuple(sorted(pairs))}
-                    )
+            encounter = enter_close(runtime, state, encounter, command)
             if command.attack_option == "feint":
                 encounter = feint(runtime, state, encounter, command)
             return state, *declare_pending(runtime, state, encounter, command)
@@ -352,3 +324,39 @@ def continue_sequence(
         # The first attack was already appended above; completion appends it once.
         encounter = encounter.model_copy(update={"unarmed_history": encounter.unarmed_history[:-1]})
     return encounter, None
+
+
+def enter_close(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
+) -> Encounter:
+    actor = fighter(encounter, command.actor_id)
+    if command.enter_close_combat:
+        target = fighter(encounter, command.target_id)
+        pairs = set(encounter.close_pairs)
+        if isinstance(encounter.spatial, BasicSpatialContext):
+            pairs.add(
+                (
+                    min(actor.actor_id, target.actor_id),
+                    max(actor.actor_id, target.actor_id),
+                )
+            )
+            encounter = move_basic(
+                encounter,
+                actor_id=actor.actor_id,
+                reference_actor_id=target.actor_id,
+                direction="approach",
+                yards=1,
+                command_id=command.id,
+                revision=state.revision,
+            ).model_copy(update={"close_pairs": tuple(sorted(pairs))})
+        else:
+            actor = actor.model_copy(update={"position": target.position})
+            pairs.update(
+                (min(actor.actor_id, p.actor_id), max(actor.actor_id, p.actor_id))
+                for p in encounter.participants
+                if p.actor_id != actor.actor_id and p.position == target.position
+            )
+            encounter = CombatEngine._replace(encounter, actor).model_copy(
+                update={"close_pairs": tuple(sorted(pairs))}
+            )
+    return encounter
