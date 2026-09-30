@@ -9,12 +9,30 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.skills.mundane.arts import OBJECT_REPAIR_SKILLS, PROCEDURES
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
-from wayfarer.engine.simulation.equipment.catalog import MeleeMode
+from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode
 from wayfarer.engine.simulation.equipment.repairs import RepairTask, record, tasks
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
+
+
+def _repair_binding(
+    entry: EquipmentProfile, skill_id: str
+) -> tuple[str | None, str | None]:
+    """Bind supported Armoury tasks only to matching equipment specialties."""
+    if skill_id not in OBJECT_REPAIR_SKILLS:
+        return None, None
+    procedure = PROCEDURES[skill_id]
+    assert procedure.task is not None
+    matches = (
+        entry.armor is not None
+        if skill_id == "skill:armoury-body-armor"
+        else any(isinstance(mode, MeleeMode) for mode in entry.modes)
+    )
+    if not matches:
+        raise ValidationError("Armoury specialty does not match the equipment")
+    return procedure.id, procedure.task.effect
 
 
 def repair(
@@ -69,19 +87,7 @@ def repair(
             raise ValidationError("Equipment does not need repair")
         if not profile.repair_skill_id or not profile.repair_tools_definition:
             raise ValidationError("Repairs require pinned skill and equipment bindings")
-        procedure_id = None
-        effect = None
-        if profile.repair_skill_id in OBJECT_REPAIR_SKILLS:
-            procedure = PROCEDURES[profile.repair_skill_id]
-            assert procedure.task is not None
-            matches = (
-                entry.armor is not None
-                if profile.repair_skill_id == "skill:armoury-body-armor"
-                else any(isinstance(mode, MeleeMode) for mode in entry.modes)
-            )
-            if not matches:
-                raise ValidationError("Armoury specialty does not match the equipment")
-            procedure_id, effect = procedure.id, procedure.task.effect
+        procedure_id, effect = _repair_binding(entry, profile.repair_skill_id)
         tool = next(
             (
                 i
