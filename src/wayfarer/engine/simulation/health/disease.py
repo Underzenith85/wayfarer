@@ -702,6 +702,47 @@ def _reproject_aging(schedule: AgingSchedule, traits: PhysiologyTraits, at: int)
     )
 
 
+def _enroll_aging_schedule(
+    state: ResourceState,
+    command: EnrollAging,
+    rules: AgingRules | None,
+    physiology: PhysiologyTraits | None,
+    age_seconds: int | None,
+    ht: int | None,
+    fitness_modifier: int,
+) -> AgingSchedule:
+    if rules is not None and physiology is not None:
+        rules = _project_aging_rules(rules, physiology)
+    if (
+        rules is None
+        or not rules.enabled
+        or (rules.unaging and physiology is None)
+        or age_seconds is None
+        or ht is None
+    ):
+        raise ValidationError("Aging must be enabled for an aging actor in the selected profile")
+    if age_seconds < 0 or not -2 <= fitness_modifier <= 2:
+        raise ValidationError("Invalid chronological age or fitness modifier")
+    if any(s.id == command.schedule_id for s in aging_schedules(state)):
+        raise ConflictError("Aging schedule already exists")
+    scale = _aging_scale(rules)
+    first = int(50 * YEAR_SECONDS * scale)
+    due = state.game_time + max(0, first - age_seconds)
+    schedule = AgingSchedule(
+        id=command.schedule_id,
+        actor_id=command.actor_id,
+        started=state.game_time,
+        age_seconds_at_start=age_seconds,
+        due=due,
+        rules=rules,
+        active=not rules.unaging,
+        suspended_at=state.game_time if rules.unaging else None,
+        ht=ht,
+        fitness_modifier=fitness_modifier,
+    )
+    return schedule
+
+
 def apply_aging(
     state: ResourceState,
     command: EnrollAging | ResolveAging,
@@ -724,36 +765,8 @@ def apply_aging(
     _require_actor_hp(state, command.actor_id)
     changes: list[PermanentChange] = []
     if isinstance(command, EnrollAging):
-        if rules is not None and physiology is not None:
-            rules = _project_aging_rules(rules, physiology)
-        if (
-            rules is None
-            or not rules.enabled
-            or (rules.unaging and physiology is None)
-            or age_seconds is None
-            or ht is None
-        ):
-            raise ValidationError(
-                "Aging must be enabled for an aging actor in the selected profile"
-            )
-        if age_seconds < 0 or not -2 <= fitness_modifier <= 2:
-            raise ValidationError("Invalid chronological age or fitness modifier")
-        if any(s.id == command.schedule_id for s in aging_schedules(state)):
-            raise ConflictError("Aging schedule already exists")
-        scale = _aging_scale(rules)
-        first = int(50 * YEAR_SECONDS * scale)
-        due = state.game_time + max(0, first - age_seconds)
-        schedule = AgingSchedule(
-            id=command.schedule_id,
-            actor_id=command.actor_id,
-            started=state.game_time,
-            age_seconds_at_start=age_seconds,
-            due=due,
-            rules=rules,
-            active=not rules.unaging,
-            suspended_at=state.game_time if rules.unaging else None,
-            ht=ht,
-            fitness_modifier=fitness_modifier,
+        schedule = _enroll_aging_schedule(
+            state, command, rules, physiology, age_seconds, ht, fitness_modifier
         )
         result = HealthResult(
             subject_id=schedule.id,
