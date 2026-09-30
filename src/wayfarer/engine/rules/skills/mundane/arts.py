@@ -23,9 +23,7 @@ SOCIAL: Final = "social.skill-procedure"
 
 # These effects are resolved by the owned-equipment repair transaction, never by
 # an isolated skill roll.  B484 restores margin HP (minimum one), not 1+margin.
-OBJECT_REPAIR_SKILLS: Final = frozenset(
-    {"skill:armoury-melee-weapons", "skill:armoury-body-armor"}
-)
+OBJECT_REPAIR_SKILLS: Final = frozenset({"skill:armoury-melee-weapons", "skill:armoury-body-armor"})
 
 
 def task(

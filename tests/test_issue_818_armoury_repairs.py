@@ -145,9 +145,9 @@ async def test_restore_actual_equipment_and_retry(
     assert repaired.condition and repaired.condition.hp == initial_hp + restored
     assert repaired.owner_id == original.owner_id == "b"
     assert repaired.quantity == original.quantity == 1
-    assert tuple(
-        item for item in after.resources.items if item.id != item_id
-    ) == tuple(item for item in worked.resources.items if item.id != item_id)
+    assert tuple(item for item in after.resources.items if item.id != item_id) == tuple(
+        item for item in worked.resources.items if item.id != item_id
+    )
     if restored == 0:
         assert repaired == original
     play.rng = RecordedDice([])

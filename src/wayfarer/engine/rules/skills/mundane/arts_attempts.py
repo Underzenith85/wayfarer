@@ -28,7 +28,5 @@ def attempt(
 ) -> ProcedureResult:
     """Execute the exact procedure named by ``performer.skill_id``."""
     if performer.skill_id in OBJECT_REPAIR_SKILLS:
-        raise ValidationError(
-            "Armoury restoration requires the owned-equipment repair transaction"
-        )
+        raise ValidationError("Armoury restoration requires the owned-equipment repair transaction")
     return attempt_procedure(PROCEDURES, performer, situation, rng=rng, profile_id=profile_id)
