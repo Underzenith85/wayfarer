@@ -25,6 +25,9 @@ class RepairTask(Record):
     status: Literal["pending", "completed", "cancelled"] = "pending"
     check: CheckTrace | None = None
     restored_hp: int = Field(default=0, ge=0)
+    # Exact skill/effect binding for source-bound Armoury restoration tasks.
+    procedure_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    effect: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 def tasks(state: ResourceState) -> tuple[RepairTask, ...]:
