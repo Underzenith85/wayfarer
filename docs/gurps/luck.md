@@ -33,3 +33,6 @@ by this runtime), and host wiring of other success tasks, combat, damage,
 reaction, party-event and secret-roll consumers. Their generic pending dice
 selection is tested, but that does not certify each downstream rule family.
 No global or parent certification status is promoted by this change.
+
+Remaining consumer integrations are tracked in #854; the three special
+limitation constructions are tracked in #855. Both remain unverified.
