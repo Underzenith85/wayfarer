@@ -10,7 +10,12 @@ from wayfarer.engine.simulation.equipment.catalog import RangedMode
 
 
 def accuracy_bonus(
-    build: ValidatedBuild, definitions: Mapping[str, RuleDefinition], weapon: RangedMode
+    build: ValidatedBuild,
+    definitions: Mapping[str, RuleDefinition],
+    weapon: RangedMode,
+    *,
+    aimed: bool = False,
+    suppressed: bool = False,
 ) -> int:
     """Only source-bound weapon skills qualify; muscle-powered missiles do not.
 
@@ -20,7 +25,9 @@ def accuracy_bonus(
     """
     procedure = PROCEDURES.get(weapon.skill_id)
     if (
-        procedure is None
+        aimed
+        or suppressed
+        or procedure is None
         or procedure.specialty is None
         or procedure.specialty.family not in {"beam-weapons", "gunner", "guns", "liquid-projector"}
         or weapon.thrown

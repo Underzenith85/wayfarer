@@ -402,8 +402,13 @@ def resolve(
             bonus = min(-2, weapon.bulk)
         elif actor.last_maneuver == "all_out_attack":
             bonus += 1
-    if not aimed and pending.suppression_zone_id is None:
-        bonus += accuracy_bonus(compiled, runtime.reviewer.compiler.definitions, weapon)
+    bonus += accuracy_bonus(
+        compiled,
+        runtime.reviewer.compiler.definitions,
+        weapon,
+        aimed=aimed,
+        suppressed=pending.suppression_zone_id is not None,
+    )
     effective_shots = pending.shots
     close_projectile_multiplier = 1
     if weapon.multiple_projectiles is not None:
