@@ -8793,6 +8793,11 @@
             "title": "Male Groin",
             "type": "boolean"
           },
+          "machine": {
+            "default": false,
+            "title": "Machine",
+            "type": "boolean"
+          },
           "tolerance": {
             "anyOf": [
               {
