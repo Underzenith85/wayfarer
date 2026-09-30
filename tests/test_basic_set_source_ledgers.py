@@ -39,17 +39,20 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert not ledger_blockers(bundle.rows)
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
-    assert len(optional) == 9
+    assert len(optional) == 11
     assert all(
         row.row_kind == "optional-rule"
-        and row.implementation == "unsupported"
+        and row.implementation == "not-applicable"
         and row.completion_owner is None
         and row.listed_value == "disabled"
         for row in optional
     )
     assert {
         identifier for row in optional for identifier in (row.classification or "").split("|")
-    } == set(BASIC_SET_OPTIONAL_RULES)
+    } == set(BASIC_SET_OPTIONAL_RULES) | {
+        "scope:optional-cinematic-combat",
+        "gurps.techniques.dual-weapon-attack",
+    }
 
     infinite_worlds = tuple(
         row
@@ -316,7 +319,7 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
     assert report.source_ledger_rows == 1_285
-    assert report.required_source_ledger_rows == 1_046
+    assert report.required_source_ledger_rows == 1_044
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {"none": 1_285}
 
@@ -343,7 +346,7 @@ def test_characters_section_obligations_are_explicit_and_bounded() -> None:
         if row.obligation in {"construction-catalog", "reference-only", "structural-non-runtime"}
     )
     assert denominator_identity(bundle.rows, inventory(ROOT)) == (
-        "c3987f2b8a441413e7cde3bec05c74a9270fd3cbe2b1b9422434b7c7a322428e"
+        "09148c36ea5471704a8336394b216cbc90701fb99def564e2c6dac8fa9f820cd"
     )
 
 

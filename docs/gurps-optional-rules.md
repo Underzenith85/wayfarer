@@ -33,3 +33,38 @@ versions retain their historic digest and unspecified legacy state. Version 9
 adds the explicit decisions; version 10 retains them while adding the separate
 Infinite Worlds exclusion. Neither changes package pins or the prerelease engine
 version.
+
+
+## Selected-source reconciliation (#744)
+
+The selected generic profile remains `profile:gurps-basic-set-4e-2004@11`, with
+Characters third printing (February 2008) and Campaigns fourth printing (April
+2008). Package pins, immutable profile selections, and prerelease engine version
+are unchanged. The eleven named switches above join nine source section rows;
+the three B420 switches share the injury section without becoming one switch.
+
+Campaigns B417 explicitly makes cinematic combat optional. Both its general
+section and its independent Dual-Weapon Attacks box are now `optional-disabled`
+and `profile-excluded`, with no armor-divisor capability link. Existing custom
+profiles can still select the implemented `gurps.techniques.dual-weapon-attack`
+rule; the selected generic profile does not select it. The other B417 variants
+remain unavailable. No optional implementation is enabled by a ledger review.
+
+The optional B357 combat uses of extra effort remain disabled in the scope
+manifest. This does not exclude the required physical extra-effort procedure
+that starts at B356; the source section records this distinction explicitly.
+
+Standard Basic Set magic and psi are required, including their construction and
+applicable procedures. B242 alternative-system discussion and B257 Other Powers
+are construction/reference guidance, not permission to discard B234-B257.
+The audit issues retain ownership of missing or unverified effects.
+
+B523-B546 Infinite Worlds has separate classifications for setting prose,
+reusable mechanics, material needing a separate profile, and other reviewed
+exclusions. Excluding the setting does not silently certify its parachronic
+travel procedures; those mechanics remain explicitly excluded from this generic
+profile and require a separate reviewed selection.
+
+The frozen source row identities and counts are unchanged. Reclassifying the two
+B417 rows corrects their required/disabled conflict; the membership fingerprint
+is updated for those reviewed disposition changes only.
