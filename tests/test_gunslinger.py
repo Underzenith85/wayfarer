@@ -181,8 +181,35 @@ async def test_move_and_attack_keeps_ordinary_bulk_penalty(tmp_path: Path) -> No
         update={"skill_id": "skill:guns-pistol", "accuracy": 5, "rate_of_fire": 3}
     )
     cid, play = await prepared(tmp_path, mode)
-    await turn(cid, play, "a", "move_and_attack", item_id="sword-a", target_id="b", mode_id="ranged")
+    await turn(
+        cid, play, "a", "move_and_attack", item_id="sword-a", target_id="b", mode_id="ranged"
+    )
     play.rng = RecordedDice([3, 3, 4, 1])
     result = await defend(cid, play, "b")
     assert result.injury is not None
     assert result.injury.attack.effective_target == 13  # 12 + Acc 5 - Bulk 4
+
+
+@pytest.mark.parametrize(
+    ("skill", "expected"),
+    [
+        ("skill:gunner-machine-gun", 3),
+        ("skill:gunner-beams", 3),
+        ("skill:gunner-catapult", 0),
+        ("skill:artillery-cannon", 0),
+    ],
+)
+def test_approved_projection_for_mounted_skill_classes(skill: str, expected: int) -> None:
+    from test_mounted_ranged_skills import mounted
+    from test_mundane_traits import runtime_compiler
+    from test_statistics import gurps_draft
+
+    from wayfarer.engine.simulation.combat.ranged.gunslinger import accuracy_bonus
+
+    compiler = runtime_compiler()
+    result = compiler.compile(gurps_draft(Purchase(definition_id=GUNSLINGER, amount=1)))
+    assert result.build is not None, result.diagnostics
+    # B58: a legal two-handed Gunner mode receives ceil(Acc 5 / 2).
+    # Muscle-powered catapults and the unlisted Artillery skill remain excluded.
+    mode = mounted(skill, accuracy=5)
+    assert accuracy_bonus(result.build, compiler.definitions, mode) == expected
