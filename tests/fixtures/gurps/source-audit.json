@@ -775,9 +775,9 @@
     },
     {
       "id": "basic-resistance-both-fail",
-      "sha256": "e617af1edcb5cbc67d7501079c7ae358e3c1e8fed24517187439e216ed5836be",
+      "sha256": "8b49a0934dcd3d573b9c8c1c5ad48b9b5486437b2f83d610b8c94913cf8ecf5b",
       "status": "reviewed",
-      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "reviewer": "Codex B348 resistance correction review (#754), 2026-09-30",
       "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
