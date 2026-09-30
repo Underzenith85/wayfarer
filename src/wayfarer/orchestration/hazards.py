@@ -11,6 +11,7 @@ from decimal import Decimal
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.statistics import encumbrance
 from wayfarer.engine.character.traits.physical import physical_traits
+from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.environment import ambient_spec
 from wayfarer.engine.rules.physical import contagion_modifier
 from wayfarer.engine.rules.types.hazard import (
@@ -236,7 +237,15 @@ class HazardService:
             if schedule is None:
                 raise ValidationError("Unknown exposure")
             resources, result = apply_hazard(
-                before.resources, command, schedule, rng=play.rng, system=True
+                before.resources,
+                command,
+                schedule,
+                rng=play.rng,
+                system=True,
+                physiology=physiology_traits(
+                    _build(play, before, command.actor_id),
+                    play.engine.reviewer.compiler.definitions,
+                ),
             )
             updated = before.model_copy(
                 update={"revision": resources.revision, "resources": resources}

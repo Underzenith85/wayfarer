@@ -8,6 +8,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.engine.character.traits.physiology import PhysiologyTraits
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.disease import (
@@ -173,7 +174,7 @@ def due_health_effects(
     due.extend(
         (item.due, item.id)
         for item in aging_schedules(state)
-        if item.actor_id in actor_ids and item.due <= at
+        if item.active and item.actor_id in actor_ids and item.due <= at
     )
     return tuple(sorted(due))
 
@@ -646,6 +647,102 @@ def _aging_interval(rules: AgingRules, age: Fraction) -> int:
     return max(1, int(base * scale))
 
 
+def _project_aging_rules(rules: AgingRules, traits: PhysiologyTraits) -> AgingRules:
+    """Replace purchased lifespan facts; campaign TL and Longevity remain explicit."""
+    return rules.model_copy(
+        update={
+            "extended_lifespan_levels": traits.level("advantage:extended-lifespan"),
+            "short_lifespan_levels": traits.level("disadvantage:short-lifespan"),
+            "unaging": traits.has("advantage:unaging"),
+        }
+    )
+
+
+def _reproject_aging(schedule: AgingSchedule, traits: PhysiologyTraits, at: int) -> AgingSchedule:
+    rules = _project_aging_rules(schedule.rules, traits)
+    if rules == schedule.rules and schedule.active == (not rules.unaging):
+        return schedule
+    if schedule.last_check_at is None and schedule.checks:
+        # Old checkpoints have checks but predate the explicit last-check tick.
+        tick = schedule.started + max(
+            0,
+            int(50 * YEAR_SECONDS * _aging_scale(schedule.rules)) - schedule.age_seconds_at_start,
+        )
+        for _ in range(len(schedule.checks) // 4 - 1):
+            tick += _aging_interval(schedule.rules, _age_at(schedule, tick))
+        schedule = schedule.model_copy(update={"last_check_at": tick})
+    if not rules.unaging and schedule.suspended_at is not None:
+        elapsed = at - schedule.suspended_at
+        schedule = schedule.model_copy(
+            update={
+                "started": schedule.started + elapsed,
+                "last_check_at": (
+                    None if schedule.last_check_at is None else schedule.last_check_at + elapsed
+                ),
+            }
+        )
+    if schedule.last_check_at is None:
+        due = schedule.started + max(
+            0, int(50 * YEAR_SECONDS * _aging_scale(rules)) - schedule.age_seconds_at_start
+        )
+    else:
+        due = schedule.last_check_at + _aging_interval(
+            rules, _age_at(schedule, schedule.last_check_at)
+        )
+    suspended_at = schedule.suspended_at if rules.unaging else None
+    if rules.unaging and suspended_at is None:
+        suspended_at = at
+    return schedule.model_copy(
+        update={
+            "rules": rules,
+            "active": not rules.unaging,
+            "due": due,
+            "suspended_at": suspended_at,
+        }
+    )
+
+
+def _enroll_aging_schedule(
+    state: ResourceState,
+    command: EnrollAging,
+    rules: AgingRules | None,
+    physiology: PhysiologyTraits | None,
+    age_seconds: int | None,
+    ht: int | None,
+    fitness_modifier: int,
+) -> AgingSchedule:
+    if rules is not None and physiology is not None:
+        rules = _project_aging_rules(rules, physiology)
+    if (
+        rules is None
+        or not rules.enabled
+        or (rules.unaging and physiology is None)
+        or age_seconds is None
+        or ht is None
+    ):
+        raise ValidationError("Aging must be enabled for an aging actor in the selected profile")
+    if age_seconds < 0 or not -2 <= fitness_modifier <= 2:
+        raise ValidationError("Invalid chronological age or fitness modifier")
+    if any(s.id == command.schedule_id for s in aging_schedules(state)):
+        raise ConflictError("Aging schedule already exists")
+    scale = _aging_scale(rules)
+    first = int(50 * YEAR_SECONDS * scale)
+    due = state.game_time + max(0, first - age_seconds)
+    schedule = AgingSchedule(
+        id=command.schedule_id,
+        actor_id=command.actor_id,
+        started=state.game_time,
+        age_seconds_at_start=age_seconds,
+        due=due,
+        rules=rules,
+        active=not rules.unaging,
+        suspended_at=state.game_time if rules.unaging else None,
+        ht=ht,
+        fitness_modifier=fitness_modifier,
+    )
+    return schedule
+
+
 def apply_aging(
     state: ResourceState,
     command: EnrollAging | ResolveAging,
@@ -655,6 +752,7 @@ def apply_aging(
     age_seconds: int | None = None,
     ht: int | None = None,
     fitness_modifier: int = 0,
+    physiology: PhysiologyTraits | None = None,
     system: bool = False,
 ) -> tuple[ResourceState, HealthResult]:
     if not system:
@@ -667,28 +765,14 @@ def apply_aging(
     _require_actor_hp(state, command.actor_id)
     changes: list[PermanentChange] = []
     if isinstance(command, EnrollAging):
-        if rules is None or not rules.enabled or rules.unaging or age_seconds is None or ht is None:
-            raise ValidationError(
-                "Aging must be enabled for an aging actor in the selected profile"
-            )
-        if age_seconds < 0 or not -2 <= fitness_modifier <= 2:
-            raise ValidationError("Invalid chronological age or fitness modifier")
-        if any(s.id == command.schedule_id for s in aging_schedules(state)):
-            raise ConflictError("Aging schedule already exists")
-        scale = _aging_scale(rules)
-        first = int(50 * YEAR_SECONDS * scale)
-        due = state.game_time + max(0, first - age_seconds)
-        schedule = AgingSchedule(
-            id=command.schedule_id,
-            actor_id=command.actor_id,
-            started=state.game_time,
-            age_seconds_at_start=age_seconds,
-            due=due,
-            rules=rules,
-            ht=ht,
-            fitness_modifier=fitness_modifier,
+        schedule = _enroll_aging_schedule(
+            state, command, rules, physiology, age_seconds, ht, fitness_modifier
         )
-        result = HealthResult(subject_id=schedule.id, active=True, due=schedule.due)
+        result = HealthResult(
+            subject_id=schedule.id,
+            active=schedule.active,
+            due=schedule.due if schedule.active else None,
+        )
     else:
         found_schedule = next(
             (s for s in aging_schedules(state) if s.id == command.schedule_id), None
@@ -696,6 +780,28 @@ def apply_aging(
         if found_schedule is None or found_schedule.actor_id != command.actor_id:
             raise ValidationError("Unknown or unauthorized aging schedule")
         schedule = found_schedule
+        if physiology is not None:
+            schedule = _reproject_aging(schedule, physiology, state.game_time)
+            if not schedule.active or (
+                schedule != found_schedule and state.game_time < schedule.due
+            ):
+                result = HealthResult(
+                    subject_id=schedule.id,
+                    active=schedule.active,
+                    due=schedule.due if schedule.active else None,
+                )
+                return _finish(
+                    state,
+                    command,
+                    result,
+                    (
+                        _event(
+                            AGING_PREFIX, command.id, schedule, state.game_time, command.actor_id
+                        ),
+                    ),
+                )
+        if not schedule.active:
+            raise ConflictError("Aging schedule is suspended")
         if state.game_time < schedule.due:
             raise ConflictError("Aging check is not due")
         target = schedule.ht + schedule.rules.technology_level - 3 + schedule.fitness_modifier
@@ -724,6 +830,7 @@ def apply_aging(
         interval = _aging_interval(schedule.rules, _age_at(schedule, schedule.due))
         schedule = schedule.model_copy(
             update={
+                "last_check_at": schedule.due,
                 "due": schedule.due + interval,
                 "checks": schedule.checks + tuple(checks),
                 "pending_change_ids": pending,
