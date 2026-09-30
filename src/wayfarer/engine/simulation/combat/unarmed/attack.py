@@ -24,6 +24,7 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, settle_c
 from wayfarer.engine.simulation.combat.unarmed.records import (
     PendingUnarmed,
     UnarmedReaction,
+    UnarmedTrace,
     require_basic,
 )
 from wayfarer.engine.simulation.combat.unarmed.resolution import defend
@@ -191,52 +192,9 @@ def execute_unarmed(
             return state, *declare_pending(runtime, state, encounter, command)
         state, encounter, trace = control(runtime, state, encounter, command)
     encounter = settle_control(state, encounter)
-    actor = fighter(encounter, trace.actor_id)
-    second = actor.maneuver_state.second_unarmed_attack
-    if second is not None and not trace.blocked_reason:
-        encounter = CombatEngine._replace(
-            encounter,
-            actor.model_copy(
-                update={
-                    "maneuver_state": actor.maneuver_state.model_copy(
-                        update={"attacks_remaining": 0, "second_unarmed_attack": None}
-                    )
-                }
-            ),
-        ).model_copy(
-            update={
-                "pending_unarmed": None,
-                "unarmed_history": encounter.unarmed_history + (trace,),
-            }
-        )
-        continued = TakeUnarmedTurn(
-            id=trace.intent.id + ":second" if trace.intent is not None else command.id + ":second",
-            actor_id=trace.actor_id,
-            expected_revision=state.revision,
-            encounter_id=encounter.id,
-            target_id=trace.target_id,
-            **second.model_dump(),
-        )
-        try:
-            hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
-            assert hp.injury is not None
-            if (
-                actor.unarmed_balance_lost
-                or actor.forced_do_nothing
-                or hp.injury.stunned
-                or hp.injury.incapacitated
-                or hp.injury.dead
-            ):
-                raise ValidationError("Incapacitation cancels the remaining attack")
-            validate_action(
-                runtime, state, encounter.model_copy(update={"wait_interrupt": None}), continued
-            )
-        except ValidationError:
-            pass  # Injury, a lost limb, a fall or a changed grip can cancel attack two.
-        else:
-            return state, *declare_pending(runtime, state, encounter, continued)
-        # The first attack was already appended above; completion appends it once.
-        encounter = encounter.model_copy(update={"unarmed_history": encounter.unarmed_history[:-1]})
+    encounter, pending_result = continue_sequence(runtime, state, encounter, command, trace)
+    if pending_result is not None:
+        return state, encounter, pending_result
     if not reacting:
         state = injury_turn(
             runtime, state, trace.actor_id, command.id, start=False, do_nothing=False
@@ -338,3 +296,59 @@ def declare_pending(
             available=pending.allowed,
         ),
     )
+
+
+def continue_sequence(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: TakeUnarmedTurn | ChooseDefense,
+    trace: UnarmedTrace,
+) -> tuple[Encounter, CombatResult | None]:
+    actor = fighter(encounter, trace.actor_id)
+    second = actor.maneuver_state.second_unarmed_attack
+    if second is not None and not trace.blocked_reason:
+        encounter = CombatEngine._replace(
+            encounter,
+            actor.model_copy(
+                update={
+                    "maneuver_state": actor.maneuver_state.model_copy(
+                        update={"attacks_remaining": 0, "second_unarmed_attack": None}
+                    )
+                }
+            ),
+        ).model_copy(
+            update={
+                "pending_unarmed": None,
+                "unarmed_history": encounter.unarmed_history + (trace,),
+            }
+        )
+        continued = TakeUnarmedTurn(
+            id=trace.intent.id + ":second" if trace.intent is not None else command.id + ":second",
+            actor_id=trace.actor_id,
+            expected_revision=state.revision,
+            encounter_id=encounter.id,
+            target_id=trace.target_id,
+            **second.model_dump(),
+        )
+        try:
+            hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
+            assert hp.injury is not None
+            if (
+                actor.unarmed_balance_lost
+                or actor.forced_do_nothing
+                or hp.injury.stunned
+                or hp.injury.incapacitated
+                or hp.injury.dead
+            ):
+                raise ValidationError("Incapacitation cancels the remaining attack")
+            validate_action(
+                runtime, state, encounter.model_copy(update={"wait_interrupt": None}), continued
+            )
+        except ValidationError:
+            pass  # Injury, a lost limb, a fall or a changed grip can cancel attack two.
+        else:
+            return declare_pending(runtime, state, encounter, continued)
+        # The first attack was already appended above; completion appends it once.
+        encounter = encounter.model_copy(update={"unarmed_history": encounter.unarmed_history[:-1]})
+    return encounter, None

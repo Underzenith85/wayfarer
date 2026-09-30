@@ -9,6 +9,7 @@ from test_unarmed_wait import declare, resume
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.unarmed.records import UnarmedReaction
+from wayfarer.engine.simulation.equipment.catalog import Damage, MeleeMode, Parry
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeUnarmedTurn
 from wayfarer.orchestration.play import PlayService
@@ -205,7 +206,15 @@ async def test_wait_interrupt_resumes_exactly_two_attacks(tmp_path: Path) -> Non
 
 
 async def test_armed_parry_self_stun_cancels_other_usable_hand(tmp_path: Path) -> None:
-    cid, play = await setup(tmp_path)
+    weapon = MeleeMode(
+        id="swing",
+        skill_id="skill:broadsword",
+        minimum_st=10,
+        damage=Damage(basis="swing", adds=1, damage_type="cut"),
+        reach=(0, 1),
+        parry=Parry(),
+    )
+    cid, play = await setup(tmp_path, melee_modes=(weapon,))
     await arm_defender(cid, play)
     attack = await command(
         cid,

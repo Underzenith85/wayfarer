@@ -111,30 +111,9 @@ def validate_action(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
 ) -> None:
     require_basic(catalog(runtime).profile_id)
-    if command.maneuver == "all_out_attack":
-        if command.attack_option not in ("determined", "strong", "double", "feint"):
-            raise ValidationError("Choose a melee All-Out Attack option")
-        if command.action not in ("punch", "kick", "grapple", "arm_lock"):
-            raise ValidationError("This control action requires the ordinary Attack maneuver")
-        if command.attack_option == "strong" and command.action not in ("punch", "kick"):
-            raise ValidationError("Strong requires a damaging strike")
-    elif command.attack_option is not None:
-        raise ValidationError("Attack options require All-Out Attack")
-    if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
-        raise ValidationError("Move and Attack requires a strike or grapple")
-    if command.second_attack is not None and command.attack_option != "double":
-        raise ValidationError("A second unarmed attack requires All-Out Attack (Double)")
-    if command.attack_option == "feint" and command.skill == "attribute:dx":
-        raise ValidationError("An unarmed feint requires an unarmed combat skill")
+    validate_options(command)
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)
-    if command.attack_option == "feint":
-        visible = (
-            basic_visible(encounter, actor.actor_id, target.actor_id)
-            if isinstance(encounter.spatial, BasicSpatialContext)
-            else sight(encounter, target, actor, board=runtime.hex_map(encounter))
-        )
-        if not visible:
-            raise ValidationError("Feint requires a foe who can observe the attacker")
+    validate_feint_visibility(runtime, encounter, command, actor, target)
     validate_choke_hold(encounter, command, actor, target)
     if actor.actor_id == target.actor_id:
         raise ValidationError("Unarmed action requires another actor")
@@ -490,3 +469,38 @@ def validate_sequence(
     validate_action(runtime, state, anticipated, second)
     if command.action in ("grapple", "arm_lock") and set(command.hands) & set(second.hands):
         raise ValidationError("Double cannot reserve the same hands for a grip and another attack")
+
+
+def validate_options(command: TakeUnarmedTurn) -> None:
+    if command.maneuver == "all_out_attack":
+        if command.attack_option not in ("determined", "strong", "double", "feint"):
+            raise ValidationError("Choose a melee All-Out Attack option")
+        if command.action not in ("punch", "kick", "grapple", "arm_lock"):
+            raise ValidationError("This control action requires the ordinary Attack maneuver")
+        if command.attack_option == "strong" and command.action not in ("punch", "kick"):
+            raise ValidationError("Strong requires a damaging strike")
+    elif command.attack_option is not None:
+        raise ValidationError("Attack options require All-Out Attack")
+    if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
+        raise ValidationError("Move and Attack requires a strike or grapple")
+    if command.second_attack is not None and command.attack_option != "double":
+        raise ValidationError("A second unarmed attack requires All-Out Attack (Double)")
+    if command.attack_option == "feint" and command.skill == "attribute:dx":
+        raise ValidationError("An unarmed feint requires an unarmed combat skill")
+
+
+def validate_feint_visibility(
+    runtime: RulesContext,
+    encounter: Encounter,
+    command: TakeUnarmedTurn,
+    actor: Combatant,
+    target: Combatant,
+) -> None:
+    if command.attack_option == "feint":
+        visible = (
+            basic_visible(encounter, actor.actor_id, target.actor_id)
+            if isinstance(encounter.spatial, BasicSpatialContext)
+            else sight(encounter, target, actor, board=runtime.hex_map(encounter))
+        )
+        if not visible:
+            raise ValidationError("Feint requires a foe who can observe the attacker")
