@@ -4,12 +4,13 @@ from pathlib import Path
 
 import pytest
 from test_unarmed import defend, setup, state_of, wait
+from test_unarmed_integrations import arm_defender
 from test_unarmed_wait import declare, resume
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.unarmed.records import UnarmedReaction
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.combat import CombatService, TakeUnarmedTurn
+from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeUnarmedTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
@@ -201,3 +202,44 @@ async def test_wait_interrupt_resumes_exactly_two_attacks(tmp_path: Path) -> Non
     ]
     assert after.current_actor_id == "b" and after.wait_interrupt is None
     assert after.participants[0].maneuver_state.defense_forbidden and play.rng.exhausted()
+
+
+async def test_armed_parry_self_stun_cancels_other_usable_hand(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path)
+    await arm_defender(cid, play)
+    attack = await command(
+        cid,
+        play,
+        action="punch",
+        hands=("right-hand",),
+        enter_close_combat=True,
+        second_attack=UnarmedReaction(action="punch", hands=("left-hand",)),
+    )
+    await CombatService(play).execute(cid, attack, principal_id="a")
+    before = await state_of(cid, play)
+    defense = ChooseDefense(
+        id="self-stun-parry",
+        actor_id="b",
+        expected_revision=before.revision,
+        encounter_id="fight",
+        defense="parry",
+        item_id="sword-b",
+        parry_mode_id="swing",
+    )
+    # DX 10 hits on 9; Parry and Broadsword succeed. Swing die 3 cripples
+    # the striking right arm, and HT 12 fails the major-wound check.
+    # The other free hand remains usable, but stunning forbids its attack.
+    play.rng = RecordedDice((3, 3, 3, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4))
+    result = await CombatService(play).execute(cid, defense, principal_id="b")
+    after = await state_of(cid, play)
+    hp = next(p for p in after.resources.pools if p.id == "hp:a")
+    assert hp.injury is not None and hp.injury.stunned
+    encounter = after.encounters[0]
+    assert encounter.pending_unarmed is None and encounter.current_actor_id == "b"
+    assert len(encounter.unarmed_history) == 1
+    assert encounter.participants[0].maneuver_state.defense_forbidden
+    assert encounter.participants[0].maneuver_state.attacks_remaining == 0
+    assert play.rng.exhausted()
+    play.rng = RecordedDice(())
+    assert await CombatService(play).execute(cid, defense, principal_id="b") == result
+    assert await state_of(cid, play) == after and play.rng.exhausted()

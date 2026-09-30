@@ -183,7 +183,9 @@ class TakeUnarmedTurn(CombatCommand):
         default="attack", exclude_if=lambda value: value == "attack"
     )
     attack_option: AttackOption | None = Field(default=None, exclude_if=lambda value: value is None)
-    second_attack: UnarmedReaction | None = Field(default=None, exclude_if=lambda value: value is None)
+    second_attack: UnarmedReaction | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class ResolveChokeEffects(CombatCommand):

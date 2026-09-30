@@ -218,8 +218,16 @@ def execute_unarmed(
             **second.model_dump(),
         )
         try:
-            if actor.unarmed_balance_lost:
-                raise ValidationError("Lost balance cancels the remaining attack")
+            hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
+            assert hp.injury is not None
+            if (
+                actor.unarmed_balance_lost
+                or actor.forced_do_nothing
+                or hp.injury.stunned
+                or hp.injury.incapacitated
+                or hp.injury.dead
+            ):
+                raise ValidationError("Incapacitation cancels the remaining attack")
             validate_action(
                 runtime, state, encounter.model_copy(update={"wait_interrupt": None}), continued
             )
@@ -330,4 +338,3 @@ def declare_pending(
             available=pending.allowed,
         ),
     )
-
