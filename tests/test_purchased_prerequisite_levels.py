@@ -36,9 +36,7 @@ OWNER = "trait:synthetic-owner"
 ATTRIBUTES = {attribute.value: Decimal(12) for attribute in ControllingAttribute}
 
 
-def definition(
-    requirement: SkillPrerequisite, alternatives: bool = False
-) -> RuleDefinition:
+def definition(requirement: SkillPrerequisite, alternatives: bool = False) -> RuleDefinition:
     other = SkillPrerequisite("capability:synthetic", kind=PrerequisiteKind.CAPABILITY)
     return RuleDefinition(
         TARGET,
@@ -53,9 +51,7 @@ def definition(
             Difficulty.VERY_HARD,
             "synthetic:level-threshold",
             prerequisites=() if alternatives else (requirement,),
-            prerequisite_groups=(PrerequisiteGroup((requirement, other)),)
-            if alternatives
-            else (),
+            prerequisite_groups=(PrerequisiteGroup((requirement, other)),) if alternatives else (),
         ),
     )
 
@@ -99,9 +95,7 @@ def test_threshold_and_higher_amount_compile_actual_skill_levels(
             purchased_definition_levels={OWNER: level},
         ),
     )
-    assert [(value.target, value.level, value.points) for value in compiled] == [
-        (TARGET, 11, 4)
-    ]
+    assert [(value.target, value.level, value.points) for value in compiled] == [(TARGET, 11, 4)]
 
 
 def test_presence_only_is_compatible_only_with_minimum_one() -> None:
@@ -113,9 +107,10 @@ def test_presence_only_is_compatible_only_with_minimum_one() -> None:
 
 def test_another_alternative_retains_its_capability_semantics() -> None:
     context = DefaultContext({}, frozenset(), capabilities=frozenset({"capability:synthetic"}))
-    assert engine(alternatives=True).compile(
-        {TARGET: 4}, ATTRIBUTES, default_context=context
-    )[0].level == 11
+    assert (
+        engine(alternatives=True).compile({TARGET: 4}, ATTRIBUTES, default_context=context)[0].level
+        == 11
+    )
 
 
 @pytest.mark.parametrize("level", [True, 0, -1, 1.5, "3"])
@@ -140,9 +135,7 @@ def character_engine() -> CharacterCompiler:
     profile = GURPS_MAGIC_PROFILE
     # This is a synthetic catalog requirement on an existing leveled trait.
     # It deliberately asserts no Major/Great Healing, Enchant or Plane Shift rules.
-    entry = definition(
-        SkillPrerequisite(MAGERY, 3, PrerequisiteKind.PURCHASED_DEFINITION)
-    )
+    entry = definition(SkillPrerequisite(MAGERY, 3, PrerequisiteKind.PURCHASED_DEFINITION))
     package = RulesPackage(
         "package:synthetic-acquisition-test",
         "1.0.0",
