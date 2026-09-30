@@ -15,6 +15,7 @@ class PurchasedPhysiology(Record):
     definition_id: str
     levels: int = Field(ge=1)
     parameters: tuple[tuple[str, str | int | bool], ...] = ()
+    modifiers: tuple[str, ...] = Field(default=(), exclude_if=lambda value: not value)
 
 
 class PhysiologyTraits(Record):
@@ -58,7 +59,17 @@ class PhysiologyTraits(Record):
         rate = self.parameter("advantage:regeneration", "rate")
         if rate is not None and not isinstance(rate, str):
             raise ValidationError("Invalid regeneration rate")
-        return {None: None, "regular": 3600, "fast": 60, "very-fast": 1, "extreme": 1}[rate]
+        intervals = {"slow": 43200, "regular": 3600, "fast": 60, "very-fast": 1, "extreme": 1}
+        if rate is None:
+            return None
+        if rate not in intervals:
+            raise ValidationError("Unsupported regeneration rate")
+        return intervals[rate]
+
+    def regeneration_amount(self) -> int:
+        rate = self.parameter("advantage:regeneration", "rate")
+        self.regeneration_interval()  # Validate the approved variant before projecting HP.
+        return 10 if rate == "extreme" else 1
 
     def survival_requirements(self) -> frozenset[str]:
         requirements = {"air", "food", "water", "sleep"}
@@ -110,6 +121,7 @@ def physiology_traits(
                 definition_id=purchase.definition_id,
                 levels=purchase.amount,
                 parameters=() if purchase.trait is None else purchase.trait.parameters,
+                modifiers=() if purchase.trait is None else purchase.trait.modifiers,
             )
         )
     return PhysiologyTraits(entries=tuple(entries))

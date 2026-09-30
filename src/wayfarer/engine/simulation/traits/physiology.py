@@ -9,6 +9,7 @@ from pydantic import Field
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
+from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -22,6 +23,7 @@ class PhysiologyInterval(Record):
     kind: Literal["regeneration", "dependency", "weakness", "extra-life"]
     due: int = Field(ge=0)
     amount: int = Field(default=1, ge=1, le=1000)
+    started: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
 
 
 class PhysiologyCommand(Command):
@@ -39,6 +41,10 @@ class PhysiologyOutcome(Record):
 class PhysiologyEvent(Record):
     command_id: str
     outcome: PhysiologyOutcome
+    interval: PhysiologyInterval | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    request_digest: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 def _event_id(command_id: str) -> str:
@@ -51,6 +57,33 @@ def history(resources: ResourceState) -> tuple[PhysiologyEvent, ...]:
         for event in resources.events
         if event.id.startswith(PREFIX)
     )
+
+
+def _request_digest(command: PhysiologyCommand, interval: PhysiologyInterval) -> str:
+    return hashlib.sha256(
+        (command.model_dump_json() + "\n" + interval.model_dump_json()).encode()
+    ).hexdigest()
+
+
+def _require_regeneration_due(
+    resources: ResourceState, interval: PhysiologyInterval, period: int
+) -> None:
+    if interval.due < interval.started + period or (interval.due - interval.started) % period:
+        raise ValidationError("Regeneration interval differs from the approved rate")
+    consumed: list[int] = []
+    for raw in resources.events:
+        if not raw.id.startswith(PREFIX):
+            continue
+        entry = PhysiologyEvent.model_validate_json(raw.kind)
+        if entry.outcome.actor_id != interval.actor_id or entry.outcome.kind != "regenerated":
+            continue
+        if entry.outcome.interval_id == interval.id:
+            raise ConflictError("Regeneration interval was already consumed")
+        # Old checkpoints did not record a due tick. Their settlement tick is a
+        # conservative lower bound for scheduling the next legal interval.
+        consumed.append(raw.at if entry.interval is None else entry.interval.due)
+    if consumed and interval.due < max(consumed) + period:
+        raise ConflictError("Regeneration interval was already consumed or is too early")
 
 
 def apply_physiology_interval(
@@ -69,9 +102,14 @@ def apply_physiology_interval(
         or interval.actor_id != command.actor_id
     ):
         raise ValidationError("Physiology execution requires actor authority")
+    digest = _request_digest(command, interval)
     prior = next((entry for entry in history(resources) if entry.command_id == command.id), None)
     if prior is not None:
-        if prior.outcome.interval_id == command.interval_id:
+        if (
+            prior.outcome.actor_id == command.actor_id
+            and prior.outcome.interval_id == command.interval_id
+            and (prior.request_digest is None or prior.request_digest == digest)
+        ):
             return resources, prior.outcome
         raise ConflictError("Physiology command ID was already used")
     if resources.revision != command.expected_revision:
@@ -93,7 +131,21 @@ def apply_physiology_interval(
         kind: Literal["regenerated", "injured", "revived", "unavailable"] = "unavailable"
         after = before
     elif interval.kind == "regeneration":
-        kind, after = "regenerated", min(hp.maximum, before + interval.amount)
+        period = traits.regeneration_interval()
+        if period is None:
+            raise ValidationError("Regeneration requires an approved rate")
+        purchase = traits.purchase(required)
+        assert purchase is not None
+        if "radiation-only" in purchase.modifiers:
+            raise ValidationError("Radiation-only regeneration cannot restore HP")
+        _require_regeneration_due(resources, interval, period)
+        if hp.injury is None or hp.injury.profile_id != "gurps-basic-set-4e-2004":
+            raise ValidationError("Regeneration requires canonical Basic Set HP")
+        # B424 explicitly scales Regeneration along with other HP healing.
+        healed_hp, _ = restore_hp(
+            resources, hp, traits.regeneration_amount() * max(1, hp.maximum // 10), kind="natural"
+        )
+        kind, after = "regenerated", healed_hp.current
     elif interval.kind in {"dependency", "weakness"}:
         kind, after = "injured", before - interval.amount
     else:
@@ -117,7 +169,9 @@ def apply_physiology_interval(
         pool if pool.id != hp.id else pool.model_copy(update={"current": after})
         for pool in resources.pools
     )
-    event = PhysiologyEvent(command_id=command.id, outcome=outcome)
+    event = PhysiologyEvent(
+        command_id=command.id, outcome=outcome, interval=interval, request_digest=digest
+    )
     return resources.model_copy(
         update={
             "revision": resources.revision + 1,

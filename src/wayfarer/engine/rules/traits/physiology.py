@@ -129,7 +129,7 @@ BINDINGS: Final = (
         "advantage:regeneration",
         "Regeneration",
         25,
-        parameters=(parameter("rate", "text", "regular", "fast", "very-fast", "extreme"),),
+        parameters=(parameter("rate", "text", "slow", "regular", "fast", "very-fast", "extreme"),),
         modifiers=(modifier("radiation-only", -60),),
     ),
     PhysiologyBinding("advantage:regrowth", "Regrowth", 40),
@@ -253,7 +253,9 @@ def purchase_cost(binding: PhysiologyBinding, levels: int, options: TraitOptions
             int(values["divisor"])
         ]
     elif binding.id == "advantage:regeneration":
-        base = {"regular": 25, "fast": 50, "very-fast": 100, "extreme": 150}[str(values["rate"])]
+        base = {"slow": 10, "regular": 25, "fast": 50, "very-fast": 100, "extreme": 150}[
+            str(values["rate"])
+        ]
     elif binding.id == "disadvantage:bestial":
         base = -10 if values["speech"] else -15
     elif binding.id == "disadvantage:cold-blooded":

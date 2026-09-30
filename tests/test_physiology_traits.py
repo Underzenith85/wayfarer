@@ -125,8 +125,8 @@ def test_regeneration_updates_hp_atomically_and_retries_exactly_once_after_resta
         authorized_actor_id="a",
         system=True,
     )
-    assert (outcome.hp_before, outcome.hp_after, outcome.kind) == (5, 7, "regenerated")
-    assert updated.pools[0].current == 7
+    assert (outcome.hp_before, outcome.hp_after, outcome.kind) == (5, 6, "regenerated")
+    assert updated.pools[0].current == 6
     restarted = ResourceState.model_validate_json(updated.model_dump_json())
     assert history(restarted)[0].outcome == outcome
     assert apply_physiology_interval(
@@ -197,6 +197,164 @@ def test_interval_rejects_early_unauthorized_and_stale_commands() -> None:
     with pytest.raises(ValidationError, match="not due"):
         apply_physiology_interval(
             state(time=59),
+            command(),
+            interval,
+            build,
+            engine.definitions,
+            authorized_actor_id="a",
+            system=True,
+        )
+
+
+@pytest.mark.parametrize(
+    ("rate", "period", "maximum", "expected"),
+    [
+        ("slow", 43200, 10, 1),
+        ("regular", 3600, 10, 1),
+        ("fast", 60, 10, 1),
+        ("very-fast", 1, 10, 1),
+        ("extreme", 1, 10, 10),
+        ("fast", 60, 30, 3),
+    ],
+)
+def test_regeneration_uses_b80_rate_and_b424_hp_scaling(
+    rate: str, period: int, maximum: int, expected: int
+) -> None:
+    build, engine = approved(
+        Purchase(definition_id="advantage:regeneration", trait=options(rate=rate))
+    )
+    resources = state(current=0, time=period).model_copy(
+        update={
+            "pools": (
+                Pool(
+                    id="hp:a", current=0, maximum=maximum, injury=InjuryStatus(profile_id=PROFILE)
+                ),
+            )
+        }
+    )
+    interval = PhysiologyInterval(
+        id="regen", actor_id="a", kind="regeneration", due=period, amount=999
+    )
+    updated, outcome = apply_physiology_interval(
+        resources,
+        command(),
+        interval,
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert updated.pools[0].current == outcome.hp_after == expected
+    assert updated.pools[0].injury == resources.pools[0].injury
+
+
+def test_regeneration_consumes_due_tick_across_ids_and_serialized_restart() -> None:
+    build, engine = approved(
+        Purchase(definition_id="advantage:regeneration", trait=options(rate="fast"))
+    )
+    interval = PhysiologyInterval(id="regen", actor_id="a", kind="regeneration", due=60)
+    updated, _ = apply_physiology_interval(
+        state(),
+        command(),
+        interval,
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    updated = ResourceState.model_validate_json(updated.model_dump_json())
+    for candidate in (interval, interval.model_copy(update={"id": "alias"})):
+        retry = command(revision=1, identifier=candidate.id).model_copy(update={"id": "another"})
+        with pytest.raises(ConflictError, match="consumed"):
+            apply_physiology_interval(
+                updated,
+                retry,
+                candidate,
+                build,
+                engine.definitions,
+                authorized_actor_id="a",
+                system=True,
+            )
+    assert updated.pools[0].current == 6
+    next_interval = interval.model_copy(update={"id": "next", "due": 120})
+    next_state, _ = apply_physiology_interval(
+        updated.model_copy(update={"game_time": 120}),
+        command(revision=1, identifier="next"),
+        next_interval,
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert next_state.pools[0].current == 7
+
+
+def test_regeneration_rejects_wrong_rate_and_changed_retry_payload() -> None:
+    build, engine = approved(
+        Purchase(definition_id="advantage:regeneration", trait=options(rate="fast"))
+    )
+    for due in (0, 59, 61):
+        interval = PhysiologyInterval(id="regen", actor_id="a", kind="regeneration", due=due)
+        with pytest.raises(ValidationError, match="approved rate"):
+            apply_physiology_interval(
+                state(time=120),
+                command(),
+                interval,
+                build,
+                engine.definitions,
+                authorized_actor_id="a",
+                system=True,
+            )
+    interval = PhysiologyInterval(id="regen", actor_id="a", kind="regeneration", due=60)
+    updated, _ = apply_physiology_interval(
+        state(),
+        command(),
+        interval,
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    with pytest.raises(ConflictError, match="already used"):
+        apply_physiology_interval(
+            updated,
+            command(),
+            interval.model_copy(update={"amount": 2}),
+            build,
+            engine.definitions,
+            authorized_actor_id="a",
+            system=True,
+        )
+
+
+def test_regeneration_clamps_to_maximum_and_refuses_dead_patients() -> None:
+    build, engine = approved(
+        Purchase(definition_id="advantage:regeneration", trait=options(rate="extreme"))
+    )
+    interval = PhysiologyInterval(id="regen", actor_id="a", kind="regeneration", due=60)
+    resources = state(current=9)
+    updated, _ = apply_physiology_interval(
+        resources,
+        command(),
+        interval,
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert updated.pools[0].current == 10
+    dead = resources.model_copy(
+        update={
+            "pools": (
+                resources.pools[0].model_copy(
+                    update={"injury": InjuryStatus(profile_id=PROFILE, dead=True)}
+                ),
+            )
+        }
+    )
+    with pytest.raises(ValidationError, match="Dead"):
+        apply_physiology_interval(
+            dead,
             command(),
             interval,
             build,
