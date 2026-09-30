@@ -11,6 +11,14 @@ from pydantic import Field
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.mental_spirit import mental_spirit_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.gurps_checks import (
+    Contestant,
+    ResistanceTrace,
+    resistance_roll,
+    success_roll,
+)
+from wayfarer.engine.rules.traits.mental_spirit import PROFILE
 from wayfarer.engine.simulation.resources import (
     Command,
     Pool,
@@ -63,6 +71,10 @@ class MentalChannel(Record):
     interruptible: bool = True
     blocked: bool = False
     power_family: str = "psi"
+    # Trusted authors declare the B349 scope; technological attacks and
+    # nonliving, nonsapient targets do not use the supernatural resistance cap.
+    supernatural_attack: bool = True
+    target_living_or_sapient: bool = True
 
 
 class MentalCommand(Command):
@@ -77,6 +89,7 @@ class MentalOutcome(Record):
     target_id: str
     definition_id: str
     channel_id: str
+    resistance: ResistanceTrace | None = None
     revealed_fact_ids: tuple[str, ...] = ()
     effect_id: str | None = None
     expires_at: int | None = Field(default=None, ge=0)
@@ -119,16 +132,43 @@ def _spent_fatigue(resources: ResourceState, actor_id: str, amount: int) -> tupl
     )
 
 
-def _resisted(channel: MentalChannel) -> bool:
+def _recorded_total(total: int) -> tuple[int, int, int]:
+    """Adapt authored 3d6 totals to the shared scorer without drawing new dice.
+
+    Channels predate individual die receipts. This canonical decomposition is
+    scoring input only, not a claim about the original physical dice.
+    """
+    if not 3 <= total <= 18:
+        raise ValidationError("Mental/spirit roll total must be in 3-18")
+    first = min(6, total - 2)
+    second = min(6, total - first - 1)
+    return first, second, total - first - second
+
+
+def _resistance(channel: MentalChannel) -> ResistanceTrace | None:
     if channel.resistance_score is None:
         if channel.resistance_roll is not None:
             raise ValidationError("Resistance roll requires a resistance score")
-        return False
+        return None
     if channel.resistance_roll is None:
         raise ValidationError("Resistance score requires a resistance roll")
-    actor_margin = channel.actor_score - channel.actor_roll
-    resistance_margin = channel.resistance_score - channel.resistance_roll
-    return actor_margin <= resistance_margin
+    # B68-76 specify resisted Quick Contests for these attack advantages.
+    capped = channel.definition_id in {
+        "advantage:mind-control",
+        "advantage:mind-probe",
+        "advantage:mind-reading",
+        "advantage:neutralize",
+        "advantage:possession",
+    }
+    return resistance_roll(
+        PROFILE,
+        Contestant("attacker", channel.actor_score),
+        Contestant("resister", channel.resistance_score),
+        rule_of_16=capped and channel.supernatural_attack and channel.target_living_or_sapient,
+        rng=RecordedDice(
+            _recorded_total(channel.actor_roll) + _recorded_total(channel.resistance_roll)
+        ),
+    )
 
 
 def apply_mental_use(
@@ -214,9 +254,17 @@ def apply_mental_use(
     else:
         pools = _spent_fatigue(resources, command.actor_id, channel.fatigue_cost)
         result: Literal["successful", "resisted", "blocked"]
+        resistance = None if channel.blocked else _resistance(channel)
         if channel.blocked:
             result = "blocked"
-        elif _resisted(channel):
+        elif resistance is not None and not resistance.affected:
+            result = "resisted"
+        elif (
+            resistance is None
+            and not success_roll(
+                PROFILE, channel.actor_score, rng=RecordedDice(_recorded_total(channel.actor_roll))
+            ).outcome.succeeded
+        ):
             result = "resisted"
         else:
             result = "successful"
@@ -243,6 +291,7 @@ def apply_mental_use(
             definition_id=command.definition_id,
             channel_id=channel.id,
             revealed_fact_ids=revealed,
+            resistance=resistance,
             effect_id=effect_id if result == "successful" and persistent else None,
             expires_at=expires_at,
         )

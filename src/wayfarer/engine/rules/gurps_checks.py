@@ -400,7 +400,10 @@ def _decide_resistance(
         _score(profile_id, RESISTANCE_CAPABILITY, resister, resister_dice),
     )
     return ResistanceTrace(
-        profile_id, contest_trace, rule_of_16, affected=contest_trace.winner == attacker.id
+        profile_id,
+        contest_trace,
+        rule_of_16,
+        affected=contest_trace.first.outcome.succeeded and contest_trace.winner == attacker.id,
     )
 
 
