@@ -40,9 +40,19 @@ def repository_commit(root: Path) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--execution-report", type=Path)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--require-certified",
+        action="store_true",
+        help="Require complete certification (the default)",
+    )
+    mode.add_argument(
+        "--report-only", action="store_true", help="Publish blockers without claiming certification"
+    )
     args = parser.parse_args()
 
-    result = evaluate(ROOT)
+    result = evaluate(ROOT, execution_report=args.execution_report)
     payload = result.as_dict()
     payload["repository_commit"] = repository_commit(ROOT)
     encoded = json.dumps(payload, indent=2, sort_keys=True) + "\n"
@@ -50,7 +60,7 @@ def main() -> None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(encoded)
     print(encoded, end="")
-    if not result.certified:
+    if not result.certified and not args.report_only:
         raise SystemExit(f"GURPS Basic Set certification blocked by {len(result.blockers)} item(s)")
 
 

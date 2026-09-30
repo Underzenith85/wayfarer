@@ -123,7 +123,13 @@ def main() -> None:
         help="JSON inventory from store.schema_usage() for retirement validation",
     )
     parser.add_argument("--gurps-source-audit", action="store_true")
-    parser.add_argument("--gurps-basic-set", action="store_true")
+    certification_mode = parser.add_mutually_exclusive_group()
+    certification_mode.add_argument("--gurps-basic-set", action="store_true")
+    certification_mode.add_argument(
+        "--basic-set-report-only",
+        action="store_true",
+        help="Publish incomplete Basic Set accounting while enforcing engine tests",
+    )
     args = parser.parse_args()
     if args.gurps_lite:
         from scripts.lite_certification import evaluate_lite
@@ -166,8 +172,12 @@ def main() -> None:
             errors.append(
                 "Frozen GURPS source audit incomplete; see scripts/audit_gurps_sources.py"
             )
-    basic_set = basic_set_certification_report(ROOT) if args.gurps_basic_set else None
-    if basic_set is not None and not basic_set.certified:
+    basic_set = (
+        basic_set_certification_report(ROOT, execution_report=args.report)
+        if args.gurps_basic_set or args.basic_set_report_only
+        else None
+    )
+    if basic_set is not None and not basic_set.certified and not args.basic_set_report_only:
         errors.append(
             f"GURPS Basic Set certification has {len(basic_set.blockers)} unresolved blocker(s)"
         )

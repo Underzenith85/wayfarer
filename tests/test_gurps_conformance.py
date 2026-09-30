@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
 import pytest
 
+from wayfarer.certification.executable_evidence import provenance
 from wayfarer.engine.rules.checks import Modifier, ModifierKind, RecordedDice
 from wayfarer.engine.rules.conformance import (
     BASELINE_ID,
@@ -315,7 +316,9 @@ def _modifiers(case: Mapping[str, object]) -> tuple[Modifier, ...]:
 
 
 @pytest.mark.parametrize("case", check_cases("success"), ids=lambda case: str(case["id"]))
-def test_success_cases_match_published_expectations(case: dict[str, object]) -> None:
+def test_success_cases_match_published_expectations(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     values = _input(case)
     target = values["target"]
     assert isinstance(target, int)
@@ -333,6 +336,9 @@ def test_success_cases_match_published_expectations(case: dict[str, object]) -> 
         assert result.effective_target == expected["effective_target"]
     assert result.rules_package == case["profile"] and result.rules_version == BASELINE_ID
     assert result.rule_id == "gurps.check.success"
+    if case["profile"] == "gurps-basic-set-4e-2004":
+        for name, value in provenance(Path(__file__).resolve().parents[1], case).items():
+            record_property(name, value)
 
 
 @pytest.mark.parametrize("case", check_cases("repeated_attempt"), ids=lambda case: str(case["id"]))

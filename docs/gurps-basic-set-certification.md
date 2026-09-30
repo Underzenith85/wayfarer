@@ -9,6 +9,7 @@ Run:
 
 ```bash
 uv run --frozen python scripts/certify_gurps_basic_set.py \
+  --execution-report artifacts/pytest.xml \
   --output artifacts/release/gurps-basic-set.json
 ```
 
@@ -44,10 +45,23 @@ reports the combined state when no profile is selected.
 
 ## Current status
 
-The frozen Basic Set profile is certified: all 73 required capabilities, 3,129
-item-level inventory obligations, and 1,046 required source-ledger rows pass the
-gate. The latest registered profile (`profile:gurps-basic-set-4e-2004@11`) is
-selectable through the ordinary support check. Historical Basic profile versions
-remain resolvable as their narrower mechanical selections but do not carry the
-complete Basic Set claim. Package CI runs this command and publishes the commit-bound report so
-missing, stale, or downgraded evidence fails closed.
+The frozen Basic Set profile is **not certified**. Historical status/path evidence
+still describes catalog and construction coverage, but cannot certify execution.
+Every required capability, executable inventory row and required mechanic source
+row now needs an explicit case binding in
+`src/wayfarer/certification/basic_set_audit/executable-evidence.json`. Unbound rows
+stay blocked; parent or family status never implicitly certifies children.
+
+Each binding resolves an independently entered source case in `conformance.json`
+to exact passing JUnit node IDs. The behavioral test records the case ID and
+case, profile, baseline and checkout fingerprints after its consequence assertions.
+Missing, failed, skipped, duplicate, stale or status-only evidence fails closed.
+The initial registry binds only the existing source-derived success-roll cases;
+remaining evidence belongs to the bounded audit issues in #742.
+
+Run pytest with `--junitxml=artifacts/pytest.xml`, then pass
+`--execution-report artifacts/pytest.xml` to the certification command. Package
+CI publishes blockers using `--report-only` and enforces ordinary quality and
+test gates. The product release workflow requires certification and fails while
+any obligation remains unverified. `--basic-set-report-only` similarly publishes
+accounting from the shared mechanics reporter without claiming Basic Set success.

@@ -11,6 +11,8 @@ permissions:
 jobs:
   engine:
     uses: ./.github/workflows/package.yml
+    with:
+      require-basic-set-certification: true
   browser:
     uses: ./.github/workflows/frontend.yml
   readiness:

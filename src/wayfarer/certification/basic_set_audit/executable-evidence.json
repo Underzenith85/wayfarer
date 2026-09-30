@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+  "source_sha256": {
+    "characters-third": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
+    "campaigns-fourth": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80"
+  },
+  "cases": [
+    {
+      "case_id": "critical-five-at-15",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[critical-five-at-15]"
+      ]
+    },
+    {
+      "case_id": "five-at-14",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[five-at-14]"
+      ]
+    },
+    {
+      "case_id": "seventeen-at-16",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[seventeen-at-16]"
+      ]
+    },
+    {
+      "case_id": "seventeen-at-15",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[seventeen-at-15]"
+      ]
+    },
+    {
+      "case_id": "eighteen-at-20",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[eighteen-at-20]"
+      ]
+    },
+    {
+      "case_id": "basic-margin-of-success",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[basic-margin-of-success]"
+      ]
+    },
+    {
+      "case_id": "basic-margin-of-failure",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[basic-margin-of-failure]"
+      ]
+    },
+    {
+      "case_id": "basic-margin-with-typed-modifiers",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[basic-margin-with-typed-modifiers]"
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "identifier": "capability:gurps.check.critical",
+      "case_ids": [
+        "critical-five-at-15",
+        "five-at-14",
+        "seventeen-at-16",
+        "seventeen-at-15",
+        "eighteen-at-20"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.check.margin",
+      "case_ids": [
+        "basic-margin-of-success",
+        "basic-margin-of-failure",
+        "basic-margin-with-typed-modifiers"
+      ]
+    }
+  ]
+}
