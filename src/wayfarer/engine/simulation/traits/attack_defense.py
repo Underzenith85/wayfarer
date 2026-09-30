@@ -22,6 +22,8 @@ from wayfarer.engine.simulation.combat.special_damage import (
     resolve_affliction_penetration,
 )
 from wayfarer.engine.simulation.equipment.catalog import DamageType
+from wayfarer.engine.simulation.health.fatigue import FatigueCost, FatigueResult, apply_fatigue
+from wayfarer.engine.simulation.health.hit_locations import effective_dr
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState, Scheduled
 from wayfarer.engine.world import World
@@ -75,6 +77,7 @@ class TraitAttackOutcome(Record):
     target_id: str
     definition_id: str
     injury: InjuryResult | None = None
+    fatigue: FatigueResult | None = Field(default=None, exclude_if=lambda value: value is None)
     effect_id: str | None = None
     expires_at: int | None = Field(default=None, ge=0)
     healed: int = Field(default=0, ge=0)
@@ -85,6 +88,7 @@ class TraitAttackOutcome(Record):
 
 class TraitAttackEvent(Record):
     command_id: str
+    command_digest: str | None = Field(default=None, exclude_if=lambda value: value is None)
     channel_id: str
     outcome: TraitAttackOutcome
 
@@ -293,6 +297,66 @@ def _apply_affliction(
     return resources.model_copy(update=update), outcome
 
 
+def _apply_fatigue_attack(
+    resources: ResourceState,
+    command: TraitAttackCommand,
+    channel: AttackChannel,
+    attacker: AttackDefenseTraits,
+    target: AttackDefenseTraits,
+    target_ht: int,
+    rng: RandomSource,
+) -> tuple[ResourceState, TraitAttackOutcome]:
+    """B61 fatigue damage uses DR, then the B426 canonical signed FP ledger."""
+    if (
+        command.definition_id != "advantage:innate-attack"
+        or attacker.natural_damage_type(command.definition_id) != "fat"
+        or channel.basic_damage < 1
+        or channel.resistance_score is not None
+    ):
+        raise ValidationError("Fatigue damage requires an approved Fatigue Innate Attack")
+    ResourceState.model_validate(resources)
+    hp = next((pool for pool in resources.pools if pool.id == "hp:" + channel.target_id), None)
+    if hp is None or hp.injury is None or hp.injury.profile_id != "gurps-basic-set-4e-2004":
+        raise ValidationError("Fatigue attack requires canonical Basic Set target physiology")
+    hit = _roll_succeeds(channel.attack_roll, channel.attack_score)
+    state = resources.model_copy(update={"revision": resources.revision + 1})
+    fatigue = None
+    result_kind: Literal["injured", "missed", "unaffected"] = "unaffected"
+    if not hit:
+        result_kind = "missed"
+    elif not hp.injury.machine:
+        resistance = effective_dr(
+            target.damage_resistance(),
+            channel.armor_divisor,
+            location="torso",
+            damage_type="fat",
+        )
+        amount = max(0, channel.basic_damage - resistance) * target.injury_multiplier(
+            "natural-attacks"
+        )
+        state, fatigue = apply_fatigue(
+            resources,
+            FatigueCost(
+                id=_id(command.id, "fatigue"),
+                actor_id=channel.target_id,
+                expected_revision=resources.revision,
+                amount=amount,
+                attack_damage=True,
+            ),
+            ht=target_ht,
+            rng=rng,
+            system=True,
+        )
+        result_kind = "injured" if amount else "unaffected"
+    return state, TraitAttackOutcome(
+        outcome=result_kind,
+        attacker_id=channel.attacker_id,
+        target_id=channel.target_id,
+        definition_id=command.definition_id,
+        fatigue=fatigue,
+    )
+
+
 def apply_trait_attack(
     resources: ResourceState,
     world: World,
@@ -309,9 +373,15 @@ def apply_trait_attack(
 ) -> tuple[ResourceState, TraitAttackOutcome]:
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Trait attack requires attacker authority")
+    digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
     previous = next((event for event in history(resources) if event.command_id == command.id), None)
     if previous is not None:
-        if previous.channel_id == command.channel_id:
+        if (
+            previous.channel_id == command.channel_id
+            and previous.outcome.definition_id == command.definition_id
+            and previous.outcome.attacker_id == command.actor_id
+            and (previous.command_digest is None or previous.command_digest == digest)
+        ):
             return resources, previous.outcome
         raise ConflictError("Trait attack command ID was already used")
     if resources.revision != command.expected_revision:
@@ -339,7 +409,11 @@ def apply_trait_attack(
     ):
         raise ValidationError("Trait attack context changed")
 
-    if channel.kind == "damage":
+    if channel.kind == "damage" and channel.damage_type == "fat":
+        state, outcome = _apply_fatigue_attack(
+            resources, command, channel, attacker, target, target_ht, rng
+        )
+    elif channel.kind == "damage":
         if channel.basic_damage < 1 or channel.resistance_score is not None:
             raise ValidationError("Damaging trait attack requires positive authored damage")
         if attacker.natural_damage_type(command.definition_id) != channel.damage_type:
@@ -410,7 +484,9 @@ def apply_trait_attack(
             )
         state = resources.model_copy(update=binding_update)
 
-    event = TraitAttackEvent(command_id=command.id, channel_id=channel.id, outcome=outcome)
+    event = TraitAttackEvent(
+        command_id=command.id, command_digest=digest, channel_id=channel.id, outcome=outcome
+    )
     state = state.model_copy(
         update={
             "events": state.events

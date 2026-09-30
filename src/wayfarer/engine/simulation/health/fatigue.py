@@ -32,6 +32,7 @@ class FatigueCost(Command):
     amount: int = Field(ge=0, le=100000)
     cause: FatigueCause = "ordinary"
     power: bool = Field(default=False, exclude_if=lambda v: not v)
+    attack_damage: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class ContinueExertion(Command):
@@ -155,6 +156,7 @@ def apply_fatigue(
             hp.injury.physical_traits.fitness == 2
             and command.cause == "ordinary"
             and not command.power
+            and not command.attack_damage
         ):
             amount = (command.amount + int(not status.half_paid)) // 2
             status = status.model_copy(
