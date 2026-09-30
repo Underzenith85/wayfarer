@@ -3980,7 +3980,9 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_complete_mundane_traits.py"
+        "tests/test_complete_mundane_traits.py",
+        "docs/gurps/luck.md",
+        "tests/test_luck.py"
       ],
       "historical_owners": [
         113,
