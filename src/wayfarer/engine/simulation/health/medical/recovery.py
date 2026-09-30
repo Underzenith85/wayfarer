@@ -11,7 +11,7 @@ from typing import Literal
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.types.hazard import blocked_fp, blocked_hp, require_hazards_settled
+from wayfarer.engine.rules.types.hazard import blocked_fp, require_hazards_settled
 from wayfarer.engine.rules.types.recovery import (
     RecoveryTask,
     require_settled,
@@ -20,6 +20,7 @@ from wayfarer.engine.rules.types.recovery import (
 )
 from wayfarer.engine.rules.types.survival import require_survival_settled
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
 from wayfarer.engine.simulation.health.medical.advanced import _apply_advanced_recovery
 from wayfarer.engine.simulation.health.medical.commands import (
@@ -712,12 +713,9 @@ def apply_recovery(
             )
             hp = next(p for p in state.pools if p.id == hp.id)
         else:
-            healed = min(
-                healed,
-                max(0, hp.maximum - hp.current - blocked_hp(state.illnesses, target, task.kind)),
-                task.hp_entitlement,
+            hp, healed = restore_hp(
+                state, hp, healed, kind=task.kind, entitlement=task.hp_entitlement
             )
-            hp = hp.model_copy(update={"current": hp.current + healed})
         status_result: Literal["completed", "interrupted"] = (
             "interrupted" if task.status == "interrupted" else "completed"
         )
