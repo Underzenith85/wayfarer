@@ -2939,7 +2939,10 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_complete_mundane_traits.py"
+        "tests/test_complete_mundane_traits.py",
+        "docs/gurps-gizmos-source-review.md",
+        "tests/test_gizmos.py",
+        "src/wayfarer/engine/simulation/traits/gizmos.py"
       ],
       "historical_owners": [
         113,
@@ -2954,7 +2957,7 @@
       "listed_value": "5/gizmo",
       "construction_binding": "trait:advantage:gizmos",
       "cost_owner": "trait:advantage:gizmos",
-      "consequence_owner": 680,
+      "consequence_owner": 766,
       "source_review_owner": null
     },
     {

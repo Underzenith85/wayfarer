@@ -235,6 +235,8 @@ def _load_specs() -> tuple[CompleteTraitSpec, ...]:
         base, maximum, self_control, choices = _cost_shape(
             kind, classification, cast(str, row["listed_value"])
         )
+        if identifier == "trait:advantage:gizmos":
+            maximum = 3  # B57: at most three ordinary Gizmos per game session.
         choices = POINT_COST_OVERRIDES.get(identifier, choices)
         if choices:
             base = choices[0]
