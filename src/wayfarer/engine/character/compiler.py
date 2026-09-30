@@ -664,6 +664,9 @@ class CharacterCompiler:
                             )
                         ),
                         self.policy.technology_level,
+                        purchased_definition_levels={
+                            purchase.definition_id: purchase.amount for purchase in draft.purchases
+                        },
                         campaign_defaults=frozenset()
                         if self.campaign_skill_specialties is None
                         else self.campaign_skill_specialties.default_selections(),

@@ -81,6 +81,10 @@ class DefaultContext:
     campaign_defaults: frozenset[CampaignDefaultSelection] = frozenset()
     vessel_facts: frozenset[DefaultVessel] = frozenset()
     action_modes: frozenset[DefaultActionMode] = frozenset()
+    # Authoritative purchased amounts, never effective skill levels or effects.
+    # Presence-only contexts retain minimum-one semantics; higher requirements
+    # need an explicit amount and otherwise fail closed.
+    purchased_definition_levels: Mapping[str, int] = field(default_factory=dict)
 
     @classmethod
     def empty(cls) -> DefaultContext:
@@ -482,6 +486,15 @@ class SkillCompiler:
             for identifier in context.purchased_definition_ids | context.capabilities
         ):
             raise SkillError("skill.context", "Acquisition context needs nonempty identifiers")
+        if any(
+            identifier not in context.purchased_definition_ids
+            or type(level) is not int
+            or level < 1
+            for identifier, level in context.purchased_definition_levels.items()
+        ):
+            raise SkillError(
+                "skill.context", "Purchased levels need selected IDs and positive integers"
+            )
         if context.campaign_technology_level is not None and (
             type(context.campaign_technology_level) is not int
             or context.campaign_technology_level < 0
@@ -612,7 +625,10 @@ class SkillCompiler:
                     and levels[target].level >= requirement.minimum
                 )
             if requirement.kind is PrerequisiteKind.PURCHASED_DEFINITION:
-                return target in context.purchased_definition_ids
+                return (
+                    target in context.purchased_definition_ids
+                    and context.purchased_definition_levels.get(target, 1) >= requirement.minimum
+                )
             if requirement.kind is PrerequisiteKind.CAPABILITY:
                 return target in context.capabilities
             raise SkillError("skill.definition", "Unsupported acquisition prerequisite")
