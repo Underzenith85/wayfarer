@@ -198,6 +198,9 @@ class AgingSchedule(Record):
     age_seconds_at_start: int = Field(ge=0)
     due: int = Field(ge=0)
     rules: AgingRules
+    active: bool = Field(default=True, exclude_if=lambda value: value)
+    last_check_at: int | None = Field(default=None, ge=0, exclude_if=lambda value: value is None)
+    suspended_at: int | None = Field(default=None, ge=0, exclude_if=lambda value: value is None)
     ht: int = Field(ge=1)
     fitness_modifier: int = Field(default=0, ge=-2, le=2)
     checks: tuple[CheckTrace, ...] = ()

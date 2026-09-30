@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import Literal
 
+from wayfarer.engine.character.traits.physiology import NO_PHYSIOLOGY_TRAITS, PhysiologyTraits
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -59,6 +60,11 @@ def _protected(schedule: HazardSchedule) -> bool:
     if spec.kind == "seasickness":
         return protection.motion_stabilized
     return False
+
+
+def _effective_radiation(schedule: HazardSchedule, physiology: PhysiologyTraits) -> int:
+    pf = schedule.spec.protection.radiation_pf if schedule.spec.protection else 1
+    return schedule.spec.radiation_rads // (pf * physiology.radiation_divisor())
 
 
 def _radiation_modifier(dose: int) -> int:
@@ -181,6 +187,7 @@ def _extended_conditions(
     schedule: HazardSchedule,
     check: CheckTrace | None,
     hp_lost: int,
+    physiology: PhysiologyTraits,
 ) -> tuple[ResourceState, HazardSchedule, list[str]]:
     spec, conditions = schedule.spec, []
     if check is not None and not check.outcome.succeeded:
@@ -213,8 +220,7 @@ def _extended_conditions(
             state = _set_injury_condition(state, schedule.actor_id, ht=schedule.ht, dead=True)
             conditions.append("dead")
     if spec.kind == "radiation":
-        pf = spec.protection.radiation_pf if spec.protection else 1
-        effective = spec.radiation_rads // pf
+        effective = _effective_radiation(schedule, physiology)
         dose = schedule.radiation_dose + effective
         effect = _radiation_effect(dose, check.outcome) if check is not None else "none"
         if effect != "none":
@@ -264,6 +270,7 @@ def apply_hazard(
     rng: RandomSource,
     system: bool = False,
     combat_turn: CombatHazardTurn | None = None,
+    physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS,
 ) -> tuple[ResourceState, HazardResult]:
     if not system:
         raise ValidationError("Hazards require authoritative scenario context")
@@ -360,15 +367,7 @@ def apply_hazard(
                                 + (
                                     _radiation_modifier(
                                         schedule.radiation_dose
-                                        + max(
-                                            0,
-                                            spec.radiation_rads
-                                            // (
-                                                spec.protection.radiation_pf
-                                                if spec.protection
-                                                else 1
-                                            ),
-                                        )
+                                        + _effective_radiation(schedule, physiology)
                                     )
                                     if spec.kind == "radiation"
                                     else 0
@@ -442,7 +441,9 @@ def apply_hazard(
                     check_modifiers(state, schedule.actor_id, "ht"),
                     rng=rng,
                 )
-            state, schedule, extended = _extended_conditions(state, schedule, check, hp_lost)
+            state, schedule, extended = _extended_conditions(
+                state, schedule, check, hp_lost, physiology
+            )
             conditions.extend(extended)
             if spec.kind in ("heat", "cold", "disease") and (hp_lost or fp_lost):
                 old = next((i for i in state.illnesses if i.id == schedule.id), None)

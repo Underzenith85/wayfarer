@@ -1,6 +1,7 @@
 """Approved-build projection for Basic Set physiology."""
 
 from collections.abc import Mapping
+from fractions import Fraction
 
 from pydantic import Field
 
@@ -42,13 +43,12 @@ class PhysiologyTraits(Record):
             else 1 << self.level("advantage:breath-holding")
         )
 
-    def lifespan_multiplier(self) -> int | None:
+    def lifespan_multiplier(self) -> Fraction | None:
         if self.has("advantage:unaging"):
             return None
-        return max(
-            1,
-            (1 << self.level("advantage:extended-lifespan"))
-            // (1 << self.level("disadvantage:short-lifespan")),
+        return Fraction(
+            1 << self.level("advantage:extended-lifespan"),
+            1 << self.level("disadvantage:short-lifespan"),
         )
 
     def radiation_divisor(self) -> int:
