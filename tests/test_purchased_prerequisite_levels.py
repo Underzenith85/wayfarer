@@ -153,6 +153,7 @@ def character_engine() -> CharacterCompiler:
         replace(
             profile.policy,
             permitted_sources=profile.policy.permitted_sources | {SOURCE},
+            allow_supernatural=True,
             point_budget=500,
             skill_ceiling=30,
         ),
@@ -169,13 +170,13 @@ def test_character_compiler_supplies_authoritative_purchase_amounts(
         update={"purchases": value.purchases + (Purchase(definition_id=TARGET, amount=4),)}
     )
     result = character_engine().compile(value)
-    assert result.legal is legal
+    assert result.legal is legal, result.diagnostics
     if legal:
-        assert result.build is not None
+        assert result.build is not None, result.diagnostics
         assert next(v.value for v in result.build.sheet.values if v.target == TARGET) == 11
     else:
         assert result.build is None
-        assert any(d.code == "skill.prerequisite" for d in result.diagnostics)
+        assert any(d.code == "skill.prerequisite" for d in result.diagnostics), result.diagnostics
 
 
 def test_level_context_is_not_a_client_draft_field() -> None:
