@@ -17,9 +17,7 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 
 
-def _repair_binding(
-    entry: EquipmentProfile, skill_id: str
-) -> tuple[str | None, str | None]:
+def _repair_binding(entry: EquipmentProfile, skill_id: str) -> tuple[str | None, str | None]:
     """Bind supported Armoury tasks only to matching equipment specialties."""
     if skill_id not in OBJECT_REPAIR_SKILLS:
         return None, None
