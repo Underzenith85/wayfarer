@@ -17,7 +17,7 @@
       "subject": "Human",
       "reference": "B187",
       "input": {"level": 13, "operator_tl": 8, "task_tl": 10, "familiar": false, "dice": [4, 4, 4]},
-      "expected": {"definition_id": "skill:disguise-human", "target": 9, "total": 12, "margin": -3, "outcome": "failure", "dispatch": "noncombat.approach", "effect": "task-finding", "units": 0, "unit": "disguise-created"}
+      "expected": {"definition_id": "skill:disguise-human", "target": 1, "total": 12, "margin": -11, "outcome": "critical-failure", "dispatch": "noncombat.approach", "effect": "task-finding", "units": 0, "unit": "disguise-created"}
     },
     {
       "id": "geography-mars-critical-success",

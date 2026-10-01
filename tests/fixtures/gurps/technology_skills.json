@@ -264,11 +264,11 @@
       "expected": {
         "dispatch": "noncombat.approach",
         "effect": "task-finding",
-        "effective_target": 12,
+        "effective_target": 4,
         "total": 12,
-        "margin": 0,
-        "outcome": "success",
-        "units": 1,
+        "margin": -8,
+        "outcome": "failure",
+        "units": 0,
         "unit": "finding",
         "hazard": false,
         "activation_blockers": []

@@ -73,7 +73,7 @@
       "id": "electronics-operation-sensors-two-tls-behind",
       "skill_id": "skill:electronics-operation-sensors",
       "reference": "B168, B189",
-      "note": "Two levels of TL difference is -2 either way; the exact success still yields one reading.",
+      "note": "B168 IQ-based electronics two TLs behind is -3; the failed roll yields no reading.",
       "input": {
         "level": 12,
         "operator_tl": 9,
@@ -85,11 +85,11 @@
       "expected": {
         "dispatch": "noncombat.approach",
         "effect": "task-finding",
-        "effective_target": 10,
+        "effective_target": 9,
         "total": 10,
-        "margin": 0,
-        "outcome": "success",
-        "units": 1,
+        "margin": -1,
+        "outcome": "failure",
+        "units": 0,
         "unit": "reading",
         "hazard": false,
         "activation_blockers": []
@@ -230,7 +230,7 @@
       "id": "paleontology-paleobotany-two-tls-ahead",
       "skill_id": "skill:paleontology-paleobotany",
       "reference": "B168, B212",
-      "note": "Working two TLs ahead costs the same -2 as working two behind, and the failure yields no finding at all.",
+      "note": "B168 IQ-based paleontology two TLs ahead is -10; failure by 11 is critical and yields no finding.",
       "input": {
         "level": 11,
         "operator_tl": 8,
@@ -242,10 +242,10 @@
       "expected": {
         "dispatch": "noncombat.approach",
         "effect": "task-finding",
-        "effective_target": 9,
+        "effective_target": 1,
         "total": 12,
-        "margin": -3,
-        "outcome": "failure",
+        "margin": -11,
+        "outcome": "critical-failure",
         "units": 0,
         "unit": "finding",
         "hazard": false,
