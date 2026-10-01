@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter
 
+from wayfarer.engine.character.traits.physiology import NO_PHYSIOLOGY_TRAITS, PhysiologyTraits
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
@@ -30,6 +31,7 @@ class ActivityActor(Record):
     maximum_fp: int = Field(default=10, gt=0)
     enhanced_move_top: int | None = Field(default=None, gt=0)
     targets: tuple[tuple[Id, int], ...] = ()
+    physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS
 
     def target(self, identifier: str) -> int:
         result = next((value for key, value in self.targets if key == identifier), None)
@@ -279,6 +281,9 @@ def _breath(
     actor: ActivityActor,
     past: tuple[ActivityOutcome, ...],
 ) -> _Resolution:
+    purchase = actor.physiology.purchase("advantage:doesnt-breathe")
+    if purchase is not None and not purchase.modifiers:
+        return _Resolution(progress=Decimal(command.seconds))
     prior = sum(value.elapsed_seconds for value in past)
     limit = _breath_limit(rule, actor.ht)
     excess = max(0, prior + command.seconds - limit)

@@ -37,9 +37,10 @@ class PhysiologyTraits(Record):
         return None if selected is None else dict(selected.parameters).get(name)
 
     def breath_multiplier(self) -> int | None:
+        purchase = self.purchase("advantage:doesnt-breathe")
         return (
             None
-            if self.has("advantage:doesnt-breathe")
+            if purchase is not None and not purchase.modifiers
             else 1 << self.level("advantage:breath-holding")
         )
 
@@ -73,13 +74,42 @@ class PhysiologyTraits(Record):
 
     def survival_requirements(self) -> frozenset[str]:
         requirements = {"air", "food", "water", "sleep"}
-        if self.has("advantage:doesnt-breathe"):
+        breathing = self.purchase("advantage:doesnt-breathe")
+        if breathing is not None and not breathing.modifiers:
             requirements.remove("air")
-        if self.has("advantage:doesnt-eat-or-drink"):
-            requirements -= {"food", "water"}
+        purchase = self.purchase("advantage:doesnt-eat-or-drink")
+        if purchase is not None:
+            if "drink-only" not in purchase.modifiers:
+                requirements.discard("food")
+            if "food-only" not in purchase.modifiers:
+                requirements.discard("water")
         if self.has("advantage:doesnt-sleep"):
             requirements.remove("sleep")
         return frozenset(requirements)
+
+    def consumption_fraction(self, resource: str) -> Fraction:
+        purchase = self.purchase("advantage:reduced-consumption")
+        if (
+            purchase is None
+            or (resource == "water" and "food-only" in purchase.modifiers)
+            or (resource == "food" and "water-only" in purchase.modifiers)
+        ):
+            return Fraction(1)
+        return (Fraction(1), Fraction(2, 3), Fraction(1, 3), Fraction(1, 20), Fraction(1, 100))[
+            purchase.levels
+        ]
+
+    def consumption_period(self, resource: str) -> int:
+        fraction = self.consumption_fraction(resource)
+        if resource == "food":
+            return {
+                Fraction(1): 28800,
+                Fraction(2, 3): 43200,
+                Fraction(1, 3): 86400,
+                Fraction(1, 20): 604800,
+                Fraction(1, 100): 2592000,
+            }[fraction]
+        return {Fraction(1, 20): 604800, Fraction(1, 100): 2592000}.get(fraction, 86400)
 
     def environmental_protection(self, hazard: str) -> int:
         if hazard not in {"contaminant", "pressure", "temperature", "vacuum"}:

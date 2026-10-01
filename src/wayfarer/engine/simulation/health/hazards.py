@@ -37,8 +37,18 @@ class HazardResult(Record):
     radiation_dose: int = 0
 
 
-def _protected(schedule: HazardSchedule) -> bool:
+def _protected(schedule: HazardSchedule, physiology: PhysiologyTraits) -> bool:
     spec, protection = schedule.spec, schedule.spec.protection
+    purchase = physiology.purchase("advantage:doesnt-breathe")
+    if (
+        purchase is not None
+        and not purchase.modifiers
+        and (
+            spec.kind in {"suffocation", "drowning"}
+            or (spec.kind == "vacuum" and spec.variant == "suffocating")
+        )
+    ):
+        return True
     if protection is None:
         return False
     if spec.kind == "cold" and spec.variant == "thermal-shock":
@@ -329,7 +339,7 @@ def apply_hazard(
         else:
             _validate_deadline(state, schedule, combat_turn)
             spec = schedule.spec
-            protected = _protected(schedule)
+            protected = _protected(schedule, physiology)
             checking = (
                 spec.kind != "drowning"
                 or fp.fatigue.unconscious
@@ -504,7 +514,7 @@ def apply_hazard(
                             )
                         }
                     )
-            if spec.kind in ("suffocation", "drowning", "vacuum"):
+            if spec.kind in ("suffocation", "drowning", "vacuum") and not protected:
                 latest_fp = next(p for p in state.pools if p.id == fp.id)
                 if (
                     latest_fp.current <= 0

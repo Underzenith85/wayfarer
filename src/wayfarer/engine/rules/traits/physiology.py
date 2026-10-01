@@ -77,6 +77,13 @@ BINDINGS: Final = (
         10,
         modifiers=(modifier("food-only", -50), modifier("drink-only", -50)),
     ),
+    PhysiologyBinding(
+        "advantage:reduced-consumption",
+        "Reduced Consumption",
+        2,
+        4,
+        modifiers=(modifier("food-only", -50), modifier("water-only", -50)),
+    ),
     PhysiologyBinding("advantage:doesnt-sleep", "Doesn’t Sleep", 20),
     PhysiologyBinding("advantage:extended-lifespan", "Extended Lifespan", 2, 10),
     PhysiologyBinding(

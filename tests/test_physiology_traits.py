@@ -44,12 +44,12 @@ def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
     return approved_build(compiler(), *purchases)
 
 
-def test_registry_and_inventory_account_for_all_37_entries() -> None:
-    assert len(BINDINGS) == 37 and len({binding.id for binding in BINDINGS}) == 37
+def test_registry_and_inventory_account_for_all_38_entries() -> None:
+    assert len(BINDINGS) == 38 and len({binding.id for binding in BINDINGS}) == 38
     rows = {
         row.id: row for row in inventory().entries if row.id in {binding.id for binding in BINDINGS}
     }
-    assert set(rows) == {binding.id for binding in BINDINGS}
+    assert set(rows) == {binding.id for binding in BINDINGS} - {"advantage:reduced-consumption"}
     assert all(
         row.blockers == () and row.evidence == ("tests/test_physiology_traits.py",)
         for row in rows.values()
@@ -835,3 +835,17 @@ def test_unhealing_medical_entry_and_completion(level: str) -> None:
         rng=RecordedDice([]),
         system=True,
     ) == (restarted, result)
+
+
+@pytest.mark.parametrize(
+    "modifier", ["gills", "oxygen-absorption", "oxygen-combustion", "oxygen-storage"]
+)
+def test_limited_breathing_does_not_claim_unconditional_air_immunity(modifier: str) -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="advantage:doesnt-breathe", trait=TraitOptions(modifiers=(modifier,))
+        )
+    )
+    traits = physiology_traits(build, engine.definitions)
+    assert "air" in traits.survival_requirements()
+    assert traits.breath_multiplier() == 1

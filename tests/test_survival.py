@@ -1,10 +1,19 @@
 """Independently entered B426-427 survival boundaries and durable receipts."""
 
+from dataclasses import replace
+from fractions import Fraction
 from typing import Final
 
 import pytest
+from trait_support import approved_build, trait_compiler
 
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.physiology import RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.physiology import package as physiology_package
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.rules.types.survival import (
@@ -13,6 +22,7 @@ from wayfarer.engine.rules.types.survival import (
     interrupt_survival_tasks,
 )
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 from wayfarer.engine.simulation.health.survival import (
     BeginForage,
     BeginSleep,
@@ -438,3 +448,170 @@ def test_resource_clock_stops_at_survival_deadlines_and_activity_interrupts_slee
         ),
     )
     assert interrupted.survival_tasks[0].status == "interrupted"
+
+
+@pytest.mark.parametrize("levels", [1, 2, 3, 4])
+def test_reduced_consumption_approved_food_cadence_and_water_credit(levels: int) -> None:
+    engine = trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
+    build, _ = approved_build(
+        engine, Purchase(definition_id="advantage:reduced-consumption", amount=levels)
+    )
+    traits = physiology_traits(build, engine.definitions)
+    ctx = replace(context(), physiology=traits, does_not_sleep=True)
+    resources = seed().model_copy(
+        update={
+            "items": (
+                Item(id="food", definition_id="ration", owner_id="a", quantity=100),
+                Item(id="water", definition_id="water-quart", owner_id="a", quantity=100),
+            )
+        }
+    )
+    ctx = replace(ctx, meal_item_ids=("food",), water_item_ids=("water",))
+    resources = start(resources, ctx)
+    assert resources.survival[0].next_meal_due == (43200, 86400, 604800, 2592000)[levels - 1]
+    water_period = traits.consumption_period("water")
+    until = water_period * 3
+    consumed = 0
+    index = 0
+    while resources.survival[0].next_due <= until:
+        due = resources.survival[0].next_due
+        resources = resources.model_copy(update={"game_time": due})
+        resources, result = settle_survival(
+            resources,
+            SettleSurvival(id=f"need-{index}", actor_id="a", expected_revision=resources.revision),
+            ctx,
+            rng=RecordedDice([]),
+            system=True,
+        )
+        consumed += result.water_consumed
+        assert result.fp_lost == result.hp_lost == 0
+        index += 1
+    required = 2 * traits.consumption_fraction("water") * Fraction(until, 86400)
+    assert Fraction(consumed) - resources.survival[0].water_quarts_consumed == required
+    assert ResourceState.model_validate_json(resources.model_dump_json()) == resources
+
+
+@pytest.mark.parametrize("modifier", [None, "food-only", "drink-only"])
+def test_doesnt_eat_or_drink_suppresses_only_purchased_requirement(modifier: str | None) -> None:
+    engine = trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
+    build, _ = approved_build(
+        engine,
+        Purchase(
+            definition_id="advantage:doesnt-eat-or-drink",
+            trait=None if modifier is None else TraitOptions(modifiers=(modifier,)),
+        ),
+    )
+    ctx = replace(context(), physiology=physiology_traits(build, engine.definitions))
+    resources = start(seed(), ctx).model_copy(update={"game_time": 28800})
+    updated, result = settle_survival(
+        resources,
+        SettleSurvival(id="need", actor_id="a", expected_revision=resources.revision),
+        ctx,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.fp_lost == (0 if modifier is None else 1)
+    assert updated.pools[1].current == (10 if modifier is None else 9)
+
+
+@pytest.mark.parametrize("kind", ["suffocation", "drowning"])
+def test_doesnt_breathe_prevents_canonical_air_loss_and_delayed_death(kind: str) -> None:
+    engine = trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
+    build, _ = approved_build(engine, Purchase(definition_id="advantage:doesnt-breathe"))
+    traits = physiology_traits(build, engine.definitions)
+    spec = HazardSpec.model_validate(
+        dict(
+            id="air",
+            scene_id="room",
+            kind=kind,
+            delay=1,
+            interval=1 if kind == "suffocation" else 5,
+            cycles=240,
+            resistible=kind == "drowning",
+            damage_dice=0,
+            damage_add=1,
+            reference="B436",
+        )
+    )
+    schedule = HazardSchedule(
+        id="air",
+        actor_id="a",
+        spec=spec,
+        started=0,
+        due=240,
+        remaining=1,
+        ht=10,
+        will=10,
+        swimming=10,
+        no_air_since=0,
+    )
+    resources = seed().model_copy(update={"game_time": 240, "hazards": (schedule,)})
+    request = HazardCommand(
+        id="air-loss", actor_id="a", expected_revision=0, hazard_id="air", kind="resolve"
+    )
+    ordinary, ordinary_result = apply_hazard(
+        resources,
+        request,
+        schedule,
+        rng=RecordedDice([6, 6, 6] if kind == "drowning" else []),
+        system=True,
+    )
+    assert ordinary_result.fp_lost == 1
+    assert ordinary.pools[0].injury is not None and ordinary.pools[0].injury.dead
+    updated, result = apply_hazard(
+        resources, request, schedule, rng=RecordedDice([]), physiology=traits, system=True
+    )
+    assert updated.pools == resources.pools
+    assert result.fp_lost == result.hp_lost == 0 and not result.active
+    restarted = ResourceState.model_validate_json(updated.model_dump_json())
+    assert apply_hazard(
+        restarted, request, schedule, rng=RecordedDice([]), physiology=traits, system=True
+    ) == (restarted, result)
+    with pytest.raises(ValidationError, match="authority|authoritative"):
+        apply_hazard(restarted, request, schedule, rng=RecordedDice([]), physiology=traits)
+
+
+def test_rebuilding_without_survival_traits_changes_future_needs() -> None:
+    engine = trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
+    build, _ = approved_build(engine, Purchase(definition_id="advantage:doesnt-eat-or-drink"))
+    immune = replace(context(), physiology=physiology_traits(build, engine.definitions))
+    resources = start(seed(), immune).model_copy(update={"game_time": 28800})
+    updated, result = settle_survival(
+        resources,
+        SettleSurvival(id="immune", actor_id="a", expected_revision=1),
+        immune,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.fp_lost == 0
+    updated = updated.model_copy(update={"game_time": 57600})
+    rebuilt, result = settle_survival(
+        updated,
+        SettleSurvival(id="ordinary", actor_id="a", expected_revision=2),
+        context(),
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.fp_lost == 3 and rebuilt.pools[1].current == 7
+
+
+def test_removing_reduced_consumption_reschedules_future_requirements() -> None:
+    engine = trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
+    build, _ = approved_build(
+        engine, Purchase(definition_id="advantage:reduced-consumption", amount=3)
+    )
+    reduced = replace(context(), physiology=physiology_traits(build, engine.definitions))
+    resources = start(seed(), reduced)
+    assert resources.survival[0].next_meal_due == 604800
+    resources = resources.model_copy(update={"game_time": resources.survival[0].next_due})
+    updated, _ = settle_survival(
+        resources,
+        SettleSurvival(id="rebuild", actor_id="a", expected_revision=1),
+        context(),
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert updated.survival[0].next_meal_due == resources.game_time + 28800
+    assert updated.survival[0].next_water_due == resources.game_time + 28800
+    assert updated.survival[0].meal_period == 28800
+    assert updated.survival[0].water_period == 86400
