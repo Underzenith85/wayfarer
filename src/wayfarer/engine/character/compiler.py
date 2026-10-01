@@ -515,7 +515,13 @@ class CharacterCompiler:
         mana_conflicts += (
             (
                 "advantage:regeneration",
-                frozenset({"disadvantage:unhealing", "disadvantage:slow-healing"}),
+                frozenset(
+                    {
+                        "disadvantage:unhealing",
+                        "disadvantage:slow-healing",
+                        "trait:disadvantage:slow-healing",
+                    }
+                ),
                 None,
             ),
         )

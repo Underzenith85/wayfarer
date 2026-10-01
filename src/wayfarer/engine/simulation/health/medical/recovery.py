@@ -445,9 +445,10 @@ def apply_recovery(
         elif command.kind == "natural":
             if command.actor_id != target or not context.food:
                 raise ValidationError("Natural recovery needs a day of rest and decent food")
-            duration = 86400
+            duration = 86400 * context.physiology.recovery_interval_multiplier()
         elif command.kind == "physician":
             duration, maximum = physician_parameters(context.technology_level)
+            duration *= context.physiology.recovery_interval_multiplier()
             if (
                 sum(
                     t.kind == "physician"
