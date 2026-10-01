@@ -266,6 +266,8 @@ def begin_survival(
         actor_id=command.actor_id,
         started=state.game_time,
         next_meal_due=state.game_time + context.physiology.consumption_period("food"),
+        meal_period=context.physiology.consumption_period("food"),
+        water_period=context.physiology.consumption_period("water"),
         next_water_due=state.game_time
         + min(NEED_INTERVAL, context.physiology.consumption_period("water"))
         if context.physiology.consumption_period("water") == 86400
@@ -402,6 +404,23 @@ def _credit_sleep_supplies(
     )
 
 
+def _rebuild_requirements(
+    status: SurvivalStatus, physiology: PhysiologyTraits, now: int
+) -> SurvivalStatus:
+    meal_period = physiology.consumption_period("food")
+    water_period = physiology.consumption_period("water")
+    changes: dict[str, object] = {}
+    if meal_period != status.meal_period:
+        changes.update(meal_period=meal_period, next_meal_due=now + meal_period)
+    if water_period != status.water_period:
+        changes.update(
+            water_period=water_period,
+            next_water_due=now + (NEED_INTERVAL if water_period == 86400 else water_period),
+            water_day_started=now,
+        )
+    return status.model_copy(update=changes)
+
+
 def settle_survival(
     state: ResourceState,
     command: SettleSurvival,
@@ -427,6 +446,7 @@ def settle_survival(
         or context.will < 1
     ):
         raise ValidationError("Survival context changed after its authoritative snapshot")
+    status = _rebuild_requirements(status, context.physiology, state.game_time)
     require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
     meals = water = fp_lost = hp_lost = 0
     if state.game_time == status.next_meal_due:

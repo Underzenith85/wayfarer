@@ -17,6 +17,8 @@ class SurvivalStatus(Record):
     started: int = Field(ge=0)
     next_meal_due: int = Field(ge=1)
     next_water_due: int = Field(ge=1)
+    meal_period: int = Field(default=28800, ge=1)
+    water_period: int = Field(default=86400, ge=1)
     awake_since: int = Field(ge=0)
     next_sleep_due: int = Field(ge=1)
     sleep_period: int = Field(default=28800, ge=3600, le=86400)

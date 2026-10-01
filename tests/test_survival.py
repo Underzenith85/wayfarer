@@ -593,3 +593,25 @@ def test_rebuilding_without_survival_traits_changes_future_needs() -> None:
         system=True,
     )
     assert result.fp_lost == 3 and rebuilt.pools[1].current == 7
+
+
+def test_removing_reduced_consumption_reschedules_future_requirements() -> None:
+    engine = trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
+    build, _ = approved_build(
+        engine, Purchase(definition_id="advantage:reduced-consumption", amount=3)
+    )
+    reduced = replace(context(), physiology=physiology_traits(build, engine.definitions))
+    resources = start(seed(), reduced)
+    assert resources.survival[0].next_meal_due == 604800
+    resources = resources.model_copy(update={"game_time": resources.survival[0].next_due})
+    updated, _ = settle_survival(
+        resources,
+        SettleSurvival(id="rebuild", actor_id="a", expected_revision=1),
+        context(),
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert updated.survival[0].next_meal_due == resources.game_time + 28800
+    assert updated.survival[0].next_water_due == resources.game_time + 28800
+    assert updated.survival[0].meal_period == 28800
+    assert updated.survival[0].water_period == 86400
