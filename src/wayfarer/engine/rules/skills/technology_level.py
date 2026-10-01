@@ -12,7 +12,7 @@ def technology_level_penalty(
     if attribute != ControllingAttribute.IQ:
         return -abs(difference)
     if difference >= 4:
-        raise ValidationError("Equipment four or more TL above an IQ-based skill is impossible")
+        raise ValidationError("Equipment four TLs or more above an IQ-based skill is impossible")
     if difference > 0:
         return -5 * difference
     return 2 * difference + 1 if difference < 0 else 0

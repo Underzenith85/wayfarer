@@ -8,6 +8,8 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.skills.mundane.arts import OBJECT_REPAIR_SKILLS, PROCEDURES
+from wayfarer.engine.rules.skills.technology_level import technology_level_penalty
+from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode
@@ -36,12 +38,7 @@ def _repair_binding(entry: EquipmentProfile, skill_id: str) -> tuple[str | None,
 
 def _armoury_tl_penalty(skill_tl: int, equipment_tl: int) -> int:
     """Characters third printing B168: IQ-based technological skill table."""
-    difference = equipment_tl - skill_tl
-    if difference >= 4:
-        raise ValidationError("Armoury cannot repair equipment four TLs above its skill")
-    if difference > 0:
-        return -5 * difference
-    return 0 if difference == 0 else 2 * difference + 1
+    return technology_level_penalty(skill_tl, equipment_tl, ControllingAttribute.IQ)
 
 
 def _repair_skill(
