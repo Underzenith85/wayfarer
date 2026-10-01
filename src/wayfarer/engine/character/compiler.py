@@ -512,6 +512,13 @@ class CharacterCompiler:
                 None,
             ),
         )
+        mana_conflicts += (
+            (
+                "advantage:regeneration",
+                frozenset({"disadvantage:unhealing", "disadvantage:slow-healing"}),
+                None,
+            ),
+        )
         for owner, incompatible, exception in mana_conflicts:
             mana_purchase = selected_purchase.get(owner)
             if mana_purchase is None or not selected.intersection(incompatible):
@@ -523,7 +530,7 @@ class CharacterCompiler:
                 Diagnostic(
                     "trait.exclusion",
                     ("purchases",),
-                    f"{owner} is incompatible with the selected mana trait",
+                    f"{owner} is incompatible with the selected trait",
                 )
             )
         for definition in self.definitions.values():

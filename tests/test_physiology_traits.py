@@ -1,6 +1,7 @@
 """Independent physiology expectations, Characters 4e B41-160."""
 
 import pytest
+from test_statistics import gurps_draft
 from trait_support import approved_build, options, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
@@ -775,21 +776,17 @@ def test_partial_unhealing_condition_and_magical_exception() -> None:
         assert healed.current == (8 if level == "partial" else 5)
 
 
-def test_regeneration_cannot_bypass_total_unhealing() -> None:
-    build, engine = approved(
-        Purchase(definition_id="disadvantage:unhealing", trait=options(kind="total")),
-        Purchase(definition_id="advantage:regeneration", trait=options(rate="fast")),
+def test_regeneration_cannot_be_purchased_with_unhealing() -> None:
+    result = compiler().compile(
+        gurps_draft(
+            Purchase(definition_id="disadvantage:unhealing", trait=options(kind="total")),
+            Purchase(definition_id="advantage:regeneration", trait=options(rate="fast")),
+        )
     )
-    updated, result = apply_physiology_interval(
-        state(),
-        command(),
-        PhysiologyInterval(id="regen", actor_id="a", kind="regeneration", due=60),
-        build,
-        engine.definitions,
-        authorized_actor_id="a",
-        system=True,
+    assert result.build is None
+    assert any(
+        d.code == "trait.exclusion" and "regeneration" in d.message for d in result.diagnostics
     )
-    assert updated.pools[0].current == 5 and result.hp_after == 5
 
 
 @pytest.mark.parametrize("level", ["partial", "total"])
