@@ -16746,6 +16746,18 @@
             "title": "Next Water Due",
             "type": "integer"
           },
+          "meal_period": {
+            "default": 28800,
+            "minimum": 1,
+            "title": "Meal Period",
+            "type": "integer"
+          },
+          "water_period": {
+            "default": 86400,
+            "minimum": 1,
+            "title": "Water Period",
+            "type": "integer"
+          },
           "awake_since": {
             "minimum": 0,
             "title": "Awake Since",
@@ -16786,11 +16798,12 @@
             "type": "integer"
           },
           "water_quarts_consumed": {
-            "default": 0,
-            "maximum": 5,
-            "minimum": 0,
+            "default": "0",
+            "format": "fraction",
+            "ge": 0,
+            "le": 5,
             "title": "Water Quarts Consumed",
-            "type": "integer"
+            "type": "string"
           },
           "next_drowsiness_due": {
             "anyOf": [
