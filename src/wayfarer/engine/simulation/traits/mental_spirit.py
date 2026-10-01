@@ -9,9 +9,9 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.character.traits.mental_spirit import mental_spirit_traits
+from wayfarer.engine.character.traits.mental_spirit import MentalSpiritTraits, mental_spirit_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
-from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.checks import Outcome, RandomSource, RecordedDice, draw_dice
 from wayfarer.engine.rules.gurps_checks import (
     Contestant,
     ResistanceTrace,
@@ -26,6 +26,16 @@ from wayfarer.engine.simulation.resources import (
     ResourceState,
     Scheduled,
 )
+from wayfarer.engine.simulation.traits.neutralization import (
+    COOLDOWN_PREFIX,
+    PSI_FAMILIES,
+    Neutralization,
+    NeutralizeCooldown,
+    neutralize_crippled,
+    power_suppressed,
+    suppressions,
+)
+from wayfarer.engine.simulation.traits.neutralization import PREFIX as NEUTRALIZATION_PREFIX
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -75,6 +85,7 @@ class MentalChannel(Record):
     # nonliving, nonsapient targets do not use the supernatural resistance cap.
     supernatural_attack: bool = True
     target_living_or_sapient: bool = True
+    touching_target: bool = False
 
 
 class MentalCommand(Command):
@@ -171,6 +182,103 @@ def _resistance(channel: MentalChannel) -> ResistanceTrace | None:
     )
 
 
+def _validate_neutralize(
+    resources: ResourceState,
+    command: MentalCommand,
+    channel: MentalChannel,
+    traits: MentalSpiritTraits,
+) -> str | None:
+    if channel.kind != "neutralize":
+        return None
+    if command.kind == "interrupt":
+        raise ValidationError("Neutralize lasts for its source duration and cannot be interrupted")
+    if (
+        not channel.touching_target
+        or channel.resistance_score is None
+        or channel.fatigue_cost
+        or channel.power_family not in PSI_FAMILIES | {"psi"}
+    ):
+        raise ValidationError(
+            "Neutralize requires touch and a Will contest without authored FP cost"
+        )
+    purchase = traits.purchase("advantage:neutralize")
+    assert purchase is not None
+    if "power-theft" in purchase.modifiers:
+        raise ValidationError(
+            "Neutralize Power Theft requires a separately supported power transfer"
+        )
+    if neutralize_crippled(resources, command.actor_id):
+        raise ValidationError("Neutralize is crippled after a critical failure")
+    if any(
+        effect.actor_id == command.actor_id
+        and effect.target_id == channel.target_id
+        and effect.effect_id in resources.active_effect_ids
+        and resources.game_time < effect.expires_at
+        for effect in suppressions(resources)
+    ):
+        raise ConflictError("Neutralize cannot affect this subject again until power recovery")
+    selected = next(
+        (
+            modifier.removeprefix("one-power-")
+            for modifier in purchase.modifiers
+            if modifier.startswith("one-power-")
+        ),
+        None,
+    )
+    return None if selected is None else "power:" + selected
+
+
+def _neutralize_facts(
+    resources: ResourceState,
+    command: MentalCommand,
+    channel: MentalChannel,
+    resistance: ResistanceTrace | None,
+    result: str,
+    effect_id: str,
+    power_id: str | None,
+    rng: RandomSource | None,
+) -> tuple[int | None, tuple[ResourceEvent, ...]]:
+    if channel.kind != "neutralize":
+        return (
+            resources.game_time + channel.duration_seconds if result == "successful" else None,
+            (),
+        )
+    if result == "successful":
+        assert resistance is not None
+        expires_at = resources.game_time + resistance.contest.victory_margin * 60
+        fact = Neutralization(
+            actor_id=command.actor_id,
+            target_id=channel.target_id,
+            power_id=power_id,
+            effect_id=effect_id,
+            expires_at=expires_at,
+        )
+        return expires_at, (
+            ResourceEvent(
+                id=NEUTRALIZATION_PREFIX + command.id,
+                at=resources.game_time,
+                target_id=channel.target_id,
+                kind=fact.model_dump_json(),
+            ),
+        )
+    if resistance is not None and resistance.attacker.outcome is Outcome.CRITICAL_FAILURE:
+        if rng is None:
+            raise ValidationError("Neutralize critical failure requires authoritative randomness")
+        duration = sum(draw_dice(rng, 1)) * 3600
+        fact_failure = NeutralizeCooldown(
+            actor_id=command.actor_id, expires_at=resources.game_time + duration
+        )
+        return None, (
+            ResourceEvent(
+                id=COOLDOWN_PREFIX + command.id,
+                at=resources.game_time,
+                target_id=command.actor_id,
+                kind=fact_failure.model_dump_json(),
+            ),
+        )
+    return None, ()
+
+
 def apply_mental_use(
     resources: ResourceState,
     world: World,
@@ -181,13 +289,15 @@ def apply_mental_use(
     *,
     authorized_actor_id: str,
     system: bool = False,
+    rng: RandomSource | None = None,
 ) -> tuple[ResourceState, World, MentalOutcome]:
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Mental/spirit execution requires actor authority")
     prior = next((event for event in history(resources) if event.command_id == command.id), None)
     if prior is not None:
         if (
-            prior.command_kind == command.kind
+            prior.outcome.actor_id == command.actor_id
+            and prior.command_kind == command.kind
             and prior.outcome.channel_id == command.channel_id
             and prior.outcome.definition_id == command.definition_id
         ):
@@ -218,6 +328,16 @@ def apply_mental_use(
     ):
         raise ValidationError("Mental/spirit channel context changed")
 
+    selected_power = _validate_neutralize(resources, command, channel, traits)
+    channel = channel.model_copy(
+        update={
+            "blocked": channel.blocked
+            or power_suppressed(
+                resources, command.actor_id, channel.power_family, command.definition_id
+            )
+        }
+    )
+    extra_events: tuple[ResourceEvent, ...] = ()
     effect_id = _effect_id(channel.id)
     updated_world = world
     pools = resources.pools
@@ -252,7 +372,9 @@ def apply_mental_use(
         active = tuple(value for value in active if value != effect_id)
         scheduled = tuple(value for value in scheduled if value.target_id != effect_id)
     else:
-        pools = _spent_fatigue(resources, command.actor_id, channel.fatigue_cost)
+        pools = _spent_fatigue(
+            resources, command.actor_id, 0 if channel.blocked else channel.fatigue_cost
+        )
         result: Literal["successful", "resisted", "blocked"]
         resistance = None if channel.blocked else _resistance(channel)
         if channel.blocked:
@@ -269,8 +391,8 @@ def apply_mental_use(
         else:
             result = "successful"
         persistent = channel.kind in {"influence", "possession", "neutralize"}
-        expires_at = (
-            resources.game_time + channel.duration_seconds if result == "successful" else None
+        expires_at, extra_events = _neutralize_facts(
+            resources, command, channel, resistance, result, effect_id, selected_power, rng
         )
         revealed = (
             channel.fact_ids
@@ -317,6 +439,7 @@ def apply_mental_use(
             "active_effect_ids": active,
             "scheduled": scheduled,
             "events": resources.events
+            + extra_events
             + (
                 ResourceEvent(
                     id=_event_id(command.id),
