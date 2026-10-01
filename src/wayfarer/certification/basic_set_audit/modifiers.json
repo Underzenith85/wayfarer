@@ -394,12 +394,15 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_advantage_enhancements.py"
+        "tests/test_advantage_enhancements.py",
+        "tests/test_cyclic_attacks.py",
+        "src/wayfarer/engine/simulation/health/cyclic.py"
       ],
       "historical_owners": [
         100,
         497,
-        682
+        682,
+        761
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
