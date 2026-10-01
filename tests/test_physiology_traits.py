@@ -835,3 +835,17 @@ def test_unhealing_medical_entry_and_completion(level: str) -> None:
         rng=RecordedDice([]),
         system=True,
     ) == (restarted, result)
+
+
+@pytest.mark.parametrize(
+    "modifier", ["gills", "oxygen-absorption", "oxygen-combustion", "oxygen-storage"]
+)
+def test_limited_breathing_does_not_claim_unconditional_air_immunity(modifier: str) -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="advantage:doesnt-breathe", trait=TraitOptions(modifiers=(modifier,))
+        )
+    )
+    traits = physiology_traits(build, engine.definitions)
+    assert "air" in traits.survival_requirements()
+    assert traits.breath_multiplier() == 1
