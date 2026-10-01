@@ -29,15 +29,17 @@ from wayfarer.orchestration.symptom_generations import (
     correct_symptom_attributes,
     symptom_generation,
 )
+from wayfarer.persistence.command_inputs import ORIGINAL_INPUT, stamp
 from wayfarer.persistence.events import CommandInput, payload_digest
 from wayfarer.persistence.replay import command_text
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
-@pytest.mark.parametrize("legacy", [True, False])
+@pytest.mark.parametrize("generation_style", ["legacy", "flat", "current"])
 async def test_active_symptoms_old_and_current_seeded_records_reexecute_exactly(
-    tmp_path: Path, backend: str, legacy: bool
+    tmp_path: Path, backend: str, generation_style: str
 ) -> None:
+    legacy = generation_style == "legacy"
     cid, original = await setup(tmp_path / "setup", "gurps-basic-set-4e-2004", human=True)
     await attack(cid, original)
     initial = await original.store.read(cid)
@@ -52,17 +54,18 @@ async def test_active_symptoms_old_and_current_seeded_records_reexecute_exactly(
         encounter_id="fight",
         defense="parry",
     )
-    if legacy:
-        # The historical command has the pre-correction input bytes and seeded
-        # B421-bug behavior, independently known to target Broadsword at 13.
+    if generation_style != "current":
+        # Cover both pre-correction bytes/target13 and the first corrected
+        # generation, which retained only a canonical metadata-bearing object.
         plan = CombatService(source).plan(cid, value)
-        with symptom_generation(False):
+        payload = plan.payload if legacy else stamp(plan.payload, retain_original=False)
+        with symptom_generation(not legacy):
             await commit_command(
                 source,
                 cid,
                 value.id,
                 value.expected_revision,
-                plan.payload,
+                payload,
                 plan.resolve,
                 actor_id="b",
                 rng=source.rng,
@@ -76,6 +79,7 @@ async def test_active_symptoms_old_and_current_seeded_records_reexecute_exactly(
     assert result.injury.attack.dice == (4, 4, 2)
     assert result.injury.attack.outcome.succeeded is legacy
     assert (KEY not in json.loads(command_text(record))) is legacy
+    assert (ORIGINAL_INPUT in json.loads(command_text(record))) is (generation_style == "current")
     clone = build_play(tmp_path / "replay", original.engine, backend=backend)
     await seed_campaign(clone.store, initial)
     await execute_recorded(clone, record)

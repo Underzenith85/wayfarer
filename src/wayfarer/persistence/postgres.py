@@ -18,6 +18,7 @@ from wayfarer.engine.simulation.events import (
 )
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.persistence import snapshots
+from wayfarer.persistence.command_inputs import same_input
 from wayfarer.persistence.events import (
     COMMAND_SCHEMA_VERSION,
     CommandEntropy,
@@ -299,19 +300,24 @@ class AsyncPostgresStore:
         self, db: psycopg.AsyncConnection[tuple[object, ...]], cid: str, command_id: str, text: str
     ) -> Campaign | None:
         cursor = await db.execute(
-            "SELECT payload_hash, resulting_revision FROM command_log WHERE campaign=%s AND command_id=%s",
+            "SELECT payload_hash, resulting_revision, command_input FROM command_log WHERE campaign=%s AND command_id=%s",
             (cid, command_id),
         )
         row = await cursor.fetchone()
         if row is None:
             return None
-        if row[0] != payload_digest({"input": text}):
+        record = CommandInput(
+            validation.string(row[0]), validation.string(row[2]) if row[2] is not None else None
+        )
+        if not same_input(record, text):
             raise ConflictError("Request ID already used for different input")
         return await self._read(db, cid, through=validation.integer(row[1]))
 
     async def duplicate(self, cid: str, request_id: str, text: str) -> Campaign | None:
         db = await self._connect()
         try:
+            # Receipt metadata and its historical state share one read snapshot.
+            await db.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
             return await self._duplicate(db, cid, request_id, text)
         finally:
             await db.close()

@@ -524,7 +524,7 @@ async def test_duplicate_lookup_uses_one_snapshot_during_concurrent_commit(
         nonlocal committed
         columns = tuple(column[0] for column in cursor.description or ())
         await close(cursor)
-        if not committed and columns == ("payload_hash", "resulting_revision"):
+        if not committed and columns == ("payload_hash", "resulting_revision", "command_input"):
             committed = True
             await CombatService(play).execute(cid, command, principal_id="b")
 

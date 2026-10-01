@@ -1561,7 +1561,8 @@
         "tests/test_symptom_casting_checks.py",
         "tests/test_symptom_attribute_consumers.py",
         "tests/test_symptom_attribute_generations.py",
-        "tests/test_symptom_payload_formats.py"
+        "tests/test_symptom_payload_formats.py",
+        "tests/test_command_input_identity.py"
       ],
       "historical_owners": [
         100,
