@@ -1,6 +1,6 @@
 """Basic Set healing spell inventory."""
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from typing import Final
 
 from wayfarer.engine.rules.catalog import RulesPackage
@@ -29,6 +29,7 @@ LEARNING: Final = {
             ),
         ),
     ),
+    "recover-energy": learning_spec(248, magery=1, spells=("lend-energy",)),
     "lend-vitality": learning_spec(248, spells=("lend-energy",)),
     "minor-healing": learning_spec(248, spells=("lend-vitality",)),
     "major-healing": learning_spec(
@@ -54,3 +55,23 @@ BINDINGS: Final = tuple(
 
 def package() -> RulesPackage:
     return college_package(ISSUE, COLLEGE, BINDINGS)
+
+
+@dataclass(frozen=True, slots=True)
+class PassiveRecoverySpec:
+    """Source metadata for a learned passive ability, never a cast command."""
+
+    id: str = "spell:recover-energy"
+    target: str = "caster"
+    cost: int = 0
+    casting_roll: bool = False
+    duration: str = "permanent"
+    minimum_skill: int = 15
+    interval: int = 300
+    improved_skill: int = 20
+    improved_interval: int = 120
+    mana: tuple[str, ...] = ("normal", "high", "very-high")
+    reference: str = "B248"
+
+
+RECOVER_ENERGY: Final = PassiveRecoverySpec()

@@ -533,7 +533,12 @@ def apply_recovery(
             ht=context.ht,
             skill=context.skill,
             treatment_modifier=modifier,
-            fp_interval=300 if hp.injury.physical_traits.fitness else 600,
+            fp_interval=context.recover_energy_interval
+            if context.recover_energy_interval is not None
+            else 300
+            if hp.injury.physical_traits.fitness
+            else 600,
+            power_interval=context.recover_energy_interval or 600,
             power_entitlement=min(entitled[0], fp.fatigue.power)
             if fp is not None and fp.fatigue is not None
             else 0,

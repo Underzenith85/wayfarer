@@ -411,7 +411,13 @@ def recover_stuns(runtime: RulesContext, state: PlayState) -> PlayState:
 
 
 def _validate_consequence(item: Backfire, choice: BackfireAlternative, effect: SpellEffect) -> None:
-    if item.row == 0 and item.spell_id in ("minor-healing", "major-healing", "great-healing"):
+    if item.row == 0 and item.spell_id in (
+        "minor-healing",
+        "major-healing",
+        "great-healing",
+        "lend-energy",
+        "lend-vitality",
+    ):
         if choice.effect != "damage" or choice.target_ids != (item.target_id,):
             raise ValidationError("Healing critical failure requires an authored patient injury")
         if choice.damage_dice + choice.damage_add <= 0:
@@ -465,7 +471,8 @@ def _damage_consequence(
             basic_damage=damage,
             resistance=0
             if selection.item.row == 0
-            and effect.spell_id in ("minor-healing", "major-healing", "great-healing")
+            and effect.spell_id
+            in ("minor-healing", "major-healing", "great-healing", "lend-energy", "lend-vitality")
             else armor(runtime, state, target_id),
             damage_type="burn" if choice.effect == "retarget" else choice.damage_type,
         ),

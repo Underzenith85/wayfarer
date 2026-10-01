@@ -47,10 +47,10 @@ def healing_scale(spell_id: str, energy: int, magery: int) -> None:
 
 
 def healing_penalty(state: ResourceState, spell_id: str, actor_id: str, target_id: str) -> int:
-    if spell_id not in HEALING:
+    if spell_id not in HEALING | {"lend-energy", "lend-vitality"}:
         return 0
     hp = patient(state, target_id)
-    repeated = attempts(state, spell_id, actor_id, target_id)
+    repeated = attempts(state, spell_id, actor_id, target_id) if spell_id in HEALING else 0
     if spell_id == "great-healing" and repeated:
         raise ConflictError("Patient already had a Great Healing attempt today")
     return 3 * repeated + (max(0, hp.maximum - hp.current) if actor_id == target_id else 0)

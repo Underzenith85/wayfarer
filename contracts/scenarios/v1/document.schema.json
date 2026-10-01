@@ -1995,7 +1995,9 @@
             "create-fire",
             "minor-healing",
             "major-healing",
-            "great-healing"
+            "great-healing",
+            "lend-energy",
+            "lend-vitality"
           ],
           "title": "Spell Id",
           "type": "string"
@@ -14301,10 +14303,21 @@
         "fp_interval": {
           "default": 600,
           "enum": [
+            120,
             300,
             600
           ],
           "title": "Fp Interval",
+          "type": "integer"
+        },
+        "power_interval": {
+          "default": 600,
+          "enum": [
+            120,
+            300,
+            600
+          ],
+          "title": "Power Interval",
           "type": "integer"
         },
         "power_entitlement": {
@@ -15258,7 +15271,9 @@
             "create-fire",
             "minor-healing",
             "major-healing",
-            "great-healing"
+            "great-healing",
+            "lend-energy",
+            "lend-vitality"
           ],
           "title": "Spell Id",
           "type": "string"

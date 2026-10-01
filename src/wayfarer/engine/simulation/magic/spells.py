@@ -24,7 +24,7 @@ from wayfarer.engine.rules.magic.protocols import (
 )
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.location import HitLocation
-from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled
+from wayfarer.engine.rules.types.recovery import RecoveryTask, interrupt_tasks, require_settled
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
@@ -46,6 +46,12 @@ from wayfarer.engine.simulation.magic.healing_effects import (
     healing_penalty,
     healing_scale,
     mitigates_failure,
+)
+from wayfarer.engine.simulation.magic.healing_support import (
+    SUPPORT,
+    apply_support,
+    expire_vitality,
+    validate_support,
 )
 from wayfarer.engine.simulation.magic.spell_state import SpellEffect as SpellEffect
 from wayfarer.engine.simulation.magic.spell_state import SpellEvent as SpellEvent
@@ -115,6 +121,8 @@ for _key, _cost, _magery, _prerequisite in (
     ("minor-healing", 1, 0, "lend-vitality"),
     ("major-healing", 1, 1, "minor-healing"),
     ("great-healing", 20, 3, "major-healing"),
+    ("lend-energy", 1, 0, ""),
+    ("lend-vitality", 1, 0, "lend-energy"),
 ):
     SPELLS[_key] = SpellSpec(
         id=cast(SpellId, _key),
@@ -122,9 +130,9 @@ for _key, _cost, _magery, _prerequisite in (
         cost=_cost,
         maintenance=0,
         seconds=60 if _key == "great-healing" else 1,
-        duration=None,
+        duration=3600 if _key == "lend-vitality" else None,
         magery=_magery,
-        prerequisites=(_prerequisite,),
+        prerequisites=(_prerequisite,) if _prerequisite else (),
         reference="B248",
     )
 
@@ -213,7 +221,7 @@ def _validate_spell_scale(spec: SpellSpec, context: SpellContext) -> None:
         spec.kind != "area"
         and context.radius != 1
         or spec.kind != "missile"
-        and spec.id not in HEALING
+        and spec.id not in HEALING | SUPPORT
         and context.energy != 1
     ):
         raise ValidationError("Spell does not accept this area or energy")
@@ -283,6 +291,29 @@ def _spend_ceremonial_energy(
     return state, total, hp_total
 
 
+def _spell_recovery_tasks(
+    state: ResourceState,
+    original: tuple[RecoveryTask, ...],
+    command: SpellCommand,
+    effect: SpellEffect,
+) -> tuple[RecoveryTask, ...]:
+    """B248 allows quiet rest while maintaining spells without concentration."""
+    preserved = {
+        task.id: task
+        for task in original
+        if command.kind == "maintain"
+        and not effect.concentrating
+        and task.kind == "rest"
+        and task.status == "pending"
+        and task.actor_id == command.actor_id
+        and task.target_id == command.actor_id
+    }
+    interrupted = interrupt_tasks(
+        state.recovery_tasks, frozenset({command.actor_id}), state.game_time
+    )
+    return tuple(preserved.get(task.id, task) for task in interrupted)
+
+
 def apply_spell(
     state: ResourceState,
     command: SpellCommand,
@@ -309,6 +340,7 @@ def apply_spell(
         return state, SpellEvent.model_validate_json(previous_event.kind).result
     if state.revision != command.expected_revision:
         raise ConflictError("Spell revision changed")
+    original_recovery = state.recovery_tasks
     require_settled(
         state.recovery_tasks, frozenset({command.actor_id, context.target_id}), state.game_time
     )
@@ -406,20 +438,21 @@ def apply_spell(
         healing_modifier = healing_penalty(
             state, command.spell_id, command.actor_id, context.target_id
         )
+        validate_support(state, command.spell_id, context.target_id)
         _validate_spell_scale(spec, context)
         healing_scale(command.spell_id, context.energy, context.magery)
         ritual_skill = context.skill - (5 if context.mana == "low" else 0)
         ceremonial = context.ceremonial
         if ceremonial is not None and context.skill < 15:
             raise ValidationError("Ceremonial magic requires leader spell skill 15+")
-        reduction = 0 if ceremonial else cost_reduction(ritual_skill)
+        reduction = 0 if ceremonial or spec.id in SUPPORT else cost_reduction(ritual_skill)
         scale = (
             context.radius
             if spec.kind == "area"
             else context.energy
             if spec.kind == "missile"
             else context.energy
-            if spec.id in HEALING and spec.id != "great-healing"
+            if spec.id in HEALING | SUPPORT and spec.id != "great-healing"
             else 1
         )
         cost = max(
@@ -615,6 +648,7 @@ def apply_spell(
                     or effect.expires_at != state.game_time
                     or spec.duration is None
                     or spec.kind == "missile"
+                    or effect.spell_id == "lend-vitality"
                 ):
                     raise ConflictError("Maintenance is only available at expiry")
                 spent = effect.maintenance
@@ -627,6 +661,7 @@ def apply_spell(
                     effect.required_turns or effect.ready_at - effect.started_at
                 ):
                     raise ConflictError("Every casting second requires concentration")
+                validate_support(state, effect.spell_id, effect.target_id)
                 healing_penalty(state, effect.spell_id, effect.actor_id, effect.target_id)
                 hp_budget = effect.hp_energy
                 if fp.current < effect.cost - hp_budget:
@@ -773,7 +808,7 @@ def apply_spell(
         actual_critical = bool(checks and checks[-1].outcome is Outcome.CRITICAL_FAILURE)
         state = (
             healing_critical(state, effect, command.id)
-            if effect.spell_id in HEALING
+            if effect.spell_id in HEALING | SUPPORT
             else apply_backfire(
                 state,
                 command_id=command.id,
@@ -792,18 +827,12 @@ def apply_spell(
     if outcome == "resisted":
         state = break_daze(state, context.target_id, command.id)
     state = state.model_copy(
-        update={
-            "recovery_tasks": interrupt_tasks(
-                state.recovery_tasks, frozenset({command.actor_id}), state.game_time
-            )
-        }
+        update={"recovery_tasks": _spell_recovery_tasks(state, original_recovery, command, effect)}
     )
-    hp_restored = 0
-    if command.kind == "complete" and outcome == "active" and effect.spell_id in HEALING:
-        state, hp_restored = heal(state, effect)
-        effect = effect.model_copy(update={"phase": "ended"})
+    state, effect, hp_restored, fp_restored = _restore_patient(state, effect, command, outcome)
     result = SpellResult(
         hp_restored=hp_restored,
+        fp_restored=fp_restored,
         outcome=outcome,
         energy_spent=spent,
         hp_spent=hp_spent,
@@ -826,3 +855,19 @@ def apply_spell(
             ),
         }
     ), result
+
+
+def _restore_patient(
+    state: ResourceState, effect: SpellEffect, command: SpellCommand, outcome: str
+) -> tuple[ResourceState, SpellEffect, int, int]:
+    hp_restored = fp_restored = 0
+    if command.kind == "complete" and outcome == "active" and effect.spell_id in SUPPORT:
+        state, hp_restored, fp_restored = apply_support(state, effect, command.id)
+        if effect.spell_id == "lend-energy":
+            effect = effect.model_copy(update={"phase": "ended"})
+    if command.kind == "cancel" and effect.spell_id == "lend-vitality":
+        state = expire_vitality(state, state.game_time, cancel_cast_id=effect.cast_id)
+    if command.kind == "complete" and outcome == "active" and effect.spell_id in HEALING:
+        state, hp_restored = heal(state, effect)
+        effect = effect.model_copy(update={"phase": "ended"})
+    return state, effect, hp_restored, fp_restored

@@ -34,7 +34,13 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 def fixture(
-    tmp_path: Path, spell: SpellId, *, fp: int = 30, physician: bool = False
+    tmp_path: Path,
+    spell: SpellId,
+    *,
+    fp: int = 30,
+    physician: bool = False,
+    recover_points: int = 0,
+    spell_points: int = 4,
 ) -> tuple[RulesContext, PlayState]:
     from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 
@@ -56,7 +62,12 @@ def fixture(
         Purchase(definition_id="trait:magery-0"),
         Purchase(definition_id="secondary:fp", amount=fp),
         Purchase(definition_id="trait:magery", amount=3),
-        *(Purchase(definition_id="spell:" + k, amount=4) for k in keys),
+        *(Purchase(definition_id="spell:" + k, amount=spell_points) for k in keys),
+        *(
+            (Purchase(definition_id="spell:recover-energy", amount=recover_points),)
+            if recover_points
+            else ()
+        ),
         *(
             (Purchase(definition_id="skill:physician", amount=24, technology_level=8),)
             if physician

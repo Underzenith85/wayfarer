@@ -2141,7 +2141,9 @@
             "create-fire",
             "minor-healing",
             "major-healing",
-            "great-healing"
+            "great-healing",
+            "lend-energy",
+            "lend-vitality"
           ],
           "title": "Spell Id",
           "type": "string"
@@ -2454,6 +2456,11 @@
           ],
           "title": "Outcome",
           "type": "string"
+        },
+        "fp_restored": {
+          "default": 0,
+          "title": "Fp Restored",
+          "type": "integer"
         },
         "hp_restored": {
           "default": 0,

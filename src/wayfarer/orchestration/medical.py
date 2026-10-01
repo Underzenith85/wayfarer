@@ -10,6 +10,8 @@ from typing import Literal, cast
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.physiology import physiology_traits
+from wayfarer.engine.rules.magic.healing import RECOVER_ENERGY
+from wayfarer.engine.rules.magic.healing import package as healing_package
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.health.medical.commands import (
@@ -19,6 +21,8 @@ from wayfarer.engine.simulation.health.medical.commands import (
     RecoveryResult,
 )
 from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.spell_state import active_spells
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
@@ -44,6 +48,7 @@ class CareEnvironment:
     drug_form: Literal["pill", "contact", "aerosol", "injection"] | None = None
     drug_hp: int = 0
     drug_fp: int = 0
+    mana: Literal["none", "low", "normal", "high", "very-high"] | None = None
 
 
 EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
@@ -278,6 +283,9 @@ class MedicalService:
             context = replace(
                 care_context(selected, actor, target, kind, env, physician),
                 physiology=physiology_traits(target, play.engine.reviewer.compiler.definitions),
+                recover_energy_interval=_recover_energy_interval(
+                    play, before, target, target_id, kind, env
+                ),
             )
             resources, result = apply_recovery(
                 before.resources, command, context, rng=play.rng, system=True
@@ -325,3 +333,31 @@ class MedicalService:
             self.plan(play, cast(ProfileId, profile_id), command, principal_id=principal_id),
             principal_id=principal_id,
         )
+
+
+def _recover_energy_interval(
+    play: PlayService,
+    state: PlayState,
+    target: ValidatedBuild,
+    actor_id: str,
+    kind: str,
+    env: CareEnvironment,
+) -> Literal[120, 300] | None:
+    if kind != "rest" or env.mana not in RECOVER_ENERGY.mana:
+        return None
+    expected = next(d for d in healing_package().definitions if d.id == RECOVER_ENERGY.id)
+    if play.engine.reviewer.compiler.definitions.get(expected.id) != expected:
+        return None
+    if not any(p.definition_id == expected.id for p in target.purchases):
+        return None
+    require_idle_concentration(state.resources, actor_id)
+    if any(e.actor_id == actor_id and e.concentrating for e in active_spells(state.resources)):
+        raise ValidationError("Recover Energy requires quiet rest without concentration")
+    skill = _value(target, expected.id)
+    return (
+        120
+        if skill >= RECOVER_ENERGY.improved_skill
+        else 300
+        if skill >= RECOVER_ENERGY.minimum_skill
+        else None
+    )
