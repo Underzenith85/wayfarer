@@ -155,6 +155,7 @@ class SideOpposition(Record):
 
 class PendingDefense(Record):
     protected_defender_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    sacrificial_drop: bool = Field(default=False, exclude_if=lambda v: not v)
     attack_roll: CheckTrace | None = Field(default=None, exclude_if=lambda v: v is None)
     id: Id
     attacker_id: Id

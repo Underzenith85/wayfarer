@@ -587,7 +587,12 @@ def resolve(
     if hits and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense_value_ is not None:
         defense = success_roll(equipment.profile_id, int(defense_value_.value), rng=runtime.rng)
         if pending.protected_defender_id:
-            hits = hits if defense.outcome.succeeded else 0
+            hits = (
+                hits
+                if defense.outcome.succeeded
+                and not (pending.sacrificial_drop and defense.margin >= 3)
+                else 0
+            )
         elif defense.outcome.succeeded:
             avoided = (
                 hits

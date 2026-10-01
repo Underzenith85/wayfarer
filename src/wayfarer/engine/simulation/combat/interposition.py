@@ -146,6 +146,7 @@ def prepare_interposition(
                 update={
                     "defender_id": protector.actor_id,
                     "protected_defender_id": friend.actor_id,
+                    "sacrificial_drop": command.dodge_and_drop,
                     "visibility_defense_penalty": 0,
                     "attention_defense_penalty": 0,
                     "tactical_approach": None,

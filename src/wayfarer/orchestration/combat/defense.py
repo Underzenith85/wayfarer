@@ -65,6 +65,26 @@ def _settled_choice(
     return selected_actor, selected_defense
 
 
+def _drop_friend(encounter: Encounter, pending: PendingDefense, injury: InjuryTrace) -> Encounter:
+    if (
+        pending.sacrificial_drop
+        and pending.protected_defender_id
+        and injury.defense
+        and injury.defense.outcome.succeeded
+    ):
+        encounter = encounter.model_copy(
+            update={
+                "participants": tuple(
+                    p.model_copy(update={"posture": "prone"})
+                    if p.actor_id == pending.protected_defender_id
+                    else p
+                    for p in encounter.participants
+                )
+            }
+        )
+    return encounter
+
+
 def _defend(
     state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
 ) -> CombatStep:
@@ -142,6 +162,8 @@ def _defend(
                 else None,
                 catch_thrown=command.catch_thrown,
             )
+
+        encounter = _drop_friend(encounter, pending, injury)
 
         if (
             pending.protected_defender_id

@@ -186,8 +186,9 @@ async def test_critical_attack_hits_original_friend_and_cannot_be_intercepted(
     assert play.rng.exhausted()
 
 
+@pytest.mark.parametrize("avoid_both", [False, True])
 async def test_sacrificial_dodge_and_drop_combines_ranged_bonus_and_protector_posture(
-    tmp_path: Path,
+    tmp_path: Path, avoid_both: bool,
 ) -> None:
     cid, play = await setup(
         tmp_path,
@@ -222,16 +223,17 @@ async def test_sacrificial_dodge_and_drop_combines_ranged_bonus_and_protector_po
         sacrificial_for="b",
         dodge_and_drop=True,
     )
-    play.rng = RecordedDice([3, 3, 3, 3, 3, 3, 2])
+    play.rng = RecordedDice([3, 3, 3, 2, 3, 3] if avoid_both else [3, 3, 3, 3, 3, 3, 2])
     result = await CombatService(play).execute(cid, command, principal_id="c")
     updated = play._load(await play.store.read(cid))
     assert result.injury is not None and result.injury.defense_value is not None
     assert result.injury.defense_value.value == 11  # Speed 5 +3 + drop 3, no shield.
     assert updated.encounters[0].participants[2].posture == "prone"
+    assert updated.encounters[0].participants[1].posture == "prone"
     assert next(p.current for p in updated.resources.pools if p.id == "hp:b") == next(
         p.current for p in seed.resources.pools if p.id == "hp:b"
     )
-    assert result.injury.injury > 0
+    assert (result.injury.injury == 0) if avoid_both else (result.injury.injury > 0)
     assert play.rng.exhausted()
 
 
