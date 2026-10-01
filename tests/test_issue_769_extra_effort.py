@@ -226,3 +226,24 @@ def test_leg_overexertion_loses_the_entire_fp_cost_without_amputation() -> None:
     assert (
         injury.kind == "crippled" and injury.duration == "pending" and injury.location == "left-leg"
     )
+
+
+def test_very_fit_critical_injury_uses_fatigue_actually_paid() -> None:
+    before = initial()
+    hp = before.pools[0]
+    assert hp.injury is not None
+    traits = hp.injury.physical_traits.model_copy(update={"fitness": 2})
+    hp = hp.model_copy(update={"injury": hp.injury.model_copy(update={"physical_traits": traits})})
+    before = before.model_copy(update={"pools": (hp, before.pools[1])})
+    rule = ExtraEffortRule(
+        id="lift",
+        requested_percent=10,
+        task="lifting",
+        ordinary_fp_cost=2,
+        critical_failure_consequence="back",
+    )
+    after, outcome = execute(before, (6, 6, 6, 2, 2, 2), rule)
+    assert outcome.fp_lost == 2 and outcome.hp_lost == 2
+    assert after.pools[1].current == 8 and after.pools[0].current == 8
+    assert after.pools[0].injury is not None
+    assert after.pools[0].injury.rest_only_injury == 2

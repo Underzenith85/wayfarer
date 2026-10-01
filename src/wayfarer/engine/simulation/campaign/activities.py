@@ -428,9 +428,9 @@ def _effort_consequences(
     actor: ActivityActor,
     result: _Resolution,
     rng: RandomSource,
-) -> tuple[ResourceState, int, tuple[CheckTrace, ...]]:
+) -> tuple[ResourceState, int, tuple[CheckTrace, ...], int]:
     if not result.effort_attempted:
-        return state, 0, result.checks
+        return state, 0, result.checks, result.fp
     state, fatigue = apply_fatigue(
         state,
         FatigueCost(
@@ -446,14 +446,14 @@ def _effort_consequences(
     checks = result.prerequisite_checks + result.checks + fatigue.checks
     hp_lost = fatigue.hp_lost
     if result.checks[0].outcome is not Outcome.CRITICAL_FAILURE:
-        return state, hp_lost, checks
+        return state, hp_lost, checks, fatigue.fp_lost
     state, injury = apply_injury(
         state,
         Wound(
             id=command.id + ":effort-injury",
             actor_id=actor.actor_id,
             expected_revision=state.revision,
-            basic_damage=result.fp
+            basic_damage=fatigue.fp_lost
             + (max(0, actor.maximum_fp - actor.current_fp) if rule.task == "hiking" else 0),
             resistance=0,
             damage_type="cr",
@@ -497,6 +497,7 @@ def _effort_consequences(
         state.model_copy(update={"pools": tuple(hp if p.id == hp.id else p for p in state.pools)}),
         hp_lost,
         checks,
+        fatigue.fp_lost,
     )
 
 
@@ -564,9 +565,9 @@ def apply_activity(
     total = sum((value.progress for value in past), Decimal(0))
     state, result = _resolve_activity(state, rule, command, actor, past, rng)
 
-    hp_lost, checks = 0, result.checks
+    hp_lost, checks, fp_lost = 0, result.checks, result.fp
     if isinstance(rule, ExtraEffortRule):
-        state, hp_lost, checks = _effort_consequences(state, command, rule, actor, result, rng)
+        state, hp_lost, checks, fp_lost = _effort_consequences(state, command, rule, actor, result, rng)
     elif result.fp:
         if result.suffocating and actor.current_fp - result.fp <= 0 and enter_suffocation is None:
             raise ValidationError("Breath exhaustion requires the canonical suffocation reducer")
@@ -593,7 +594,7 @@ def apply_activity(
         total_progress=total,
         completed=required > 0 and total >= required,
         ruined_hours=result.ruined,
-        fp_lost=result.fp,
+        fp_lost=fp_lost,
         move=result.move,
         suffocating=result.suffocating,
         consequence=result.consequence,
