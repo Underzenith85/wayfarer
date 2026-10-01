@@ -17,8 +17,10 @@ for cost difficulty, major repair penalty and spare-parts consumption. The new
 armor durability for margins three, zero and failure, using the existing live
 transaction and its authority, revision and exact-retry controls.
 
-This change does not promote source or certification evidence. The selected
-printings could not be reopened in this execution session; the formula above
-reuses the existing B483–485 equipment implementation and recorded source review.
-Cross-TL repair/tool rules still require direct source review and bounded follow-up
-where unsupported. The other Armoury variants remain outside this PR's scope.
+The selected printings have now been reopened; the current numerical review and
+per-criterion evidence are in [Armoury source review](gurps-armoury-source-review.md).
+The same two consumers now use existing authored toolkit modifiers, preserve
+exact fractional-price parts costs, and cover B178 shields and thrown weapons.
+Whole-issue acceptance remains incomplete for time choices, actor/item
+familiarity, defaulted Armoury, and the remaining tooling variants listed there.
+No source/certification status or frozen request contract is promoted.
