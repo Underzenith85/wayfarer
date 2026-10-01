@@ -1989,6 +1989,7 @@
         },
         "spell_id": {
           "enum": [
+            "awaken",
             "light",
             "daze",
             "fireball",
@@ -15265,6 +15266,7 @@
         },
         "spell_id": {
           "enum": [
+            "awaken",
             "light",
             "daze",
             "fireball",

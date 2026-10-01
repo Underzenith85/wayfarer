@@ -16,6 +16,7 @@ from wayfarer.models import Id, Record
 
 PREFIX = "spell:"
 SpellId = Literal[
+    "awaken",
     "light",
     "daze",
     "fireball",

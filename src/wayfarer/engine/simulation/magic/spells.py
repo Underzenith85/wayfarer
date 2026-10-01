@@ -31,6 +31,7 @@ from wayfarer.engine.simulation.health.condition_checks import check_modifiers, 
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.magic.awaken import AwakenSubject, awaken, validate_subjects
 from wayfarer.engine.simulation.magic.backfires import (
     apply_backfire,
     forgotten,
@@ -105,6 +106,16 @@ SPELLS: dict[str, SpellSpec] = {
         prerequisites=("create-fire", "shape-fire"),
         reference="B247",
     ),
+    "awaken": SpellSpec(
+        id="awaken",
+        kind="area",
+        cost=1,
+        maintenance=0,
+        seconds=1,
+        duration=None,
+        prerequisites=("lend-vitality",),
+        reference="B248",
+    ),
     "create-fire": SpellSpec(
         id="create-fire",
         kind="area",
@@ -156,6 +167,7 @@ class SpellContext(Record):
     will: int = Field(default=10, ge=1)
     physician_skill: int = 0
     target_ht: int = Field(default=10, ge=1)
+    awaken_subjects: tuple[AwakenSubject, ...] = ()
     distance: int = Field(default=0, ge=0, le=10000)
     target_id: Id
     radius: int = Field(default=1, ge=1, le=100)
@@ -359,6 +371,8 @@ def apply_spell(
 
     backfires_settled(state, command.actor_id)
     spec = SPELLS[command.spell_id]
+    if command.spell_id == "awaken":
+        validate_subjects(state, context.awaken_subjects)
     effect = latest(state).get(command.cast_id)
     fp = next((p for p in state.pools if p.id == "fp:" + command.actor_id), None)
     hp = next((p for p in state.pools if p.id == "hp:" + command.actor_id), None)
@@ -807,8 +821,8 @@ def apply_spell(
     if outcome == "critical-failure" and context.execution_version == 2:
         actual_critical = bool(checks and checks[-1].outcome is Outcome.CRITICAL_FAILURE)
         state = (
-            healing_critical(state, effect, command.id)
-            if effect.spell_id in HEALING | SUPPORT
+            _healing_critical_patients(state, effect, command, context)
+            if effect.spell_id in HEALING | SUPPORT | {"awaken"}
             else apply_backfire(
                 state,
                 command_id=command.id,
@@ -830,6 +844,10 @@ def apply_spell(
         update={"recovery_tasks": _spell_recovery_tasks(state, original_recovery, command, effect)}
     )
     state, effect, hp_restored, fp_restored = _restore_patient(state, effect, command, outcome)
+    state, effect, awakening_checks = _awaken_patients(
+        state, effect, command, context, outcome, checks, rng
+    )
+    checks.extend(awakening_checks)
     result = SpellResult(
         hp_restored=hp_restored,
         fp_restored=fp_restored,
@@ -855,6 +873,40 @@ def apply_spell(
             ),
         }
     ), result
+
+
+def _healing_critical_patients(
+    state: ResourceState,
+    effect: SpellEffect,
+    command: SpellCommand,
+    context: SpellContext,
+) -> ResourceState:
+    if effect.spell_id != "awaken":
+        return healing_critical(state, effect, command.id)
+    for subject in context.awaken_subjects:
+        state = healing_critical(
+            state,
+            effect.model_copy(update={"target_id": subject.actor_id}),
+            command.id + ":" + subject.actor_id,
+        )
+    return state
+
+
+def _awaken_patients(
+    state: ResourceState,
+    effect: SpellEffect,
+    command: SpellCommand,
+    context: SpellContext,
+    outcome: str,
+    checks: list[CheckTrace],
+    rng: RandomSource,
+) -> tuple[ResourceState, SpellEffect, tuple[CheckTrace, ...]]:
+    if command.kind != "complete" or effect.spell_id != "awaken" or outcome != "active":
+        return state, effect, ()
+    state, awakening_checks = awaken(
+        state, context.awaken_subjects, margin=checks[-1].margin, command_id=command.id, rng=rng
+    )
+    return state, effect.model_copy(update={"phase": "ended"}), awakening_checks
 
 
 def _restore_patient(

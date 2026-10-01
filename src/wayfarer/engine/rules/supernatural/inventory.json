@@ -5159,10 +5159,10 @@
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "supported_subset": "Source B248 Hard/Lend Vitality construction and authoritative combat area recipients; actual stun relief, represented sleep and injury-consciousness HT awakening, FP eligibility, and one-hour fatigue cost. Drugged awakening and unproven consciousness causes reject atomically; full spell remains partial under #774.",
       "evidence": [
-        "tests/test_spell_healing.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_awaken_spell_effects.py",
+        "tests/test_spell_construction.py"
       ],
       "members": [],
       "talent_cost": null,
