@@ -26,8 +26,8 @@ from wayfarer.engine.simulation.magic.spells import (
     SpellResult,
     latest,
 )
-from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
