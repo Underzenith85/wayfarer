@@ -118,6 +118,16 @@ def _validate_durable_item(
         raise ValidationError("Invalid reduced-effectiveness selection")
 
 
+def _require_working_container(state: ResourceState, command: Transfer) -> None:
+    destination = next((item for item in state.items if item.id == command.container_id), None)
+    if (
+        destination is not None
+        and destination.condition is not None
+        and destination.condition.disabled
+    ):
+        raise ValidationError("Disabled equipment cannot function as a container")
+
+
 def _survival_before_command(state: ResourceState, command: ResourceCommand) -> ResourceState:
     require_survival_settled(
         state.survival,
@@ -489,6 +499,7 @@ class ResourceEngine:
                 if any(i.container_id == item.id for i in state.items):
                     raise ValidationError("Empty the container before transfer or consumption")
             if isinstance(command, Transfer):
+                _require_working_container(state, command)
                 if command.owner_id not in {o.actor_id for o in state.owners}:
                     raise ValidationError("Unknown receiving owner")
                 if command.quantity == item.quantity:

@@ -58,8 +58,8 @@ def reload(
     ammo = next(i for i in resources.items if i.id == command.reload_ammunition_id)
     if item.ground or ammo.ground or ammo.container_id:
         raise ValidationError("Readiness requires accessible weapon and loose ammunition source")
-    if item.condition and item.condition.disabled:
-        raise ValidationError("A broken weapon cannot be loaded")
+    if (item.condition and item.condition.disabled) or (ammo.condition and ammo.condition.disabled):
+        raise ValidationError("Broken weapons or ammunition cannot be loaded")
     encounter = next(e for e in state.encounters if e.id == command.encounter_id)
     actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     old = next((v for v in resources.ammunition_loads if v.weapon_id == item.id), None)

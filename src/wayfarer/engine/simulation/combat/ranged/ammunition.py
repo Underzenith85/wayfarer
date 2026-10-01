@@ -69,6 +69,8 @@ def reload_weapon(
         item is None
         or ammo is None
         or item.id == ammo.id
+        or (item.condition is not None and item.condition.disabled)
+        or (ammo.condition is not None and ammo.condition.disabled)
         or (item.owner_id != command.actor_id or ammo.owner_id != command.actor_id)
     ):
         raise ValidationError("Reload requires owned weapon and ammunition")

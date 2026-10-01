@@ -94,6 +94,7 @@ def _use(
             or fuel.owner_id != command.actor_id
             or fuel.definition_id != feature.consumable_definition_id
             or fuel.quantity < feature.consumable_units
+            or (fuel.condition is not None and fuel.condition.disabled)
         ):
             raise ValidationError("Equipment use requires its exact consumable")
         index = items.index(fuel)
@@ -187,6 +188,8 @@ def apply_general_equipment(
     item = next((i for i in state.items if i.id == command.item_id), None)
     if item is None or item.owner_id != command.actor_id or item.container_id is not None:
         raise ValidationError("General equipment must be owned and accessible")
+    if item.condition is not None and item.condition.disabled:
+        raise ValidationError("Disabled equipment cannot function")
     spec = engine.specs[item.definition_id]
     if not spec.general:
         raise ValidationError("Item has no general-equipment procedure")
