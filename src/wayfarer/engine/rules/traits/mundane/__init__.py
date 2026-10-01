@@ -655,7 +655,8 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
             effect=spec.hook,
             maximum_level=spec.maximum_level,
             self_control=spec.self_control,
-            followup_issues=(113, spec.owner_issue),
+            followup_issues=(113, spec.owner_issue)
+            + ((906,) if spec.id == UNUSUAL_BACKGROUND_ID else ()),
             parameters=spec.parameters,
         )
         for spec in COMPLETE_SPECS
