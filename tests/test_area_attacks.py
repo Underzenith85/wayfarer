@@ -348,6 +348,26 @@ async def test_sacrificial_explosion_dodge_spends_one_roll_and_protects_with_hp_
         object_cover={},
         environment="air",
     )
+    before = await play.store.read(cid)
+    invalid = command.model_copy(
+        update={
+            "id": "wrong-center",
+            "responses": tuple(
+                r.model_copy(
+                    update={
+                        "dive_to": GroundPosition(encounter_id="fight", geometry="grid", x=2, y=1)
+                    }
+                )
+                if r.sacrificial_contact
+                else r
+                for r in command.responses
+            ),
+        }
+    )
+    play.rng = RecordedDice([])
+    with pytest.raises(ValidationError, match="blast center"):
+        await CombatService(play).execute(cid, invalid, principal_id="gm")
+    assert await play.store.read(cid) == before
     roll = 2 if succeeds else 5
     play.rng = RecordedDice([roll, roll, roll, 3, 3] if succeeds else [roll, roll, roll, 3, 3, 3])
     service = CombatService(play)

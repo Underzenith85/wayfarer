@@ -1229,6 +1229,11 @@ export interface components {
     BlastResponse: {
       /** Actor Id */
       actor_id: string;
+      /**
+       * Sacrificial Contact
+       * @default false
+       */
+      sacrificial_contact: boolean;
       /** Cover Dr */
       cover_dr: number;
       /**
