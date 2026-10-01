@@ -11,6 +11,7 @@ from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.simulation.actions import ActionRules, PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine, hex_template
+from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
 
@@ -42,4 +43,4 @@ class RulesContext:
         build, _ = self.reviewer.activate(
             actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor_id
         )
-        return build
+        return projected_build(state.resources, actor_id, build, self.reviewer.compiler.definitions)

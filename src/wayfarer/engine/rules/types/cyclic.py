@@ -7,6 +7,7 @@ from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.types.disease import ContactExposure
+from wayfarer.engine.rules.types.symptoms import SymptomSpec
 from wayfarer.errors import ConflictError
 from wayfarer.models import Record
 
@@ -34,6 +35,8 @@ class CyclicAttack(Record):
     fp_debt: int = Field(default=0, ge=0)
     contagious: Literal["none", "mild", "high"] = "none"
     contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
+    symptom_spec: SymptomSpec | None = None
+    symptom_source_id: str | None = None
     incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
 
     @model_validator(mode="after")

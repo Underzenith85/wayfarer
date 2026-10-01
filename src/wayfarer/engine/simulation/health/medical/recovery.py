@@ -33,6 +33,7 @@ from wayfarer.engine.simulation.health.medical.tables import (
     first_aid_parameters,
     physician_parameters,
 )
+from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
 from wayfarer.engine.simulation.resources import Pool, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -788,4 +789,5 @@ def apply_recovery(
             ),
         }
     )
+    updated = reconcile_recovery(state, updated)
     return ResourceState.model_validate(updated), result

@@ -16,6 +16,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.recovery import FatigueCause, interrupt_tasks, require_settled
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
+from wayfarer.engine.simulation.health.symptoms import track_damage
 from wayfarer.engine.simulation.resources import (
     Command,
     Pool,
@@ -207,6 +208,7 @@ def apply_fatigue(
             ),
         }
     )
+    updated = track_damage(updated, pool_id=pool.id, injury_id=command.id, amount=fp_lost)
     return ResourceState.model_validate(updated), result
 
 

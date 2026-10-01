@@ -32,6 +32,7 @@ from wayfarer.engine.simulation.health.fatigue import FatigueCost, FatigueResult
 from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
+from wayfarer.engine.simulation.health.symptoms import register as register_symptoms
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState, Scheduled
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
@@ -410,7 +411,11 @@ def _schedule_cyclic(
     at: int,
     damage_dice: int,
 ) -> ResourceState:
-    if cyclic is not None and outcome.outcome == "injured":
+    if (
+        cyclic is not None
+        and cyclic.cyclic_interval_seconds is not None
+        and outcome.outcome == "injured"
+    ):
         assert (
             cyclic.cyclic_interval_seconds is not None and cyclic.cyclic_stop_condition is not None
         )
@@ -424,6 +429,8 @@ def _schedule_cyclic(
                     "attack_id": channel.id,
                     "basic_damage": channel.basic_damage,
                     "damage_dice": damage_dice,
+                    "symptom_spec": cyclic.symptom_spec,
+                    "symptom_source_id": channel.attacker_id + ":" + channel.id,
                     "contagious": cyclic.contagious,
                     "contagion_vector": channel.contagion_vector,
                     "incubation_seconds": channel.incubation_seconds,
@@ -448,6 +455,37 @@ def _schedule_cyclic(
         )
 
     return state
+
+
+def _register_symptoms(
+    state: ResourceState,
+    command: TraitAttackCommand,
+    channel: AttackChannel,
+    profile: AttackProfile | None,
+    outcome: TraitAttackOutcome,
+) -> ResourceState:
+    if profile is None or profile.symptom_spec is None or outcome.outcome != "injured":
+        return state
+    fatigue = channel.damage_type == "fat"
+    amount = (
+        outcome.fatigue.fp_lost
+        if outcome.fatigue
+        else outcome.injury.injury
+        if outcome.injury
+        else 0
+    )
+    return register_symptoms(
+        state,
+        actor_id=channel.target_id,
+        source_id=channel.attacker_id + ":" + channel.id,
+        injury_id=_id(command.id, "fatigue" if fatigue else "injury"),
+        amount=amount,
+        pool_id=("fp:" if fatigue else "hp:") + channel.target_id,
+        spec=profile.symptom_spec,
+        restriction_id=_id(command.id, "cyclic")
+        if profile.cyclic_interval_seconds is not None
+        else None,
+    )
 
 
 def _cyclic_check(
@@ -616,6 +654,7 @@ def apply_trait_attack(
         purchased.amount,
     )
 
+    state = _register_symptoms(state, command, channel, cyclic, outcome)
     event = TraitAttackEvent(
         command_id=command.id, command_digest=digest, channel_id=channel.id, outcome=outcome
     )

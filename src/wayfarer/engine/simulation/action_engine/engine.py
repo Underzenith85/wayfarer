@@ -81,6 +81,7 @@ from wayfarer.engine.simulation.events import (
 )
 from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
 from wayfarer.engine.simulation.health.fright_state import blocked, requires_adjudication
+from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
 from wayfarer.engine.simulation.magic.enchanting import validate_projects as validate_enchantments
@@ -780,6 +781,9 @@ class ActionEngine:
                 actor.approval,
                 campaign_id=state.campaign_id,
                 actor_id=actor.actor_id,
+            )
+            build = projected_build(
+                state.resources, actor.actor_id, build, self.reviewer.compiler.definitions
             )
             derived, dependencies = self._target(state, actor.actor_id, build, rule)
             if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from wayfarer.engine.rules.types.hazard import blocked_fp
 from wayfarer.engine.rules.types.recovery import RecoveryTask, rest_entitlement
+from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
 from wayfarer.engine.simulation.resources import ResourceState
 
 
@@ -71,4 +72,7 @@ def accrue_rest(state: ResourceState, at: int) -> ResourceState:
             }
         )
         tasks.append(task)
-    return state.model_copy(update={"pools": tuple(pools.values()), "recovery_tasks": tuple(tasks)})
+    updated = state.model_copy(
+        update={"pools": tuple(pools.values()), "recovery_tasks": tuple(tasks)}
+    )
+    return reconcile_recovery(state, updated)
