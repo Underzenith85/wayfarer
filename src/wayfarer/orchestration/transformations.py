@@ -18,7 +18,6 @@ from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build as actor_build
-from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry
 from wayfarer.engine.simulation.campaign.transformations import (
@@ -33,6 +32,7 @@ from wayfarer.engine.simulation.campaign.transformations import (
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume, Pool
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.traits.harmful_physiology_play import reconcile_actor, settle_actor
 from wayfarer.engine.simulation.traits.size_forms import require_native_size
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -40,7 +40,7 @@ from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.builds import canonical_build, spendable_points
 from wayfarer.orchestration.fright_builds import refresh_checks
 from wayfarer.orchestration.membership import member_for
-from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
+from wayfarer.orchestration.pipeline import CommandPlan, Controls, Seats, Trusted, submit
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
@@ -319,8 +319,15 @@ def _active(state: PlayState, proposal_id: str) -> TransformationRecord:
     return record
 
 
+def _dead(state: PlayState, actor_id: str) -> bool:
+    return actor_id in state.recovery.dead_actor_ids or any(
+        p.id == "hp:" + actor_id and p.injury is not None and p.injury.dead
+        for p in state.resources.pools
+    )
+
+
 def _validate_death_boundary(state: PlayState, rule: TransformationRule) -> None:
-    if rule.requires_death != (rule.actor_id in state.recovery.dead_actor_ids):
+    if rule.requires_death != _dead(state, rule.actor_id):
         raise ValidationError("Transformation death prerequisite does not match state")
 
 
@@ -520,7 +527,9 @@ def _apply_build(
     *,
     reverse: bool,
     command_id: str,
+    revision: int | None = None,
 ) -> PlayState:
+    state = settle_actor(play.rules_context, state, record.actor_id, command_id)
     proposal = record.source_proposal if reverse else record.target_proposal
     approval = record.source_approval if reverse else record.target_approval
     if approval is None:
@@ -613,7 +622,7 @@ def _apply_build(
             if not reverse and rule.point_policy != "adjust"
             else 0
         ),
-        revision=state.revision + 1,
+        revision=state.revision + 1 if revision is None else revision,
         build_before=before.revision,
         build_after=after.revision,
         reason=("Reverse " if reverse else "Apply ") + rule.kind,
@@ -642,7 +651,7 @@ def _apply_build(
         else m
         for m in state.transformations.morph_memories
     )
-    return state.model_copy(
+    state = state.model_copy(
         update={
             "advancement": state.advancement + (ledger,),
             "recovery": recovery,
@@ -651,6 +660,8 @@ def _apply_build(
             ),
         }
     )
+
+    return reconcile_actor(play.rules_context, state, record.actor_id, command_id)
 
 
 def _form_distraction_check(
@@ -775,6 +786,7 @@ def shapeshifting_checkpoint(
             rule,
             reverse=True,
             command_id=f"shapeshift-revert:{record.id}:{state.revision}",
+            revision=state.revision,
         )
         state = state.model_copy(
             update={
@@ -863,6 +875,148 @@ def _reverse_transformation(
     return state, record
 
 
+def _complete_transformation(
+    play: PlayService,
+    state: PlayState,
+    record: TransformationRecord,
+    rule: TransformationRule,
+    command: ResolveTransformation,
+    current: ValidatedBuild,
+    revision: int,
+) -> tuple[PlayState, TransformationRecord]:
+    if record.status not in ("treatment", "reverting") or state.resources.game_time < (
+        record.ready_at or 0
+    ):
+        raise ValidationError("Transformation treatment is not ready")
+    _validate_death_boundary(state, rule)
+    if rule.kind in ("alternate-form", "morph"):
+        _require_form_concentration(state, command.actor_id)
+    if current.revision != (
+        record.target_build_revision
+        if record.status == "reverting"
+        else record.source_build_revision
+    ):
+        raise ConflictError("Character changed during transformation treatment")
+    before = state
+    state = settle_actor(play.rules_context, state, record.actor_id, command.id)
+    state = state.model_copy(update={"revision": revision})
+    state = _shapeshifting_concentration(play.rules_context, state, before)
+    checked = next(r for r in state.transformations.records if r.id == record.id)
+    if record.status != "reverting" and rule.requires_death != _dead(state, record.actor_id):
+        return state, checked.model_copy(
+            update={"status": "interrupted", "resolved_at": state.resources.game_time}
+        )
+    if checked.status != record.status:
+        return state, checked.model_copy(update={"resolved_at": state.resources.game_time})
+    state = _apply_build(
+        play,
+        state,
+        record,
+        rule,
+        reverse=record.status == "reverting",
+        command_id=command.id,
+        revision=revision,
+    )
+    return state, checked.model_copy(
+        update={
+            "status": "reverted" if record.status == "reverting" else "active",
+            "resolved_at": state.resources.game_time,
+            "recovery_until": state.resources.game_time + rule.recovery_seconds
+            if rule.recovery_seconds
+            else None,
+            "expires_at": state.resources.game_time + rule.expires_after_seconds
+            if rule.expires_after_seconds
+            else None,
+        }
+    )
+
+
+def _approve_transformation(
+    play: PlayService,
+    cid: str,
+    state: PlayState,
+    record: TransformationRecord,
+    rule: TransformationRule,
+    command: ApproveTransformation,
+    current: ValidatedBuild,
+    revision: int,
+    principal_id: str,
+) -> tuple[PlayState, TransformationRecord]:
+    if record.status != "proposed" or current.revision != record.source_build_revision:
+        raise ConflictError("Transformation proposal is stale or already decided")
+    _validate_death_boundary(state, rule)
+    proposal, _, after = _target_build(play, state, rule)
+    if after.revision != record.target_build_revision or proposal != record.target_proposal:
+        raise ConflictError("Authored transformation target changed")
+    charge = max(0, record.point_value_delta) if rule.point_policy in ("charge", "debt") else 0
+    if rule.point_policy == "charge" and charge > spendable_points(
+        state, command.actor_id, frozenset()
+    ):
+        raise ValidationError("Transformation overspends earned points")
+    state = settle_actor(play.rules_context, state, record.actor_id, command.id)
+    if rule.requires_death != _dead(state, record.actor_id) or (
+        rule.kind in ("alternate-form", "morph") and _cannot_concentrate(state, record.actor_id)
+    ):
+        return state, record.model_copy(
+            update={"status": "interrupted", "resolved_at": state.resources.game_time}
+        )
+    approval = play.engine.reviewer.approve(
+        record.target_proposal,
+        campaign_id=cid,
+        actor_id=command.actor_id,
+        revision=revision,
+        approver_id=principal_id,
+        reason=command.reason,
+    )
+    resources = state.resources
+    if rule.payment_item_id is not None:
+        resources = play.engine.resources.apply(
+            resources,
+            Consume(
+                id=command.id + ":payment",
+                actor_id=command.actor_id,
+                expected_revision=resources.revision,
+                item_id=rule.payment_item_id,
+                quantity=rule.payment_quantity,
+            ),
+        )
+    state = state.model_copy(update={"resources": resources})
+    status = "treatment" if rule.treatment_seconds else "active"
+    record = record.model_copy(
+        update={
+            "status": status,
+            "approved_by": principal_id,
+            "approved_at": state.resources.game_time,
+            "ready_at": state.resources.game_time + rule.treatment_seconds
+            if rule.treatment_seconds
+            else None,
+            "target_approval": approval,
+            "points_charged": charge,
+        }
+    )
+    if status == "active":
+        state = _apply_build(
+            play,
+            state,
+            record,
+            rule,
+            reverse=record.status == "reverting",
+            command_id=command.id,
+        )
+        record = record.model_copy(
+            update={
+                "resolved_at": state.resources.game_time,
+                "recovery_until": state.resources.game_time + rule.recovery_seconds
+                if rule.recovery_seconds
+                else None,
+                "expires_at": state.resources.game_time + rule.expires_after_seconds
+                if rule.expires_after_seconds
+                else None,
+            }
+        )
+    return state, record
+
+
 APPROVAL_REFUSAL = "Transformation approval requires director authority"
 
 
@@ -874,7 +1028,7 @@ class TransformationService:
         self,
         cid: str,
         play: PlayService,
-        member: CampaignMember,
+        state: PlayState,
         command: ProposeTransformation | ApproveTransformation | ResolveTransformation,
         value: object,
         *,
@@ -885,6 +1039,7 @@ class TransformationService:
         A director drives approval; anyone else may only act for an actor they
         control. The two are declared rules, not a branch inside the transaction.
         """
+        member = member_for(state, principal_id)
         director = Trusted(play.engine.reviewer.gm_ids, refusal=APPROVAL_REFUSAL)
         seated = member.role == "gm" and principal_id in play.engine.reviewer.gm_ids
         payload = json.dumps(
@@ -979,81 +1134,9 @@ class TransformationService:
                     raise ValidationError("Transformation proposal belongs to another character")
                 current = canonical_build(play, state, command.actor_id)
                 if isinstance(command, ApproveTransformation):
-                    if (
-                        record.status != "proposed"
-                        or current.revision != record.source_build_revision
-                    ):
-                        raise ConflictError("Transformation proposal is stale or already decided")
-                    _validate_death_boundary(state, rule)
-                    proposal, _, after = _target_build(play, state, rule)
-                    if (
-                        after.revision != record.target_build_revision
-                        or proposal != record.target_proposal
-                    ):
-                        raise ConflictError("Authored transformation target changed")
-                    charge = (
-                        max(0, record.point_value_delta)
-                        if rule.point_policy in ("charge", "debt")
-                        else 0
+                    state, record = _approve_transformation(
+                        play, cid, state, record, rule, command, current, revision, principal_id
                     )
-                    if rule.point_policy == "charge" and charge > spendable_points(
-                        state, command.actor_id, frozenset()
-                    ):
-                        raise ValidationError("Transformation overspends earned points")
-                    approval = play.engine.reviewer.approve(
-                        record.target_proposal,
-                        campaign_id=cid,
-                        actor_id=command.actor_id,
-                        revision=revision,
-                        approver_id=principal_id,
-                        reason=command.reason,
-                    )
-                    resources = state.resources
-                    if rule.payment_item_id is not None:
-                        resources = play.engine.resources.apply(
-                            resources,
-                            Consume(
-                                id=command.id + ":payment",
-                                actor_id=command.actor_id,
-                                expected_revision=resources.revision,
-                                item_id=rule.payment_item_id,
-                                quantity=rule.payment_quantity,
-                            ),
-                        )
-                    state = state.model_copy(update={"resources": resources})
-                    status = "treatment" if rule.treatment_seconds else "active"
-                    record = record.model_copy(
-                        update={
-                            "status": status,
-                            "approved_by": principal_id,
-                            "approved_at": state.resources.game_time,
-                            "ready_at": state.resources.game_time + rule.treatment_seconds
-                            if rule.treatment_seconds
-                            else None,
-                            "target_approval": approval,
-                            "points_charged": charge,
-                        }
-                    )
-                    if status == "active":
-                        state = _apply_build(
-                            play,
-                            state,
-                            record,
-                            rule,
-                            reverse=record.status == "reverting",
-                            command_id=command.id,
-                        )
-                        record = record.model_copy(
-                            update={
-                                "resolved_at": state.resources.game_time,
-                                "recovery_until": state.resources.game_time + rule.recovery_seconds
-                                if rule.recovery_seconds
-                                else None,
-                                "expires_at": state.resources.game_time + rule.expires_after_seconds
-                                if rule.expires_after_seconds
-                                else None,
-                            }
-                        )
                 else:
                     if command.resolution == "interrupt":
                         if record.status not in (
@@ -1070,39 +1153,8 @@ class TransformationService:
                             }
                         )
                     elif command.resolution == "complete":
-                        if record.status not in (
-                            "treatment",
-                            "reverting",
-                        ) or state.resources.game_time < (record.ready_at or 0):
-                            raise ValidationError("Transformation treatment is not ready")
-                        _validate_death_boundary(state, rule)
-                        if rule.kind in ("alternate-form", "morph"):
-                            _require_form_concentration(state, command.actor_id)
-                        if current.revision != (
-                            record.target_build_revision
-                            if record.status == "reverting"
-                            else record.source_build_revision
-                        ):
-                            raise ConflictError("Character changed during transformation treatment")
-                        state = _apply_build(
-                            play,
-                            state,
-                            record,
-                            rule,
-                            reverse=record.status == "reverting",
-                            command_id=command.id,
-                        )
-                        record = record.model_copy(
-                            update={
-                                "status": "reverted" if record.status == "reverting" else "active",
-                                "resolved_at": state.resources.game_time,
-                                "recovery_until": state.resources.game_time + rule.recovery_seconds
-                                if rule.recovery_seconds
-                                else None,
-                                "expires_at": state.resources.game_time + rule.expires_after_seconds
-                                if rule.expires_after_seconds
-                                else None,
-                            }
+                        state, record = _complete_transformation(
+                            play, state, record, rule, command, current, revision
                         )
                     else:
                         state, record = _reverse_transformation(
@@ -1130,6 +1182,8 @@ class TransformationService:
                     "rulings": expire_rulings(state.rulings, revision, resources.game_time),
                 }
             )
+            updated = play.checkpoint(updated, before=play._load(campaign))
+            record = next(r for r in updated.transformations.records if r.id == record.id)
             play.commit(campaign, updated)
             return CommandReceipt(action="transformation", outcome=record.model_dump_json())
 
@@ -1155,11 +1209,10 @@ class TransformationService:
             actor_id=principal_id,
             outcome=outcome,
             control=(
-                (director,)
+                (Seats(state), director)
                 if isinstance(command, ApproveTransformation)
                 or (isinstance(command, ResolveTransformation) and command.resolution == "force")
-                else ()
-                if seated
+                or seated
                 else (Controls(member, command.actor_id),)
             ),
             rng=play.rng,
@@ -1236,10 +1289,10 @@ class TransformationService:
         except SchemaError as exc:
             raise ValidationError("Invalid transformation command") from exc
         play = self.play.for_campaign(await self.play.store.read(cid))
-        member = member_for(play._load(await play.store.read(cid)), principal_id)
+        state = play._load(await play.store.read(cid))
         return await submit(
             play,
             cid,
-            self.plan(cid, play, member, command, value, principal_id=principal_id),
+            self.plan(cid, play, state, command, value, principal_id=principal_id),
             principal_id=principal_id,
         )

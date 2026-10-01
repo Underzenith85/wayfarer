@@ -194,7 +194,16 @@ class PlayService:
         if campaign["revision"] != 0 or resources.revision != 0:
             raise ValidationError("Initial revisions must be zero")
         if any(
-            event.id.startswith(("ability:", "spell:", "spell-backfire:", "mana-refund:"))
+            event.id.startswith(
+                (
+                    "ability:",
+                    "spell:",
+                    "spell-backfire:",
+                    "mana-refund:",
+                    "harmful-physiology:",
+                    "physiology:",
+                )
+            )
             for event in resources.events
         ):
             raise ValidationError("Initial resources cannot seed supernatural execution receipts")

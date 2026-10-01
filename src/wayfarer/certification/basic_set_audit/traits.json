@@ -9797,7 +9797,8 @@
         "docs/gurps-basic-set-source-review.md",
         "tests/test_physiology_traits.py",
         "tests/test_harmful_physiology_persistence.py",
-        "docs/gurps-physiology-traits.md"
+        "docs/gurps-physiology-traits.md",
+        "tests/test_harmful_physiology_transformations.py"
       ],
       "historical_owners": [
         113,
@@ -15433,7 +15434,8 @@
         "docs/gurps-basic-set-source-review.md",
         "tests/test_physiology_traits.py",
         "tests/test_harmful_physiology_persistence.py",
-        "docs/gurps-physiology-traits.md"
+        "docs/gurps-physiology-traits.md",
+        "tests/test_harmful_physiology_transformations.py"
       ],
       "historical_owners": [
         113,

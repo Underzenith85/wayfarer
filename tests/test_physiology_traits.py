@@ -55,7 +55,11 @@ def test_registry_and_inventory_account_for_all_38_entries() -> None:
         row.blockers == ()
         and row.evidence
         == (
-            ("tests/test_physiology_traits.py", "tests/test_harmful_physiology_persistence.py")
+            (
+                "tests/test_physiology_traits.py",
+                "tests/test_harmful_physiology_persistence.py",
+                "tests/test_harmful_physiology_transformations.py",
+            )
             if row.id in {"disadvantage:dependency", "disadvantage:weakness"}
             else ("tests/test_physiology_traits.py",)
         )

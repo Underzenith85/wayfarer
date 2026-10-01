@@ -6,7 +6,8 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.traits.harmful_physiology import HarmfulContext, apply
+from wayfarer.engine.simulation.traits.harmful_physiology import apply
+from wayfarer.engine.simulation.traits.harmful_physiology_play import context
 from wayfarer.engine.simulation.traits.harmful_physiology_state import (
     COMMAND_ADAPTER,
     AdvancePhysiology,
@@ -17,6 +18,7 @@ from wayfarer.engine.simulation.traits.harmful_physiology_state import (
     history,
 )
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.harmful_physiology_clock import advance
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -69,26 +71,18 @@ class HarmfulPhysiologyService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            transformations = play.engine.rules.transformations
-            context = HarmfulContext(
-                builds={
-                    actor_id: play.rules_context.approved_build(before, actor_id)
-                    for actor_id in _subjects(before, command)
-                },
-                definitions=play.engine.reviewer.compiler.definitions,
-                engine=play.engine.resources.for_world(before.world),
-                rng=play.rng,
-                transformation_actor_ids=frozenset(
-                    rule.actor_id for rule in transformations.transformations
+            if isinstance(command, AdvancePhysiology):
+                updated, result = advance(play, before, command)
+            else:
+                resources, result = apply(
+                    before.resources,
+                    command,
+                    context(play.rules_context, before, _subjects(before, command)),
                 )
-                if transformations is not None
-                else frozenset(),
-            )
-            resources, result = apply(before.resources, command, context)
-            updated = before.model_copy(
-                update={"revision": resources.revision, "resources": resources}
-            )
-            updated = play.checkpoint(updated, before=before)
+                updated = before.model_copy(
+                    update={"revision": resources.revision, "resources": resources}
+                )
+                updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome=result.model_dump_json())
 
