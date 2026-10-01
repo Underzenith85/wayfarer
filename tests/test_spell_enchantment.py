@@ -1,19 +1,10 @@
 """Independent enchantment-college expectations, Campaigns B479-482."""
 
-import pytest
-from spell_college_support import approved_spell
+from spell_college_support import assert_unsupported_cast
 
-from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.magic.enchantment import BINDINGS, package
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.simulation.magic.colleges import (
-    CollegeSpellCommand,
-    apply_college_spell,
-    visible_history,
-)
-from wayfarer.engine.simulation.resources import Item, ResourceState
 from wayfarer.engine.world import Entity, EntityKind, World
-from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 
 
 def world() -> World:
@@ -39,72 +30,12 @@ def test_exact_enchantment_inventory_and_pages() -> None:
     rows = {
         value.id: value for value in inventory().entries if value.id in {b.id for b in BINDINGS}
     }
-    assert rows["spell:enchant"].blockers == (746, 747, 785)
-    assert rows["spell:enchant"].evidence == ("tests/test_spell_construction.py",)
+    assert rows["spell:enchant"].blockers == (747, 785)
+    assert rows["spell:enchant"].evidence == (
+        "tests/test_spell_construction.py",
+        "tests/test_college_dispatch.py",
+    )
 
 
-def test_enchantment_learning_authority_privacy_retry_and_restart() -> None:
-    build = approved_spell(package(), "spell:accuracy")
-    command = CollegeSpellCommand(
-        id="enchant",
-        actor_id="mage",
-        expected_revision=0,
-        build_revision=build.revision,
-        spell_id="spell:accuracy",
-        target_item_id="sword",
-    )
-    initial = ResourceState(
-        items=(Item(id="sword", definition_id="equipment:sword", owner_id="mage"),)
-    )
-    changed, result = apply_college_spell(
-        initial,
-        world(),
-        build,
-        command,
-        BINDINGS,
-        authorized_actor_id="mage",
-        rng=RecordedDice([3, 3, 3]),
-    )
-    assert result.outcome == "success" and changed.revision == 1
-    restarted = ResourceState.model_validate_json(changed.model_dump_json())
-    assert apply_college_spell(
-        restarted,
-        world(),
-        build,
-        command,
-        BINDINGS,
-        authorized_actor_id="mage",
-        rng=RecordedDice([]),
-    ) == (restarted, result)
-    assert visible_history(restarted, viewer_actor_id="mage") == (result,)
-    assert visible_history(restarted, viewer_actor_id="rival") == ()
-    with pytest.raises(AuthorizationError):
-        apply_college_spell(
-            initial,
-            world(),
-            build,
-            command,
-            BINDINGS,
-            authorized_actor_id="rival",
-            rng=RecordedDice([]),
-        )
-    with pytest.raises(ConflictError, match="interrupted"):
-        apply_college_spell(
-            initial,
-            world(),
-            build,
-            command.model_copy(update={"interrupted": True}),
-            BINDINGS,
-            authorized_actor_id="mage",
-            rng=RecordedDice([]),
-        )
-    with pytest.raises(ValidationError, match="outside"):
-        apply_college_spell(
-            initial,
-            world(),
-            build,
-            command.model_copy(update={"spell_id": "spell:light"}),
-            BINDINGS,
-            authorized_actor_id="mage",
-            rng=RecordedDice([]),
-        )
+def test_enchantment_check_only_attempt_cannot_report_effect_success() -> None:
+    assert_unsupported_cast(package(), BINDINGS, "spell:accuracy")

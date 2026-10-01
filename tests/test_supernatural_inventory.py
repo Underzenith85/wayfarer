@@ -133,11 +133,11 @@ def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evide
         else:
             assert entry.status is CoverageStatus.VERIFIED
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert coverage_blockers(PROFILE) == (746, 747, 772, 785, 802)
+    assert coverage_blockers(PROFILE) == (747, *tuple(range(772, 790)), *tuple(range(791, 806)))
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 
-@pytest.mark.parametrize("identifier", ["spell:light", "spell:shape-fire", "power:telepathy"])
+@pytest.mark.parametrize("identifier", ["spell:light", "spell:daze", "power:telepathy"])
 def test_source_reconciled_entries_satisfy_the_whole_entry_gate(identifier: str) -> None:
     assert require_entries(PROFILE, (identifier,))[0].id == identifier
 
@@ -259,3 +259,8 @@ def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() 
 def test_spell_family_is_not_certified_by_construction_or_command_seams() -> None:
     with pytest.raises(ValidationError, match="not certified"):
         conformance.require_verified("gurps.magic.spellcasting")
+
+
+def test_learnable_prerequisite_does_not_certify_unsupported_effect() -> None:
+    with pytest.raises(ValidationError, match="not certified: spell:shape-fire"):
+        require_entries(PROFILE, ("spell:shape-fire",))

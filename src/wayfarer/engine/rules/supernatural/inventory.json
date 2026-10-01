@@ -5024,12 +5024,16 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        786
+      ],
       "source": "campaigns-fourth",
-      "status": "verified",
-      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5047,12 +5051,16 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        791
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5070,12 +5078,16 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        797
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5093,12 +5105,16 @@
       "colleges": [
         "protection-warning"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        798
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5116,12 +5132,16 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        791
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5139,12 +5159,16 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        774
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_healing.py"
+        "tests/test_spell_healing.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5162,12 +5186,16 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        801
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5185,12 +5213,16 @@
       "colleges": [
         "light-darkness"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        792
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5209,12 +5241,16 @@
         "air",
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        776
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5232,12 +5268,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        778
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5255,12 +5295,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        788
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5278,12 +5322,16 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        796
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_mind_control.py"
+        "tests/test_spell_mind_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5301,12 +5349,16 @@
       "colleges": [
         "light-darkness"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        792
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5324,12 +5376,16 @@
       "colleges": [
         "meta"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        793
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5347,12 +5403,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        775
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5370,12 +5430,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        782
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5416,12 +5480,16 @@
       "colleges": [
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        804
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_water.py"
+        "tests/test_spell_water.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5439,12 +5507,16 @@
       "colleges": [
         "light-darkness"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        792
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5485,12 +5557,16 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        800
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5508,12 +5584,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        779
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5531,12 +5611,16 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        786
+      ],
       "source": "campaigns-fourth",
-      "status": "verified",
-      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5554,12 +5638,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        789
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5577,12 +5665,16 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        798
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5600,12 +5692,16 @@
       "colleges": [
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        804
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_water.py"
+        "tests/test_spell_water.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5623,12 +5719,16 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        791
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5646,12 +5746,16 @@
       "colleges": [
         "meta"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        793
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5670,12 +5774,16 @@
         "air",
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        777
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5693,12 +5801,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        783
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5717,7 +5829,6 @@
         "enchantment"
       ],
       "blockers": [
-        746,
         747,
         785
       ],
@@ -5725,7 +5836,8 @@
       "status": "partial",
       "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
       "evidence": [
-        "tests/test_spell_construction.py"
+        "tests/test_spell_construction.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5743,12 +5855,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        784
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5766,12 +5882,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        789
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5789,12 +5909,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        787
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5838,12 +5962,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        784
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5861,12 +5989,16 @@
       "colleges": [
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        805
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_water.py"
+        "tests/test_spell_water.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5884,12 +6016,16 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        796
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_mind_control.py"
+        "tests/test_spell_mind_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5907,12 +6043,16 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        796
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_mind_control.py"
+        "tests/test_spell_mind_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5930,12 +6070,16 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        786
+      ],
       "source": "campaigns-fourth",
-      "status": "verified",
-      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5953,12 +6097,16 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        797
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5977,7 +6125,6 @@
         "healing"
       ],
       "blockers": [
-        746,
         747,
         772
       ],
@@ -5985,7 +6132,8 @@
       "status": "partial",
       "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
       "evidence": [
-        "tests/test_spell_construction.py"
+        "tests/test_spell_construction.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6003,12 +6151,16 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        797
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6026,12 +6178,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        788
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6049,12 +6205,16 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        781
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_communication_empathy.py"
+        "tests/test_spell_communication_empathy.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6073,12 +6233,16 @@
         "body-control",
         "movement"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        778
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6096,12 +6260,16 @@
       "colleges": [
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        805
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_water.py"
+        "tests/test_spell_water.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6119,12 +6287,16 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        791
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6142,12 +6314,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        787
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6165,12 +6341,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        778
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6188,12 +6368,16 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        773
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_healing.py"
+        "tests/test_spell_healing.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6211,12 +6395,16 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        773
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_healing.py"
+        "tests/test_spell_healing.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6257,12 +6445,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        777
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6280,12 +6472,16 @@
       "colleges": [
         "movement"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        799
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6303,12 +6499,16 @@
       "colleges": [
         "protection-warning"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        799
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6327,7 +6527,6 @@
         "healing"
       ],
       "blockers": [
-        746,
         747,
         772
       ],
@@ -6335,7 +6534,8 @@
       "status": "partial",
       "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
       "evidence": [
-        "tests/test_spell_construction.py"
+        "tests/test_spell_construction.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6353,12 +6553,16 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        795
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_mind_control.py"
+        "tests/test_spell_mind_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6376,12 +6580,16 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        795
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_mind_control.py"
+        "tests/test_spell_mind_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6399,12 +6607,16 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        781
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_communication_empathy.py"
+        "tests/test_spell_communication_empathy.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6422,12 +6634,16 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        772
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_healing.py"
+        "tests/test_spell_healing.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6445,12 +6661,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        775
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6468,12 +6688,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        778
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6491,12 +6715,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        779
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6514,12 +6742,16 @@
       "colleges": [
         "gate"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        801
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6538,7 +6770,6 @@
         "gate"
       ],
       "blockers": [
-        746,
         747,
         802
       ],
@@ -6546,7 +6777,8 @@
       "status": "partial",
       "supported_subset": "Source-reviewed plane-specific Very Hard construction requires Planar Summons for the same plane; generic learning and effect execution remain unavailable.",
       "evidence": [
-        "tests/test_spell_construction.py"
+        "tests/test_spell_construction.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6564,12 +6796,16 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        785
+      ],
       "source": "campaigns-fourth",
-      "status": "verified",
-      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6587,12 +6823,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        777
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6610,12 +6850,16 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        786
+      ],
       "source": "campaigns-fourth",
-      "status": "verified",
-      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6633,12 +6877,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        775
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6656,12 +6904,16 @@
       "colleges": [
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        804
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_water.py"
+        "tests/test_spell_water.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6679,12 +6931,16 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        773
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_healing.py"
+        "tests/test_spell_healing.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6702,12 +6958,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        788
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6725,12 +6985,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        788
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6748,12 +7012,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        779
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6771,12 +7039,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        782
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6794,12 +7066,16 @@
       "colleges": [
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        804
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_water.py"
+        "tests/test_spell_water.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6817,12 +7093,16 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        794
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6840,12 +7120,16 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        780
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_communication_empathy.py"
+        "tests/test_spell_communication_empathy.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6863,12 +7147,16 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        780
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_communication_empathy.py"
+        "tests/test_spell_communication_empathy.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6886,12 +7174,16 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        800
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6909,12 +7201,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        775
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6932,12 +7228,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        782
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6955,12 +7255,16 @@
       "colleges": [
         "fire"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        787
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_fire.py"
+        "tests/test_spell_fire.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6978,12 +7282,16 @@
       "colleges": [
         "water"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        805
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_water.py"
+        "tests/test_spell_water.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7001,12 +7309,16 @@
       "colleges": [
         "protection-warning"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        798
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_movement.py"
+        "tests/test_spell_movement.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7024,12 +7336,16 @@
       "colleges": [
         "mind-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        795
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_mind_control.py"
+        "tests/test_spell_mind_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7047,12 +7363,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        778
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7070,12 +7390,16 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        785
+      ],
       "source": "campaigns-fourth",
-      "status": "verified",
-      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7093,12 +7417,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        776
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7116,12 +7444,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        783
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7139,12 +7471,16 @@
       "colleges": [
         "earth"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        784
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_earth.py"
+        "tests/test_spell_earth.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7162,12 +7498,16 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        801
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7185,12 +7525,16 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        800
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7208,12 +7552,16 @@
       "colleges": [
         "knowledge"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        794
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_knowledge.py"
+        "tests/test_spell_knowledge.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7231,12 +7579,16 @@
       "colleges": [
         "communication-empathy"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        780
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_communication_empathy.py"
+        "tests/test_spell_communication_empathy.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7254,12 +7606,16 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        803
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7277,12 +7633,16 @@
       "colleges": [
         "air"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        776
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_air.py"
+        "tests/test_spell_air.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7300,12 +7660,16 @@
       "colleges": [
         "body-control"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        779
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_body_control.py"
+        "tests/test_spell_body_control.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7323,12 +7687,16 @@
       "colleges": [
         "necromantic"
       ],
-      "blockers": [],
+      "blockers": [
+        747,
+        803
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_necromantic.py",
+        "tests/test_college_dispatch.py"
       ],
       "members": [],
       "talent_cost": null,
