@@ -418,3 +418,43 @@ def test_printed_shrinking_twelve_example_changes_committed_body_geometry() -> N
     assert geometry.weight_fraction == Fraction(1, 1_000_000)
     assert state.pools[0].maximum == 1 and state.pools[0].current == 1
     assert reduced_body_result(state, "a", 5) == 0
+
+
+def test_combat_size_progress_requires_ready_and_does_not_bank_skipped_seconds() -> None:
+    from wayfarer.engine.simulation.traits.size_forms import (
+        checkpoint,
+        ready_step,
+        synchronize_modes,
+    )
+
+    compiler = trait_compiler("size", PROFILE, package(), hooks=RUNTIME_HOOKS)
+    compiled = compiler.compile(
+        gurps_draft(Purchase(definition_id="advantage:shrinking", amount=4))
+    ).build
+    assert compiled is not None
+    state, _ = apply_size_form(
+        ResourceState(pools=(Pool(id="hp:a", current=10, maximum=10),)),
+        SizeFormCommand(
+            id="combat-start", actor_id="a", expected_revision=0, kind="start", target_delta=-4
+        ),
+        compiled,
+        authorized_actor_id="a",
+        system=True,
+        in_combat=True,
+    )
+    state = checkpoint(state.model_copy(update={"game_time": 100}))
+    effect = effect_for(state, "a")
+    assert effect is not None and effect.current_delta == 0
+    state = ready_step(state, "a", "ready-one")
+    state = checkpoint(state.model_copy(update={"game_time": 101}))
+    effect = effect_for(state, "a")
+    assert effect is not None and effect.current_delta == -1
+    state = checkpoint(state.model_copy(update={"game_time": 200}))
+    effect = effect_for(state, "a")
+    assert effect is not None and effect.current_delta == -1
+    # Leaving combat resumes the chosen outside-combat continuous transition,
+    # starting from now rather than banking 99 skipped combat seconds.
+    state = synchronize_modes(state, frozenset())
+    state = checkpoint(state.model_copy(update={"game_time": 201}))
+    effect = effect_for(state, "a")
+    assert effect is not None and effect.current_delta == -2

@@ -11,6 +11,7 @@ from fractions import Fraction
 from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter, model_validator
+from pydantic.json_schema import SkipJsonSchema
 
 from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.rules.magic.protocols import MagicItemInstance
@@ -106,7 +107,9 @@ class Item(Record):
     condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
     machine_actor_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
-    world_ground_location_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    world_ground_location_id: SkipJsonSchema[Id | None] = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
     firearm_failure: FirearmFailure | None = Field(default=None, exclude_if=lambda v: v is None)
     charges: int | None = Field(default=None, ge=0, exclude_if=lambda v: v is None)
     authorized_actor_ids: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)

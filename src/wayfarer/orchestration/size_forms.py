@@ -141,7 +141,7 @@ class SizeFormService:
             if any(
                 r.actor_id == command.actor_id
                 and r.kind in {"alternate-form", "morph"}
-                and r.status in {"active", "reverting", "approved", "proposed"}
+                and r.status in {"active", "reverting", "treatment", "proposed"}
                 for r in state.transformations.records
             ):
                 raise ValidationError(

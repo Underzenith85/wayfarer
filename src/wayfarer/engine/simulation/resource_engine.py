@@ -63,7 +63,7 @@ from wayfarer.engine.simulation.resources import (
     is_carried,
 )
 from wayfarer.engine.simulation.traits.size_forms import checkpoint as size_checkpoint
-from wayfarer.engine.simulation.traits.size_forms import effects as size_effects
+from wayfarer.engine.simulation.traits.size_forms import validate as validate_size_forms
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -221,14 +221,7 @@ class ResourceEngine:
             if len(set(values)) != len(values):
                 raise ValidationError("Duplicate resource ID")
 
-        if any(e.actor_id not in self.actors for e in size_effects(state)):
-            raise ValidationError("Size effect requires an authoritative actor")
-        if any(
-            (e.current_delta < 0 or (e.changing and e.target_delta < 0))
-            and any(i.owner_id == e.actor_id and is_carried(state, i) for i in state.items)
-            for e in size_effects(state)
-        ):
-            raise ValidationError("Core Shrinking cannot carry equipment")
+        validate_size_forms(state, self.actors)
         unique(tuple(i.id for i in state.items + state.expended_items))
         unique(tuple(o.actor_id for o in state.owners))
         unique(tuple(p.id for p in state.pools))

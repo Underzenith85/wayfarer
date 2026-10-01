@@ -289,3 +289,35 @@ def require_native_size(resources: ResourceState, actor_id: str) -> None:
     effect = effect_for(resources, actor_id)
     if effect is not None and (effect.current_delta or effect.changing):
         raise ValidationError("Return to native size before changing the approved body")
+
+
+def synchronize_modes(resources: ResourceState, combat_actor_ids: frozenset[str]) -> ResourceState:
+    for effect in effects(resources):
+        in_combat = effect.actor_id in combat_actor_ids
+        if effect.in_combat == in_combat or not effect.changing:
+            continue
+        changed = effect.model_copy(
+            update={"in_combat": in_combat, "started_at": resources.game_time, "ready_credit": 0}
+        )
+        resources = _append(
+            resources,
+            PREFIX
+            + "mode:"
+            + effect.actor_id
+            + ":"
+            + str(resources.game_time)
+            + ":"
+            + str(in_combat),
+            SizeFormEvent(effect=changed),
+        )
+    return resources
+
+
+def validate(resources: ResourceState, actors: frozenset[str]) -> None:
+    for effect in effects(resources):
+        if effect.actor_id not in actors:
+            raise ValidationError("Size effect requires an authoritative actor")
+        if (effect.current_delta < 0 or (effect.changing and effect.target_delta < 0)) and any(
+            i.owner_id == effect.actor_id and is_carried(resources, i) for i in resources.items
+        ):
+            raise ValidationError("Core Shrinking cannot carry equipment")
