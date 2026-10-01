@@ -187,7 +187,11 @@ class SizeFormService:
                 resolve=resolve,
                 actor_id=principal_id,
                 outcome=outcome,
-                control=(Controls(member, command.actor_id),),
+                control=(
+                    Controls(
+                        member, command.actor_id, state=play._load(await play.store.read(cid))
+                    ),
+                ),
                 rng=play.rng,
             ),
             principal_id=principal_id,
@@ -247,7 +251,11 @@ class SizeFormService:
                 resolve=resolve,
                 actor_id=principal_id,
                 outcome=outcome,
-                control=(Controls(member, command.actor_id),),
+                control=(
+                    Controls(
+                        member, command.actor_id, state=play._load(await play.store.read(cid))
+                    ),
+                ),
                 rng=play.rng,
             ),
             principal_id=principal_id,
