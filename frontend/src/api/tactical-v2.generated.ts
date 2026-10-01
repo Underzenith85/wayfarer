@@ -157,6 +157,16 @@ export interface components {
        * @default false
        */
       catch_thrown: boolean;
+      /**
+       * Acrobatic Dodge
+       * @default false
+       */
+      acrobatic_dodge: boolean;
+      /**
+       * Dodge And Drop
+       * @default false
+       */
+      dodge_and_drop: boolean;
       /** @default null */
       retreat: components["schemas"]["Hex"] | null;
       /**
