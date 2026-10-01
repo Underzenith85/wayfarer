@@ -9,6 +9,7 @@ from wayfarer.engine.character.compiler import Purchase, ValidatedBuild
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.traits.modifiers import LimitationParameters, ModifierSelection
 from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.traits.attack_defense import TraitAttackOutcome
 from wayfarer.engine.simulation.traits.composed_attacks import (
     AttackCompositionContext,
     apply_composed_attack,
@@ -51,7 +52,7 @@ def resolve(
     defense: str = "none",
     context: AttackCompositionContext | None = None,
     state: ResourceState | None = None,
-):
+) -> tuple[ResourceState, TraitAttackOutcome]:
     target, engine = approved(
         *((Purchase(definition_id="advantage:damage-resistance", amount=dr),) if dr else ())
     )

@@ -162,6 +162,7 @@ def test_modifier_runtime_changes_the_typed_attack_receipt() -> None:
     assert receipt.original == profile
     assert receipt.modified == AttackProfile(
         accuracy=5,
+        half_damage_range=50,
         max_range=500,
         armor_divisor=Decimal(5),
         fatigue_cost=1,
