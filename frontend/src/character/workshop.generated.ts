@@ -43,7 +43,7 @@ export interface components {
        * Value
        * @default null
        */
-      value: string | null;
+      value: string | number | null;
     };
     /**
      * DefaultConditionKind
@@ -51,7 +51,14 @@ export interface components {
      * @enum {string}
      */
     DefaultConditionKind:
-      "matching-technology-level" | "matching-specialty" | "required-equipment";
+      | "matching-technology-level"
+      | "matching-specialty"
+      | "required-equipment"
+      | "biographical"
+      | "campaign-selected"
+      | "minimum-technology-level"
+      | "vessel"
+      | "action-mode";
     /**
      * DefinitionKind
      * @enum {string}
@@ -79,6 +86,12 @@ export interface components {
       /** Alternatives */
       alternatives: components["schemas"]["SkillPrerequisite"][];
     };
+    /**
+     * PrerequisiteKind
+     * @description The authoritative fact that satisfies a skill-acquisition requirement.
+     * @enum {string}
+     */
+    PrerequisiteKind: "trained-skill" | "purchased-definition" | "capability";
     /** ProfileOption */
     ProfileOption: {
       /** Id */
@@ -113,6 +126,13 @@ export interface components {
        * @default 1
        */
       minimum: number;
+      /** @default trained-skill */
+      kind: components["schemas"]["PrerequisiteKind"];
+      /**
+       * Minimum Technology Level
+       * @default null
+       */
+      minimum_technology_level: number | null;
     };
     /** SkillSpec */
     SkillSpec: {
@@ -139,6 +159,21 @@ export interface components {
        * @default []
        */
       prerequisite_groups: components["schemas"]["PrerequisiteGroup"][];
+      /**
+       * Technology Level Required
+       * @default false
+       */
+      technology_level_required: boolean;
+      /**
+       * Minimum Spell Colleges
+       * @default 0
+       */
+      minimum_spell_colleges: number;
+      /**
+       * Excluded Spell Colleges
+       * @default []
+       */
+      excluded_spell_colleges: string[];
     };
     /** Specialty */
     Specialty: {
@@ -293,6 +328,11 @@ export interface components {
       amount: number;
       /** @default null */
       trait: components["schemas"]["TraitOptions"] | null;
+      /**
+       * Technology Level
+       * @default null
+       */
+      technology_level: number | null;
     };
     /** TraitOptions */
     TraitOptions: {

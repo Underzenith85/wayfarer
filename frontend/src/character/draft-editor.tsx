@@ -20,7 +20,11 @@ export type Proposal = Omit<
   "draft"
 > & {
   draft: Omit<components["schemas"]["CharacterDraft"], "purchases"> & {
-    purchases: (Omit<components["schemas"]["Purchase"], "trait"> & {
+    purchases: (Omit<
+      components["schemas"]["Purchase"],
+      "trait" | "technology_level"
+    > & {
+      technology_level?: number | null;
       trait?: components["schemas"]["TraitOptions"] | null;
     })[];
   };

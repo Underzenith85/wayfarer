@@ -338,6 +338,19 @@
             "default": false,
             "title": "Technology Level Required",
             "type": "boolean"
+          },
+          "minimum_spell_colleges": {
+            "default": 0,
+            "title": "Minimum Spell Colleges",
+            "type": "integer"
+          },
+          "excluded_spell_colleges": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Excluded Spell Colleges",
+            "type": "array"
           }
         },
         "required": [

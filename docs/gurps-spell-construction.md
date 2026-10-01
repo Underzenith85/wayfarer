@@ -32,3 +32,6 @@ maintenance, API exposure, or end-to-end compliance. Shared runtime work belongs
 to #746/#747, healing effects to #772, enchantment effects to #785, and Plane Shift
 effects to #802. Existing command-boundary tests use explicitly synthetic builds
 and are not evidence of production learning or effects.
+
+The additive workshop contract and catalog typings expose the college-count
+metadata; frozen gameplay v1 contracts are unchanged.
