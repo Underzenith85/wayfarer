@@ -13,6 +13,7 @@ import pytest
 from support.runtime import build_play, seed_campaign
 from test_basic_combat import start_basic
 from test_combat_sensory_authority import change, declaration, symptoms
+from test_combat_settlement import condition
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import scene, weapon
@@ -469,6 +470,32 @@ async def test_recovery_restores_defense_excluded_at_declaration(
     assert result.injury.defense.effective_target == 9
     assert result.injury.defense.outcome.succeeded
     assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
+
+
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+@pytest.mark.parametrize("ranged", [False, True])
+async def test_current_incapacity_rejects_defense_without_rewriting_original_offer(
+    tmp_path: Path, backend: str, ranged: bool
+) -> None:
+    cid, play = await prepare(tmp_path, backend, ranged=ranged)
+    await attack(cid, play, ranged=ranged)
+    declared = play._load(await play.store.read(cid)).encounters[0].pending_defense
+    assert declared is not None and "dodge" in declared.allowed
+    await change(play, cid, lambda s: condition(s, "b", "collapsed"))
+    before = await play.store.read(cid)
+    with pytest.raises(ValidationError, match="current sensory and physical conditions"):
+        await defend(cid, play, "b", "dodge")
+    assert await play.store.read(cid) == before
+    assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
+
+    play.rng = RecordedDice((3, 3, 3, 1))
+    await defend(cid, play, "b", "none")
+    after = play._load(await play.store.read(cid))
+    history = after.encounters[0].defense_history[-1]
+    assert history.selected == "none"
+    assert history.pending.allowed == declared.allowed
+    assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
+    assert await play.store.read(cid) == await play.store.replay(cid)
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])

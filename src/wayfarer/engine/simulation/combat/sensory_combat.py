@@ -105,11 +105,17 @@ def refresh_armed_senses(
             raise ValidationError(
                 "Selected defense is unavailable with current sensory and physical conditions"
             )
+    # The pending offer is also copied into durable DefenseChoice history. Keep
+    # its original advertised choices when a later condition removes eligibility:
+    # the current check above, not that historical offer, admits this command.
+    # Recovery can admit a choice absent from the original offer; record those
+    # newly available choices so the ordinary resolver and history stay valid.
+    recorded_allowed = pending.allowed + tuple(d for d in allowed if d not in pending.allowed)
     return encounter.model_copy(
         update={
             "pending_defense": pending.model_copy(
                 update={
-                    "allowed": allowed,
+                    "allowed": recorded_allowed,
                     "hit_location": location,
                     "armor_chink": armor_chink,
                     "visibility_attack_penalty": pending.visibility_attack_penalty
