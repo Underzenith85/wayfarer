@@ -61,14 +61,16 @@ SKILLS = {
 }
 
 
-def compiler() -> CharacterCompiler:
+def compiler(*, include_masters: bool = False) -> CharacterCompiler:
     base = profile_package(PROFILE)
     cinematic = package()
     masters = candidate_package()
     master_definitions = tuple(
         definition
         for definition in masters.definitions
-        if definition.id in {"trait:advantage:trained-by-a-master", "trait:advantage:weapon-master"}
+        if include_masters
+        and definition.id
+        in {"trait:advantage:trained-by-a-master", "trait:advantage:weapon-master"}
     )
     existing = {definition.id for definition in base.definitions + cinematic.definitions}
     dependencies = tuple(
@@ -258,7 +260,7 @@ def test_cinematic_master_prerequisite_uses_purchased_canonical_trait(master: st
         if master == "weapon-master"
         else TraitOptions()
     )
-    approved = compiler().compile(
+    approved = compiler(include_masters=True).compile(
         gurps_draft(
             Purchase(definition_id="trait:advantage:" + master, trait=options),
             Purchase(definition_id="skill:blind-fighting", amount=4),
@@ -267,7 +269,7 @@ def test_cinematic_master_prerequisite_uses_purchased_canonical_trait(master: st
     assert approved.legal, approved.diagnostics
     assert approved.build is not None
     assert any(entry.definition_id == "skill:blind-fighting" for entry in approved.build.purchases)
-    missing = compiler().compile(
+    missing = compiler(include_masters=True).compile(
         gurps_draft(Purchase(definition_id="skill:blind-fighting", amount=4))
     )
     assert not missing.legal
