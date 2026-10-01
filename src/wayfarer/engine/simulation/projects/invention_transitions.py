@@ -646,7 +646,7 @@ def _settle_check(
     check = success_roll(
         "gurps-basic-set-4e-2004",
         target,
-        _modifiers(blueprint, phase),
+        _modifiers(blueprint, phase) + _weird_science_modifiers(project, phase),
         rng=runtime.rng,
     )
     if phase == "concept-design":
@@ -669,6 +669,7 @@ def _settle_check(
         at=state.resources.game_time,
     )
     updates["attempts"] = project.attempts + (attempt,)
+    updates["weird_science"] = None
     settled = project.model_copy(update=updates)
     if not phase_after(project.phase, settled.phase):
         raise ValidationError("Invention phase cannot move backwards")
@@ -699,6 +700,7 @@ def _begin(
     if command.phase == "production" and project.copies + command.units > blueprint.target_copies:
         raise ValidationError("Production units exceed the authored target")
     _available(state, command.actor_id, project.id)
+    _weird_science_modifiers(project, command.phase)
     _skill_target(runtime, state, command.actor_id, blueprint, command.phase)
     resources = state.resources
     requirement = _gadget_stage(blueprint, command.phase)
@@ -901,3 +903,31 @@ def apply_invention(
             project, outcome = _settle(runtime, state, command, project, blueprint)
     state = _record(state, command, project, outcome)
     return state, outcome
+
+
+def _weird_science_modifiers(
+    project: InventionProject, phase: InventionPhase
+) -> tuple[Modifier, ...]:
+    aid = project.weird_science
+    work = project.active_work
+    if (
+        aid is None
+        or aid.phase != phase
+        or (aid.work_id is not None and (work is None or aid.work_id != work.id))
+    ):
+        return ()
+    if aid.adjudication_required:
+        raise ValidationError(
+            "Spectacular Weird Science critical failure requires explicit GM adjudication"
+        )
+    if not aid.bonus:
+        return ()
+    return (
+        Modifier(
+            aid.bonus,
+            "Weird Science",
+            "characters:b228:weird-science",
+            "1.0.0",
+            ModifierKind.SITUATIONAL,
+        ),
+    )

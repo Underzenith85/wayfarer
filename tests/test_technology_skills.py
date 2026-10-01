@@ -319,10 +319,10 @@ def test_situational_modifiers_stay_typed_and_visible_in_the_receipt() -> None:
     ruling = Modifier(-3, "contaminated-scene", PROFILE, BASELINE_ID, ModifierKind.SITUATIONAL)
     result = attempt(operator, Situation(6, situational=(ruling,)), rng=RecordedDice([3, 3, 3]))
     assert [(m.reason, m.value, m.kind.value) for m in result.check.modifiers] == [
-        ("technology-level-difference", -2, "situational"),
+        ("technology-level-difference", -3, "situational"),
         ("contaminated-scene", -3, "situational"),
     ]
-    assert result.check.effective_target == 9
+    assert result.check.effective_target == 8
 
 
 def test_recorded_mechanics_and_the_runtime_binding_cannot_drift() -> None:
@@ -356,7 +356,7 @@ def test_runtime_operator_uses_the_approved_purchase_tl() -> None:
     assert (operator.level, operator.technology_level) == (14, 7)
     assert "skill:mathematics-applied" in operator.trained
     result = attempt(operator, Situation(9), rng=RecordedDice([3, 3, 4]))
-    assert result.check.effective_target == 12
+    assert result.check.effective_target == 4
     assert result.check.modifiers[0].reason == "technology-level-difference"
 
     missing = replace(

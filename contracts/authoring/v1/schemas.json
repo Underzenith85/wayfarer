@@ -11880,6 +11880,17 @@
             },
             "title": "Gadget Defects",
             "type": "array"
+          },
+          "weird_science": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/WeirdScienceAid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -19824,6 +19835,70 @@
           "minimum_host_tl"
         ],
         "title": "WeaponAttachmentSpec",
+        "type": "object"
+      },
+      "WeirdScienceAid": {
+        "additionalProperties": false,
+        "description": "B228 aid for one declared invention/investigation attempt.",
+        "properties": {
+          "command_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Command Id",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "concept-design",
+              "prototype",
+              "testing",
+              "production",
+              "complete"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "work_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Work Id"
+          },
+          "bonus": {
+            "default": 0,
+            "enum": [
+              0,
+              1,
+              2,
+              5
+            ],
+            "title": "Bonus",
+            "type": "integer"
+          },
+          "insight_pending": {
+            "default": false,
+            "title": "Insight Pending",
+            "type": "boolean"
+          },
+          "adjudication_required": {
+            "default": false,
+            "title": "Adjudication Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "command_id",
+          "phase"
+        ],
+        "title": "WeirdScienceAid",
         "type": "object"
       },
       "World": {

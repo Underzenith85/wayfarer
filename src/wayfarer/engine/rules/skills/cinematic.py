@@ -12,6 +12,8 @@ from wayfarer.engine.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
+from wayfarer.engine.rules.checks import Modifier, ModifierKind
+from wayfarer.engine.rules.skills.technology_level import technology_level_penalty
 from wayfarer.engine.rules.types.skill import (
     ControllingAttribute as A,
 )
@@ -94,6 +96,7 @@ BINDINGS: Final = (
         A.IQ,
         D.VERY_HARD,
         184,
+        (_trained("computer-programming"),),
         technology_level_required=True,
     ),
     CinematicSkillBinding(
@@ -222,4 +225,22 @@ def package() -> RulesPackage:
             )
             for binding in BINDINGS
         ),
+    )
+
+
+def computer_technology_modifier(skill_tl: int, system_tl: int) -> tuple[Modifier, ...]:
+    """B168 IQ-based technological skills, applied to Computer Hacking/TL."""
+    penalty = technology_level_penalty(skill_tl, system_tl, A.IQ)
+    return (
+        (
+            Modifier(
+                penalty,
+                "IQ-based technology-level difference",
+                SOURCE_ID,
+                "B168",
+                ModifierKind.SITUATIONAL,
+            ),
+        )
+        if penalty
+        else ()
     )
