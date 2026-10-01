@@ -403,6 +403,9 @@ def apply_spell(
             spec.magery == 0 and context.mana in ("high", "very-high")
         ):
             raise ValidationError("Required Magery unavailable")
+        healing_modifier = healing_penalty(
+            state, command.spell_id, command.actor_id, context.target_id
+        )
         _validate_spell_scale(spec, context)
         healing_scale(command.spell_id, context.energy, context.magery)
         ritual_skill = context.skill - (5 if context.mana == "low" else 0)
@@ -445,7 +448,7 @@ def apply_spell(
             skill = min(15, skill + bonus)
         if spec.kind != "missile":
             skill -= context.distance
-        skill -= healing_penalty(state, command.spell_id, command.actor_id, context.target_id)
+        skill -= healing_modifier
         if skill < 1:
             raise ValidationError("Effective spell skill is below one")
         effect = SpellEffect(

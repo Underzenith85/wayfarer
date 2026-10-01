@@ -34,7 +34,7 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 def fixture(
-    tmp_path: Path, spell: SpellId, *, fp: int = 100, physician: bool = False
+    tmp_path: Path, spell: SpellId, *, fp: int = 30, physician: bool = False
 ) -> tuple[RulesContext, PlayState]:
     from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 
@@ -48,12 +48,13 @@ def fixture(
     compiler = CharacterCompiler(
         RulesCatalog((package,)),
         replace(base.rules, packages=(PackagePin(package.id, package.version, package.digest),)),
-        replace(base.policy, allow_supernatural=True, technology_level=8),
+        replace(base.policy, allow_supernatural=True, technology_level=8, point_budget=200),
         statistics_profile=PROFILE,
     )
     keys = ("lend-energy", "lend-vitality", "minor-healing", "major-healing", "great-healing")
     draft = gurps_draft(
         Purchase(definition_id="trait:magery-0"),
+        Purchase(definition_id="secondary:fp", amount=fp),
         Purchase(definition_id="trait:magery", amount=3),
         *(Purchase(definition_id="spell:" + k, amount=4) for k in keys),
         *(
@@ -109,6 +110,7 @@ def fixture(
             )
         }
     )
+    engine.validate(state)
     return play.rules_context, state
 
 
