@@ -26,6 +26,8 @@ from wayfarer.engine.simulation.resources import (
     ResourceState,
     Scheduled,
 )
+from wayfarer.engine.simulation.traits.mental_control import PREFIX as CONTROL_PREFIX
+from wayfarer.engine.simulation.traits.mental_control import MentalControl, control_grants
 from wayfarer.engine.simulation.traits.neutralization import (
     COOLDOWN_PREFIX,
     PSI_FAMILIES,
@@ -86,16 +88,19 @@ class MentalChannel(Record):
     supernatural_attack: bool = True
     target_living_or_sapient: bool = True
     touching_target: bool = False
+    target_visible: bool = True
+    concentration_seconds: int = Field(default=1, ge=1)
+    target_wary: bool = False
 
 
 class MentalCommand(Command):
     definition_id: str
     channel_id: str
-    kind: Literal["activate", "interrupt"]
+    kind: Literal["activate", "interrupt", "stop-concentrating"]
 
 
 class MentalOutcome(Record):
-    outcome: Literal["successful", "resisted", "blocked", "interrupted"]
+    outcome: Literal["successful", "resisted", "blocked", "interrupted", "lingering"]
     actor_id: str
     target_id: str
     definition_id: str
@@ -108,7 +113,7 @@ class MentalOutcome(Record):
 
 class MentalEvent(Record):
     command_id: str
-    command_kind: Literal["activate", "interrupt"]
+    command_kind: Literal["activate", "interrupt", "stop-concentrating"]
     outcome: MentalOutcome
 
 
@@ -190,7 +195,7 @@ def _validate_neutralize(
 ) -> str | None:
     if channel.kind != "neutralize":
         return None
-    if command.kind == "interrupt":
+    if command.kind != "activate":
         raise ValidationError("Neutralize lasts for its source duration and cannot be interrupted")
     if (
         not channel.touching_target
@@ -228,6 +233,118 @@ def _validate_neutralize(
     return None if selected is None else "power:" + selected
 
 
+def _control_context(
+    resources: ResourceState,
+    channel: MentalChannel,
+    traits: MentalSpiritTraits,
+) -> MentalChannel:
+    if channel.definition_id not in {"advantage:mind-control", "advantage:possession"}:
+        return channel
+    purchase = traits.purchase(channel.definition_id)
+    assert purchase is not None
+    if purchase.modifiers:
+        raise ValidationError("Control modifiers require their separately supported procedure")
+    if channel.fatigue_cost or channel.resistance_score is None:
+        raise ValidationError("Control requires its source contest without authored FP cost")
+    if channel.kind == "possession":
+        if not channel.touching_target:
+            raise ValidationError("Possession requires physical touch")
+        return channel.model_copy(
+            update={
+                "resistance_score": channel.resistance_score + (5 if channel.target_wary else 0)
+            }
+        )
+    if not (channel.target_visible or channel.touching_target):
+        raise ValidationError("Mind Control requires sight or touch")
+    slaves = sum(
+        grant.controller_id == channel.actor_id and grant.kind == "influence"
+        for grant in control_grants(resources)
+    )
+    bonus = (
+        4
+        if channel.concentration_seconds >= 3600
+        else 2
+        if channel.concentration_seconds >= 60
+        else 0
+    )
+    return channel.model_copy(update={"actor_score": max(1, channel.actor_score + bonus - slaves)})
+
+
+def _control_facts(
+    resources: ResourceState,
+    command: MentalCommand,
+    channel: MentalChannel,
+    resistance: ResistanceTrace | None,
+    result: str,
+    effect_id: str,
+) -> tuple[int | None, tuple[ResourceEvent, ...]] | None:
+    if channel.definition_id not in {"advantage:mind-control", "advantage:possession"}:
+        return None
+    if result != "successful":
+        return None, ()
+    assert resistance is not None
+    grant = MentalControl(
+        controller_id=command.actor_id,
+        target_id=channel.target_id,
+        kind="possession" if channel.kind == "possession" else "influence",
+        effect_id=effect_id,
+        victory_margin=resistance.contest.victory_margin,
+    )
+    return None, (
+        ResourceEvent(
+            id=CONTROL_PREFIX + command.id,
+            at=resources.game_time,
+            target_id=channel.target_id,
+            kind=grant.model_dump_json(),
+        ),
+    )
+
+
+def _stop_control(
+    resources: ResourceState,
+    command: MentalCommand,
+    channel: MentalChannel,
+    outcome: MentalOutcome,
+    active: tuple[str, ...],
+    scheduled: tuple[Scheduled, ...],
+) -> tuple[MentalOutcome, tuple[str, ...], tuple[Scheduled, ...], tuple[ResourceEvent, ...]]:
+    grant = next((g for g in control_grants(resources) if g.effect_id == outcome.effect_id), None)
+    if grant is None:
+        if command.kind == "stop-concentrating":
+            raise ValidationError("Only Mind Control can linger after concentration")
+        return outcome, active, scheduled, ()
+    if grant.kind == "possession":
+        raise ValidationError("Base Possession requires transfer to another living host")
+    if command.kind == "stop-concentrating":
+        if grant.expires_at is not None:
+            raise ConflictError("Mind Control concentration has already stopped")
+        due = resources.game_time + grant.victory_margin * 60
+        grant = grant.model_copy(update={"expires_at": due})
+        outcome = outcome.model_copy(update={"outcome": "lingering", "expires_at": due})
+        assert outcome.effect_id is not None
+        active = tuple(sorted(set(active) | {outcome.effect_id}))
+        scheduled += (
+            Scheduled(
+                id=CONTROL_PREFIX + command.id, due=due, kind="expire", target_id=outcome.effect_id
+            ),
+        )
+    else:
+        grant = grant.model_copy(update={"released": True, "expires_at": resources.game_time})
+    return (
+        outcome,
+        active,
+        scheduled,
+        (
+            ResourceEvent(
+                id=CONTROL_PREFIX + command.id,
+                at=resources.game_time,
+                target_id=channel.target_id,
+                kind=grant.model_dump_json(),
+            ),
+        ),
+    )
+
+
 def _neutralize_facts(
     resources: ResourceState,
     command: MentalCommand,
@@ -238,6 +355,9 @@ def _neutralize_facts(
     power_id: str | None,
     rng: RandomSource | None,
 ) -> tuple[int | None, tuple[ResourceEvent, ...]]:
+    controlled = _control_facts(resources, command, channel, resistance, result, effect_id)
+    if controlled is not None:
+        return controlled
     if channel.kind != "neutralize":
         return (
             resources.game_time + channel.duration_seconds if result == "successful" else None,
@@ -328,6 +448,7 @@ def apply_mental_use(
     ):
         raise ValidationError("Mental/spirit channel context changed")
 
+    channel = _control_context(resources, channel, traits)
     selected_power = _validate_neutralize(resources, command, channel, traits)
     channel = channel.model_copy(
         update={
@@ -343,12 +464,13 @@ def apply_mental_use(
     pools = resources.pools
     active = resources.active_effect_ids
     scheduled = resources.scheduled
-    if command.kind == "interrupt":
+    if command.kind in {"interrupt", "stop-concentrating"}:
         activation = next(
             (
                 event.outcome
                 for event in reversed(history(resources))
-                if event.outcome.effect_id == effect_id and event.outcome.outcome == "successful"
+                if event.outcome.effect_id == effect_id
+                and event.outcome.outcome in {"successful", "lingering"}
             ),
             None,
         )
@@ -356,8 +478,7 @@ def apply_mental_use(
             activation is None
             or effect_id not in active
             or not channel.interruptible
-            or activation.expires_at is None
-            or resources.game_time >= activation.expires_at
+            or (activation.expires_at is not None and resources.game_time >= activation.expires_at)
         ):
             raise ConflictError("Mental/spirit effect cannot be interrupted")
         outcome = MentalOutcome(
@@ -371,6 +492,9 @@ def apply_mental_use(
         )
         active = tuple(value for value in active if value != effect_id)
         scheduled = tuple(value for value in scheduled if value.target_id != effect_id)
+        outcome, active, scheduled, extra_events = _stop_control(
+            resources, command, channel, outcome, active, scheduled
+        )
     else:
         pools = _spent_fatigue(
             resources, command.actor_id, 0 if channel.blocked else channel.fatigue_cost
@@ -418,15 +542,18 @@ def apply_mental_use(
             expires_at=expires_at,
         )
         if outcome.effect_id is not None:
-            assert expires_at is not None
             active = tuple(sorted(set(active) | {outcome.effect_id}))
             scheduled = scheduled + (
-                Scheduled(
-                    id=PREFIX + "expiry:" + hashlib.sha256(channel.id.encode()).hexdigest(),
-                    due=expires_at,
-                    kind="expire",
-                    target_id=outcome.effect_id,
-                ),
+                ()
+                if expires_at is None
+                else (
+                    Scheduled(
+                        id=PREFIX + "expiry:" + hashlib.sha256(channel.id.encode()).hexdigest(),
+                        due=expires_at,
+                        kind="expire",
+                        target_id=outcome.effect_id,
+                    ),
+                )
             )
         for fact_id in revealed:
             updated_world = updated_world.learn(command.actor_id, fact_id)

@@ -83,7 +83,7 @@ def _kind(command: object) -> str:
 
 
 def controls_actor(submission: Submission) -> None:
-    require_control(submission.member, _actor_id(submission.command))
+    require_control(submission.member, _actor_id(submission.command), submission.state)
 
 
 def service_authorizes(submission: Submission) -> None:

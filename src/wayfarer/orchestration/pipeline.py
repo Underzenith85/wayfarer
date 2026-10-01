@@ -12,7 +12,7 @@ states its authorization as registered rules rather than checking for itself.
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RandomSource
@@ -63,10 +63,13 @@ class Controls:
     member: CampaignMember
     actor_id: str
     refusal: str = "Principal cannot control this actor"
+    state: PlayState | None = None
 
     def __call__(self, principal_id: str) -> None:
+        if principal_id != self.member.principal_id:
+            raise AuthorizationError(self.refusal)
         try:
-            require_control(self.member, self.actor_id)
+            require_control(self.member, self.actor_id, self.state)
         except AuthorizationError as exc:
             raise AuthorizationError(self.refusal) from exc
 
@@ -118,12 +121,24 @@ class CommandPlan[T]:
     origin: CommandOrigin | None = None
 
 
-def authorized(plan: CommandPlan[object], principal_id: str) -> None:
+def authorized(
+    plan: CommandPlan[object], principal_id: str, state: PlayState | None = None
+) -> None:
     """Every declared rule, then the one shape rule: a preview never writes."""
     for rule in plan.control:
-        rule(principal_id)
+        selected = (
+            replace(rule, state=state) if isinstance(rule, Controls) and state is not None else rule
+        )
+        selected(principal_id)
     if plan.hypothetical:
         raise ValidationError("A hypothetical command is not authorized to write; preview it")
+
+
+def _control_state(campaign: Campaign, plan: CommandPlan[object]) -> PlayState | None:
+    if not any(isinstance(rule, Controls) for rule in plan.control):
+        return None
+    raw = campaign.get("play_json")
+    return PlayState.model_validate_json(raw) if raw is not None else None
 
 
 async def submit[T](
@@ -139,7 +154,12 @@ async def submit[T](
     ``authorize`` is the caller's re-check under the campaign lock, for a
     transport that must confirm its own versions against the row it will write.
     """
-    authorized(plan, principal_id)
+    state = (
+        _control_state(await play.store.read(cid), plan)
+        if any(isinstance(rule, Controls) for rule in plan.control)
+        else None
+    )
+    authorized(plan, principal_id, state)
     duplicate = await play.store.duplicate(cid, plan.command_id, plan.payload)
     if duplicate is not None:
         return await (plan.replayed or plan.outcome)(duplicate)
@@ -149,6 +169,7 @@ async def submit[T](
             return settled
 
     def resolve(campaign: Campaign) -> CommandReceipt:
+        authorized(plan, principal_id, _control_state(campaign, plan))
         if authorize is not None:
             authorize(campaign)
         return plan.resolve(campaign)

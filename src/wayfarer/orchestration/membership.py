@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.traits.mental_control import controlling_actor
 from wayfarer.errors import AuthorizationError, NotFoundError
 
 
@@ -20,9 +21,10 @@ def member_for(state: PlayState, principal_id: str) -> CampaignMember:
     return member
 
 
-def require_control(member: CampaignMember, actor_id: str) -> None:
+def require_control(member: CampaignMember, actor_id: str, state: PlayState | None = None) -> None:
+    controlled_id = controlling_actor(state.resources, actor_id) if state is not None else actor_id
     if not (
-        (member.role == "player" and actor_id in member.actor_ids)
-        or (member.role == "gm" and actor_id == member.principal_id)
+        (member.role == "player" and controlled_id in member.actor_ids)
+        or (member.role == "gm" and controlled_id == member.principal_id)
     ):
         raise AuthorizationError("Principal cannot control this actor")

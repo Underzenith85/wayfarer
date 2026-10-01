@@ -304,7 +304,7 @@ def test_persistent_control_can_be_interrupted_before_expiry_once() -> None:
         system=True,
     )
     assert result.effect_id in state.active_effect_ids
-    assert state.scheduled[0].target_id == result.effect_id and state.scheduled[0].due == 60
+    assert state.scheduled == () and result.expires_at is None
     stop = MentalCommand(
         id="stop-control",
         actor_id="a",
@@ -367,6 +367,7 @@ def test_source_resistance_changes_persistent_state_and_replays(
         actor_roll=roll,
         resistance_score=resister,
         resistance_roll=resist_roll,
+        fatigue_cost=0,
         **scope,
     )
     use = command().model_copy(update={"definition_id": "advantage:mind-control"})
@@ -382,7 +383,7 @@ def test_source_resistance_changes_persistent_state_and_replays(
         system=True,
     )
     assert outcome.outcome == expected
-    assert state.pools[0].current == 8 and state.revision == 1
+    assert state.pools[0].current == 10 and state.revision == 1
     assert current_world == world()
     assert outcome.resistance is not None
     assert outcome.resistance.attacker.effective_target == effective
@@ -391,8 +392,7 @@ def test_source_resistance_changes_persistent_state_and_replays(
     assert replay_resistance(outcome.resistance) == outcome.resistance
     if expected == "successful":
         assert outcome.effect_id in state.active_effect_ids
-        assert len(state.scheduled) == 1
-        assert state.scheduled[0].target_id == outcome.effect_id
+        assert state.scheduled == () and outcome.expires_at is None
     else:
         assert outcome.effect_id is None and outcome.expires_at is None
         assert state.active_effect_ids == () and state.scheduled == ()
@@ -453,3 +453,126 @@ def test_unopposed_authored_check_still_requires_success() -> None:
     )
     assert outcome.outcome == "resisted" and outcome.resistance is None
     assert learned == world()
+
+
+def test_mind_control_changes_real_campaign_authorization_and_source_linger() -> None:
+    from wayfarer.engine.simulation.actions import PlayState
+    from wayfarer.engine.simulation.campaign.access import CampaignMember
+    from wayfarer.errors import AuthorizationError
+    from wayfarer.orchestration.membership import require_control
+
+    build, engine = approved(Purchase(definition_id="advantage:mind-control"))
+    authored = channel(
+        definition_id="advantage:mind-control",
+        kind="influence",
+        fatigue_cost=0,
+        fact_ids=(),
+        duration_seconds=1,
+    )
+    use = command().model_copy(update={"definition_id": authored.definition_id})
+    controller = CampaignMember(principal_id="player-a", role="player", actor_ids=("a",))
+    owner = CampaignMember(principal_id="player-b", role="player", actor_ids=("b",))
+    play = PlayState(
+        campaign_id="campaign",
+        configuration_digest="test",
+        world=world(),
+        resources=ResourceState(),
+        actors=(),
+        members=(controller, owner),
+    )
+    with pytest.raises(AuthorizationError):
+        require_control(controller, "b", play)
+    require_control(owner, "b", play)
+    state, current_world, result = apply_mental_use(
+        play.resources,
+        play.world,
+        use,
+        build,
+        engine.definitions,
+        (authored,),
+        authorized_actor_id="a",
+        system=True,
+    )
+    controlled = play.model_copy(update={"resources": state, "world": current_world})
+    require_control(controller, "b", controlled)
+    from wayfarer.orchestration.pipeline import Controls
+
+    Controls(controller, "b", state=controlled)("player-a")
+    with pytest.raises(AuthorizationError):
+        Controls(controller, "b", state=controlled)("player-b")
+    with pytest.raises(AuthorizationError):
+        require_control(owner, "b", controlled)
+    assert current_world.knowledge == play.world.knowledge
+    assert result.expires_at is None and state.scheduled == ()
+    stopped, _, lingering = apply_mental_use(
+        state.model_copy(update={"game_time": 20}),
+        current_world,
+        use.model_copy(update={"id": "stop", "kind": "stop-concentrating", "expected_revision": 1}),
+        build,
+        engine.definitions,
+        (authored,),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert lingering.outcome == "lingering" and lingering.expires_at == 200
+    persisted = PlayState.model_validate_json(
+        controlled.model_copy(update={"resources": stopped}).model_dump_json()
+    )
+    require_control(controller, "b", persisted)
+    expired = persisted.model_copy(
+        update={"resources": stopped.model_copy(update={"game_time": 200})}
+    )
+    require_control(owner, "b", expired)
+    with pytest.raises(AuthorizationError):
+        require_control(controller, "b", expired)
+
+
+def test_possession_transfers_host_control_and_disables_previous_body() -> None:
+    from wayfarer.engine.simulation.traits.mental_control import controlling_actor
+
+    build, engine = approved(Purchase(definition_id="advantage:possession"))
+    authored = channel(
+        definition_id="advantage:possession",
+        kind="possession",
+        fatigue_cost=0,
+        fact_ids=(),
+        touching_target=True,
+    )
+    use = command().model_copy(update={"definition_id": authored.definition_id})
+    state, current_world, result = apply_mental_use(
+        ResourceState(),
+        world(),
+        use,
+        build,
+        engine.definitions,
+        (authored,),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert controlling_actor(state, "b") == "a"
+    assert controlling_actor(state, "a") is None
+    assert result.expires_at is None and not state.scheduled
+    assert current_world.knowledge == world().knowledge
+    with pytest.raises(ValidationError, match="another living host"):
+        apply_mental_use(
+            state,
+            current_world,
+            use.model_copy(update={"id": "leave", "kind": "interrupt", "expected_revision": 1}),
+            build,
+            engine.definitions,
+            (authored,),
+            authorized_actor_id="a",
+            system=True,
+        )
+    resisted, _, result = apply_mental_use(
+        ResourceState(),
+        world(),
+        use,
+        build,
+        engine.definitions,
+        (authored.model_copy(update={"actor_roll": 16}),),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert result.outcome == "resisted" and controlling_actor(resisted, "b") == "b"
+    assert controlling_actor(resisted, "a") == "a"
