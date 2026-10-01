@@ -12,7 +12,6 @@ from wayfarer.engine.rules.skills.mundane.technology.inventory import (
     FAMILIARITY_PENALTY,
     PROCEDURES,
     PROFILE,
-    TECHNOLOGY_LEVEL_PENALTY,
     Dispatch,
     Effect,
     TechnologyProcedure,
@@ -21,6 +20,7 @@ from wayfarer.engine.rules.skills.mundane.technology.specialties import (
     CampaignTechnologySpecialties,
     is_open_specialty_id,
 )
+from wayfarer.engine.rules.skills.technology_level import technology_level_penalty
 from wayfarer.engine.rules.types.skill import PrerequisiteKind, SkillPrerequisite
 from wayfarer.errors import ValidationError
 
@@ -112,16 +112,16 @@ def _modifier(value: int, reason: str, kind: ModifierKind) -> Modifier:
     return Modifier(value, reason, PROFILE, BASELINE_ID, kind)
 
 
-def technology_level_modifier(operator: Operator, situation: Situation) -> Modifier | None:
-    """B168: one point of effective skill per level of TL difference, either way."""
-    difference = abs(operator.technology_level - situation.technology_level)
-    if difference == 0:
-        return None
-    return _modifier(
-        TECHNOLOGY_LEVEL_PENALTY * difference,
-        "technology-level-difference",
-        ModifierKind.SITUATIONAL,
+def technology_level_modifier(
+    entry: TechnologyProcedure, operator: Operator, situation: Situation
+) -> Modifier | None:
+    """B168 distinguishes IQ-based skills from physical technological skills."""
+    penalty = technology_level_penalty(
+        operator.technology_level, situation.technology_level, entry.attribute
     )
+    if penalty == 0:
+        return None
+    return _modifier(penalty, "technology-level-difference", ModifierKind.SITUATIONAL)
 
 
 def technique_target(entry: TechnologyProcedure, operator: Operator) -> int:
@@ -142,7 +142,7 @@ def _modifiers(
 ) -> tuple[Modifier, ...]:
     assert entry.task is not None
     modifiers: list[Modifier] = []
-    recorded = technology_level_modifier(operator, situation)
+    recorded = technology_level_modifier(entry, operator, situation)
     if recorded is not None:
         modifiers.append(recorded)
     if not situation.familiar:

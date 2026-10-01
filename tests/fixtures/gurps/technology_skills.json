@@ -251,7 +251,7 @@
       "id": "astronomy-worked-two-tls-ahead",
       "skill_id": "skill:astronomy",
       "reference": "B168, B179",
-      "note": "Two TLs of difference is -2, and the trained Mathematics (Applied) prerequisite is required.",
+      "note": "B168 IQ-based Astronomy two TLs ahead is -10; trained Mathematics (Applied) is required.",
       "input": {
         "level": 14,
         "operator_tl": 8,

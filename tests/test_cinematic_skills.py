@@ -85,6 +85,7 @@ def compiler(*, include_masters: bool = False) -> CharacterCompiler:
             skill=SkillSpec(attribute, difficulty, "B168-228"),
         )
         for key, attribute, difficulty in (
+            ("computer-programming", A.IQ, D.HARD),
             ("breath-control", A.HT, D.HARD),
             ("meditation", A.WILL, D.HARD),
             ("public-speaking", A.IQ, D.AVERAGE),

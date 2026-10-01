@@ -134,8 +134,13 @@ def apply_cinematic_skill(
     authorized_actor_id: str,
     rng: RandomSource,
     physiology: PhysiologyAdjustment | None = None,
+    skill_modifiers: tuple[Modifier, ...] = (),
 ) -> tuple[ResourceState, CinematicSkillOutcome]:
     """Commit one catalog-owned attempt under CAS and the shared receipt ledger."""
+    if command.actor_id != authorized_actor_id:
+        raise AuthorizationError("Cinematic skill actor lacks authority")
+    if command.build_revision != build.revision:
+        raise ValidationError("Cinematic skill build approval changed")
     digest = _digest(command)
     receipt = next((value for value in state.receipts if value.command_id == command.id), None)
     if receipt is not None:
@@ -147,10 +152,6 @@ def apply_cinematic_skill(
         return state, outcome
     if command.expected_revision != state.revision:
         raise ConflictError("Cinematic skill revision conflict")
-    if command.actor_id != authorized_actor_id:
-        raise AuthorizationError("Cinematic skill actor lacks authority")
-    if command.build_revision != build.revision:
-        raise ValidationError("Cinematic skill build approval changed")
     binding = BINDING_BY_ID.get(command.skill_id)
     procedure = PROCEDURES.get(command.skill_id)
     if binding is None or procedure is None:
@@ -177,17 +178,21 @@ def apply_cinematic_skill(
         raise ValidationError("Approved build does not know this cinematic skill")
     modifiers = (
         (
-            Modifier(
-                _time_modifier(command.concentration_turns),
-                "cinematic concentration",
-                command.skill_id,
-                VERSION,
-                ModifierKind.TIME,
-            ),
+            (
+                Modifier(
+                    _time_modifier(command.concentration_turns),
+                    "cinematic concentration",
+                    command.skill_id,
+                    VERSION,
+                    ModifierKind.TIME,
+                ),
+            )
+            if procedure.focus
+            else ()
         )
-        if procedure.focus
-        else ()
-    ) + physiology_modifiers
+        + physiology_modifiers
+        + skill_modifiers
+    )
     trace = success_check(
         level,
         modifiers,

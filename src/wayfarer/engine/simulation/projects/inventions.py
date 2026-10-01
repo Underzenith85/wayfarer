@@ -222,6 +222,17 @@ class ProductionLot(Record):
         return self
 
 
+class WeirdScienceAid(Record):
+    """B228 aid for one declared invention/investigation attempt."""
+
+    command_id: Id
+    phase: InventionPhase
+    work_id: Id | None = None
+    bonus: Literal[0, 1, 2, 5] = 0
+    insight_pending: bool = False
+    adjudication_required: bool = False
+
+
 class InventionProject(Record):
     id: Id
     owner_id: Id
@@ -239,6 +250,7 @@ class InventionProject(Record):
     attempts: tuple[InventionAttempt, ...] = ()
     lots: tuple[ProductionLot, ...] = ()
     gadget_defects: tuple[GadgetDefect, ...] = ()
+    weird_science: WeirdScienceAid | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 _PHASE_ORDER = {
