@@ -115,8 +115,8 @@ async def test_insufficient_energy_is_atomic_and_unsupported_effect_cannot_succe
         dispatch_college_spell(runtime, exhausted, command(), BINDINGS, authorized_actor_id="a")
     assert exhausted.resources.receipts == before.resources.receipts
     assert latest(exhausted.resources) == {}
-    unsupported = command().model_copy(update={"spell_id": "great-healing"})
-    binding = CollegeSpellBinding("great-healing", "Great Healing", 248, "healing")
+    unsupported = command().model_copy(update={"spell_id": "awaken"})
+    binding = CollegeSpellBinding("awaken", "Awaken", 248, "healing")
     with pytest.raises(ValidationError, match="no executable effect"):
         dispatch_college_spell(runtime, before, unsupported, (binding,), authorized_actor_id="a")
     with pytest.raises(ValidationError, match="outside"):

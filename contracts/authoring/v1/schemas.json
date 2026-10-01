@@ -4642,7 +4642,10 @@
               "light",
               "daze",
               "fireball",
-              "create-fire"
+              "create-fire",
+              "minor-healing",
+              "major-healing",
+              "great-healing"
             ],
             "title": "Spell Id",
             "type": "string"
@@ -17895,7 +17898,10 @@
               "light",
               "daze",
               "fireball",
-              "create-fire"
+              "create-fire",
+              "minor-healing",
+              "major-healing",
+              "great-healing"
             ],
             "title": "Spell Id",
             "type": "string"

@@ -29,7 +29,7 @@ from wayfarer.engine.simulation.magic.spells import (
     event_id,
     latest,
 )
-from wayfarer.engine.simulation.resources import Command, ResourceEvent
+from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import Fact
 from wayfarer.errors import ConflictError, ValidationError
@@ -91,24 +91,8 @@ def _select_backfire(
     elif choice.effect == "reroll":
         if item.severity != "normal":
             raise ValidationError("A spectacular disaster cannot be replaced by a normal roll")
-    elif item.severity == "normal":
-        required = (
-            "retarget"
-            if item.row in (4, 5, 6, 7)
-            else "reverse"
-            if item.row in (13, 15, 16)
-            else "summon"
-        )
-        if choice.effect != required:
-            raise ValidationError("Alternative does not implement the rolled table consequence")
-        if item.row in (4, 5, 6):
-            role = (
-                "foe" if effect.spell_id == "light" else "caster" if item.row == 4 else "companion"
-            )
-            if choice.relationship != role or (
-                role == "caster" and choice.target_ids != (item.actor_id,)
-            ):
-                raise ValidationError("Backfire target relationship does not match the table")
+    else:
+        _validate_consequence(item, choice, effect)
     encounter = next((e for e in state.encounters if e.id == effect.encounter_id), None)
     candidates = {}
     for target_id in choice.target_ids:
@@ -266,30 +250,7 @@ def _effect(
     assert compiled.statistics
     resources = state.resources
     if choice.effect == "damage" or effect.spell_id == "fireball":
-        count = effect.energy if choice.effect == "retarget" else choice.damage_dice
-        damage = max(
-            0,
-            sum(draw_dice(runtime.rng, count))
-            + (0 if choice.effect == "retarget" else choice.damage_add),
-        )
-        if choice.effect != "retarget":
-            hp = next(p for p in resources.pools if p.id == "hp:" + target_id)
-            # B236 limits improvised consequences: never kill outright.
-            damage = min(damage, max(0, hp.current + hp.maximum - 1))
-        resources, _ = apply_injury(
-            resources,
-            Wound(
-                id=event_id(command.id) + ":impact",
-                actor_id=target_id,
-                expected_revision=resources.revision,
-                basic_damage=damage,
-                resistance=armor(runtime, state, target_id),
-                damage_type="burn" if choice.effect == "retarget" else choice.damage_type,
-            ),
-            ht=compiled.statistics.ht,
-            rng=runtime.rng,
-            system=True,
-        )
+        resources = _damage_consequence(runtime, state, command, selection)
     elif choice.effect == "reverse" and effect.spell_id == "daze":
         resources = break_daze(resources, target_id, command.id)
     elif choice.effect == "reverse" and effect.spell_id == "create-fire":
@@ -447,3 +408,69 @@ def recover_stuns(runtime: RulesContext, state: PlayState) -> PlayState:
         )
         resources = save(resources, item, f"recover:{item.id}:{resources.game_time}")
     return state.model_copy(update={"resources": resources})
+
+
+def _validate_consequence(item: Backfire, choice: BackfireAlternative, effect: SpellEffect) -> None:
+    if item.row == 0 and item.spell_id in ("minor-healing", "major-healing", "great-healing"):
+        if choice.effect != "damage" or choice.target_ids != (item.target_id,):
+            raise ValidationError("Healing critical failure requires an authored patient injury")
+        if choice.damage_dice + choice.damage_add <= 0:
+            raise ValidationError("Healing critical failure must harm the patient")
+    elif item.severity == "normal":
+        required = (
+            "retarget"
+            if item.row in (4, 5, 6, 7)
+            else "reverse"
+            if item.row in (13, 15, 16)
+            else "summon"
+        )
+        if choice.effect != required:
+            raise ValidationError("Alternative does not implement the rolled table consequence")
+        if item.row in (4, 5, 6):
+            role = (
+                "foe" if effect.spell_id == "light" else "caster" if item.row == 4 else "companion"
+            )
+            if choice.relationship != role or (
+                role == "caster" and choice.target_ids != (item.actor_id,)
+            ):
+                raise ValidationError("Backfire target relationship does not match the table")
+
+
+def _damage_consequence(
+    runtime: RulesContext,
+    state: PlayState,
+    command: ResolveSpellBackfire,
+    selection: BackfireSelection,
+) -> ResourceState:
+    choice, effect = selection.choice, selection.effect
+    target_id, compiled = selection.target_id, selection.compiled
+    assert compiled.statistics
+    resources = state.resources
+    count = effect.energy if choice.effect == "retarget" else choice.damage_dice
+    damage = max(
+        0,
+        sum(draw_dice(runtime.rng, count))
+        + (0 if choice.effect == "retarget" else choice.damage_add),
+    )
+    if choice.effect != "retarget":
+        hp = next(p for p in resources.pools if p.id == "hp:" + target_id)
+        # B236 limits improvised consequences: never kill outright.
+        damage = min(damage, max(0, hp.current + hp.maximum - 1))
+    resources, _ = apply_injury(
+        resources,
+        Wound(
+            id=event_id(command.id) + ":impact",
+            actor_id=target_id,
+            expected_revision=resources.revision,
+            basic_damage=damage,
+            resistance=0
+            if selection.item.row == 0
+            and effect.spell_id in ("minor-healing", "major-healing", "great-healing")
+            else armor(runtime, state, target_id),
+            damage_type="burn" if choice.effect == "retarget" else choice.damage_type,
+        ),
+        ht=compiled.statistics.ht,
+        rng=runtime.rng,
+        system=True,
+    )
+    return resources

@@ -6,7 +6,7 @@ historical pins and the separate frozen-source certification boundary.
 """
 
 import hashlib
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import Field
 
@@ -39,6 +39,14 @@ from wayfarer.engine.simulation.magic.backfires import (
 )
 from wayfarer.engine.simulation.magic.backfires import require_settled as backfires_settled
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.healing_effects import (
+    HEALING,
+    heal,
+    healing_critical,
+    healing_penalty,
+    healing_scale,
+    mitigates_failure,
+)
 from wayfarer.engine.simulation.magic.spell_state import SpellEffect as SpellEffect
 from wayfarer.engine.simulation.magic.spell_state import SpellEvent as SpellEvent
 from wayfarer.engine.simulation.magic.spell_state import SpellId as SpellId
@@ -103,6 +111,23 @@ SPELLS: dict[str, SpellSpec] = {
     ),
 }
 
+for _key, _cost, _magery, _prerequisite in (
+    ("minor-healing", 1, 0, "lend-vitality"),
+    ("major-healing", 1, 1, "minor-healing"),
+    ("great-healing", 20, 3, "major-healing"),
+):
+    SPELLS[_key] = SpellSpec(
+        id=cast(SpellId, _key),
+        kind="regular",
+        cost=_cost,
+        maintenance=0,
+        seconds=60 if _key == "great-healing" else 1,
+        duration=None,
+        magery=_magery,
+        prerequisites=(_prerequisite,),
+        reference="B248",
+    )
+
 
 class SpellContext(Record):
     """Trusted adapter input; never a player payload or inferred LLM ruling.
@@ -121,6 +146,7 @@ class SpellContext(Record):
     mana: Literal["none", "low", "normal", "high", "very-high"] = "normal"
     ht: int = Field(default=10, ge=1)
     will: int = Field(default=10, ge=1)
+    physician_skill: int = 0
     target_ht: int = Field(default=10, ge=1)
     distance: int = Field(default=0, ge=0, le=10000)
     target_id: Id
@@ -187,6 +213,7 @@ def _validate_spell_scale(spec: SpellSpec, context: SpellContext) -> None:
         spec.kind != "area"
         and context.radius != 1
         or spec.kind != "missile"
+        and spec.id not in HEALING
         and context.energy != 1
     ):
         raise ValidationError("Spell does not accept this area or energy")
@@ -376,7 +403,11 @@ def apply_spell(
             spec.magery == 0 and context.mana in ("high", "very-high")
         ):
             raise ValidationError("Required Magery unavailable")
+        healing_modifier = healing_penalty(
+            state, command.spell_id, command.actor_id, context.target_id
+        )
         _validate_spell_scale(spec, context)
+        healing_scale(command.spell_id, context.energy, context.magery)
         ritual_skill = context.skill - (5 if context.mana == "low" else 0)
         ceremonial = context.ceremonial
         if ceremonial is not None and context.skill < 15:
@@ -387,6 +418,8 @@ def apply_spell(
             if spec.kind == "area"
             else context.energy
             if spec.kind == "missile"
+            else context.energy
+            if spec.id in HEALING and spec.id != "great-healing"
             else 1
         )
         cost = max(
@@ -415,6 +448,7 @@ def apply_spell(
             skill = min(15, skill + bonus)
         if spec.kind != "missile":
             skill -= context.distance
+        skill -= healing_modifier
         if skill < 1:
             raise ValidationError("Effective spell skill is below one")
         effect = SpellEffect(
@@ -593,6 +627,7 @@ def apply_spell(
                     effect.required_turns or effect.ready_at - effect.started_at
                 ):
                     raise ConflictError("Every casting second requires concentration")
+                healing_penalty(state, effect.spell_id, effect.actor_id, effect.target_id)
                 hp_budget = effect.hp_energy
                 if fp.current < effect.cost - hp_budget:
                     raise ConflictError("Caster no longer has casting energy")
@@ -621,7 +656,11 @@ def apply_spell(
                     if check.outcome is Outcome.CRITICAL_FAILURE or (
                         context.mana == "very-high" and not check.outcome.succeeded
                     ):
-                        outcome, spent = "critical-failure", effect.cost
+                        outcome, spent = (
+                            ("failed", min(1, effect.cost))
+                            if mitigates_failure(state, effect, context.physician_skill)
+                            else ("critical-failure", effect.cost)
+                        )
                     elif not check.outcome.succeeded:
                         outcome, spent = "failed", min(1, effect.cost)
                     else:
@@ -732,19 +771,23 @@ def apply_spell(
         )
     if outcome == "critical-failure" and context.execution_version == 2:
         actual_critical = bool(checks and checks[-1].outcome is Outcome.CRITICAL_FAILURE)
-        state = apply_backfire(
-            state,
-            command_id=command.id,
-            actor_id=command.actor_id,
-            cast_id=command.cast_id,
-            spell_id=command.spell_id,
-            ht=context.ht,
-            severity="mild"
-            if context.mana == "low"
-            else "disaster"
-            if context.mana == "very-high" and actual_critical
-            else "normal",
-            rng=rng,
+        state = (
+            healing_critical(state, effect, command.id)
+            if effect.spell_id in HEALING
+            else apply_backfire(
+                state,
+                command_id=command.id,
+                actor_id=command.actor_id,
+                cast_id=command.cast_id,
+                spell_id=command.spell_id,
+                ht=context.ht,
+                severity="mild"
+                if context.mana == "low"
+                else "disaster"
+                if context.mana == "very-high" and actual_critical
+                else "normal",
+                rng=rng,
+            )
         )
     if outcome == "resisted":
         state = break_daze(state, context.target_id, command.id)
@@ -755,7 +798,12 @@ def apply_spell(
             )
         }
     )
+    hp_restored = 0
+    if command.kind == "complete" and outcome == "active" and effect.spell_id in HEALING:
+        state, hp_restored = heal(state, effect)
+        effect = effect.model_copy(update={"phase": "ended"})
     result = SpellResult(
+        hp_restored=hp_restored,
         outcome=outcome,
         energy_spent=spent,
         hp_spent=hp_spent,

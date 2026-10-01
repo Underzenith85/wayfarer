@@ -5,7 +5,9 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.rules.magic.gurps_magic import definitions, magery_level
+from wayfarer.engine.rules.magic.healing import package as healing_package
 from wayfarer.engine.rules.magic.protocols import MagicItemBinding, effective_item_power
+from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.spells import PROFILE, SPELLS, SpellCommand, SpellContext
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -35,8 +37,9 @@ def approved_context(
     if compiler.statistics_profile != PROFILE:
         raise ValidationError("Spellcasting requires the exact Basic Set profile")
     spell_key = "spell:" + command.spell_id
-    expected = {d.id: d for d in definitions(2)}
-    permitted = tuple(next(d for d in definitions(v) if d.id == spell_key) for v in (1, 2))
+    expected = {d.id: d for d in (*definitions(2), *healing_package().definitions)}
+    permitted = tuple(d for v in (1, 2) for d in definitions(v) if d.id == spell_key)
+    permitted += tuple(d for d in healing_package().definitions if d.id == spell_key)
     if compiler.definitions.get(spell_key) not in permitted:
         raise ValidationError("Spell is not bound to the pinned learning catalog")
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
@@ -94,6 +97,10 @@ def approved_context(
         will=values["secondary:will"],
         iq=values["attribute:iq"],
         target_ht=target_ht,
+        physician_skill=values.get("skill:physician", 0)
+        if compiler.definitions.get("skill:physician")
+        == next(d for d in medical_definitions() if d.id == "skill:physician")
+        else 0,
         unavailable=bool(actor.conditions) or actor.available_at > state.resources.game_time,
         item_power_reduction=item_reduction,
         **environment.model_dump(exclude={"magic_item"}),

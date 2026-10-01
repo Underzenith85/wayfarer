@@ -133,7 +133,7 @@ def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evide
         else:
             assert entry.status is CoverageStatus.VERIFIED
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert coverage_blockers(PROFILE) == (*tuple(range(772, 790)), *tuple(range(791, 806)))
+    assert coverage_blockers(PROFILE) == (*tuple(range(773, 790)), *tuple(range(791, 806)))
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 
