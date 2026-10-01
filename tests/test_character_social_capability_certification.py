@@ -138,7 +138,17 @@ def test_complete_trait_and_self_control_ledgers_retain_the_unbound_admission_ga
         for row in traits
         if row.disposition == "required" and row.implementation not in READY_IMPLEMENTATIONS
     }
-    assert set(unready) == {"trait:advantage:unusual-background"}
+    assert set(unready) == {
+        "trait:advantage:unusual-background",
+        "trait:advantage:alternate-form",
+        "trait:advantage:morph",
+    }
+    # Real return-state coverage does not certify the remaining form paths.
+    for identifier in ("trait:advantage:alternate-form", "trait:advantage:morph"):
+        form_row = unready[identifier]
+        assert form_row.implementation == "partial"
+        assert form_row.completion_owner == form_row.consequence_owner == 757
+        assert "tests/test_form_reversion_state.py" in form_row.evidence_paths
     background = unready["trait:advantage:unusual-background"]
     assert background.implementation == "unsupported"
     assert background.completion_owner == background.consequence_owner == 906

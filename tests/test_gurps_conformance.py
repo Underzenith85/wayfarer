@@ -492,6 +492,10 @@ def test_requirements_cannot_fall_back_to_another_profile() -> None:
             with pytest.raises(ValidationError, match="not certified: spell:"):
                 require_capabilities("gurps-basic-set-4e-2004", (identifier,))
             continue
+        elif identifier == "gurps.supernatural.abilities":
+            with pytest.raises(ValidationError, match=r"not certified: .*#757"):
+                require_capabilities("gurps-basic-set-4e-2004", (identifier,))
+            continue
         elif entry.status is CoverageStatus.VERIFIED:
             require_capabilities("gurps-basic-set-4e-2004", (identifier,))
             continue

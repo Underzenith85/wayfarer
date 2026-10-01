@@ -166,7 +166,11 @@ def test_profile_source_blockers_do_not_cross_contaminate_certification() -> Non
     basic_report = report(ROOT, profile_id="gurps-basic-set-4e-2004")
     basic_blockers = basic_report["blockers"]
     assert isinstance(basic_blockers, tuple)
-    assert basic_blockers == ("ledger:trait:advantage:unusual-background",)
+    assert basic_blockers == (
+        "ledger:trait:advantage:alternate-form",
+        "ledger:trait:advantage:morph",
+        "ledger:trait:advantage:unusual-background",
+    )
 
     with pytest.raises(ValidationError, match="Unknown source-audit profile"):
         profile_blockers(ROOT, manifest, "invented-profile")

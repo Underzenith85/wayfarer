@@ -435,8 +435,13 @@ def _authority_state(
                     for member in members
                 )
     else:
-        owners = dict(reverse.source_item_owners)
-        credentials_by_item = dict(reverse.source_item_credentials)
+        # A mind-following attachment was never moved by the transformation.
+        # Restoring its proposal-time snapshot would undo facts, trades, access
+        # changes and control changes made while the other form was active.
+        owners = dict(reverse.source_item_owners) if inventory.follows != "mind" else {}
+        credentials_by_item = (
+            dict(reverse.source_item_credentials) if credentials.follows != "mind" else {}
+        )
         resources = resources.model_copy(
             update={
                 "items": tuple(
@@ -460,35 +465,37 @@ def _authority_state(
                 )
             }
         )
-        knowledge_now = tuple(pair for pair in world.knowledge if pair[0] != actor_id)
-        world = type(world)(
-            entities=world.entities,
-            connections=world.connections,
-            facts=world.facts,
-            knowledge=tuple(
-                sorted(
-                    set(
-                        knowledge_now
-                        + tuple((actor_id, f) for f in reverse.source_knowledge_fact_ids)
+        if knowledge.follows != "mind":
+            knowledge_now = tuple(pair for pair in world.knowledge if pair[0] != actor_id)
+            world = type(world)(
+                entities=world.entities,
+                connections=world.connections,
+                facts=world.facts,
+                knowledge=tuple(
+                    sorted(
+                        set(
+                            knowledge_now
+                            + tuple((actor_id, f) for f in reverse.source_knowledge_fact_ids)
+                        )
                     )
-                )
-            ),
-            beliefs=world.beliefs,
-            commitments=world.commitments,
-        )
-        members = tuple(
-            member.model_copy(
-                update={
-                    "actor_ids": tuple(a for a in member.actor_ids if a != actor_id)
-                    + (
-                        (actor_id,)
-                        if member.principal_id in reverse.source_control_principal_ids
-                        else ()
-                    )
-                }
+                ),
+                beliefs=world.beliefs,
+                commitments=world.commitments,
             )
-            for member in members
-        )
+        if control.follows != "mind":
+            members = tuple(
+                member.model_copy(
+                    update={
+                        "actor_ids": tuple(a for a in member.actor_ids if a != actor_id)
+                        + (
+                            (actor_id,)
+                            if member.principal_id in reverse.source_control_principal_ids
+                            else ()
+                        )
+                    }
+                )
+                for member in members
+            )
     return state.model_copy(update={"resources": resources, "world": world, "members": members})
 
 

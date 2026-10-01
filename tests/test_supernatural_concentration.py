@@ -175,6 +175,7 @@ async def test_scenario_cannot_seed_supernatural_execution(tmp_path: Path, prefi
         play.initial_state(campaign(play.engine), world(), forged, ())
 
 
-def test_supernatural_abilities_are_verified_after_residual_completion() -> None:
+def test_concentration_completion_does_not_certify_unimplemented_form_paths() -> None:
     assert capability("gurps.supernatural.abilities").status is CoverageStatus.VERIFIED
-    assert require_verified("gurps.supernatural.abilities").id == "gurps.supernatural.abilities"
+    with pytest.raises(ValidationError, match=r"not certified: .*#757"):
+        require_verified("gurps.supernatural.abilities")

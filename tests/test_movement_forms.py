@@ -94,10 +94,17 @@ def test_registry_accounts_for_every_bounded_issue_entry_and_source_cost() -> No
     rows = {entry.id: entry for entry in inventory().entries if entry.id in EXPECTED_COSTS}
     assert set(rows) == set(EXPECTED_COSTS)
     assert all(233 not in row.blockers for row in rows.values())
-    assert all(
-        row.blockers == () and row.evidence == ("tests/test_movement_forms.py",)
-        for row in rows.values()
-    )
+    for key, row in rows.items():
+        if key in {"advantage:alternate-form", "advantage:morph"}:
+            assert row.status == "partial" and row.blockers == (757,)
+            assert row.evidence == (
+                "tests/test_movement_forms.py",
+                "tests/test_shapeshifting_transformations.py",
+                "tests/test_harmful_physiology_transformations.py",
+                "tests/test_form_reversion_state.py",
+            )
+        else:
+            assert row.blockers == () and row.evidence == ("tests/test_movement_forms.py",)
 
 
 @pytest.mark.parametrize(

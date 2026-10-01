@@ -21,4 +21,9 @@ The package keeps construction and execution inseparable:
 `advantage:shapeshifting` is the source heading for Alternate Form and Morph,
 not a separate zero-cost advantage. The compiler therefore rejects it and
 requires one of those concrete constructions. The selected-printing review is
-reconciled and these inventory rows are verified.
+reconciled. Alternate Form and Morph retain partial evidence status: their
+approved authored racial-template changes and live attachment preservation are
+exercised through actual commands, while touch-only Morph and direct changes
+between active forms remain unverified. Their owned rows name the corresponding
+construction, transformation, injury and reversion tests; helper-level form
+flags do not certify those remaining paths.
