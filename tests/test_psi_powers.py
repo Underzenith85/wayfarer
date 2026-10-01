@@ -162,7 +162,11 @@ def world() -> World:
 
 
 def test_antipsi_interference_is_authorized_timed_replayable_and_restart_safe() -> None:
-    build, engine = approved(Purchase(definition_id="advantage:psi-static"))
+    build, engine = approved(
+        Purchase(
+            definition_id="advantage:psi-static", trait=TraitOptions(modifiers=("switchable",))
+        )
+    )
     allocation = PsiAllocation(
         power_id="power:antipsi",
         ability_id="advantage:psi-static",
@@ -174,7 +178,6 @@ def test_antipsi_interference_is_authorized_timed_replayable_and_restart_safe() 
         ability_id="advantage:psi-static",
         actor_id="jammer",
         location_id="room",
-        blocked_power_id="power:telepathy",
         duration_seconds=10,
     )
     command = PsiInterferenceCommand(
@@ -196,8 +199,11 @@ def test_antipsi_interference_is_authorized_timed_replayable_and_restart_safe() 
         system=True,
     )
     assert outcome.action == "activated" and outcome.expires_at == 10
-    assert power_is_blocked(
+    assert not power_is_blocked(
         state, world(), (interference,), actor_id="psi", power_id="power:telepathy"
+    )
+    assert power_is_blocked(
+        state, world(), (interference,), actor_id="jammer", power_id="power:telepathy"
     )
     assert not power_is_blocked(
         state, world(), (interference,), actor_id="psi", power_id="power:esp"
@@ -530,6 +536,194 @@ def test_neutralize_one_power_and_critical_failure_survive_restart() -> None:
             build,
             engine.definitions,
             (channel.model_copy(update={"touching_target": False}),),
+            authorized_actor_id="jammer",
+            system=True,
+        )
+
+
+def test_psi_static_changes_actual_attempt_without_room_immunity_or_nonpsi_penalty() -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="advantage:psi-static", trait=TraitOptions(modifiers=("switchable",))
+        )
+    )
+    allocation = PsiAllocation(
+        power_id="power:antipsi", ability_id="advantage:psi-static", power_modifier=0
+    )
+    declaration = PsiInterference(
+        id="static",
+        ability_id="advantage:psi-static",
+        actor_id="jammer",
+        location_id="room",
+        duration_seconds=10,
+    )
+    activate = PsiInterferenceCommand(
+        id="static-on",
+        actor_id="jammer",
+        expected_revision=0,
+        interference_id="static",
+        action="activate",
+    )
+    resources = ResourceState(
+        pools=tuple(
+            Pool(id="hp:" + actor, current=10, maximum=10, injury=InjuryStatus(profile_id=PROFILE))
+            for actor in ("psi", "jammer")
+        )
+        + (Pool(id="fp:psi", current=10, maximum=10, fatigue=FatigueStatus(profile_id=PROFILE)),)
+    )
+    active, _ = apply_interference(
+        resources,
+        world(),
+        activate,
+        build,
+        engine.definitions,
+        loadout(build, allocation),
+        (declaration,),
+        authorized_actor_id="jammer",
+        system=True,
+    )
+    spec = AbilitySpec(
+        definition_id="advantage:mind-reading", kind="mind-reading", modifiers=("telepathic",)
+    )
+    context = AbilityContext(
+        PROFILE,
+        1,
+        TraitOptions(modifiers=("telepathic",)),
+        12,
+        12,
+        12,
+        10,
+        target_will=10,
+        channel=AbilityChannel(
+            id="read",
+            ability_id=spec.definition_id,
+            actor_id="psi",
+            target_id="jammer",
+            location_id="room",
+        ),
+        power_id="power:telepathy",
+    )
+    use = AbilityCommand(
+        id="read",
+        actor_id="psi",
+        expected_revision=1,
+        kind="activate",
+        ability_id=spec.definition_id,
+        channel_id="read",
+    )
+    persisted = ResourceState.model_validate_json(active.model_dump_json())
+    from dataclasses import replace
+
+    with pytest.raises(ValidationError, match="suppressed"):
+        apply_ability(
+            resources,
+            world(),
+            use.model_copy(update={"expected_revision": 0}),
+            spec,
+            replace(context, target_psi_static=True),
+            rng=RecordedDice([]),
+            system=True,
+        )
+    with pytest.raises(ValidationError, match="suppressed"):
+        apply_ability(persisted, world(), use, spec, context, rng=RecordedDice([]), system=True)
+    expired = persisted.model_copy(update={"game_time": 10})
+    started, _, result = apply_ability(
+        expired, world(), use, spec, context, rng=RecordedDice([]), system=True
+    )
+    assert result.outcome == "concentrating" and started.revision == 2
+    assert started.pools == active.pools
+    magical = AbilitySpec(definition_id=spec.definition_id, kind="mind-reading")
+    magical_context = AbilityContext(
+        PROFILE, 1, TraitOptions(), 12, 12, 12, 10, channel=context.channel, target_psi_static=True
+    )
+    nonpsi, _, result = apply_ability(
+        persisted, world(), use, magical, magical_context, rng=RecordedDice([]), system=True
+    )
+    assert result.outcome == "concentrating" and nonpsi.revision == 2
+    assert not power_is_blocked(active, world(), (), actor_id="psi", power_id="power:telepathy")
+    with pytest.raises(ConflictError, match="already used"):
+        apply_interference(
+            persisted,
+            world(),
+            activate.model_copy(update={"action": "deactivate"}),
+            build,
+            engine.definitions,
+            loadout(build, allocation),
+            (declaration,),
+            authorized_actor_id="jammer",
+            system=True,
+        )
+    deactivate = activate.model_copy(
+        update={"id": "off", "action": "deactivate", "expected_revision": 1}
+    )
+    off, _ = apply_interference(
+        persisted,
+        world(),
+        deactivate,
+        build,
+        engine.definitions,
+        loadout(build, allocation),
+        (declaration,),
+        authorized_actor_id="jammer",
+        system=True,
+    )
+    unblocked, _, result = apply_ability(
+        off,
+        world(),
+        use.model_copy(update={"expected_revision": 2}),
+        spec,
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.outcome == "concentrating" and unblocked.revision == 3
+
+
+def test_unmodified_psi_static_cannot_be_switched_off_or_authored_for_one_power() -> None:
+    build, engine = approved(Purchase(definition_id="advantage:psi-static"))
+    allocation = PsiAllocation(
+        power_id="power:antipsi", ability_id="advantage:psi-static", power_modifier=0
+    )
+    declaration = PsiInterference(
+        id="static", ability_id="advantage:psi-static", actor_id="jammer", location_id="room"
+    )
+    activate = PsiInterferenceCommand(
+        id="on", actor_id="jammer", expected_revision=0, interference_id="static", action="activate"
+    )
+    active, _ = apply_interference(
+        ResourceState(),
+        world(),
+        activate,
+        build,
+        engine.definitions,
+        loadout(build, allocation),
+        (declaration,),
+        authorized_actor_id="jammer",
+        system=True,
+    )
+    with pytest.raises(ValidationError, match="Switchable"):
+        apply_interference(
+            active,
+            world(),
+            activate.model_copy(
+                update={"id": "off", "action": "deactivate", "expected_revision": 1}
+            ),
+            build,
+            engine.definitions,
+            loadout(build, allocation),
+            (declaration,),
+            authorized_actor_id="jammer",
+            system=True,
+        )
+    with pytest.raises(ValidationError, match="every directly"):
+        apply_interference(
+            ResourceState(),
+            world(),
+            activate,
+            build,
+            engine.definitions,
+            loadout(build, allocation),
+            (declaration.model_copy(update={"blocked_power_id": "power:telepathy"}),),
             authorized_actor_id="jammer",
             system=True,
         )

@@ -27,6 +27,7 @@ from wayfarer.engine.simulation.magic.concentration import require_idle_concentr
 from wayfarer.engine.simulation.magic.spell_state import interrupt_spells
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.simulation.traits.neutralization import power_suppressed
+from wayfarer.engine.simulation.traits.psi_protection import protects
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -115,6 +116,7 @@ class AbilityContext:
     build_revision: str = ""
     held_item_ids: tuple[str, ...] = ()
     power_id: str | None = None
+    target_psi_static: bool | None = None
 
 
 def validate_target(
@@ -162,9 +164,17 @@ def _require_available_power(
     if (
         selected_power is not None
         and command.kind != "cancel"
-        and power_suppressed(resources, command.actor_id, selected_power)
+        and (
+            power_suppressed(resources, command.actor_id, selected_power)
+            or (
+                context.channel is not None
+                and protects(
+                    resources, context.channel.target_id, purchased=context.target_psi_static
+                )
+            )
+        )
     ):
-        raise ValidationError("Psionic power is suppressed by Neutralize")
+        raise ValidationError("Psionic power is suppressed by active Antipsi")
 
 
 def apply_ability(
