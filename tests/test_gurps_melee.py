@@ -100,6 +100,7 @@ async def setup(
     extra_purchases: tuple[Purchase, ...] = (),
     trait_runtime_hooks: frozenset[str] = frozenset(),
     campaign_technology_level: int | None = None,
+    repair_skill_technology_level: int | None = None,
     extra_equipment: tuple[EquipmentProfile, ...] = (),
     warhead: ExplosionSpec | None = None,
     power_cell_capacity: int | None = None,
@@ -339,9 +340,13 @@ async def setup(
             ImplementationStatus.IMPLEMENTED,
             hooks=("character.gurps-skill", "check.target"),
             skill=SkillSpec(
-                ControllingAttribute.DX,
+                ControllingAttribute.IQ
+                if key in {"skill:armoury-melee-weapons", "skill:armoury-body-armor"}
+                else ControllingAttribute.DX,
                 difficulty,
                 "B208/B220",
+                technology_level_required=key
+                in {"skill:armoury-melee-weapons", "skill:armoury-body-armor"},
                 defaults=(
                     SkillDefault("attribute:dx", -5 if difficulty is Difficulty.AVERAGE else -4),
                 ),
@@ -521,7 +526,16 @@ async def setup(
             Purchase(definition_id="skill:shield", amount=4),
             *((Purchase(definition_id=armoury_id, amount=4),) if armoury_id else ()),
             *(
-                (Purchase(definition_id=durability.repair_skill_id, amount=4),)
+                (
+                    Purchase(
+                        definition_id=durability.repair_skill_id,
+                        amount=4,
+                        technology_level=repair_skill_technology_level or campaign_technology_level
+                        if durability.repair_skill_id
+                        in {"skill:armoury-melee-weapons", "skill:armoury-body-armor"}
+                        else None,
+                    ),
+                )
                 if durability and durability.repair_skill_id
                 else ()
             ),
