@@ -107,6 +107,12 @@ class PhysiologyTraits(Record):
         ]
 
     def consumption_period(self, resource: str) -> int:
+        increased = self.level("trait:disadvantage:increased-consumption")
+        if resource == "food" and increased:
+            divisor = 1 << increased
+            if 28800 % divisor:
+                raise ValidationError("Consumption interval requires subsecond clock support")
+            return 28800 // divisor
         fraction = self.consumption_fraction(resource)
         if resource == "food":
             return {
@@ -166,4 +172,20 @@ def physiology_traits(
         for effect in mundane_trait_effects(build, definitions)
         if effect.definition_id == "trait:disadvantage:slow-healing"
     )
+    projected = mundane_trait_effects(build, definitions)
+    aliases = {
+        "trait:advantage:reduced-consumption": "advantage:reduced-consumption",
+        "trait:disadvantage:increased-consumption": "trait:disadvantage:increased-consumption",
+    }
+    for effect in projected:
+        identifier = aliases.get(effect.definition_id)
+        if identifier is None:
+            continue
+        if any(entry.definition_id == identifier for entry in entries):
+            raise ValidationError("Consumption cannot be purchased through both catalog identities")
+        entries.append(PurchasedPhysiology(definition_id=identifier, levels=effect.levels))
+    if any(entry.definition_id == "advantage:reduced-consumption" for entry in entries) and any(
+        entry.definition_id == "trait:disadvantage:increased-consumption" for entry in entries
+    ):
+        raise ValidationError("Combined Reduced and Increased Consumption requires source review")
     return PhysiologyTraits(entries=tuple(entries))
