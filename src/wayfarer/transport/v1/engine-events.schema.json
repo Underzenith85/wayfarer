@@ -2138,7 +2138,10 @@
             "light",
             "daze",
             "fireball",
-            "create-fire"
+            "create-fire",
+            "minor-healing",
+            "major-healing",
+            "great-healing"
           ],
           "title": "Spell Id",
           "type": "string"
@@ -2451,6 +2454,11 @@
           ],
           "title": "Outcome",
           "type": "string"
+        },
+        "hp_restored": {
+          "default": 0,
+          "title": "Hp Restored",
+          "type": "integer"
         },
         "energy_spent": {
           "default": 0,

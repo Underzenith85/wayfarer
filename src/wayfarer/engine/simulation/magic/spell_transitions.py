@@ -425,7 +425,8 @@ def _prepare_spell(
     before: PlayState, command: SpellCommand, execution: SpellExecutionContext
 ) -> tuple[SpellContext, Encounter | None]:
     runtime = execution.runtime
-    guard(before, command.actor_id, "spell")
+    if not any(r.command_id == command.id for r in before.resources.receipts):
+        guard(before, command.actor_id, "spell")
     encounter = combat_guard(before, command)
     if encounter is not None and execution.resolver is not None:
         raise ValidationError("Combat spell dispatch requires the maneuver adapter")

@@ -6086,15 +6086,14 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        772
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
+      "status": "verified",
+      "supported_subset": "Source-reviewed approved construction and actual patient HP restoration, source energy caps, repeated-use/daily restrictions, Physician exception and authored patient critical-failure harm. Magical healing uses the canonical recovery boundary.",
       "evidence": [
         "tests/test_spell_construction.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_healing_spell_effects.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6474,15 +6473,14 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        772
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
+      "status": "verified",
+      "supported_subset": "Source-reviewed approved construction and actual patient HP restoration, source energy caps, repeated-use/daily restrictions, Physician exception and authored patient critical-failure harm. Magical healing uses the canonical recovery boundary.",
       "evidence": [
         "tests/test_spell_construction.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_healing_spell_effects.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6578,15 +6576,14 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        772
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "status": "verified",
+      "supported_subset": "Source-reviewed approved construction and actual patient HP restoration, source energy caps, repeated-use/daily restrictions, Physician exception and authored patient critical-failure harm. Magical healing uses the canonical recovery boundary.",
       "evidence": [
         "tests/test_spell_healing.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_healing_spell_effects.py"
       ],
       "members": [],
       "talent_cost": null,
