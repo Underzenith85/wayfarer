@@ -2837,6 +2837,11 @@
             "title": "Actor Id",
             "type": "string"
           },
+          "sacrificial_contact": {
+            "default": false,
+            "title": "Sacrificial Contact",
+            "type": "boolean"
+          },
           "cover_dr": {
             "minimum": 0,
             "title": "Cover Dr",
