@@ -12,6 +12,22 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 
+def _repeat_drop(encounter: Encounter, command: ChooseDefense) -> Encounter:
+    pending = encounter.pending_defense
+    target = next((p for p in encounter.participants if p.actor_id == command.actor_id), None)
+    if (
+        pending
+        and target
+        and target.drop_attacker_id == pending.attacker_id
+        and command.defense != "none"
+    ):
+        return CombatEngine._replace(
+            encounter,
+            target.model_copy(update={"tactical_defense_bonus": target.tactical_defense_bonus + 3}),
+        )
+    return encounter
+
+
 def prepare_options(
     runtime: RulesContext,
     state: PlayState,
@@ -21,21 +37,7 @@ def prepare_options(
     resolve: bool,
 ) -> Encounter:
     if not command.acrobatic_dodge and not command.dodge_and_drop:
-        pending = encounter.pending_defense
-        target = next((p for p in encounter.participants if p.actor_id == command.actor_id), None)
-        if (
-            pending
-            and target
-            and target.drop_attacker_id == pending.attacker_id
-            and command.defense != "none"
-        ):
-            return CombatEngine._replace(
-                encounter,
-                target.model_copy(
-                    update={"tactical_defense_bonus": target.tactical_defense_bonus + 3}
-                ),
-            )
-        return encounter
+        return _repeat_drop(encounter, command)
     if (
         runtime.rules.combat is None
         or runtime.rules.combat.gurps_equipment is None
