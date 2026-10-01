@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.simulation.health.cyclic import settle as settle_cyclic
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.fright_state import (
     PREFIX,
@@ -280,6 +281,25 @@ def advance(
             (i for i in effects(state) if i.active and i.due is not None and i.due <= command.to),
             key=lambda i: (i.due or 0, i.id),
         )
+        cycles = sorted(
+            (a for a in state.cyclic_attacks if a.active and a.due <= command.to),
+            key=lambda a: (a.due, a.id),
+        )
+        if cycles and (not due or cycles[0].due <= (due[0].due or 0)):
+            attack = cycles[0]
+            step_id = "cyclic-clock:" + attack.id + ":" + str(attack.cycle + 1)
+            state = engine.apply(
+                state,
+                Advance(
+                    id=step_id,
+                    actor_id=command.actor_id,
+                    expected_revision=state.revision,
+                    to=attack.due,
+                ),
+                system=True,
+            )
+            state = settle_cyclic(state, attack, rng)
+            continue
         if not due:
             break
         item = due[0]

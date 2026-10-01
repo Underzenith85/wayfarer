@@ -22,6 +22,7 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.effects import Effect
+from wayfarer.engine.rules.types.cyclic import require_cyclic_settled
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.rules.types.recovery import require_settled, retire_tasks
@@ -218,6 +219,13 @@ class ResourceEngine:
         unique(tuple(o.actor_id for o in state.owners))
         unique(tuple(p.id for p in state.pools))
         unique(tuple(s.id for s in state.scheduled))
+        unique(tuple(a.id for a in state.cyclic_attacks))
+        if any(
+            a.actor_id not in self.actors or a.attacker_id not in self.actors
+            for a in state.cyclic_attacks
+        ):
+            raise ValidationError("Cyclic attack references an unknown actor")
+        require_cyclic_settled(state.cyclic_attacks, state.game_time)
         unique(tuple(r.command_id for r in state.receipts))
         unique(tuple(creature.actor_id for creature in state.creatures))
         unique(tuple(swarm.id for swarm in state.swarms))
@@ -427,6 +435,7 @@ class ResourceEngine:
         if isinstance(command, Advance) and rng is not None:
             return advance(self, state, command, rng=rng)
         if not isinstance(command, Advance):
+            require_cyclic_settled(state.cyclic_attacks, state.game_time + 1)
             blast_guard(state)
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
@@ -611,6 +620,7 @@ class ResourceEngine:
                 raise ConflictError(
                     "Advance to the recovery deadline and settle it before continuing"
                 )
+            require_cyclic_settled(state.cyclic_attacks, command.to)
             due = sorted(
                 (s for s in state.scheduled if s.due <= command.to), key=lambda s: (s.due, s.id)
             )

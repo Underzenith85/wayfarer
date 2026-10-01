@@ -1459,6 +1459,7 @@ def _validate_delivery_relationships(selection: ModifierSelection, selected: set
     }:
         raise ValidationError("Onset requires an eligible delivery modifier")
     if selection.definition_id == "modifier:limitation:resistible" and not selected & {
+        "modifier:enhancement:cyclic",
         "modifier:limitation:blood-agent",
         "modifier:limitation:contact-agent",
         "modifier:enhancement:follow-up",

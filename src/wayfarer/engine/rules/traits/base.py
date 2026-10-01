@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from wayfarer.engine.rules.conformance_vocabulary import BASIC_PROFILE_ID, require_profile_id
+from wayfarer.engine.rules.traits.modifiers import ModifierSelection
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -18,6 +19,9 @@ from wayfarer.models import Record
 class TraitOptions(Record):
     parameters: tuple[Annotated[tuple[str, str | int | bool], Field(strict=False)], ...] = Field(
         default=(), strict=False
+    )
+    attack_modifiers: tuple[ModifierSelection, ...] = Field(
+        default=(), strict=False, max_length=100, exclude_if=lambda value: not value
     )
     self_control: Literal[6, 9, 12, 15] | None = None
     modifiers: tuple[str, ...] = Field(default=(), strict=False, max_length=100)
@@ -82,6 +86,8 @@ def cost(base: int, levels: int, options: TraitOptions, rules: TraitRules) -> in
     Positive infinity rounding also applies to negative point totals (B121).
     Modifier IDs select trusted percentages, never client arithmetic.
     """
+    if options.attack_modifiers:
+        raise ValidationError("Parameterized attack modifiers require an Innate Attack binding")
     validate_metadata(rules)
     if type(base) is not int or not 1 <= levels <= rules.maximum_level:
         raise ValidationError("Trait level is outside catalog bounds")

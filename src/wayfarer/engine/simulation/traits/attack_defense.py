@@ -15,13 +15,18 @@ from wayfarer.engine.character.traits.attack_defense import (
     attack_defense_traits,
 )
 from wayfarer.engine.rules.catalog import RuleDefinition
-from wayfarer.engine.rules.checks import RandomSource
+from wayfarer.engine.rules.checks import CheckTrace, RandomSource
+from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.traits.cyclic import cyclic_profile
+from wayfarer.engine.rules.traits.modifiers import AttackProfile
 from wayfarer.engine.rules.types.affliction import AfflictionCondition, AfflictionEffect
+from wayfarer.engine.rules.types.cyclic import CyclicAttack, require_cyclic_settled
 from wayfarer.engine.simulation.combat.special_damage import (
     PenetrationContext,
     resolve_affliction_penetration,
 )
 from wayfarer.engine.simulation.equipment.catalog import DamageType
+from wayfarer.engine.simulation.health.cyclic import save as save_cyclic
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, FatigueResult, apply_fatigue
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
@@ -84,6 +89,7 @@ class TraitAttackOutcome(Record):
     condition: AfflictionCondition | None = None
     resistance_target: int | None = None
     penetration_reason: str | None = None
+    checks: tuple[CheckTrace, ...] = Field(default=(), exclude_if=lambda value: not value)
 
 
 class TraitAttackEvent(Record):
@@ -362,6 +368,91 @@ def _apply_fatigue_attack(
     )
 
 
+def _channel(
+    world: World, command: TraitAttackCommand, channels: tuple[AttackChannel, ...]
+) -> AttackChannel:
+    channel = next((value for value in channels if value.id == command.channel_id), None)
+    if (
+        channel is None
+        or channel.definition_id != command.definition_id
+        or channel.attacker_id != command.actor_id
+        or channel.kind != KINDS.get(command.definition_id)
+        or channel.attacker_id == channel.target_id
+    ):
+        raise ValidationError("Authored trait attack channel is unavailable")
+    entities = {entity.id: entity for entity in world.entities}
+    if (
+        channel.attacker_id not in entities
+        or channel.target_id not in entities
+        or channel.location_id not in entities
+        or entities[channel.attacker_id].location_id != channel.location_id
+        or entities[channel.target_id].location_id != channel.location_id
+    ):
+        raise ValidationError("Trait attack context changed")
+
+    return channel
+
+
+def _schedule_cyclic(
+    state: ResourceState,
+    command: TraitAttackCommand,
+    channel: AttackChannel,
+    cyclic: AttackProfile | None,
+    target: AttackDefenseTraits,
+    outcome: TraitAttackOutcome,
+    target_ht: int,
+    at: int,
+    damage_dice: int,
+) -> ResourceState:
+    if cyclic is not None and outcome.outcome == "injured":
+        assert (
+            cyclic.cyclic_interval_seconds is not None and cyclic.cyclic_stop_condition is not None
+        )
+        state = save_cyclic(
+            state,
+            CyclicAttack.model_validate(
+                {
+                    "id": _id(command.id, "cyclic"),
+                    "attacker_id": channel.attacker_id,
+                    "actor_id": channel.target_id,
+                    "attack_id": channel.id,
+                    "basic_damage": channel.basic_damage,
+                    "damage_dice": damage_dice,
+                    "damage_type": channel.damage_type,
+                    "resistance": target.damage_resistance(),
+                    "armor_divisor": channel.armor_divisor,
+                    "vulnerability_multiplier": target.injury_multiplier("natural-attacks"),
+                    "ht": target_ht,
+                    "resistance_modifier": cyclic.resistance_modifier,
+                    "interval": cyclic.cyclic_interval_seconds,
+                    "remaining": cyclic.cyclic_cycles - 1,
+                    "due": at + cyclic.cyclic_interval_seconds,
+                    "stop_condition": cyclic.cyclic_stop_condition,
+                    "hp_debt": outcome.injury.injury
+                    if outcome.injury
+                    else outcome.fatigue.hp_lost
+                    if outcome.fatigue
+                    else 0,
+                    "fp_debt": outcome.fatigue.fp_lost if outcome.fatigue else 0,
+                }
+            ),
+        )
+
+    return state
+
+
+def _cyclic_check(
+    cyclic: AttackProfile | None, channel: AttackChannel, target_ht: int, rng: RandomSource
+) -> CheckTrace | None:
+    if (
+        cyclic is None
+        or cyclic.resistance_modifier is None
+        or not _roll_succeeds(channel.attack_roll, channel.attack_score)
+    ):
+        return None
+    return success_roll("gurps-basic-set-4e-2004", target_ht + cyclic.resistance_modifier, rng=rng)
+
+
 def apply_trait_attack(
     resources: ResourceState,
     world: World,
@@ -391,30 +482,37 @@ def apply_trait_attack(
         raise ConflictError("Trait attack command ID was already used")
     if resources.revision != command.expected_revision:
         raise ConflictError("Trait attack revision changed")
-    channel = next((value for value in channels if value.id == command.channel_id), None)
-    if (
-        channel is None
-        or channel.definition_id != command.definition_id
-        or channel.attacker_id != command.actor_id
-        or channel.kind != KINDS.get(command.definition_id)
-        or channel.attacker_id == channel.target_id
-    ):
-        raise ValidationError("Authored trait attack channel is unavailable")
+    require_cyclic_settled(resources.cyclic_attacks, resources.game_time + 1)
+    channel = _channel(world, command, channels)
     attacker = attack_defense_traits(attacker_build, definitions)
     target = attack_defense_traits(target_build, definitions)
     if attacker.purchase(command.definition_id) is None:
         raise ValidationError("Attack trait is not in the approved build")
-    entities = {entity.id: entity for entity in world.entities}
-    if (
-        channel.attacker_id not in entities
-        or channel.target_id not in entities
-        or channel.location_id not in entities
-        or entities[channel.attacker_id].location_id != channel.location_id
-        or entities[channel.target_id].location_id != channel.location_id
-    ):
-        raise ValidationError("Trait attack context changed")
-
-    if channel.kind == "damage" and channel.damage_type == "fat":
+    purchased = next(
+        p for p in attacker_build.trait_purchases if p.definition_id == command.definition_id
+    )
+    selections = () if purchased.trait is None else purchased.trait.attack_modifiers
+    cyclic = cyclic_profile(selections, channel.damage_type) if selections else None
+    if cyclic is not None and cyclic.contagious != "none":
+        raise ValidationError("Contagious Cyclic execution requires the exposure extension")
+    check = _cyclic_check(cyclic, channel, target_ht, rng)
+    if cyclic is not None and not _roll_succeeds(channel.attack_roll, channel.attack_score):
+        state = resources.model_copy(update={"revision": resources.revision + 1})
+        outcome = TraitAttackOutcome(
+            outcome="missed",
+            attacker_id=channel.attacker_id,
+            target_id=channel.target_id,
+            definition_id=command.definition_id,
+        )
+    elif check is not None and check.outcome.succeeded:
+        state = resources.model_copy(update={"revision": resources.revision + 1})
+        outcome = TraitAttackOutcome(
+            outcome="resisted",
+            attacker_id=channel.attacker_id,
+            target_id=channel.target_id,
+            definition_id=command.definition_id,
+        )
+    elif channel.kind == "damage" and channel.damage_type == "fat":
         state, outcome = _apply_fatigue_attack(
             resources, command, channel, attacker, target, target_ht, rng
         )
@@ -488,6 +586,19 @@ def apply_trait_attack(
                 ),
             )
         state = resources.model_copy(update=binding_update)
+
+    outcome = outcome.model_copy(update={"checks": () if check is None else (check,)})
+    state = _schedule_cyclic(
+        state,
+        command,
+        channel,
+        cyclic,
+        target,
+        outcome,
+        target_ht,
+        resources.game_time,
+        purchased.amount,
+    )
 
     event = TraitAttackEvent(
         command_id=command.id, command_digest=digest, channel_id=channel.id, outcome=outcome

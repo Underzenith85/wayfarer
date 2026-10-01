@@ -20,6 +20,7 @@ from wayfarer.engine.rules.traits.base import (
     TraitRules,
     cost,
 )
+from wayfarer.engine.rules.traits.cyclic import cyclic_cost, cyclic_profile
 from wayfarer.errors import ValidationError
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -231,7 +232,16 @@ def package() -> RulesPackage:
 
 
 def purchase_cost(binding: AttackDefenseBinding, levels: int, options: TraitOptions) -> int:
-    ordinary = cost(binding.point_cost, levels, options, metadata(binding))
+    if options.attack_modifiers:
+        if binding.id != "advantage:innate-attack" or options.modifiers:
+            raise ValidationError("Cyclic modifiers require an otherwise unmodified Innate Attack")
+        cyclic_profile(options.attack_modifiers, str(dict(options.parameters).get("damage-type")))
+    ordinary = cost(
+        binding.point_cost,
+        levels,
+        options.model_copy(update={"attack_modifiers": ()}),
+        metadata(binding),
+    )
     values = dict(options.parameters)
     if binding.id == "advantage:claws":
         base = {"blunt": 3, "sharp": 5, "talons": 8, "long-talons": 11}[str(values["kind"])]
@@ -296,6 +306,8 @@ def purchase_cost(binding: AttackDefenseBinding, levels: int, options: TraitOpti
         return -int(Decimal(rarity) * factor)
     else:
         return ordinary
+    if options.attack_modifiers:
+        return cyclic_cost(base, options.attack_modifiers)
     percent = max(-80, sum(m.percent for m in binding.modifiers if m.id in options.modifiers))
     return int(
         (Decimal(base) * Decimal(100 + percent) / 100).to_integral_value(rounding=ROUND_CEILING)

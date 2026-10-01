@@ -4176,6 +4176,161 @@
       "title": "CustomConstruction",
       "type": "object"
     },
+    "CyclicAttack": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "attacker_id": {
+          "title": "Attacker Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "attack_id": {
+          "title": "Attack Id",
+          "type": "string"
+        },
+        "basic_damage": {
+          "minimum": 1,
+          "title": "Basic Damage",
+          "type": "integer"
+        },
+        "damage_dice": {
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Damage Dice",
+          "type": "integer"
+        },
+        "damage_type": {
+          "enum": [
+            "burn",
+            "cor",
+            "fat",
+            "tox"
+          ],
+          "title": "Damage Type",
+          "type": "string"
+        },
+        "resistance": {
+          "minimum": 0,
+          "title": "Resistance",
+          "type": "integer"
+        },
+        "armor_divisor": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1",
+          "title": "Armor Divisor"
+        },
+        "vulnerability_multiplier": {
+          "default": 1,
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Vulnerability Multiplier",
+          "type": "integer"
+        },
+        "ht": {
+          "minimum": 1,
+          "title": "Ht",
+          "type": "integer"
+        },
+        "resistance_modifier": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resistance Modifier"
+        },
+        "interval": {
+          "minimum": 1,
+          "title": "Interval",
+          "type": "integer"
+        },
+        "remaining": {
+          "minimum": 0,
+          "title": "Remaining",
+          "type": "integer"
+        },
+        "due": {
+          "minimum": 0,
+          "title": "Due",
+          "type": "integer"
+        },
+        "stop_condition": {
+          "minLength": 1,
+          "title": "Stop Condition",
+          "type": "string"
+        },
+        "active": {
+          "default": true,
+          "title": "Active",
+          "type": "boolean"
+        },
+        "cycle": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Cycle",
+          "type": "integer"
+        },
+        "hp_debt": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hp Debt",
+          "type": "integer"
+        },
+        "fp_debt": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Fp Debt",
+          "type": "integer"
+        },
+        "contagious": {
+          "default": "none",
+          "enum": [
+            "none",
+            "mild",
+            "high"
+          ],
+          "title": "Contagious",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "attacker_id",
+        "actor_id",
+        "attack_id",
+        "basic_damage",
+        "damage_dice",
+        "damage_type",
+        "resistance",
+        "ht",
+        "interval",
+        "remaining",
+        "due",
+        "stop_condition"
+      ],
+      "title": "CyclicAttack",
+      "type": "object"
+    },
     "Damage": {
       "additionalProperties": false,
       "properties": {
@@ -7955,6 +8110,14 @@
             "$ref": "#/$defs/AfflictionEffect"
           },
           "title": "Afflictions",
+          "type": "array"
+        },
+        "cyclic_attacks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CyclicAttack"
+          },
+          "title": "Cyclic Attacks",
           "type": "array"
         },
         "scheduled": {
@@ -16496,6 +16659,15 @@
             "type": "array"
           },
           "title": "Parameters",
+          "type": "array"
+        },
+        "attack_modifiers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ModifierSelection"
+          },
+          "maxItems": 100,
+          "title": "Attack Modifiers",
           "type": "array"
         },
         "self_control": {
