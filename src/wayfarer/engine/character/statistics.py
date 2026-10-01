@@ -364,7 +364,7 @@ def encumbered_move(profile_id: str, basic_move: int, level: Encumbrance) -> int
 
 
 def encumbered_dodge(dodge: int, level: Encumbrance) -> int:
-    return _integer(dodge, "secondary.type", "Dodge must be an integer") - int(level)
+    return max(1, _integer(dodge, "secondary.type", "Dodge must be an integer") - int(level))
 
 
 def compile_statistics(
