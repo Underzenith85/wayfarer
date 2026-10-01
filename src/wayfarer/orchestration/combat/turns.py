@@ -142,7 +142,9 @@ def _validate_turn(
         validate_posture(state, command.actor_id, command.posture)
     actor = next(a for a in state.actors if a.actor_id == command.actor_id)
     hp = next(p for p in resources.pools if p.id == f"hp:{actor.actor_id}")
-    if (hp.injury.incapacitated if hp.injury else hp.current == 0) or actor.conditions:
+    if ((hp.injury.incapacitated if hp.injury else hp.current == 0) or actor.conditions) and not (
+        context.resuming and command.maneuver == "do_nothing"
+    ):
         raise ValidationError("Incapacitated actor cannot act")
     if actor.available_at > resources.game_time and command.maneuver not in (
         "wait",
@@ -284,6 +286,7 @@ def _preview_turn(
             second_target_id=command.second_target_id,
             second_mode_id=command.second_mode_id,
             command_json=command.model_dump_json(),
+            movement_checkpoint=context.movement_checkpoint,
             hex_path=command.hex_path,
             hex_facing=command.hex_facing,
             pop_up=command.pop_up,
@@ -368,7 +371,14 @@ def _begin_turn(
     resources = state.resources
     started_hp = next(p for p in resources.pools if p.id == hp.id)
     assert started_hp.injury is not None
-    allowed = not (started_hp.injury.incapacitated or started_hp.injury.stunned or forced)
+    allowed = not (
+        started_hp.injury.incapacitated
+        or started_hp.injury.stunned
+        or forced
+        or resuming
+        and participant.high_speed is not None
+        and participant.posture != "standing"
+    )
 
     state, encounter = worn_stress(
         play.rules_context,
@@ -791,6 +801,7 @@ def _take_turn(
         second_target_id=command_for_turn.second_target_id,
         second_mode_id=command_for_turn.second_mode_id,
         command_json=command_for_turn.model_dump_json(),
+        movement_checkpoint=context.movement_checkpoint,
         hex_path=command_for_turn.hex_path,
         hex_facing=command_for_turn.hex_facing,
         pop_up=command_for_turn.pop_up,
