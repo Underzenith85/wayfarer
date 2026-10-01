@@ -28,6 +28,7 @@ from wayfarer.engine.rules.types.recovery import RecoveryTask, interrupt_tasks, 
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
+from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex
@@ -396,6 +397,7 @@ def apply_spell(
             raise ValidationError("No-mana casting and unaudited very-high mana are unavailable")
         if (
             context.unavailable
+            or drug_unconscious(state, command.actor_id)
             or hp.injury.incapacitated
             or (hp.injury.stunned and command.kind != "maintain")
             or fp.fatigue.collapsed

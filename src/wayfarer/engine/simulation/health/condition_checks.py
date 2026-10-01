@@ -8,8 +8,10 @@ from collections.abc import Mapping
 
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import Modifier
+from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fright_state import aftermath_modifiers, effects
 from wayfarer.engine.simulation.health.symptom_state import active as active_symptoms
+from wayfarer.engine.simulation.magic.awaken_state import alert_until
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
 
@@ -18,12 +20,24 @@ def check_modifiers(
     state: ResourceState, actor_id: str, attribute: str, *, defensive: bool = False
 ) -> tuple[Modifier, ...]:
     result = aftermath_modifiers(state, actor_id)
+    intoxication = next((i for i in state.intoxications if i.actor_id == actor_id), None)
+    if intoxication and intoxication.level != "sober" and attribute.lower() in ("dx", "iq"):
+        # B428/B440: waking from a stupor does not sober the subject.
+        result += (
+            Modifier(
+                -1 if intoxication.level == "tipsy" else -2,
+                "Intoxication",
+                "intoxication:" + actor_id,
+                "Basic Set Campaigns 4e B428/B440",
+            ),
+        )
     survival = next((entry for entry in state.survival if entry.actor_id == actor_id), None)
     if (
         survival is not None
         and survival.drowsy_until is not None
         and survival.drowsy_until > state.game_time
         and attribute.lower() in ("dx", "iq")
+        and not alert_until(state, actor_id)
     ):
         result += (
             Modifier(-2, "Drowsiness", "survival:missed-sleep", "Basic Set Campaigns 4e B427"),
@@ -113,6 +127,8 @@ def retching_penalty(state: ResourceState, actor_id: str) -> int:
 
 
 def require_hazard_capacity(state: ResourceState, actor_id: str, kind: str) -> None:
+    if kind not in ("question", "wait") and drug_unconscious(state, actor_id):
+        raise ValidationError("An unconscious drugged actor cannot act")
     for effect in active_symptoms(state, actor_id):
         if effect.spec.kind == "blindness" and kind == "vision":
             raise ValidationError("Symptoms blindness prevents vision")

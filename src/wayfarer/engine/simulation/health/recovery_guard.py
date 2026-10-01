@@ -5,6 +5,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
 from wayfarer.engine.simulation.equipment.retrieval_state import tasks as retrievals
+from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fright_state import blocked, requires_adjudication
 from wayfarer.engine.simulation.health.recovery import Captivity
 from wayfarer.engine.simulation.magic.backfires import backfires
@@ -24,6 +25,8 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 
 
 def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = False) -> None:
+    if kind not in ("question", "wait") and drug_unconscious(state.resources, actor_id):
+        raise ValidationError("An unconscious drugged actor cannot act")
     if kind not in ("resolve_weapon_explosion", "declare_thrown_landing"):
         blast_guard(state.resources)
     if kind not in ("question", "wait", "retrieve_equipment") and any(

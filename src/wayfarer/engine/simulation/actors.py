@@ -15,6 +15,7 @@ from wayfarer.engine.rules.types.recovery import interrupt_tasks
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.entangle import immobilized
 from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, inventory_load
+from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue, fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import disabled, part
 from wayfarer.engine.simulation.health.injury import InjuryTurn, apply_injury, impaired_movement
@@ -30,7 +31,8 @@ def fatigue_ready(state: PlayState, actor_id: str) -> bool:
     if fp.fatigue is None:
         raise ValidationError("GURPS fatigue requires explicit migration")
     return not (
-        fp.fatigue.collapsed
+        drug_unconscious(state.resources, actor_id)
+        or fp.fatigue.collapsed
         or fp.fatigue.unconscious
         or fp.fatigue.heart_attack
         or fp.current <= -fp.maximum

@@ -23,6 +23,7 @@ from wayfarer.engine.rules.types.toxin import (
     ToxinProfile,
     ToxinView,
 )
+from wayfarer.engine.simulation.health.drug_state import invalidate_waking
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
@@ -314,6 +315,15 @@ def apply_toxin(
             if check is not None and not resisted:
                 duration += profile.duration_per_margin * max(1, -check.margin)
             state, overdose_until = _apply_overdose(state, exposure, check)
+            state = invalidate_waking(
+                state,
+                command.actor_id,
+                "toxin",
+                exposure.id,
+                command.id,
+                incapacitating=overdose_until > state.game_time
+                or (not resisted and profile.condition == "unconscious" and duration > 0),
+            )
             exposure = exposure.model_copy(
                 update={
                     "active": remaining > 0,
@@ -366,20 +376,21 @@ def _failed_drinking_check(
     *,
     ht: int,
     rng: RandomSource,
-) -> tuple[IntoxicationLevel, bool, bool]:
+) -> tuple[IntoxicationLevel, bool, bool, bool]:
     drop = 2 if check.outcome is Outcome.CRITICAL_FAILURE else 1
     level = _LEVELS[min(4, _LEVELS.index(item.level) + drop)]
     hallucinating = retching = False
     if level == "drunk":
         pink = success_roll("gurps-basic-set-4e-2004", ht + 4, rng=rng)
         hallucinating = not pink.outcome.succeeded
-    if level in ("unconscious", "coma"):
+    incapacitating = level in ("unconscious", "coma")
+    if incapacitating:
         purge = success_roll("gurps-basic-set-4e-2004", ht, rng=rng)
         if purge.outcome.succeeded:
-            retching, level = True, item.level
+            retching, level, incapacitating = True, item.level, False
         elif purge.outcome is Outcome.CRITICAL_FAILURE:
             retching = True
-    return level, hallucinating, retching
+    return level, hallucinating, retching, incapacitating
 
 
 def apply_drinking(
@@ -413,6 +424,7 @@ def apply_drinking(
         drinks = item.drinks + command.drinks
         total = item.total_session_drinks + command.drinks
         level = item.level
+        incapacitating = False
         if drinks > st // 4:
             target = (
                 max(ht, carousing)
@@ -423,11 +435,23 @@ def apply_drinking(
             )
             check = success_roll("gurps-basic-set-4e-2004", max(1, target), rng=rng)
             if not check.outcome.succeeded:
-                level, hallucinating, retching = _failed_drinking_check(
+                level, hallucinating, retching, incapacitating = _failed_drinking_check(
                     item, check, ht=ht + tolerance, rng=rng
                 )
+        state = invalidate_waking(
+            state,
+            command.actor_id,
+            "intoxication",
+            item.actor_id,
+            command.id,
+            incapacitating=incapacitating,
+        )
         item = item.model_copy(
-            update={"drinks": drinks, "total_session_drinks": total, "level": level}
+            update={
+                "drinks": drinks,
+                "total_session_drinks": total,
+                "level": level,
+            }
         )
     elif command.kind == "stop-drinking":
         if item.stopped_at is not None or item.total_session_drinks == 0:
