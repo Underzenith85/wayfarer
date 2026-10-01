@@ -4,29 +4,80 @@ Issue #818 uses Characters, Fourth Edition third printing (February 2008),
 SHA-256 `872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e`,
 and Campaigns, Fourth Edition fourth printing,
 SHA-256 `79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80`.
-The supplied PDF bytes were reopened and their hashes checked on 2026-10-01.
+The supplied bytes and printed B168/B178/B345–346/B483–485 were reopened on
+2026-10-01. No licensed source text is bundled.
+
+## Verified consumer behavior
 
 Characters B178 makes Armoury IQ/A, TL-indexed, with separate Melee Weapons
-and Body Armor specialties. Characters B168 distinguishes IQ-based technological
-skills from other technological skills: working one, two or three TLs above
-training gives -5, -10 or -15; four or more is impossible. Working one TL below
-training gives -1, then another -2 for each further lower TL. The approved
-purchase supplies the training TL; the actual equipment supplies its TL.
-Unknown or nonnumeric TL cannot authorize these restoration procedures.
+and Body Armor specialties. Melee Weapons includes shields and weapons used
+with Thrown Weapon skills. The repair binding accepts those classes and
+rejects a body-armor specialty on an actual melee weapon.
 
-Campaigns B484–485 confirms the existing equipment-repair transaction: each
-attempt takes half an hour; success restores margin HP, minimum one, capped at
-missing HP. Its price modifiers are +1 through $1,000, zero through $10,000,
-then -1/-2/-3 at the printed higher bands. Zero/negative HP requires spare parts
-worth 1d times 10% of original price and an additional -2. Destroyed equipment
-cannot be repaired. Existing transactions preserve owned tools/materials,
-shared-clock deadlines, authority, stale-command rejection and exact retries.
+B168's IQ technology table gives -5/-10/-15 for one/two/three higher TLs;
+four higher TLs is impossible. One lower TL gives -1, with another -2 for
+each additional lower TL. The approved purchase supplies training TL, and the
+actual item supplies equipment TL. Nonnumeric TL rejects. B345 also prohibits
+an effective nondefense skill below three; this is checked before spending
+parts and again before the completion roll.
 
-`tests/test_issue_818_armoury_repairs.py` checks both actual equipment kinds,
-printed numerical TL boundaries, HP results, rejection and retry. Existing
-`tests/test_object_combat.py` retains the price/major-repair/material coverage.
-The source-derived fixtures use IQ-based TL purchases rather than the former
-DX-based non-TL test skill.
+B484–485 gives a baseline half-hour attempt. A successful roll restores margin
+HP, minimum one, capped at missing HP. Its price modifiers are +1 through
+$1,000, zero through $10,000, then -1/-2/-3 at the printed higher bands.
+Zero/negative HP requires parts worth a d6 times ten percent of the original
+price and an additional -2. Destroyed items reject. Whole inventory units
+round up using exact rational prices, including fractional-price boundaries.
 
-This review does not certify the general technology skill family, other Armoury
-specialties, familiarity variants, API/UI journeys or the whole Basic Set.
+The pinned owned toolkit's existing `GeneralEquipmentFeature(kind="tool")`
+modifier for the exact repair skill now affects the actual repair check.
+Unrelated skill features do not contribute. Duplicate matching features and
+features requiring unimplemented consumption or operating-time handling reject
+before randomness. This uses existing authored tool facts, not request-authored
+skill bonuses. The ordinary unannotated pinned toolkit retains the basic +0.
+
+## #818 acceptance checklist
+
+- Actual weapon and body-armor HP, success margins, zero-margin minimum, cap at
+  missing HP, ordinary/critical failure, and asymmetric trained-TL modifiers:
+  `tests/test_issue_818_armoury_repairs.py`.
+- Both consumers' major-repair price, materials, ownership, deadline and exact
+  start/finish retry after process restart: `test_major_repairs_conserve_supplies_through_restart`
+  in `tests/test_issue_818_armoury_acceptance.py`. Supplies cannot be consumed a
+  second time by replay, and equipment/tool custody stays locked during work.
+- Every printed price-band boundary changes actual HP through both consumers:
+  `test_price_boundaries_change_actual_restoration`.
+- Missing tools, insufficient parts, destroyed/undamaged items, wrong ownership,
+  impossible or unknown TL, and below-three effective skill reject without
+  invented repairs, inventory changes or dice: the acceptance file's negative tests.
+- Fractional-price whole-unit conservation, shield/thrown-weapon coverage and
+  source-pinned toolkit modifiers: the acceptance file's B178/B345 and
+  fractional-price tests. Authored unsupported tool variants reject explicitly.
+- Existing tests preserve wrong-principal rejection, stale revisions, exact
+  receipts and item quantity/ownership. Every major completion is also checked
+  against event replay, including failure.
+
+## Remaining same-consumer acceptance
+
+The whole #818 acceptance remains incomplete. These are real source-valid
+variants of the same two repair consumers, not certification of a broader
+skill family:
+
+- B346 extra-time and haste choices are not represented by `RepairEquipment`;
+  the current transaction fixes work at 1,800 seconds. Longer waits do not
+  select or earn an extra-time modifier.
+- B178 unfamiliar-item penalties have no authoritative actor/item familiarity
+  state in this transaction. Familiarity must not be inferred from an item name
+  or accepted as an unverified caller bonus.
+- B345 tooling modifiers can be pinned through existing skill-specific tool
+  features, but choosing among alternative or absent toolkits, deriving a new
+  modifier from runtime damage/missing components, and consuming powered or
+  expendable tooling are not implemented. A toolkit with explicit unsupported
+  operating requirements is rejected rather than treated as free supplies.
+- Source-default Armoury use still requires an approved TL purchase here; this
+  consumer does not yet bind the IQ/Engineer/cross-specialty defaults to a
+  verified training TL.
+
+These require a reviewed authoritative input/state design. No frozen request
+fields, API/UI flow, source-evidence promotion or completion flag is introduced.
+Other Armoury specialties and general technology/familiarity certification also
+remain outside this implementation.

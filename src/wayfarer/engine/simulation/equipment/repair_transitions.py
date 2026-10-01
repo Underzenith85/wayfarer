@@ -2,17 +2,18 @@
 
 import hashlib
 from fractions import Fraction
+from math import ceil
 from typing import Literal
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.rules.checks import draw_dice
+from wayfarer.engine.rules.checks import Modifier, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.skills.mundane.arts import OBJECT_REPAIR_SKILLS, PROCEDURES
 from wayfarer.engine.rules.skills.technology_level import technology_level_penalty
 from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
-from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode
+from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.repairs import RepairTask, record, tasks
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume
@@ -29,7 +30,14 @@ def _repair_binding(entry: EquipmentProfile, skill_id: str) -> tuple[str | None,
     matches = (
         entry.armor is not None
         if skill_id == "skill:armoury-body-armor"
-        else any(isinstance(mode, MeleeMode) for mode in entry.modes)
+        else entry.shield is not None
+        or any(
+            isinstance(mode, MeleeMode)
+            or isinstance(mode, RangedMode)
+            and mode.thrown
+            and mode.skill_id.startswith("skill:thrown-weapon-")
+            for mode in entry.modes
+        )
     )
     if not matches:
         raise ValidationError("Armoury specialty does not match the equipment")
@@ -54,6 +62,43 @@ def _repair_skill(
         raise ValidationError("Armoury restoration requires a concrete equipment TL")
     penalty = _armoury_tl_penalty(purchase.technology_level, entry.technology_level)
     return skill + penalty, purchase.technology_level, entry.technology_level, penalty
+
+
+def _tool_modifier(entry: EquipmentProfile, skill_id: str) -> int:
+    """Consume the pinned toolkit's exact authored skill modifier (B345)."""
+    features = tuple(f for f in entry.general if f.kind == "tool" and f.skill_id == skill_id)
+    if len(features) > 1:
+        raise ValidationError("Repair toolkit has ambiguous modifiers for this skill")
+    if not features:
+        return 0
+    feature = features[0]
+    if feature.consumable_definition_id is not None or feature.duration_seconds is not None:
+        raise ValidationError("Repair toolkit consumption or operating limits are unsupported")
+    return feature.modifier
+
+
+def _repair_difficulty(entry: EquipmentProfile, hp: int) -> int:
+    """B484–485 price bands and additional major-repair difficulty."""
+    price_modifier = (
+        1
+        if entry.price <= 1000
+        else 0
+        if entry.price <= 10000
+        else -1
+        if entry.price <= 100000
+        else -2
+        if entry.price <= 1000000
+        else -3
+    )
+    return price_modifier - (2 if hp <= 0 else 0)
+
+
+def _repair_modifiers(state: PlayState, actor_id: str, skill: int) -> tuple[Modifier, ...]:
+    """B345: a nondefense success roll requires effective skill of at least three."""
+    modifiers = check_modifiers(state.resources, actor_id, "iq")
+    if skill + sum(modifier.value for modifier in modifiers) < 3:
+        raise ValidationError("Repair effective skill must be at least 3")
+    return modifiers
 
 
 def repair(
@@ -128,21 +173,16 @@ def repair(
             entry,
             procedure_id is not None,
         )
-        skill += (
-            1
-            if entry.price <= 1000
-            else 0
-            if entry.price <= 10000
-            else -1
-            if entry.price <= 100000
-            else -2
-            if entry.price <= 1000000
-            else -3
+        tool_entry = next(
+            e for e in catalog(runtime).entries if e.definition_id == tool.definition_id
         )
+        skill += _repair_difficulty(entry, item.condition.hp) + _tool_modifier(
+            tool_entry, profile.repair_skill_id
+        )
+        _repair_modifiers(state, actor_id, skill)
         parts_die = None
         quantity = 0
         if item.condition.hp <= 0:
-            skill -= 2
             part_entry = next(
                 (
                     e
@@ -167,13 +207,13 @@ def repair(
             # Preflight the maximum cost before RNG; insufficient supplies cannot fish for a cheaper roll.
             entry_price = Fraction(entry.price)
             part_price = Fraction(part_entry.price)
-            maximum = int((entry_price * 6 + part_price * 10 - 1) // (part_price * 10))
+            maximum = ceil(entry_price * 6 / (part_price * 10))
             if supplies.quantity < maximum:
                 raise ValidationError(
                     "Major repair requires supplies covering the maximum parts cost"
                 )
             parts_die = 6 if preview else draw_dice(runtime.rng, 1)[0]
-            quantity = int((entry_price * parts_die + part_price * 10 - 1) // (part_price * 10))
+            quantity = ceil(entry_price * parts_die / (part_price * 10))
             if quantity:
                 resources = runtime.resources.apply(
                     resources,
@@ -215,12 +255,13 @@ def repair(
             for i in resources.items
         ):
             raise ConflictError("Repair equipment changed; cancel this attempt")
+        modifiers = _repair_modifiers(state, actor_id, task.skill)
         if preview:
             return state, task
         check = success_roll(
             profile.profile_id,
             task.skill,
-            check_modifiers(resources, actor_id, "iq"),
+            modifiers,
             rng=runtime.rng,
         )
         restored = (
