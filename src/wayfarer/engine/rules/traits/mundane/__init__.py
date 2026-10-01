@@ -21,7 +21,12 @@ from wayfarer.engine.rules.catalog import (
     SourceReference,
 )
 from wayfarer.engine.rules.traits.background import BACKGROUND_BINDINGS, BACKGROUND_HOOKS
-from wayfarer.engine.rules.traits.base import TraitParameter, TraitRules, validate_metadata
+from wayfarer.engine.rules.traits.base import (
+    TraitModifier,
+    TraitParameter,
+    TraitRules,
+    validate_metadata,
+)
 from wayfarer.engine.rules.traits.mental import CONSEQUENCES, MENTAL_BINDINGS, MENTAL_HOOKS
 from wayfarer.engine.rules.traits.mundane.complete import SPECS as COMPLETE_SPECS
 from wayfarer.engine.rules.traits.mundane.runtime import (
@@ -147,9 +152,29 @@ class TraitEntry:
                 maximum_level=self.maximum_level,
                 self_control=self.self_control,
                 parameters=self.parameters,
+                modifiers=_luck_modifiers(self.id),
                 runtime_hooks=(self.effect,),
             ),
         )
+
+
+def _luck_modifiers(identity: str) -> tuple[TraitModifier, ...]:
+    if identity != "trait:advantage:luck":
+        return ()
+    aspects = ("aspected-athletics", "aspected-social", "aspected-job", "aspected-combat")
+    return (
+        TraitModifier("active", -40, runtime_hook="mundane-trait:luck"),
+        TraitModifier("defensive", -20, runtime_hook="mundane-trait:luck"),
+        *(
+            TraitModifier(
+                key,
+                -20,
+                tuple(other for other in aspects if other != key),
+                runtime_hook="mundane-trait:luck",
+            )
+            for key in aspects
+        ),
+    )
 
 
 def _entry(

@@ -36,3 +36,28 @@ No global or parent certification status is promoted by this change.
 
 Remaining consumer integrations are tracked in #854; the three special
 limitation constructions are tracked in #855. Both remain unverified.
+
+## Ordinary task consumer and limited constructions (#866/#855)
+
+`simulation.campaign.luck.apply_lucky_task` joins one pending worker check to the
+existing long-task reducer. Its selected dice change actual progress, completion,
+and the persisted campaign clock; the host must save both snapshots under one
+transaction lock. Committed work cannot be rerolled. Separate supervisor checks
+remain unsupported until their own pending identities are represented.
+
+The selected B66 Active construction costs -40% and requires declaration before
+any original dice. Aspected costs -20%; the currently bounded classes are
+athletics, social interactions, job tasks, and the source's precise combat subset
+(weapon checks, active defenses, and close-combat ST/DX). A generic combat-adjacent
+check does not qualify. Defensive costs -20% and restricts the trusted pending
+record to failed active defenses, resistance or injury HT checks, or an incoming
+critical attack. Aspect identity and failed status are trusted host facts, never
+player arithmetic. Purchase prices use the existing canonical modifier engine;
+cooldown always comes from the base 15/30/60-point tier.
+
+Active and job-aspected Luck have actual long-task progress tests. Defensive and
+other aspects still need their downstream defense/social/combat consumers, so
+#855 remains open. #866 remains open for other ordinary skill consumers and
+supervised work. #854 still includes damage, reaction, attacker, outside-event
+and secret-GM integrations. This supersedes the blanket modified-construction
+rejection above without promoting any global certification status.
