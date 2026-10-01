@@ -4,8 +4,6 @@ import hashlib
 from collections.abc import Mapping
 from typing import Literal
 
-from pydantic import Field
-
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.physiology import PhysiologyTraits, physiology_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
@@ -13,48 +11,26 @@ from wayfarer.engine.rules.checks import RandomSource, draw_dice
 from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
 from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
-from wayfarer.engine.simulation.resources import Command, Pool, ResourceEvent, ResourceState
-from wayfarer.engine.simulation.traits.physiology_calendar import PhysiologyCalendar
+from wayfarer.engine.simulation.resources import Pool, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.traits.physiology_types import (
+    PhysiologyCommand,
+    PhysiologyEvent,
+    PhysiologyInterval,
+    PhysiologyOutcome,
+)
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Record
+
+__all__ = (
+    "PhysiologyCommand",
+    "PhysiologyInterval",
+    "PhysiologyEvent",
+    "PhysiologyOutcome",
+    "apply_physiology_interval",
+    "harmful_timing",
+    "history",
+)
 
 PREFIX = "physiology:"
-
-
-class PhysiologyInterval(Record):
-    id: str
-    actor_id: str
-    kind: Literal["regeneration", "dependency", "weakness", "extra-life"]
-    due: int = Field(ge=0)
-    amount: int = Field(default=1, ge=1, le=1000)
-    active: bool = True
-    calendar: PhysiologyCalendar | None = Field(
-        default=None, exclude_if=lambda value: value is None
-    )
-    started: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
-
-
-class PhysiologyCommand(Command):
-    interval_id: str
-
-
-class PhysiologyOutcome(Record):
-    actor_id: str
-    kind: Literal["regenerated", "injured", "revived", "unavailable"]
-    hp_before: int
-    hp_after: int
-    interval_id: str
-    injury: InjuryResult | None = None
-    damage_dice: tuple[int, ...] = ()
-
-
-class PhysiologyEvent(Record):
-    command_id: str
-    outcome: PhysiologyOutcome
-    interval: PhysiologyInterval | None = Field(
-        default=None, exclude_if=lambda value: value is None
-    )
-    request_digest: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 def _event_id(command_id: str) -> str:
@@ -151,21 +127,8 @@ def _settled_hp(hp: Pool, after: int, *, revived: bool) -> Pool:
     )
 
 
-def _harmful_interval(
-    resources: ResourceState,
-    command: PhysiologyCommand,
-    interval: PhysiologyInterval,
-    traits: PhysiologyTraits,
-    required: str,
-    build: ValidatedBuild,
-    rng: RandomSource | None,
-    hp: Pool,
-) -> tuple[ResourceState, Pool, InjuryResult, tuple[int, ...]]:
-    purchase = traits.purchase(required)
-    assert purchase is not None
-    if purchase.modifiers:
-        raise ValidationError("Harmful physiology modifiers require a supported interval")
-    frequency = traits.parameter(required, "interval")
+def harmful_timing(interval: PhysiologyInterval, frequency: str) -> tuple[int, int]:
+    """B130/B161 first injury and recurring cadence, in campaign seconds."""
     periods = (
         {"minute": 60, "five-minutes": 300, "thirty-minutes": 1800}
         if interval.kind == "weakness"
@@ -198,6 +161,8 @@ def _harmful_interval(
     if interval.kind == "dependency" and frequency in {"month", "season", "year"}:
         if interval.calendar is None:
             raise ValidationError("Monthly dependency requires the authoritative campaign calendar")
+        if frequency == "season" and interval.calendar.months_per_season != 3:
+            raise ValidationError("B130 seasonal Dependency requires exactly three months")
         first = (
             interval.calendar.deadline(interval.started, str(frequency))
             + {
@@ -219,6 +184,28 @@ def _harmful_interval(
             "year": 1209600,
         }[str(frequency)]
     )
+    if interval.kind == "dependency" and interval.dependency_due is not None:
+        first = interval.dependency_due + cadence
+    return first, cadence
+
+
+def _harmful_interval(
+    resources: ResourceState,
+    command: PhysiologyCommand,
+    interval: PhysiologyInterval,
+    traits: PhysiologyTraits,
+    required: str,
+    build: ValidatedBuild,
+    rng: RandomSource | None,
+    hp: Pool,
+    held_item_ids: tuple[str, ...],
+) -> tuple[ResourceState, Pool, InjuryResult, tuple[int, ...]]:
+    purchase = traits.purchase(required)
+    assert purchase is not None
+    if purchase.modifiers:
+        raise ValidationError("Harmful physiology modifiers require a supported interval")
+    frequency = traits.parameter(required, "interval")
+    first, cadence = harmful_timing(interval, str(frequency))
     if interval.due < first or (interval.due - first) % cadence:
         raise ValidationError("Physiology interval differs from the approved frequency")
     if any(
@@ -255,6 +242,7 @@ def _harmful_interval(
             injury_source="internal",
         ),
         ht=build.statistics.ht,
+        held_item_ids=held_item_ids,
         rng=rng,
         system=True,
     )
@@ -273,6 +261,7 @@ def apply_physiology_interval(
     system: bool = False,
     rng: RandomSource | None = None,
     unhealing_condition: bool = False,
+    held_item_ids: tuple[str, ...] = (),
 ) -> tuple[ResourceState, PhysiologyOutcome]:
     if (
         not system
@@ -334,7 +323,7 @@ def apply_physiology_interval(
         kind, after = "regenerated", healed_hp.current
     elif interval.kind in {"dependency", "weakness"}:
         resources, hp, injury_result, damage_dice = _harmful_interval(
-            resources, command, interval, traits, required, build, rng, hp
+            resources, command, interval, traits, required, build, rng, hp, held_item_ids
         )
         kind, after = "injured", hp.current
     else:

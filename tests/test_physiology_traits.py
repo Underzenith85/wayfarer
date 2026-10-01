@@ -52,7 +52,13 @@ def test_registry_and_inventory_account_for_all_38_entries() -> None:
     }
     assert set(rows) == {binding.id for binding in BINDINGS} - {"advantage:reduced-consumption"}
     assert all(
-        row.blockers == () and row.evidence == ("tests/test_physiology_traits.py",)
+        row.blockers == ()
+        and row.evidence
+        == (
+            ("tests/test_physiology_traits.py", "tests/test_harmful_physiology_persistence.py")
+            if row.id in {"disadvantage:dependency", "disadvantage:weakness"}
+            else ("tests/test_physiology_traits.py",)
+        )
         for row in rows.values()
     )
 

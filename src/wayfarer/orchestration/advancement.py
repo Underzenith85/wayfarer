@@ -33,6 +33,12 @@ from wayfarer.engine.simulation.campaign.party import migrate
 from wayfarer.engine.simulation.campaign.scenario_references import boundary
 from wayfarer.engine.simulation.campaign.scenes import ActorScene
 from wayfarer.engine.simulation.resources import Pool
+from wayfarer.engine.simulation.traits.harmful_physiology_state import (
+    require_deadline as require_physiology_deadline,
+)
+from wayfarer.engine.simulation.traits.harmful_physiology_state import (
+    require_no_transformation_bindings,
+)
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.builds import canonical_build as _build
@@ -215,6 +221,9 @@ class AdvancementService:
             state.revision + 1,
         ):
             raise ConflictError("Advancement revision changed")
+        require_physiology_deadline(
+            state.resources, state.resources.game_time + 1, actor_id=command.actor_id
+        )
         before = _build(self.play, state, command.actor_id)
         if before.revision != command.expected_build_revision:
             raise ConflictError("Character build changed")
@@ -413,6 +422,14 @@ class MigrationService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.current._load(campaign)
+            require_physiology_deadline(state.resources, state.resources.game_time + 1)
+            transformations = self.target.engine.rules.transformations
+            require_no_transformation_bindings(
+                state.resources,
+                frozenset(rule.actor_id for rule in transformations.transformations)
+                if transformations is not None
+                else frozenset(),
+            )
             # The target rules must still accept every character under the lock.
             self._diffs(state)
             approvals = []

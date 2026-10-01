@@ -63,6 +63,9 @@ from wayfarer.engine.simulation.resources import (
     Unequip,
     is_carried,
 )
+from wayfarer.engine.simulation.traits.harmful_physiology_state import (
+    require_deadline as require_physiology_deadline,
+)
 from wayfarer.engine.simulation.traits.size_forms import checkpoint as size_checkpoint
 from wayfarer.engine.simulation.traits.size_forms import validate as validate_size_forms
 from wayfarer.engine.world import EntityKind, World
@@ -463,6 +466,7 @@ class ResourceEngine:
         if isinstance(command, Advance) and rng is not None:
             return advance(self, state, command, rng=rng)
         if not isinstance(command, Advance):
+            require_physiology_deadline(state, state.game_time + 1, actor_id=command.actor_id)
             require_cyclic_settled(state.cyclic_attacks, state.game_time + 1)
             require_exposures_settled(state.cyclic_exposures, state.game_time + 1)
             blast_guard(state)
@@ -596,6 +600,7 @@ class ResourceEngine:
                 raise ValidationError("Effect already has an expiration")
             updated = state.model_copy(update={"scheduled": state.scheduled + (entry,)})
         elif isinstance(command, Advance):
+            require_physiology_deadline(state, command.to)
             blast_guard(state, advance_to=command.to)
             if any(
                 i.active and i.due is not None and i.due < command.to for i in fright_effects(state)
