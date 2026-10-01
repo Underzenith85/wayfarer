@@ -38,3 +38,24 @@ Gadgeteer inventions rather than claiming those procedures work. Ordinary
 Gizmos evidence does not certify that extension, the whole technology family,
 or the Basic Set profile. The implementation/source-review parent statuses
 are not promoted to verified by this change.
+
+## Gadgeteer extension (B58, #853)
+
+The selected Characters third printing permits an approved Gadgeteer to reveal
+one of their small inventions or build it on the spot with appropriate actual
+materials and learned required skills. `gadgeteer_gizmos.craft_gizmo` joins the
+approved Gadgeteer/Gizmos purchases to the existing real session-use history.
+An existing invention preserves its identity, custody and condition without a
+crafting roll. Crafting consumes authored material instances in actor custody,
+then rolls the approved relevant skill secretly at -2 or worse. Failure still
+spends the Gizmo and creates an actually disabled device. Critical failure also
+applies an explicitly GM-authored backfire through canonical injury; B58 supplies
+no universal backfire damage formula, so the amount is required source context.
+
+Secret check traces live in a separate GM-only snapshot. The host must commit
+that snapshot and resources together; only the ordinary item/use result belongs
+in player projection. Actual device condition, actor HP, remaining materials,
+use expenditure, restart/replay, authority and pre-entropy rejection are tested.
+Shared Gizmo event IDs are now bounded hashes, with legacy event lookup retained,
+so a valid 200-character command cannot fail solely from a prefix after rolling.
+No source certification or broader Basic Set/end-to-end gate is promoted.
