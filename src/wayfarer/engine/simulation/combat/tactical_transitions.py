@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.tables.combat import maneuver_move_allowance
+from wayfarer.engine.simulation.combat.defense_options import prepare_options
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import blasts
@@ -385,6 +386,18 @@ def _hex_retreat_feasible(
 
 
 def prepare_defense(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+    *,
+    resolve_options: bool = False,
+) -> Encounter:
+    prepared = _prepare_defense_geometry(runtime, state, encounter, command)
+    return prepare_options(runtime, state, prepared, command, resolve=resolve_options)
+
+
+def _prepare_defense_geometry(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> Encounter:
     if isinstance(encounter.spatial, BasicSpatialContext):
@@ -512,6 +525,11 @@ def finish_defense(
     encounter: Encounter,
     command: ChooseDefense,
 ) -> Encounter:
+    target = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+    updates: dict[str, object] = {"tactical_defense_bonus": 0}
+    if command.dodge_and_drop:
+        updates["posture"] = "prone"
+    encounter = CombatEngine._replace(encounter, target.model_copy(update=updates))
     if encounter.spatial_kind == "basic":
         target = next(p for p in encounter.participants if p.actor_id == command.actor_id)
         encounter = CombatEngine._replace(

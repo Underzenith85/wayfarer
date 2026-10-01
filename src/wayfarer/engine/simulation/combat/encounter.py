@@ -14,6 +14,7 @@ from pydantic import (
     model_validator,
 )
 
+from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.types.entangle import Entanglement
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.rules.types.object import GroundPosition
@@ -68,6 +69,7 @@ class Combatant(Record):
     )
     facing: Facing = "north"
     hex_facing: HexFacing | None = None
+    acrobatic_dodge_trace: CheckTrace | None = Field(default=None, exclude_if=lambda v: v is None)
     retreat_used: bool = False
     retreat_attacker_id: str | None = None
     tactical_defense_bonus: int = 0
@@ -237,6 +239,7 @@ class PendingDefense(Record):
 
 
 class DefenseChoice(Record):
+    acrobatic_dodge_trace: CheckTrace | None = Field(default=None, exclude_if=lambda v: v is None)
     pending: PendingDefense
     selected: Defense
     chosen_by: Id

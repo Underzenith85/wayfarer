@@ -296,5 +296,7 @@ def _prepare_encounter(
                 isinstance(incoming, RangedMode) and incoming.thrown
             ):
                 raise ValidationError("Explicit parry damage modes require a parryable attack")
-        encounter = prepare_defense(play.rules_context, state, encounter, command)
+        encounter = prepare_defense(
+            play.rules_context, state, encounter, command, resolve_options=True
+        )
     return encounter
