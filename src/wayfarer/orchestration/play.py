@@ -393,9 +393,11 @@ class PlayService:
         state = recover_stuns(self.rules_context, state)
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
-        state = shapeshifting_checkpoint(self, state)
+        state = shapeshifting_checkpoint(self, state, before=before)
         if run_npcs:
+            before_npcs = state
             state = npc_checkpoint(self, state)
+            state = shapeshifting_checkpoint(self, state, before=before_npcs)
         return objective_checkpoint(self, state, before=before)
 
     @staticmethod

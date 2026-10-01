@@ -136,6 +136,7 @@ BINDINGS: Final = (
         "advantage:alternate-form",
         "Alternate Form",
         15,
+        100,
         parameters=TEMPLATE_COSTS,
         modifiers=(
             modifier("absorptive-change", 5),
@@ -345,7 +346,9 @@ def purchase_cost(binding: MovementFormBinding, levels: int, options: TraitOptio
             ),
         )
         base = (
-            15 + premium if binding.id.endswith("alternate-form") else 100 + max(0, target - native)
+            15 * levels + premium
+            if binding.id.endswith("alternate-form")
+            else 100 + max(0, target - native)
         )
         percent = max(-80, sum(m.percent for m in binding.modifiers if m.id in options.modifiers))
         return int(

@@ -12,6 +12,7 @@ from pydantic import Field, model_validator
 
 from wayfarer.engine.character.compiler import CharacterDraft
 from wayfarer.engine.character.power import Approval, CharacterProposal
+from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.types.location import HumanBody
 from wayfarer.models import Id, Record
 
@@ -61,6 +62,9 @@ class TransformationRule(Record):
     actor_id: Id
     kind: TransformationKind
     source_ref: str = Field(pattern=r"^B(?:29[4-6]|8[3-5])$")
+    form_model_id: Id | None = None
+    compatible_equipment_ids: tuple[Id, ...] = ()
+    forced_reversion_influence: str | None = Field(default=None, min_length=1)
     native_template_cost: int | None = None
     target_template_cost: int | None = None
     target: CharacterDraft
@@ -81,6 +85,10 @@ class TransformationRule(Record):
 
     def validate_form_authority(self) -> None:
         if self.kind in ("alternate-form", "morph"):
+            if self.kind == "morph" and self.form_model_id is None:
+                raise ValueError("Morph requires an existing living or formerly living form model")
+            if self.forced_reversion_influence is None:
+                raise ValueError("Shapeshifting requires an authored external reversion influence")
             if self.source_ref not in ("B83", "B84", "B85"):
                 raise ValueError("Shapeshifting requires its own printed source locator")
             if self.native_template_cost is None or self.target_template_cost is None:
@@ -149,12 +157,14 @@ class TransformationRules(Record):
 
 
 class TransformationRecord(Record):
+    concentration_checks: tuple[CheckTrace, ...] = ()
+    concentration_checked_revision: int = -1
     id: Id
     proposal_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     rule_id: Id
     actor_id: Id
     kind: TransformationKind
-    status: Literal["proposed", "treatment", "active", "interrupted", "reverted"]
+    status: Literal["proposed", "treatment", "active", "reverting", "interrupted", "reverted"]
     source_ref: str
     source_proposal: CharacterProposal
     target_proposal: CharacterProposal
@@ -183,7 +193,19 @@ class TransformationRecord(Record):
     source_knowledge_fact_ids: tuple[Id, ...] = ()
 
 
+class MorphMemory(Record):
+    concentration_checks: tuple[CheckTrace, ...] = ()
+    concentration_checked_revision: int = -1
+    actor_id: Id
+    rule_id: Id
+    build_revision: str
+    started_at: int = Field(ge=0)
+    ready_at: int = Field(ge=0)
+    status: Literal["concentrating", "memorized", "interrupted"]
+
+
 class TransformationState(Record):
+    morph_memories: tuple[MorphMemory, ...] = ()
     records: tuple[TransformationRecord, ...] = ()
 
 
@@ -191,7 +213,7 @@ def current_body_id(state: TransformationState, actor_id: str) -> str:
     records = [
         record
         for record in state.records
-        if record.actor_id == actor_id and record.status in ("active", "reverted")
+        if record.actor_id == actor_id and record.status in ("active", "reverting", "reverted")
     ]
     if not records:
         return actor_id
@@ -205,10 +227,14 @@ def validate_transformations(
     actor_ids: frozenset[str],
 ) -> None:
     if rules is None:
-        if state.records:
+        if state.records or state.morph_memories:
             raise ValueError("Transformation state requires campaign-authored rules")
         return
     authored = {rule.id: rule for rule in rules.transformations}
+    for memory in state.morph_memories:
+        rule = authored.get(memory.rule_id)
+        if rule is None or rule.kind != "morph" or rule.actor_id != memory.actor_id:
+            raise ValueError("Morph memory must name an authored Morph form")
     if len({record.id for record in state.records}) != len(state.records) or len(
         {record.proposal_id for record in state.records}
     ) != len(state.records):
@@ -236,11 +262,11 @@ def validate_transformations(
             record.approved_by is not None or record.target_approval is not None
         ):
             raise ValueError("Unapproved transformation contains approval authority")
-        if record.status in ("treatment", "active", "reverted") and (
+        if record.status in ("treatment", "active", "reverting", "reverted") and (
             record.approved_by is None or record.target_approval is None
         ):
             raise ValueError("Transformation crossed approval boundary without approval")
-        if record.status == "treatment" and record.ready_at is None:
+        if record.status in ("treatment", "reverting") and record.ready_at is None:
             raise ValueError("Treatment requires a completion deadline")
         if (
             record.status == "active"

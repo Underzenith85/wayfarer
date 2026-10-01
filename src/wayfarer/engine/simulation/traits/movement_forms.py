@@ -82,6 +82,15 @@ def visible_forms(
     return tuple(effect for effect in active_forms(resources) if effect.actor_id in visible)
 
 
+def _require_activation_protocol(identifier: str) -> None:
+    if identifier in {"advantage:alternate-form", "advantage:morph"}:
+        raise ValidationError(
+            "Shapeshifting requires an authored approved character transformation"
+        )
+    if identifier not in SWITCHABLE:
+        raise ValidationError("Trait is not a switchable form")
+
+
 def apply_movement_form(
     resources: ResourceState,
     world: World,
@@ -106,12 +115,7 @@ def apply_movement_form(
         raise ConflictError("Movement/form command ID was already used")
     if resources.revision != command.expected_revision:
         raise ConflictError("Movement/form revision changed")
-    if command.definition_id in {"advantage:alternate-form", "advantage:morph"}:
-        raise ValidationError(
-            "Shapeshifting requires an authored approved character transformation"
-        )
-    if command.definition_id not in SWITCHABLE:
-        raise ValidationError("Trait is not a switchable form")
+    _require_activation_protocol(command.definition_id)
     entities = {entity.id for entity in world.entities}
     if command.actor_id not in entities:
         raise ValidationError("Movement/form actor is unavailable")

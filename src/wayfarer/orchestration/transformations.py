@@ -14,18 +14,25 @@ from wayfarer.engine.character.compiler import ValidatedBuild, pool_limits
 from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import DefinitionKind
+from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build as actor_build
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry
 from wayfarer.engine.simulation.campaign.transformations import (
     AttachmentKind,
     AttachmentRoute,
+    MorphMemory,
     TransformationRecord,
     TransformationRule,
+    TransformationRules,
     current_body_id,
 )
+from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume, Pool
+from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.advancement import _refreshed
@@ -36,6 +43,15 @@ from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, subm
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
+
+
+class MemorizeMorph(Record):
+    operation: Literal["memorize-start", "memorize-complete", "memorize-interrupt"]
+    id: Id
+    actor_id: Id
+    expected_revision: int = Field(ge=0)
+    rule_id: Id
+    forget_rule_id: Id | None = None
 
 
 class ProposeTransformation(Record):
@@ -62,7 +78,8 @@ class ResolveTransformation(Record):
     actor_id: Id
     expected_revision: int = Field(ge=0)
     proposal_id: str = Field(pattern=r"^[0-9a-f]{64}$")
-    resolution: Literal["complete", "interrupt", "reverse", "cure", "expire"]
+    resolution: Literal["complete", "interrupt", "reverse", "force", "cure", "expire"]
+    influence: str | None = Field(default=None, min_length=1)
 
 
 def _route(rule: TransformationRule, kind: AttachmentKind) -> AttachmentRoute:
@@ -126,12 +143,43 @@ def _target_build(
     ):
         raise ValidationError("Mind transfer must preserve IQ with the mind")
     if rule.kind in ("alternate-form", "morph"):
-        _validate_shapeshifting(rule, before, after)
+        _validate_form_target(play, state, rule, before, after)
     if rule.kind in ("body-modification", "alternate-form", "morph"):
         changed = {key for key in old.keys() | new.keys() if old.get(key) != new.get(key)}
         if any(routes[key] != "body" for key in changed):
             raise ValidationError("Body modification may only alter body-routed traits")
     return proposal, before, after
+
+
+def _validate_form_target(
+    play: PlayService,
+    state: PlayState,
+    rule: TransformationRule,
+    before: ValidatedBuild,
+    after: ValidatedBuild,
+) -> None:
+    _require_form_concentration(state, rule.actor_id)
+    _validate_shapeshifting(rule, before, after)
+    if rule.kind == "alternate-form":
+        _validate_alternate_form_count(play.engine.rules.transformations, rule, before)
+    if rule.kind == "morph":
+        _validate_morph_access(state, rule)
+
+
+def _validate_alternate_form_count(
+    rules: TransformationRules | None, rule: TransformationRule, before: ValidatedBuild
+) -> None:
+    assert rules is not None
+    purchase = next(
+        p for p in before.trait_purchases if p.definition_id == "advantage:alternate-form"
+    )
+    forms = tuple(
+        r
+        for r in rules.transformations
+        if r.actor_id == rule.actor_id and r.kind == "alternate-form"
+    )
+    if len(forms) > purchase.amount:
+        raise ValidationError("Authored alternate forms exceed the purchased number of forms")
 
 
 def _validate_shapeshifting(
@@ -147,7 +195,9 @@ def _validate_shapeshifting(
     parameters = dict(purchase.trait.parameters)
     if (
         parameters.get("native-template-cost") != rule.native_template_cost
-        or parameters.get("target-template-cost") != rule.target_template_cost
+        or not isinstance(parameters.get("target-template-cost"), int)
+        or rule.target_template_cost is None
+        or int(parameters["target-template-cost"]) < rule.target_template_cost
     ):
         raise ValidationError("Authored form exceeds or differs from the approved template limits")
     assert rule.native_template_cost is not None and rule.target_template_cost is not None
@@ -156,6 +206,106 @@ def _validate_shapeshifting(
     retained = next((p for p in after.trait_purchases if p.definition_id == identifier), None)
     if retained != purchase:
         raise ValidationError("An alternate build must retain its native shapeshifting capability")
+
+
+def _cannot_concentrate(state: PlayState, actor_id: str) -> bool:
+    hp = next((p for p in state.resources.pools if p.id == "hp:" + actor_id), None)
+    fp = next((p for p in state.resources.pools if p.id == "fp:" + actor_id), None)
+    return bool(
+        (hp and hp.injury and (hp.injury.unconscious or hp.injury.dead))
+        or (
+            fp
+            and fp.fatigue
+            and (fp.fatigue.unconscious or fp.fatigue.collapsed or fp.fatigue.heart_attack)
+        )
+    )
+
+
+def _require_form_concentration(state: PlayState, actor_id: str) -> None:
+    if _cannot_concentrate(state, actor_id):
+        raise ValidationError("Shapeshifting requires a conscious actor able to concentrate")
+
+
+def _validate_morph_access(state: PlayState, rule: TransformationRule) -> None:
+    if any(
+        memory.actor_id == rule.actor_id
+        and memory.rule_id == rule.id
+        and memory.status == "memorized"
+        for memory in state.transformations.morph_memories
+    ):
+        return
+    actor = next(e for e in state.world.entities if e.id == rule.actor_id)
+    models = state.world.perspective(rule.actor_id).entities
+    model = next((e for e in models if e.id == rule.form_model_id), None)
+    if model is None or model.kind.value != "actor" or model.location_id != actor.location_id:
+        raise ValidationError("Morph requires a visible present form model or a memorized form")
+
+
+def _memorize_morph(play: PlayService, state: PlayState, command: MemorizeMorph) -> PlayState:
+    rule = _rule(play, command.actor_id, command.rule_id)
+    if rule.kind != "morph":
+        raise ValidationError("Only Morph can memorize a form")
+    active = next(
+        (
+            r
+            for r in state.transformations.records
+            if r.actor_id == command.actor_id and r.rule_id == rule.id and r.status == "active"
+        ),
+        None,
+    )
+    if active is None:
+        raise ValidationError("Morph can memorize only the currently assumed form")
+    _require_form_concentration(state, command.actor_id)
+    build = canonical_build(play, state, command.actor_id)
+    assert build.statistics is not None
+    memories = state.transformations.morph_memories
+    old = next(
+        (m for m in memories if m.actor_id == command.actor_id and m.rule_id == rule.id), None
+    )
+    if command.operation == "memorize-start":
+        if old is not None and old.status != "interrupted":
+            raise ValidationError("Morph memory is already active")
+        if any(m.actor_id == command.actor_id and m.status == "concentrating" for m in memories):
+            raise ValidationError("Morph is already memorizing another form")
+        retained = tuple(
+            m for m in memories if m.actor_id == command.actor_id and m.status == "memorized"
+        )
+        if len(retained) >= build.statistics.iq:
+            if command.forget_rule_id not in {m.rule_id for m in retained}:
+                raise ValidationError(
+                    "Full Morph memory requires selecting a memorized form to overwrite"
+                )
+            memories = tuple(
+                m
+                for m in memories
+                if not (m.actor_id == command.actor_id and m.rule_id == command.forget_rule_id)
+            )
+        memory = MorphMemory(
+            actor_id=command.actor_id,
+            rule_id=rule.id,
+            build_revision=build.revision,
+            started_at=state.resources.game_time,
+            ready_at=state.resources.game_time + 60,
+            status="concentrating",
+        )
+    else:
+        if old is None or old.status != "concentrating" or old.build_revision != build.revision:
+            raise ValidationError("Morph is not memorizing this active form")
+        if command.operation == "memorize-complete" and state.resources.game_time < old.ready_at:
+            raise ValidationError("Morph memorization requires one minute of concentration")
+        memory = old.model_copy(
+            update={
+                "status": "memorized" if command.operation == "memorize-complete" else "interrupted"
+            }
+        )
+    memories = tuple(
+        m for m in memories if not (m.actor_id == memory.actor_id and m.rule_id == memory.rule_id)
+    ) + (memory,)
+    return state.model_copy(
+        update={
+            "transformations": state.transformations.model_copy(update={"morph_memories": memories})
+        }
+    )
 
 
 def _active(state: PlayState, proposal_id: str) -> TransformationRecord:
@@ -333,6 +483,33 @@ def _authority_state(
     return state.model_copy(update={"resources": resources, "world": world, "members": members})
 
 
+def _scale_form_pool(pool: Pool, maximum: int) -> Pool:
+    """B83 proportional loss, including restricted components of lost FP."""
+
+    def scaled(value: int) -> int:
+        return (value * maximum + pool.maximum - 1) // pool.maximum
+
+    fatigue = pool.fatigue
+    if fatigue is not None:
+        starvation = scaled(fatigue.starvation)
+        dehydration = scaled(fatigue.starvation + fatigue.dehydration) - starvation
+        sleep = (
+            scaled(fatigue.starvation + fatigue.dehydration + fatigue.sleep)
+            - starvation
+            - dehydration
+        )
+        fatigue = fatigue.model_copy(
+            update={"starvation": starvation, "dehydration": dehydration, "sleep": sleep}
+        )
+    return pool.model_copy(
+        update={
+            "maximum": maximum,
+            "current": maximum - scaled(pool.maximum - pool.current),
+            "fatigue": fatigue,
+        }
+    )
+
+
 def _apply_build(
     play: PlayService,
     state: PlayState,
@@ -357,17 +534,15 @@ def _apply_build(
     def rebase(pool: Pool) -> Pool:
         if pool.id not in (f"hp:{record.actor_id}", f"fp:{record.actor_id}"):
             return pool
+        maximum = maxima[pool.id.split(":", 1)[0]]
+        if rule.kind in ("alternate-form", "morph"):
+            pool = _scale_form_pool(pool, maximum)
         updated = _refreshed(
             pool,
             maxima[pool.id.split(":", 1)[0]],
             after,
             physical_traits(after, play.engine.reviewer.compiler.definitions),
         )
-        if rule.kind in ("alternate-form", "morph"):
-            loss = (
-                (pool.maximum - pool.current) * updated.maximum + pool.maximum - 1
-            ) // pool.maximum
-            updated = updated.model_copy(update={"current": updated.maximum - loss})
         if updated.injury is not None and body is not None:
             updated = updated.model_copy(
                 update={
@@ -393,6 +568,15 @@ def _apply_build(
                 for owner in state.resources.owners
             ),
             "pools": tuple(rebase(pool) for pool in state.resources.pools),
+            "items": tuple(
+                item.model_copy(update={"equipped": False, "ready": False})
+                if rule.kind in ("alternate-form", "morph")
+                and not reverse
+                and item.owner_id == record.actor_id
+                and item.id not in rule.compatible_equipment_ids
+                else item
+                for item in state.resources.items
+            ),
         }
     )
     if before.statistics is not None and after.statistics is not None:
@@ -450,22 +634,131 @@ def _apply_build(
                 "dead_actor_ids": tuple(a for a in recovery.dead_actor_ids if a != record.actor_id)
             }
         )
+    memories = tuple(
+        m.model_copy(update={"status": "interrupted"})
+        if m.actor_id == record.actor_id and m.status == "concentrating"
+        else m
+        for m in state.transformations.morph_memories
+    )
     return state.model_copy(
-        update={"advancement": state.advancement + (ledger,), "recovery": recovery}
+        update={
+            "advancement": state.advancement + (ledger,),
+            "recovery": recovery,
+            "transformations": state.transformations.model_copy(
+                update={"morph_memories": memories}
+            ),
+        }
     )
 
 
-def shapeshifting_checkpoint(play: PlayService, state: PlayState) -> PlayState:
-    """B83: knockout and death immediately return an active form to its native build."""
+def _form_distraction_check(
+    runtime: RulesContext, state: PlayState, before: PlayState, actor_id: str
+) -> CheckTrace | None:
+    hp = next((p for p in state.resources.pools if p.id == "hp:" + actor_id), None)
+    old = next((p for p in before.resources.pools if p.id == "hp:" + actor_id), None)
+    defended = any(
+        e.pending_defense
+        and e.pending_defense.defender_id == actor_id
+        and any(n.id == e.id and n.pending_defense != e.pending_defense for n in state.encounters)
+        for e in before.encounters
+    )
+    if (
+        hp is None
+        or old is None
+        or (hp.current >= old.current and not defended and not (hp.injury and hp.injury.stunned))
+    ):
+        return None
+    compiled = actor_build(runtime, state, actor_id)
+    assert compiled.statistics is not None
+    return success_roll(
+        compiled.statistics.profile_id,
+        compiled.statistics.will - 3,
+        check_modifiers(state.resources, actor_id, "will"),
+        rng=runtime.rng,
+    )
+
+
+def _shapeshifting_concentration(
+    runtime: RulesContext, state: PlayState, before: PlayState
+) -> PlayState:
+    records = []
     for record in state.transformations.records:
-        if record.kind not in ("alternate-form", "morph") or record.status != "active":
+        if (
+            record.kind in ("alternate-form", "morph")
+            and record.status in ("treatment", "reverting")
+            and record.concentration_checked_revision != state.revision
+        ):
+            if _cannot_concentrate(state, record.actor_id):
+                record = record.model_copy(
+                    update={"status": "active" if record.status == "reverting" else "interrupted"}
+                )
+                records.append(record)
+                continue
+            check = _form_distraction_check(runtime, state, before, record.actor_id)
+            if check is not None:
+                record = record.model_copy(
+                    update={
+                        "concentration_checks": record.concentration_checks + (check,),
+                        "concentration_checked_revision": state.revision,
+                        "status": record.status
+                        if check.outcome.succeeded
+                        else "active"
+                        if record.status == "reverting"
+                        else "interrupted",
+                    }
+                )
+        records.append(record)
+    memories = []
+    for memory in state.transformations.morph_memories:
+        if (
+            memory.status == "concentrating"
+            and memory.concentration_checked_revision != state.revision
+        ):
+            if _cannot_concentrate(state, memory.actor_id):
+                memory = memory.model_copy(update={"status": "interrupted"})
+                memories.append(memory)
+                continue
+            check = _form_distraction_check(runtime, state, before, memory.actor_id)
+            if check is not None:
+                memory = memory.model_copy(
+                    update={
+                        "concentration_checks": memory.concentration_checks + (check,),
+                        "concentration_checked_revision": state.revision,
+                        "status": "concentrating" if check.outcome.succeeded else "interrupted",
+                    }
+                )
+        memories.append(memory)
+    return state.model_copy(
+        update={
+            "transformations": state.transformations.model_copy(
+                update={"records": tuple(records), "morph_memories": tuple(memories)}
+            )
+        }
+    )
+
+
+def shapeshifting_checkpoint(
+    play: PlayService, state: PlayState, *, before: PlayState | None = None
+) -> PlayState:
+    """B83: knockout and death immediately return an active form to its native build."""
+    if before is not None:
+        state = _shapeshifting_concentration(play.rules_context, state, before)
+    for record in state.transformations.records:
+        if record.kind not in ("alternate-form", "morph") or record.status not in (
+            "active",
+            "reverting",
+        ):
             continue
         hp = next((p for p in state.resources.pools if p.id == "hp:" + record.actor_id), None)
         fp = next((p for p in state.resources.pools if p.id == "fp:" + record.actor_id), None)
         knocked_out = (
             hp is not None and hp.injury is not None and (hp.injury.dead or hp.injury.unconscious)
         )
-        fatigue_out = fp is not None and fp.fatigue is not None and fp.fatigue.collapsed
+        fatigue_out = (
+            fp is not None
+            and fp.fatigue is not None
+            and (fp.fatigue.collapsed or fp.fatigue.unconscious or fp.fatigue.heart_attack)
+        )
         if (
             not knocked_out
             and not fatigue_out
@@ -501,6 +794,68 @@ def shapeshifting_checkpoint(play: PlayService, state: PlayState) -> PlayState:
             }
         )
     return state
+
+
+def _reverse_transformation(
+    play: PlayService,
+    state: PlayState,
+    record: TransformationRecord,
+    rule: TransformationRule,
+    command: ResolveTransformation,
+    current: ValidatedBuild,
+) -> tuple[PlayState, TransformationRecord]:
+    if record.status != "active":
+        raise ValidationError("Only an active transformation can be reversed")
+    if command.resolution == "cure" and not rule.curable:
+        raise ValidationError("Transformation has no authored cure")
+    if command.resolution == "reverse" and not rule.reversible:
+        raise ValidationError("Transformation is not reversible")
+    if command.resolution == "expire" and (
+        record.expires_at is None or state.resources.game_time < record.expires_at
+    ):
+        raise ValidationError("Transformation has not expired")
+    if command.resolution == "expire" and rule.expires_after_seconds is None:
+        raise ValidationError("Permanent transformations do not expire")
+    if current.revision != record.target_build_revision:
+        raise ConflictError("Character changed before transformation reversal")
+    if command.resolution == "force" and (
+        rule.kind not in ("alternate-form", "morph")
+        or command.influence != rule.forced_reversion_influence
+    ):
+        raise ValidationError("Forced reversion requires the authored external influence")
+    state = state.model_copy(
+        update={
+            "transformations": state.transformations.model_copy(
+                update={
+                    "morph_memories": tuple(
+                        m.model_copy(update={"status": "interrupted"})
+                        if m.actor_id == command.actor_id and m.status == "concentrating"
+                        else m
+                        for m in state.transformations.morph_memories
+                    )
+                }
+            )
+        }
+    )
+    if command.resolution == "reverse" and rule.kind in (
+        "alternate-form",
+        "morph",
+    ):
+        record = record.model_copy(
+            update={
+                "status": "reverting",
+                "ready_at": state.resources.game_time + 10,
+            }
+        )
+    else:
+        state = _apply_build(play, state, record, rule, reverse=True, command_id=command.id)
+    record = record.model_copy(
+        update={
+            "status": "reverting" if record.status == "reverting" else "reverted",
+            "resolved_at": state.resources.game_time,
+        }
+    )
+    return state, record
 
 
 APPROVAL_REFUSAL = "Transformation approval requires director authority"
@@ -549,7 +904,7 @@ class TransformationService:
                 if any(
                     r.actor_id == command.actor_id
                     and (
-                        r.status in ("proposed", "treatment")
+                        r.status in ("proposed", "treatment", "reverting")
                         or (
                             r.status == "active"
                             and (
@@ -676,7 +1031,12 @@ class TransformationService:
                     )
                     if status == "active":
                         state = _apply_build(
-                            play, state, record, rule, reverse=False, command_id=command.id
+                            play,
+                            state,
+                            record,
+                            rule,
+                            reverse=record.status == "reverting",
+                            command_id=command.id,
                         )
                         record = record.model_copy(
                             update={
@@ -691,30 +1051,45 @@ class TransformationService:
                         )
                 else:
                     if command.resolution == "interrupt":
-                        if record.status != "treatment" or state.resources.game_time >= (
-                            record.ready_at or 0
-                        ):
+                        if record.status not in (
+                            "treatment",
+                            "reverting",
+                        ) or state.resources.game_time >= (record.ready_at or 0):
                             raise ValidationError("Only pending treatment may be interrupted")
                         record = record.model_copy(
                             update={
-                                "status": "interrupted",
+                                "status": "active"
+                                if record.status == "reverting"
+                                else "interrupted",
                                 "resolved_at": state.resources.game_time,
                             }
                         )
                     elif command.resolution == "complete":
-                        if record.status != "treatment" or state.resources.game_time < (
-                            record.ready_at or 0
-                        ):
+                        if record.status not in (
+                            "treatment",
+                            "reverting",
+                        ) or state.resources.game_time < (record.ready_at or 0):
                             raise ValidationError("Transformation treatment is not ready")
                         _validate_death_boundary(state, rule)
-                        if current.revision != record.source_build_revision:
+                        if rule.kind in ("alternate-form", "morph"):
+                            _require_form_concentration(state, command.actor_id)
+                        if current.revision != (
+                            record.target_build_revision
+                            if record.status == "reverting"
+                            else record.source_build_revision
+                        ):
                             raise ConflictError("Character changed during transformation treatment")
                         state = _apply_build(
-                            play, state, record, rule, reverse=False, command_id=command.id
+                            play,
+                            state,
+                            record,
+                            rule,
+                            reverse=record.status == "reverting",
+                            command_id=command.id,
                         )
                         record = record.model_copy(
                             update={
-                                "status": "active",
+                                "status": "reverted" if record.status == "reverting" else "active",
                                 "resolved_at": state.resources.game_time,
                                 "recovery_until": state.resources.game_time + rule.recovery_seconds
                                 if rule.recovery_seconds
@@ -725,26 +1100,8 @@ class TransformationService:
                             }
                         )
                     else:
-                        if record.status != "active":
-                            raise ValidationError("Only an active transformation can be reversed")
-                        if command.resolution == "cure" and not rule.curable:
-                            raise ValidationError("Transformation has no authored cure")
-                        if command.resolution == "reverse" and not rule.reversible:
-                            raise ValidationError("Transformation is not reversible")
-                        if command.resolution == "expire" and (
-                            record.expires_at is None
-                            or state.resources.game_time < record.expires_at
-                        ):
-                            raise ValidationError("Transformation has not expired")
-                        if command.resolution == "expire" and rule.expires_after_seconds is None:
-                            raise ValidationError("Permanent transformations do not expire")
-                        if current.revision != record.target_build_revision:
-                            raise ConflictError("Character changed before transformation reversal")
-                        state = _apply_build(
-                            play, state, record, rule, reverse=True, command_id=command.id
-                        )
-                        record = record.model_copy(
-                            update={"status": "reverted", "resolved_at": state.resources.game_time}
+                        state, record = _reverse_transformation(
+                            play, state, record, rule, command, current
                         )
                 records = tuple(
                     record if r.proposal_id == record.proposal_id else r
@@ -795,12 +1152,66 @@ class TransformationService:
             control=(
                 (director,)
                 if isinstance(command, ApproveTransformation)
+                or (isinstance(command, ResolveTransformation) and command.resolution == "force")
                 else ()
                 if seated
                 else (Controls(member, command.actor_id),)
             ),
             rng=play.rng,
         )
+
+    async def memorize(self, cid: str, value: object, *, principal_id: str) -> MorphMemory:
+        try:
+            command = MemorizeMorph.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid Morph memory command") from exc
+        play = self.play.for_campaign(await self.play.store.read(cid))
+        member = member_for(play._load(await play.store.read(cid)), principal_id)
+        payload = json.dumps(
+            {
+                "operation": "morph-memory",
+                "principal": principal_id,
+                "command": command.model_dump(),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+
+        def resolve(campaign: Campaign) -> CommandReceipt:
+            state = _memorize_morph(play, play._load(campaign), command)
+            revision = state.revision + 1
+            updated = state.model_copy(
+                update={
+                    "revision": revision,
+                    "resources": state.resources.model_copy(update={"revision": revision}),
+                }
+            )
+            play.commit(campaign, updated)
+            memory = next(
+                m
+                for m in state.transformations.morph_memories
+                if m.actor_id == command.actor_id and m.rule_id == command.rule_id
+            )
+            return CommandReceipt(action="transformation", outcome=memory.model_dump_json())
+
+        async def outcome(campaign: Campaign) -> MorphMemory:
+            return next(
+                m
+                for m in play._load(campaign).transformations.morph_memories
+                if m.actor_id == command.actor_id and m.rule_id == command.rule_id
+            )
+
+        plan = CommandPlan(
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+            payload=payload,
+            resolve=resolve,
+            actor_id=principal_id,
+            outcome=outcome,
+            control=(Controls(member, command.actor_id),),
+            rng=play.rng,
+        )
+        return await submit(play, cid, plan, principal_id=principal_id)
 
     async def execute(self, cid: str, value: object, *, principal_id: str) -> TransformationRecord:
         if not isinstance(value, dict):
