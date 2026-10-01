@@ -5968,6 +5968,7 @@
     },
     {
       "id": "basic-construction-encumbered-dodge-minimum",
+      "operation": "encumbered_dodge_minimum",
       "capability_id": "gurps.character.secondary_characteristics",
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-characters-4e-2004",

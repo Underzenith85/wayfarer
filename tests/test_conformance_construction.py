@@ -12,7 +12,6 @@ import pytest
 from test_skills import attrs, definition, skill_engine
 
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.engine.character.skills import relative_level
 from wayfarer.engine.character.statistics import (
     Encumbrance,
     encumbered_dodge,
@@ -124,7 +123,16 @@ def test_skill_cost_table_independent_columns(
     difficulty: Difficulty, levels: tuple[int, ...]
 ) -> None:
     # B170's named point columns, including the +4-point progression.
-    assert tuple(relative_level(difficulty, points) for points in (1, 2, 4, 8, 12, 16)) == levels
+    points = (1, 2, 4, 8, 12, 16)
+    rows = tuple(
+        definition(f"skill:cost-{p}", SkillSpec(ControllingAttribute.DX, difficulty, "B170"))
+        for p in points
+    )
+    compiled = skill_engine(*rows).compile({f"skill:cost-{p}": p for p in points}, attrs())
+    observed = {row.target: row.level for row in compiled}
+    assert tuple(observed[f"skill:cost-{p}"] for p in points) == tuple(
+        10 + level for level in levels
+    )
 
 
 @pytest.mark.parametrize(("points", "karate", "kicking"), [(2, 9, 8), (3, 9, 9)])

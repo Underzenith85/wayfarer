@@ -32,3 +32,28 @@ Existing tests continue to own permission advisories, unlisted ST damage rows,
 Size Modifier discounts, effect propagation, reciprocal defaults, specialty
 availability, and activation/resource-pool preservation. This numerical audit
 adds independent boundary evidence without promoting those entire families.
+
+The corresponding exact assigned section-ledger rows are frozen below; the
+capability table above supplies consumers and source-derived executable cases:
+
+- `section:characters:b014:basic-attributes`: actual purchased-statistics build.
+- `section:characters:b015:secondary-characteristics`: actual purchased-statistics build and encumbrance cases.
+- `section:characters:b016:damage-table`: ST11 table row in the purchased-statistics build; existing `test_statistics.py` source-entered damage cases retain other rows.
+- `section:characters:b017:basic-lift-and-encumbrance-table`: inclusive load-edge matrix and minimum Move/Dodge.
+- `section:characters:b167:controlling-attribute`: four compiled skill-cost columns at DX10.
+- `section:characters:b168:difficulty-level`: four compiled skill-cost columns.
+- `section:characters:b169:prerequisites`: registered Judo/Karate technique parent purchases, existing `test_skills.py::test_prerequisite_cannot_be_met_by_a_default_or_insufficient_training`.
+- `section:characters:b169:specialties`: existing distinct-specialty compiler case named above.
+- `section:characters:b170:buying-skills`: exact point allocations in compiled skill-cost columns.
+- `section:characters:b170:skills-cost-table`: all four compiled columns and +4-point progression.
+- `section:characters:b171:relative-skill-level`: compiled skill-cost columns at controlling attribute10.
+- `section:characters:b173:skill-defaults-using-skills-you-don-t-know`: attribute-default ceiling; existing `test_skills.py::test_default_chains_require_training_at_every_link` and `test_reciprocal_defaults_resolve_from_purchased_levels_without_a_cycle` preserve trained-source and no-double-default branches.
+
+The techniques matrix additionally checks the B230 cost table through the
+registered B230 Arm Lock and B232 Kicking constructions. B10-13 creation guidance,
+B18-34 identity/background/wealth/appearance, and other nonnumerical narrative
+sections are not assigned to this numerical matrix. Source review does not turn
+reference-only guidance into an executable operation. Technology and familiarity
+construction are retained under their existing source-specific consumers; this
+matrix does not silently extend ordinary defaults to conditional TL/familiarity
+branches.

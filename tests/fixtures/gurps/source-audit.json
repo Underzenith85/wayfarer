@@ -3242,7 +3242,7 @@
     },
     {
       "id": "basic-construction-encumbered-dodge-minimum",
-      "sha256": "24b1ca4aab2b6da077c61d4acd9340eccc085adb1999a5707b13ca5b35cd1195",
+      "sha256": "01fe71c6a22a6d84b88036137b0dc18f04f1f6501dba8e90c0812a93e50d8b68",
       "status": "reviewed",
       "reviewer": "Codex selected-source audit, 2026-10-01",
       "evidence": "docs/gurps-conformance-construction-audit.md",
