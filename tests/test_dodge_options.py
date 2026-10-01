@@ -6,22 +6,25 @@ import pytest
 from test_gurps_melee import attack, setup
 from test_gurps_ranged import scene
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec
+from wayfarer.engine.rules.types.special_combat import PersonalFlightState
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 
 
+@pytest.mark.parametrize("flying", [False, True])
 @pytest.mark.parametrize(("roll", "bonus"), [(1, 2), (5, -2)])
 async def test_acrobatic_dodge_records_one_roll_and_adjusts_actual_defense(
-    tmp_path: Path, roll: int, bonus: int
+    tmp_path: Path, roll: int, bonus: int, flying: bool
 ) -> None:
     definition = RuleDefinition(
-        "skill:acrobatics",
+        "skill:aerobatics" if flying else "skill:acrobatics",
         DefinitionKind.SKILL,
         "Acrobatics",
         "sjg:basic-set-characters-4e-2004",
@@ -35,11 +38,45 @@ async def test_acrobatic_dodge_records_one_roll_and_adjusts_actual_defense(
         "gurps-basic-set-4e-2004",
         human=True,
         extra_definitions=(definition,),
-        extra_purchases=(Purchase(definition_id="skill:acrobatics", amount=1),),
+        extra_purchases=(Purchase(definition_id=definition.id, amount=1),),
     )
     play.rng = RecordedDice([3, 3, 3])
     await attack(cid, play)
     seed = play._load(await play.store.read(cid))
+    if flying:
+        from wayfarer.engine.simulation.combat.engine import CombatEngine
+
+        encounter = CombatEngine._replace(
+            seed.encounters[0],
+            seed.encounters[0]
+            .participants[1]
+            .model_copy(
+                update={
+                    "personal_flight": PersonalFlightState(
+                        altitude=1, basic_air_move=5, top_air_speed=10
+                    )
+                }
+            ),
+        )
+        seed = seed.model_copy(update={"encounters": (encounter,)})
+
+        def install_flight(campaign: Campaign) -> CommandReceipt:
+            updated = seed.model_copy(
+                update={
+                    "revision": seed.revision + 1,
+                    "resources": seed.resources.model_copy(update={"revision": seed.revision + 1}),
+                }
+            )
+            campaign["revision"], campaign["play_json"] = (
+                updated.revision,
+                updated.model_dump_json(),
+            )
+            return CommandReceipt(action="combat", outcome="flight-fixture")
+
+        await play.store.commit_turn(
+            cid, "flight-fixture", seed.revision, "flight-fixture", install_flight
+        )
+        seed = play._load(await play.store.read(cid))
     command = ChooseDefense(
         id="acro",
         actor_id="b",

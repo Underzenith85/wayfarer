@@ -55,11 +55,16 @@ def prepare_options(
     if command.acrobatic_dodge:
         if target.acrobatic_dodge_trace is not None:
             raise ValidationError("Acrobatic Dodge was already attempted this turn")
-        if not any(
-            p.definition_id == "skill:acrobatics" and p.amount >= 1 for p in compiled.purchases
-        ):
-            raise ValidationError("Acrobatic Dodge requires a purchased Acrobatics skill")
-        skill = int(level(compiled, "skill:acrobatics").value)
+        skill_id = (
+            "skill:aerobatics"
+            if target.personal_flight is not None and target.personal_flight.altitude > 0
+            else "skill:acrobatics"
+        )
+        if not any(p.definition_id == skill_id and p.amount >= 1 for p in compiled.purchases):
+            raise ValidationError(
+                f"Acrobatic Dodge requires a purchased {skill_id.split(':')[1].title()} skill"
+            )
+        skill = int(level(compiled, skill_id).value)
     if not resolve:
         return encounter
     bonus = 3 if command.dodge_and_drop else 0
