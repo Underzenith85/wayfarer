@@ -5965,6 +5965,32 @@
       "evidence_kind": "independent-trait-form-case",
       "provenance": "Independent Diffuse cost and included anatomy expectations checked against the selected Characters printing.",
       "test": "tests/test_attack_defense_traits.py::test_all_injury_tolerance_forms_project_exact_anatomy"
+    },
+    {
+      "id": "basic-construction-encumbered-dodge-minimum",
+      "operation": "encumbered_dodge_minimum",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B17, Encumbrance and Move",
+      "input": {
+        "dodge": 3,
+        "encumbrance_levels": [
+          3,
+          4
+        ]
+      },
+      "expected": {
+        "dodge": [
+          1,
+          1
+        ]
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-numeric-case",
+      "provenance": "Independent minimum Dodge case inspected in Characters third printing; scope record docs/gurps-conformance-construction-audit.md.",
+      "test": "tests/test_conformance_construction.py::test_encumbrance_never_reduces_dodge_below_one"
     }
   ]
 }

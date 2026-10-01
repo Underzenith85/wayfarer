@@ -3239,6 +3239,17 @@
         "tests/test_attack_defense_traits.py::test_all_injury_tolerance_forms_project_exact_anatomy"
       ],
       "owner": 688
+    },
+    {
+      "id": "basic-construction-encumbered-dodge-minimum",
+      "sha256": "01fe71c6a22a6d84b88036137b0dc18f04f1f6501dba8e90c0812a93e50d8b68",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source audit, 2026-10-01",
+      "evidence": "docs/gurps-conformance-construction-audit.md",
+      "tests": [
+        "tests/test_conformance_construction.py::test_encumbrance_never_reduces_dodge_below_one"
+      ],
+      "owner": 834
     }
   ]
 }
