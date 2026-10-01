@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.campaign.party import group_for, synchronous
 from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, Scene, SceneEvent
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.recovery_guard import guard
+from wayfarer.engine.simulation.magic.lock_state import passage_blocked
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
@@ -147,6 +148,8 @@ class SceneService:
             destination = next(
                 value for value in rules.scenes if value.id == selected.destination_id
             )
+            if passage_blocked(resources, scene.location_id, destination.location_id):
+                raise ConflictError("Exit is blocked by a closed door")
             for trigger in rules.triggers:
                 if (
                     trigger.scene_id == scene.id

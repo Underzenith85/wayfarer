@@ -37,6 +37,9 @@ class CollegeSpellBinding:
     # Absent means source-specific construction has not been reviewed.
     # Inventory membership alone must never invent difficulty or prerequisites.
     learning: SkillSpec | None = None
+    # Inventory packages may group several source colleges. Learned spells use
+    # their printed college for distinct-college prerequisites (B235/B480).
+    learning_college: str | None = None
 
     @property
     def id(self) -> str:
@@ -86,7 +89,7 @@ def college_package(
                 "character.gurps-skill",
                 "supernatural",
                 "magic.college-learning",
-                f"spell-college:{college}",
+                f"spell-college:{value.learning_college or college}",
             ),
             skill=value.learning,
         )

@@ -198,6 +198,11 @@ class PlayService:
                 (
                     "ability:",
                     "spell:",
+                    "runtime-spell:",
+                    "lock-state:",
+                    "lock-channel:",
+                    "lock-host:",
+                    "lock-backfire-choice:",
                     "spell-backfire:",
                     "mana-refund:",
                     "harmful-physiology:",

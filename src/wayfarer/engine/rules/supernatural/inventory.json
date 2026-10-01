@@ -6428,10 +6428,13 @@
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "supported_subset": "Selected-printing B251/B253 IQ/Hard construction and private approved-build object commands; actual mechanical unlocking, Magelock resistance/closure, source energy/time, six-hour maintenance/expiry/cancel, physical Ready and later movement/scene access, canonical destruction/salvage, current authority and deterministic persisted replay. Authored fixed fixtures/channels only; staff, magic-item, ceremonial and mobile-fixture inference remain unverified. See docs/gurps-spell-movement.md.",
       "evidence": [
-        "tests/test_spell_movement.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_lock_spell_construction.py",
+        "tests/test_lock_spell_effects.py",
+        "tests/test_lock_spell_persistence.py",
+        "tests/test_lock_spell_combat.py",
+        "tests/test_equipment_worksite.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6454,10 +6457,13 @@
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "supported_subset": "Selected-printing B251/B253 IQ/Hard construction and private approved-build object commands; actual mechanical unlocking, Magelock resistance/closure, source energy/time, six-hour maintenance/expiry/cancel, physical Ready and later movement/scene access, canonical destruction/salvage, current authority and deterministic persisted replay. Authored fixed fixtures/channels only; staff, magic-item, ceremonial and mobile-fixture inference remain unverified. See docs/gurps-spell-movement.md.",
       "evidence": [
-        "tests/test_spell_movement.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_lock_spell_construction.py",
+        "tests/test_lock_spell_effects.py",
+        "tests/test_lock_spell_persistence.py",
+        "tests/test_lock_spell_combat.py",
+        "tests/test_equipment_worksite.py"
       ],
       "members": [],
       "talent_cost": null,

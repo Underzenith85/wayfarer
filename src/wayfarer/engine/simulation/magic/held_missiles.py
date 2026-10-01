@@ -7,9 +7,11 @@ from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.area_fire import armor
+from wayfarer.engine.simulation.magic.spell_state import (
+    RuntimeSpellEvent as SpellEvent,
+)
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
-    SpellEvent,
     SpellResult,
     active_spells,
     event_id,

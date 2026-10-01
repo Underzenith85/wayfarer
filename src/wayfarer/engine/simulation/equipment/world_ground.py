@@ -7,6 +7,8 @@ from typing import Literal
 
 from wayfarer.engine.simulation.equipment.repairs import tasks
 from wayfarer.engine.simulation.equipment.salvage_state import tasks as salvage_tasks
+from wayfarer.engine.simulation.magic.lock_state import destroyed as lock_destroyed
+from wayfarer.engine.simulation.magic.lock_state import latest as lock_states
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.engine.world import EntityKind, World
@@ -105,6 +107,13 @@ def apply_world_ground(
 
 def require_movable_gear(resources: ResourceState, identifiers: frozenset[str]) -> None:
     """Moving a root container cannot bypass the busy status of a contained item."""
+    if any(
+        v.fixture.kind == "door"
+        and v.fixture.item_id in identifiers
+        and not lock_destroyed(resources, v)
+        for v in lock_states(resources).values()
+    ):
+        raise ConflictError("An intact fixed door cannot be retrieved as carried equipment")
     if any(
         t.status == "pending" and bool(identifiers & {t.item_id, t.tool_id})
         for t in tasks(resources)

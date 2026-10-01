@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.repairs import RepairTask, record, tasks
+from wayfarer.engine.simulation.equipment.worksite import available_here
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -129,7 +130,13 @@ def repair(
     if any(e.status == "active" and actor_id in e.turn_order for e in state.encounters):
         raise ConflictError("Repairs require half an hour outside active combat")
     item = next((i for i in resources.items if i.id == item_id), None)
-    if item is None or item.owner_id != actor_id or item.ground or item.equipped:
+    if (
+        item is None
+        or item.owner_id != actor_id
+        or item.ground
+        or item.equipped
+        or not available_here(state, actor_id, item)
+    ):
         raise ValidationError("Repair requires an owned, retrieved, unequipped item")
     entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
     profile = entry.durability
@@ -160,6 +167,7 @@ def repair(
                 for i in resources.items
                 if i.owner_id == actor_id
                 and not i.ground
+                and available_here(state, actor_id, i)
                 and i.definition_id == profile.repair_tools_definition
                 and (i.condition is None or not i.condition.disabled)
             ),
@@ -197,6 +205,7 @@ def repair(
                     for i in resources.items
                     if i.owner_id == actor_id
                     and not i.ground
+                    and available_here(state, actor_id, i)
                     and not i.equipped
                     and i.definition_id == profile.repair_parts_definition
                 ),
@@ -251,6 +260,7 @@ def repair(
             i.id == task.tool_id
             and i.owner_id == actor_id
             and not i.ground
+            and available_here(state, actor_id, i)
             and (i.condition is None or not i.condition.disabled)
             for i in resources.items
         ):

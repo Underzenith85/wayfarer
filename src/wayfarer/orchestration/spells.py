@@ -3,7 +3,10 @@
 import json
 
 from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
+from wayfarer.engine.simulation.magic.spell_transitions import RuntimeSpellResolver
 from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellExecutionContext as SpellExecutionContext,
 )
@@ -30,15 +33,29 @@ from wayfarer.engine.simulation.magic.spell_transitions import (
 )
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
+    RuntimeSpellCommand,
     SpellCommand,
     SpellEvent,
     SpellResult,
     event_id,
 )
+from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+
+
+def _runtime_resolver(resolve: SpellResolver | None) -> RuntimeSpellResolver | None:
+    if resolve is None:
+        return None
+
+    def legacy(
+        runtime: RulesContext, state: PlayState, command: RuntimeSpellCommand
+    ) -> SpellEnvironment:
+        return resolve(runtime, state, SpellCommand.model_validate(command.model_dump()))
+
+    return legacy
 
 
 class SpellService:
@@ -72,7 +89,7 @@ class SpellService:
             sort_keys=True,
         )
 
-        execution = SpellExecutionContext(play.rules_context, self.resolve)
+        execution = SpellExecutionContext(play.rules_context, _runtime_resolver(self.resolve))
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)

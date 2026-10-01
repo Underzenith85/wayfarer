@@ -6,10 +6,18 @@ from pydantic import Field
 
 from wayfarer.engine.rules.magic.gurps_magic import definitions, magery_level
 from wayfarer.engine.rules.magic.healing import package as healing_package
+from wayfarer.engine.rules.magic.movement import package as movement_package
 from wayfarer.engine.rules.magic.protocols import MagicItemBinding, effective_item_power
 from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.magic.spells import PROFILE, SPELLS, SpellCommand, SpellContext
+from wayfarer.engine.simulation.magic.spells import (
+    PROFILE,
+    SpellContext,
+    _executable_spec,
+)
+from wayfarer.engine.simulation.magic.spells import (
+    RuntimeSpellCommand as SpellCommand,
+)
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
@@ -27,6 +35,7 @@ class SpellEnvironment(Record):
     distance: int = Field(default=0, ge=0, le=10000)
     radius: int = Field(default=1, ge=1, le=100)
     energy: int = Field(default=1, ge=1, le=100)
+    unseen: bool = False
     magic_item: MagicItemBinding | None = None
 
 
@@ -37,9 +46,10 @@ def approved_context(
     if compiler.statistics_profile != PROFILE:
         raise ValidationError("Spellcasting requires the exact Basic Set profile")
     spell_key = "spell:" + command.spell_id
-    expected = {d.id: d for d in (*definitions(2), *healing_package().definitions)}
+    learned_definitions = (*healing_package().definitions, *movement_package().definitions)
+    expected = {d.id: d for d in (*definitions(2), *learned_definitions)}
     permitted = tuple(d for v in (1, 2) for d in definitions(v) if d.id == spell_key)
-    permitted += tuple(d for d in healing_package().definitions if d.id == spell_key)
+    permitted += tuple(d for d in learned_definitions if d.id == spell_key)
     if compiler.definitions.get(spell_key) not in permitted:
         raise ValidationError("Spell is not bound to the pinned learning catalog")
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
@@ -68,13 +78,15 @@ def approved_context(
             raise ValidationError("Magic item requires Magery")
         skill = power
         learned = tuple(
-            dict.fromkeys((*learned, command.spell_id, *SPELLS[command.spell_id].prerequisites))
+            dict.fromkeys(
+                (*learned, command.spell_id, *_executable_spec(command.spell_id).prerequisites)
+            )
         )
         item_reduction = item.power_reduction
     if skill is None:
         raise ValidationError("Spell has no compiled skill")
     target_ht = 10
-    if SPELLS[command.spell_id].kind == "resisted":
+    if _executable_spec(command.spell_id).kind == "resisted":
         target = next((a for a in state.actors if a.actor_id == environment.target_id), None)
         if target is None or target.approval is None:
             raise ValidationError("Resisted spell requires an approved target build")

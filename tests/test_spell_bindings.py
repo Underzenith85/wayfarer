@@ -26,7 +26,11 @@ from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
 from wayfarer.engine.rules.types.location import HumanBody
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
-from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.battlefield import (
+    Battlefield,
+    BattlefieldTemplate,
+    GridPoint,
+)
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, EquipmentProfile
@@ -86,12 +90,14 @@ async def setup(
     tmp_path: Path,
     *,
     combat: bool = False,
+    battlefield: BattlefieldTemplate | None = None,
     backend: str = "sqlite",
     caster_hp: int = 10,
     execution_version: Literal[1, 2] = 1,
     alternatives: tuple[BackfireAlternative, ...] = (),
     mana: Literal["none", "low", "normal", "high", "very-high"] = "normal",
     reserve: bool = False,
+    reserve_draft: CharacterDraft | None = None,
     human_targets: bool = False,
     equipment: tuple[EquipmentProfile, ...] = (),
 ) -> tuple[str, PlayService]:
@@ -174,7 +180,9 @@ async def setup(
             combat=CombatRules(
                 id="arena",
                 version=1,
-                battlefields=(Battlefield(id="room", location_id="room", width=5, height=5),),
+                battlefields=(
+                    battlefield or Battlefield(id="room", location_id="room", width=5, height=5),
+                ),
                 gurps_equipment=EquipmentCatalog(profile_id=PROFILE, entries=equipment),
             )
             if combat
@@ -220,7 +228,11 @@ async def setup(
             ),
         )
         + (
-            (ActorSetup(actor_id="c", proposal=CharacterProposal(draft=gurps_draft())),)
+            (
+                ActorSetup(
+                    actor_id="c", proposal=CharacterProposal(draft=reserve_draft or gurps_draft())
+                ),
+            )
             if reserve
             else ()
         ),

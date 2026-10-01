@@ -2,7 +2,7 @@
 
 from wayfarer.engine.rules.types.hazard import blocked_fp, blocked_hp
 from wayfarer.engine.simulation.health.healing import restore_hp
-from wayfarer.engine.simulation.magic.spell_state import SpellEffect
+from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellEffect as SpellEffect
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record

@@ -55,12 +55,26 @@ from wayfarer.engine.simulation.magic.healing_support import (
     expire_vitality,
     validate_support,
 )
+from wayfarer.engine.simulation.magic.lock_effects import (
+    complete_lock_effect,
+    finalize_lock_skill,
+    lock_difficulty,
+    lock_scale,
+    resolve_lock_cast,
+    validate_lock_operation,
+)
+from wayfarer.engine.simulation.magic.spell_state import (
+    RuntimeSpellEffect,
+    RuntimeSpellEvent,
+    RuntimeSpellId,
+    break_daze,
+    parse_event,
+)
 from wayfarer.engine.simulation.magic.spell_state import SpellEffect as SpellEffect
 from wayfarer.engine.simulation.magic.spell_state import SpellEvent as SpellEvent
 from wayfarer.engine.simulation.magic.spell_state import SpellId as SpellId
 from wayfarer.engine.simulation.magic.spell_state import SpellResult as SpellResult
 from wayfarer.engine.simulation.magic.spell_state import active_spells as active_spells
-from wayfarer.engine.simulation.magic.spell_state import break_daze
 from wayfarer.engine.simulation.magic.spell_state import event_id as event_id
 from wayfarer.engine.simulation.magic.spell_state import latest as latest
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
@@ -70,8 +84,8 @@ from wayfarer.models import Id, Record
 PROFILE: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
 
 
-class SpellSpec(Record):
-    id: SpellId
+class RuntimeSpellSpec(Record):
+    id: RuntimeSpellId
     kind: Literal["regular", "resisted", "missile", "area"]
     cost: int
     maintenance: int
@@ -80,6 +94,10 @@ class SpellSpec(Record):
     magery: int = 0
     prerequisites: tuple[str, ...] = ()
     reference: str
+
+
+class SpellSpec(RuntimeSpellSpec):
+    id: SpellId
 
 
 SPELLS: dict[str, SpellSpec] = {
@@ -149,6 +167,36 @@ for _key, _cost, _magery, _prerequisite in (
     )
 
 
+def _executable_spec(spell_id: RuntimeSpellId) -> RuntimeSpellSpec:
+    if spell_id == "lockmaster":
+        return RuntimeSpellSpec(
+            id=spell_id,
+            kind="regular",
+            cost=3,
+            maintenance=0,
+            seconds=10,
+            duration=None,
+            magery=2,
+            prerequisites=("apportation",),
+            reference="B251",
+        )
+    if spell_id == "magelock":
+        return RuntimeSpellSpec(
+            id=spell_id,
+            kind="regular",
+            cost=3,
+            maintenance=2,
+            seconds=4,
+            duration=21600,
+            magery=1,
+            reference="B253",
+        )
+    try:
+        return SPELLS[spell_id]
+    except KeyError as exc:
+        raise ValidationError("Spell has no executable runtime binding") from exc
+
+
 class SpellContext(Record):
     """Trusted adapter input; never a player payload or inferred LLM ruling.
 
@@ -171,6 +219,7 @@ class SpellContext(Record):
     awaken_subjects: tuple[AwakenSubject, ...] = ()
     distance: int = Field(default=0, ge=0, le=10000)
     target_id: Id
+    unseen: bool = False
     radius: int = Field(default=1, ge=1, le=100)
     energy: int = Field(default=1, ge=1, le=100)
     distracted: bool = False
@@ -190,7 +239,7 @@ class SpellContext(Record):
     area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
-class SpellCommand(Command):
+class RuntimeSpellCommand(Command):
     kind: Literal[
         "start",
         "concentrate",
@@ -204,7 +253,7 @@ class SpellCommand(Command):
         "remember",
         "focus",
     ]
-    spell_id: SpellId
+    spell_id: RuntimeSpellId
     cast_id: Id
     target_item_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
     hit_location: HitLocation | None = Field(default=None, exclude_if=lambda value: value is None)
@@ -213,6 +262,10 @@ class SpellCommand(Command):
     energy: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)
     hp_energy: int = Field(default=0, ge=0, le=1000, exclude_if=lambda value: value == 0)
     position: tuple[int, int] | None = Field(default=None, exclude_if=lambda value: value is None)
+
+
+class SpellCommand(RuntimeSpellCommand):
+    spell_id: SpellId
 
 
 def cost_reduction(skill: int) -> int:
@@ -228,7 +281,7 @@ def casting_seconds(seconds: int, skill: int, *, missile: bool = False) -> int:
     return max(1, (seconds + divisor - 1) // divisor)
 
 
-def _validate_spell_scale(spec: SpellSpec, context: SpellContext) -> None:
+def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None:
     """Keep class-specific area and energy bounds outside the command dispatcher."""
     if (
         spec.kind != "area"
@@ -248,8 +301,8 @@ def _validate_spell_scale(spec: SpellSpec, context: SpellContext) -> None:
 
 def _spend_ceremonial_energy(
     state: ResourceState,
-    effect: SpellEffect,
-    command: SpellCommand,
+    effect: RuntimeSpellEffect,
+    command: RuntimeSpellCommand,
     *,
     rng: RandomSource,
 ) -> tuple[ResourceState, int, int]:
@@ -268,7 +321,9 @@ def _spend_ceremonial_energy(
             state, injury = apply_injury(
                 state,
                 Wound(
-                    id=event_id(command.id) + ":ceremony-hp:" + contribution.actor_id,
+                    id=event_id(command.id, command.spell_id)
+                    + ":ceremony-hp:"
+                    + contribution.actor_id,
                     actor_id=contribution.actor_id,
                     expected_revision=state.revision,
                     basic_damage=contribution.hp,
@@ -288,7 +343,9 @@ def _spend_ceremonial_energy(
             state, fatigue = apply_fatigue(
                 state,
                 FatigueCost(
-                    id=event_id(command.id) + ":ceremony-fp:" + contribution.actor_id,
+                    id=event_id(command.id, command.spell_id)
+                    + ":ceremony-fp:"
+                    + contribution.actor_id,
                     actor_id=contribution.actor_id,
                     expected_revision=state.revision,
                     amount=contribution.fp,
@@ -307,8 +364,8 @@ def _spend_ceremonial_energy(
 def _spell_recovery_tasks(
     state: ResourceState,
     original: tuple[RecoveryTask, ...],
-    command: SpellCommand,
-    effect: SpellEffect,
+    command: RuntimeSpellCommand,
+    effect: RuntimeSpellEffect,
 ) -> tuple[RecoveryTask, ...]:
     """B248 allows quiet rest while maintaining spells without concentration."""
     preserved = {
@@ -329,7 +386,7 @@ def _spell_recovery_tasks(
 
 def apply_spell(
     state: ResourceState,
-    command: SpellCommand,
+    command: RuntimeSpellCommand,
     context: SpellContext,
     *,
     rng: RandomSource,
@@ -349,8 +406,10 @@ def apply_spell(
     if receipt:
         if receipt.digest != digest:
             raise ConflictError("Spell command ID reused")
-        previous_event = next(e for e in state.events if e.id == event_id(command.id))
-        return state, SpellEvent.model_validate_json(previous_event.kind).result
+        previous_event = next(
+            e for e in state.events if e.id == event_id(command.id, command.spell_id)
+        )
+        return state, parse_event(previous_event).result
     if state.revision != command.expected_revision:
         raise ConflictError("Spell revision changed")
     original_recovery = state.recovery_tasks
@@ -371,9 +430,17 @@ def apply_spell(
         raise ValidationError("This maneuver does not consume spell energy")
 
     backfires_settled(state, command.actor_id)
-    spec = SPELLS[command.spell_id]
+    spec = _executable_spec(command.spell_id)
     if command.spell_id == "awaken":
         validate_subjects(state, context.awaken_subjects)
+    validate_lock_operation(
+        state,
+        command.spell_id,
+        context.target_id,
+        command.kind,
+        execution_version=context.execution_version,
+        execute_effects=context.execute_effects,
+    )
     effect = latest(state).get(command.cast_id)
     fp = next((p for p in state.pools if p.id == "fp:" + command.actor_id), None)
     hp = next((p for p in state.pools if p.id == "hp:" + command.actor_id), None)
@@ -469,7 +536,7 @@ def apply_spell(
             if spec.kind == "missile"
             else context.energy
             if spec.id in HEALING | SUPPORT and spec.id != "great-healing"
-            else 1
+            else lock_scale(state, spec.id, context.target_id)
         )
         cost = max(
             0,
@@ -498,9 +565,12 @@ def apply_spell(
         if spec.kind != "missile":
             skill -= context.distance
         skill -= healing_modifier
+        skill += lock_difficulty(state, command.spell_id, context.target_id) - 5 * int(
+            context.unseen
+        )
         if skill < 1:
             raise ValidationError("Effective spell skill is below one")
-        effect = SpellEffect(
+        effect = RuntimeSpellEffect(
             cast_id=command.cast_id,
             actor_id=command.actor_id,
             target_id=context.target_id,
@@ -518,7 +588,14 @@ def apply_spell(
             skill=skill,
             cost=cost,
             maintenance=max(
-                0, spec.maintenance * (context.radius if spec.kind == "area" else 1) - reduction
+                0,
+                spec.maintenance
+                * (
+                    context.radius
+                    if spec.kind == "area"
+                    else lock_scale(state, spec.id, context.target_id)
+                )
+                - reduction,
             ),
             hp_at_start=hp.current,
             radius=context.radius,
@@ -697,6 +774,7 @@ def apply_spell(
                 if interrupted:
                     outcome = "interrupted"
                 else:
+                    effect = finalize_lock_skill(state, effect, context)
                     check = success_roll(
                         PROFILE,
                         effect.skill,
@@ -704,6 +782,7 @@ def apply_spell(
                         rng=rng,
                     )
                     checks.append(check)
+                    effect = effect.model_copy(update={"skill": check.effective_target})
                     if check.outcome is Outcome.CRITICAL_FAILURE or (
                         context.mana == "very-high" and not check.outcome.succeeded
                     ):
@@ -744,6 +823,11 @@ def apply_spell(
                             )
                             if contest.winner != "caster":
                                 outcome = "resisted"
+                        effect, resisted, resistance_checks = resolve_lock_cast(
+                            state, effect, check, rng
+                        )
+                        checks.extend(resistance_checks)
+                        outcome = "resisted" if resisted else outcome
                 effect = effect.model_copy(
                     update={
                         "phase": "active" if outcome == "active" else "ended",
@@ -772,7 +856,7 @@ def apply_spell(
         state, injury = apply_injury(
             state,
             Wound(
-                id=event_id(command.id) + ":hp",
+                id=event_id(command.id, command.spell_id) + ":hp",
                 actor_id=command.actor_id,
                 expected_revision=state.revision,
                 basic_damage=hp_cost,
@@ -796,7 +880,7 @@ def apply_spell(
         state, _ = apply_fatigue(
             state,
             FatigueCost(
-                id=event_id(command.id) + ":energy",
+                id=event_id(command.id, command.spell_id) + ":energy",
                 actor_id=command.actor_id,
                 expected_revision=state.revision,
                 amount=fp_cost,
@@ -850,6 +934,7 @@ def apply_spell(
         state, effect, command, context, outcome, checks, rng
     )
     checks.extend(awakening_checks)
+    state, effect = complete_lock_effect(state, effect, command.id, command.kind, outcome)
     result = SpellResult(
         hp_restored=hp_restored,
         fp_restored=fp_restored,
@@ -859,7 +944,7 @@ def apply_spell(
         checks=tuple(checks),
         held_disposition=disposition,
     )
-    event = SpellEvent(effect=effect, result=result)
+    event = RuntimeSpellEvent(effect=effect, result=result)
     return state.model_copy(
         update={
             "revision": command.expected_revision + 1,
@@ -867,7 +952,7 @@ def apply_spell(
             "events": state.events
             + (
                 ResourceEvent(
-                    id=event_id(command.id),
+                    id=event_id(command.id, command.spell_id),
                     at=state.game_time,
                     target_id=command.actor_id,
                     kind=event.model_dump_json(),
@@ -879,8 +964,8 @@ def apply_spell(
 
 def _healing_critical_patients(
     state: ResourceState,
-    effect: SpellEffect,
-    command: SpellCommand,
+    effect: RuntimeSpellEffect,
+    command: RuntimeSpellCommand,
     context: SpellContext,
 ) -> ResourceState:
     if effect.spell_id != "awaken":
@@ -896,13 +981,13 @@ def _healing_critical_patients(
 
 def _awaken_patients(
     state: ResourceState,
-    effect: SpellEffect,
-    command: SpellCommand,
+    effect: RuntimeSpellEffect,
+    command: RuntimeSpellCommand,
     context: SpellContext,
     outcome: str,
     checks: list[CheckTrace],
     rng: RandomSource,
-) -> tuple[ResourceState, SpellEffect, tuple[CheckTrace, ...]]:
+) -> tuple[ResourceState, RuntimeSpellEffect, tuple[CheckTrace, ...]]:
     if command.kind != "complete" or effect.spell_id != "awaken" or outcome != "active":
         return state, effect, ()
     state, awakening_checks = awaken(
@@ -912,8 +997,8 @@ def _awaken_patients(
 
 
 def _restore_patient(
-    state: ResourceState, effect: SpellEffect, command: SpellCommand, outcome: str
-) -> tuple[ResourceState, SpellEffect, int, int]:
+    state: ResourceState, effect: RuntimeSpellEffect, command: RuntimeSpellCommand, outcome: str
+) -> tuple[ResourceState, RuntimeSpellEffect, int, int]:
     hp_restored = fp_restored = 0
     if command.kind == "complete" and outcome == "active" and effect.spell_id in SUPPORT:
         state, hp_restored, fp_restored = apply_support(state, effect, command.id)

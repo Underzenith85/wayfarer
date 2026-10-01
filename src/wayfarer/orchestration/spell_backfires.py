@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.magic.backfires import Backfire, backfires
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.spell_summoning import start_summon
 
 REFUSAL = "Backfire interpretation requires campaign GM authority"
 
@@ -42,7 +43,14 @@ class SpellBackfireService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            updated, item = reduce_backfire(play.rules_context, before, command)
+            updated, item = reduce_backfire(
+                play.rules_context,
+                before,
+                command,
+                start_summon=lambda state, cmd, selection: start_summon(
+                    play, state, cmd, selection
+                ),
+            )
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome="spell:backfire-resolved")

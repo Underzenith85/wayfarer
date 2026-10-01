@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.hex_geometry import Hex
-from wayfarer.engine.simulation.magic.spell_state import SpellEffect, active_spells
+from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellEffect as SpellEffect
+from wayfarer.engine.simulation.magic.spell_state import active_spells
 from wayfarer.engine.simulation.magic.spell_state import break_daze as break_daze
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError

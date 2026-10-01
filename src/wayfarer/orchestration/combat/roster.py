@@ -7,6 +7,7 @@ from decimal import Decimal
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.party import Subgroup, group_for
+from wayfarer.engine.simulation.campaign.reinforcements import admit_actor
 from wayfarer.engine.simulation.combat.commands import (
     BasicJoinPlacement,
     EndEncounter,
@@ -106,16 +107,7 @@ def _join(
         raise ValidationError("Reinforcement joining_actor is unavailable")
     if next(p.current for p in resources.pools if p.id == f"hp:{joining_actor.actor_id}") == 0:
         raise ValidationError("Reinforcement joining_actor is incapacitated")
-    source = group_for(state, joining_actor_id)
-    target_group = group_for(state, encounter.current_actor_id)
-    if source.scene_id != target_group.scene_id or source.paused or target_group.paused:
-        raise ValidationError("Reinforcements must be in the encounter scene")
-    if (
-        source.ready_through != resources.game_time
-        or target_group.ready_through != resources.game_time
-        or any(q.group_id in (source.id, target_group.id) for q in state.party.queue)
-    ):
-        raise ConflictError("Reinforcement arrival requires synchronized time")
+    state = admit_actor(state, joining_actor_id, encounter.current_actor_id)
     placement = command.placement
     if placement is None and command.position is not None:
         placement = SquareJoinPlacement(position=command.position, facing=command.facing)
@@ -231,25 +223,6 @@ def _join(
             "turn_index": order.index(current_actor),
         }
     )
-    if source.id != target_group.id:
-        remaining = tuple(a for a in source.actor_ids if a != joining_actor.actor_id)
-        groups = tuple(
-            g.model_copy(
-                update={
-                    "actor_ids": g.actor_ids + (joining_actor.actor_id,),
-                    "generation": g.generation + 1,
-                }
-            )
-            if g.id == target_group.id
-            else g.model_copy(update={"actor_ids": remaining, "generation": g.generation + 1})
-            if g.id == source.id
-            else g
-            for g in state.party.groups
-            if g.id != source.id or remaining
-        )
-        state = state.model_copy(
-            update={"party": state.party.model_copy(update={"groups": groups})}
-        )
     if engine.rules.gurps_equipment is not None:
         encounter = bind_initial_hands(play.rules_context, state, encounter)
     if isinstance(placement, HexJoinPlacement):

@@ -29,16 +29,21 @@ from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
 from wayfarer.engine.simulation.magic.bindings import SpellRules
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.spell_state import (
+    RuntimeSpellEvent as SpellEvent,
+)
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
-    SpellCommand,
     SpellContext,
-    SpellEvent,
     SpellResult,
     apply_spell,
     event_id,
     latest,
 )
+from wayfarer.engine.simulation.magic.spells import (
+    RuntimeSpellCommand as SpellCommand,
+)
+from wayfarer.engine.simulation.magic.spells import SpellCommand as LegacySpellCommand
 from wayfarer.engine.simulation.resources import Advance, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
@@ -90,12 +95,18 @@ def _approved_magic_item(
     )
 
 
-SpellResolver = Callable[[RulesContext, PlayState, SpellCommand], SpellEnvironment]
+RuntimeSpellResolver = Callable[[RulesContext, PlayState, SpellCommand], SpellEnvironment]
+SpellResolver = Callable[[RulesContext, PlayState, LegacySpellCommand], SpellEnvironment]
 
 
 def approved_context(
     runtime: RulesContext, state: PlayState, command: SpellCommand
 ) -> SpellContext:
+    if command.spell_id in ("lockmaster", "magelock"):
+        # deferred: private lock bindings share the spell types used by this dispatcher.
+        from wayfarer.engine.simulation.magic.lock_bindings import approved_context as lock_context
+
+        return lock_context(runtime, state, command)
 
     synchronous(state, command.actor_id)
     rules = runtime.rules.spells
@@ -305,8 +316,8 @@ def combat_guard(state: PlayState, command: SpellCommand) -> Encounter | None:
     return encounter
 
 
-def _interrupt_cast(event: ResourceEvent, command_id: str) -> ResourceEvent:
-    if event.id != event_id(command_id):
+def _interrupt_cast(event: ResourceEvent, command_id: str, spell_id: str) -> ResourceEvent:
+    if event.id != event_id(command_id, spell_id):
         return event
     record = SpellEvent.model_validate_json(event.kind)
     return event.model_copy(
@@ -351,7 +362,8 @@ def advance_cast_turn(
                 "resources": state.resources.model_copy(
                     update={
                         "events": tuple(
-                            _interrupt_cast(e, command.id) for e in state.resources.events
+                            _interrupt_cast(e, command.id, command.spell_id)
+                            for e in state.resources.events
                         )
                     }
                 )
@@ -379,7 +391,7 @@ def advance_cast_turn(
         completed_effect = latest(resources)[command.cast_id]
         events = []
         for event in resources.events:
-            if event.id == event_id(command.id):
+            if event.id == event_id(command.id, command.spell_id):
                 record = SpellEvent.model_validate_json(event.kind)
                 event = event.model_copy(
                     update={
@@ -425,7 +437,7 @@ def advance_cast_turn(
         resources = runtime.resources.apply(
             resources,
             Advance(
-                id=event_id(command.id) + ":round",
+                id=event_id(command.id, command.spell_id) + ":round",
                 actor_id=command.actor_id,
                 expected_revision=resources.revision,
                 to=resources.game_time + updated.round - encounter.round,
@@ -463,7 +475,7 @@ def apparent_result(
 @dataclass(frozen=True)
 class SpellExecutionContext:
     runtime: RulesContext
-    resolver: SpellResolver | None = None
+    resolver: RuntimeSpellResolver | None = None
 
 
 def _prepare_spell(
@@ -499,9 +511,10 @@ def _prepare_spell(
         raise ValidationError("Unknown caster")
     perceived = {e.id for e in before.world.perspective(command.actor_id).entities}
     if (
-        command.kind not in ("cancel", "remember")
+        command.kind not in ("cancel", "maintain", "remember")
         and context.target_id != command.actor_id
         and context.target_id not in perceived
+        and not context.unseen
     ):
         raise ValidationError("Spell target is not perceived")
     if command.kind == "start" and not any(
@@ -586,7 +599,7 @@ def _release_missile(
     ).model_copy(
         update={
             "pending_defense": PendingDefense(
-                id=event_id(command.id),
+                id=event_id(command.id, command.spell_id),
                 attacker_id=command.actor_id,
                 defender_id=context.target_id,
                 weapon_id=spell_item_id,
@@ -670,7 +683,7 @@ def reduce_spell(
                 "events": casting_resources.events
                 + (
                     ResourceEvent(
-                        id=event_id(command.id),
+                        id=event_id(command.id, command.spell_id),
                         at=casting_resources.game_time,
                         target_id=command.actor_id,
                         kind=SpellEvent(effect=effect, result=result).model_dump_json(),
@@ -725,5 +738,7 @@ def reduce_spell(
 def _recorded_spell_result(state: PlayState, command: SpellCommand) -> SpellResult:
     # A final Concentrate maneuver may replace the initial casting result.
     return SpellEvent.model_validate_json(
-        next(e.kind for e in state.resources.events if e.id == event_id(command.id))
+        next(
+            e.kind for e in state.resources.events if e.id == event_id(command.id, command.spell_id)
+        )
     ).result

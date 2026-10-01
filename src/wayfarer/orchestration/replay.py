@@ -3,15 +3,18 @@
 import json
 
 from wayfarer import validation
-from wayfarer.engine.simulation.magic.spells import SpellCommand
+from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
+from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
+from wayfarer.orchestration.locks import LockService, LockSpellService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 from wayfarer.orchestration.replay_inputs import replay_inputs
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.orchestration.transformations import TransformationService
 from wayfarer.persistence.events import CommandRecord
@@ -72,6 +75,24 @@ async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
             await SpellService(play).execute(
                 record.campaign_id,
                 SpellCommand.model_validate_json(encoded),
+                principal_id=record.actor_id,
+            )
+        elif operation == "lock-host":
+            await LockService(play).execute(
+                record.campaign_id,
+                LOCK_ADAPTER.validate_json(encoded),
+                principal_id=record.actor_id,
+            )
+        elif operation == "lock-spell":
+            await LockSpellService(play).execute(
+                record.campaign_id,
+                RuntimeSpellCommand.model_validate_json(encoded),
+                principal_id=record.actor_id,
+            )
+        elif operation == "spell-backfire":
+            await SpellBackfireService(play).execute(
+                record.campaign_id,
+                ResolveSpellBackfire.model_validate_json(encoded),
                 principal_id=record.actor_id,
             )
         elif record.event["action"] == "recovery":

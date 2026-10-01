@@ -6,6 +6,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.equipment.salvage_state import SalvageTask, record, tasks
+from wayfarer.engine.simulation.equipment.worksite import available_here
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Item
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -42,7 +43,13 @@ def salvage(
     if any(e.status == "active" and actor_id in e.turn_order for e in state.encounters):
         raise ConflictError("Dismantling requires work outside active combat")
     item = next((i for i in state.resources.items if i.id == item_id), None)
-    if item is None or item.owner_id != actor_id or item.ground or item.equipped:
+    if (
+        item is None
+        or item.owner_id != actor_id
+        or item.ground
+        or item.equipped
+        or not available_here(state, actor_id, item)
+    ):
         raise ValidationError("Salvage requires an owned, retrieved, unequipped object")
     entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
     profile = entry.durability
@@ -55,6 +62,7 @@ def salvage(
             for i in state.resources.items
             if i.owner_id == actor_id
             and not i.ground
+            and available_here(state, actor_id, i)
             and i.definition_id == spec.tools_definition_id
             and (i.condition is None or not i.condition.disabled)
         ),
