@@ -69,7 +69,10 @@ class Controls:
         if principal_id != self.member.principal_id:
             raise AuthorizationError(self.refusal)
         try:
-            require_control(self.member, self.actor_id, self.state)
+            current = (
+                member_for(self.state, principal_id) if self.state is not None else self.member
+            )
+            require_control(current, self.actor_id, self.state)
         except AuthorizationError as exc:
             raise AuthorizationError(self.refusal) from exc
 

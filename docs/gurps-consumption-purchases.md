@@ -23,6 +23,12 @@ expenditure, canonical FP/HP changes and exact-once receipts. Restarted services
 return prior outcomes without rerolling or spending again. Missing or stale
 approval rejects without a committed consequence.
 
+The existing Doesn't Sleep purchase is projected alongside food/water requirements,
+so starting this clock cannot add missed-sleep fatigue to an exempt character.
+Changing an already-snapshotted sleep requirement rejects explicitly. The shared
+control guard refreshes campaign membership from the state being authorized;
+queued future revisions and duplicate outcomes cannot retain revoked control.
+
 Independent tests cover the three-day food/water totals for ordinary actors,
 the two lower Reduced Consumption levels and the first three Increased
 Consumption levels; fractional water credit survives serialization and preserves

@@ -53,13 +53,15 @@ class SurvivalService:
             before = play._load(campaign)
             build = _build(play, before, command.actor_id)
             env = self.environment(play, before, command.actor_id)
+            physiology = physiology_traits(build, play.engine.reviewer.compiler.definitions)
             context = SurvivalContext(
                 profile_id="gurps-basic-set-4e-2004",
                 ht=_value(build, "attribute:ht"),
                 will=_value(build, "secondary:will"),
                 meal_item_ids=env.meal_item_ids,
                 water_item_ids=env.water_item_ids,
-                physiology=physiology_traits(build, play.engine.reviewer.compiler.definitions),
+                does_not_sleep="sleep" not in physiology.survival_requirements(),
+                physiology=physiology,
             )
             if isinstance(command, BeginSurvival):
                 resources, result = begin_survival(before.resources, command, context, system=True)
