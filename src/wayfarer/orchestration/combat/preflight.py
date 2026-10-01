@@ -35,6 +35,32 @@ def _require_supported_resume(state: PlayState, command: ResumeInterruptedTurn) 
         raise ValidationError("Cancelling high-speed movement requires the B395 braking rules")
 
 
+def _retire_disabled_trajectory(
+    state: PlayState, saved: TakeCombatTurn | TakeUnarmedTurn
+) -> TakeCombatTurn | TakeUnarmedTurn:
+    """B385: a knocked-down or incapacitated mover cannot spend its unused path."""
+    encounter = encounter_for(state, saved.encounter_id)
+    mover = next(p for p in encounter.participants if p.actor_id == saved.actor_id)
+    if not mover.high_speed or not mover.high_speed.remaining_yards:
+        return saved
+    hp = next(p for p in state.resources.pools if p.id == f"hp:{saved.actor_id}")
+    actor = next(a for a in state.actors if a.actor_id == saved.actor_id)
+    if not (
+        mover.posture != "standing"
+        or actor.conditions
+        or hp.injury is not None
+        and (hp.injury.incapacitated or hp.injury.stunned)
+    ):
+        return saved
+    return TakeCombatTurn(
+        id=saved.id,
+        actor_id=saved.actor_id,
+        expected_revision=saved.expected_revision,
+        encounter_id=saved.encounter_id,
+        maneuver="do_nothing",
+    )
+
+
 def _prepare_command(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> tuple[PlayState, TypedCombatCommand, CombatContext]:
@@ -49,6 +75,7 @@ def _prepare_command(
             raise ConflictError("Resolve armed explosives before ending the encounter")
     resuming = False
     reaction = False
+    movement_checkpoint = False
     if isinstance(command, ResumeInterruptedTurn):
         paused = encounter_for(state, command.encounter_id)
         interrupt = paused.wait_interrupt
@@ -108,6 +135,13 @@ def _prepare_command(
                     "scatter_squared": False,
                 }
             )
+        mover = next(p for p in paused.participants if p.actor_id == command.actor_id)
+        movement_checkpoint = bool(
+            interrupt.declaration.action == "move"
+            and mover.high_speed is not None
+            and mover.high_speed.remaining_yards is None
+        )
+        saved = _retire_disabled_trajectory(state, saved)
         command = saved.model_copy(
             update={"id": command.id, "expected_revision": command.expected_revision}
         )
@@ -185,4 +219,10 @@ def _prepare_command(
             )
     if command.expected_revision != state.revision:
         raise ConflictError("Play revision changed")
-    return state, command, replace(context, resuming=resuming, reaction=reaction)
+    return (
+        state,
+        command,
+        replace(
+            context, resuming=resuming, reaction=reaction, movement_checkpoint=movement_checkpoint
+        ),
+    )

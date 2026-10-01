@@ -26,6 +26,7 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.explosion import ExplosionSpec
+from wayfarer.engine.rules.types.general_equipment import GeneralEquipmentFeature
 from wayfarer.engine.rules.types.location import HumanBody
 from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
 from wayfarer.engine.rules.types.recovery import RecoveryTask
@@ -102,6 +103,7 @@ async def setup(
     trait_runtime_hooks: frozenset[str] = frozenset(),
     campaign_technology_level: int | None = None,
     repair_skill_technology_level: int | None = None,
+    repair_tool_features: tuple[GeneralEquipmentFeature, ...] = (),
     extra_equipment: tuple[EquipmentProfile, ...] = (),
     warhead: ExplosionSpec | None = None,
     power_cell_capacity: int | None = None,
@@ -290,6 +292,7 @@ async def setup(
                     + (
                         EquipmentProfile(
                             definition_id=durability.repair_tools_definition,
+                            general=repair_tool_features,
                             provenance=LITE_SOURCE,
                             weight_millipounds=1000,
                             price=20,

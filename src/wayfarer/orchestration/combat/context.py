@@ -31,6 +31,7 @@ class CombatContext:
     initial_state: PlayState
     resuming: bool = False
     reaction: bool = False
+    movement_checkpoint: bool = False
 
     @property
     def engine(self) -> CombatEngine:
