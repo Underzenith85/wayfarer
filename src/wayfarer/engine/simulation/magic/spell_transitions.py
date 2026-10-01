@@ -31,6 +31,12 @@ from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
 from wayfarer.engine.simulation.magic.bindings import SpellRules
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.item_state import (
+    item_magic_lost,
+    item_power_reduction,
+    item_requires_magery,
+    usable_item_enchantment,
+)
 from wayfarer.engine.simulation.magic.spell_state import (
     RuntimeSpellEvent as SpellEvent,
 )
@@ -59,7 +65,9 @@ def _approved_magic_item(
         (
             item
             for item in rules.magic_items
-            if item.item_id == item_id and item.spell_id == command.spell_id
+            if item.item_id == item_id
+            and item.spell_id == command.spell_id
+            and not item_magic_lost(state.resources, item_id, item.id)
         ),
         None,
     )
@@ -72,13 +80,33 @@ def _approved_magic_item(
     ):
         raise ValidationError("Caster is not holding a usable magic item")
     completed = next(
-        (item for item in held.enchantments if item.spell_id == command.spell_id), None
+        (
+            item
+            for item in held.enchantments
+            if item.spell_id == command.spell_id
+            and not item_magic_lost(state.resources, item_id, item.id)
+        ),
+        None,
     )
     if completed is None and configured is None:
         raise ValidationError("Magic item does not carry a completed matching enchantment")
+    # deferred: private cast provenance keeps the frozen spell facade unchanged.
+    from wayfarer.engine.simulation.magic.power_lifecycle import require_origin
+
+    binding = completed if completed is not None else configured
+    assert binding is not None
+    require_origin(state.resources, command, binding)
+    # B482: a mage-only spell makes every spell on the same physical item mage-only.
+    requires_magery = item_requires_magery(state.resources, item_id, rules.magic_items)
+    mana = next(channel.mana for channel in rules.channels if channel.id == command.channel_id)
+    if not usable_item_enchantment(state.resources, binding, mana):
+        raise ValidationError("Magic-item Power is ineffective in the current mana")
+    reduction = item_power_reduction(state.resources, item_id, binding, rules.magic_items, mana)
     if completed is None:
         assert configured is not None
-        return configured
+        return configured.model_copy(
+            update={"requires_magery": requires_magery, "power_reduction": reduction}
+        )
     if completed.runtime_family != "spell":
         raise ValidationError("Magic-item activation has no executable runtime family")
     if completed.activation == "always-on":
@@ -91,8 +119,8 @@ def _approved_magic_item(
         item_id=completed.item_id,
         spell_id=completed.spell_id,
         power=completed.power,
-        power_reduction=completed.power_reduction,
-        requires_magery=completed.requires_magery,
+        power_reduction=reduction,
+        requires_magery=requires_magery,
         always_on=completed.always_on,
     )
 
@@ -104,11 +132,18 @@ SpellResolver = Callable[[RulesContext, PlayState, LegacySpellCommand], SpellEnv
 def approved_context(
     runtime: RulesContext, state: PlayState, command: SpellCommand
 ) -> SpellContext:
-    if command.spell_id in ("lockmaster", "magelock"):
+    # deferred: Staff joins share the completed spell context without a public schema change.
+    from wayfarer.engine.simulation.magic.staff_casting import apply_targeting, existing_context
+
+    synchronous(state, command.actor_id)
+    existing = existing_context(runtime, state, command)
+    if existing is not None or command.spell_id in ("lockmaster", "magelock"):
         # deferred: private lock bindings share the spell types used by this dispatcher.
         from wayfarer.engine.simulation.magic.lock_bindings import approved_context as lock_context
 
-        return lock_context(runtime, state, command)
+        return existing or apply_targeting(
+            runtime, state, command, lock_context(runtime, state, command)
+        )
 
     synchronous(state, command.actor_id)
     rules = runtime.rules.spells
@@ -222,7 +257,7 @@ def approved_context(
         context = context.model_copy(
             update={"ceremonial": channel.ceremonial, "ceremonial_ht": tuple(ht)}
         )
-    return context.model_copy(
+    context = context.model_copy(
         update={
             "execute_effects": True,
             "execution_version": rules.execution_version,
@@ -238,6 +273,8 @@ def approved_context(
             ),
         }
     )
+
+    return apply_targeting(runtime, state, command, context)
 
 
 def _awaken_area_subjects(
@@ -388,8 +425,11 @@ def advance_cast_turn(
                 "hp_energy": 0,
             }
         )
+        # B239 range and Staff custody/contact are current when the dice roll,
+        # including physical consequences of the final injury-turn boundary.
+        completion_context = approved_context(runtime, state, completed)
         resources, result = apply_spell(
-            state.resources, completed, context, rng=runtime.rng, system=True
+            state.resources, completed, completion_context, rng=runtime.rng, system=True
         )
         completed_effect = latest(resources)[command.cast_id]
         events = []
@@ -479,6 +519,7 @@ def apparent_result(
 class SpellExecutionContext:
     runtime: RulesContext
     resolver: RuntimeSpellResolver | None = None
+    capture_targeting: bool = True
 
 
 def _prepare_spell(
@@ -517,12 +558,16 @@ def _prepare_spell(
         raise ValidationError("Spell context does not match campaign profile")
     if command.actor_id not in {a.actor_id for a in before.actors}:
         raise ValidationError("Unknown caster")
+    # deferred: Staff contact is a separately trusted physical observation.
+    from wayfarer.engine.simulation.magic.staff_casting import staff_touching
+
     perceived = {e.id for e in before.world.perspective(command.actor_id).entities}
     if (
         command.kind not in ("cancel", "maintain", "remember")
         and context.target_id != command.actor_id
         and context.target_id not in perceived
         and not context.unseen
+        and not staff_touching(runtime, before, command, context)
     ):
         raise ValidationError("Spell target is not perceived")
     if command.kind == "start" and not any(
@@ -709,7 +754,12 @@ def reduce_spell(
         )
     else:
         resources, result = apply_spell(
-            casting_resources, command, context, rng=runtime.rng, system=True
+            casting_resources,
+            command,
+            context,
+            rng=runtime.rng,
+            system=True,
+            capture_targeting=execution.capture_targeting,
         )
     if command.kind == "start" and not any(
         receipt.command_id == command.id for receipt in before.resources.receipts
@@ -724,10 +774,17 @@ def reduce_spell(
             else None
         )
         if channel and channel.magic_item_id:
+            # deferred: persisted Power origins share the canonical item cast.
+            from wayfarer.engine.simulation.magic.power_lifecycle import remember
+
+            assert rules is not None
+            selected = _approved_magic_item(before, command, channel.magic_item_id, rules)
+            if context.item_cast:
+                resources = remember(resources, command, channel, rules.magic_items)
             carried = next(i for i in resources.items if i.id == channel.magic_item_id)
             instances = []
             for instance in carried.enchantments:
-                if instance.spell_id == command.spell_id and instance.charges is not None:
+                if instance.id == selected.id and instance.charges is not None:
                     instance = instance.model_copy(update={"charges": instance.charges - 1})
                 instances.append(instance)
             carried = carried.model_copy(update={"enchantments": tuple(instances)})

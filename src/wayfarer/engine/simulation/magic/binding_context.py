@@ -79,7 +79,9 @@ def approved_context(
             raise ValidationError("Magic item has insufficient Power in this mana level")
         if item.requires_magery and magery_level(purchases) < 0:
             raise ValidationError("Magic item requires Magery")
-        skill = power
+        # SpellContext carries the base skill before its single mana adjustment.
+        # B482 uses item Power, without personal high-skill cost/time benefits.
+        skill = item.power
         learned = tuple(
             dict.fromkeys(
                 (*learned, command.spell_id, *_executable_spec(command.spell_id).prerequisites)
@@ -132,5 +134,6 @@ def approved_context(
         )
         or actor.available_at > state.resources.game_time,
         item_power_reduction=item_reduction,
+        item_cast=environment.magic_item is not None,
         **environment.model_dump(exclude={"magic_item", "personal_ritual"}),
     )

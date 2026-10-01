@@ -315,7 +315,8 @@ async def test_magic_item_power_replaces_user_spell_skill(tmp_path: Path) -> Non
             ),
         ),
     )
-    assert context.skill == 15
+    assert context.skill == 20  # Base Power; the actual casting applies low mana once.
+    assert context.item_cast
     assert context.item_power_reduction == 2
 
 

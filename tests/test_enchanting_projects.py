@@ -19,6 +19,7 @@ from wayfarer.engine.rules.catalog import (
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.magic.enchantment import package as enchantment_package
 from wayfarer.engine.rules.magic.gurps_magic import definitions
+from wayfarer.engine.rules.magic.healing import package as healing_package
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.party import synchronous
@@ -31,6 +32,7 @@ from wayfarer.engine.simulation.magic.enchanting import (
     MagicItemOffer,
 )
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
+    CALENDAR_DAY,
     BeginEnchanting,
     CreateEnchantment,
     InterruptEnchanting,
@@ -57,9 +59,13 @@ def setup(
     *,
     method: Literal["quick-and-dirty", "slow-and-sure"] = "slow-and-sure",
     runtime_family: str | None = "spell",
+    learn_source_spells: bool = False,
+    hold_target: bool = False,
 ) -> tuple[ActionEngine, RulesContext, PlayState]:
     enchantment = enchantment_package()
     all_definitions = {d.id: d for d in (*definitions(2), *enchantment.definitions)}
+    if learn_source_spells:
+        all_definitions.update({d.id: d for d in healing_package().definitions})
     # This fixture isolates enchantment execution; the prerequisite count is
     # independently exercised by test_spell_construction.py.
     enchant = all_definitions["spell:enchant"]
@@ -106,7 +112,13 @@ def setup(
     resources = ResourceState(
         owners=(Owner(actor_id="a", capacity=100), Owner(actor_id="b", capacity=100)),
         items=(
-            Item(id="blade", definition_id="equipment:sword", owner_id="a"),
+            Item(
+                id="blade",
+                definition_id="equipment:sword",
+                owner_id="a",
+                equipped=hold_target,
+                ready=hold_target,
+            ),
             Item(id="forge-tools", definition_id="equipment:workshop", owner_id="a"),
             Item(id="silver", definition_id="equipment:silver", owner_id="a", quantity=3),
         ),
@@ -117,7 +129,12 @@ def setup(
         compiler.rules,
         compiler.policy,
         (
-            EquipmentSpec(definition_id="equipment:sword", unit_weight=5, stackable=False),
+            EquipmentSpec(
+                definition_id="equipment:sword",
+                unit_weight=5,
+                stackable=False,
+                slot="hand" if hold_target else None,
+            ),
             EquipmentSpec(definition_id="equipment:workshop", unit_weight=20, stackable=False),
             EquipmentSpec(definition_id="equipment:silver", unit_weight=1),
         ),
@@ -164,6 +181,14 @@ def setup(
         Purchase(definition_id="trait:magery", amount=2),
         Purchase(definition_id="spell:enchant", amount=4),
         Purchase(definition_id="spell:light", amount=4),
+        *(
+            tuple(
+                Purchase(definition_id="spell:" + key, amount=4)
+                for key in ("staff", "lend-energy", "recover-energy", "power")
+            )
+            if learn_source_spells
+            else ()
+        ),
     )
     draft = draft.model_copy(
         update={
@@ -220,6 +245,7 @@ def create(runtime: RulesContext, state: PlayState) -> tuple[PlayState, CreateEn
 
 def test_slow_project_interrupt_resume_restart_and_compile_item(tmp_path: Path) -> None:
     reducer, runtime, state = setup(tmp_path)
+    runtime = replace(runtime, rng=RecordedDice((3, 3, 3, 3, 3)))
     state, create_command = create(runtime, state)
     assert next(i for i in state.resources.items if i.id == "silver").quantity == 1
     restarted = PlayState.model_validate_json(state.model_dump_json())
@@ -230,7 +256,7 @@ def test_slow_project_interrupt_resume_restart_and_compile_item(tmp_path: Path) 
     )
     state, _ = apply_enchantment(runtime, state, begin, system=True)
     work = state.resources.enchantment_projects[0].active_work
-    assert work is not None and work.due == 2 * 8 * 60 * 60
+    assert work is not None and work.due == CALENDAR_DAY + 8 * 60 * 60
     with pytest.raises(ConflictError, match="enchanting work"):
         synchronous(state, "b")
     with pytest.raises(ConflictError, match="deadline"):
@@ -246,7 +272,7 @@ def test_slow_project_interrupt_resume_restart_and_compile_item(tmp_path: Path) 
             ),
             system=True,
         )
-    state = advance(reducer, state, 8 * 60 * 60, "day-one")
+    state = advance(reducer, state, CALENDAR_DAY + 3600, "day-two")
     state, interrupted = apply_enchantment(
         runtime,
         state,
@@ -265,7 +291,8 @@ def test_slow_project_interrupt_resume_restart_and_compile_item(tmp_path: Path) 
         system=True,
     )
     work = state.resources.enchantment_projects[0].active_work
-    assert work is not None and work.due - work.start == 3 * 8 * 60 * 60
+    # Day two was lost. Days three and four replace that one working day.
+    assert work is not None and work.due == 3 * CALENDAR_DAY + 8 * 60 * 60
     state = advance(reducer, state, work.due, "finish-time")
     settle = SettleEnchanting(
         id="settle",

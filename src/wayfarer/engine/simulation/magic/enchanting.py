@@ -41,10 +41,35 @@ class EnchantmentRecipe(Record):
 
     @model_validator(mode="after")
     def explicit_runtime(self) -> EnchantmentRecipe:
-        if (self.runtime_spell_id is None) != (self.runtime_family is None):
+        passive = self.spell_id in ("spell:staff", "spell:power")
+        if passive:
+            family = self.spell_id.removeprefix("spell:")
+            if (
+                self.runtime_spell_id is not None
+                or self.runtime_family != family
+                or self.activation != "always-on"
+                or self.maximum_charges is not None
+                or self.maintenance_energy
+            ):
+                raise ValueError("Staff and Power require their permanent passive runtime family")
+            if family == "staff" and (
+                self.energy_required != 30 or not self.requires_magery or self.power_reduction
+            ):
+                raise ValueError("Staff requires 30 energy, Magery, and no Power reduction")
+            if family == "power" and (
+                not self.power_reduction
+                or self.energy_required != 500 * 2 ** (self.power_reduction - 1)
+                or self.requires_magery
+            ):
+                raise ValueError("Power requires its exact purchased-level energy cost")
+        elif self.runtime_family in ("staff", "power"):
+            raise ValueError("Passive enchantment family does not match its source spell")
+        elif (self.runtime_spell_id is None) != (self.runtime_family is None):
             raise ValueError("Executable enchantments require spell and runtime-family bindings")
         if len(set(self.target_definition_ids)) != len(self.target_definition_ids):
             raise ValueError("Duplicate enchantment target definition")
+        if len({m.definition_id for m in self.materials}) != len(self.materials):
+            raise ValueError("Duplicate enchantment material definition")
         return self
 
 
@@ -142,6 +167,8 @@ def validate_projects(
     *,
     item_ids: frozenset[str] | None = None,
     binding_ids: frozenset[str] | None = None,
+    archived_item_ids: frozenset[str] = frozenset(),
+    archived_binding_ids: frozenset[str] = frozenset(),
 ) -> None:
     if len({p.id for p in projects}) != len(projects):
         raise ValidationError("Duplicate enchantment project")
@@ -158,6 +185,7 @@ def validate_projects(
             item_ids is not None
             and project.status != "failed"
             and project.target_item_id not in item_ids
+            and not (project.status == "completed" and project.target_item_id in archived_item_ids)
         ):
             raise ValidationError("Enchantment target item is missing")
         if project.active_work and (
@@ -173,5 +201,6 @@ def validate_projects(
             project.status == "completed"
             and binding_ids is not None
             and project.magic_item_binding_id not in binding_ids
+            and project.magic_item_binding_id not in archived_binding_ids
         ):
             raise ValidationError("Completed enchantment binding is missing from its item")

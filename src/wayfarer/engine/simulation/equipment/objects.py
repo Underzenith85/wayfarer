@@ -31,6 +31,7 @@ from wayfarer.engine.rules.types.object import (
     residual_definition,
 )
 from wayfarer.engine.rules.types.recovery import require_settled
+from wayfarer.engine.simulation.magic.item_state import checkpoint as item_magic_checkpoint
 from wayfarer.engine.simulation.resources import (
     Command,
     Item,
@@ -401,5 +402,6 @@ def apply_object(
             ),
         }
     )
+    updated = item_magic_checkpoint(updated, before=state)
     engine.validate(updated)
     return updated, result

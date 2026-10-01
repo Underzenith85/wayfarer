@@ -2,6 +2,7 @@
 
 import json
 
+from wayfarer import validation
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
@@ -44,6 +45,27 @@ from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.replay_inputs import recorded_command
+from wayfarer.persistence.replay import command_text
+
+
+async def _capture_targeting(play: PlayService, state: PlayState, command: SpellCommand) -> bool:
+    """Use the recorded generation for historical reexecution and exact retries."""
+    prior = recorded_command.get()
+    if prior is None and any(r.command_id == command.id for r in state.resources.receipts):
+        prior = next(
+            (r for r in await play.store.history(state.campaign_id) if r.command_id == command.id),
+            None,
+        )
+    if prior is None:
+        return True
+    if prior.command_input is None:
+        return False  # Pre-input historical receipts still support exact live retries.
+    payload = validation.mapping(validation.decode(command_text(prior)))
+    generation = payload.get("targeting_generation")
+    if generation not in (None, 1):
+        raise ValidationError("Unsupported recorded spell targeting generation")
+    return generation == 1
 
 
 def _runtime_resolver(resolve: SpellResolver | None) -> RuntimeSpellResolver | None:
@@ -65,7 +87,13 @@ class SpellService:
         self.play, self.resolve = play, resolve
 
     def plan(
-        self, play: PlayService, member: CampaignMember, command: SpellCommand, *, principal_id: str
+        self,
+        play: PlayService,
+        member: CampaignMember,
+        command: SpellCommand,
+        *,
+        principal_id: str,
+        capture_targeting: bool = True,
     ) -> CommandPlan[SpellResult]:
         """What a spell lifecycle command writes; the pipeline decides whether it runs.
 
@@ -85,11 +113,14 @@ class SpellService:
                 "operation": "spell-lifecycle",
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
+                **({"targeting_generation": 1} if capture_targeting else {}),
             },
             sort_keys=True,
         )
 
-        execution = SpellExecutionContext(play.rules_context, _runtime_resolver(self.resolve))
+        execution = SpellExecutionContext(
+            play.rules_context, _runtime_resolver(self.resolve), capture_targeting=capture_targeting
+        )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
@@ -136,9 +167,16 @@ class SpellService:
         play = self.play.for_campaign(await self.play.store.read(cid))
         state = play._load(await play.store.read(cid))
         member = member_for(state, principal_id)
+        capture_targeting = await _capture_targeting(play, state, command)
         return await submit(
             play,
             cid,
-            self.plan(play, member, command, principal_id=principal_id),
+            self.plan(
+                play,
+                member,
+                command,
+                principal_id=principal_id,
+                capture_targeting=capture_targeting,
+            ),
             principal_id=principal_id,
         )

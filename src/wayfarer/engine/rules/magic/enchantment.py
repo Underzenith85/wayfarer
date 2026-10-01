@@ -13,6 +13,17 @@ from wayfarer.engine.rules.types.skill import Difficulty
 
 ISSUE: Final = 221
 COLLEGE: Final = "enchantment"
+LEARNING: Final = {
+    "enchant": learning_spec(
+        480,
+        difficulty=Difficulty.VERY_HARD,
+        magery=2,
+        colleges=10,
+        excluded_colleges=(COLLEGE,),
+    ),
+    "staff": learning_spec(481, spells=("enchant",)),
+    "power": learning_spec(480, spells=("enchant", "recover-energy")),
+}
 BINDINGS: Final = tuple(
     CollegeSpellBinding(
         key,
@@ -20,15 +31,7 @@ BINDINGS: Final = tuple(
         page,
         COLLEGE,
         CAMPAIGNS_SOURCE,
-        learning_spec(
-            page,
-            difficulty=Difficulty.VERY_HARD,
-            magery=2,
-            colleges=10,
-            excluded_colleges=(COLLEGE,),
-        )
-        if key == "enchant"
-        else None,
+        LEARNING.get(key),
     )
     for key, name, page in (
         ("accuracy", "Accuracy", 480),

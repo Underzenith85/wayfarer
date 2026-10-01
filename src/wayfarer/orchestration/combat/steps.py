@@ -15,6 +15,9 @@ from wayfarer.engine.simulation.combat.commands import (
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.sensory_state import invalidate_movement
 from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense_with_movement
+from wayfarer.engine.simulation.magic.staff_casting_state import (
+    invalidate_movement as invalidate_staff_movement,
+)
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.defense import _defend
 from wayfarer.orchestration.combat.encounters import (
@@ -81,6 +84,9 @@ def reduce_combat(
             )
             resources = invalidate_movement(
                 step.resources, finished.id, moved, revision=command.expected_revision + 1
+            )
+            resources = invalidate_staff_movement(
+                resources, finished.id, moved, revision=command.expected_revision + 1
             )
             step = replace(
                 step,

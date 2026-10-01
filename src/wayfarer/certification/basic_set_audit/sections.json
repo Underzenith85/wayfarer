@@ -17123,26 +17123,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-campaigns-section-audit.md",
         "docs/gurps-enchanting.md",
         "tests/test_enchanting_projects.py",
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "docs/gurps-magic-item-loss.md",
+        "tests/test_enchanting_source.py",
+        "tests/test_enchanting_calendar.py",
+        "tests/test_magic_item_execution.py",
+        "tests/test_staff_casting_integration.py"
       ],
       "historical_owners": [
         191,
         527,
         679
       ],
-      "completion_owner": null,
+      "completion_owner": 785,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
       "classification": "executable-mechanic",
-      "listed_value": "joined-executable-evidence"
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b480:enchantment-spells",
@@ -17155,26 +17160,31 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-campaigns-section-audit.md",
         "docs/gurps-enchanting.md",
         "tests/test_enchanting_projects.py",
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_enchantment.py",
+        "docs/gurps-magic-item-loss.md",
+        "tests/test_enchanting_source.py",
+        "tests/test_enchanting_calendar.py",
+        "tests/test_magic_item_execution.py",
+        "tests/test_staff_casting_integration.py"
       ],
       "historical_owners": [
         191,
         527,
         679
       ],
-      "completion_owner": null,
+      "completion_owner": 785,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
       "classification": "executable-mechanic",
-      "listed_value": "joined-executable-evidence"
+      "listed_value": "bounded-follow-up"
     },
     {
       "id": "section:campaigns:b481:enchanting",
@@ -17187,18 +17197,23 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "implemented",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-enchanting.md",
-        "tests/test_enchanting_projects.py::test_quick_energy_is_preflighted_spent_once_and_bad_target_is_early"
+        "tests/test_enchanting_projects.py::test_quick_energy_is_preflighted_spent_once_and_bad_target_is_early",
+        "docs/gurps-magic-item-loss.md",
+        "tests/test_enchanting_source.py",
+        "tests/test_enchanting_calendar.py",
+        "tests/test_magic_item_execution.py",
+        "tests/test_staff_casting_integration.py"
       ],
       "historical_owners": [
         191,
         526
       ],
-      "completion_owner": null,
+      "completion_owner": 785,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -17216,18 +17231,23 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "implemented",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-enchanting.md",
-        "tests/test_enchanting_projects.py::test_slow_project_interrupt_resume_restart_and_compile_item"
+        "tests/test_enchanting_projects.py::test_slow_project_interrupt_resume_restart_and_compile_item",
+        "docs/gurps-magic-item-loss.md",
+        "tests/test_enchanting_source.py",
+        "tests/test_enchanting_calendar.py",
+        "tests/test_magic_item_execution.py",
+        "tests/test_staff_casting_integration.py"
       ],
       "historical_owners": [
         191,
         526
       ],
-      "completion_owner": null,
+      "completion_owner": 785,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -17245,18 +17265,23 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "implemented",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-enchanting.md",
-        "tests/test_enchanting_projects.py::test_item_activation_blocks_missing_family_and_spends_one_charge"
+        "tests/test_enchanting_projects.py::test_item_activation_blocks_missing_family_and_spends_one_charge",
+        "docs/gurps-magic-item-loss.md",
+        "tests/test_enchanting_source.py",
+        "tests/test_enchanting_calendar.py",
+        "tests/test_magic_item_execution.py",
+        "tests/test_staff_casting_integration.py"
       ],
       "historical_owners": [
         191,
         526
       ],
-      "completion_owner": null,
+      "completion_owner": 785,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
