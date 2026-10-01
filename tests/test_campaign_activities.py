@@ -2,7 +2,13 @@
 
 from decimal import Decimal
 
+from trait_support import approved_build, trait_compiler
+
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.traits.physiology import PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.traits.physiology import package as physiology_package
 from wayfarer.engine.simulation.campaign.activities import (
     ActivityActor,
     ActivityOutcome,
@@ -166,3 +172,25 @@ def test_gravity_adjustments_preserve_base_values() -> None:
     assert high["effective_load"] == Decimal(68)
     assert high["dx_penalty"] == -2
     assert high["iq_ht_fp_penalty"] == -1
+
+
+def test_doesnt_breathe_activity_skips_fatigue_and_suffocation() -> None:
+    engine = trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
+    build, _ = approved_build(engine, Purchase(definition_id="advantage:doesnt-breathe"))
+    actor = ACTOR.model_copy(update={"physiology": physiology_traits(build, engine.definitions)})
+    rule = BreathRule(id="air", exertion="heavy", preparation="none")
+    command = PerformActivity(
+        id="air", actor_id="a", expected_revision=0, activity_id="air", seconds=1000
+    )
+    updated, result = apply_activity(
+        ResourceState(),
+        command,
+        rule,
+        actor,
+        rng=RecordedDice([]),
+        advance=advance,
+        lose_fatigue=fatigue,
+        system=True,
+    )
+    assert result.fp_lost == 0 and not result.suffocating
+    assert updated.game_time == 1000
