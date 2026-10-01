@@ -54,7 +54,15 @@ def test_all_87_source_rows_have_distinct_modifier_definitions() -> None:
     assert len(source) == len(MODIFIER_INDEX) == 87
     assert {row.id for row in source} == set(MODIFIER_INDEX)
     assert all(row.construction_binding == row.id for row in source)
-    assert all(row.cost_owner and row.consequence_owner in {513, 682, 683} for row in source)
+    symptoms = next(row for row in source if row.id == "modifier:enhancement:symptoms")
+    assert symptoms.implementation == "partial"
+    assert symptoms.completion_owner == symptoms.consequence_owner == 763
+    assert all(
+        row.cost_owner and row.consequence_owner in {513, 682, 683}
+        for row in source
+        if row.id != symptoms.id
+    )
+    assert symptoms.cost_owner == "modifier-catalog:modifier:enhancement:symptoms"
 
 
 def test_positive_negative_level_cost_and_final_rounding() -> None:

@@ -11,7 +11,7 @@ from pydantic import Field
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.sensory import sensory_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
-from wayfarer.engine.simulation.health.symptom_state import active as active_symptoms
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
@@ -113,7 +113,7 @@ def apply_sensory_use(
     if (
         channel.blocked
         or channel.medium == "vision"
-        and any(e.spec.kind == "blindness" for e in active_symptoms(resources, command.actor_id))
+        and acute_blindness(resources, command.actor_id)
     ):
         result = "blocked"
     elif channel.resistant:

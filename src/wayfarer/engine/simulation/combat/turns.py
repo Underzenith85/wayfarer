@@ -38,6 +38,7 @@ from wayfarer.engine.simulation.combat.maneuvers import (
     WaitInterrupt,
     WaitTrigger,
 )
+from wayfarer.engine.simulation.combat.sensory_state import invalidate_movement
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
 )
@@ -50,6 +51,7 @@ from wayfarer.engine.simulation.combat.tactical import (
 )
 from wayfarer.engine.simulation.combat.turn_commitment import prepare as prepare_commitment
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex, HexFacing, Pose
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
@@ -258,9 +260,11 @@ def _wait_interruption(
     target_id: str | None,
     command_json: str,
     hex_path: tuple[Hex, ...],
+    applied_hex_path: tuple[Hex, ...],
     basic_move: BasicMove | None,
     crouch: CrouchAction | None,
     movement_checkpoint: bool,
+    spatial_revision: int,
 ) -> tuple[Encounter, ResourceState, CombatResult] | None:
     """Pause a completed declaration when a recorded Wait trigger matches it."""
     action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
@@ -269,7 +273,7 @@ def _wait_interruption(
     for waiter_id in _wait_order(engine, original, actor_id, completed_actor, hex_path, maneuver):
         waiter = waiters.get(waiter_id)
         trigger = waiter.maneuver_state.wait if waiter else None
-        if trigger:
+        if trigger and not acute_blindness(original_resources, waiter_id):
             assert waiter is not None
             before_actor = next(p for p in original.participants if p.actor_id == actor_id)
             after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
@@ -316,10 +320,18 @@ def _wait_interruption(
             if trigger.stop_thrust
             else 0
         )
+        # The speculative completed turn may have moved farther. Persist only
+        # the prefix accepted by this Wait, including a prefix returning home.
+        executed_hex_path = (
+            applied_hex_path[: trigger_index + 1]
+            if trigger.action == "move" and trigger_index is not None
+            else applied_hex_path
+        )
         moved = (
             basic_move is not None
             if original.spatial_kind == "basic"
-            else engine.distance(before_actor.position, after_actor.position) >= 1
+            else bool(executed_hex_path)
+            or engine.distance(before_actor.position, after_actor.position) >= 1
         )
         pose_changed = moved or crouch in ("before", "rise")
         paused = engine._replace(
@@ -388,7 +400,12 @@ def _wait_interruption(
         )
         return (
             paused,
-            original_resources,
+            invalidate_movement(
+                original_resources,
+                original.id,
+                frozenset({actor_id}) if executed_hex_path else frozenset(),
+                revision=spatial_revision,
+            ),
             CombatResult(
                 encounter_id=paused.id,
                 code="combat.wait_triggered",
@@ -506,9 +523,11 @@ def take_turn(
             target_id=target_id,
             command_json=command_json,
             hex_path=hex_path,
+            applied_hex_path=hex_path if step_timing == "before" else (),
             basic_move=basic_move,
             crouch=crouch,
             movement_checkpoint=movement_checkpoint,
+            spatial_revision=spatial_revision or original_resources.revision + 1,
         )
         if interrupted is not None:
             return interrupted
@@ -754,6 +773,12 @@ def apply_turn(
             enter_high_speed=enter_high_speed,
             basic_move=basic_move,
             enter_close_combat=enter_close_combat,
+        )
+        resources = invalidate_movement(
+            resources,
+            encounter.id,
+            frozenset({actor_id}) if hex_path else frozenset(),
+            revision=spatial_revision,
         )
         encounter = engine._replace(encounter, participant)
         if enter_close_combat:

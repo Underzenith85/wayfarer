@@ -19,6 +19,8 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import target_geometry, target_modifier
+from wayfarer.engine.simulation.combat.sensory_combat import blind_hit_location
+from wayfarer.engine.simulation.combat.visibility import combat_visibility
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.hit_locations import require_location
 from wayfarer.engine.simulation.health.recovery_guard import guard
@@ -504,6 +506,11 @@ def _prepare_spell(
         encounter is None or execution.resolver is not None
     ):
         raise ValidationError("Missile commands require approved combat dispatch")
+    if command.kind == "release" and encounter is not None:
+        combat_visibility(encounter, command.actor_id, context.target_id, state=before)
+        blind_hit_location(
+            before, command.actor_id, command.hit_location, target_item_id=command.target_item_id
+        )
     if command.kind == "release" and context.distance > 50:
         raise ValidationError("Fireball exceeds its maximum range")
     if context.profile_id != PROFILE:
@@ -558,12 +565,16 @@ def _release_missile(
         update={"resources": updated.resources.model_copy(update={"revision": updated.revision})}
     )
 
+    visibility = combat_visibility(encounter, command.actor_id, context.target_id, state=before)
+    location = blind_hit_location(
+        before, command.actor_id, command.hit_location, target_item_id=command.target_item_id
+    )
     target = next(p for p in encounter.participants if p.actor_id == context.target_id)
     target_hp = next(p for p in before.resources.pools if p.id == "hp:" + target.actor_id)
-    if command.hit_location is not None:
+    if location is not None:
         if target_hp.injury is None:
             raise ValidationError("Fireball hit locations require a GURPS injury profile")
-        require_location(target_hp.injury, command.hit_location)
+        require_location(target_hp.injury, location)
     ground_target = False
     if command.target_item_id:
         target_modifier(runtime, before, target.actor_id, command.target_item_id)
@@ -572,6 +583,8 @@ def _release_missile(
         )
     allowed: list[Defense] = ["none"]
     for defense in ("dodge", "block"):
+        if defense not in visibility.defenses:
+            continue
         try:
             defense_value(runtime, before, target, defense)
         except ValidationError:
@@ -609,7 +622,9 @@ def _release_missile(
                 opened_turn=encounter.turn_index,
                 spell_cast_id=command.cast_id,
                 spell_aim_bonus=aim_bonus,
-                hit_location=command.hit_location,
+                hit_location=location,
+                visibility_attack_penalty=visibility.attack_penalty,
+                visibility_defense_penalty=visibility.defense_penalty,
                 target_item_id=command.target_item_id,
             )
         }

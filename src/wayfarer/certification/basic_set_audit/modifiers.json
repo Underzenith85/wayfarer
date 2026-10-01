@@ -1546,7 +1546,7 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
@@ -1554,7 +1554,10 @@
         "tests/test_symptoms.py",
         "docs/symptoms.md",
         "src/wayfarer/engine/simulation/health/symptoms.py",
-        "src/wayfarer/engine/simulation/health/symptom_state.py"
+        "src/wayfarer/engine/simulation/health/symptom_state.py",
+        "tests/test_combat_sensory_authority.py",
+        "tests/test_blindness_combat_consumers.py",
+        "src/wayfarer/engine/simulation/combat/visibility.py"
       ],
       "historical_owners": [
         100,
@@ -1562,7 +1565,7 @@
         682,
         763
       ],
-      "completion_owner": null,
+      "completion_owner": 763,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:symptoms",
       "parent_id": null,
@@ -1570,7 +1573,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:symptoms",
       "cost_owner": "modifier-catalog:modifier:enhancement:symptoms",
-      "consequence_owner": 682,
+      "consequence_owner": 763,
       "source_review_owner": null
     },
     {

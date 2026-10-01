@@ -20,7 +20,7 @@ from wayfarer.engine.simulation.combat.unarmed.declaration import (
     validate_action,
     validate_sequence,
 )
-from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
+from wayfarer.engine.simulation.combat.unarmed.defense import allowed_defenses
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, settle_control
 from wayfarer.engine.simulation.combat.unarmed.records import (
     PendingUnarmed,
@@ -202,49 +202,15 @@ def declare_pending(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
 ) -> tuple[Encounter, CombatResult]:
     actor = fighter(encounter, command.actor_id)
-    allowed_defenses: list[str] = ["none"]
-    for choice in () if command.choke_hold else ("dodge", "parry"):
-        try:
-            unarmed_defense(
-                runtime,
-                state,
-                encounter,
-                command.target_id,
-                choice,
-                None,
-                attacker_id=actor.actor_id,
-                location=command.location,
-            )
-        except ValidationError:
-            if choice != "parry":
-                continue
-            candidates = (
-                (i.id, m.id)
-                for i in state.resources.items
-                if i.id in fighter(encounter, command.target_id).ready_item_ids
-                for e in catalog(runtime).entries
-                if e.definition_id == i.definition_id
-                for m in e.modes
-            )
-            for item, selected_mode in candidates:
-                try:
-                    unarmed_defense(
-                        runtime,
-                        state,
-                        encounter,
-                        command.target_id,
-                        choice,
-                        item,
-                        attacker_id=actor.actor_id,
-                        location=command.location,
-                        mode_id=selected_mode,
-                    )
-                except ValidationError:
-                    continue
-                break
-            else:
-                continue
-        allowed_defenses.insert(0, choice)
+    choices = allowed_defenses(
+        runtime,
+        state,
+        encounter,
+        actor.actor_id,
+        command.target_id,
+        command.location,
+        choke_hold=command.choke_hold,
+    )
     pending = PendingUnarmed.model_validate(
         {
             "id": "unarmed:" + hashlib.sha256(command.id.encode()).hexdigest(),
@@ -257,7 +223,7 @@ def declare_pending(
             "foot": command.foot,
             "hands": command.hands,
             "location": command.location,
-            "allowed": tuple(allowed_defenses),
+            "allowed": choices,
         }
     )
     encounter = encounter.model_copy(update={"pending_unarmed": pending})

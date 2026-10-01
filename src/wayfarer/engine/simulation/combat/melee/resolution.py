@@ -48,6 +48,7 @@ from wayfarer.engine.simulation.combat.special_melee import actor_reaches, targe
 from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_flight
 from wayfarer.engine.simulation.combat.unarmed.records import striking_bonus
+from wayfarer.engine.simulation.combat.visibility import external_defense_penalty, melee_eye_penalty
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import Armor, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.silver import (
@@ -65,6 +66,7 @@ from wayfarer.engine.simulation.health.hit_locations import (
     torso_near_miss,
 )
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.magic.missiles import resolve as resolve_spell
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.skills.power_blow import power_blow_strength
@@ -243,7 +245,11 @@ def resolve_melee(
     attack_target = (
         min(int(attack_value.value), pending.mounted_skill_cap or int(attack_value.value))
         + pending.visibility_attack_penalty
-        + attacker_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
+        + (
+            0
+            if acute_blindness(state.resources, pending.attacker_id)
+            else attacker_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
+        )
         - attacker_hp.injury.shock
         - (
             minimum_strength_penalty(
@@ -265,8 +271,7 @@ def resolve_melee(
     )
     attack_target -= 2 * bool(pending.stray_target_order)
 
-    eyes = disabled(state.resources, pending.attacker_id) & {"left-eye", "right-eye"}
-    attack_target -= 6 if len(eyes) == 2 else 1 if eyes else 0
+    attack_target -= melee_eye_penalty(state, pending.attacker_id)
 
     reaches = actor_reaches(runtime, state, attacker.actor_id, weapon.reach)
     height = height_effect(
@@ -316,10 +321,14 @@ def resolve_melee(
             defense_derived.explanations,
         )
     defense_derived = _visibility_adjustment(
-        defense_derived, pending.visibility_defense_penalty + pending.attention_defense_penalty
+        defense_derived,
+        external_defense_penalty(state, pending.defender_id, pending.visibility_defense_penalty)
+        + pending.attention_defense_penalty,
     )
     second_derived = _visibility_adjustment(
-        second_derived, pending.visibility_defense_penalty + pending.attention_defense_penalty
+        second_derived,
+        external_defense_penalty(state, pending.defender_id, pending.visibility_defense_penalty)
+        + pending.attention_defense_penalty,
     )
     attack = pending.attack_roll or success_roll(
         equipment.profile_id,

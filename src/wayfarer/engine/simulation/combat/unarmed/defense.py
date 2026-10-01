@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.character.traits.mastery import trained_by_master
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import build, fatigue_ready
+from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.melee.values import standard_defense_value
@@ -17,13 +17,18 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import (
     fighter,
     free_hands,
 )
+from wayfarer.engine.simulation.combat.unarmed.random_strike import random_strike
 from wayfarer.engine.simulation.combat.unarmed.records import GrappleLocation
+from wayfarer.engine.simulation.combat.unarmed.senses import visibility
+from wayfarer.engine.simulation.combat.visibility import external_defense_penalty
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.health.fright_state import can_defend
 from wayfarer.engine.simulation.health.fright_state import stunned as fright_stunned
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
+    from wayfarer.engine.simulation.combat.commands import ChooseDefense
     from wayfarer.engine.simulation.rules_context import RulesContext
 
 
@@ -52,6 +57,10 @@ def unarmed_defense(
 
     if not can_defend(state.resources, actor_id):
         raise ValidationError("Fright condition prevents active defense")
+    source_id = encounter.pending_unarmed.actor_id if encounter.pending_unarmed else attacker_id
+    sensory_penalty, external_penalty = _sensory_penalties(
+        state, encounter, actor_id, selected, source_id
+    )
     height_bonus = 0
     if encounter.spatial_kind == "hex":
         source_id = (
@@ -75,7 +84,7 @@ def unarmed_defense(
             raise ValidationError("Dodge cannot select equipment")
         value, _ = standard_defense_value(runtime, state, actor, "dodge")
         assert value is not None
-        return int(value.value) + height_bonus, None
+        return int(value.value) + height_bonus + external_penalty, None
     if selected != "parry" or actor.maneuver_state.parry_forbidden:
         raise ValidationError("Only Dodge or an unarmed Parry is supported")
     if item_id is not None and item_id not in ("left-hand", "right-hand"):
@@ -97,7 +106,7 @@ def unarmed_defense(
             runtime, state, actor, "parry", item_id, parry_mode_id=weapon.id
         )
         assert value is not None
-        return int(value.value) + height_bonus, selected_item
+        return int(value.value) + height_bonus + external_penalty, selected_item
     hand = item_id or next(iter(free_hands(state, encounter, actor_id)), None)
     if hand not in free_hands(state, encounter, actor_id):
         raise ValidationError("Unarmed parry requires a free usable hand")
@@ -113,6 +122,7 @@ def unarmed_defense(
         + (-3 if actor.posture == "prone" else -2 if actor.posture == "kneeling" else 0)
         + (-2 if actor.grappled else 0)
     )
+    penalty += sensory_penalty
     penalty += (
         actor.defense_penalty
         + actor.tactical_defense_bonus
@@ -158,3 +168,155 @@ def parry_candidates(
                     continue
             targets.append((score, v.target))
     return targets
+
+
+def sensory_encounter(state: PlayState, encounter: Encounter) -> Encounter:
+    """Use current transaction-entry proof through its own valid retreat.
+
+    A previously committed move is already present here and fails the evidence
+    scope. Defense preparation may then move this local encounter atomically.
+    """
+    original = next((e for e in state.encounters if e.id == encounter.id), None)
+    if (
+        original is not None
+        and encounter.pending_unarmed is not None
+        and (
+            original.pending_unarmed is not None
+            and original.pending_unarmed.id == encounter.pending_unarmed.id
+        )
+    ):
+        return original
+    return encounter
+
+
+def allowed_defenses(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    attacker_id: str,
+    target_id: str,
+    location: GrappleLocation,
+    *,
+    choke_hold: bool = False,
+) -> tuple[Literal["dodge", "parry", "none"], ...]:
+    allowed: list[Literal["dodge", "parry", "none"]] = ["none"]
+    choices: tuple[Literal["dodge", "parry"], ...] = () if choke_hold else ("dodge", "parry")
+    for choice in choices:
+        try:
+            unarmed_defense(
+                runtime,
+                state,
+                encounter,
+                target_id,
+                choice,
+                None,
+                attacker_id=attacker_id,
+                location=location,
+            )
+        except ValidationError:
+            if choice != "parry":
+                continue
+            candidates = (
+                (i.id, m.id)
+                for i in state.resources.items
+                if i.id in fighter(encounter, target_id).ready_item_ids
+                for e in catalog(runtime).entries
+                if e.definition_id == i.definition_id
+                for m in e.modes
+            )
+            for item, selected_mode in candidates:
+                try:
+                    unarmed_defense(
+                        runtime,
+                        state,
+                        encounter,
+                        target_id,
+                        choice,
+                        item,
+                        attacker_id=attacker_id,
+                        location=location,
+                        mode_id=selected_mode,
+                    )
+                except ValidationError:
+                    continue
+                break
+            else:
+                continue
+        allowed.insert(0, choice)
+    return tuple(allowed)
+
+
+def refresh_unarmed_senses(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
+) -> Encounter:
+    """Validate both live choices before defensive movement, exertion or dice."""
+    pending = encounter.pending_unarmed
+    if pending is None:
+        return encounter
+    if command.actor_id != pending.target_id:
+        raise ValidationError("Defense is not authorized for this unarmed attack")
+    visibility(state, encounter, pending.actor_id, pending.target_id)
+    if (
+        acute_blindness(state.resources, pending.actor_id)
+        and random_strike(state, encounter.id, pending.id, pending.actor_id, pending.target_id)
+        is None
+    ):
+        raise ValidationError("Blind unarmed attacks require a private random strike")
+    allowed = allowed_defenses(
+        runtime,
+        state,
+        encounter,
+        pending.actor_id,
+        pending.target_id,
+        pending.location,
+        choke_hold=pending.choke_hold,
+    )
+    if command.defense not in allowed or (
+        command.second_defense is not None and command.second_defense not in allowed
+    ):
+        raise ValidationError("Current sensory awareness does not permit that defense")
+    for choice, item, selected_mode in (
+        (command.defense, command.item_id, command.parry_mode_id),
+        (command.second_defense, command.second_item_id, command.second_parry_mode_id),
+    ):
+        if choice is not None:
+            unarmed_defense(
+                runtime,
+                state,
+                encounter,
+                command.actor_id,
+                choice,
+                item,
+                location=pending.location,
+                mode_id=selected_mode,
+            )
+    return encounter.model_copy(
+        update={"pending_unarmed": pending.model_copy(update={"allowed": allowed})}
+    )
+
+
+def _sensory_penalties(
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    selected: str,
+    source_id: str | None,
+) -> tuple[int, int]:
+    """Validate awareness and distinguish bare-hand from already-scored penalties."""
+    sensory_penalty = -4 if acute_blindness(state.resources, actor_id) else 0
+    external_penalty = 0
+    if source_id is not None:
+        sensory = visibility(
+            state,
+            sensory_encounter(state, encounter),
+            source_id,
+            actor_id,
+            validate_attack=False,
+        )
+        if selected not in sensory.defenses:
+            raise ValidationError("Current sensory awareness does not permit that defense")
+        external_penalty = external_defense_penalty(state, actor_id, sensory.defense_penalty)
+        sensory_penalty = (
+            -4 if acute_blindness(state.resources, actor_id) else sensory.defense_penalty
+        )
+    return sensory_penalty, external_penalty

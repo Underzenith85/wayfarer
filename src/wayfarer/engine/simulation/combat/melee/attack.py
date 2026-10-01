@@ -18,17 +18,16 @@ from wayfarer.engine.simulation.combat.close_combat import (
 )
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, basic_distance
 from wayfarer.engine.simulation.combat.engine import CombatEngine
-from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
-from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.objects.combat import target_geometry, target_modifier
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
+from wayfarer.engine.simulation.combat.physical_defenses import physical_defenses
 from wayfarer.engine.simulation.combat.ranged.attack import prepare
+from wayfarer.engine.simulation.combat.sensory_combat import blind_hit_location
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.special_melee import actor_reaches, validate_special_attack
-from wayfarer.engine.simulation.combat.tactical import attack_geometry, defense_adjustment
+from wayfarer.engine.simulation.combat.tactical import attack_geometry
 from wayfarer.engine.simulation.combat.visibility import combat_visibility
-from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
@@ -123,6 +122,13 @@ def prepare_attack(
         from wayfarer.engine.simulation.combat.shield_rush import prepare as prepare_shield_rush
 
         return prepare_shield_rush(runtime, state, encounter)
+    hit_location = blind_hit_location(
+        state,
+        pending.attacker_id,
+        hit_location,
+        target_item_id=target_item_id,
+        armor_chink=armor_chink,
+    )
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, mode_id)
     item = next(
         candidate for candidate in state.resources.items if candidate.id == pending.weapon_id
@@ -179,7 +185,7 @@ def prepare_attack(
     )
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     _validate_dual_weapon_targets(encounter, attacker, defender, selected)
-    visibility = combat_visibility(encounter, attacker.actor_id, defender.actor_id)
+    visibility = combat_visibility(encounter, attacker.actor_id, defender.actor_id, state=state)
     close = bool(opponents_in_close_combat(encounter, attacker.actor_id))
     defender_close = bool(opponents_in_close_combat(encounter, defender.actor_id))
     bystanders = tuple(
@@ -232,35 +238,14 @@ def prepare_attack(
     )
     if reaches is not None and selected_distance not in reaches:
         raise ValidationError("Target is outside selected weapon reach")
-    allowed: list[Defense] = ["none"]
-    candidates = tuple(
-        candidate for candidate in ("dodge", "parry", "block") if candidate in visibility.defenses
+    physical = physical_defenses(
+        runtime,
+        state,
+        encounter,
+        pending.model_copy(update={"target_item_id": target_item_id, "mode_id": selected.id}),
+        selected,
     )
-    for candidate in candidates:
-        if defender_close and candidate == "block":
-            continue
-        if (
-            target_item_id
-            and next(i for i in state.resources.items if i.id == target_item_id).ground
-        ):
-            continue
-        targeting_weapon = weapon_target(runtime, state, target_item_id)
-        if targeting_weapon and candidate == "block":
-            continue
-        try:
-            defense_adjustment(encounter, attacker, defender, approach=pending.tactical_approach)
-            defense_value(
-                runtime,
-                state,
-                defender,
-                candidate,
-                target_item_id if targeting_weapon and candidate == "parry" else None,
-                incoming_item_id=pending.weapon_id,
-                incoming_mode_id=selected.id,
-            )
-        except ValidationError:
-            continue
-        allowed.append(candidate)
+    allowed = tuple(d for d in physical if d == "none" or d in visibility.defenses)
     return encounter.model_copy(
         update={
             "pending_defense": pending.model_copy(

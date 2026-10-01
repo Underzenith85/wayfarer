@@ -521,12 +521,14 @@ def _prepare_defense_geometry(
     )
 
 
-def finish_defense(
+def finish_defense_with_movement(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
     command: ChooseDefense,
-) -> Encounter:
+) -> tuple[Encounter, frozenset[str]]:
+    """Finish accepted movement and report hex movers, including closed paths."""
+    moved: set[str] = set()
     target = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     updates: dict[str, object] = {"tactical_defense_bonus": 0}
     if command.dodge_and_drop:
@@ -551,12 +553,14 @@ def finish_defense(
                 command_id=command.id,
                 revision=state.revision,
             )
-        return encounter
+        return encounter, frozenset(moved)
     if encounter.spatial_kind != "hex":
-        return encounter
+        return encounter, frozenset(moved)
     target = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     target = target.model_copy(update={"tactical_defense_bonus": 0})
     if command.retreat is not None:
+        if command.retreat != target.position:
+            moved.add(target.actor_id)
         target = target.model_copy(update={"position": command.retreat})
     encounter = CombatEngine._replace(encounter, target)
     pending = encounter.defense_history[-1].pending if encounter.defense_history else None
@@ -571,5 +575,17 @@ def finish_defense(
             None,
             board=runtime.hex_map(encounter),
         )
+        if pending.post_attack_hex_path:
+            moved.add(attacker.actor_id)
         encounter = CombatEngine._replace(encounter, attacker)
-    return encounter
+    return encounter, frozenset(moved)
+
+
+def finish_defense(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+) -> Encounter:
+    """Finish defense geometry; hosts persist movement effects via the paired API."""
+    return finish_defense_with_movement(runtime, state, encounter, command)[0]

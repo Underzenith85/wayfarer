@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.rules.tables.unarmed import UNARMED_SKILLS
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import catalog, fatigue_ready, movement
+from wayfarer.engine.simulation.combat.commands import TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
     CombatResult,
@@ -27,13 +28,15 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import (
     free_hands,
     skill_value,
 )
+from wayfarer.engine.simulation.combat.unarmed.random_strike import pending_id, random_strike
 from wayfarer.engine.simulation.combat.unarmed.records import require_basic
+from wayfarer.engine.simulation.combat.unarmed.senses import visibility
 from wayfarer.engine.simulation.health.hit_locations import disabled, require_location
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.hex_geometry import movement as hex_movement
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
-    from wayfarer.engine.simulation.combat.commands import TakeUnarmedTurn
     from wayfarer.engine.simulation.rules_context import RulesContext
 
 
@@ -112,8 +115,15 @@ def validate_action(
     require_basic(catalog(runtime).profile_id)
     validate_options(command)
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)
-    validate_feint_visibility(runtime, encounter, command, actor, target)
+    validate_feint_visibility(runtime, state, encounter, command, actor, target)
     validate_choke_hold(encounter, command, actor, target)
+    if command.action in ("punch", "kick", "grapple", "arm_lock"):
+        visibility(state, encounter, actor.actor_id, target.actor_id)
+        random = random_strike(
+            state, encounter.id, pending_id(command.id), actor.actor_id, target.actor_id
+        )
+        if acute_blindness(state.resources, actor.actor_id) and random is None:
+            raise ValidationError("Blind unarmed attacks require a private random strike")
     if actor.actor_id == target.actor_id:
         raise ValidationError("Unarmed action requires another actor")
     for participant in (actor, target):
@@ -386,6 +396,8 @@ def interrupt_wait(
             if command.enter_close_combat:
                 raise ValidationError("A stop thrust against close-combat entry is unsupported")
             continue
+        if acute_blindness(state.resources, waiter_id):
+            continue
         if encounter.spatial_kind == "hex":
             if not sight(moved, waiter, entered, board=runtime.hex_map(moved)):
                 continue
@@ -497,6 +509,7 @@ def validate_options(command: TakeUnarmedTurn) -> None:
 
 def validate_feint_visibility(
     runtime: RulesContext,
+    state: PlayState,
     encounter: Encounter,
     command: TakeUnarmedTurn,
     actor: Combatant,
@@ -504,9 +517,35 @@ def validate_feint_visibility(
 ) -> None:
     if command.attack_option == "feint":
         visible = (
-            basic_visible(encounter, actor.actor_id, target.actor_id)
+            basic_visible(encounter, target.actor_id, actor.actor_id)
             if isinstance(encounter.spatial, BasicSpatialContext)
             else sight(encounter, target, actor, board=runtime.hex_map(encounter))
         )
-        if not visible:
+        if not visible or acute_blindness(state.resources, target.actor_id):
             raise ValidationError("Feint requires a foe who can observe the attacker")
+
+
+def tactile_control(encounter: Encounter, command: object) -> bool:
+    """B370-371: an actual held grip identifies its already-contacted opponent.
+
+    This does not authorize a fresh strike, grapple, or named arm-lock attack.
+    Detailed hand, posture and grip constraints remain in validate_action.
+    """
+    if not isinstance(command, TakeUnarmedTurn) or command.action not in (
+        "release",
+        "break_free",
+        "takedown",
+        "pin",
+        "strangle",
+        "lock_damage",
+    ):
+        return False
+    grip = next((g for g in encounter.grips if g.id == command.grip_id), None)
+    if grip is None:
+        return False
+    pair = (
+        (grip.target_id, grip.holder_id)
+        if command.action == "break_free"
+        else (grip.holder_id, grip.target_id)
+    )
+    return pair == (command.actor_id, command.target_id)

@@ -27,6 +27,7 @@ from wayfarer.engine.simulation.health.fright_state import can_defend
 from wayfarer.engine.simulation.health.fright_state import stunned as fright_stunned
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.injury import impaired_movement
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -208,7 +209,9 @@ def score_defense(
         for g in e.grips
         if g.target_id == participant.actor_id and g.location in ("left-arm", "right-arm")
     )
-    blind = "left-eye" in unavailable and "right-eye" in unavailable
+    blind = acute_blindness(state.resources, participant.actor_id) or (
+        "left-eye" in unavailable and "right-eye" in unavailable
+    )
     bonus = max(
         (
             max(

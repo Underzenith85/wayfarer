@@ -21,8 +21,11 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
+from wayfarer.engine.simulation.combat.sensory_combat import blind_hit_location
 from wayfarer.engine.simulation.health.fright import maneuver_allowed
 from wayfarer.engine.simulation.health.fright_state import can_defend
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, encounter_for
 from wayfarer.orchestration.recovery import guard
@@ -59,6 +62,37 @@ def _retire_disabled_trajectory(
         encounter_id=saved.encounter_id,
         maneuver="do_nothing",
     )
+
+
+def _normalize_sensory_location(
+    state: PlayState, command: TypedCombatCommand
+) -> TypedCombatCommand:
+    """Random location is a source consequence, without expanding public inputs."""
+    if (
+        isinstance(command, TakeCombatTurn)
+        and command.suppression_zones
+        and acute_blindness(state.resources, command.actor_id)
+    ):
+        raise ValidationError(
+            "Blind suppression fire requires a supported nonvisual area-fire consumer"
+        )
+    if (
+        isinstance(command, TakeCombatTurn)
+        and command.maneuver in ATTACK_MANEUVERS
+        and command.attack_option != "feint"
+    ):
+        command = command.model_copy(
+            update={
+                "hit_location": blind_hit_location(
+                    state,
+                    command.actor_id,
+                    command.hit_location,
+                    target_item_id=command.target_item_id,
+                    armor_chink=command.armor_chink,
+                )
+            }
+        )
+    return command
 
 
 def _prepare_command(
@@ -168,6 +202,7 @@ def _prepare_command(
         ):
             raise ValidationError("Wait reaction must use the declared weapon mode")
 
+    command = _normalize_sensory_location(state, command)
     if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)) and not maneuver_allowed(
         state.resources, command.actor_id, command.maneuver
     ):

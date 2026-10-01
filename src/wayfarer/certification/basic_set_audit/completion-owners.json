@@ -612,6 +612,11 @@
       "issue": 757,
       "state": "open",
       "title": "[GURPS audit] Apply Alternate Form and Morph through character transformations"
+    },
+    {
+      "issue": 763,
+      "state": "open",
+      "title": "[GURPS audit] Apply and remove Symptoms at cumulative injury thresholds"
     }
   ]
 }

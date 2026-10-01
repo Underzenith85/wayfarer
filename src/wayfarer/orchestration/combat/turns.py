@@ -276,7 +276,7 @@ def _preview_turn(
     engine = context.engine
     resources = state.resources
     if not forced and not (hp.injury and hp.injury.stunned):
-        preview, _, preview_result = engine.take_turn(
+        preview, preview_resources, preview_result = engine.take_turn(
             encounter,
             actor_id=command.actor_id,
             maneuver=command.maneuver,
@@ -302,9 +302,7 @@ def _preview_turn(
             pop_up=command.pop_up,
             enter_high_speed=command.enter_high_speed,
             basic_move=command.basic_move,
-            spatial_revision=(
-                command.expected_revision + 1 if command.basic_move is not None else None
-            ),
+            spatial_revision=command.expected_revision + 1,
             suppression_fire=bool(command.suppression_zones),
             enter_close_combat=command.enter_close_combat,
             shield_rush=command.shield_rush,
@@ -316,7 +314,7 @@ def _preview_turn(
         if preview.pending_defense is not None:
             preview = prepare_attack(
                 play.rules_context,
-                state,
+                state.model_copy(update={"resources": preview_resources}),
                 preview,
                 preview.pending_defense.mode_id
                 if preview.pending_defense.suppression_zone_id is not None
@@ -819,9 +817,7 @@ def _take_turn(
         pop_up=command_for_turn.pop_up,
         enter_high_speed=command_for_turn.enter_high_speed,
         basic_move=command_for_turn.basic_move,
-        spatial_revision=(
-            command.expected_revision + 1 if command_for_turn.basic_move is not None else None
-        ),
+        spatial_revision=command.expected_revision + 1,
         suppression_fire=bool(command_for_turn.suppression_zones),
         enter_close_combat=command_for_turn.enter_close_combat,
         shield_rush=command_for_turn.shield_rush,

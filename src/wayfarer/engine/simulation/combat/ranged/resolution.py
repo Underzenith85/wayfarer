@@ -75,6 +75,7 @@ from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
 from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
+from wayfarer.engine.simulation.combat.visibility import external_defense_penalty, optical_bonus
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.engine.simulation.equipment.silver import (
@@ -92,6 +93,7 @@ from wayfarer.engine.simulation.health.hit_locations import (
     torso_near_miss,
 )
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.traits.size_forms import size_delta
 from wayfarer.errors import ValidationError
@@ -405,6 +407,8 @@ def resolve(
         pending.suppression_aim_bonus
         if pending.suppression_zone_id is not None
         else aim.aim_bonus
+        - aim.aim_sight_bonus
+        + optical_bonus(state, actor.actor_id, aim.aim_sight_bonus)
         if aimed
         else 0
     )
@@ -452,7 +456,11 @@ def resolve(
         + (-2 if pending.tactical_approach == "pop-up" else 0)
     )
     attack_target -= 2 * bool(pending.stray_target_order)
-    if pending.laser_sight and scene.laser_visible_to_firer:
+    if (
+        pending.laser_sight
+        and scene.laser_visible_to_firer
+        and not acute_blindness(state.resources, actor.actor_id)
+    ):
         attack_target += 1
     if pending.target_item_id:
         attack_target += (
@@ -462,11 +470,15 @@ def resolve(
         )
     attack_target += entangle_attack_penalty(actor)
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0
-    if actor_hp.injury and pending.suppression_zone_id is None:
+    if (
+        actor_hp.injury
+        and pending.suppression_zone_id is None
+        and not acute_blindness(state.resources, actor.actor_id)
+    ):
         attack_target += actor_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
 
     eyes = disabled(state.resources, actor.actor_id) & {"left-eye", "right-eye"}
-    if eyes:
+    if eyes and not acute_blindness(state.resources, actor.actor_id):
         attack_target -= (
             6 if len(eyes) == 2 else 1 if aimed and actor.last_maneuver != "move_and_attack" else 3
         )
@@ -503,12 +515,20 @@ def resolve(
         parry_mode_id=second_parry_mode_id,
     )
     defense_value_ = _visibility_adjustment(
-        defense_value_, pending.visibility_defense_penalty + pending.attention_defense_penalty
+        defense_value_,
+        external_defense_penalty(state, target.actor_id, pending.visibility_defense_penalty)
+        + pending.attention_defense_penalty,
     )
     second_value = _visibility_adjustment(
-        second_value, pending.visibility_defense_penalty + pending.attention_defense_penalty
+        second_value,
+        external_defense_penalty(state, target.actor_id, pending.visibility_defense_penalty)
+        + pending.attention_defense_penalty,
     )
-    if pending.laser_sight and scene.laser_visible_to_target:
+    if (
+        pending.laser_sight
+        and scene.laser_visible_to_target
+        and not acute_blindness(state.resources, target.actor_id)
+    ):
         if selected == "dodge" and defense_value_ is not None:
             defense_value_ = DerivedValue(defense_value_.target, defense_value_.value + 1, ())
         if second_defense == "dodge" and second_value is not None:
