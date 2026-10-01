@@ -4,7 +4,7 @@ The host records the currently pending roll before invoking this reducer and
 persists the returned snapshot under its revision lock. ``real_time`` is trusted
 elapsed seconds of play, never campaign time or a player-supplied clock. Secret
 rolls must be declared before rolling; their records stay in GM-only storage.
-Active, Aspected and Defensive constructions remain unsupported.
+Source limitations are checked against the trusted pending roll before spending a use.
 """
 
 from collections.abc import Mapping
@@ -37,6 +37,19 @@ class LuckRoll(Record):
     scope: Literal["own", "party-event", "attack"] = "own"
     affected_actor_ids: tuple[str, ...] = ()
     secret: bool = False
+    task_class: Literal[
+        "other",
+        "athletics",
+        "social",
+        "job",
+        "weapon",
+        "active-defense",
+        "close-combat-st-dx",
+        "resistance",
+        "injury-ht",
+        "opponent-critical",
+    ] = "other"
+    failed: bool = False
     chosen_dice: tuple[Die, ...] | None = None
     chosen_total: int | None = None
 
@@ -92,12 +105,36 @@ def luck_cooldown(build: ValidatedBuild, definitions: Mapping[str, RuleDefinitio
     if len(effects) != 1 or len(purchases) != 1:
         raise ValidationError("Luck is unavailable in the approved build")
     purchase = purchases[0]
-    if purchase.trait is None or purchase.trait.modifiers:
-        raise ValidationError("Modified Luck is not supported")
+    if purchase.trait is None:
+        raise ValidationError("Luck construction is missing")
     try:
         return COOLDOWNS[effects[0].point_cost]
     except KeyError as exc:
         raise ValidationError("Unknown Luck tier") from exc
+
+
+def _check_limitations(build: ValidatedBuild, roll: LuckRoll) -> None:
+    purchase = next(p for p in build.trait_purchases if p.definition_id == LUCK_ID)
+    assert purchase.trait is not None
+    modifiers = set(purchase.trait.modifiers)
+    if "active" in modifiers and roll.original is not None:
+        raise ValidationError("Active Luck must be declared before dice are rolled")
+    aspects = {
+        "aspected-athletics": {"athletics"},
+        "aspected-social": {"social"},
+        "aspected-job": {"job"},
+        "aspected-combat": {"weapon", "active-defense", "close-combat-st-dx"},
+    }
+    for modifier, allowed in aspects.items():
+        if modifier in modifiers and roll.task_class not in allowed:
+            raise ValidationError("Pending roll is outside the purchased Luck aspect")
+    if "defensive" in modifiers:
+        eligible = roll.failed and roll.task_class in {"active-defense", "resistance", "injury-ht"}
+        eligible |= roll.scope == "attack" and roll.task_class == "opponent-critical"
+        if not eligible:
+            raise ValidationError(
+                "Defensive Luck requires a failed defense or an incoming critical hit"
+            )
 
 
 def apply_luck(
@@ -132,6 +169,7 @@ def apply_luck(
     roll = next((value for value in state.rolls if value.id == command.roll_id), None)
     if roll is None or state.pending_roll_id != roll.id or roll.chosen_dice is not None:
         raise ValidationError("Luck must be declared immediately for a pending roll")
+    _check_limitations(build, roll)
     if roll.scope == "own":
         eligible = roll.actor_id == command.actor_id
     else:
@@ -140,7 +178,16 @@ def apply_luck(
         raise ValidationError("Luck cannot be shared with another actor")
     if roll.secret and roll.original is not None:
         raise ValidationError("Secret Luck must be declared before the GM rolls")
-    if roll.original is None and not roll.secret and roll.scope != "attack":
+    if (
+        roll.original is None
+        and not roll.secret
+        and roll.scope != "attack"
+        and not any(
+            p.trait is not None and "active" in p.trait.modifiers
+            for p in build.trait_purchases
+            if p.definition_id == LUCK_ID
+        )
+    ):
         raise ValidationError("Ordinary Luck requires the initial roll")
     previous_uses = [use for use in state.receipts if use.command.actor_id == command.actor_id]
     if previous_uses and real_time < max(use.available_at for use in previous_uses):
