@@ -38,6 +38,7 @@ from wayfarer.engine.rules.traits.mundane.runtime import (
 from wayfarer.engine.rules.traits.obligations import OBLIGATION_BINDINGS, OBLIGATION_HOOK
 from wayfarer.engine.rules.traits.physical import PHYSICAL_BINDINGS, PHYSICAL_HOOKS
 from wayfarer.engine.rules.traits.relationship_runtime import RELATIONSHIP_BINDINGS
+from wayfarer.engine.rules.types.background_admission import UNUSUAL_BACKGROUND_ID
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -100,7 +101,7 @@ class TraitEntry:
     @property
     def implemented(self) -> bool:
         """A bound effect executes; naming an effect never implements it."""
-        return self.effect in SUPPORTED_HOOKS
+        return self.id != UNUSUAL_BACKGROUND_ID and self.effect in SUPPORTED_HOOKS
 
     @property
     def status(self) -> ImplementationStatus:

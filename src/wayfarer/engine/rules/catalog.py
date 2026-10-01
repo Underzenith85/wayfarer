@@ -15,6 +15,11 @@ from types import MappingProxyType
 from typing import Final, Literal
 
 from wayfarer.engine.rules.traits.base import TraitRules, validate_metadata
+from wayfarer.engine.rules.types.background_admission import (
+    BACKGROUND_ADMISSION_HOOK,
+    UNUSUAL_BACKGROUND_ID,
+    UnusualBackgroundDecision,
+)
 from wayfarer.engine.rules.types.skill import SkillSpec
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
@@ -81,10 +86,15 @@ class RulesPackage:
     sources: tuple[SourceReference, ...]
     definitions: tuple[RuleDefinition, ...]
     dependencies: tuple[str, ...] = ()
+    unusual_background: UnusualBackgroundDecision | None = None
 
     def canonical_json(self) -> str:
         """Stable package representation shared by pins and source approval gates."""
         data = asdict(self)
+        if self.unusual_background is None:
+            del data["unusual_background"]
+        else:
+            data["unusual_background"] = self.unusual_background.model_dump(mode="json")
         # Absent skill and trait metadata must not change historic package pins.
         for definition in data["definitions"]:
             for extension in ("skill", "trait_rules"):
@@ -168,6 +178,7 @@ class RulesCatalog:
     def _validate(packages: tuple[RulesPackage, ...]) -> None:
         available_packages = {p.id for p in packages}
         for package in packages:
+            RulesCatalog._validate_background(package)
             if any(dep not in available_packages for dep in package.dependencies):
                 raise ValidationError(f"Package {package.id} has a missing dependency")
             sources = {source.id for source in package.sources}
@@ -193,6 +204,55 @@ class RulesCatalog:
                 tuple(TopologicalSorter(graph).static_order())
             except CycleError as exc:
                 raise ValidationError(f"Package {package.id} has a prerequisite cycle") from exc
+
+    @staticmethod
+    def _validate_background(package: RulesPackage) -> None:
+        definitions = {definition.id: definition for definition in package.definitions}
+        marked = tuple(
+            definition
+            for definition in package.definitions
+            if BACKGROUND_ADMISSION_HOOK in definition.hooks
+        )
+        decision = package.unusual_background
+        if decision is None:
+            if marked:
+                raise ValidationError("Background admission requires its pinned GM decision")
+            return
+        decision = UnusualBackgroundDecision.model_validate(decision)
+        background = definitions.get(UNUSUAL_BACKGROUND_ID)
+        paid = decision.allowed and decision.point_cost > 0
+        if (
+            len(marked) != 1
+            or background is None
+            or marked[0] != background
+            or background.kind is not DefinitionKind.TRAIT
+            or background.point_cost != decision.point_cost
+            or background.parameters
+            or background.trait_rules is None
+            or background.trait_rules.profile_id != "gurps-basic-set-4e-2004"
+            or background.trait_rules.parameters
+            or background.trait_rules.modifiers
+            or background.trait_rules.maximum_level != 1
+            or background.status
+            is not (ImplementationStatus.IMPLEMENTED if paid else ImplementationStatus.UNSUPPORTED)
+        ):
+            raise ValidationError(
+                "Unusual Background price and construction must match the GM decision"
+            )
+        for identity in decision.benefits:
+            definition = definitions.get(identity)
+            if (
+                definition is None
+                or definition.kind is not DefinitionKind.TRAIT
+                or (UNUSUAL_BACKGROUND_ID in definition.prerequisites) != paid
+                or (
+                    not decision.allowed
+                    and definition.status is not ImplementationStatus.UNSUPPORTED
+                )
+            ):
+                raise ValidationError(
+                    "Unusual Background benefits do not match the GM admission rule"
+                )
 
     def package(self, pin: PackagePin) -> RulesPackage:
         package = self._packages.get((pin.id, pin.version))

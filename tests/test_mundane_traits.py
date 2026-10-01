@@ -258,7 +258,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
         | set(REPUTATION_BINDINGS)
         | set(OBLIGATION_BINDINGS)
         | set(RELATIONSHIP_BINDINGS)
-        | {spec.id for spec in COMPLETE_SPECS}
+        | {spec.id for spec in COMPLETE_SPECS if spec.id != "trait:advantage:unusual-background"}
     )
     assert report["available"] == len(implemented)
     assert all(
@@ -268,7 +268,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
     )
     unbound = report["unbound_effects"]
     assert isinstance(unbound, tuple)
-    assert not unbound
+    assert unbound == ("mundane-trait:resources",)  # B96 awaits an actual GM campaign decision.
     bound = next(e for e in entries if e.id == "trait:voice")
     assert bound.blockers == ()
     assert any(e.obligations for e in entries)

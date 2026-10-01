@@ -30,9 +30,11 @@
       "id": "trait:advantage:unusual-background",
       "family": "physiology",
       "source": "Characters third printing B96",
-      "construction": "Complete-catalog purchase only; source variants require review",
+      "construction": "Unbound catalog entry rejects; a new GM-authored package pins allowed benefits and a fixed source surcharge",
       "execution": "unverified",
-      "follow_up": 906
+      "follow_up": 906,
+      "current_family": "resources",
+      "ownership_note": "The original family remains frozen for the 39-row issue 822 denominator; issue 906 corrects runtime classification and owns GM admission."
     },
     {
       "id": "trait:disadvantage:alcohol-intolerance",

@@ -7766,18 +7766,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "implemented",
+      "implementation": "unsupported",
       "source_review": "reviewed",
       "evidence_paths": [
-        "docs/gurps-basic-set-source-review.md",
-        "tests/test_complete_mundane_traits.py"
+        "docs/gurps-unusual-background.md",
+        "tests/test_unusual_background_admission.py"
       ],
       "historical_owners": [
         113,
         496,
         501
       ],
-      "completion_owner": null,
+      "completion_owner": 906,
       "capability_id": "gurps.character.traits",
       "runtime_binding": "trait:advantage:unusual-background",
       "parent_id": null,
@@ -7785,7 +7785,7 @@
       "listed_value": "Variable",
       "construction_binding": "trait:advantage:unusual-background",
       "cost_owner": "trait:advantage:unusual-background",
-      "consequence_owner": 680,
+      "consequence_owner": 906,
       "source_review_owner": null
     },
     {

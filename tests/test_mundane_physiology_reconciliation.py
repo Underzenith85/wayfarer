@@ -68,12 +68,21 @@ def test_frozen_owned_rows_and_all_six_partitions_account_for_every_catalog_iden
     identifiers = {row.id for row in SPECS}
     assert len(identifiers) == len(SPECS) == 267
     assigned: set[str] = set()
-    for families in PARTITIONS.values():
-        group = {row.id for row in SPECS if row.family in families}
+    frozen_owner = {"trait:advantage:unusual-background": 822}
+    for owner, families in PARTITIONS.items():
+        group = {
+            row.id
+            for row in SPECS
+            if frozen_owner.get(row.id, owner if row.family in families else None) == owner
+        }
         assert not assigned & group
         assigned |= group
     assert assigned == identifiers  # Unknown/unassigned families fail this assertion.
-    owned = {row.id for row in SPECS if row.family in PARTITIONS[822]}
+    owned = {
+        row.id
+        for row in SPECS
+        if frozen_owner.get(row.id, 822 if row.family in PARTITIONS[822] else None) == 822
+    }
     assert owned == OWNED and len(owned) == 39
     root = Path(__file__).resolve().parents[1]
     ledger = json.loads((root / "docs/gurps-mundane-physiology-reconciliation.json").read_text())
@@ -83,6 +92,8 @@ def test_frozen_owned_rows_and_all_six_partitions_account_for_every_catalog_iden
     assert all(row["execution"] == "unverified" for row in rows.values())
     assert rows["trait:disadvantage:missing-digit"]["source"] == "Characters third printing B145"
     assert rows["trait:disadvantage:terminally-ill"]["source"] == "Characters third printing B158"
+    assert rows["trait:advantage:unusual-background"]["family"] == "physiology"
+    assert rows["trait:advantage:unusual-background"]["current_family"] == "resources"
 
 
 @pytest.mark.parametrize(("tolerance", "target", "level"), [(2, 11, "sober"), (-2, 7, "tipsy")])

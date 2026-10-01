@@ -17,6 +17,7 @@ from wayfarer.engine.character.compiler import (
     ValidatedBuild,
 )
 from wayfarer.engine.rules.catalog import DefinitionKind
+from wayfarer.engine.rules.types.background_admission import UNUSUAL_BACKGROUND_ID
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -103,6 +104,13 @@ class PowerReviewer:
         self, compiler: CharacterCompiler, policy: PowerPolicy, gm_ids: frozenset[str] = frozenset()
     ) -> None:
         self.compiler, self.policy, self.gm_ids = compiler, policy, gm_ids
+        if (
+            compiler.unusual_background is not None
+            and compiler.unusual_background.gm_id not in gm_ids
+        ):
+            raise ValidationError(
+                "Unusual Background requires a decision from a trusted campaign GM"
+            )
         rules: tuple[ForbiddenCombination | ConcentrationLimit | CapabilityBenchmark, ...] = (
             *policy.forbidden,
             *policy.concentration,
@@ -135,6 +143,26 @@ class PowerReviewer:
         build = compilation.build
         if build is not None:
             selected = {p.definition_id for p in build.purchases}
+            background = self.compiler.unusual_background
+            if UNUSUAL_BACKGROUND_ID in selected:
+                if background is None or not set(background.benefits) & selected:
+                    findings.append(
+                        PowerFinding(
+                            code="background.no_benefit",
+                            rule_id=UNUSUAL_BACKGROUND_ID,
+                            disposition="blocked",
+                            message="Unusual Background needs its approved tangible benefit",
+                        )
+                    )
+                else:
+                    findings.append(
+                        PowerFinding(
+                            code="background.gm_approval",
+                            rule_id=background.id,
+                            disposition="review",
+                            message="The GM must approve this unusual background and its benefits",
+                        )
+                    )
             for rule in self.policy.forbidden:
                 if set(rule.definitions) <= selected:
                     findings.append(

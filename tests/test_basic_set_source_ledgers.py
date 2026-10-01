@@ -22,6 +22,7 @@ from wayfarer.certification.source_ledgers import (
 )
 from wayfarer.engine.rules.conformance import CAPABILITIES
 from wayfarer.engine.rules.profiles import BASIC_SET_OPTIONAL_RULES
+from wayfarer.engine.rules.types.background_admission import UNUSUAL_BACKGROUND_ID
 from wayfarer.errors import ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,7 +37,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     assert {name: len(rows) for name, rows in bundle.by_type.items()} == EXPECTED_LEDGER_COUNTS
     assert len(bundle.rows) == 1_285
     assert all(row.source_review == "reviewed" for row in bundle.rows)
-    assert not ledger_blockers(bundle.rows)
+    assert {row.id for row in ledger_blockers(bundle.rows)} == {UNUSUAL_BACKGROUND_ID}
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
     assert len(optional) == 11
@@ -314,14 +315,14 @@ def test_campaigns_section_obligations_cannot_fall_back_to_the_roadmap() -> None
 def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     report = evaluate(ROOT)
     ledger = [blocker for blocker in report.blockers if blocker.kind == "ledger"]
-    assert not ledger
+    assert {(b.identifier, b.owner_issue) for b in ledger} == {(UNUSUAL_BACKGROUND_ID, 906)}
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
     )
     assert report.source_ledger_rows == 1_285
     assert report.required_source_ledger_rows == 1_044
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
-    assert report.source_ledger_rollups["completion_owner"] == {"none": 1_285}
+    assert report.source_ledger_rollups["completion_owner"] == {"none": 1_284, "906": 1}
 
 
 def test_characters_section_obligations_are_explicit_and_bounded() -> None:
