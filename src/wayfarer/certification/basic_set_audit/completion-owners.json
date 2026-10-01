@@ -607,6 +607,11 @@
       "issue": 906,
       "state": "open",
       "title": "Reconcile Unusual Background construction admission and catalog family assignment"
+    },
+    {
+      "issue": 757,
+      "state": "open",
+      "title": "[GURPS audit] Apply Alternate Form and Morph through character transformations"
     }
   ]
 }

@@ -133,7 +133,7 @@ def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evide
         else:
             assert entry.status is CoverageStatus.VERIFIED
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert coverage_blockers(PROFILE) == (*tuple(range(774, 790)), *tuple(range(791, 806)))
+    assert coverage_blockers(PROFILE) == (757, *tuple(range(774, 790)), *tuple(range(791, 806)))
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 
@@ -165,9 +165,13 @@ def test_unknown_names_and_nonpurchasable_protocols_reject() -> None:
         require_family("gurps.fake")
 
 
-@pytest.mark.parametrize("family", ["gurps.supernatural.abilities"])
-def test_completed_supernatural_families_pass_both_gates(family: str) -> None:
-    assert conformance.require_verified(family).id == family
+def test_family_flag_cannot_override_unverified_form_paths() -> None:
+    assert conformance.capability("gurps.supernatural.abilities").status is CoverageStatus.VERIFIED
+    for identifier in ("advantage:alternate-form", "advantage:morph"):
+        with pytest.raises(ValidationError, match=r"not certified: .*#757"):
+            require_entries(PROFILE, (identifier,))
+    with pytest.raises(ValidationError, match=r"not certified: .*#757"):
+        conformance.require_verified("gurps.supernatural.abilities")
 
 
 def test_catalog_activation_rejects_audit_record_even_with_source_permission() -> None:

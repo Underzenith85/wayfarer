@@ -31,7 +31,17 @@ Owner-scoped projections hide another player's proposed build and routing data.
 Treatment can be interrupted before its deadline without changing the build.
 Completion rebases HP and FP maxima while preserving the existing deficit, so a
 new body is not an implicit heal. Temporary or curable afflictions restore the
-recorded prior build and authority state. Permanent changes reject expiry.
+recorded prior build and the attachments that the transformation actually
+rerouted. Attachments following the mind retain their current state on return;
+the proposal snapshot cannot undo later knowledge, item transfers, credential
+changes or player-control changes. Permanent changes reject expiry.
+
+The core Alternate Form and Morph constructions (Characters third printing
+B83-85, issue #757) retain all five attachment domains with the same actor.
+Their voluntary, forced and automatic returns therefore preserve those live
+attachments. This is separate from the approved racial-template and proportional
+HP/FP change. `tests/test_form_reversion_state.py` exercises that distinction,
+including actual persisted operations and subsequent retry/reload behavior.
 
 Point-value changes append `transformation` entries to the existing advancement
 ledger. `adjust` records value without creating spendable points; `charge`

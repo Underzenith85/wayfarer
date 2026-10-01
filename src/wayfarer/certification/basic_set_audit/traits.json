@@ -469,17 +469,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_movement_forms.py"
+        "tests/test_movement_forms.py",
+        "docs/gurps-transformations.md",
+        "tests/test_shapeshifting_transformations.py",
+        "tests/test_harmful_physiology_transformations.py",
+        "tests/test_form_reversion_state.py"
       ],
       "historical_owners": [
         113,
         496
       ],
-      "completion_owner": null,
+      "completion_owner": 757,
       "capability_id": "gurps.character.traits",
       "runtime_binding": "supernatural/advantage:alternate-form",
       "parent_id": null,
@@ -487,7 +491,7 @@
       "listed_value": "Variable",
       "construction_binding": "supernatural/advantage:alternate-form",
       "cost_owner": "supernatural/advantage:alternate-form",
-      "consequence_owner": 113,
+      "consequence_owner": 757,
       "source_review_owner": null
     },
     {
@@ -4563,17 +4567,21 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_movement_forms.py"
+        "tests/test_movement_forms.py",
+        "docs/gurps-transformations.md",
+        "tests/test_shapeshifting_transformations.py",
+        "tests/test_harmful_physiology_transformations.py",
+        "tests/test_form_reversion_state.py"
       ],
       "historical_owners": [
         113,
         496
       ],
-      "completion_owner": null,
+      "completion_owner": 757,
       "capability_id": "gurps.character.traits",
       "runtime_binding": "supernatural/advantage:morph",
       "parent_id": null,
@@ -4581,7 +4589,7 @@
       "listed_value": "Variable",
       "construction_binding": "supernatural/advantage:morph",
       "cost_owner": "supernatural/advantage:morph",
-      "consequence_owner": 113,
+      "consequence_owner": 757,
       "source_review_owner": null
     },
     {

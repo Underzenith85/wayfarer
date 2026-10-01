@@ -117,12 +117,17 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [],
+      "blockers": [
+        757
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "status": "partial",
+      "supported_subset": "Approved authored racial templates change actual builds after ten seconds and preserve live mind-following attachments on return. Direct changes between active forms remain unverified.",
       "evidence": [
-        "tests/test_movement_forms.py"
+        "tests/test_movement_forms.py",
+        "tests/test_shapeshifting_transformations.py",
+        "tests/test_harmful_physiology_transformations.py",
+        "tests/test_form_reversion_state.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -1631,12 +1636,17 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [],
+      "blockers": [
+        757
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "status": "partial",
+      "supported_subset": "Approved authored racial templates change actual builds after ten seconds and preserve live mind-following attachments on return. Touch-only Morph and direct changes between active forms remain unverified.",
       "evidence": [
-        "tests/test_movement_forms.py"
+        "tests/test_movement_forms.py",
+        "tests/test_shapeshifting_transformations.py",
+        "tests/test_harmful_physiology_transformations.py",
+        "tests/test_form_reversion_state.py"
       ],
       "members": [],
       "talent_cost": null,
