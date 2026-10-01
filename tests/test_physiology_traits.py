@@ -28,6 +28,7 @@ from wayfarer.engine.simulation.traits.physiology import (
     apply_physiology_interval,
     history,
 )
+from wayfarer.engine.simulation.traits.physiology_calendar import PhysiologyCalendar
 from wayfarer.errors import ConflictError, ValidationError
 
 
@@ -855,9 +856,9 @@ def test_limited_breathing_does_not_claim_unconditional_air_immunity(modifier: s
     ("frequency", "cost", "first", "cadence"),
     [
         ("week", -20, 626400, 21600),
-        ("month", -10, 2678400, 86400),
-        ("season", -3, 8035200, 259200),
-        ("year", -1, 32745600, 1209600),
+        ("month", -10, 2764800, 86400),
+        ("season", -3, 8121600, 259200),
+        ("year", -1, 32832000, 1209600),
     ],
 )
 def test_dependency_all_printed_frequencies(
@@ -873,7 +874,14 @@ def test_dependency_all_printed_frequencies(
         next(p.cost for p in build.purchases if p.definition_id == "disadvantage:dependency")
         == cost
     )
-    interval = PhysiologyInterval(id="dose", actor_id="a", kind="dependency", due=first)
+    calendar = PhysiologyCalendar(
+        month_boundaries=tuple(
+            day * 86400 for day in (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366, 397)
+        )
+    )
+    interval = PhysiologyInterval(
+        id="dose", actor_id="a", kind="dependency", due=first, calendar=calendar
+    )
     updated, result = apply_physiology_interval(
         state(time=first),
         command(identifier="dose"),
@@ -958,3 +966,58 @@ def test_harmful_interval_identity_cannot_be_reused_after_exposure_restart() -> 
             authorized_actor_id="a",
             system=True,
         )
+
+
+def test_dependency_calendar_preserves_month_end_and_requires_source_context() -> None:
+    calendar = PhysiologyCalendar(month_boundaries=(0, 31 * 86400, 60 * 86400, 91 * 86400))
+    assert calendar.deadline(30 * 86400 + 120, "month") == 59 * 86400 + 120
+    build, engine = approved(
+        Purchase(
+            definition_id="disadvantage:dependency",
+            trait=options(rarity="common", interval="month"),
+        )
+    )
+    due = 60 * 86400 + 120
+    interval = PhysiologyInterval(
+        id="calendar",
+        actor_id="a",
+        kind="dependency",
+        due=due,
+        started=30 * 86400 + 120,
+        calendar=calendar,
+    )
+    updated, result = apply_physiology_interval(
+        state(time=due),
+        command(identifier="calendar"),
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert result.hp_after == 4 and updated.pools[0].current == 4
+    restarted = ResourceState.model_validate_json(updated.model_dump_json())
+    assert apply_physiology_interval(
+        restarted,
+        command(identifier="calendar"),
+        interval,
+        build,
+        engine.definitions,
+        rng=RecordedDice([]),
+        authorized_actor_id="a",
+        system=True,
+    ) == (restarted, result)
+    with pytest.raises(ValidationError, match="campaign calendar"):
+        apply_physiology_interval(
+            state(time=due),
+            command(identifier="calendar"),
+            interval.model_copy(update={"calendar": None}),
+            build,
+            engine.definitions,
+            rng=FixedDice(),
+            authorized_actor_id="a",
+            system=True,
+        )
+    with pytest.raises(ValidationError, match="cover"):
+        calendar.deadline(0, "year")

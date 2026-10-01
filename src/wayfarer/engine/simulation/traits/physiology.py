@@ -14,6 +14,7 @@ from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
 from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
 from wayfarer.engine.simulation.resources import Command, Pool, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.traits.physiology_calendar import PhysiologyCalendar
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
 
@@ -27,6 +28,9 @@ class PhysiologyInterval(Record):
     due: int = Field(ge=0)
     amount: int = Field(default=1, ge=1, le=1000)
     active: bool = True
+    calendar: PhysiologyCalendar | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     started: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
 
 
@@ -191,6 +195,17 @@ def _harmful_interval(
             "year": 1209600,
         }[str(frequency)]
     )
+    if interval.kind == "dependency" and frequency in {"month", "season", "year"}:
+        if interval.calendar is None:
+            raise ValidationError("Monthly dependency requires the authoritative campaign calendar")
+        first = (
+            interval.calendar.deadline(interval.started, str(frequency))
+            + {
+                "month": 86400,
+                "season": 259200,
+                "year": 1209600,
+            }[str(frequency)]
+        )
     cadence = (
         period
         if interval.kind == "weakness"
