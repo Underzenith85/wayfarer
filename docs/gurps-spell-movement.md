@@ -33,6 +33,34 @@ magic. B241 excludes spell subjects from the Rule of 16; a B242 contest tie
 resists. One casting roll is reused against all independent wards, and critical
 success bypasses resistance. Multiple fixed wards do not add a resistance bonus.
 
+## Ordinary ritual availability (B237)
+
+The host checks the caster's actual ordinary ritual at casting start, each
+continued Concentrate command and completion. The relevant score is trained
+spell skill, adjusted only for low mana. At skill 9 or less both hands and feet
+must be free and speech available; at 10–14 speech and a gesture are needed;
+at 15–19 speech or a small gesture suffices; at 20 or more neither is required.
+Range, shock and HP-energy penalties do not change that ritual category.
+Cancellation, maintenance and remembering do not repeat the casting ritual.
+
+Canonical limb injuries, held items, arm/leg grips, movement-form limitations
+and approved Mute/Cannot Speak purchases are consumed as actual restrictions.
+Occupied hands are not automatically unable to gesture at skill 10–19. Nor
+does a generic restrained flag identify whether fingers or head can move.
+`SpellRitualService` lets the current trusted director record private typed
+speech, gesture and full-body availability for these ambiguous facts. A positive
+observation cannot override the low-skill canonical hand/foot requirements or
+an approved speech disadvantage. The observation is bound to the approved
+build revision and must be refreshed after that build changes. No narrative
+inference or caller-supplied skill, energy or ritual category is accepted.
+Speech-only and mental-only casting remain possible under physical restraint;
+consciousness and other independent concentration requirements still apply.
+
+`tests/test_spell_rituals.py` verifies real approved skill boundaries, low mana,
+limb loss, occupied hands, speech/gesture alternatives, mid-cast changes,
+private projections, current GM authority, exact retries and seeded replay.
+These ordinary checks do not promote the separate ceremonial/item/staff paths.
+
 ## Persisted object and command boundaries
 
 `LockService` records trusted director-authored fixtures, immutable channels,

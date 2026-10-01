@@ -12,7 +12,7 @@ from test_statistics import gurps_draft, profile_compiler, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.catalog import RuleDefinition, RulesCatalog, SourceReference
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.magic.movement import package
 from wayfarer.engine.rules.types.injury import InjuryStatus
@@ -37,20 +37,31 @@ from wayfarer.orchestration.play import PlayService
 
 
 async def prepare(
-    path: Path, backend: str = "sqlite", *, combat: bool = False, scenes: bool = False
+    path: Path,
+    backend: str = "sqlite",
+    *,
+    combat: bool = False,
+    scenes: bool = False,
+    spell_points: int = 4,
+    extra_definitions: tuple[RuleDefinition, ...] = (),
+    extra_purchases: tuple[Purchase, ...] = (),
+    extra_sources: tuple[SourceReference, ...] = (),
+    trait_runtime_hooks: frozenset[str] = frozenset(),
 ) -> tuple[str, PlayService]:
     spells = package()
-    base = profile_package(PROFILE, *spells.definitions)
+    base = profile_package(PROFILE, *spells.definitions, *extra_definitions)
     base = replace(
-        base, sources=tuple({s.id: s for s in (*base.sources, *spells.sources)}.values())
+        base,
+        sources=tuple({s.id: s for s in (*base.sources, *spells.sources, *extra_sources)}.values()),
     )
     compiled = profile_compiler(PROFILE, package=base)
     catalog = RulesCatalog((base,))
     compiled = CharacterCompiler(
         catalog,
         compiled.rules,
-        replace(compiled.policy, point_budget=1000, allow_supernatural=True),
+        replace(compiled.policy, point_budget=1000, skill_ceiling=40, allow_supernatural=True),
         statistics_profile=PROFILE,
+        trait_runtime_hooks=trait_runtime_hooks,
     )
     authored = replace(world(), knowledge=(("a", "clue"),))
     engine = ActionEngine(
@@ -98,8 +109,9 @@ async def prepare(
         Purchase(definition_id="trait:magery-0"),
         Purchase(definition_id="trait:magery", amount=2),
         Purchase(definition_id="spell:apportation"),
-        Purchase(definition_id="spell:lockmaster", amount=4),
-        Purchase(definition_id="spell:magelock", amount=4),
+        Purchase(definition_id="spell:lockmaster", amount=spell_points),
+        Purchase(definition_id="spell:magelock", amount=spell_points),
+        *extra_purchases,
     )
     draft = draft.model_copy(
         update={

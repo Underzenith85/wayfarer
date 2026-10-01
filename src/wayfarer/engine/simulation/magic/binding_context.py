@@ -10,6 +10,8 @@ from wayfarer.engine.rules.magic.movement import package as movement_package
 from wayfarer.engine.rules.magic.protocols import MagicItemBinding, effective_item_power
 from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.magic.rituals import require_ordinary_ritual
+from wayfarer.engine.simulation.magic.spell_state import latest
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SpellContext,
@@ -37,6 +39,7 @@ class SpellEnvironment(Record):
     energy: int = Field(default=1, ge=1, le=100)
     unseen: bool = False
     magic_item: MagicItemBinding | None = None
+    personal_ritual: bool = True
 
 
 def approved_context(
@@ -99,6 +102,17 @@ def approved_context(
         target_ht = next(
             int(v.value) for v in target_build.sheet.values if v.target == "attribute:ht"
         )
+    ordinary_ritual = environment.personal_ritual and environment.magic_item is None
+    effect = latest(state.resources).get(command.cast_id)
+    if ordinary_ritual and (
+        command.kind == "start"
+        or command.kind in ("concentrate", "complete")
+        and effect is not None
+        and effect.phase == "casting"
+    ):
+        require_ordinary_ritual(
+            runtime, state, actor.actor_id, build, skill - 5 * int(environment.mana == "low")
+        )
     return SpellContext(
         profile_id=PROFILE,
         build_revision=build.revision,
@@ -113,7 +127,10 @@ def approved_context(
         if compiler.definitions.get("skill:physician")
         == next(d for d in medical_definitions() if d.id == "skill:physician")
         else 0,
-        unavailable=bool(actor.conditions) or actor.available_at > state.resources.game_time,
+        unavailable=any(
+            condition != "restrained" or not ordinary_ritual for condition in actor.conditions
+        )
+        or actor.available_at > state.resources.game_time,
         item_power_reduction=item_reduction,
-        **environment.model_dump(exclude={"magic_item"}),
+        **environment.model_dump(exclude={"magic_item", "personal_ritual"}),
     )

@@ -182,6 +182,7 @@ def approved_context(
             radius=command.radius,
             energy=command.energy,
             magic_item=magic_item,
+            personal_ritual=channel.ceremonial is None,
         ),
     )
     if channel.ceremonial:
