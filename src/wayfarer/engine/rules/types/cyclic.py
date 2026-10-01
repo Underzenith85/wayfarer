@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.errors import ConflictError
 from wayfarer.models import Record
 
@@ -15,6 +16,7 @@ class CyclicAttack(Record):
     actor_id: str
     attack_id: str
     basic_damage: int = Field(ge=1)
+    damage_dice: int = Field(ge=1, le=1000)
     damage_type: Literal["burn", "cor", "fat", "tox"]
     resistance: int = Field(ge=0)
     armor_divisor: Decimal = Field(default=Decimal(1), gt=0)
@@ -41,3 +43,15 @@ class CyclicAttack(Record):
 def require_cyclic_settled(attacks: tuple[CyclicAttack, ...], at: int) -> None:
     if any(a.active and a.due < at for a in attacks):
         raise ConflictError("Settle the Cyclic deadline before advancing further")
+
+
+class CyclicOccurrence(Record):
+    id: str
+    attack_id: str
+    actor_id: str
+    at: int = Field(ge=0)
+    cycle: int = Field(ge=1)
+    damage_dice: tuple[int, ...] = ()
+    check: CheckTrace | None = None
+    hp_lost: int = Field(default=0, ge=0)
+    fp_lost: int = Field(default=0, ge=0)

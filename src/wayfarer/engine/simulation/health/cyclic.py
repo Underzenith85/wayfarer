@@ -3,9 +3,9 @@
 import hashlib
 from decimal import Decimal
 
-from wayfarer.engine.rules.checks import RandomSource
+from wayfarer.engine.rules.checks import RandomSource, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.types.cyclic import CyclicAttack
+from wayfarer.engine.rules.types.cyclic import CyclicAttack, CyclicOccurrence
 from wayfarer.engine.rules.types.hazard import RecoveryRestriction
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
@@ -42,19 +42,23 @@ def settle(state: ResourceState, attack: CyclicAttack, rng: RandomSource) -> Res
     if not attack.active or attack.due != state.game_time:
         raise ConflictError("Cyclic occurrence is not due")
     occurrence = attack.id + ":" + str(attack.cycle + 1)
-    resisted = (
-        attack.resistance_modifier is not None
-        and success_roll(
+    check = (
+        None
+        if attack.resistance_modifier is None
+        else success_roll(
             "gurps-basic-set-4e-2004", attack.ht + attack.resistance_modifier, rng=rng
-        ).outcome.succeeded
+        )
     )
+    resisted = check is not None and check.outcome.succeeded
+    dice = () if resisted else draw_dice(rng, attack.damage_dice)
+    damage = sum(dice)
     hp_lost = fp_lost = 0
     if not resisted:
         if attack.damage_type == "fat":
             amount = (
                 max(
                     0,
-                    attack.basic_damage
+                    damage
                     - effective_dr(
                         attack.resistance, attack.armor_divisor, location="torso", damage_type="fat"
                     ),
@@ -82,7 +86,7 @@ def settle(state: ResourceState, attack: CyclicAttack, rng: RandomSource) -> Res
                     id=occurrence,
                     actor_id=attack.actor_id,
                     expected_revision=state.revision,
-                    basic_damage=attack.basic_damage,
+                    basic_damage=damage,
                     resistance=attack.resistance,
                     damage_type=attack.damage_type,
                     armor_divisor=attack.armor_divisor,
@@ -112,7 +116,17 @@ def settle(state: ResourceState, attack: CyclicAttack, rng: RandomSource) -> Res
                 ResourceEvent(
                     id="cyclic:" + occurrence,
                     at=state.game_time,
-                    kind="cyclic-resisted" if resisted else "cyclic-damage",
+                    kind=CyclicOccurrence(
+                        id=occurrence,
+                        attack_id=attack.id,
+                        actor_id=attack.actor_id,
+                        at=state.game_time,
+                        cycle=attack.cycle,
+                        damage_dice=dice,
+                        check=check,
+                        hp_lost=hp_lost,
+                        fp_lost=fp_lost,
+                    ).model_dump_json(),
                     target_id=attack.actor_id,
                 ),
             )

@@ -15,7 +15,7 @@ from wayfarer.engine.character.traits.attack_defense import (
     attack_defense_traits,
 )
 from wayfarer.engine.rules.catalog import RuleDefinition
-from wayfarer.engine.rules.checks import RandomSource
+from wayfarer.engine.rules.checks import CheckTrace, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
@@ -89,6 +89,7 @@ class TraitAttackOutcome(Record):
     condition: AfflictionCondition | None = None
     resistance_target: int | None = None
     penetration_reason: str | None = None
+    checks: tuple[CheckTrace, ...] = Field(default=(), exclude_if=lambda value: not value)
 
 
 class TraitAttackEvent(Record):
@@ -401,6 +402,7 @@ def _schedule_cyclic(
     outcome: TraitAttackOutcome,
     target_ht: int,
     at: int,
+    damage_dice: int,
 ) -> ResourceState:
     if cyclic is not None and outcome.outcome == "injured":
         assert (
@@ -415,6 +417,7 @@ def _schedule_cyclic(
                     "actor_id": channel.target_id,
                     "attack_id": channel.id,
                     "basic_damage": channel.basic_damage,
+                    "damage_dice": damage_dice,
                     "damage_type": channel.damage_type,
                     "resistance": target.damage_resistance(),
                     "armor_divisor": channel.armor_divisor,
@@ -436,6 +439,18 @@ def _schedule_cyclic(
         )
 
     return state
+
+
+def _cyclic_check(
+    cyclic: AttackProfile | None, channel: AttackChannel, target_ht: int, rng: RandomSource
+) -> CheckTrace | None:
+    if (
+        cyclic is None
+        or cyclic.resistance_modifier is None
+        or not _roll_succeeds(channel.attack_roll, channel.attack_score)
+    ):
+        return None
+    return success_roll("gurps-basic-set-4e-2004", target_ht + cyclic.resistance_modifier, rng=rng)
 
 
 def apply_trait_attack(
@@ -480,6 +495,7 @@ def apply_trait_attack(
     cyclic = cyclic_profile(selections, channel.damage_type) if selections else None
     if cyclic is not None and cyclic.contagious != "none":
         raise ValidationError("Contagious Cyclic execution requires the exposure extension")
+    check = _cyclic_check(cyclic, channel, target_ht, rng)
     if cyclic is not None and not _roll_succeeds(channel.attack_roll, channel.attack_score):
         state = resources.model_copy(update={"revision": resources.revision + 1})
         outcome = TraitAttackOutcome(
@@ -488,13 +504,7 @@ def apply_trait_attack(
             target_id=channel.target_id,
             definition_id=command.definition_id,
         )
-    elif (
-        cyclic is not None
-        and cyclic.resistance_modifier is not None
-        and success_roll(
-            "gurps-basic-set-4e-2004", target_ht + cyclic.resistance_modifier, rng=rng
-        ).outcome.succeeded
-    ):
+    elif check is not None and check.outcome.succeeded:
         state = resources.model_copy(update={"revision": resources.revision + 1})
         outcome = TraitAttackOutcome(
             outcome="resisted",
@@ -577,8 +587,17 @@ def apply_trait_attack(
             )
         state = resources.model_copy(update=binding_update)
 
+    outcome = outcome.model_copy(update={"checks": () if check is None else (check,)})
     state = _schedule_cyclic(
-        state, command, channel, cyclic, target, outcome, target_ht, resources.game_time
+        state,
+        command,
+        channel,
+        cyclic,
+        target,
+        outcome,
+        target_ht,
+        resources.game_time,
+        purchased.amount,
     )
 
     event = TraitAttackEvent(

@@ -21,7 +21,7 @@ class TraitOptions(Record):
         default=(), strict=False
     )
     attack_modifiers: tuple[ModifierSelection, ...] = Field(
-        default=(), strict=False, max_length=100
+        default=(), strict=False, max_length=100, exclude_if=lambda value: not value
     )
     self_control: Literal[6, 9, 12, 15] | None = None
     modifiers: tuple[str, ...] = Field(default=(), strict=False, max_length=100)

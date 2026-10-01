@@ -90,7 +90,7 @@ def advance(state: ResourceState, to: int, *, dice: list[int] | None = None) -> 
         state,
         Advance(id=f"clock:{to}", actor_id="a", expected_revision=state.revision, to=to),
         system=True,
-        rng=RecordedDice(dice or [3] * 100),
+        rng=RecordedDice(dice or [2] * 100),
     )
 
 
@@ -99,10 +99,10 @@ def test_initial_and_repeat_damage_keep_dr_and_complete_on_last_cycle() -> None:
     assert hp(state) == 8 and blocked_hp(state.illnesses, "b", "natural") == 2
     state = advance(state, 9)
     assert hp(state) == 8
-    state = advance(state, 10)
+    state = advance(state, 10, dice=[3] * 100)
     assert hp(state) == 6 and state.cyclic_attacks[0].remaining == 1
     assert blocked_hp(state.illnesses, "b", "physician") == 4
-    state = advance(state, 20)
+    state = advance(state, 20, dice=[3] * 100)
     assert hp(state) == 4 and not state.cyclic_attacks[0].active
     assert blocked_hp(state.illnesses, "b", "natural") == 0
     assert advance(state, 100).cyclic_attacks == state.cyclic_attacks
@@ -148,7 +148,7 @@ def test_clock_retry_is_exact_and_crossing_without_rng_is_rejected() -> None:
     cmd = Advance(id="repeat", actor_id="a", expected_revision=state.revision, to=20)
     with pytest.raises(ConflictError):
         engine().apply(state, cmd, system=True)
-    result = engine().apply(state, cmd, system=True, rng=RecordedDice([3] * 100))
+    result = engine().apply(state, cmd, system=True, rng=RecordedDice([2] * 100))
     restarted = ResourceState.model_validate_json(result.model_dump_json())
     assert engine().apply(restarted, cmd, system=True, rng=RecordedDice([])) == restarted
     assert hp(result) == 4
@@ -260,3 +260,34 @@ def test_fatigue_cycles_use_fp_and_release_recovery_restriction() -> None:
     state = advance(state, 20)
     assert next(p.current for p in state.pools if p.id == "fp:b") == 4
     assert hp(state) == 10 and blocked_fp(state.illnesses, "b") == 0
+
+
+def test_repeat_damage_rolls_each_purchased_die_and_persists_roll_evidence() -> None:
+    from wayfarer.engine.rules.types.cyclic import CyclicOccurrence
+
+    state = attack()
+    state = advance(state, 20, dice=[1, 6] + [3] * 60)
+    occurrences = tuple(
+        CyclicOccurrence.model_validate_json(e.kind)
+        for e in state.events
+        if e.id.startswith("cyclic:attack-defense-use:")
+    )
+    assert tuple(o.damage_dice for o in occurrences) == ((1,), (6,))
+    assert tuple(o.hp_lost for o in occurrences) == (1, 6)
+    assert hp(state) == 1
+
+
+def test_successful_resistance_preserves_exact_secret_check_trace() -> None:
+    from wayfarer.engine.rules.types.cyclic import CyclicOccurrence
+
+    state = attack(resistible=True, dice=[6, 6, 6])
+    state = advance(state, 20, dice=[2, 3, 4])
+    occurrence = next(
+        CyclicOccurrence.model_validate_json(e.kind)
+        for e in state.events
+        if e.id.startswith("cyclic:attack-defense-use:")
+    )
+    assert occurrence.check is not None
+    assert occurrence.check.dice == (2, 3, 4) and occurrence.check.effective_target == 12
+    assert occurrence.check.outcome.succeeded and occurrence.damage_dice == ()
+    assert occurrence.hp_lost == occurrence.fp_lost == 0
