@@ -126,7 +126,35 @@ BINDINGS: Final = (
         "advantage:neutralize",
         "Neutralize",
         50,
-        modifiers=(modifier("power-theft", 200), modifier("one-ability", -80)),
+        modifiers=(
+            modifier("power-theft", 200),
+            *(
+                modifier(
+                    "one-power-" + family,
+                    -50,
+                    *(
+                        "one-power-" + other
+                        for other in (
+                            "antipsi",
+                            "esp",
+                            "psychic-healing",
+                            "psychokinesis",
+                            "telepathy",
+                            "teleportation",
+                        )
+                        if other != family
+                    ),
+                )
+                for family in (
+                    "antipsi",
+                    "esp",
+                    "psychic-healing",
+                    "psychokinesis",
+                    "telepathy",
+                    "teleportation",
+                )
+            ),
+        ),
     ),
     MentalSpiritBinding("advantage:oracle", "Oracle", 15),
     MentalSpiritBinding(

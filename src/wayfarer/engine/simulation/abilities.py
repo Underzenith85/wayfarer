@@ -26,6 +26,7 @@ from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.magic.spell_state import interrupt_spells
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
+from wayfarer.engine.simulation.traits.neutralization import power_suppressed
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -113,6 +114,7 @@ class AbilityContext:
     shock: int = 0
     build_revision: str = ""
     held_item_ids: tuple[str, ...] = ()
+    power_id: str | None = None
 
 
 def validate_target(
@@ -151,6 +153,20 @@ def validate_target(
     return channel.target_id
 
 
+def _require_available_power(
+    resources: ResourceState, command: AbilityCommand, spec: AbilitySpec, context: AbilityContext
+) -> None:
+    selected_power = context.power_id or (
+        "power:telepathy" if "telepathic" in spec.modifiers else None
+    )
+    if (
+        selected_power is not None
+        and command.kind != "cancel"
+        and power_suppressed(resources, command.actor_id, selected_power)
+    ):
+        raise ValidationError("Psionic power is suppressed by Neutralize")
+
+
 def apply_ability(
     resources: ResourceState,
     world: World,
@@ -167,6 +183,7 @@ def apply_ability(
         raise ConflictError("Ability revision changed")
     if command.kind in ("activate", "analyze"):
         require_idle_concentration(resources, command.actor_id)
+    _require_available_power(resources, command, spec, context)
     validate_binding(spec, context.level, context.options)
     if command.ability_id != spec.definition_id:
         raise ValidationError("Ability binding changed")

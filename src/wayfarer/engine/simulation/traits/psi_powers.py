@@ -15,6 +15,7 @@ from wayfarer.engine.rules.traits.psi_powers import BINDING_BY_ID
 from wayfarer.engine.simulation.abilities import AbilityContext
 from wayfarer.engine.simulation.ability_types import AbilitySpec
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState, Scheduled
+from wayfarer.engine.simulation.traits.neutralization import power_suppressed
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -117,8 +118,8 @@ def apply_interference(
         value for value in BINDING_BY_ID if value != "power:antipsi"
     }:
         raise ValidationError("Unknown psionic power suppression target")
-    if interference.ability_id == "advantage:neutralize" and target is None:
-        raise ValidationError("Neutralize requires an authored target")
+    if interference.ability_id == "advantage:neutralize":
+        raise ValidationError("Neutralize requires its canonical touch and Will contest procedure")
     if interference.ability_id == "advantage:psi-static" and target is not None:
         raise ValidationError("Psi Static is an area around its owner")
     effect_id = _effect_id(interference.id)
@@ -183,7 +184,7 @@ def power_is_blocked(
     actor = next((entity for entity in world.entities if entity.id == actor_id), None)
     if actor is None or actor.kind is not EntityKind.ACTOR:
         raise ValidationError("Psionic actor is unavailable")
-    return any(
+    return power_suppressed(resources, actor_id, power_id) or any(
         _effect_id(value.id) in resources.active_effect_ids
         and value.actor_id != actor_id
         and value.location_id == actor.location_id
@@ -228,4 +229,5 @@ def apply_ability_context(
         shock=context.shock,
         build_revision=context.build_revision,
         held_item_ids=context.held_item_ids,
+        power_id=power_id,
     )

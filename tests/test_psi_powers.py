@@ -335,3 +335,201 @@ def test_telepathy_talent_and_resistance_feed_existing_ability_service() -> None
             power_id="power:telepathy",
             blocked=True,
         )
+
+
+def test_neutralize_suppresses_actual_ability_until_source_margin_expiry() -> None:
+    from wayfarer.engine.simulation.traits.mental_spirit import (
+        MentalChannel,
+        MentalCommand,
+        apply_mental_use,
+    )
+
+    build, engine = approved(Purchase(definition_id="advantage:neutralize"))
+    channel = MentalChannel(
+        id="touch",
+        definition_id="advantage:neutralize",
+        actor_id="jammer",
+        target_id="psi",
+        location_id="room",
+        kind="neutralize",
+        touching_target=True,
+        actor_score=12,
+        actor_roll=6,
+        resistance_score=10,
+        resistance_roll=9,
+        duration_seconds=9999,
+    )
+    command = MentalCommand(
+        id="neutralize",
+        actor_id="jammer",
+        expected_revision=0,
+        definition_id=channel.definition_id,
+        channel_id=channel.id,
+        kind="activate",
+    )
+    state, updated_world, outcome = apply_mental_use(
+        ResourceState(),
+        world(),
+        command,
+        build,
+        engine.definitions,
+        (channel,),
+        authorized_actor_id="jammer",
+        system=True,
+    )
+    assert outcome.outcome == "successful" and outcome.expires_at == 300
+    assert state.scheduled[0].due == 300
+    restarted = ResourceState.model_validate_json(state.model_dump_json())
+    assert apply_mental_use(
+        restarted,
+        updated_world,
+        command,
+        build,
+        engine.definitions,
+        (channel,),
+        authorized_actor_id="jammer",
+        system=True,
+        rng=RecordedDice([]),
+    ) == (restarted, updated_world, outcome)
+    assert power_is_blocked(state, world(), (), actor_id="psi", power_id="power:esp")
+    spec = AbilitySpec(
+        definition_id="advantage:mind-reading", kind="mind-reading", modifiers=("telepathic",)
+    )
+    context = AbilityContext(
+        PROFILE,
+        1,
+        TraitOptions(modifiers=("telepathic",)),
+        12,
+        12,
+        12,
+        10,
+        target_will=10,
+        channel=AbilityChannel(
+            id="read",
+            ability_id=spec.definition_id,
+            actor_id="psi",
+            target_id="jammer",
+            location_id="room",
+        ),
+        power_id="power:telepathy",
+    )
+    use = AbilityCommand(
+        id="read",
+        actor_id="psi",
+        expected_revision=1,
+        kind="activate",
+        ability_id=spec.definition_id,
+        channel_id="read",
+    )
+    with pytest.raises(ValidationError, match="suppressed"):
+        apply_ability(state, world(), use, spec, context, rng=RecordedDice([]), system=True)
+    expired = state.model_copy(update={"game_time": 300})
+    assert not power_is_blocked(expired, world(), (), actor_id="psi", power_id="power:esp")
+    with pytest.raises(ConflictError, match="until power recovery"):
+        apply_mental_use(
+            state,
+            world(),
+            command.model_copy(update={"id": "again", "expected_revision": 1}),
+            build,
+            engine.definitions,
+            (channel,),
+            authorized_actor_id="jammer",
+            system=True,
+        )
+
+
+def test_neutralize_one_power_and_critical_failure_survive_restart() -> None:
+    from wayfarer.engine.simulation.traits.mental_spirit import (
+        MentalChannel,
+        MentalCommand,
+        apply_mental_use,
+    )
+    from wayfarer.engine.simulation.traits.neutralization import neutralize_crippled
+
+    build, engine = approved(
+        Purchase(
+            definition_id="advantage:neutralize",
+            trait=TraitOptions(modifiers=("one-power-telepathy",)),
+        )
+    )
+    channel = MentalChannel(
+        id="touch",
+        definition_id="advantage:neutralize",
+        actor_id="jammer",
+        target_id="psi",
+        location_id="room",
+        kind="neutralize",
+        touching_target=True,
+        actor_score=12,
+        actor_roll=6,
+        resistance_score=10,
+        resistance_roll=9,
+    )
+    command = MentalCommand(
+        id="activate",
+        actor_id="jammer",
+        expected_revision=0,
+        definition_id=channel.definition_id,
+        channel_id=channel.id,
+        kind="activate",
+    )
+    state, _, _ = apply_mental_use(
+        ResourceState(),
+        world(),
+        command,
+        build,
+        engine.definitions,
+        (channel,),
+        authorized_actor_id="jammer",
+        system=True,
+    )
+    assert power_is_blocked(state, world(), (), actor_id="psi", power_id="power:telepathy")
+    assert not power_is_blocked(state, world(), (), actor_id="psi", power_id="power:esp")
+    failed, _, result = apply_mental_use(
+        ResourceState(),
+        world(),
+        command,
+        build,
+        engine.definitions,
+        (channel.model_copy(update={"actor_roll": 18}),),
+        authorized_actor_id="jammer",
+        system=True,
+        rng=RecordedDice([4]),
+    )
+    assert result.outcome == "resisted" and not failed.active_effect_ids
+    restarted = ResourceState.model_validate_json(failed.model_dump_json())
+    assert neutralize_crippled(restarted, "jammer")
+    assert apply_mental_use(
+        restarted,
+        world(),
+        command,
+        build,
+        engine.definitions,
+        (channel.model_copy(update={"actor_roll": 18}),),
+        authorized_actor_id="jammer",
+        system=True,
+        rng=RecordedDice([]),
+    ) == (restarted, world(), result)
+    assert not neutralize_crippled(restarted.model_copy(update={"game_time": 14400}), "jammer")
+    with pytest.raises(ValidationError, match="crippled"):
+        apply_mental_use(
+            restarted,
+            world(),
+            command.model_copy(update={"id": "retry", "expected_revision": 1}),
+            build,
+            engine.definitions,
+            (channel,),
+            authorized_actor_id="jammer",
+            system=True,
+        )
+    with pytest.raises(ValidationError, match="touch"):
+        apply_mental_use(
+            ResourceState(),
+            world(),
+            command,
+            build,
+            engine.definitions,
+            (channel.model_copy(update={"touching_target": False}),),
+            authorized_actor_id="jammer",
+            system=True,
+        )
