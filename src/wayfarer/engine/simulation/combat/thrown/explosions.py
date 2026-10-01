@@ -489,7 +489,13 @@ def resolve_blast(
                 encounter,
                 actor.model_copy(
                     update={
-                        "posture": "prone",
+                        "posture": (
+                            actor.posture
+                            if environment == "water"
+                            or actor.personal_flight is not None
+                            and actor.personal_flight.altitude > 0
+                            else "prone"
+                        ),
                         "position": Hex(q=destination.x, r=destination.y)
                         if destination.geometry == "hex"
                         else GridPoint(x=destination.x, y=destination.y),

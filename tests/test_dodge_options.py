@@ -13,7 +13,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec
 from wayfarer.engine.rules.types.special_combat import PersonalFlightState
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
-from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
+from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense, prepare_defense
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 
@@ -153,6 +153,21 @@ async def test_dodge_and_drop_has_ranged_bonus_then_persistent_prone_posture(
     assert defender.posture == "standing"
     score, _ = defense_value(play.rules_context, seed, defender, "dodge")
     assert score is not None and score.value == 12
+    finished = finish_defense(play.rules_context, seed, prepared, command)
+    ordinary = command.model_copy(update={"dodge_and_drop": False})
+    subsequent = prepare_defense(play.rules_context, seed, finished, ordinary)
+    assert subsequent.participants[1].tactical_defense_bonus == 3
+    assert subsequent.participants[1].drop_attacker_id == "a"
+    assert finished.pending_defense is not None
+    other_foe = finished.model_copy(
+        update={"pending_defense": finished.pending_defense.model_copy(update={"attacker_id": "b"})}
+    )
+    assert (
+        prepare_defense(play.rules_context, seed, other_foe, ordinary)
+        .participants[1]
+        .tactical_defense_bonus
+        == 0
+    )
     play.rng = RecordedDice([3, 3, 3, 3, 3, 3])
     result = await CombatService(play).execute(cid, command, principal_id="b")
     stored = play._load(await play.store.read(cid))

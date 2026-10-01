@@ -21,6 +21,20 @@ def prepare_options(
     resolve: bool,
 ) -> Encounter:
     if not command.acrobatic_dodge and not command.dodge_and_drop:
+        pending = encounter.pending_defense
+        target = next((p for p in encounter.participants if p.actor_id == command.actor_id), None)
+        if (
+            pending
+            and target
+            and target.drop_attacker_id == pending.attacker_id
+            and command.defense != "none"
+        ):
+            return CombatEngine._replace(
+                encounter,
+                target.model_copy(
+                    update={"tactical_defense_bonus": target.tactical_defense_bonus + 3}
+                ),
+            )
         return encounter
     if (
         runtime.rules.combat is None
@@ -67,7 +81,15 @@ def prepare_options(
         skill = int(level(compiled, skill_id).value)
     if not resolve:
         return encounter
-    bonus = 3 if command.dodge_and_drop else 0
+    bonus = (
+        3
+        if command.dodge_and_drop
+        or pending is not None
+        and target.drop_attacker_id == pending.attacker_id
+        else 0
+    )
+    if command.dodge_and_drop and pending is not None:
+        target = target.model_copy(update={"drop_attacker_id": pending.attacker_id})
     if command.acrobatic_dodge:
         trace = success_roll("gurps-basic-set-4e-2004", skill, rng=runtime.rng)
         bonus += 2 if trace.outcome.succeeded else -2
