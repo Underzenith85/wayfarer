@@ -380,7 +380,11 @@ def _owned_artifact(
         (item for item in resources.items if item.id == item_id and item.owner_id == actor_id),
         None,
     )
-    if item is None or item.ground is not None or item.container_id is not None:
+    if (
+        item is None
+        or (item.ground is not None or item.world_ground_location_id is not None)
+        or item.container_id is not None
+    ):
         raise ValidationError("Artifact must be owned, retrieved, and accessible")
     artifact = next(
         (entry for entry in rules.artifacts if entry.item_definition_id == item.definition_id),
@@ -711,7 +715,8 @@ def _require_operation(
     carried = {
         entry.definition_id
         for entry in resources.items
-        if entry.owner_id == command.actor_id and entry.ground is None
+        if entry.owner_id == command.actor_id
+        and (entry.ground is None and entry.world_ground_location_id is None)
     }
     if not set(capability.required_fact_ids) <= known_facts:
         raise ValidationError("Artifact operating knowledge is missing")

@@ -44,6 +44,7 @@ from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_ch
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.traits.size_geometry import checkpoint as size_geometry_checkpoint
 from wayfarer.engine.world import World
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
@@ -394,10 +395,12 @@ class PlayService:
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
         state = shapeshifting_checkpoint(self, state, before=before)
+        state = size_geometry_checkpoint(self.rules_context, state)
         if run_npcs:
             before_npcs = state
             state = npc_checkpoint(self, state)
             state = shapeshifting_checkpoint(self, state, before=before_npcs)
+            state = size_geometry_checkpoint(self.rules_context, state)
         return objective_checkpoint(self, state, before=before)
 
     @staticmethod

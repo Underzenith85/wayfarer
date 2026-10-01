@@ -101,7 +101,7 @@ def resolve_gadget_availability(
             raise ValidationError("Irreparable gadget exposes an authoritative repair route")
         broken = item.condition.disabled or item.condition.destroyed
     stolen = item.owner_id != binding.actor_id
-    held = not stolen and item.ground is None
+    held = not stolen and (item.ground is None and item.world_ground_location_id is None)
     projected = GadgetState(held=held, broken=broken, stolen=stolen)
     available = gadget_available(selections, projected)
     reason: Literal["available", "not-held", "broken", "stolen", "lost-unique"]

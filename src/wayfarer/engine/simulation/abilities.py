@@ -28,6 +28,7 @@ from wayfarer.engine.simulation.magic.spell_state import interrupt_spells
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.simulation.traits.neutralization import power_suppressed
 from wayfarer.engine.simulation.traits.psi_protection import protects
+from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -57,7 +58,7 @@ def damage_resistance(
     resources: ResourceState, actor_id: str, *, build_revision: str | None = None
 ) -> int:
     """Combat adapters consume the same expiring defense, never a second DR state."""
-    return sum(
+    resistance = sum(
         e.level
         for e in effects(resources)
         if e.actor_id == actor_id
@@ -65,6 +66,7 @@ def damage_resistance(
         and not e.concentrating
         and (build_revision is None or e.build_revision == build_revision)
     )
+    return reduced_body_result(resources, actor_id, resistance)
 
 
 def interrupt_concentration(
@@ -416,7 +418,7 @@ def apply_ability(
         outcome = "resisted" if failed else "hit"
         if not failed:
             damage_dice = tuple(rng.randbelow(6) + 1 for _ in range(context.level))
-            damage = sum(damage_dice)
+            damage = reduced_body_result(resources, command.actor_id, sum(damage_dice))
             resources, _ = apply_injury(
                 resources,
                 Wound(

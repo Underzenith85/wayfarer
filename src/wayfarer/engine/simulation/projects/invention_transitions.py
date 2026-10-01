@@ -391,7 +391,7 @@ def _facility(resources: ResourceState, actor_id: str, definition_id: str) -> No
     if not any(
         item.owner_id == actor_id
         and item.definition_id == definition_id
-        and item.ground is None
+        and (item.ground is None and item.world_ground_location_id is None)
         and (item.condition is None or not item.condition.disabled)
         for item in resources.items
     ):
@@ -417,7 +417,11 @@ def _spend(
     )
     available: dict[str, int] = {}
     for item in resources.items:
-        if item.owner_id == actor_id and item.ground is None and not item.equipped:
+        if (
+            item.owner_id == actor_id
+            and (item.ground is None and item.world_ground_location_id is None)
+            and not item.equipped
+        ):
             available[item.definition_id] = available.get(item.definition_id, 0) + item.quantity
     if pool.current < money:
         raise ValidationError("Invention funding shortfall")
@@ -428,7 +432,12 @@ def _spend(
     kept: list[Item] = []
     for item in resources.items:
         wanted = remaining.get(item.definition_id, 0)
-        if wanted and item.owner_id == actor_id and item.ground is None and not item.equipped:
+        if (
+            wanted
+            and item.owner_id == actor_id
+            and (item.ground is None and item.world_ground_location_id is None)
+            and not item.equipped
+        ):
             used = min(wanted, item.quantity)
             remaining[item.definition_id] -= used
             if used < item.quantity:

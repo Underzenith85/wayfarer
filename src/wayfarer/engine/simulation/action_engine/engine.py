@@ -88,6 +88,8 @@ from wayfarer.engine.simulation.magic.enchanting import validate_projects as val
 from wayfarer.engine.simulation.projects.inventions import validate_projects
 from wayfarer.engine.simulation.resources import Advance, Consume
 from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
+from wayfarer.engine.simulation.traits.size_forms import effect_for as size_effect_for
+from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
 from wayfarer.engine.world import Entity, EntityKind
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -293,7 +295,16 @@ class ActionEngine:
                 values["secondary:basic-speed"] if exact_gurps else dexterity
             )
             dexterities[actor.actor_id] = dexterity
+            size_effect = size_effect_for(state.resources, actor.actor_id)
+            if (
+                size_effect is not None
+                and (size_effect.current_delta or size_effect.changing)
+                and size_effect.build_revision != build.revision
+            ):
+                raise ValidationError("Return to native size before changing the approved build")
             for kind, maximum in pool_limits(build).items():
+                if kind == "hp":
+                    maximum = reduced_body_result(state.resources, actor.actor_id, maximum)
                 pool = pools.get(f"{kind}:{actor.actor_id}")
                 if pool is None or pool.maximum != maximum:
                     raise ValidationError("Runtime pool limit does not match the compiled build")

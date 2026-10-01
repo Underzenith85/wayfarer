@@ -93,6 +93,7 @@ from wayfarer.engine.simulation.health.hit_locations import (
 )
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.traits.size_forms import size_delta
 from wayfarer.errors import ValidationError
 
 
@@ -438,7 +439,11 @@ def resolve(
         int(value.value)
         + pending.visibility_attack_penalty
         + bonus
-        + (4 if pending.area_aim_point is not None else scene.size_modifier)
+        + (
+            4
+            if pending.area_aim_point is not None
+            else scene.size_modifier + size_delta(state.resources, target.actor_id)
+        )
         + range_modifier
         + rapid_fire_bonus(effective_shots)
         # A mount bears the weapon, so the firer's own ST is not what limits it.
@@ -453,6 +458,7 @@ def resolve(
         attack_target += (
             target_modifier(runtime, state, target.actor_id, pending.target_item_id)
             - scene.size_modifier
+            - size_delta(state.resources, target.actor_id)
         )
     attack_target += entangle_attack_penalty(actor)
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0

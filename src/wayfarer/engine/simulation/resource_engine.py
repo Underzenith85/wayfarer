@@ -60,7 +60,10 @@ from wayfarer.engine.simulation.resources import (
     Scheduled,
     Transfer,
     Unequip,
+    is_carried,
 )
+from wayfarer.engine.simulation.traits.size_forms import checkpoint as size_checkpoint
+from wayfarer.engine.simulation.traits.size_forms import validate as validate_size_forms
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -199,6 +202,7 @@ class ResourceEngine:
         self.rules = rules
         self.technology_level = policy.technology_level
         self.actors = frozenset(e.id for e in world.entities if e.kind is EntityKind.ACTOR)
+        self.locations = frozenset(e.id for e in world.entities if e.kind is EntityKind.LOCATION)
 
     def for_world(self, world: World) -> ResourceEngine:
         """Bind trusted equipment mechanics to a newly validated scenario's owners."""
@@ -206,6 +210,7 @@ class ResourceEngine:
         engine = copy(self)
         engine.specs = dict(self.specs)
         engine.actors = frozenset(e.id for e in world.entities if e.kind is EntityKind.ACTOR)
+        engine.locations = frozenset(e.id for e in world.entities if e.kind is EntityKind.LOCATION)
         return engine
 
     def validate(self, state: ResourceState) -> None:
@@ -216,6 +221,7 @@ class ResourceEngine:
             if len(set(values)) != len(values):
                 raise ValidationError("Duplicate resource ID")
 
+        validate_size_forms(state, self.actors)
         unique(tuple(i.id for i in state.items + state.expended_items))
         unique(tuple(o.actor_id for o in state.owners))
         unique(tuple(p.id for p in state.pools))
@@ -312,7 +318,14 @@ class ResourceEngine:
                 raise ValidationError("Authorization facts require a pinned smartgun")
             if item.ready and not item.equipped:
                 raise ValidationError("Unequipped item cannot be ready")
-            if item.ground is not None and (item.equipped or item.ready or item.container_id):
+            if (
+                item.world_ground_location_id is not None
+                and item.world_ground_location_id not in self.locations
+            ):
+                raise ValidationError("World-ground equipment requires an authored world location")
+            if (item.ground is not None or item.world_ground_location_id is not None) and (
+                item.equipped or item.ready or item.container_id
+            ):
                 raise ValidationError("Ground equipment cannot be equipped or contained")
             ancestors: set[str] = {item.id}
             parent_id = item.container_id
@@ -399,7 +412,7 @@ class ResourceEngine:
         return sum(
             self.specs[i.definition_id].unit_weight * i.quantity
             for i in state.items
-            if i.owner_id == actor_id and i.ground is None
+            if i.owner_id == actor_id and is_carried(state, i)
         )
 
     def equipment_effects(self, state: ResourceState, actor_id: str) -> tuple[Effect, ...]:
@@ -407,7 +420,7 @@ class ResourceEngine:
         return tuple(
             effect
             for item in state.items
-            if item.owner_id == actor_id and item.ready
+            if item.owner_id == actor_id and item.ready and is_carried(state, item)
             for effect in self.specs[item.definition_id].effects
         )
 
@@ -454,7 +467,7 @@ class ResourceEngine:
             item = items.get(command.item_id)
             if item is None or item.owner_id != command.actor_id:
                 raise ValidationError("Item is not owned by command actor")
-            if item.ground is not None:
+            if not is_carried(state, item):
                 raise ValidationError(
                     "Ground equipment requires authoritative retrieval at its location"
                 )
@@ -702,6 +715,7 @@ class ResourceEngine:
                 }
             )
             updated = expire_vitality(updated, command.to)
+            updated = size_checkpoint(updated)
             updated = accrue_rest(updated, command.to)
         updated = updated.model_copy(
             update={

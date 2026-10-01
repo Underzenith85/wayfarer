@@ -42,6 +42,7 @@ from wayfarer.engine.simulation.combat.unarmed.records import (
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.hit_locations import torso_near_miss
 from wayfarer.engine.simulation.skills.power_blow import power_blow_strength
+from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -353,6 +354,7 @@ def defend(
                 + strong_damage_bonus(expression.dice),
             )
         basic *= 3 if critical in (3, 18) else 2 if critical in (5, 16) else 1
+        basic = reduced_body_result(state.resources, actor.actor_id, basic)
         resistance = armor_dr(runtime, state, target.actor_id, resolved_location)
         state, encounter, injury = hurt(
             runtime,

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wayfarer.engine.rules.tables.special_melee import size_reach
 from wayfarer.engine.rules.tables.unarmed import UNARMED_SKILLS
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import catalog, fatigue_ready, movement
@@ -20,7 +19,7 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.engine.simulation.combat.objects.locations import from_behind
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
-from wayfarer.engine.simulation.combat.special_melee import actor_size_modifier
+from wayfarer.engine.simulation.combat.special_melee import actor_reaches
 from wayfarer.engine.simulation.combat.tactical import attack_geometry, occupants, pose, sight
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
     encumbrance_level,
@@ -158,14 +157,15 @@ def validate_action(
 
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
         unarmed_reach = frozenset(
-            size_reach((0,), actor_size_modifier(runtime, state, actor.actor_id))
+            actor_reaches(
+                runtime, state, actor.actor_id, (0, 1) if command.action == "kick" else (0,)
+            )
         )
         attack_geometry(
             encounter,
             actor,
             target,
-            unarmed_reach
-            | ({1} if command.action == "kick" or command.enter_close_combat else set()),
+            unarmed_reach | ({1} if command.enter_close_combat else set()),
             location=command.location,
             board=runtime.hex_map(encounter),
         )
@@ -183,7 +183,7 @@ def validate_action(
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
         if command.grip_id is not None and command.action != "arm_lock":
             raise ValidationError("Attack cannot name an existing grip")
-        legal_distance = set(unarmed_reach) | ({1} if command.action == "kick" else set())
+        legal_distance = set(unarmed_reach)
         if distance not in legal_distance:
             raise ValidationError("Unarmed attack is out of reach")
         skills = UNARMED_SKILLS[command.action]

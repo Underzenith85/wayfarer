@@ -195,14 +195,14 @@ def _validate_bindings(
         or target.quantity != 1
         or target.definition_id not in recipe.target_definition_ids
         or target.definition_id not in runtime.resources.specs
-        or target.ground is not None
+        or (target.ground is not None or target.world_ground_location_id is not None)
         or (target.condition is not None and target.condition.disabled)
     ):
         raise ValidationError("Target item is not suitable for this enchantment recipe")
     if not any(
         i.owner_id == enchanter_ids[0]
         and i.definition_id == recipe.workspace_definition_id
-        and i.ground is None
+        and (i.ground is None and i.world_ground_location_id is None)
         and (i.condition is None or not i.condition.disabled)
         for i in state.resources.items
     ):
@@ -223,7 +223,11 @@ def _consume_materials(
 ) -> ResourceState:
     available: dict[str, int] = {}
     for item in resources.items:
-        if item.owner_id == owner_id and item.ground is None and not item.equipped:
+        if (
+            item.owner_id == owner_id
+            and (item.ground is None and item.world_ground_location_id is None)
+            and not item.equipped
+        ):
             available[item.definition_id] = available.get(item.definition_id, 0) + item.quantity
     if any(available.get(m.definition_id, 0) < m.quantity for m in materials):
         raise ValidationError("Enchanting material shortfall")
@@ -231,7 +235,12 @@ def _consume_materials(
     kept: list[Item] = []
     for item in resources.items:
         wanted = remaining.get(item.definition_id, 0)
-        if wanted and item.owner_id == owner_id and item.ground is None and not item.equipped:
+        if (
+            wanted
+            and item.owner_id == owner_id
+            and (item.ground is None and item.world_ground_location_id is None)
+            and not item.equipped
+        ):
             used = min(wanted, item.quantity)
             remaining[item.definition_id] -= used
             if used < item.quantity:

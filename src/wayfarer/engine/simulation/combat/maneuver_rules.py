@@ -22,6 +22,8 @@ from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield
 from wayfarer.engine.simulation.resources import Equip, ResourceState
+from wayfarer.engine.simulation.traits.size_forms import effect_for as size_effect_for
+from wayfarer.engine.simulation.traits.size_forms import ready_step
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -154,12 +156,16 @@ def ready(declared: Declaration) -> Outcome:
     # instead of readying an item (#354).
     participant, item_id = declared.participant, declared.item_id
     struggling = participant.entangled is not None
+    size_effect = size_effect_for(declared.resources, declared.actor_id)
+    changing_size = bool(size_effect and size_effect.in_combat and size_effect.changing)
     if any(
         v is not None
         for v in (declared.destination, declared.facing, declared.posture, declared.target_id)
-    ) or (item_id is None and not struggling):
+    ) or (item_id is None and not struggling and not changing_size):
         raise ValidationError("Ready requires exactly one item")
     resources = declared.resources
+    if item_id is None and changing_size:
+        resources = ready_step(resources, declared.actor_id, declared.command_id)
     if item_id is not None:
         item = next((i for i in resources.items if i.id == item_id), None)
         if item is None or item.stuck_target_id is None or item.owner_id != declared.actor_id:
