@@ -85,7 +85,12 @@ BINDINGS: Final = (
         ),
     ),
     CinematicSkillBinding(
-        "breaking-blow", "Breaking Blow", A.IQ, D.HARD, 182, prerequisite_groups=(MASTER,)
+        "breaking-blow",
+        "Breaking Blow",
+        A.IQ,
+        D.HARD,
+        182,
+        (_purchased("trait:advantage:trained-by-a-master"),),
     ),
     CinematicSkillBinding(
         "captivate", "Captivate", A.WILL, D.HARD, 191, (_trained("suggest", 12),)
@@ -170,7 +175,14 @@ BINDINGS: Final = (
         215,
         (_trained("pressure-points", 16), _purchased("trait:advantage:trained-by-a-master")),
     ),
-    CinematicSkillBinding("push", "Push", A.DX, D.HARD, 216, prerequisite_groups=(MASTER,)),
+    CinematicSkillBinding(
+        "push",
+        "Push",
+        A.DX,
+        D.HARD,
+        216,
+        (_purchased("trait:advantage:trained-by-a-master"),),
+    ),
     CinematicSkillBinding("suggest", "Suggest", A.WILL, D.HARD, 191, (_trained("persuade", 12),)),
     CinematicSkillBinding(
         "sway-emotions", "Sway Emotions", A.WILL, D.HARD, 192, (_trained("persuade", 12),)

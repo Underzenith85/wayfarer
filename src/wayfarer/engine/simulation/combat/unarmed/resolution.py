@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import strong_damage_bonus
@@ -40,6 +41,7 @@ from wayfarer.engine.simulation.combat.unarmed.records import (
 )
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.hit_locations import torso_near_miss
+from wayfarer.engine.simulation.skills.power_blow import power_blow_strength
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -313,7 +315,19 @@ def defend(
     elif hit:
         compiled = build(runtime, state, actor.actor_id)
         assert compiled.statistics is not None
-        expression = compiled.statistics.thrust
+        expression, _ = strength_damage(
+            BASIC,
+            power_blow_strength(
+                state.resources,
+                actor.actor_id,
+                compiled.revision,
+                pending.id,
+                encounter.id,
+                encounter.round,
+                encounter.turn_index,
+                compiled.statistics.st,
+            ),
+        )
         maximum = critical in (6, 15)
         dice = () if maximum else draw_dice(runtime.rng, expression.dice)
         bonus = striking_bonus(
