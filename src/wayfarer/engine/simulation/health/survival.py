@@ -28,6 +28,7 @@ from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
+from wayfarer.engine.simulation.magic.awaken_state import alert_until
 from wayfarer.engine.simulation.resources import (
     Command,
     Item,
@@ -359,6 +360,9 @@ def _drowsiness(
     sleep_loss = fp.fatigue.sleep
     if sleep_loss * 2 < fp.maximum:
         return status.model_copy(update={"next_drowsiness_due": None}), None
+    alert_end = alert_until(state, command.actor_id)
+    if alert_end:
+        return status.model_copy(update={"next_drowsiness_due": alert_end}), None
     low = sleep_loss * 3 > 2 * fp.maximum
     interval = 1800 if low and not context.active else 7200
     due = status.next_drowsiness_due
