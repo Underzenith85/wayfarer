@@ -83,6 +83,10 @@ def history(state: ResourceState) -> tuple[GizmoOutcome, ...]:
     )
 
 
+def _event_id(command_id: str) -> str:
+    return PREFIX + hashlib.sha256(command_id.encode()).hexdigest()
+
+
 def _prior(state: ResourceState, command: BeginGizmoSession | RevealGizmo) -> GizmoOutcome | None:
     receipt = next((r for r in state.receipts if r.command_id == command.id), None)
     if receipt is None:
@@ -92,7 +96,9 @@ def _prior(state: ResourceState, command: BeginGizmoSession | RevealGizmo) -> Gi
     digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
     if receipt.digest != digest:
         raise ConflictError("Gizmo command ID was already used")
-    event = next((e for e in state.events if e.id == PREFIX + command.id), None)
+    event = next(
+        (e for e in state.events if e.id in {_event_id(command.id), PREFIX + command.id}), None
+    )
     if event is None:
         raise ConflictError("Command ID belongs to another procedure")
     return GizmoOutcome.model_validate_json(event.kind)
@@ -118,7 +124,7 @@ def _commit(
             "events": state.events
             + (
                 ResourceEvent(
-                    id=PREFIX + command.id,
+                    id=_event_id(command.id),
                     at=state.game_time,
                     target_id=command.actor_id,
                     kind=outcome.model_dump_json(),
