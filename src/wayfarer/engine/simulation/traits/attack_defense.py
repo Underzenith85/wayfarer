@@ -21,7 +21,11 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
 from wayfarer.engine.rules.types.affliction import AfflictionCondition, AfflictionEffect
-from wayfarer.engine.rules.types.cyclic import CyclicAttack, require_cyclic_settled
+from wayfarer.engine.rules.types.cyclic import (
+    CyclicAttack,
+    ZeroDamageCyclicAttack,
+    require_cyclic_settled,
+)
 from wayfarer.engine.simulation.combat.special_damage import (
     PenetrationContext,
     resolve_affliction_penetration,
@@ -323,17 +327,28 @@ def _apply_fatigue_attack(
     target: AttackDefenseTraits,
     target_ht: int,
     rng: RandomSource,
+    *,
+    modifier_profile: AttackProfile | None,
 ) -> tuple[ResourceState, TraitAttackOutcome]:
     """B61 fatigue damage uses DR, then the B426 canonical signed FP ledger."""
     if (
         command.definition_id != "advantage:innate-attack"
         or attacker.natural_damage_type(command.definition_id) != "fat"
-        or channel.basic_damage < 1
+        or (channel.basic_damage < 1 and not channel.composed)
         or channel.resistance_score is not None
     ):
         raise ValidationError("Fatigue damage requires an approved Fatigue Innate Attack")
     purchase = attacker.purchase(command.definition_id)
-    if purchase is None or purchase.modifiers or channel.armor_divisor != 1:
+    approved_divisor = (
+        channel.composed
+        and modifier_profile is not None
+        and channel.armor_divisor == modifier_profile.armor_divisor
+    )
+    if (
+        purchase is None
+        or purchase.modifiers
+        or (channel.armor_divisor != 1 and not approved_divisor)
+    ):
         raise ValidationError("Fatigue attack requires the modifier-free baseline channel")
     ResourceState.model_validate(resources)
     hp = next((pool for pool in resources.pools if pool.id == "hp:" + channel.target_id), None)
@@ -416,17 +431,26 @@ def _schedule_cyclic(
     at: int,
     damage_dice: int,
 ) -> ResourceState:
+    # B103 repeats a delivered exposure, even when B378 rounds its initial
+    # damage to zero. A canonical result excludes immune fatigue targets.
+    zero_exposure = (
+        channel.composed
+        and channel.basic_damage == 0
+        and outcome.outcome == "unaffected"
+        and (outcome.injury is not None or outcome.fatigue is not None)
+    )
     if (
         cyclic is not None
         and cyclic.cyclic_interval_seconds is not None
-        and outcome.outcome == "injured"
+        and (outcome.outcome == "injured" or zero_exposure)
     ):
         assert (
             cyclic.cyclic_interval_seconds is not None and cyclic.cyclic_stop_condition is not None
         )
+        attack_type = ZeroDamageCyclicAttack if zero_exposure else CyclicAttack
         state = save_cyclic(
             state,
-            CyclicAttack.model_validate(
+            attack_type.model_validate(
                 {
                     "id": _id(command.id, "cyclic"),
                     "attacker_id": channel.attacker_id,
@@ -545,7 +569,8 @@ def _roll_composed_damage(
     dice = draw_dice(rng, levels)
     basic = sum(dice)
     profile = profile or AttackProfile(accuracy=3)
-    if profile.malediction_range == "none" and channel.distance_yards > profile.half_damage_range:
+    # B378 includes the boundary itself and rounds down, even to zero.
+    if profile.malediction_range == "none" and channel.distance_yards >= profile.half_damage_range:
         basic //= 2
     return channel.model_copy(update={"basic_damage": basic}), dice
 
@@ -620,7 +645,7 @@ def apply_trait_attack(
         )
     elif channel.kind == "damage" and channel.damage_type == "fat":
         state, outcome = _apply_fatigue_attack(
-            resources, command, channel, attacker, target, target_ht, rng
+            resources, command, channel, attacker, target, target_ht, rng, modifier_profile=cyclic
         )
     elif channel.kind == "damage":
         if (
@@ -661,7 +686,7 @@ def apply_trait_attack(
         )
         state = _apply_survival_traits(state, channel.target_id, target)
         outcome = TraitAttackOutcome(
-            outcome="injured",
+            outcome="injured" if channel.basic_damage else "unaffected",
             attacker_id=channel.attacker_id,
             target_id=channel.target_id,
             definition_id=command.definition_id,

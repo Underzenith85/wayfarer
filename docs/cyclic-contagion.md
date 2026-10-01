@@ -21,6 +21,15 @@ trusted contact relationship; neither termination nor recovery changes other
 subjects' independent occurrences. Chronological resource-clock processing
 retains secret check evidence and consumes no new dice on exact persisted retries.
 
+The composed purchased-attack route carries the trusted context's illness vector
+and incubation interval into that same occurrence. Regression cases for both
+mildly and highly contagious toxic attacks verify actual initial injury, persisted
+attack retries, an eligible respiratory exposure, rejected mismatched vectors,
+the B443 day-end resistance target, and a secondary subject's independently timed
+first damage. A custom one-hour incubation survives serialization and is applied
+after the exposure check; repeating either the attack or the day-end command adds
+no infection or damage. A missing authored vector still fails visibly.
+
 These tests establish engine behavior for the selected authored illness variant.
 They do not promote generic modifier certification or claim end-to-end compliance.
 Non-toxic contagious powers, unimplemented penetration combinations and diagnosis

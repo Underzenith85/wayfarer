@@ -11,6 +11,7 @@ from pydantic.json_schema import SkipJsonSchema
 
 from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.rules.catalog import CampaignRules
+from wayfarer.engine.rules.types.cyclic import CyclicAttack, CyclicExposure
 from wayfarer.engine.rules.types.transport import Transport
 from wayfarer.engine.simulation.actions import ActorSetup
 from wayfarer.engine.simulation.campaign.studio import (
@@ -105,6 +106,9 @@ class InitialResources(ResourceState):
 
     # Internal runtime state is not an addition to the frozen v1 authoring API.
     transports: SkipJsonSchema[tuple[Transport, ...]] = Field(default=(), exclude=True)
+    # Zero initial damage is a resolved runtime delivery, not frozen authoring vocabulary.
+    cyclic_exposures: tuple[CyclicExposure, ...] = Field(default=(), exclude_if=lambda v: not v)
+    cyclic_attacks: tuple[CyclicAttack, ...] = Field(default=(), exclude_if=lambda v: not v)
 
     @model_validator(mode="after")
     def reject_transport_input(self) -> InitialResources:

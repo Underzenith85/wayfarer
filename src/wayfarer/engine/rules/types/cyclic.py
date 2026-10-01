@@ -46,6 +46,12 @@ class CyclicAttack(Record):
         return self
 
 
+class ZeroDamageCyclicAttack(CyclicAttack):
+    """Runtime B378 zero delivery with the mandatory positive future dice expression."""
+
+    basic_damage: Literal[0] = Field()
+
+
 def require_cyclic_settled(attacks: tuple[CyclicAttack, ...], at: int) -> None:
     if any(a.active and a.due < at for a in attacks):
         raise ConflictError("Settle the Cyclic deadline before advancing further")
@@ -73,6 +79,12 @@ class CyclicExposure(Record):
     check: CheckTrace | None = None
     infection_id: str | None = None
     immune: bool = False
+
+
+class ZeroDamageCyclicExposure(CyclicExposure):
+    """Private contact snapshot of a zero-initial-damage Cyclic exposure."""
+
+    source: ZeroDamageCyclicAttack
 
 
 def require_exposures_settled(exposures: tuple[CyclicExposure, ...], at: int) -> None:

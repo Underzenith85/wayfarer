@@ -210,6 +210,8 @@ def apply_composed_attack(
             "damage_type": kind,
             "composed": True,
             "distance_yards": context.distance_yards,
+            "contagion_vector": context.contagion_vector,
+            "incubation_seconds": context.incubation_seconds,
         }
     )
     if any(event.command_id == command.id for event in history(state)):

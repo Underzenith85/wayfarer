@@ -29,8 +29,38 @@ purchases remain unsupported by the existing integer-level character binding.
 Each occurrence retains its damage dice and resistance CheckTrace in the private
 resource event ledger; public projection and certification remain separate.
 
-This PR covers the noncontagious attack with ordinary DR penetration and optional
-HT-based resistance. It does not promote the broader modifier certification row:
-contagious exposure is #762, Symptoms is #763, and combinations with other
-penetration modifiers remain visibly unsupported. Existing source certification
-and end-to-end compliance gates are separate from these engine regression tests.
+For composed delivery, Campaigns fourth printing B378 halves the initial basic
+damage at or beyond the approved 1/2D range and rounds down before DR. A one-point
+roll can therefore become zero. HP and FP remain unchanged on that initial
+delivery, whose result is unaffected and retains its roll evidence. B103 ties
+repetition to exposure, so a successfully delivered zero-damage hit still schedules
+the remaining cycles with zero initial recovery debt. Later cycles reroll the
+purchased dice and can cause injury. A private runtime occurrence accepts zero
+initial damage only alongside its required positive damage-dice expression;
+missing or zero future dice remain invalid. The existing positive-damage authored
+models and frozen scenario/authoring/social schemas are unchanged. Initial-resource
+admission rejects zero runtime occurrences and nested exposure snapshots, including
+already-validated Python model instances. Resistance and the authored stopping condition
+can still end the exposure before it inflicts damage. Immune fatigue targets get
+no occurrence. This boundary does not change the existing handling of positive
+basic damage that DR absorbs.
+
+`tests/test_composed_cyclic_boundaries.py` exercises all four supported Cyclic
+damage kinds at this zero boundary, their later damage and persisted retries,
+resistance/termination, and positive hits on either side. The range
+oracles in `tests/test_composed_attacks.py` cover default, Increased Range and
+Reduced Range immediately below, at and above their approved 1/2D boundaries,
+including odd damage totals and DR application. These are bounded actual-resolution
+checks for #761/#764, not certification of other attack families or modifiers.
+
+This bounded implementation covers noncontagious Cyclic with ordinary DR and
+optional HT resistance, plus the #762 composed-attack join for authored toxic
+contagion and independently incubating secondary infections. Symptoms remains
+the separate #763 responsibility; [composed attacks](composed-attacks.md) describes
+the approved modifier routing. Fractional purchased dice, non-toxic contagious
+powers and unrouted modifiers remain unsupported.
+
+Persistent gameplay orchestration does not yet dispatch the composed attack,
+exposure or stopping commands. Resource-clock execution and serialized reducer
+retries establish engine behavior, not that missing host boundary. No broader
+modifier certification or end-to-end compliance claim follows from these tests.

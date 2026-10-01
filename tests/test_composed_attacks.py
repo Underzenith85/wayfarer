@@ -17,11 +17,13 @@ from wayfarer.engine.simulation.traits.composed_attacks import (
 from wayfarer.errors import ConflictError, ValidationError
 
 
-def attacker(*modifiers: ModifierSelection, dx: int = 14, kind: str = "burn") -> ValidatedBuild:
+def attacker(
+    *modifiers: ModifierSelection, dx: int = 14, kind: str = "burn", levels: int = 2
+) -> ValidatedBuild:
     engine = compiler()
     purchase = Purchase(
         definition_id="advantage:innate-attack",
-        amount=2,
+        amount=levels,
         trait=options(**{"damage-type": kind}).model_copy(update={"attack_modifiers": modifiers}),
     )
     draft = gurps_draft(purchase)
@@ -95,10 +97,12 @@ def test_approved_armor_divisor_changes_actual_penetration_and_records_damage_di
 
 
 def test_increased_range_changes_both_printed_ranges_and_half_damage_boundary() -> None:
+    # B61/B106: 10/100 becomes 20/200; B378 includes the exact 1/2D boundary.
     build = attacker(pick("enhancement:increased-range"), dx=20)
-    at, full = resolve(build, distance=20, aim=3, dice=[3, 3, 3, 3, 3, 2, 2, 2])
-    beyond, half = resolve(build, distance=21, aim=3, dice=[3, 3, 3, 3, 3])
-    assert hp(at) == 4 and hp(beyond) == 7
+    before, full = resolve(build, distance=19, aim=3, dice=[3, 3, 3, 3, 3, 2, 2, 2])
+    at, half = resolve(build, distance=20, aim=3, dice=[3, 3, 3, 3, 3])
+    beyond, _ = resolve(build, distance=21, aim=3, dice=[3, 3, 3, 3, 3])
+    assert hp(before) == 4 and hp(at) == hp(beyond) == 7
     assert full.modifier_profile and (
         full.modifier_profile.half_damage_range,
         full.modifier_profile.max_range,
@@ -233,13 +237,24 @@ def test_composed_source_costs_match_selected_printed_modifiers() -> None:
 
 
 def test_reduced_range_at_and_beyond_its_damage_and_max_boundaries() -> None:
+    # B115 reduces 10/100 to 5/50; B378 halves at and beyond five yards.
     build = attacker(pick("limitation:reduced-range"), dx=20)
-    at, _ = resolve(build, distance=5, aim=3, dice=[3, 3, 3, 3, 3, 2, 2, 2])
+    before, _ = resolve(build, distance=4, aim=3, dice=[3, 3, 3, 3, 3, 2, 2, 2])
+    at, _ = resolve(build, distance=5, aim=3, dice=[3, 3, 3, 3, 3])
     beyond, _ = resolve(build, distance=6, aim=3, dice=[3, 3, 3, 3, 3])
-    assert hp(at) == 4 and hp(beyond) == 7
+    assert hp(before) == 4 and hp(at) == hp(beyond) == 7
     resolve(build, distance=50, aim=3, dice=[3, 3, 3, 3, 3])
     with pytest.raises(ValidationError, match="range"):
         resolve(build, distance=51, aim=3, dice=[])
+
+
+@pytest.mark.parametrize(("distance", "injury"), [(9, 4), (10, 1), (11, 1)])
+def test_b378_default_half_damage_rounds_down_before_dr(distance: int, injury: int) -> None:
+    # B61: 1/2D 10. B378: floor(5 / 2) = 2, then subtract DR 1.
+    state, result = resolve(attacker(dx=20), distance=distance, dr=1, dice=[3, 3, 3, 2, 3])
+    assert hp(state) == 10 - injury
+    assert result.injury and result.injury.injury == injury
+    assert result.damage_dice == (2, 3)
 
 
 def test_protected_vision_changes_actual_malediction_resistance_and_tie_consequence() -> None:

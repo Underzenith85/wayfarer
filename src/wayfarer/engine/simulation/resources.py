@@ -17,7 +17,12 @@ from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.rules.magic.protocols import MagicItemInstance
 from wayfarer.engine.rules.types.affliction import AfflictionEffect
 from wayfarer.engine.rules.types.creature import Creature, Swarm
-from wayfarer.engine.rules.types.cyclic import CyclicAttack, CyclicExposure
+from wayfarer.engine.rules.types.cyclic import (
+    CyclicAttack,
+    CyclicExposure,
+    ZeroDamageCyclicAttack,
+    ZeroDamageCyclicExposure,
+)
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.general_equipment import GeneralEquipmentFeature
@@ -222,8 +227,12 @@ class ResourceState(Record):
     afflictions: tuple[AfflictionEffect, ...] = Field(default=(), exclude_if=lambda v: not v)
     symptom_effects: tuple[SymptomEffect, ...] = Field(default=(), exclude_if=lambda v: not v)
     symptom_debts: tuple[SymptomDebt, ...] = Field(default=(), exclude_if=lambda v: not v)
-    cyclic_exposures: tuple[CyclicExposure, ...] = Field(default=(), exclude_if=lambda v: not v)
-    cyclic_attacks: tuple[CyclicAttack, ...] = Field(default=(), exclude_if=lambda v: not v)
+    cyclic_exposures: tuple[CyclicExposure | ZeroDamageCyclicExposure, ...] = Field(
+        default=(), exclude_if=lambda v: not v
+    )
+    cyclic_attacks: tuple[CyclicAttack | ZeroDamageCyclicAttack, ...] = Field(
+        default=(), exclude_if=lambda v: not v
+    )
     scheduled: tuple[Scheduled, ...] = ()
     fired: tuple[str, ...] = ()
     receipts: tuple[Receipt, ...] = ()
