@@ -13,8 +13,9 @@ from wayfarer.engine.rules.types.explosion import ExplosionSpec
 from wayfarer.engine.rules.types.object import ObjectCondition, ObjectResult, residual_definition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
-from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
+from wayfarer.engine.simulation.combat.displacement import displace
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_effects import synchronize
@@ -284,61 +285,14 @@ def shield_damage(
         )
     state = state.model_copy(update={"resources": resources})
     if damage.damage_type == "cr":
-        attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
-        defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
-        compiled = build(runtime, state, defender.actor_id)
-        assert compiled.statistics is not None
-        yards = basic // max(1, compiled.statistics.st - 2)
-        current: GridPoint | Hex = defender.position
-        occupied = {p.position for p in encounter.participants if p.actor_id != defender.actor_id}
-        for _ in range(yards):
-            if isinstance(current, Hex) and isinstance(attacker.position, Hex):
-                dq, dr = current.q - attacker.position.q, current.r - attacker.position.r
-                direction = max(
-                    range(6),
-                    key=lambda index: (
-                        (2 * dq + dr) * DIRECTIONS[index][0] + (dq + 2 * dr) * DIRECTIONS[index][1]
-                    ),
-                )
-                hex_step = Hex(
-                    q=current.q + DIRECTIONS[direction][0],
-                    r=current.r + DIRECTIONS[direction][1],
-                )
-                hex_board = runtime.hex_map(encounter)
-                try:
-                    blocked = hex_board is None or hex_board.cell(hex_step).blocked
-                except ValidationError:
-                    break
-                if blocked or hex_step in occupied:
-                    break
-                current = hex_step
-            elif isinstance(current, GridPoint) and isinstance(attacker.position, GridPoint):
-                dx = (current.x > attacker.position.x) - (current.x < attacker.position.x)
-                dy = (current.y > attacker.position.y) - (current.y < attacker.position.y)
-                try:
-                    square_step = GridPoint(x=current.x + dx, y=current.y + dy)
-                except ValueError:
-                    break
-                combat_rules = runtime.rules.combat
-                assert combat_rules is not None
-                square_board = next(
-                    b for b in combat_rules.battlefields if b.id == encounter.battlefield_id
-                )
-                if (
-                    not isinstance(square_board, Battlefield)
-                    or square_step.x >= square_board.width
-                    or square_step.y >= square_board.height
-                    or square_step in square_board.blocked
-                    or square_step in occupied
-                ):
-                    break
-                current = square_step
-            else:
-                break
-        if current != defender.position:
-            encounter = CombatEngine._replace(
-                encounter, defender.model_copy(update={"position": current})
-            )
+        state, encounter, _ = displace(
+            runtime,
+            state,
+            encounter,
+            source_id=pending.attacker_id,
+            target_id=pending.defender_id,
+            basic_damage=basic,
+        )
     cover = shield_cover_dr(profile.dr, profile.hp, damage.armor_divisor)
     return state, synchronize(state, encounter), max(0, basic - cover)
 
