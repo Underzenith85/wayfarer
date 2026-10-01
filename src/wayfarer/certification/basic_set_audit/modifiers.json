@@ -1560,7 +1560,8 @@
         "src/wayfarer/engine/simulation/combat/visibility.py",
         "tests/test_symptom_casting_checks.py",
         "tests/test_symptom_attribute_consumers.py",
-        "tests/test_symptom_attribute_generations.py"
+        "tests/test_symptom_attribute_generations.py",
+        "tests/test_symptom_payload_formats.py"
       ],
       "historical_owners": [
         100,

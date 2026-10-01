@@ -31,6 +31,7 @@ from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBa
 from wayfarer.orchestration.spell_rituals import SpellRitualService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.orchestration.staff_casting import StaffCastingService
+from wayfarer.orchestration.symptom_generations import replay_payload
 from wayfarer.orchestration.transformations import TransformationService
 from wayfarer.persistence.events import CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
@@ -101,6 +102,13 @@ _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], A
 }
 
 
+def _recorded_payload(record: CommandRecord) -> dict[str, object]:
+    decoded = replay_payload(command_text(record))
+    if not isinstance(decoded, dict):
+        raise ValidationError("No replay handler for non-object command input")
+    return validation.mapping(decoded)
+
+
 async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
     """The caller supplies an isolated store containing the pre-command state.
 
@@ -110,7 +118,7 @@ async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
     reason = unavailable_reason(record)
     if reason:
         raise ValidationError(reason)
-    payload = validation.mapping(validation.decode(command_text(record)))
+    payload = _recorded_payload(record)
     raw = payload.get("command", payload)
     if isinstance(raw, str):
         raw = validation.decode(raw)
