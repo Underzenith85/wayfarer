@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.character.traits.mastery import trained_by_master
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import Encounter
@@ -120,7 +121,9 @@ def unarmed_defense(
     )
     return max(targets)[0] + int(
         hp.injury.physical_traits.combat_reflexes
-    ) + penalty + height_bonus - 4 * actor.parries.count(hand), hand
+    ) + penalty + height_bonus - (2 if trained_by_master(compiled) else 4) * actor.parries.count(
+        hand
+    ), hand
 
 
 def parry_candidates(

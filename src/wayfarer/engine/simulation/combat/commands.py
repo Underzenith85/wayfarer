@@ -149,7 +149,7 @@ class TakeCombatTurn(CombatCommand):
     def validate_shield_rush_shape(self) -> TakeCombatTurn:
         if self.shield_rush and (
             self.maneuver not in ("attack", "all_out_attack", "move_and_attack")
-            or self.attack_option == "double"
+            or self.attack_option in ("double", "rapid-strike")
             or self.mode_id is not None
             or self.hit_location is not None
             or self.target_item_id is not None

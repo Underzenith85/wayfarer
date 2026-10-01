@@ -28,7 +28,12 @@ def options(identifier: str) -> TraitOptions:
     spec = next(value for value in SPECS if value.id == identifier)
     return TraitOptions(
         parameters=(
-            ((POINT_COST_PARAMETER, spec.point_cost_choices[0]),) if spec.point_cost_choices else ()
+            ((POINT_COST_PARAMETER, spec.point_cost_choices[0]),)
+            + (("weapon-scope", "broadsword"),)
+            if identifier == "trait:advantage:weapon-master"
+            else ((POINT_COST_PARAMETER, spec.point_cost_choices[0]),)
+            if spec.point_cost_choices
+            else ()
         ),
         self_control=12 if spec.self_control else None,
     )

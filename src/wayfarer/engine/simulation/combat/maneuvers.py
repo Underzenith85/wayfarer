@@ -9,7 +9,7 @@ from wayfarer.engine.simulation.combat.unarmed.records import UnarmedReaction
 from wayfarer.models import Id, Record
 
 ATTACK_MANEUVERS = frozenset({"attack", "all_out_attack", "move_and_attack"})
-AttackOption = Literal["determined", "strong", "double", "feint", "suppression"]
+AttackOption = Literal["determined", "strong", "double", "feint", "suppression", "rapid-strike"]
 DefenseOption = Literal["dodge", "parry", "block", "double"]
 CrouchAction = Literal["before", "after", "rise"]
 
@@ -79,6 +79,7 @@ class ManeuverState(Record):
     second_attack_target_id: str | None = None
     second_attack_mode_id: str | None = None
     second_attack_penalty: int = Field(default=0, ge=-8, le=0)
+    rapid_strike: bool = Field(default=False, exclude_if=lambda value: not value)
     dual_weapon_attack: bool = Field(default=False, exclude_if=lambda value: not value)
     stop_thrust_damage_bonus: int = Field(default=0, ge=0)
     concentrating: bool = False

@@ -282,9 +282,11 @@ def test_inventory_package_and_audit_reconcile() -> None:
 def test_unbound_effects_never_activate_and_bound_ones_need_their_campaign_hooks() -> None:
     without_hooks, engine = compiler(), runtime_compiler()
     for entry in inventory():
-        parameters = (
+        parameters: tuple[tuple[str, str | int | bool], ...] = (
             ((POINT_COST_PARAMETER, entry.parameters[0].choices[0]),) if entry.parameters else ()
         )
+        if entry.id == "trait:advantage:weapon-master":
+            parameters += (("weapon-scope", "broadsword"),)
         draft = gurps_draft(
             Purchase(
                 definition_id=entry.id,

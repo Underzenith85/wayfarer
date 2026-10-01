@@ -10,6 +10,7 @@ from __future__ import annotations
 import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
+from wayfarer.engine.character.traits.mastery import damage_bonus
 from wayfarer.engine.rules.checks import Outcome, RandomSource, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -580,6 +581,14 @@ def resolve_melee(
             )
             * dice_count
         )
+    adds += damage_bonus(
+        attack_build,
+        weapon_item.definition_id,
+        weapon.skill_id,
+        weapon.hands,
+        dice_count,
+        applies=weapon.damage.basis != "fixed" and not pending.mounted_lance_dice,
+    )
     adds -= int(pending.subdual_mode == "blunt-end")
     adds += attacker.maneuver_state.stop_thrust_damage_bonus
     if attacker.maneuver_state.strong:

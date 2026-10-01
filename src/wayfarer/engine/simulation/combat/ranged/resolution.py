@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, cast
 
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
+from wayfarer.engine.character.traits.mastery import damage_bonus
 from wayfarer.engine.rules.checks import Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -888,6 +889,15 @@ def resolve(
     adds = (
         weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
     ) * close_projectile_multiplier
+    weapon_id = next(i.definition_id for i in original_resources.items if i.id == pending.weapon_id)
+    adds += damage_bonus(
+        compiled,
+        weapon_id,
+        weapon.skill_id,
+        weapon.hands,
+        count,
+        applies=weapon.damage.basis != "fixed",
+    )
     # Guided/homing tables use the apparent 1/2D cell as projectile speed,
     # not as a damage falloff threshold (B281 notes 3-4).
     half = (

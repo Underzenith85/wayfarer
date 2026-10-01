@@ -18,6 +18,9 @@ from wayfarer.engine.rules.catalog import (
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.skills.cinematic import BINDINGS, PROFILE, package
 from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.mundane import candidate_package
+from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
 from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.rules.types.skill import ControllingAttribute as A
 from wayfarer.engine.rules.types.skill import Difficulty as D
@@ -61,6 +64,12 @@ SKILLS = {
 def compiler() -> CharacterCompiler:
     base = profile_package(PROFILE)
     cinematic = package()
+    masters = candidate_package()
+    master_definitions = tuple(
+        definition
+        for definition in masters.definitions
+        if definition.id in {"trait:advantage:trained-by-a-master", "trait:advantage:weapon-master"}
+    )
     existing = {definition.id for definition in base.definitions + cinematic.definitions}
     dependencies = tuple(
         RuleDefinition(
@@ -89,8 +98,8 @@ def compiler() -> CharacterCompiler:
     combined = replace(
         base,
         id="package:test-cinematic-skills",
-        definitions=base.definitions + cinematic.definitions + dependencies,
-        sources=base.sources + cinematic.sources,
+        definitions=base.definitions + cinematic.definitions + dependencies + master_definitions,
+        sources=base.sources + cinematic.sources + masters.sources,
     )
     policy = CampaignPolicy(
         "policy:cinematic-skills",
@@ -109,7 +118,13 @@ def compiler() -> CharacterCompiler:
         policy.id,
         policy.version,
     )
-    return CharacterCompiler(RulesCatalog((combined,)), rules, policy, statistics_profile=PROFILE)
+    return CharacterCompiler(
+        RulesCatalog((combined,)),
+        rules,
+        policy,
+        statistics_profile=PROFILE,
+        trait_runtime_hooks=SUPPORTED_HOOKS,
+    )
 
 
 def approved_weird_science() -> ValidatedBuild:
@@ -234,3 +249,25 @@ def test_unsupported_focus_and_interruption_fail_before_dice() -> None:
             authorized_actor_id="inventor",
             rng=RecordedDice([]),
         )
+
+
+@pytest.mark.parametrize("master", ["trained-by-a-master", "weapon-master"])
+def test_cinematic_master_prerequisite_uses_purchased_canonical_trait(master: str) -> None:
+    options = (
+        TraitOptions(parameters=(("point-cost", 45),))
+        if master == "weapon-master"
+        else TraitOptions()
+    )
+    approved = compiler().compile(
+        gurps_draft(
+            Purchase(definition_id="trait:advantage:" + master, trait=options),
+            Purchase(definition_id="skill:blind-fighting", amount=4),
+        )
+    )
+    assert approved.legal, approved.diagnostics
+    assert approved.build is not None
+    assert any(entry.definition_id == "skill:blind-fighting" for entry in approved.build.purchases)
+    missing = compiler().compile(
+        gurps_draft(Purchase(definition_id="skill:blind-fighting", amount=4))
+    )
+    assert not missing.legal

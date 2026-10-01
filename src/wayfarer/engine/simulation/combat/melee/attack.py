@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import Literal
 
+from wayfarer.engine.character.compiler import ValidatedBuild
+from wayfarer.engine.character.traits.mastery import parry_multiplier
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.close_combat import (
     opponents_in_close_combat,
     pair,
@@ -153,6 +155,7 @@ def prepare_attack(
         ):
             raise ValidationError("Object target requires a supported damage mode")
         target_modifier(runtime, state, pending.defender_id, target_item_id)
+    _validate_rapid_strike(runtime, attacker, selected)
     if isinstance(selected, RangedMode):
         return prepare(
             runtime,
@@ -195,6 +198,9 @@ def prepare_attack(
         raise ValidationError("Strong requires ST-based melee damage")
     attack_build = build(runtime, state, pending.attacker_id)
     assert attack_build.statistics is not None
+    encounter, attacker = _master_rapid_strike(
+        attack_build, encounter, attacker, item.definition_id, selected
+    )
     if (
         attacker.maneuver_state.attacks_remaining
         and selected.becomes_unready_after_attack(attack_build.statistics.st)
@@ -309,3 +315,32 @@ def waive_off_hand_penalty(
             }
         ),
     )
+
+
+def _validate_rapid_strike(
+    runtime: RulesContext, attacker: Combatant, selected: MeleeMode | RangedMode
+) -> None:
+    if not attacker.maneuver_state.rapid_strike:
+        return
+    if catalog(runtime).profile_id != "gurps-basic-set-4e-2004" or isinstance(selected, RangedMode):
+        raise ValidationError("Rapid Strike requires the Basic Set profile and melee attacks")
+
+
+def _master_rapid_strike(
+    attack_build: ValidatedBuild,
+    encounter: Encounter,
+    attacker: Combatant,
+    weapon_id: str,
+    selected: MeleeMode,
+) -> tuple[Encounter, Combatant]:
+    if not attacker.maneuver_state.rapid_strike:
+        return encounter, attacker
+    penalty = -6 // parry_multiplier(attack_build, weapon_id, selected.skill_id, selected.hands)
+    attacker = attacker.model_copy(
+        update={
+            "maneuver_state": attacker.maneuver_state.model_copy(
+                update={"attack_bonus": penalty, "second_attack_penalty": penalty}
+            )
+        }
+    )
+    return CombatEngine._replace(encounter, attacker), attacker
