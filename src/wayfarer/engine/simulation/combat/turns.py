@@ -140,6 +140,27 @@ def _finish_crouch(participant: Combatant, crouch: CrouchAction | None) -> Comba
     )
 
 
+def _wait_matches_point(
+    engine: CombatEngine,
+    encounter: Encounter,
+    waiter: Combatant,
+    actor: Combatant,
+    trigger: WaitTrigger,
+    point: Hex,
+) -> bool:
+    """A high-speed movement Wait matches the first observable covered entry."""
+    if trigger.zone and (point.q, point.r) not in trigger.zone:
+        return False
+    if trigger.action != "move" or actor.high_speed is None:
+        return True
+    return sight(
+        encounter,
+        waiter,
+        actor.model_copy(update={"position": point}),
+        board=engine.hex_map(encounter),
+    )
+
+
 def _wait_movement(
     engine: CombatEngine,
     encounter: Encounter,
@@ -147,6 +168,7 @@ def _wait_movement(
     after: Combatant,
     path: tuple[Hex, ...],
     trigger: WaitTrigger,
+    waiter: Combatant,
     maneuver: Maneuver,
 ) -> tuple[Combatant, int | None, bool]:
     points = path or ((after.position,) if isinstance(after.position, Hex) else ())
@@ -158,7 +180,7 @@ def _wait_movement(
         (
             i
             for i, point in enumerate(points)
-            if not trigger.zone or (point.q, point.r) in trigger.zone
+            if _wait_matches_point(engine, encounter, waiter, after, trigger, point)
         ),
         None,
     )
@@ -188,6 +210,43 @@ def _wait_movement(
     return after, None if consumed is None else consumed - 1, zone_hit
 
 
+def _wait_order(
+    engine: CombatEngine,
+    encounter: Encounter,
+    actor_id: str,
+    after: Combatant,
+    path: tuple[Hex, ...],
+    maneuver: Maneuver,
+) -> tuple[str, ...]:
+    """B385: earlier trajectory checkpoints precede later ones; ties retain initiative."""
+    if maneuver not in ("move", "move_and_attack") or after.high_speed is None or not path:
+        return encounter.turn_order
+    before = next(p for p in encounter.participants if p.actor_id == actor_id)
+    assert isinstance(before.position, Hex)
+    points = (
+        (before.position,) + path
+        if before.high_speed is not None and before.high_speed.remaining_yards
+        else path
+    )
+    waiters = {p.actor_id: p for p in encounter.participants}
+
+    def first_entry(waiter_id: str) -> int:
+        waiter = waiters[waiter_id]
+        trigger = waiter.maneuver_state.wait
+        if trigger is None or trigger.action != "move":
+            return len(points)
+        return next(
+            (
+                i
+                for i, point in enumerate(points)
+                if _wait_matches_point(engine, encounter, waiter, after, trigger, point)
+            ),
+            len(points),
+        )
+
+    return tuple(sorted(encounter.turn_order, key=first_entry))
+
+
 def _wait_interruption(
     engine: CombatEngine,
     original: Encounter,
@@ -201,11 +260,13 @@ def _wait_interruption(
     hex_path: tuple[Hex, ...],
     basic_move: BasicMove | None,
     crouch: CrouchAction | None,
+    movement_checkpoint: bool,
 ) -> tuple[Encounter, ResourceState, CombatResult] | None:
     """Pause a completed declaration when a recorded Wait trigger matches it."""
     action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
     waiters = {p.actor_id: p for p in original.participants if p.actor_id != actor_id}
-    for waiter_id in original.turn_order:
+    completed_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
+    for waiter_id in _wait_order(engine, original, actor_id, completed_actor, hex_path, maneuver):
         waiter = waiters.get(waiter_id)
         trigger = waiter.maneuver_state.wait if waiter else None
         if trigger:
@@ -213,7 +274,7 @@ def _wait_interruption(
             before_actor = next(p for p in original.participants if p.actor_id == actor_id)
             after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
             after_actor, trigger_index, zone_hit = _wait_movement(
-                engine, original, before_actor, after_actor, hex_path, trigger, maneuver
+                engine, original, before_actor, after_actor, hex_path, trigger, waiter, maneuver
             )
             stop_candidate = trigger.stop_thrust and (
                 original.spatial_kind != "basic"
@@ -234,7 +295,12 @@ def _wait_interruption(
                 observable = basic_visible(original, waiter_id, actor_id)
             matches = (
                 (trigger.actor_id is None or trigger.actor_id == actor_id)
-                and trigger.action == action
+                and (
+                    trigger.action == action
+                    or trigger.action == "move"
+                    and completed_actor.high_speed is not None
+                    and (maneuver == "move_and_attack" and bool(hex_path) or movement_checkpoint)
+                )
                 and (trigger.target_id is None or trigger.target_id == target_id)
                 and zone_hit
                 and observable
@@ -366,6 +432,7 @@ def take_turn(
     enter_close_combat: bool = False,
     shield_rush: bool = False,
     electrical_contact_seconds: int = 0,
+    movement_checkpoint: bool = False,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     original, original_resources = encounter, resources
     interrupt = encounter.wait_interrupt
@@ -441,6 +508,7 @@ def take_turn(
             hex_path=hex_path,
             basic_move=basic_move,
             crouch=crouch,
+            movement_checkpoint=movement_checkpoint,
         )
         if interrupted is not None:
             return interrupted
