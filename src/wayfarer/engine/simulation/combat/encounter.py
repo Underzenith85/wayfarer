@@ -154,6 +154,8 @@ class SideOpposition(Record):
 
 
 class PendingDefense(Record):
+    protected_defender_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    attack_roll: CheckTrace | None = Field(default=None, exclude_if=lambda v: v is None)
     id: Id
     attacker_id: Id
     defender_id: Id

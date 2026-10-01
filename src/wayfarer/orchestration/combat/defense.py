@@ -6,7 +6,7 @@ from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import injury_turn
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TypedCombatCommand
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.lite_resolution import resolve_injury
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
 from wayfarer.engine.simulation.combat.melee.defense import exert_defense, validate_defense_choices
@@ -94,6 +94,30 @@ def _defend(
                 else None,
                 catch_thrown=command.catch_thrown,
             )
+
+        if (
+            pending.protected_defender_id
+            and injury.attack.outcome.succeeded
+            and injury.defense is not None
+            and not injury.defense.outcome.succeeded
+        ):
+            restored_pending = pending.model_copy(
+                update={
+                    "defender_id": pending.protected_defender_id,
+                    "protected_defender_id": None,
+                    "attack_roll": injury.attack,
+                }
+            )
+            encounter = encounter.model_copy(update={"pending_defense": restored_pending})
+            result = CombatResult(
+                encounter_id=encounter.id,
+                code="combat.sacrificial_failed",
+                round=encounter.round,
+                current_actor_id=encounter.current_actor_id,
+                available=engine.available(encounter, encounter.current_actor_id),
+                injury=injury,
+            )
+            return CombatStep(state, encounter, state.resources, result, defense_before=previous)
 
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         if (

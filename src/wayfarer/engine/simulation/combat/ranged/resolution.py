@@ -514,7 +514,7 @@ def resolve(
         update={"resources": before_attack(state.resources, pending.weapon_id, weapon)}
     )
     state = _apply_one_handed_readiness(state, actor.actor_id, pending.weapon_id, weapon, st)
-    attack = success_roll(
+    attack = pending.attack_roll or success_roll(
         equipment.profile_id,
         attack_target,
         check_modifiers(state.resources, actor.actor_id, "dx"),
@@ -562,7 +562,9 @@ def resolve(
     second_trace = None
     if hits and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense_value_ is not None:
         defense = success_roll(equipment.profile_id, int(defense_value_.value), rng=runtime.rng)
-        if defense.outcome.succeeded:
+        if pending.protected_defender_id:
+            hits = hits if defense.outcome.succeeded else 0
+        elif defense.outcome.succeeded:
             avoided = (
                 hits
                 if defense.outcome is Outcome.CRITICAL_SUCCESS
@@ -748,7 +750,9 @@ def resolve(
             update={"pending_defense": pending.model_copy(update={"spray_targets": ()})}
         )
     encounter = CombatEngine._replace(encounter, target)
-    if pending.suppression_zone_id is None:
+    if pending.suppression_zone_id is None and not (
+        pending.protected_defender_id and defense is not None and not defense.outcome.succeeded
+    ):
         state, encounter = expend(
             runtime,
             state,

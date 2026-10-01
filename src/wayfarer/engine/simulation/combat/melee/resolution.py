@@ -283,7 +283,7 @@ def resolve_melee(
     second_derived = _visibility_adjustment(
         second_derived, pending.visibility_defense_penalty + pending.attention_defense_penalty
     )
-    attack = success_roll(
+    attack = pending.attack_roll or success_roll(
         equipment.profile_id,
         attack_target,
         check_modifiers(state.resources, attacker.actor_id, "dx"),
@@ -323,7 +323,11 @@ def resolve_melee(
 
     if hit and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense_derived is not None:
         defense = success_roll(equipment.profile_id, int(defense_derived.value), rng=runtime.rng)
-        hit = not defense.outcome.succeeded
+        hit = (
+            defense.outcome.succeeded
+            if pending.protected_defender_id
+            else not defense.outcome.succeeded
+        )
         if selected == "parry" and defense_item:
             defender = defender.model_copy(update={"parries": defender.parries + (defense_item,)})
         if selected == "block":
