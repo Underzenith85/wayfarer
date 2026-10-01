@@ -551,7 +551,8 @@ def _travel(
     if not required_items <= {
         item.definition_id
         for item in resources.items
-        if item.owner_id in command.traveler_ids and item.ground is None
+        if item.owner_id in command.traveler_ids
+        and (item.ground is None and item.world_ground_location_id is None)
     }:
         raise ValidationError("World-transfer access equipment is missing")
 

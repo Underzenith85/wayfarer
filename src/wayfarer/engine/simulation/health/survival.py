@@ -193,7 +193,7 @@ def _consume(
             item is None
             or item.owner_id != owner_id
             or item.equipped
-            or item.ground is not None
+            or (item.ground is not None or item.world_ground_location_id is not None)
             or item.container_id is not None
         ):
             continue

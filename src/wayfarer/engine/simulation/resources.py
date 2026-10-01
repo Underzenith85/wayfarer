@@ -106,6 +106,7 @@ class Item(Record):
     condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
     machine_actor_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
+    world_ground_location_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     firearm_failure: FirearmFailure | None = Field(default=None, exclude_if=lambda v: v is None)
     charges: int | None = Field(default=None, ge=0, exclude_if=lambda v: v is None)
     authorized_actor_ids: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)
@@ -129,6 +130,8 @@ class Item(Record):
 
     @model_validator(mode="after")
     def coherent_melee_state(self) -> Item:
+        if self.ground is not None and self.world_ground_location_id is not None:
+            raise ValueError("Equipment cannot occupy both encounter and world ground")
         stuck = self.stuck_target_id is not None
         if stuck != (self.stuck_damage_type is not None) or stuck != bool(self.stuck_injury):
             raise ValueError("Stuck weapon state requires target, damage, and damage type")
@@ -397,3 +400,18 @@ ResourceCommand = Annotated[
     Field(discriminator="kind"),
 ]
 COMMAND_ADAPTER: TypeAdapter[ResourceCommand] = TypeAdapter(ResourceCommand)
+
+
+def is_carried(state: ResourceState, item: Item) -> bool:
+    """Grounded containers retain their contents without counting as carried load."""
+    parents = {entry.id: entry for entry in state.items}
+    visited: set[str] = set()
+    while True:
+        if item.id in visited:
+            raise ValueError("Equipment container cycle")
+        visited.add(item.id)
+        if item.ground is not None or item.world_ground_location_id is not None:
+            return False
+        if item.container_id is None:
+            return True
+        item = parents[item.container_id]

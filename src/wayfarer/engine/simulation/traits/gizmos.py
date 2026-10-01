@@ -205,7 +205,7 @@ def reveal_gizmo(
         or approved.gadgeteer_invention
         or item.quantity != 1
         or item.container_id is not None
-        or item.ground is not None
+        or (item.ground is not None or item.world_ground_location_id is not None)
         or item.equipped
         or item.ready
     ):
