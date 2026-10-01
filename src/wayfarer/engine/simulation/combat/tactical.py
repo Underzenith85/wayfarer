@@ -200,6 +200,7 @@ def move_hex(
     *,
     board: HexBattlefield | None,
     enter_high_speed: bool = False,
+    interrupted: bool = False,
 ) -> Combatant:
     if encounter.spatial_kind == "hex" and board is None:
         raise ValidationError("Hex encounter requires its configured template")
@@ -225,9 +226,12 @@ def move_hex(
         maneuver=maneuver,
         current=actor.high_speed,
         enter=enter_high_speed,
+        interrupted=interrupted,
     )
     allowance = (
-        actor.high_speed.velocity if actor.high_speed is not None else actor.movement_allowance
+        (actor.high_speed.remaining_yards or actor.high_speed.velocity)
+        if actor.high_speed is not None
+        else actor.movement_allowance
     )
     step = permission.movement == "step"
     if maneuver == "all_out_attack" or (
