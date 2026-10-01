@@ -28,6 +28,9 @@ class RepairTask(Record):
     # Exact skill/effect binding for source-bound Armoury restoration tasks.
     procedure_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     effect: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    skill_technology_level: int | None = Field(default=None, ge=0, le=12)
+    equipment_technology_level: int | None = Field(default=None, ge=0, le=12)
+    technology_level_penalty: int = Field(default=0, le=0)
 
 
 def tasks(state: ResourceState) -> tuple[RepairTask, ...]:

@@ -4,6 +4,7 @@ import hashlib
 from fractions import Fraction
 from typing import Literal
 
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.skills.mundane.arts import OBJECT_REPAIR_SKILLS, PROCEDURES
@@ -31,6 +32,31 @@ def _repair_binding(entry: EquipmentProfile, skill_id: str) -> tuple[str | None,
     if not matches:
         raise ValidationError("Armoury specialty does not match the equipment")
     return procedure.id, procedure.task.effect
+
+
+def _armoury_tl_penalty(skill_tl: int, equipment_tl: int) -> int:
+    """Characters third printing B168: IQ-based technological skill table."""
+    difference = equipment_tl - skill_tl
+    if difference >= 4:
+        raise ValidationError("Armoury cannot repair equipment four TLs above its skill")
+    if difference > 0:
+        return -5 * difference
+    return 0 if difference == 0 else 2 * difference + 1
+
+
+def _repair_skill(
+    compiled: ValidatedBuild, skill_id: str, entry: EquipmentProfile, source_bound: bool
+) -> tuple[int, int | None, int | None, int]:
+    skill = int(level(compiled, skill_id).value)
+    if not source_bound:
+        return skill, None, None, 0
+    purchase = next((p for p in compiled.purchases if p.definition_id == skill_id), None)
+    if purchase is None or purchase.technology_level is None:
+        raise ValidationError("Armoury restoration requires an approved skill TL purchase")
+    if not isinstance(entry.technology_level, int):
+        raise ValidationError("Armoury restoration requires a concrete equipment TL")
+    penalty = _armoury_tl_penalty(purchase.technology_level, entry.technology_level)
+    return skill + penalty, purchase.technology_level, entry.technology_level, penalty
 
 
 def repair(
@@ -99,7 +125,12 @@ def repair(
         )
         if tool is None:
             raise ValidationError("The required repair equipment is unavailable")
-        skill = int(level(build(runtime, state, actor_id), profile.repair_skill_id).value)
+        skill, skill_tl, equipment_tl, tl_penalty = _repair_skill(
+            build(runtime, state, actor_id),
+            profile.repair_skill_id,
+            entry,
+            procedure_id is not None,
+        )
         skill += (
             1
             if entry.price <= 1000
@@ -170,6 +201,9 @@ def repair(
             parts_quantity=quantity,
             procedure_id=procedure_id,
             effect=effect,
+            skill_technology_level=skill_tl,
+            equipment_technology_level=equipment_tl,
+            technology_level_penalty=tl_penalty,
         )
     else:
         assert task_id is not None
