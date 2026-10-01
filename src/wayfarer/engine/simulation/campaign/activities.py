@@ -567,7 +567,9 @@ def apply_activity(
 
     hp_lost, checks, fp_lost = 0, result.checks, result.fp
     if isinstance(rule, ExtraEffortRule):
-        state, hp_lost, checks, fp_lost = _effort_consequences(state, command, rule, actor, result, rng)
+        state, hp_lost, checks, fp_lost = _effort_consequences(
+            state, command, rule, actor, result, rng
+        )
     elif result.fp:
         if result.suffocating and actor.current_fp - result.fp <= 0 and enter_suffocation is None:
             raise ValidationError("Breath exhaustion requires the canonical suffocation reducer")
