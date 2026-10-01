@@ -119,6 +119,19 @@ class InjuryResult(Record):
     lasting_injury_ids: tuple[str, ...] = ()
 
 
+def _exertion_digest(command: Command, location: HumanLocation | None) -> str:
+    if location is None:
+        return ""
+    if (
+        not isinstance(command, Wound)
+        or command.injury_source != "internal"
+        or command.location is not None
+        or location not in {"torso", "left-leg", "right-leg", "left-foot", "right-foot"}
+    ):
+        raise ValidationError("Localized exertion injury requires a trusted internal muscle injury")
+    return ":exertion:" + location
+
+
 def _recover_stun(status: InjuryStatus, turn: int, attempt: Callable[[int], bool]) -> InjuryStatus:
     electrical = status.electrical_stun
     if electrical is None:
@@ -170,6 +183,7 @@ def apply_injury(
     head_trauma: Literal["deafened", "scarred"] | None = None,
     scar_levels: int = 1,
     pain_only: bool = False,
+    exertion_location: HumanLocation | None = None,
 ) -> tuple[ResourceState, InjuryResult]:
     """Pure reducer; persist atomically via the existing commit_turn/CAS boundary.
 
@@ -209,6 +223,7 @@ def apply_injury(
         if head_trauma == "scarred" and scar_levels not in (1, 2):
             raise ValidationError("Critical scarring loses one or two appearance levels")
         encoded += f":head-trauma:{head_trauma}:{scar_levels}"
+    encoded += _exertion_digest(command, exertion_location)
     digest = hashlib.sha256(encoded.encode()).hexdigest()
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous:
@@ -255,7 +270,7 @@ def apply_injury(
     checks: list[InjuryCheck] = []
     dropped: tuple[str, ...] = ()
     penetration = injury = 0
-    location: HumanLocation | None = None
+    location: HumanLocation | None = exertion_location
     location_dice: tuple[int, ...] = ()
     duration_dice: tuple[int, ...] = ()
     uncapped = resistance = 0
@@ -291,7 +306,7 @@ def apply_injury(
             status.profile_id == "gurps-lite-4e-2004" and command.damage_type not in _LITE_TYPES
         ):
             raise ValidationError("Damage type requires an unsupported mechanic")
-        require_location(status, command.location)
+        require_location(status, command.location or exertion_location)
         if command.injury_source != "attack" and command.location is not None:
             raise ValidationError("Area/internal injury cannot select a body part")
         if command.armor_divisor != 1 and status.profile_id != "gurps-basic-set-4e-2004":
@@ -356,7 +371,7 @@ def apply_injury(
         funny = funny_bone and threshold is not None and injury > 0 and not crippled
         if crippled or funny:
             assert threshold is not None and location is not None
-            destroyed = injury >= threshold * 2
+            destroyed = injury >= threshold * 2 and exertion_location is None
             wound = LastingInjury(
                 id=command.id + ":" + location,
                 location=location,
@@ -374,7 +389,7 @@ def apply_injury(
             status = status.model_copy(
                 update={"lasting_injuries": status.lasting_injuries + (wound,)}
             )
-            if part(location) != "eye":
+            if part(location) != "eye" and exertion_location is None:
                 injury = min(injury, threshold)
             if part(location) in ("leg", "foot"):
                 status = status.model_copy(update={"prone": True})

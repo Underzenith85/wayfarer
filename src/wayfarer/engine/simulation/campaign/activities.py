@@ -7,11 +7,14 @@ from collections.abc import Callable
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import Field, TypeAdapter
+from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.engine.character.traits.physiology import NO_PHYSIOLOGY_TRAITS, PhysiologyTraits
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.types.location import LastingInjury
+from wayfarer.engine.simulation.health.fatigue import ContinueExertion, FatigueCost, apply_fatigue
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -80,6 +83,27 @@ class ExtraEffortRule(Record):
     requested_percent: int = Field(ge=5, le=100, multiple_of=5)
     motivated: bool = False
     critical_failure_consequence: str = Field(min_length=1, max_length=300)
+    task: Literal[
+        "instant", "digging", "hiking", "jumping", "lifting", "running", "swimming", "throwing"
+    ] = "instant"
+    ordinary_fp_cost: int = Field(default=0, ge=0, le=100000)
+    injury_location: Literal["torso", "left-leg", "right-leg", "left-foot", "right-foot"] = "torso"
+    temporary_disadvantage: Literal["bad-back", "crippled-leg"] = "bad-back"
+    running_pace: Literal["sprint", "paced"] = "sprint"
+
+    @model_validator(mode="after")
+    def source_context(self) -> ExtraEffortRule:
+        if self.task == "lifting" and self.requested_percent % 10:
+            raise ValueError("Lifting extra effort uses ten-percent increments")
+        if self.task in {"digging", "lifting"} and (
+            self.injury_location != "torso" or self.temporary_disadvantage != "bad-back"
+        ):
+            raise ValueError("Digging/lifting injuries require the source back consequence")
+        if self.task in {"running", "jumping"} and (
+            self.injury_location == "torso" or self.temporary_disadvantage != "crippled-leg"
+        ):
+            raise ValueError("Running/jumping injuries require an authored source leg/foot")
+        return self
 
 
 ActivityRule = Annotated[
@@ -112,6 +136,7 @@ class ActivityOutcome(Record):
     suffocating: bool = False
     consequence: str = ""
     checks: tuple[CheckTrace, ...] = ()
+    hp_lost: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
 
 
 AdvanceClock = Callable[[ResourceState, int, str], ResourceState]
@@ -208,6 +233,8 @@ class _Resolution(Record):
     suffocating: bool = False
     consequence: str = ""
     checks: tuple[CheckTrace, ...] = ()
+    prerequisite_checks: tuple[CheckTrace, ...] = ()
+    effort_attempted: bool = True
 
 
 def _long_task(
@@ -333,10 +360,14 @@ def _extra_effort(rule: ExtraEffortRule, actor: ActivityActor, rng: RandomSource
     target = actor.will if rule.target_id is None else actor.target(rule.target_id)
     target += 5 if rule.motivated else 0
     target -= rule.requested_percent // 5
+    target -= max(0, actor.maximum_fp - actor.current_fp)
+    if rule.task == "lifting":
+        target += rule.requested_percent // 5 - rule.requested_percent // 10
     check = success_roll(PROFILE, target, rng=rng)
     return _Resolution(
         progress=Decimal(rule.requested_percent if check.outcome.succeeded else 0),
-        fp=int(check.outcome is not Outcome.CRITICAL_SUCCESS),
+        fp=rule.ordinary_fp_cost
+        + int(check.outcome is not Outcome.CRITICAL_SUCCESS) * (2 if rule.task == "hiking" else 1),
         consequence=(
             rule.critical_failure_consequence if check.outcome is Outcome.CRITICAL_FAILURE else ""
         ),
@@ -360,6 +391,144 @@ def _resolve(
     if isinstance(rule, RunningRule):
         return _running(rule, command, actor, past, rng)
     return _extra_effort(rule, actor, rng)
+
+
+def _effort_pools(state: ResourceState, actor: ActivityActor) -> None:
+    hp = next((p for p in state.pools if p.id == "hp:" + actor.actor_id), None)
+    fp = next((p for p in state.pools if p.id == "fp:" + actor.actor_id), None)
+    if hp is None or hp.injury is None or fp is None or fp.fatigue is None:
+        raise ValidationError("Extra effort requires canonical HP and FP pools")
+    if hp.injury.incapacitated or hp.injury.machine:
+        raise ValidationError("Incapacitated actors and Machines cannot use extra effort")
+    if hp.injury.anatomy != "human":
+        raise ValidationError("Extra-effort lasting consequences require explicit human anatomy")
+    if (fp.current, fp.maximum) != (actor.current_fp, actor.maximum_fp):
+        raise ValidationError("Extra effort requires current canonical fatigue")
+
+
+def _effort_interval(rule: ExtraEffortRule, command: PerformActivity) -> None:
+    interval = {
+        "instant": 1,
+        "jumping": 1,
+        "throwing": 1,
+        "digging": 3600,
+        "hiking": 86400,
+        "lifting": 60,
+        "swimming": 60,
+        "running": 15 if rule.running_pace == "sprint" else 60,
+    }[rule.task]
+    if command.seconds != interval:
+        raise ValidationError("Extra effort requires one source-defined task interval per roll")
+
+
+def _effort_consequences(
+    state: ResourceState,
+    command: PerformActivity,
+    rule: ExtraEffortRule,
+    actor: ActivityActor,
+    result: _Resolution,
+    rng: RandomSource,
+) -> tuple[ResourceState, int, tuple[CheckTrace, ...]]:
+    if not result.effort_attempted:
+        return state, 0, result.checks
+    state, fatigue = apply_fatigue(
+        state,
+        FatigueCost(
+            id=command.id + ":effort-fp",
+            actor_id=actor.actor_id,
+            expected_revision=state.revision,
+            amount=result.fp,
+        ),
+        ht=actor.ht,
+        rng=rng,
+        system=True,
+    )
+    checks = result.prerequisite_checks + result.checks + fatigue.checks
+    hp_lost = fatigue.hp_lost
+    if result.checks[0].outcome is not Outcome.CRITICAL_FAILURE:
+        return state, hp_lost, checks
+    state, injury = apply_injury(
+        state,
+        Wound(
+            id=command.id + ":effort-injury",
+            actor_id=actor.actor_id,
+            expected_revision=state.revision,
+            basic_damage=result.fp
+            + (max(0, actor.maximum_fp - actor.current_fp) if rule.task == "hiking" else 0),
+            resistance=0,
+            damage_type="cr",
+            location=None,
+            injury_source="internal",
+        ),
+        ht=actor.ht,
+        rng=rng,
+        system=True,
+        exertion_location=rule.injury_location,
+    )
+    hp_lost += injury.injury
+    checks += tuple(c.check for c in injury.checks)
+    hp = next(p for p in state.pools if p.id == "hp:" + actor.actor_id)
+    assert hp.injury is not None
+    status = hp.injury
+    if rule.task in {"digging", "lifting"}:
+        status = status.model_copy(
+            update={"rest_only_injury": status.rest_only_injury + injury.injury}
+        )
+    if result.checks[0].total == 18:
+        secondary = success_roll(PROFILE, actor.ht, rng=rng)
+        checks += (secondary,)
+        if not secondary.outcome.succeeded:
+            permanent = secondary.outcome is Outcome.CRITICAL_FAILURE
+            deadline = None if permanent else state.game_time + (rng.randbelow(6) + 1) * 30 * 86400
+            effect = LastingInjury(
+                id=command.id + ":effort-disadvantage",
+                location=rule.injury_location,
+                kind="bad-back" if rule.temporary_disadvantage == "bad-back" else "crippled",
+                duration="permanent" if permanent else "lasting",
+                inflicted_at=state.game_time,
+                injury=injury.injury,
+                recovery_at=deadline,
+            )
+            status = status.model_copy(
+                update={"lasting_injuries": status.lasting_injuries + (effect,)}
+            )
+    hp = hp.model_copy(update={"injury": status})
+    return (
+        state.model_copy(update={"pools": tuple(hp if p.id == hp.id else p for p in state.pools)}),
+        hp_lost,
+        checks,
+    )
+
+
+def _resolve_activity(
+    state: ResourceState,
+    rule: ActivityRule,
+    command: PerformActivity,
+    actor: ActivityActor,
+    past: tuple[ActivityOutcome, ...],
+    rng: RandomSource,
+) -> tuple[ResourceState, _Resolution]:
+    if not isinstance(rule, ExtraEffortRule):
+        return state, _resolve(rule, command, actor, past, rng)
+    state, permission = apply_fatigue(
+        state,
+        ContinueExertion(
+            id=command.id + ":exertion", actor_id=actor.actor_id, expected_revision=state.revision
+        ),
+        ht=actor.ht,
+        will=actor.will,
+        rng=rng,
+        system=True,
+    )
+    if not permission.allowed:
+        return state, _Resolution(
+            fp=permission.fp_lost,
+            checks=permission.checks,
+            effort_attempted=False,
+            consequence="exertion-unavailable",
+        )
+    result = _resolve(rule, command, actor, past, rng)
+    return state, result.model_copy(update={"prerequisite_checks": permission.checks})
 
 
 def apply_activity(
@@ -387,19 +556,26 @@ def apply_activity(
         raise ConflictError("Activity revision changed")
     if actor.actor_id != command.actor_id or rule.id != command.activity_id:
         raise ValidationError("Activity is not bound to this actor and command")
+    if isinstance(rule, ExtraEffortRule):
+        _effort_pools(state, actor)
+        _effort_interval(rule, command)
 
     past = tuple(value for value in _history(state) if value.activity_id == rule.id)
     total = sum((value.progress for value in past), Decimal(0))
-    result = _resolve(rule, command, actor, past, rng)
+    state, result = _resolve_activity(state, rule, command, actor, past, rng)
 
-    if result.fp:
+    hp_lost, checks = 0, result.checks
+    if isinstance(rule, ExtraEffortRule):
+        state, hp_lost, checks = _effort_consequences(state, command, rule, actor, result, rng)
+    elif result.fp:
         if result.suffocating and actor.current_fp - result.fp <= 0 and enter_suffocation is None:
             raise ValidationError("Breath exhaustion requires the canonical suffocation reducer")
         state = lose_fatigue(state, result.fp, command.id, command.actor_id)
         if result.suffocating and actor.current_fp - result.fp <= 0:
             assert enter_suffocation is not None
             state = enter_suffocation(state, command.id, command.actor_id)
-    state = advance(state, state.game_time + command.seconds, command.id)
+    if result.effort_attempted:
+        state = advance(state, state.game_time + command.seconds, command.id)
     total = max(Decimal(0), total - result.ruined) + result.progress
     required = (
         Decimal(rule.required_man_hours)
@@ -412,7 +588,7 @@ def apply_activity(
         command_id=command.id,
         activity_id=rule.id,
         procedure=rule.kind,
-        elapsed_seconds=command.seconds,
+        elapsed_seconds=command.seconds if result.effort_attempted else 0,
         progress=result.progress,
         total_progress=total,
         completed=required > 0 and total >= required,
@@ -421,7 +597,8 @@ def apply_activity(
         move=result.move,
         suffocating=result.suffocating,
         consequence=result.consequence,
-        checks=result.checks,
+        checks=checks,
+        hp_lost=hp_lost,
     )
     state = state.model_copy(
         update={

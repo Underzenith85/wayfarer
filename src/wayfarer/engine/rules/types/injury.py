@@ -49,6 +49,7 @@ class InjuryStatus(Record):
         default=None, exclude_if=lambda value: value is None
     )
     lasting_injuries: tuple[LastingInjury, ...] = ()
+    rest_only_injury: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
 
     @model_validator(mode="after")
     def anatomy_consistent(self) -> Self:

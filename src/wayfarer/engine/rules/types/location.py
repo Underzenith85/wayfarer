@@ -51,7 +51,7 @@ class HumanBody(Record):
 class LastingInjury(Record):
     id: str = Field(min_length=1)
     location: HumanLocation
-    kind: Literal["crippled", "destroyed", "severed", "disabled", "deafened", "scarred"]
+    kind: Literal["crippled", "destroyed", "severed", "disabled", "deafened", "scarred", "bad-back"]
     duration: Literal["pending", "temporary", "lasting", "permanent", "timed"]
     inflicted_at: int = Field(ge=0)
     injury: int = Field(ge=0)
