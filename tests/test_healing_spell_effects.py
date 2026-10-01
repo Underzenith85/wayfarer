@@ -15,18 +15,27 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.magic.healing import BINDINGS
 from wayfarer.engine.rules.magic.healing import package as healing_package
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
-from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.magic.backfires import backfires
 from wayfarer.engine.simulation.magic.bindings import SpellChannel, SpellRules
 from wayfarer.engine.simulation.magic.colleges import dispatch_college_spell
-from wayfarer.engine.simulation.magic.spells import PROFILE, SpellCommand, latest
+from wayfarer.engine.simulation.magic.spells import (
+    PROFILE,
+    SpellCommand,
+    SpellId,
+    SpellResult,
+    latest,
+)
+from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
-def fixture(tmp_path: Path, spell: str, *, fp: int = 100, physician: bool = False):
+def fixture(
+    tmp_path: Path, spell: SpellId, *, fp: int = 100, physician: bool = False
+) -> tuple[RulesContext, PlayState]:
     from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 
     physician_definition = next(d for d in medical_definitions() if d.id == "skill:physician")
@@ -103,7 +112,15 @@ def fixture(tmp_path: Path, spell: str, *, fp: int = 100, physician: bool = Fals
     return play.rules_context, state
 
 
-def cast(runtime, state, spell, *, energy=1, cast_id="cast", dice=(3, 3, 3)):
+def cast(
+    runtime: RulesContext,
+    state: PlayState,
+    spell: SpellId,
+    *,
+    energy: int = 1,
+    cast_id: str = "cast",
+    dice: tuple[int, int, int] = (3, 3, 3),
+) -> tuple[PlayState, SpellResult]:
     start = SpellCommand(
         id=cast_id + ":start",
         actor_id="a",
@@ -159,7 +176,9 @@ def cast(runtime, state, spell, *, energy=1, cast_id="cast", dice=(3, 3, 3)):
     "spell,energy,healed,cost",
     [("minor-healing", 3, 3, 3), ("major-healing", 4, 8, 4), ("great-healing", 1, 9, 20)],
 )
-def test_approved_healing_restores_patient_hp(tmp_path, spell, energy, healed, cost):
+def test_approved_healing_restores_patient_hp(
+    tmp_path: Path, spell: SpellId, energy: int, healed: int, cost: int
+) -> None:
     runtime, state = fixture(tmp_path, spell)
     changed, result = cast(runtime, state, spell, energy=energy)
     assert result.hp_restored == healed and result.energy_spent == cost
@@ -168,7 +187,7 @@ def test_approved_healing_restores_patient_hp(tmp_path, spell, energy, healed, c
     assert latest(changed.resources)["cast"].phase == "ended"
 
 
-def test_repeated_attempts_penalty_and_patient_daily_limit(tmp_path):
+def test_repeated_attempts_penalty_and_patient_daily_limit(tmp_path: Path) -> None:
     runtime, state = fixture(tmp_path, "minor-healing")
     first, _ = cast(runtime, state, "minor-healing")
     second, _ = cast(runtime, first, "minor-healing", cast_id="second")
@@ -179,7 +198,7 @@ def test_repeated_attempts_penalty_and_patient_daily_limit(tmp_path):
         cast(runtime, first, "great-healing", cast_id="second")
 
 
-def test_critical_failure_records_patient_harm_gate_and_no_healing(tmp_path):
+def test_critical_failure_records_patient_harm_gate_and_no_healing(tmp_path: Path) -> None:
     runtime, state = fixture(tmp_path, "minor-healing")
     changed, result = cast(runtime, state, "minor-healing", dice=(6, 6, 6))
     assert result.outcome == "critical-failure" and result.hp_restored == 0
@@ -189,14 +208,14 @@ def test_critical_failure_records_patient_harm_gate_and_no_healing(tmp_path):
         cast(runtime, changed, "minor-healing", cast_id="second")
 
 
-def test_source_energy_limit_is_atomic(tmp_path):
+def test_source_energy_limit_is_atomic(tmp_path: Path) -> None:
     runtime, state = fixture(tmp_path, "minor-healing")
     with pytest.raises(ValidationError, match="energy exceeds"):
         cast(runtime, state, "minor-healing", energy=4)
     assert state.resources.revision == 0 and not state.resources.receipts
 
 
-def test_patient_harm_resolves_through_authored_consequence(tmp_path):
+def test_patient_harm_resolves_through_authored_consequence(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.magic.backfire_transitions import ResolveSpellBackfire, resolve
     from wayfarer.engine.simulation.magic.bindings import BackfireAlternative
 
@@ -236,7 +255,7 @@ def test_patient_harm_resolves_through_authored_consequence(tmp_path):
     assert next(p.current for p in resolved.resources.pools if p.id == "hp:a") == 10
 
 
-def test_physician_exception_and_day_reset(tmp_path):
+def test_physician_exception_and_day_reset(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.magic.healing_effects import attempts, mitigates_failure
 
     runtime, state = fixture(tmp_path, "minor-healing")
@@ -249,7 +268,7 @@ def test_physician_exception_and_day_reset(tmp_path):
     assert attempts(tomorrow, "minor-healing", "a", "b") == 0
 
 
-def test_approved_physician_mitigates_first_healing_critical_failure(tmp_path):
+def test_approved_physician_mitigates_first_healing_critical_failure(tmp_path: Path) -> None:
     runtime, state = fixture(tmp_path, "minor-healing", physician=True)
     changed, result = cast(runtime, state, "minor-healing", dice=(6, 6, 6))
     assert result.outcome == "failed" and result.energy_spent == 1
@@ -258,7 +277,7 @@ def test_approved_physician_mitigates_first_healing_critical_failure(tmp_path):
     assert result.outcome == "critical-failure" and backfires(repeated.resources)[0].pending
 
 
-def test_great_healing_takes_minute_and_failed_try_blocks_today(tmp_path):
+def test_great_healing_takes_minute_and_failed_try_blocks_today(tmp_path: Path) -> None:
     runtime, state = fixture(tmp_path, "great-healing")
     failed, result = cast(runtime, state, "great-healing", dice=(5, 5, 5))
     effect = latest(failed.resources)["cast"]
