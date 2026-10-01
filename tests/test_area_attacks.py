@@ -309,3 +309,76 @@ async def test_source_dive_cover_applies_before_success_damage_and_after_failed_
     play.rng = RecordedDice([])
     assert await service.execute(cid, command, principal_id="gm") == result
     assert await play.store.read(cid) == await play.store.replay(cid)
+
+
+@pytest.mark.parametrize("succeeds", [False, True])
+async def test_sacrificial_explosion_dodge_spends_one_roll_and_protects_with_hp_cover(
+    tmp_path: Path, succeeds: bool
+) -> None:
+    cid, play = await setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        human=True,
+        third_actor=True,
+        ranged_mode=grenade(),
+        ranged_scene=scene(),
+        warhead=ExplosionSpec(dice=1),
+    )
+    center = GroundPosition(encounter_id="fight", geometry="grid", x=1, y=0)
+    await launch(cid, play, center, [3, 3, 3])
+    await turn(cid, play, "b", "do_nothing")
+    await turn(cid, play, "c", "do_nothing")
+    seed = play._load(await play.store.read(cid))
+    command = ResolveWeaponExplosion(
+        id="sacrificial-blast",
+        actor_id="gm",
+        expected_revision=seed.revision,
+        encounter_id="fight",
+        blast_id=blasts(seed.resources)[0].id,
+        responses=tuple(
+            BlastResponse(
+                actor_id=actor,
+                cover_dr=0,
+                size_modifier=0,
+                dive_to=center if actor == "c" else None,
+                sacrificial_contact=actor == "c",
+            )
+            for actor in ("a", "b", "c")
+        ),
+        object_cover={},
+        environment="air",
+    )
+    before = await play.store.read(cid)
+    invalid = command.model_copy(
+        update={
+            "id": "wrong-center",
+            "responses": tuple(
+                r.model_copy(
+                    update={
+                        "dive_to": GroundPosition(encounter_id="fight", geometry="grid", x=2, y=1)
+                    }
+                )
+                if r.sacrificial_contact
+                else r
+                for r in command.responses
+            ),
+        }
+    )
+    play.rng = RecordedDice([])
+    with pytest.raises(ValidationError, match="blast center"):
+        await CombatService(play).execute(cid, invalid, principal_id="gm")
+    assert await play.store.read(cid) == before
+    roll = 2 if succeeds else 5
+    play.rng = RecordedDice([roll, roll, roll, 3, 3] if succeeds else [roll, roll, roll, 3, 3, 3])
+    service = CombatService(play)
+    result = await service.execute(cid, command, principal_id="gm")
+    updated = play._load(await play.store.read(cid))
+    hp = {p.id: p.current for p in updated.resources.pools}
+    assert hp["hp:b"] == (10 if succeeds else 7)
+    assert hp["hp:c"] == (14 if succeeds else 19)
+    protector = next(p for p in updated.encounters[0].participants if p.actor_id == "c")
+    assert protector.posture == "prone" and protector.position == GridPoint(x=1, y=0)
+    assert play.rng.exhausted()
+    play.rng = RecordedDice([])
+    assert await service.execute(cid, command, principal_id="gm") == result
+    assert await play.store.read(cid) == await play.store.replay(cid)

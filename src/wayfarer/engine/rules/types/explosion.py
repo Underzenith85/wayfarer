@@ -23,6 +23,7 @@ class BlastResponse(Record):
     """GM declares chosen defenses and scene cover before any blast dice."""
 
     actor_id: str
+    sacrificial_contact: bool = Field(default=False, exclude_if=lambda v: not v)
     # Required even when zero: cover is not inferred from absent map geometry.
     cover_dr: int = Field(ge=0)
     covered_locations: tuple[HumanLocation, ...] = ()
