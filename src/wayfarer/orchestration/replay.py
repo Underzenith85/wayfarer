@@ -6,14 +6,20 @@ from collections.abc import Awaitable, Callable, Mapping
 from wayfarer import validation
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
+from wayfarer.engine.simulation.magic.enchanting_transitions import (
+    COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
+)
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
+from wayfarer.engine.simulation.magic.staff_casting_state import ADAPTER as STAFF_CASTING_ADAPTER
+from wayfarer.engine.simulation.magic.staff_state import DeclareStaffConstruction
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.combat.abandon import AbandonPendingAttackService
 from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, RandomUnarmedStrike
 from wayfarer.orchestration.combat_senses import CombatSensesService
+from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.locks import LockService, LockSpellService
 from wayfarer.orchestration.party import PartyCommand, PartyService
@@ -24,9 +30,34 @@ from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
 from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
 from wayfarer.orchestration.spell_rituals import SpellRitualService
 from wayfarer.orchestration.spells import SpellService
+from wayfarer.orchestration.staff_casting import StaffCastingService
 from wayfarer.orchestration.transformations import TransformationService
 from wayfarer.persistence.events import CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
+
+
+async def _enchantment(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await EnchantmentService(play).execute(
+        record.campaign_id,
+        ENCHANTMENT_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _staff_construction(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await EnchantmentService(play).declare_staff(
+        record.campaign_id,
+        DeclareStaffConstruction.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _staff_casting(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await StaffCastingService(play).execute(
+        record.campaign_id,
+        STAFF_CASTING_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
 
 
 async def _abandon_pending_attack(play: PlayService, record: CommandRecord, encoded: str) -> None:
@@ -60,6 +91,9 @@ async def _harmful_physiology(play: PlayService, record: CommandRecord, encoded:
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "enchantment": _enchantment,
+    "staff-construction": _staff_construction,
+    "staff-casting": _staff_casting,
     "combat-abandon-pending-attack": _abandon_pending_attack,
     "combat-random-unarmed": _random_unarmed,
     "combat-senses": _combat_senses,

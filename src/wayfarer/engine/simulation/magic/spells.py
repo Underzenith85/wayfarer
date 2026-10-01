@@ -12,6 +12,7 @@ from pydantic import Field
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import Contestant, resolve_quick_contest, success_roll
+from wayfarer.engine.rules.magic.ceremonial import replay_ceremonial_check
 from wayfarer.engine.rules.magic.protocols import (
     AreaSelection,
     CeremonialPlan,
@@ -31,6 +32,7 @@ from wayfarer.engine.simulation.health.condition_checks import check_modifiers, 
 from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.sleep_state import asleep
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.awaken import AwakenSubject, awaken, validate_subjects
 from wayfarer.engine.simulation.magic.backfires import (
@@ -40,6 +42,10 @@ from wayfarer.engine.simulation.magic.backfires import (
     remember,
 )
 from wayfarer.engine.simulation.magic.backfires import require_settled as backfires_settled
+from wayfarer.engine.simulation.magic.casting_targeting import (
+    completion_targeting,
+    remember_targeting,
+)
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.magic.healing_effects import (
     HEALING,
@@ -57,7 +63,6 @@ from wayfarer.engine.simulation.magic.healing_support import (
 )
 from wayfarer.engine.simulation.magic.lock_effects import (
     complete_lock_effect,
-    finalize_lock_skill,
     lock_difficulty,
     lock_scale,
     resolve_lock_cast,
@@ -236,6 +241,7 @@ class SpellContext(Record):
         default=(), exclude_if=lambda value: not value
     )
     item_power_reduction: int = Field(default=0, ge=0, le=100, exclude_if=lambda value: value == 0)
+    item_cast: bool = Field(default=False, exclude_if=lambda value: not value)
     area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
@@ -281,8 +287,46 @@ def casting_seconds(seconds: int, skill: int, *, missile: bool = False) -> int:
     return max(1, (seconds + divisor - 1) // divisor)
 
 
+def _casting_time(spec: RuntimeSpellSpec, context: SpellContext, skill: int) -> int:
+    if context.item_cast:
+        return spec.seconds
+    if context.ceremonial is not None:
+        return spec.seconds * 10
+    return casting_seconds(spec.seconds, skill, missile=spec.kind == "missile")
+
+
+def _personal_reduction(spec: RuntimeSpellSpec, context: SpellContext, skill: int) -> int:
+    return (
+        0
+        if context.item_cast or context.ceremonial is not None or spec.id in SUPPORT
+        else cost_reduction(skill)
+    )
+
+
+def _require_supported_item_cast(context: SpellContext, cost: int) -> None:
+    if context.item_cast and context.item_power_reduction and cost == 0:
+        raise ValidationError(
+            "Power with zero casting cost requires an explicitly supported wearer effect"
+        )
+
+
+def _casting_check(
+    state: ResourceState, effect: RuntimeSpellEffect, actor_id: str, rng: RandomSource
+) -> CheckTrace:
+    check = success_roll(PROFILE, effect.skill, check_modifiers(state, actor_id, "iq"), rng=rng)
+    return replay_ceremonial_check(check) if effect.ceremonial is not None else check
+
+
 def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None:
     """Keep class-specific area and energy bounds outside the command dispatcher."""
+    if context.item_cast and context.ceremonial is not None:
+        raise ValidationError("Magic-item activation does not use a ceremonial ritual")
+    if (
+        not context.item_cast
+        and context.magery < spec.magery
+        and not (spec.magery == 0 and context.mana in ("high", "very-high"))
+    ):
+        raise ValidationError("Required Magery unavailable")
     if (
         spec.kind != "area"
         and context.radius != 1
@@ -299,6 +343,19 @@ def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None
         raise ValidationError("Initial missile energy exceeds Magery")
 
 
+def _ceremonial_funds(state: ResourceState, effect: RuntimeSpellEffect) -> dict[str, int]:
+    """Validate the whole pledged FP pool before casting or distraction dice."""
+    assert effect.ceremonial is not None
+    ht = dict(effect.ceremonial_ht)
+    for contribution in effect.ceremonial.contributions:
+        fp = next((p for p in state.pools if p.id == "fp:" + contribution.actor_id), None)
+        if contribution.actor_id not in ht or fp is None or fp.fatigue is None:
+            raise ConflictError("Ceremonial participant binding changed")
+        if fp.current < contribution.fp:
+            raise ConflictError("Ceremonial participant can no longer supply promised FP")
+    return ht
+
+
 def _spend_ceremonial_energy(
     state: ResourceState,
     effect: RuntimeSpellEffect,
@@ -308,15 +365,10 @@ def _spend_ceremonial_energy(
 ) -> tuple[ResourceState, int, int]:
     """Spend every promised contribution when the ceremonial roll is made."""
     assert effect.ceremonial is not None
-    ht = dict(effect.ceremonial_ht)
+    ht = _ceremonial_funds(state, effect)
     total = hp_total = 0
     for contribution in effect.ceremonial.contributions:
-        actor_ht = ht.get(contribution.actor_id)
-        fp = next((p for p in state.pools if p.id == "fp:" + contribution.actor_id), None)
-        if actor_ht is None or fp is None or fp.fatigue is None:
-            raise ConflictError("Ceremonial participant binding changed")
-        if fp.current < contribution.fp:
-            raise ConflictError("Ceremonial participant can no longer supply promised FP")
+        actor_ht = ht[contribution.actor_id]
         if contribution.hp:
             state, injury = apply_injury(
                 state,
@@ -391,6 +443,7 @@ def apply_spell(
     *,
     rng: RandomSource,
     system: bool = False,
+    capture_targeting: bool = True,
     validate_only: bool = False,
 ) -> tuple[ResourceState, SpellResult]:
     """Commit the returned checkpoint atomically using the existing store CAS.
@@ -464,6 +517,7 @@ def apply_spell(
             raise ValidationError("No-mana casting and unaudited very-high mana are unavailable")
         if (
             context.unavailable
+            or asleep(state, command.actor_id)
             or drug_unconscious(state, command.actor_id)
             or hp.injury.incapacitated
             or (hp.injury.stunned and command.kind != "maintain")
@@ -514,10 +568,6 @@ def apply_spell(
             context.learned
         ):
             raise ValidationError("Spell and prerequisites must be learned")
-        if context.magery < spec.magery and not (
-            spec.magery == 0 and context.mana in ("high", "very-high")
-        ):
-            raise ValidationError("Required Magery unavailable")
         healing_modifier = healing_penalty(
             state, command.spell_id, command.actor_id, context.target_id
         )
@@ -528,7 +578,7 @@ def apply_spell(
         ceremonial = context.ceremonial
         if ceremonial is not None and context.skill < 15:
             raise ValidationError("Ceremonial magic requires leader spell skill 15+")
-        reduction = 0 if ceremonial or spec.id in SUPPORT else cost_reduction(ritual_skill)
+        reduction = _personal_reduction(spec, context, ritual_skill)
         scale = (
             context.radius
             if spec.kind == "area"
@@ -543,6 +593,7 @@ def apply_spell(
             item_energy_cost(spec.cost * scale, context.item_power_reduction, context.mana)
             - reduction,
         )
+        _require_supported_item_cast(context, cost)
         if command.hp_energy > cost:
             raise ValidationError("HP contribution exceeds the spell energy cost")
         if ceremonial is not None and command.hp_energy:
@@ -558,10 +609,8 @@ def apply_spell(
         )
         skill = ritual_skill - hp.injury.shock - penalty - command.hp_energy
         if ceremonial is not None:
-            # Capping the target at 15 makes 16 an ordinary failure and 17-18
-            # critical failures while still recording the energy bonus.
             bonus = ceremonial_skill_bonus(cost, ceremonial.available_energy) if cost else 0
-            skill = min(15, skill + bonus)
+            skill += bonus
         if spec.kind != "missile":
             skill -= context.distance
         skill -= healing_modifier
@@ -579,21 +628,21 @@ def apply_spell(
             phase="casting",
             started_at=state.game_time,
             ready_at=state.game_time
-            + (
-                spec.seconds * 10
-                if ceremonial is not None
-                else casting_seconds(spec.seconds, ritual_skill, missile=spec.kind == "missile")
-            )
+            + _casting_time(spec, context, ritual_skill)
             - int(context.execution_version == 2 and context.encounter_id is not None),
             skill=skill,
             cost=cost,
             maintenance=max(
                 0,
-                spec.maintenance
-                * (
-                    context.radius
-                    if spec.kind == "area"
-                    else lock_scale(state, spec.id, context.target_id)
+                item_energy_cost(
+                    spec.maintenance
+                    * (
+                        context.radius
+                        if spec.kind == "area"
+                        else lock_scale(state, spec.id, context.target_id)
+                    ),
+                    context.item_power_reduction,
+                    context.mana,
                 )
                 - reduction,
             ),
@@ -602,11 +651,7 @@ def apply_spell(
             energy=context.energy,
             hp_energy=command.hp_energy,
             execution_version=context.execution_version,
-            required_turns=(
-                spec.seconds * 10
-                if ceremonial is not None
-                else casting_seconds(spec.seconds, ritual_skill, missile=spec.kind == "missile")
-            )
+            required_turns=_casting_time(spec, context, ritual_skill)
             if context.execution_version == 2 and context.encounter_id
             else None,
             execute_effects=context.execute_effects,
@@ -619,6 +664,9 @@ def apply_spell(
             ceremonial=ceremonial,
             ceremonial_ht=context.ceremonial_ht,
             area=context.area,
+        )
+        state = remember_targeting(
+            state, effect, context, kind=spec.kind, enabled=capture_targeting
         )
         outcome = "casting"
     else:
@@ -706,8 +754,10 @@ def apply_spell(
                 new_energy = effect.energy + context.energy
                 new_cost = max(
                     0,
-                    new_energy
-                    - cost_reduction(context.skill - (5 if context.mana == "low" else 0)),
+                    item_energy_cost(new_energy, context.item_power_reduction, context.mana)
+                    - _personal_reduction(
+                        spec, context, context.skill - (5 if context.mana == "low" else 0)
+                    ),
                 )
                 spent = new_cost - effect.cost
                 effect = effect.model_copy(
@@ -744,8 +794,23 @@ def apply_spell(
                     or effect.spell_id == "lend-vitality"
                 ):
                     raise ConflictError("Maintenance is only available at expiry")
-                spent = effect.maintenance
-                effect = effect.model_copy(update={"expires_at": state.game_time + spec.duration})
+                spent = (
+                    item_energy_cost(
+                        spec.maintenance
+                        * (
+                            effect.radius
+                            if spec.kind == "area"
+                            else lock_scale(state, spec.id, effect.target_id)
+                        ),
+                        context.item_power_reduction,
+                        context.mana,
+                    )
+                    if context.item_cast
+                    else effect.maintenance
+                )
+                effect = effect.model_copy(
+                    update={"expires_at": state.game_time + spec.duration, "maintenance": spent}
+                )
                 outcome = "active"
             else:
                 if effect.phase != "casting" or state.game_time != effect.ready_at:
@@ -757,15 +822,17 @@ def apply_spell(
                 validate_support(state, effect.spell_id, effect.target_id)
                 healing_penalty(state, effect.spell_id, effect.actor_id, effect.target_id)
                 hp_budget = effect.hp_energy
-                if fp.current < effect.cost - hp_budget:
+                if effect.ceremonial is None and fp.current < effect.cost - hp_budget:
                     raise ConflictError("Caster no longer has casting energy")
+                if effect.ceremonial is not None:
+                    _ceremonial_funds(state, effect)
                 interrupted = bool(retching_penalty(state, command.actor_id))
                 if not interrupted and (
                     effect.distracted or context.distracted or hp.current < effect.hp_at_start
                 ):
                     check = success_roll(
                         PROFILE,
-                        context.will - 3,
+                        context.will - (0 if effect.ceremonial is not None else 3),
                         check_modifiers(state, command.actor_id, "will"),
                         rng=rng,
                     )
@@ -774,13 +841,8 @@ def apply_spell(
                 if interrupted:
                     outcome = "interrupted"
                 else:
-                    effect = finalize_lock_skill(state, effect, context)
-                    check = success_roll(
-                        PROFILE,
-                        effect.skill,
-                        check_modifiers(state, command.actor_id, "iq"),
-                        rng=rng,
-                    )
+                    effect = completion_targeting(state, effect, context)
+                    check = _casting_check(state, effect, command.actor_id, rng)
                     checks.append(check)
                     effect = effect.model_copy(update={"skill": check.effective_target})
                     if check.outcome is Outcome.CRITICAL_FAILURE or (
@@ -839,7 +901,9 @@ def apply_spell(
     assert effect is not None
     if command.kind in ("maintain", "cancel", "expand") and hp_budget > spent:
         raise ValidationError("HP contribution exceeds this operation's energy cost")
-    ceremonial_payment = command.kind == "complete" and effect.ceremonial is not None
+    ceremonial_payment = (
+        command.kind == "complete" and effect.ceremonial is not None and outcome != "interrupted"
+    )
     if ceremonial_payment:
         state, spent, hp_spent = _spend_ceremonial_energy(state, effect, command, rng=rng)
         hp_cost = fp_cost = 0

@@ -26,6 +26,15 @@ from wayfarer.engine.rules.types.background_admission import UNUSUAL_BACKGROUND_
 from wayfarer.errors import ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
+ENCHANTING_RESIDUAL_IDS = frozenset(
+    {
+        "section:campaigns:b480:magic-items",
+        "section:campaigns:b480:enchantment-spells",
+        "section:campaigns:b481:enchanting",
+        "section:campaigns:b481:interruptions",
+        "section:campaigns:b482:using-magic-items",
+    }
+)
 
 
 def _validate(bundle: LedgerBundle) -> None:
@@ -42,6 +51,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
         "trait:advantage:alternate-form",
         "trait:advantage:morph",
         "modifier:enhancement:symptoms",
+        *ENCHANTING_RESIDUAL_IDS,
     }
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
@@ -119,10 +129,15 @@ def test_campaigns_section_audit_has_exact_reviewed_obligations_and_bounded_resi
         "structural-non-runtime": 7,
     }
     assert Counter(row.implementation for row in rows) == {
-        "verified": 68,
+        "verified": 66,
+        "partial": 2,
         "not-applicable": 51,
     }
-    assert not any(row.completion_owner for row in rows)
+    assert {row.id for row in rows if row.completion_owner is not None} == {
+        "section:campaigns:b480:magic-items",
+        "section:campaigns:b480:enchantment-spells",
+    }
+    assert all(row.completion_owner == 785 for row in rows if row.completion_owner is not None)
     assert all(row.completion_owner != 94 for row in rows)
 
     appendix = tuple(row for row in rows if row.id in CAMPAIGNS_APPENDIX_REVIEW_IDS)
@@ -325,6 +340,7 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         ("trait:advantage:alternate-form", 757),
         ("trait:advantage:morph", 757),
         ("modifier:enhancement:symptoms", 763),
+        *((identifier, 785) for identifier in ENCHANTING_RESIDUAL_IDS),
     }
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
@@ -333,9 +349,10 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.required_source_ledger_rows == 1_044
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {
-        "none": 1_281,
+        "none": 1_276,
         "757": 2,
         "763": 1,
+        "785": 5,
         "906": 1,
     }
 

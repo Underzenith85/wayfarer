@@ -5,13 +5,51 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError as SchemaError
 from test_gurps_melee import attack, choice, setup
+from test_reinforcements import setup_profiled_basic
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.critical import CriticalMiss, load_critical, save_critical
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.combat import CombatService
+from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+
+
+@pytest.mark.parametrize("table", [(1, 1, 1), (1, 1, 2)])
+async def test_basic_critical_context_preserves_absent_coordinates_and_exact_retry(
+    tmp_path: Path, table: tuple[int, int, int]
+) -> None:
+    cid, play = await setup_profiled_basic(tmp_path, 1)
+    await CombatService(play).execute(
+        cid,
+        TakeCombatTurn(
+            id="basic-attack",
+            actor_id="a",
+            expected_revision=2,
+            encounter_id="fight",
+            maneuver="attack",
+            target_id="b",
+            item_id="sword-a",
+            mode_id="swing",
+        ),
+        principal_id="a",
+    )
+    command = choice().model_copy(update={"id": "basic-defense", "expected_revision": 3})
+    play.rng = RecordedDice((6, 6, 6, *table))
+    result = await CombatService(play).execute(cid, command, principal_id="b")
+    after = await play.store.read(cid)
+    state = play._load(after)
+    event = next(e for e in state.resources.events if e.id.startswith("critical:"))
+    record = CriticalMiss.model_validate_json(event.kind)
+    assert record.table_rolls == (table,)
+    assert (record.subject_id, record.item_id, record.action) == ("a", "sword-a", "attack")
+    assert record.position is None and record.hex_position is None
+    assert record.blocker == state.encounters[0].blocked_reason
+    assert isinstance(play.store, AsyncSQLiteStore)
+    restarted = PlayService(AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice(()))
+    assert await CombatService(restarted).execute(cid, command, principal_id="b") == result
+    assert await restarted.store.read(cid) == after
+    assert await restarted.store.replay(cid) == after
 
 
 @pytest.mark.parametrize("table", [(1, 1, 1), (2, 2, 1), (2, 2, 2), (5, 5, 5)])

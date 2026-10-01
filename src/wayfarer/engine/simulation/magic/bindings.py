@@ -124,6 +124,6 @@ def validate_channels(rules: SpellRules, state: PlayState) -> None:
             if not participants <= actor_ids:
                 raise ValidationError("Ceremonial magic requires approved campaign actors")
         if channel.magic_item_id is not None and channel.magic_item_id not in {
-            item.id for item in state.resources.items
+            item.id for item in (*state.resources.items, *state.resources.expended_items)
         }:
             raise ValidationError("Magic-item channel requires its configured item")

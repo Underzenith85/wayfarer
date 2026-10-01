@@ -231,6 +231,12 @@ class ActionEngine:
             binding_ids=frozenset(
                 binding.id for item in state.resources.items for binding in item.enchantments
             ),
+            archived_item_ids=frozenset(item.id for item in state.resources.expended_items),
+            archived_binding_ids=frozenset(
+                binding.id
+                for item in state.resources.expended_items
+                for binding in item.enchantments
+            ),
         )
         validate_members(state)
         if len({e.id for e in state.encounters}) != len(state.encounters):

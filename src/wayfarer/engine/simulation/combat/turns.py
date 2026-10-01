@@ -53,6 +53,9 @@ from wayfarer.engine.simulation.combat.turn_commitment import prepare as prepare
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex, HexFacing, Pose
+from wayfarer.engine.simulation.magic.staff_casting_state import (
+    invalidate_movement as invalidate_staff_movement,
+)
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -400,8 +403,13 @@ def _wait_interruption(
         )
         return (
             paused,
-            invalidate_movement(
-                original_resources,
+            invalidate_staff_movement(
+                invalidate_movement(
+                    original_resources,
+                    original.id,
+                    frozenset({actor_id}) if executed_hex_path else frozenset(),
+                    revision=spatial_revision,
+                ),
                 original.id,
                 frozenset({actor_id}) if executed_hex_path else frozenset(),
                 revision=spatial_revision,
@@ -775,6 +783,12 @@ def apply_turn(
             enter_close_combat=enter_close_combat,
         )
         resources = invalidate_movement(
+            resources,
+            encounter.id,
+            frozenset({actor_id}) if hex_path else frozenset(),
+            revision=spatial_revision,
+        )
+        resources = invalidate_staff_movement(
             resources,
             encounter.id,
             frozenset({actor_id}) if hex_path else frozenset(),

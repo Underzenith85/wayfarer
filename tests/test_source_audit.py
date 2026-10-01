@@ -167,6 +167,11 @@ def test_profile_source_blockers_do_not_cross_contaminate_certification() -> Non
     basic_blockers = basic_report["blockers"]
     assert isinstance(basic_blockers, tuple)
     assert basic_blockers == (
+        "ledger:section:campaigns:b480:magic-items",
+        "ledger:section:campaigns:b480:enchantment-spells",
+        "ledger:section:campaigns:b481:enchanting",
+        "ledger:section:campaigns:b481:interruptions",
+        "ledger:section:campaigns:b482:using-magic-items",
         "ledger:trait:advantage:alternate-form",
         "ledger:trait:advantage:morph",
         "ledger:trait:advantage:unusual-background",

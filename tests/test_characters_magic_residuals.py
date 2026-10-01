@@ -1,6 +1,7 @@
 """Independent source-derived fixtures for Characters B237, B239-241, and B256."""
 
 import json
+from fractions import Fraction
 from pathlib import Path
 from typing import Literal
 
@@ -88,9 +89,23 @@ def test_every_spell_class_has_explicit_attack_defense_range_and_roll_contracts(
 
 
 def test_staff_forms_construction_and_all_three_casting_benefits() -> None:
-    wand = MagicStaff(item_id="wand", form="wand", material="bone", length_yards=0)
-    short = MagicStaff(item_id="short", form="short-staff", material="coral", length_yards=1)
-    full = MagicStaff(item_id="full", form="full-staff", material="wood", length_yards=2)
+    wand = MagicStaff(
+        item_id="wand", form="wand", material="bone", length_yards=Fraction(1), once_living=True
+    )
+    short = MagicStaff(
+        item_id="short",
+        form="short-staff",
+        material="coral",
+        length_yards=Fraction(1),
+        once_living=True,
+    )
+    full = MagicStaff(
+        item_id="full",
+        form="full-staff",
+        material="wood",
+        length_yards=Fraction(2),
+        once_living=True,
+    )
     assert (wand.reach, wand.weapon_skills) == ("C", ("knife", "main-gauche"))
     assert (short.reach, short.weapon_skills) == ("1", ("shortsword", "smallsword"))
     assert (full.reach, full.weapon_skills) == ("2", ("staff", "two-handed-sword"))
@@ -100,8 +115,28 @@ def test_staff_forms_construction_and_all_three_casting_benefits() -> None:
         == 5
     )
     assert staff_casting_benefit(full, 7).effective_distance_yards == 7
-    with pytest.raises(ValueError, match="form and reach"):
-        MagicStaff(item_id="bad", form="wand", material="ivory", length_yards=2)
+    # B240 explicitly describes a one-yard wand: Reach C is not zero length.
+    assert (
+        staff_casting_benefit(wand, 7, pointing_declared_at_start=True).effective_distance_yards
+        == 6
+    )
+    with pytest.raises(ValueError, match="once-living"):
+        MagicStaff(
+            item_id="bad",
+            form="wand",
+            material="plastic",
+            length_yards=Fraction(1),
+            once_living=False,
+        )
+    for length in (0, 3):
+        with pytest.raises(ValueError, match="length_yards"):
+            MagicStaff(
+                item_id="bad",
+                form="wand",
+                material="ivory",
+                length_yards=Fraction(length),
+                once_living=True,
+            )
 
 
 def test_staff_custody_and_free_action_disposal_cover_every_consequence() -> None:

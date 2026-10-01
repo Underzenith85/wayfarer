@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 import hashlib
-from math import ceil
+from dataclasses import replace
 from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter
 
-from wayfarer.engine.rules.checks import CheckTrace, Modifier, ModifierKind, Outcome
+from wayfarer.engine.rules.checks import CheckTrace, Modifier, ModifierKind, Outcome, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.magic.protocols import MagicItemInstance
+from wayfarer.engine.rules.magic.ceremonial import replay_ceremonial_check
+from wayfarer.engine.rules.magic.protocols import MagicItemInstance, ceremonial_skill_bonus
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.party import synchronous
+from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.enchanting import (
     EnchantingRules,
     EnchantmentInterruption,
@@ -23,12 +27,83 @@ from wayfarer.engine.simulation.magic.enchanting import (
     EnergyContribution,
     busy_actor_ids,
 )
-from wayfarer.engine.simulation.resources import Item, Receipt, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.magic.enchanting_calendar import (
+    CALENDAR_DAY as CALENDAR_DAY,
+)
+from wayfarer.engine.simulation.magic.enchanting_calendar import (
+    next_shift_at,
+    record_rest,
+)
+from wayfarer.engine.simulation.magic.item_state import has_item_magic, require_power_installation
+from wayfarer.engine.simulation.magic.staff_state import require_staff_construction
+from wayfarer.engine.simulation.resources import (
+    Advance,
+    Item,
+    Receipt,
+    ResourceEvent,
+    ResourceState,
+)
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 
 MAGE_DAY = 8 * 60 * 60
+
+
+def replay_enchantment_check(check: CheckTrace) -> CheckTrace:
+    """Score recorded B481 ceremonial dice while preserving the real skill target."""
+    return replace(replay_ceremonial_check(check), rule_id="gurps.magic.enchanting")
+
+
+class EnchantmentSchedule(Record):
+    """Private daily-work facts; the public project schema remains unchanged."""
+
+    first_shift_at: int = Field(ge=0)
+    makeup_shifts: int = Field(default=0, ge=0)
+
+
+def _schedule(resources: ResourceState, work: EnchantmentWork) -> EnchantmentSchedule:
+    event = next((e for e in resources.events if e.id == "enchantment-schedule:" + work.id), None)
+    return (
+        EnchantmentSchedule.model_validate_json(event.kind)
+        if event
+        else EnchantmentSchedule(first_shift_at=work.start)
+    )
+
+
+def enchanting_work_active(resources: ResourceState, project: EnchantmentProject) -> bool:
+    """Whether a mage is concentrating now, excluding nightly rest and completed work."""
+    work = project.active_work
+    if work is None or project.status != "active" or resources.game_time >= work.due:
+        return False
+    event = next((e for e in resources.events if e.id == "enchantment-schedule:" + work.id), None)
+    if event is None:
+        return True
+    schedule = EnchantmentSchedule.model_validate_json(event.kind)
+    elapsed = resources.game_time - schedule.first_shift_at
+    return elapsed >= 0 and elapsed % CALENDAR_DAY < MAGE_DAY
+
+
+def _end_daily_work(
+    resources: ResourceState,
+    project: EnchantmentProject,
+    recipe: EnchantmentRecipe,
+    command_id: str,
+) -> ResourceState:
+    work = project.active_work
+    if recipe.method != "slow-and-sure" or work is None:
+        return resources
+    return record_rest(
+        resources, work, command_id, first_shift_at=_schedule(resources, work).first_shift_at
+    )
+
+
+def unresolved_enchantment(resources: ResourceState, item_id: str) -> bool:
+    """An unknown Quick and Dirty perversion needs a director-authored resolution."""
+    return any(
+        e.id.startswith("enchantment-perversion:") and e.target_id == item_id
+        for e in resources.events
+    )
 
 
 class EnchantmentCommand(Record):
@@ -62,6 +137,13 @@ class SettleEnchanting(EnchantmentCommand):
     work_id: Id
 
 
+class AdvanceEnchanting(EnchantmentCommand):
+    kind: Literal["advance"] = "advance"
+    project_id: Id
+    work_id: Id
+    to: int = Field(ge=0)
+
+
 class AbandonEnchantment(EnchantmentCommand):
     kind: Literal["abandon"] = "abandon"
     project_id: Id
@@ -72,6 +154,7 @@ TypedEnchantmentCommand = Annotated[
     | BeginEnchanting
     | InterruptEnchanting
     | SettleEnchanting
+    | AdvanceEnchanting
     | AbandonEnchantment,
     Field(discriminator="kind"),
 ]
@@ -179,6 +262,10 @@ def _validate_bindings(
     target_item_id: str,
     enchanter_ids: tuple[str, ...],
 ) -> int:
+    # model_copy is deliberately nonvalidating; authoritative commands recheck recipes.
+    EnchantmentRecipe.model_validate(recipe.model_dump())
+    if recipe.mana == "none":
+        raise ValidationError("Enchanting requires mana")
     if len(set(enchanter_ids)) != len(enchanter_ids):
         raise ValidationError("Duplicate project enchanter")
     entities = {entity.id: entity for entity in state.world.entities}
@@ -199,6 +286,15 @@ def _validate_bindings(
         or (target.condition is not None and target.condition.disabled)
     ):
         raise ValidationError("Target item is not suitable for this enchantment recipe")
+    if recipe.spell_id == "spell:staff":
+        require_staff_construction(state.resources, target_item_id)
+    if recipe.spell_id == "spell:power":
+        configured_magic = runtime.rules.spells.magic_items if runtime.rules.spells else ()
+        if not has_item_magic(state.resources, target_item_id, configured_magic):
+            raise ValidationError("Power requires an already enchanted magic item")
+        require_power_installation(state.resources, target_item_id, configured_magic)
+    if unresolved_enchantment(state.resources, target_item_id):
+        raise ValidationError("Unresolved enchanting perversion requires director adjudication")
     if not any(
         i.owner_id == enchanter_ids[0]
         and i.definition_id == recipe.workspace_definition_id
@@ -211,8 +307,12 @@ def _validate_bindings(
     levels = tuple(_levels(runtime, state, recipe, actor) for actor in enchanter_ids)
     if any(level < minimum for level in levels):
         raise ValidationError(f"Every enchanter requires both spells at {minimum}+")
-    power = min(levels)
-    effective_power = power - (len(enchanter_ids) - 1 if recipe.method == "quick-and-dirty" else 0)
+    power = levels[0]
+    effective_power = (
+        power
+        - (5 if recipe.mana == "low" else 0)
+        - (len(enchanter_ids) - 1 if recipe.method == "quick-and-dirty" else 0)
+    )
     if effective_power < 15:
         raise ValidationError("Assistant penalty leaves magic-item Power below 15")
     return power
@@ -264,8 +364,8 @@ def _energy_preflight(
         raise ValidationError("Duplicate enchanting energy contribution")
     if {c.actor_id for c in contributions} != set(project.enchanter_ids):
         raise ValidationError("Quick and Dirty requires an explicit contribution per enchanter")
-    if sum(c.energy for c in contributions) != recipe.energy_required:
-        raise ValidationError("Quick and Dirty contributions must equal required energy")
+    if sum(c.energy for c in contributions) < recipe.energy_required:
+        raise ValidationError("Quick and Dirty contributions must cover required energy")
     pools = {p.id: p for p in resources.pools}
     for contribution in contributions:
         fp, hp = pools.get("fp:" + contribution.actor_id), pools.get("hp:" + contribution.actor_id)
@@ -276,22 +376,51 @@ def _energy_preflight(
 
 
 def _spend_energy(
-    resources: ResourceState, contributions: tuple[EnergyContribution, ...]
+    runtime: RulesContext,
+    state: PlayState,
+    contributions: tuple[EnergyContribution, ...],
+    command_id: str,
 ) -> ResourceState:
-    fp = {c.actor_id: c.fp for c in contributions}
-    hp = {c.actor_id: c.hp for c in contributions}
-    return resources.model_copy(
-        update={
-            "pools": tuple(
-                pool.model_copy(update={"current": pool.current - fp[pool.id[3:]]})
-                if pool.id.startswith("fp:") and pool.id[3:] in fp
-                else pool.model_copy(update={"current": pool.current - hp[pool.id[3:]]})
-                if pool.id.startswith("hp:") and pool.id[3:] in hp
-                else pool
-                for pool in resources.pools
+    resources = state.resources
+    for contribution in contributions:
+        compiled = build(runtime, state, contribution.actor_id)
+        assert compiled.statistics is not None
+        prefix = "enchantment-energy:" + command_id + ":" + contribution.actor_id
+        if contribution.hp:
+            resources, result = apply_injury(
+                resources,
+                Wound(
+                    id=prefix + ":hp",
+                    actor_id=contribution.actor_id,
+                    expected_revision=resources.revision,
+                    basic_damage=contribution.hp,
+                    resistance=0,
+                    damage_type="cr",
+                ),
+                ht=compiled.statistics.ht,
+                rng=runtime.rng,
+                system=True,
+                burning_hp=True,
             )
-        }
-    )
+            if result.injury != contribution.hp:
+                raise ConflictError("Enchanter cannot supply promised HP")
+        if contribution.fp:
+            resources, fatigue = apply_fatigue(
+                resources,
+                FatigueCost(
+                    id=prefix + ":fp",
+                    actor_id=contribution.actor_id,
+                    expected_revision=resources.revision,
+                    amount=contribution.fp,
+                    power=True,
+                ),
+                ht=compiled.statistics.ht,
+                rng=runtime.rng,
+                system=True,
+            )
+            if fatigue.fp_lost != contribution.fp or fatigue.hp_lost:
+                raise ConflictError("Enchanter cannot supply promised FP")
+    return resources
 
 
 def _begin(
@@ -303,6 +432,14 @@ def _begin(
 ) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     if project.status not in ("active", "interrupted") or project.active_work is not None:
         raise ConflictError("Enchantment project is not available for work")
+    if any(
+        other.id != project.id
+        and other.status in ("active", "interrupted")
+        and (other.active_work is not None or other.interruptions)
+        and set(other.enchanter_ids) & set(project.enchanter_ids)
+        for other in state.resources.enchantment_projects
+    ):
+        raise ConflictError("An enchanter is committed to another unfinished enchantment")
     for actor_id in project.enchanter_ids:
         synchronous(state, actor_id)
     if busy_actor_ids(state.resources.enchantment_projects) & set(project.enchanter_ids):
@@ -310,11 +447,46 @@ def _begin(
     _validate_bindings(runtime, state, recipe, project.target_item_id, project.enchanter_ids)
     _energy_preflight(state.resources, recipe, project, command.contributions)
     remaining = recipe.energy_required - project.energy_completed
-    duration = (
-        ceil(recipe.energy_required / 100) * 3600
-        if recipe.method == "quick-and-dirty"
-        else ceil(remaining / len(project.enchanter_ids)) * MAGE_DAY + project.delay_seconds
-    )
+    if recipe.method == "quick-and-dirty":
+        duration = ((recipe.energy_required + 99) // 100) * 3600
+    else:
+        first_shift = next_shift_at(state.resources, project.enchanter_ids)
+        makeup = 0
+        if project.interruptions:
+            paused = next(
+                (
+                    e
+                    for e in state.resources.events
+                    if e.id == "enchantment-pause:" + project.interruptions[-1].command_id
+                ),
+                None,
+            )
+            if paused:
+                previous = EnchantmentSchedule.model_validate_json(paused.kind)
+                makeup = previous.makeup_shifts + max(
+                    0, (first_shift - previous.first_shift_at) // CALENDAR_DAY
+                )
+                first_shift = max(first_shift, previous.first_shift_at)
+            else:
+                # Old checkpoints stored makeup in eight-hour workdays.
+                makeup = (project.delay_seconds + MAGE_DAY - 1) // MAGE_DAY
+        schedule = EnchantmentSchedule(first_shift_at=first_shift, makeup_shifts=makeup)
+        days = (remaining + len(project.enchanter_ids) - 1) // len(project.enchanter_ids) + makeup
+        duration = first_shift - state.resources.game_time + (days - 1) * CALENDAR_DAY + MAGE_DAY
+        resources = state.resources.model_copy(
+            update={
+                "events": state.resources.events
+                + (
+                    ResourceEvent(
+                        id="enchantment-schedule:" + command.id,
+                        at=state.resources.game_time,
+                        target_id=project.id,
+                        kind=schedule.model_dump_json(),
+                    ),
+                )
+            }
+        )
+        state = state.model_copy(update={"resources": resources})
     work = EnchantmentWork(
         id=command.id,
         start=state.resources.game_time,
@@ -338,11 +510,12 @@ def _begin(
 
 
 def _interrupt(
+    runtime: RulesContext,
     state: PlayState,
     command: InterruptEnchanting,
     project: EnchantmentProject,
     recipe: EnchantmentRecipe,
-) -> tuple[EnchantmentProject, EnchantmentOutcome]:
+) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     work = project.active_work
     if project.status != "active" or work is None:
         raise ConflictError("Enchantment project has no active work to interrupt")
@@ -351,32 +524,79 @@ def _interrupt(
     credited = 0
     delay = 0
     if recipe.method == "slow-and-sure":
-        full_days = max(0, state.resources.game_time - work.start) // MAGE_DAY
+        schedule = _schedule(state.resources, work)
+        elapsed = state.resources.game_time - schedule.first_shift_at
+        full_days = (
+            elapsed // CALENDAR_DAY + int(elapsed % CALENDAR_DAY >= MAGE_DAY) if elapsed >= 0 else 0
+        )
+        active = enchanting_work_active(state.resources, project)
         credited = min(
             recipe.energy_required - project.energy_completed,
-            full_days * len(project.enchanter_ids),
+            max(0, full_days - schedule.makeup_shifts) * len(project.enchanter_ids),
         )
-        delay = 2 * MAGE_DAY
+        makeup = max(0, schedule.makeup_shifts - full_days) + int(active)
+        next_shift = (
+            schedule.first_shift_at + (elapsed // CALENDAR_DAY + 1) * CALENDAR_DAY
+            if elapsed >= 0
+            else schedule.first_shift_at
+        )
+        delay = makeup * MAGE_DAY
+        resources = state.resources
+        if active:
+            # B481 describes missing 1d FP, not another 1d lost on top of prior fatigue.
+            contributions = []
+            for actor_id in project.enchanter_ids:
+                missing = draw_dice(runtime.rng, 1)[0]
+                fp = next(p for p in resources.pools if p.id == "fp:" + actor_id)
+                contributions.append(
+                    EnergyContribution(
+                        actor_id=actor_id, fp=max(0, fp.current - fp.maximum + missing)
+                    )
+                )
+            resources = _spend_energy(runtime, state, tuple(contributions), command.id)
+        resources = resources.model_copy(
+            update={
+                "events": resources.events
+                + (
+                    ResourceEvent(
+                        id="enchantment-pause:" + command.id,
+                        at=resources.game_time,
+                        target_id=project.id,
+                        kind=EnchantmentSchedule(
+                            first_shift_at=next_shift, makeup_shifts=makeup
+                        ).model_dump_json(),
+                    ),
+                )
+            }
+        )
+        state = state.model_copy(update={"resources": resources})
     interruption = EnchantmentInterruption(
         command_id=command.id,
         at=state.resources.game_time,
         credited_energy=credited,
         lost_seconds=delay,
     )
+    state = state.model_copy(
+        update={"resources": _end_daily_work(state.resources, project, recipe, command.id)}
+    )
     project = project.model_copy(
         update={
             "status": "interrupted",
             "energy_completed": project.energy_completed + credited,
-            "delay_seconds": project.delay_seconds + delay,
+            "delay_seconds": delay,
             "active_work": None,
             "interruptions": project.interruptions + (interruption,),
         }
     )
-    return project, EnchantmentOutcome(
-        command_id=command.id,
-        project_id=project.id,
-        status="interrupted",
-        energy_completed=project.energy_completed,
+    return (
+        state,
+        project,
+        EnchantmentOutcome(
+            command_id=command.id,
+            project_id=project.id,
+            status="interrupted",
+            energy_completed=project.energy_completed,
+        ),
     )
 
 
@@ -394,12 +614,7 @@ def _settle(
     if state.resources.game_time < work.due:
         raise ConflictError("Enchanting work has not reached its shared-clock deadline")
     _energy_preflight(state.resources, recipe, project, work.contributions)
-    resources = (
-        _spend_energy(state.resources, work.contributions)
-        if recipe.method == "quick-and-dirty"
-        else state.resources
-    )
-    modifiers = (
+    modifiers: tuple[Modifier, ...] = (
         (
             Modifier(
                 -(len(project.enchanter_ids) - 1),
@@ -412,15 +627,58 @@ def _settle(
         if len(project.enchanter_ids) > 1 and recipe.method == "quick-and-dirty"
         else ()
     )
-    check = success_roll("gurps-basic-set-4e-2004", power, modifiers, rng=runtime.rng)
+    if recipe.mana == "low":
+        modifiers += (
+            Modifier(-5, "Low mana", "campaigns:b481:enchanting", "gurps-basic-set-4e-2004"),
+        )
+    lead_hp = next((c.hp for c in work.contributions if c.actor_id == project.enchanter_ids[0]), 0)
+    if lead_hp:
+        modifiers += (
+            Modifier(
+                -lead_hp,
+                "Lead enchanter burns HP",
+                "characters:b237:burning-hp",
+                "gurps-basic-set-4e-2004",
+            ),
+        )
+    bonus = (
+        ceremonial_skill_bonus(recipe.energy_required, sum(c.energy for c in work.contributions))
+        if recipe.method == "quick-and-dirty"
+        else 0
+    )
+    if bonus:
+        modifiers += (
+            Modifier(
+                bonus,
+                "Extra ceremonial energy",
+                "campaigns:b481:enchanting",
+                "gurps-basic-set-4e-2004",
+            ),
+        )
+    check = replay_enchantment_check(
+        success_roll("gurps-basic-set-4e-2004", power, modifiers, rng=runtime.rng)
+    )
+    critical_bonus = draw_dice(runtime.rng, 2) if check.outcome is Outcome.CRITICAL_SUCCESS else ()
+    resources = (
+        _spend_energy(runtime, state, work.contributions, command.id)
+        if recipe.method == "quick-and-dirty"
+        else state.resources
+    )
+    resources = _end_daily_work(resources, project, recipe, command.id)
     completed = recipe.energy_required
     binding_id = None
     status = "failed"
     if check.outcome.succeeded:
         target = next(i for i in resources.items if i.id == project.target_item_id)
         binding_id = "magic-item:" + project.id
-        item_power = power - (
-            len(project.enchanter_ids) - 1 if recipe.method == "quick-and-dirty" else 0
+        # B481 explicitly makes extra ceremonial energy affect permanent Power;
+        # low mana is expressly temporary. Whether the B237 lead-HP roll penalty
+        # also lowers permanent Power remains a source-interpretation boundary.
+        item_power = (
+            power
+            - (len(project.enchanter_ids) - 1 if recipe.method == "quick-and-dirty" else 0)
+            + bonus
+            + sum(critical_bonus)
         )
         instance = MagicItemInstance(
             id=binding_id,
@@ -447,7 +705,24 @@ def _settle(
             update={"items": tuple(target if i.id == target.id else i for i in resources.items)}
         )
         status = "completed"
-    elif check.outcome is Outcome.CRITICAL_FAILURE:
+        if critical_bonus:
+            resources = resources.model_copy(
+                update={
+                    "events": resources.events
+                    + (
+                        ResourceEvent(
+                            id="enchantment-power:" + command.id,
+                            at=resources.game_time,
+                            target_id=project.id,
+                            kind=",".join(str(d) for d in critical_bonus),
+                        ),
+                    )
+                }
+            )
+    elif check.outcome is Outcome.CRITICAL_FAILURE or (
+        recipe.method == "slow-and-sure"
+        and not next(i for i in resources.items if i.id == project.target_item_id).enchantments
+    ):
         destroyed = next(i for i in resources.items if i.id == project.target_item_id)
         resources = resources.model_copy(
             update={
@@ -455,7 +730,22 @@ def _settle(
                 "expended_items": resources.expended_items + (destroyed,),
             }
         )
-        status = "critical-failure"
+        status = "critical-failure" if check.outcome is Outcome.CRITICAL_FAILURE else "failed"
+    elif recipe.method == "quick-and-dirty":
+        resources = resources.model_copy(
+            update={
+                "events": resources.events
+                + (
+                    ResourceEvent(
+                        id="enchantment-perversion:" + command.id,
+                        at=resources.game_time,
+                        target_id=project.target_item_id,
+                        kind=project.id,
+                    ),
+                )
+            }
+        )
+        status = "perverted"
     project = project.model_copy(
         update={
             "status": "completed" if check.outcome.succeeded else "failed",
@@ -477,6 +767,40 @@ def _settle(
             check=check,
             binding_id=binding_id,
         ),
+    )
+
+
+def _advance_work(
+    runtime: RulesContext,
+    state: PlayState,
+    command: AdvanceEnchanting,
+    project: EnchantmentProject,
+) -> tuple[PlayState, EnchantmentOutcome]:
+    work = project.active_work
+    if project.status != "active" or work is None or work.id != command.work_id:
+        raise ConflictError("Enchanting work receipt is not active")
+    if not state.resources.game_time < command.to <= work.due:
+        raise ValidationError("Enchanting clock must advance within the active work deadline")
+    if state.party.groups:
+        raise ValidationError("Grouped campaigns must use their shared party timeline")
+    if any(encounter.status == "active" for encounter in state.encounters):
+        raise ValidationError("Active combat must settle before advancing enchanting work")
+    resources = runtime.resources.apply(
+        state.resources,
+        Advance(
+            id="enchantment-advance:" + command.id,
+            actor_id=command.actor_id,
+            expected_revision=state.resources.revision,
+            to=command.to,
+        ),
+        system=True,
+        rng=runtime.rng,
+    )
+    return state.model_copy(update={"resources": resources}), EnchantmentOutcome(
+        command_id=command.id,
+        project_id=project.id,
+        status="advanced",
+        energy_completed=project.energy_completed,
     )
 
 
@@ -532,10 +856,15 @@ def apply_enchantment(
         if isinstance(command, BeginEnchanting):
             state, project, outcome = _begin(runtime, state, command, project, recipe)
         elif isinstance(command, InterruptEnchanting):
-            project, outcome = _interrupt(state, command, project, recipe)
+            state, project, outcome = _interrupt(runtime, state, command, project, recipe)
+        elif isinstance(command, AdvanceEnchanting):
+            state, outcome = _advance_work(runtime, state, command, project)
         elif isinstance(command, AbandonEnchantment):
             if project.status not in ("active", "interrupted"):
                 raise ConflictError("Only an unfinished enchantment can be abandoned")
+            state = state.model_copy(
+                update={"resources": _end_daily_work(state.resources, project, recipe, command.id)}
+            )
             project = project.model_copy(update={"status": "abandoned", "active_work": None})
             outcome = EnchantmentOutcome(
                 command_id=command.id,

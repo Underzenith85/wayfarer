@@ -43,6 +43,9 @@ from wayfarer.engine.simulation.magic.backfire_transitions import perceive, reco
 from wayfarer.engine.simulation.magic.backfires import refund_due
 from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
+from wayfarer.engine.simulation.magic.item_state import checkpoint as item_magic_checkpoint
+from wayfarer.engine.simulation.magic.power_lifecycle import checkpoint as power_checkpoint
+from wayfarer.engine.simulation.magic.staff_casting_state import checkpoint as staff_checkpoint
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.size_geometry import checkpoint as size_geometry_checkpoint
@@ -205,6 +208,15 @@ class PlayService:
                     "spell:",
                     "runtime-spell:",
                     "spell-ritual:",
+                    "staff-construction:",
+                    "staff-casting-intent:",
+                    "staff-casting-touch:",
+                    "staff-casting-invalid:",
+                    "casting-targeting:",
+                    "item-magic-loss:",
+                    "enchantment:",
+                    "enchantment-rest:",
+                    "power-cast-origin:",
                     "lock-state:",
                     "lock-channel:",
                     "lock-host:",
@@ -400,7 +412,12 @@ class PlayService:
     def checkpoint(
         self, state: PlayState, *, before: PlayState | None = None, run_npcs: bool = True
     ) -> PlayState:
-        resources = state.resources
+        configured_magic = self.engine.rules.spells.magic_items if self.engine.rules.spells else ()
+        resources = item_magic_checkpoint(
+            state.resources,
+            before=before.resources if before is not None else None,
+            configured_bindings=configured_magic,
+        )
         for actor in state.actors:
             resources = refund_due(resources, actor.actor_id)
         state = state.model_copy(update={"resources": resources})
@@ -408,6 +425,7 @@ class PlayService:
         if before is not None:
             state = concentration_checkpoint(self.rules_context, state, before)
             state = held_checkpoint(self.rules_context, state, before)
+        state = power_checkpoint(self.rules_context, state, before=before)
         before_fire = state
         state = spell_checkpoint(self.rules_context, state)
         state = perceive(state)
@@ -416,13 +434,25 @@ class PlayService:
         state = held_checkpoint(self.rules_context, state, before_fire)
         state = shapeshifting_checkpoint(self, state, before=before)
         state = size_geometry_checkpoint(self.rules_context, state)
+        before_late_magic = state
         if run_npcs:
             before_npcs = state
             state = npc_checkpoint(self, state)
             state = shapeshifting_checkpoint(self, state, before=before_npcs)
             state = size_geometry_checkpoint(self.rules_context, state)
+        state = state.model_copy(
+            update={
+                "resources": item_magic_checkpoint(
+                    state.resources, configured_bindings=configured_magic
+                )
+            }
+        )
+        state = power_checkpoint(self.rules_context, state, before=before_late_magic)
         state = objective_checkpoint(self, state, before=before)
-        return sensory_checkpoint(state, before=before) if before is not None else state
+        if before is not None:
+            state = staff_checkpoint(state, before=before)
+            state = sensory_checkpoint(state, before=before)
+        return state
 
     @staticmethod
     def propose(value: object) -> TypedAction:

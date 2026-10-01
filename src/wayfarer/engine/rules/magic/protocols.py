@@ -7,6 +7,7 @@ implement the common B238-242/B481-482 arithmetic and fail-closed boundaries.
 
 from __future__ import annotations
 
+from fractions import Fraction
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -301,19 +302,24 @@ class MagicStaff(Record):
 
     item_id: Id
     form: StaffForm
-    material: StaffMaterial
-    length_yards: int = Field(ge=0, le=2)
+    material: str = Field(min_length=1, max_length=200)
+    once_living: bool
+    length_yards: Fraction = Field(gt=0, le=2)
 
     @model_validator(mode="after")
-    def legal_form(self) -> MagicStaff:
-        expected = {"wand": 0, "short-staff": 1, "full-staff": 2}[self.form]
-        if self.length_yards != expected:
-            raise ValueError("Magic-staff form and reach disagree")
+    def legal_material(self) -> MagicStaff:
+        if not self.once_living:
+            raise ValueError("Magic staff requires once-living material")
         return self
 
     @property
     def reach(self) -> Literal["C", "1", "2"]:
-        return ("C", "1", "2")[self.length_yards]
+        reaches: dict[StaffForm, Literal["C", "1", "2"]] = {
+            "wand": "C",
+            "short-staff": "1",
+            "full-staff": "2",
+        }
+        return reaches[self.form]
 
     @property
     def weapon_skills(self) -> tuple[str, ...]:
@@ -325,7 +331,7 @@ class MagicStaff(Record):
 
 
 class StaffCastingBenefit(Record):
-    effective_distance_yards: int = Field(ge=0)
+    effective_distance_yards: Fraction = Field(ge=0)
     touch_without_distance_penalty: bool
     melee_reach: Literal["C", "1", "2"]
     pointing_declared: bool
@@ -341,9 +347,9 @@ def staff_casting_benefit(
     """Apply the three staff benefits without inferring a late pointing declaration."""
     if type(distance_yards) is not int or distance_yards < 0:
         raise ValidationError("Staff casting distance must be a nonnegative integer")
-    effective = 0 if touching_with_staff else distance_yards
+    effective = Fraction(0 if touching_with_staff else distance_yards)
     if not touching_with_staff and pointing_declared_at_start:
-        effective = max(0, effective - staff.length_yards)
+        effective = max(Fraction(0), effective - staff.length_yards)
     return StaffCastingBenefit(
         effective_distance_yards=effective,
         touch_without_distance_penalty=touching_with_staff,
