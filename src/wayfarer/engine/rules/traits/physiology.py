@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import ROUND_CEILING, Decimal
+from fractions import Fraction
 from typing import Final, Literal
 
 from wayfarer.engine.rules.catalog import (
@@ -159,7 +160,9 @@ BINDINGS: Final = (
         -5,
         parameters=(
             parameter("rarity", "text", "very-common", "common", "occasional", "rare"),
-            parameter("interval", "text", "minute", "hour", "day", "week"),
+            parameter(
+                "interval", "text", "minute", "hour", "day", "week", "month", "season", "year"
+            ),
         ),
     ),
     PhysiologyBinding("disadvantage:electrical", "Electrical", -20),
@@ -271,7 +274,16 @@ def purchase_cost(binding: PhysiologyBinding, levels: int, options: TraitOptions
         rarity = {"very-common": -5, "common": -10, "occasional": -20, "rare": -30}[
             str(values["rarity"])
         ]
-        base = rarity * {"minute": 5, "hour": 4, "day": 3, "week": 1}[str(values["interval"])]
+        factor = {
+            "minute": Fraction(5),
+            "hour": Fraction(4),
+            "day": Fraction(3),
+            "week": Fraction(2),
+            "month": Fraction(1),
+            "season": Fraction(1, 3),
+            "year": Fraction(1, 10),
+        }[str(values["interval"])]
+        base = int(rarity * factor)
     elif binding.id == "disadvantage:sleepy":
         base = {"half": -5, "three-quarters": -10, "most": -20}[str(values["fraction"])]
     elif binding.id == "disadvantage:stress-atavism":
@@ -279,11 +291,15 @@ def purchase_cost(binding: PhysiologyBinding, levels: int, options: TraitOptions
     elif binding.id == "disadvantage:unhealing":
         base = -20 if values["kind"] == "partial" else -30
     elif binding.id == "disadvantage:weakness":
-        rarity = {"very-common": -20, "common": -15, "occasional": -10, "rare": -5}[
-            str(values["rarity"])
-        ]
-        base = (
-            rarity * {"minute": 3, "five-minutes": 2, "thirty-minutes": 1}[str(values["interval"])]
+        multiplier = {
+            "very-common": Decimal(3),
+            "common": Decimal(2),
+            "occasional": Decimal(1),
+            "rare": Decimal("0.5"),
+        }[str(values["rarity"])]
+        base = int(
+            multiplier
+            * {"minute": -20, "five-minutes": -10, "thirty-minutes": -5}[str(values["interval"])]
         )
     else:
         return ordinary
