@@ -20,6 +20,7 @@ from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import NO_RANDOM, CheckTrace, RandomSource, success_check
 from wayfarer.engine.rules.types.affliction import AfflictionDelivery, PenetrationModifier
+from wayfarer.engine.rules.types.symptoms import SymptomSpec
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -260,6 +261,7 @@ class AttackProfile(Record):
     switchable_enhancements: bool = False
     disabled_enhancements: tuple[str, ...] = ()
     surge: bool = False
+    symptom_spec: SymptomSpec | None = None
     symptom: str | None = None
     symptom_threshold: str | None = None
     underwater_range_divisor: int | None = Field(default=None, ge=1)

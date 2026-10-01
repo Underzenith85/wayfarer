@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import Modifier
 from wayfarer.engine.simulation.health.fright_state import aftermath_modifiers, effects
+from wayfarer.engine.simulation.health.symptom_state import active as active_symptoms
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
 
@@ -36,6 +37,19 @@ def check_modifiers(
         )
     ):
         result += (Modifier(-5, "Retching", "fright:retching", "Basic Set Campaigns 4e B428"),)
+    if (
+        not defensive
+        and attribute.lower() in {"dx", "iq"}
+        and any(e.spec.kind == "coughing" for e in active_symptoms(state, actor_id))
+    ):
+        result += (
+            Modifier(
+                -3 if attribute.lower() == "dx" else -1,
+                "Symptoms coughing",
+                "B109",
+                "characters-third",
+            ),
+        )
     for hazard in state.hazards:
         if hazard.actor_id != actor_id:
             continue
@@ -99,6 +113,11 @@ def retching_penalty(state: ResourceState, actor_id: str) -> int:
 
 
 def require_hazard_capacity(state: ResourceState, actor_id: str, kind: str) -> None:
+    for effect in active_symptoms(state, actor_id):
+        if effect.spec.kind == "blindness" and kind == "vision":
+            raise ValidationError("Symptoms blindness prevents vision")
+        if effect.spec.kind == "coughing" and kind == "stealth":
+            raise ValidationError("Symptoms coughing prevents Stealth")
 
     for hazard in state.hazards:
         if hazard.actor_id != actor_id or hazard.affliction_until <= state.game_time:

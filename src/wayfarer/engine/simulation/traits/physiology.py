@@ -12,6 +12,7 @@ from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import RandomSource, draw_dice
 from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
+from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
 from wayfarer.engine.simulation.resources import Command, Pool, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -306,7 +307,7 @@ def apply_physiology_interval(
     event = PhysiologyEvent(
         command_id=command.id, outcome=outcome, interval=interval, request_digest=digest
     )
-    return resources.model_copy(
+    updated = resources.model_copy(
         update={
             "revision": original.revision + 1,
             "pools": pools,
@@ -320,4 +321,5 @@ def apply_physiology_interval(
                 ),
             ),
         }
-    ), outcome
+    )
+    return reconcile_recovery(resources, updated), outcome

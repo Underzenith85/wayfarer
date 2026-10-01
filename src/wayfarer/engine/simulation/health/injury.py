@@ -32,6 +32,7 @@ from wayfarer.engine.simulation.health.hit_locations import (
     select_location,
     wound_factor,
 )
+from wayfarer.engine.simulation.health.symptoms import track_damage
 from wayfarer.engine.simulation.magic.spell_state import break_daze
 from wayfarer.engine.simulation.resources import (
     Command,
@@ -700,6 +701,7 @@ def apply_injury(
             ),
         }
     )
+    updated = track_damage(updated, pool_id=pool.id, injury_id=command.id, amount=injury)
     if injury:
         updated = break_daze(updated, command.actor_id, command.id)
     return ResourceState.model_validate(updated), result

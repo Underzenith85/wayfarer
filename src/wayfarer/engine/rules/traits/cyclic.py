@@ -9,18 +9,50 @@ from wayfarer.engine.rules.traits.modifiers import (
     apply_attack_modifiers,
     validate_selections,
 )
+from wayfarer.engine.rules.traits.symptoms import SYMPTOMS, symptom_percentage, symptom_spec
 from wayfarer.errors import ValidationError
 
 CYCLIC = "modifier:enhancement:cyclic"
 RESISTIBLE = "modifier:limitation:resistible"
-KINDS = {"burn": "burning", "cor": "corrosion", "fat": "fatigue", "tox": "toxic"}
+KINDS = {
+    "burn": "burning",
+    "cor": "corrosion",
+    "fat": "fatigue",
+    "tox": "toxic",
+    "cr": "crushing",
+    "cut": "cutting",
+    "imp": "impaling",
+    "pi-": "piercing",
+    "pi": "piercing",
+    "pi+": "piercing",
+    "pi++": "piercing",
+}
 
 
 def approvals(selections: tuple[ModifierSelection, ...]) -> tuple[ModifierApproval, ...]:
-    if {s.definition_id for s in selections} - {CYCLIC, RESISTIBLE}:
-        raise ValidationError("Cyclic execution supports only Cyclic and Resistible modifiers")
+    if {s.definition_id for s in selections} - {CYCLIC, RESISTIBLE, SYMPTOMS}:
+        raise ValidationError(
+            "Execution supports only Cyclic, Resistible and typed Symptoms modifiers"
+        )
     cyclic = next((s for s in selections if s.definition_id == CYCLIC), None)
-    if cyclic is None or cyclic.parameters is None or cyclic.option is None:
+    symptoms = next((s for s in selections if s.definition_id == SYMPTOMS), None)
+    extra = (
+        ()
+        if symptoms is None
+        else (
+            ModifierApproval(
+                SYMPTOMS,
+                symptoms.option or "",
+                symptom_percentage(symptom_spec(symptoms)),
+                frozenset({"innate-attack"}),
+            ),
+        )
+    )
+    if cyclic is None:
+        if symptoms is None or any(s.definition_id == RESISTIBLE for s in selections):
+            raise ValidationError("Modifier combination has no supported attack consumer")
+        return extra
+    if cyclic.parameters is None or cyclic.option is None:
         raise ValidationError(
             "Cyclic requires an approved option and parameterized stopping condition"
         )
@@ -38,7 +70,7 @@ def approvals(selections: tuple[ModifierSelection, ...]) -> tuple[ModifierApprov
             + {"none": 0, "mild": 20, "high": 50}[params.contagious or "none"],
             frozenset({"innate-attack"}),
         ),
-    )
+    ) + extra
 
 
 def cyclic_profile(selections: tuple[ModifierSelection, ...], damage_type: str) -> AttackProfile:
@@ -48,20 +80,25 @@ def cyclic_profile(selections: tuple[ModifierSelection, ...], damage_type: str) 
     if any(
         s.parameters and s.parameters.damage_kind != kind
         for s in selections
-        if s.definition_id == CYCLIC
+        if s.definition_id in {CYCLIC, SYMPTOMS}
     ):
         raise ValidationError("Cyclic damage kind differs from the approved attack")
     profile = AttackProfile.model_validate({"damage_kind": kind})
-    return apply_attack_modifiers(
+    result = apply_attack_modifiers(
         profile, "innate-attack", selections, approvals(selections)
     ).modified
+    symptoms = next((s for s in selections if s.definition_id == SYMPTOMS), None)
+    return result.model_copy(
+        update={"symptom_spec": None if symptoms is None else symptom_spec(symptoms)}
+    )
 
 
 def cyclic_cost(base: int, selections: tuple[ModifierSelection, ...]) -> int:
     components = validate_selections("innate-attack", selections, approvals(selections))
     resistible = any(s.definition_id == RESISTIBLE for s in selections)
     contagious = next(
-        s.parameters.contagious for s in selections if s.definition_id == CYCLIC and s.parameters
+        (s.parameters.contagious for s in selections if s.definition_id == CYCLIC and s.parameters),
+        "none",
     )
     extra = {"none": 0, "mild": 20, "high": 50}[contagious or "none"]
     percent = sum(

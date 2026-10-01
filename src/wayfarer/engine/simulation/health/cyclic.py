@@ -10,6 +10,7 @@ from wayfarer.engine.rules.types.hazard import RecoveryRestriction
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.symptoms import register as register_symptoms
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -97,6 +98,17 @@ def settle(state: ResourceState, attack: CyclicAttack, rng: RandomSource) -> Res
                 system=True,
             )
             hp_lost = injury.injury
+    if attack.symptom_spec is not None and attack.symptom_source_id is not None and not resisted:
+        state = register_symptoms(
+            state,
+            actor_id=attack.actor_id,
+            source_id=attack.symptom_source_id,
+            injury_id=occurrence,
+            amount=fp_lost if attack.damage_type == "fat" else hp_lost,
+            pool_id=("fp:" if attack.damage_type == "fat" else "hp:") + attack.actor_id,
+            spec=attack.symptom_spec,
+            restriction_id=attack.id,
+        )
     remaining = attack.remaining - 1
     attack = attack.model_copy(
         update={

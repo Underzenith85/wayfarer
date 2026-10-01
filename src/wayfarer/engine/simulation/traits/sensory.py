@@ -11,6 +11,7 @@ from pydantic import Field
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.sensory import sensory_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
+from wayfarer.engine.simulation.health.symptom_state import active as active_symptoms
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
@@ -109,7 +110,11 @@ def apply_sensory_use(
     if command.kind == "communicate" and not traits.can_communicate(channel.medium):
         raise ValidationError("Trait cannot use the authored communication medium")
     result: Literal["observed", "communicated", "blocked", "resisted"]
-    if channel.blocked:
+    if (
+        channel.blocked
+        or channel.medium == "vision"
+        and any(e.spec.kind == "blindness" for e in active_symptoms(resources, command.actor_id))
+    ):
         result = "blocked"
     elif channel.resistant:
         result = "resisted"

@@ -27,6 +27,7 @@ from wayfarer.engine.rules.types.survival import (
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
 from wayfarer.engine.simulation.resources import (
     Command,
     Item,
@@ -636,15 +637,10 @@ def _restore_sleep(
                 "forced_asleep": False,
             }
         )
-    return (
-        state.model_copy(
-            update={"pools": tuple(fp if pool.id == fp.id else pool for pool in state.pools)}
-        ),
-        status,
-        recovered,
-        meals,
-        water,
+    updated = state.model_copy(
+        update={"pools": tuple(fp if pool.id == fp.id else pool for pool in state.pools)}
     )
+    return reconcile_recovery(state, updated), status, recovered, meals, water
 
 
 def finish_sleep(

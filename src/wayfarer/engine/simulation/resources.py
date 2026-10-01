@@ -41,6 +41,7 @@ from wayfarer.engine.rules.types.survival import (
     SurvivalTask,
     validate_survival_records,
 )
+from wayfarer.engine.rules.types.symptoms import SymptomDebt, SymptomEffect
 from wayfarer.engine.rules.types.toxin import DrugDependency, Intoxication, ToxinExposure
 from wayfarer.engine.rules.types.transport import Transport
 from wayfarer.engine.simulation.magic.enchanting import EnchantmentProject
@@ -213,6 +214,8 @@ class ResourceState(Record):
     pools: tuple[Pool, ...] = ()
     active_effect_ids: tuple[str, ...] = ()
     afflictions: tuple[AfflictionEffect, ...] = Field(default=(), exclude_if=lambda v: not v)
+    symptom_effects: tuple[SymptomEffect, ...] = Field(default=(), exclude_if=lambda v: not v)
+    symptom_debts: tuple[SymptomDebt, ...] = Field(default=(), exclude_if=lambda v: not v)
     cyclic_exposures: tuple[CyclicExposure, ...] = Field(default=(), exclude_if=lambda v: not v)
     cyclic_attacks: tuple[CyclicAttack, ...] = Field(default=(), exclude_if=lambda v: not v)
     scheduled: tuple[Scheduled, ...] = ()
