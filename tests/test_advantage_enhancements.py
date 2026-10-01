@@ -113,7 +113,7 @@ def test_targeting_shape_aura_and_ranged_defaults_are_typed() -> None:
         "advantage",
         (pick(INCREASED_RANGE, level=2), pick("modifier:enhancement:ranged")),
     ).modified
-    assert (ranged.half_damage_range, ranged.max_range, ranged.accuracy) == (10, 500, 3)
+    assert (ranged.half_damage_range, ranged.max_range, ranged.accuracy) == (50, 500, 3)
 
 
 def test_cone_cosmic_and_named_permissions_cannot_be_generic_bypasses() -> None:

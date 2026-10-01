@@ -22,12 +22,16 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_advantage_enhancements.py"
+        "tests/test_advantage_enhancements.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
-        682
+        682,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -156,13 +160,17 @@
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
         "tests/test_special_damage.py",
-        "tests/test_advantage_enhancements.py"
+        "tests/test_advantage_enhancements.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
         513,
-        682
+        682,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -865,12 +873,16 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_advantage_enhancements.py"
+        "tests/test_advantage_enhancements.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
-        682
+        682,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -997,12 +1009,16 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_advantage_enhancements.py"
+        "tests/test_advantage_enhancements.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
-        682
+        682,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -1738,12 +1754,16 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -2169,12 +2189,16 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_advantage_limitations.py"
+        "tests/test_advantage_limitations.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
-        683
+        683,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -2532,12 +2556,16 @@
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_advantage_limitations.py"
+        "tests/test_advantage_limitations.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
-        683
+        683,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
@@ -2599,12 +2627,16 @@
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
         "docs/gurps-afflictions-and-cinematic-combat.md",
-        "tests/test_special_damage.py"
+        "tests/test_special_damage.py",
+        "tests/test_composed_attacks.py",
+        "docs/composed-attacks.md",
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
       ],
       "historical_owners": [
         100,
         497,
-        513
+        513,
+        764
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",
