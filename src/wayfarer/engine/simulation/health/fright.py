@@ -14,6 +14,7 @@ from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.health.cyclic import settle as settle_cyclic
+from wayfarer.engine.simulation.health.cyclic_contagion import settle as settle_exposure
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.fright_state import (
     PREFIX,
@@ -285,6 +286,28 @@ def advance(
             (a for a in state.cyclic_attacks if a.active and a.due <= command.to),
             key=lambda a: (a.due, a.id),
         )
+        exposures = sorted(
+            (e for e in state.cyclic_exposures if e.stage == "exposure" and e.due <= command.to),
+            key=lambda e: (e.due, e.id),
+        )
+        next_other = min(
+            (due[0].due or 0) if due else command.to + 1,
+            cycles[0].due if cycles else command.to + 1,
+        )
+        if exposures and exposures[0].due <= next_other:
+            exposure = exposures[0]
+            state = engine.apply(
+                state,
+                Advance(
+                    id="cyclic-contagion-clock:" + exposure.id,
+                    actor_id=command.actor_id,
+                    expected_revision=state.revision,
+                    to=exposure.due,
+                ),
+                system=True,
+            )
+            state = settle_exposure(state, exposure, rng)
+            continue
         if cycles and (not due or cycles[0].due <= (due[0].due or 0)):
             attack = cycles[0]
             step_id = "cyclic-clock:" + attack.id + ":" + str(attack.cycle + 1)

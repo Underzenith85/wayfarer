@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.types.disease import ContactExposure
 from wayfarer.errors import ConflictError
 from wayfarer.models import Record
 
@@ -28,10 +29,12 @@ class CyclicAttack(Record):
     due: int = Field(ge=0)
     stop_condition: str = Field(min_length=1)
     active: bool = True
-    cycle: int = Field(default=1, ge=1)
+    cycle: int = Field(default=1, ge=0)
     hp_debt: int = Field(default=0, ge=0)
     fp_debt: int = Field(default=0, ge=0)
     contagious: Literal["none", "mild", "high"] = "none"
+    contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
+    incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
 
     @model_validator(mode="after")
     def valid(self) -> CyclicAttack:
@@ -55,3 +58,20 @@ class CyclicOccurrence(Record):
     check: CheckTrace | None = None
     hp_lost: int = Field(default=0, ge=0)
     fp_lost: int = Field(default=0, ge=0)
+
+
+class CyclicExposure(Record):
+    id: str
+    source: CyclicAttack
+    relationship: ContactExposure
+    ht: int = Field(ge=1)
+    due: int = Field(ge=0)
+    stage: Literal["exposure", "resisted", "infected"] = "exposure"
+    check: CheckTrace | None = None
+    infection_id: str | None = None
+    immune: bool = False
+
+
+def require_exposures_settled(exposures: tuple[CyclicExposure, ...], at: int) -> None:
+    if any(e.stage == "exposure" and e.due < at for e in exposures):
+        raise ConflictError("Settle the Cyclic contagion deadline before advancing further")

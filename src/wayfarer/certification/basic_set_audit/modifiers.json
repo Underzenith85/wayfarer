@@ -396,13 +396,16 @@
         "docs/gurps-basic-set-source-review.md",
         "tests/test_advantage_enhancements.py",
         "tests/test_cyclic_attacks.py",
-        "src/wayfarer/engine/simulation/health/cyclic.py"
+        "src/wayfarer/engine/simulation/health/cyclic.py",
+        "tests/test_cyclic_contagion.py",
+        "src/wayfarer/engine/simulation/health/cyclic_contagion.py"
       ],
       "historical_owners": [
         100,
         497,
         682,
-        761
+        761,
+        762
       ],
       "completion_owner": null,
       "capability_id": "gurps.character.ability_modifiers",

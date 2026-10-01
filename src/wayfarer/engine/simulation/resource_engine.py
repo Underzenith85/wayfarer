@@ -22,7 +22,7 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.effects import Effect
-from wayfarer.engine.rules.types.cyclic import require_cyclic_settled
+from wayfarer.engine.rules.types.cyclic import require_cyclic_settled, require_exposures_settled
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.rules.types.recovery import require_settled, retire_tasks
@@ -226,6 +226,8 @@ class ResourceEngine:
         ):
             raise ValidationError("Cyclic attack references an unknown actor")
         require_cyclic_settled(state.cyclic_attacks, state.game_time)
+        require_exposures_settled(state.cyclic_exposures, state.game_time)
+        unique(tuple(e.id for e in state.cyclic_exposures))
         unique(tuple(r.command_id for r in state.receipts))
         unique(tuple(creature.actor_id for creature in state.creatures))
         unique(tuple(swarm.id for swarm in state.swarms))
@@ -436,6 +438,7 @@ class ResourceEngine:
             return advance(self, state, command, rng=rng)
         if not isinstance(command, Advance):
             require_cyclic_settled(state.cyclic_attacks, state.game_time + 1)
+            require_exposures_settled(state.cyclic_exposures, state.game_time + 1)
             blast_guard(state)
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
@@ -621,6 +624,7 @@ class ResourceEngine:
                     "Advance to the recovery deadline and settle it before continuing"
                 )
             require_cyclic_settled(state.cyclic_attacks, command.to)
+            require_exposures_settled(state.cyclic_exposures, command.to)
             due = sorted(
                 (s for s in state.scheduled if s.due <= command.to), key=lambda s: (s.due, s.id)
             )
