@@ -14,6 +14,7 @@ from wayfarer.engine.character.traits.attack_defense import (
     AttackDefenseTraits,
     attack_defense_traits,
 )
+from wayfarer.engine.character.traits.physiology import PhysiologyTraits, physiology_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.types.affliction import AfflictionCondition, AfflictionEffect
@@ -23,6 +24,7 @@ from wayfarer.engine.simulation.combat.special_damage import (
 )
 from wayfarer.engine.simulation.equipment.catalog import DamageType
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, FatigueResult, apply_fatigue
+from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState, Scheduled
@@ -156,7 +158,12 @@ def _roll_succeeds(total: int, target: int) -> bool:
 
 
 def _heal_attacker(
-    resources: ResourceState, attacker_id: str, injury: int, *, enabled: bool
+    resources: ResourceState,
+    attacker_id: str,
+    injury: int,
+    *,
+    enabled: bool,
+    physiology: PhysiologyTraits,
 ) -> tuple[ResourceState, int]:
     if not enabled or injury < 3:
         return resources, 0
@@ -165,17 +172,14 @@ def _heal_attacker(
     pool = next((value for value in resources.pools if value.id == pool_id), None)
     if pool is None:
         raise ValidationError("Vampiric Bite requires the attacker's canonical HP pool")
-    healed = min(amount, pool.maximum - pool.current)
+    restored, healed = restore_hp(resources, pool, amount, kind="steal-hp", physiology=physiology)
     if healed == 0:
         return resources, 0
     return (
         resources.model_copy(
             update={
                 "pools": tuple(
-                    value.model_copy(update={"current": value.current + healed})
-                    if value.id == pool_id
-                    else value
-                    for value in resources.pools
+                    restored if value.id == pool_id else value for value in resources.pools
                 )
             }
         ),
@@ -449,6 +453,7 @@ def apply_trait_attack(
             channel.attacker_id,
             result.injury,
             enabled=command.definition_id == "advantage:vampiric-bite",
+            physiology=physiology_traits(attacker_build, definitions),
         )
         state = _apply_survival_traits(state, channel.target_id, target)
         outcome = TraitAttackOutcome(
