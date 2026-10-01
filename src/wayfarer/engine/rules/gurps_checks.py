@@ -224,8 +224,28 @@ def quick_contest(
     """Both contestants roll once; margins decide, including when both fail."""
     require_capabilities(profile_id, (*SUCCESS_CAPABILITIES, QUICK_CONTEST_CAPABILITY))
     _validate_pair(first, second)
-    first_trace = _score(profile_id, QUICK_CONTEST_CAPABILITY, first, draw_dice(rng))
-    second_trace = _score(profile_id, QUICK_CONTEST_CAPABILITY, second, draw_dice(rng))
+    return resolve_quick_contest(
+        profile_id, first, second, first_dice=draw_dice(rng), second_dice=draw_dice(rng)
+    )
+
+
+def resolve_quick_contest(
+    profile_id: str,
+    first: Contestant,
+    second: Contestant,
+    *,
+    first_dice: tuple[int, int, int],
+    second_dice: tuple[int, int, int],
+) -> QuickContestTrace:
+    """Shared B348 procedure for already drawn rolls, including spell resistance.
+
+    A casting roll is also the attack roll in a resisted spell (B241); adapting
+    it must never consume a second attack roll or another randomness source.
+    """
+    require_capabilities(profile_id, (*SUCCESS_CAPABILITIES, QUICK_CONTEST_CAPABILITY))
+    _validate_pair(first, second)
+    first_trace = _score(profile_id, QUICK_CONTEST_CAPABILITY, first, first_dice)
+    second_trace = _score(profile_id, QUICK_CONTEST_CAPABILITY, second, second_dice)
     return _decide_quick(profile_id, first, second, first_trace, second_trace)
 
 

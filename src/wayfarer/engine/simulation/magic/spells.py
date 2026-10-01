@@ -11,7 +11,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
-from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.gurps_checks import Contestant, resolve_quick_contest, success_roll
 from wayfarer.engine.rules.magic.protocols import (
     AreaSelection,
     CeremonialPlan,
@@ -640,10 +640,19 @@ def apply_spell(
                             checks.append(resistance)
                             # One casting roll serves as the attack roll. Rule of 16
                             # caps its contest margin; failed casting never affects.
-                            margin = min(
-                                check.effective_target, max(16, resistance.effective_target)
-                            ) - sum(check.dice)
-                            if resistance.outcome.succeeded and resistance.margin >= margin:
+                            contest = resolve_quick_contest(
+                                PROFILE,
+                                Contestant(
+                                    "caster",
+                                    min(
+                                        check.effective_target, max(16, resistance.effective_target)
+                                    ),
+                                ),
+                                Contestant("subject", resistance.effective_target),
+                                first_dice=check.dice,
+                                second_dice=resistance.dice,
+                            )
+                            if contest.winner != "caster":
                                 outcome = "resisted"
                 effect = effect.model_copy(
                     update={

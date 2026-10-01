@@ -30,7 +30,7 @@ def test_exact_enchantment_inventory_and_pages() -> None:
     rows = {
         value.id: value for value in inventory().entries if value.id in {b.id for b in BINDINGS}
     }
-    assert rows["spell:enchant"].blockers == (747, 785)
+    assert rows["spell:enchant"].blockers == (785,)
     assert rows["spell:enchant"].evidence == (
         "tests/test_spell_construction.py",
         "tests/test_college_dispatch.py",

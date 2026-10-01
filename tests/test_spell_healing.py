@@ -21,8 +21,8 @@ def test_exact_healing_inventory_pages_and_runtime() -> None:
         for value in inventory().entries
         if value.id in {binding.id for binding in BINDINGS}
     }
-    assert rows["spell:major-healing"].blockers == (747, 772)
-    assert rows["spell:great-healing"].blockers == (747, 772)
+    assert rows["spell:major-healing"].blockers == (772,)
+    assert rows["spell:great-healing"].blockers == (772,)
     assert rows["spell:major-healing"].evidence == (
         "tests/test_spell_construction.py",
         "tests/test_college_dispatch.py",

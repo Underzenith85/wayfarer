@@ -5025,7 +5025,6 @@
         "enchantment"
       ],
       "blockers": [
-        747,
         786
       ],
       "source": "campaigns-fourth",
@@ -5052,7 +5051,6 @@
         "knowledge"
       ],
       "blockers": [
-        747,
         791
       ],
       "source": "characters-third",
@@ -5079,7 +5077,6 @@
         "movement"
       ],
       "blockers": [
-        747,
         797
       ],
       "source": "characters-third",
@@ -5106,7 +5103,6 @@
         "protection-warning"
       ],
       "blockers": [
-        747,
         798
       ],
       "source": "characters-third",
@@ -5133,7 +5129,6 @@
         "knowledge"
       ],
       "blockers": [
-        747,
         791
       ],
       "source": "characters-third",
@@ -5160,7 +5155,6 @@
         "healing"
       ],
       "blockers": [
-        747,
         774
       ],
       "source": "characters-third",
@@ -5187,7 +5181,6 @@
         "necromantic"
       ],
       "blockers": [
-        747,
         801
       ],
       "source": "characters-third",
@@ -5214,7 +5207,6 @@
         "light-darkness"
       ],
       "blockers": [
-        747,
         792
       ],
       "source": "characters-third",
@@ -5242,7 +5234,6 @@
         "water"
       ],
       "blockers": [
-        747,
         776
       ],
       "source": "characters-third",
@@ -5269,7 +5260,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         778
       ],
       "source": "characters-third",
@@ -5296,7 +5286,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         788
       ],
       "source": "characters-third",
@@ -5323,7 +5312,6 @@
         "mind-control"
       ],
       "blockers": [
-        747,
         796
       ],
       "source": "characters-third",
@@ -5350,7 +5338,6 @@
         "light-darkness"
       ],
       "blockers": [
-        747,
         792
       ],
       "source": "characters-third",
@@ -5377,7 +5364,6 @@
         "meta"
       ],
       "blockers": [
-        747,
         793
       ],
       "source": "characters-third",
@@ -5404,7 +5390,6 @@
         "air"
       ],
       "blockers": [
-        747,
         775
       ],
       "source": "characters-third",
@@ -5431,7 +5416,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         782
       ],
       "source": "characters-third",
@@ -5481,7 +5465,6 @@
         "water"
       ],
       "blockers": [
-        747,
         804
       ],
       "source": "characters-third",
@@ -5508,7 +5491,6 @@
         "light-darkness"
       ],
       "blockers": [
-        747,
         792
       ],
       "source": "characters-third",
@@ -5558,7 +5540,6 @@
         "necromantic"
       ],
       "blockers": [
-        747,
         800
       ],
       "source": "characters-third",
@@ -5585,7 +5566,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         779
       ],
       "source": "characters-third",
@@ -5612,7 +5592,6 @@
         "enchantment"
       ],
       "blockers": [
-        747,
         786
       ],
       "source": "campaigns-fourth",
@@ -5639,7 +5618,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         789
       ],
       "source": "characters-third",
@@ -5666,7 +5644,6 @@
         "movement"
       ],
       "blockers": [
-        747,
         798
       ],
       "source": "characters-third",
@@ -5693,7 +5670,6 @@
         "water"
       ],
       "blockers": [
-        747,
         804
       ],
       "source": "characters-third",
@@ -5720,7 +5696,6 @@
         "knowledge"
       ],
       "blockers": [
-        747,
         791
       ],
       "source": "characters-third",
@@ -5747,7 +5722,6 @@
         "meta"
       ],
       "blockers": [
-        747,
         793
       ],
       "source": "characters-third",
@@ -5775,7 +5749,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         777
       ],
       "source": "characters-third",
@@ -5802,7 +5775,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         783
       ],
       "source": "characters-third",
@@ -5829,7 +5801,6 @@
         "enchantment"
       ],
       "blockers": [
-        747,
         785
       ],
       "source": "campaigns-fourth",
@@ -5856,7 +5827,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         784
       ],
       "source": "characters-third",
@@ -5883,7 +5853,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         789
       ],
       "source": "characters-third",
@@ -5910,7 +5879,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         787
       ],
       "source": "characters-third",
@@ -5963,7 +5931,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         784
       ],
       "source": "characters-third",
@@ -5990,7 +5957,6 @@
         "water"
       ],
       "blockers": [
-        747,
         805
       ],
       "source": "characters-third",
@@ -6017,7 +5983,6 @@
         "mind-control"
       ],
       "blockers": [
-        747,
         796
       ],
       "source": "characters-third",
@@ -6044,7 +6009,6 @@
         "mind-control"
       ],
       "blockers": [
-        747,
         796
       ],
       "source": "characters-third",
@@ -6071,7 +6035,6 @@
         "enchantment"
       ],
       "blockers": [
-        747,
         786
       ],
       "source": "campaigns-fourth",
@@ -6098,7 +6061,6 @@
         "movement"
       ],
       "blockers": [
-        747,
         797
       ],
       "source": "characters-third",
@@ -6125,7 +6087,6 @@
         "healing"
       ],
       "blockers": [
-        747,
         772
       ],
       "source": "characters-third",
@@ -6152,7 +6113,6 @@
         "movement"
       ],
       "blockers": [
-        747,
         797
       ],
       "source": "characters-third",
@@ -6179,7 +6139,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         788
       ],
       "source": "characters-third",
@@ -6206,7 +6165,6 @@
         "communication-empathy"
       ],
       "blockers": [
-        747,
         781
       ],
       "source": "characters-third",
@@ -6234,7 +6192,6 @@
         "movement"
       ],
       "blockers": [
-        747,
         778
       ],
       "source": "characters-third",
@@ -6261,7 +6218,6 @@
         "water"
       ],
       "blockers": [
-        747,
         805
       ],
       "source": "characters-third",
@@ -6288,7 +6244,6 @@
         "knowledge"
       ],
       "blockers": [
-        747,
         791
       ],
       "source": "characters-third",
@@ -6315,7 +6270,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         787
       ],
       "source": "characters-third",
@@ -6342,7 +6296,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         778
       ],
       "source": "characters-third",
@@ -6369,7 +6322,6 @@
         "healing"
       ],
       "blockers": [
-        747,
         773
       ],
       "source": "characters-third",
@@ -6396,7 +6348,6 @@
         "healing"
       ],
       "blockers": [
-        747,
         773
       ],
       "source": "characters-third",
@@ -6446,7 +6397,6 @@
         "air"
       ],
       "blockers": [
-        747,
         777
       ],
       "source": "characters-third",
@@ -6473,7 +6423,6 @@
         "movement"
       ],
       "blockers": [
-        747,
         799
       ],
       "source": "characters-third",
@@ -6500,7 +6449,6 @@
         "protection-warning"
       ],
       "blockers": [
-        747,
         799
       ],
       "source": "characters-third",
@@ -6527,7 +6475,6 @@
         "healing"
       ],
       "blockers": [
-        747,
         772
       ],
       "source": "characters-third",
@@ -6554,7 +6501,6 @@
         "mind-control"
       ],
       "blockers": [
-        747,
         795
       ],
       "source": "characters-third",
@@ -6581,7 +6527,6 @@
         "mind-control"
       ],
       "blockers": [
-        747,
         795
       ],
       "source": "characters-third",
@@ -6608,7 +6553,6 @@
         "communication-empathy"
       ],
       "blockers": [
-        747,
         781
       ],
       "source": "characters-third",
@@ -6635,7 +6579,6 @@
         "healing"
       ],
       "blockers": [
-        747,
         772
       ],
       "source": "characters-third",
@@ -6662,7 +6605,6 @@
         "air"
       ],
       "blockers": [
-        747,
         775
       ],
       "source": "characters-third",
@@ -6689,7 +6631,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         778
       ],
       "source": "characters-third",
@@ -6716,7 +6657,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         779
       ],
       "source": "characters-third",
@@ -6743,7 +6683,6 @@
         "gate"
       ],
       "blockers": [
-        747,
         801
       ],
       "source": "characters-third",
@@ -6770,7 +6709,6 @@
         "gate"
       ],
       "blockers": [
-        747,
         802
       ],
       "source": "characters-third",
@@ -6797,7 +6735,6 @@
         "enchantment"
       ],
       "blockers": [
-        747,
         785
       ],
       "source": "campaigns-fourth",
@@ -6824,7 +6761,6 @@
         "air"
       ],
       "blockers": [
-        747,
         777
       ],
       "source": "characters-third",
@@ -6851,7 +6787,6 @@
         "enchantment"
       ],
       "blockers": [
-        747,
         786
       ],
       "source": "campaigns-fourth",
@@ -6878,7 +6813,6 @@
         "air"
       ],
       "blockers": [
-        747,
         775
       ],
       "source": "characters-third",
@@ -6905,7 +6839,6 @@
         "water"
       ],
       "blockers": [
-        747,
         804
       ],
       "source": "characters-third",
@@ -6932,7 +6865,6 @@
         "healing"
       ],
       "blockers": [
-        747,
         773
       ],
       "source": "characters-third",
@@ -6959,7 +6891,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         788
       ],
       "source": "characters-third",
@@ -6986,7 +6917,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         788
       ],
       "source": "characters-third",
@@ -7013,7 +6943,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         779
       ],
       "source": "characters-third",
@@ -7040,7 +6969,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         782
       ],
       "source": "characters-third",
@@ -7067,7 +6995,6 @@
         "water"
       ],
       "blockers": [
-        747,
         804
       ],
       "source": "characters-third",
@@ -7094,7 +7021,6 @@
         "knowledge"
       ],
       "blockers": [
-        747,
         794
       ],
       "source": "characters-third",
@@ -7121,7 +7047,6 @@
         "communication-empathy"
       ],
       "blockers": [
-        747,
         780
       ],
       "source": "characters-third",
@@ -7148,7 +7073,6 @@
         "communication-empathy"
       ],
       "blockers": [
-        747,
         780
       ],
       "source": "characters-third",
@@ -7175,7 +7099,6 @@
         "necromantic"
       ],
       "blockers": [
-        747,
         800
       ],
       "source": "characters-third",
@@ -7202,7 +7125,6 @@
         "air"
       ],
       "blockers": [
-        747,
         775
       ],
       "source": "characters-third",
@@ -7229,7 +7151,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         782
       ],
       "source": "characters-third",
@@ -7256,7 +7177,6 @@
         "fire"
       ],
       "blockers": [
-        747,
         787
       ],
       "source": "characters-third",
@@ -7283,7 +7203,6 @@
         "water"
       ],
       "blockers": [
-        747,
         805
       ],
       "source": "characters-third",
@@ -7310,7 +7229,6 @@
         "protection-warning"
       ],
       "blockers": [
-        747,
         798
       ],
       "source": "characters-third",
@@ -7337,7 +7255,6 @@
         "mind-control"
       ],
       "blockers": [
-        747,
         795
       ],
       "source": "characters-third",
@@ -7364,7 +7281,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         778
       ],
       "source": "characters-third",
@@ -7391,7 +7307,6 @@
         "enchantment"
       ],
       "blockers": [
-        747,
         785
       ],
       "source": "campaigns-fourth",
@@ -7418,7 +7333,6 @@
         "air"
       ],
       "blockers": [
-        747,
         776
       ],
       "source": "characters-third",
@@ -7445,7 +7359,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         783
       ],
       "source": "characters-third",
@@ -7472,7 +7385,6 @@
         "earth"
       ],
       "blockers": [
-        747,
         784
       ],
       "source": "characters-third",
@@ -7499,7 +7411,6 @@
         "necromantic"
       ],
       "blockers": [
-        747,
         801
       ],
       "source": "characters-third",
@@ -7526,7 +7437,6 @@
         "necromantic"
       ],
       "blockers": [
-        747,
         800
       ],
       "source": "characters-third",
@@ -7553,7 +7463,6 @@
         "knowledge"
       ],
       "blockers": [
-        747,
         794
       ],
       "source": "characters-third",
@@ -7580,7 +7489,6 @@
         "communication-empathy"
       ],
       "blockers": [
-        747,
         780
       ],
       "source": "characters-third",
@@ -7607,7 +7515,6 @@
         "necromantic"
       ],
       "blockers": [
-        747,
         803
       ],
       "source": "characters-third",
@@ -7634,7 +7541,6 @@
         "air"
       ],
       "blockers": [
-        747,
         776
       ],
       "source": "characters-third",
@@ -7661,7 +7567,6 @@
         "body-control"
       ],
       "blockers": [
-        747,
         779
       ],
       "source": "characters-third",
@@ -7688,7 +7593,6 @@
         "necromantic"
       ],
       "blockers": [
-        747,
         803
       ],
       "source": "characters-third",
