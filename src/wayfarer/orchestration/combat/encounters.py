@@ -19,11 +19,15 @@ from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter,
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.objects.locations import bind_initial_hands
 from wayfarer.engine.simulation.combat.ranged.situation import declare
+from wayfarer.engine.simulation.combat.sensory_combat import refresh_armed_senses
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext, CoverSpatialFact
 from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
+from wayfarer.engine.simulation.combat.unarmed.declaration import tactile_control
+from wayfarer.engine.simulation.combat.unarmed.defense import refresh_unarmed_senses
 from wayfarer.engine.simulation.combat.unarmed.fighters import guard_control
 from wayfarer.engine.simulation.combat.visibility import targetable, visible_actors
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
 
@@ -213,18 +217,43 @@ def _start_basic_encounter(
     )
 
 
-def _validate_basic_target(encounter: Encounter, observer_id: str, target_id: str) -> None:
+def _validate_basic_target(
+    state: PlayState, encounter: Encounter, observer_id: str, target_id: str
+) -> None:
     spatial = encounter.spatial
     assert isinstance(spatial, BasicSpatialContext)
     if spatial.active("visibility", observer_id, target_id) is None:
         raise ValidationError("Basic combat requires an authoritative visibility fact")
-    if not targetable(encounter, observer_id, target_id):
+    if not targetable(encounter, observer_id, target_id, state=state):
         raise ValidationError("Target is unavailable")
     cover = spatial.active("cover", observer_id, target_id)
     if not isinstance(cover, CoverSpatialFact):
         raise ValidationError("Basic combat requires an authoritative cover fact")
     if cover.cover == "full":
         raise ValidationError("Full cover blocks the target")
+
+
+def _validate_sensory_target(
+    state: PlayState, encounter: Encounter, command: TypedCombatCommand, *, tactile: bool
+) -> None:
+    """Admission for current visual capacity, before maneuver effects or dice."""
+    if (
+        isinstance(command, (TakeCombatTurn, TakeUnarmedTurn))
+        and command.target_id is not None
+        and not tactile
+        and acute_blindness(state.resources, command.actor_id)
+        and not targetable(encounter, command.actor_id, command.target_id, state=state)
+    ):
+        raise ValidationError("Target is unavailable")
+    if isinstance(command, TakeCombatTurn):
+        if command.maneuver == "evaluate" and acute_blindness(state.resources, command.actor_id):
+            raise ValidationError("Evaluate requires a visible opponent")
+        if (
+            (command.maneuver == "feint" or command.attack_option == "feint")
+            and command.target_id is not None
+            and acute_blindness(state.resources, command.target_id)
+        ):
+            raise ValidationError("Feint requires the opponent to observe the attacker")
 
 
 def _prepare_encounter(
@@ -235,10 +264,20 @@ def _prepare_encounter(
     encounter = encounter_for(state, command.encounter_id)
     if play.engine.rules.scenes is not None:
         encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules)
-    if encounter.spatial_kind == "hex" and isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
+    tactile = isinstance(command, TakeUnarmedTurn) and tactile_control(encounter, command)
+    _validate_sensory_target(state, encounter, command, tactile=tactile)
+    if (
+        not tactile
+        and encounter.spatial_kind == "hex"
+        and isinstance(command, (TakeCombatTurn, TakeUnarmedTurn))
+    ):
         if (
             command.target_id is not None
             and not (isinstance(command, TakeCombatTurn) and command.pop_up)
+            and not (
+                acute_blindness(state.resources, command.actor_id)
+                and targetable(encounter, command.actor_id, command.target_id, state=state)
+            )
             and command.target_id
             not in visible_actors(
                 state, encounter, command.actor_id, board=play.rules_context.hex_map(encounter)
@@ -259,11 +298,13 @@ def _prepare_encounter(
                 )
             ):
                 raise ValidationError("Target is unavailable")
-    elif encounter.spatial_kind == "basic" and isinstance(
-        command, (TakeCombatTurn, TakeUnarmedTurn)
+    elif (
+        not tactile
+        and encounter.spatial_kind == "basic"
+        and isinstance(command, (TakeCombatTurn, TakeUnarmedTurn))
     ):
         if command.target_id is not None:
-            _validate_basic_target(encounter, command.actor_id, command.target_id)
+            _validate_basic_target(state, encounter, command.actor_id, command.target_id)
         if isinstance(command, TakeCombatTurn) and command.wait_trigger is not None:
             for actor_id in (
                 command.wait_trigger.actor_id,
@@ -278,6 +319,9 @@ def _prepare_encounter(
     guard_control(encounter, command, state)
 
     if isinstance(command, ChooseDefense):
+        if engine.rules.gurps_equipment is not None:
+            encounter = refresh_armed_senses(play.rules_context, state, encounter, command)
+            encounter = refresh_unarmed_senses(play.rules_context, state, encounter, command)
         if encounter.pending_unarmed is None and (
             command.parry_mode_id is not None or command.second_parry_mode_id is not None
         ):

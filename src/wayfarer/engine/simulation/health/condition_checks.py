@@ -11,6 +11,7 @@ from wayfarer.engine.rules.checks import Modifier
 from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fright_state import aftermath_modifiers, effects
 from wayfarer.engine.simulation.health.symptom_state import active as active_symptoms
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.magic.awaken_state import alert_until
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
@@ -129,9 +130,9 @@ def retching_penalty(state: ResourceState, actor_id: str) -> int:
 def require_hazard_capacity(state: ResourceState, actor_id: str, kind: str) -> None:
     if kind not in ("question", "wait") and drug_unconscious(state, actor_id):
         raise ValidationError("An unconscious drugged actor cannot act")
+    if kind == "vision" and acute_blindness(state, actor_id):
+        raise ValidationError("Symptoms blindness prevents vision")
     for effect in active_symptoms(state, actor_id):
-        if effect.spec.kind == "blindness" and kind == "vision":
-            raise ValidationError("Symptoms blindness prevents vision")
         if effect.spec.kind == "coughing" and kind == "stealth":
             raise ValidationError("Symptoms coughing prevents Stealth")
 

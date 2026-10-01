@@ -20,6 +20,7 @@ from wayfarer.engine.simulation.combat.objects.combat import (
 )
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.special_melee import targeted_attack_penalty
+from wayfarer.engine.simulation.combat.visibility import adjusted_defense, external_defense_penalty
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import Damage
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
@@ -76,6 +77,9 @@ def resolve(
         runtime, state, defender, second_defense or "none", second_item_id
     )
 
+    penalty = external_defense_penalty(state, defender.actor_id, pending.visibility_defense_penalty)
+    defense = adjusted_defense(defense, penalty)
+    second = adjusted_defense(second, penalty)
     object_penalty = (
         target_modifier(runtime, state, defender.actor_id, pending.target_item_id)
         if pending.target_item_id
@@ -84,6 +88,7 @@ def resolve(
     attack = success_roll(
         PROFILE,
         int(value.value)
+        + pending.visibility_attack_penalty
         + pending.spell_aim_bonus
         + range_penalty(distance)
         + object_penalty

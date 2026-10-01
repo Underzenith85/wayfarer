@@ -36,6 +36,7 @@ from wayfarer.engine.simulation.campaign.scenario_references import verify
 from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.engine.simulation.campaign.social_policy import parse_graph
 from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.combat.sensory_state import checkpoint as sensory_checkpoint
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.magic.area_fire import checkpoint as spell_checkpoint
 from wayfarer.engine.simulation.magic.backfire_transitions import perceive, recover_stuns
@@ -196,6 +197,10 @@ class PlayService:
         if any(
             event.id.startswith(
                 (
+                    "combat-abandoned-attack:",
+                    "unarmed-random:",
+                    "combat-sense:",
+                    "combat-sense-invalidated:",
                     "ability:",
                     "spell:",
                     "runtime-spell:",
@@ -416,7 +421,8 @@ class PlayService:
             state = npc_checkpoint(self, state)
             state = shapeshifting_checkpoint(self, state, before=before_npcs)
             state = size_geometry_checkpoint(self.rules_context, state)
-        return objective_checkpoint(self, state, before=before)
+        state = objective_checkpoint(self, state, before=before)
+        return sensory_checkpoint(state, before=before) if before is not None else state
 
     @staticmethod
     def propose(value: object) -> TypedAction:

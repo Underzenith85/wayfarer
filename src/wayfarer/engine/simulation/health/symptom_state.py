@@ -16,6 +16,11 @@ def active(state: ResourceState, actor_id: str) -> tuple[SymptomEffect, ...]:
     return tuple(e for e in state.symptom_effects if e.actor_id == actor_id and e.active)
 
 
+def acute_blindness(state: ResourceState, actor_id: str) -> bool:
+    """B109/B124 sudden sight loss; this never changes purchases or eye anatomy."""
+    return any(effect.spec.kind == "blindness" for effect in active(state, actor_id))
+
+
 def penalties(state: ResourceState, actor_id: str) -> dict[str, int]:
     result = dict.fromkeys(("st", "dx", "iq", "ht"), 0)
     for effect in active(state, actor_id):

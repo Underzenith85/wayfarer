@@ -13,7 +13,8 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
-from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense
+from wayfarer.engine.simulation.combat.sensory_state import invalidate_movement
+from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense_with_movement
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.defense import _defend
 from wayfarer.orchestration.combat.encounters import (
@@ -75,11 +76,17 @@ def reduce_combat(
         encounter = _prepare_encounter(state, command, context)
         step = _COMBAT_STEPS[command.kind](state, command, encounter, context)
         if isinstance(command, ChooseDefense):
+            finished, moved = finish_defense_with_movement(
+                context.play.rules_context, step.state, step.encounter, command
+            )
+            resources = invalidate_movement(
+                step.resources, finished.id, moved, revision=command.expected_revision + 1
+            )
             step = replace(
                 step,
-                encounter=finish_defense(
-                    context.play.rules_context, step.state, step.encounter, command
-                ),
+                encounter=finished,
+                resources=resources,
+                state=step.state.model_copy(update={"resources": resources}),
             )
         encounters = tuple(
             step.encounter if e.id == step.encounter.id else e for e in step.state.encounters

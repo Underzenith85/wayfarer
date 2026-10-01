@@ -15,25 +15,22 @@ from wayfarer.engine.simulation.combat.close_combat import (
     stray_target_order,
 )
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
-from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
 from wayfarer.engine.simulation.combat.firearm_transitions import validate_attack
-from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import target_geometry
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
+from wayfarer.engine.simulation.combat.physical_defenses import physical_defenses
 from wayfarer.engine.simulation.combat.ranged.equipment import ammunition_profile, effective_mode
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.special import validate_cover_geometry
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
 from wayfarer.engine.simulation.combat.spatial import point_distance
-from wayfarer.engine.simulation.combat.tactical import defense_adjustment
 from wayfarer.engine.simulation.combat.thrown.explosions import separation, validate_position
 from wayfarer.engine.simulation.combat.thrown.flight import position
-from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.visibility import combat_visibility
-from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import disabled
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -177,7 +174,13 @@ def prepare(
         cover_item_id=cover_item_id,
         overpenetration_target_id=overpenetration_target_id,
     )
-    visibility = combat_visibility(encounter, actor.actor_id, target.actor_id)
+    visibility = combat_visibility(
+        encounter,
+        actor.actor_id,
+        target.actor_id,
+        state=state,
+        validate_attack=pending.suppression_zone_id is None,
+    )
     close = bool(opponents_in_close_combat(encounter, actor.actor_id))
     defender_close = bool(opponents_in_close_combat(encounter, target.actor_id))
     bystanders = tuple(
@@ -205,7 +208,9 @@ def prepare(
     )
     attack_distance = area_distance if area_distance is not None else scene.distance
 
-    if len(disabled(state.resources, actor.actor_id) & {"left-eye", "right-eye"}) == 2:
+    if len(
+        disabled(state.resources, actor.actor_id) & {"left-eye", "right-eye"}
+    ) == 2 and not acute_blindness(state.resources, actor.actor_id):
         raise ValidationError("Blind ranged attacks require an explicit sensory targeting adapter")
     stats = build(runtime, state, actor.actor_id).statistics
     assert stats is not None
@@ -280,50 +285,20 @@ def prepare(
             raise ValidationError("This stream has run for as long as it can be held")
         if weapon.sprayer.ignites and encounter.scene_id is None:
             raise ValidationError("Lingering fire requires an authoritative encounter scene")
-    allowed: list[Defense] = ["none"]
-    # B178: a shot laid indirectly arrives without warning, so the target has no
-    # active defense against it. A directly laid mount is defended normally.
-    indirect = weapon.mount is not None and weapon.mount.indirect
-    candidates = tuple(
-        candidate
-        for candidate in (
-            () if indirect or area_aim_point is not None else ("dodge", "block", "parry")
-        )
-        if candidate in visibility.defenses
+    physical = physical_defenses(
+        runtime,
+        state,
+        encounter,
+        pending.model_copy(
+            update={
+                "target_item_id": target_item_id,
+                "area_aim_point": area_aim_point,
+                "mode_id": weapon.id,
+            }
+        ),
+        weapon,
     )
-    for candidate in candidates:
-        if (
-            target_item_id
-            and next(i for i in state.resources.items if i.id == target_item_id).ground
-        ):
-            continue
-        targeting_weapon = weapon_target(runtime, state, target_item_id)
-        if targeting_weapon and candidate == "block":
-            continue
-        if candidate == "parry" and (
-            not weapon.thrown or catalog(runtime).profile_id != "gurps-basic-set-4e-2004"
-        ):
-            continue
-        if candidate == "block" and (defender_close or not (weapon.thrown or weapon.blockable)):
-            continue
-        try:
-            defense_adjustment(encounter, actor, target, approach=pending.tactical_approach)
-            defense_value(
-                runtime,
-                state,
-                target,
-                candidate,
-                target_item_id if targeting_weapon and candidate == "parry" else None,
-            )
-        except ValidationError:
-            if candidate != "parry" or not weapon.catchable or targeting_weapon:
-                continue
-
-            try:
-                unarmed_defense(runtime, state, encounter, target.actor_id, "parry", None)
-            except ValidationError:
-                continue
-        allowed.append(candidate)
+    allowed = tuple(d for d in physical if d == "none" or d in visibility.defenses)
     return encounter.model_copy(
         update={
             "pending_defense": pending.model_copy(

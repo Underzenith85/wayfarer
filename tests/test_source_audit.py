@@ -170,6 +170,7 @@ def test_profile_source_blockers_do_not_cross_contaminate_certification() -> Non
         "ledger:trait:advantage:alternate-form",
         "ledger:trait:advantage:morph",
         "ledger:trait:advantage:unusual-background",
+        "ledger:modifier:enhancement:symptoms",
     )
 
     with pytest.raises(ValidationError, match="Unknown source-audit profile"):

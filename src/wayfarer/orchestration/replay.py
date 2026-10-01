@@ -1,13 +1,19 @@
 """Replay supported typed command families with recorded inputs and no providers."""
 
 import json
+from collections.abc import Awaitable, Callable, Mapping
 
 from wayfarer import validation
+from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
+from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
+from wayfarer.orchestration.combat.abandon import AbandonPendingAttackService
+from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, RandomUnarmedStrike
+from wayfarer.orchestration.combat_senses import CombatSensesService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.locks import LockService, LockSpellService
 from wayfarer.orchestration.party import PartyCommand, PartyService
@@ -21,6 +27,44 @@ from wayfarer.orchestration.spells import SpellService
 from wayfarer.orchestration.transformations import TransformationService
 from wayfarer.persistence.events import CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
+
+
+async def _abandon_pending_attack(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await AbandonPendingAttackService(play).execute(
+        record.campaign_id,
+        AbandonPendingAttack.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _random_unarmed(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await RandomUnarmedService(play).execute(
+        record.campaign_id,
+        RandomUnarmedStrike.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _combat_senses(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await CombatSensesService(play).execute(
+        record.campaign_id, SENSORY_ADAPTER.validate_json(encoded), principal_id=record.actor_id
+    )
+
+
+async def _harmful_physiology(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await HarmfulPhysiologyService(play).execute(
+        record.campaign_id,
+        validation.mapping(validation.decode(encoded)),
+        principal_id=record.actor_id,
+    )
+
+
+_REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "combat-abandon-pending-attack": _abandon_pending_attack,
+    "combat-random-unarmed": _random_unarmed,
+    "combat-senses": _combat_senses,
+    "harmful-physiology": _harmful_physiology,
+}
 
 
 async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
@@ -39,13 +83,12 @@ async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
     command = validation.mapping(raw)
     encoded = json.dumps(command)
     operation = payload.get("operation")
+    handler = _REGISTERED_FAMILIES.get(operation) if isinstance(operation, str) else None
     with replay_inputs(record):
-        if operation == "typed-action":
+        if handler is not None:
+            await handler(play, record, encoded)
+        elif operation == "typed-action":
             await play.execute(record.campaign_id, command, principal_id=record.actor_id)
-        elif operation == "harmful-physiology":
-            await HarmfulPhysiologyService(play).execute(
-                record.campaign_id, command, principal_id=record.actor_id
-            )
         elif operation == "transformation":
             await TransformationService(play).execute(
                 record.campaign_id, command, principal_id=record.actor_id

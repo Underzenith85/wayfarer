@@ -41,6 +41,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
         UNUSUAL_BACKGROUND_ID,
         "trait:advantage:alternate-form",
         "trait:advantage:morph",
+        "modifier:enhancement:symptoms",
     }
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
@@ -323,6 +324,7 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         (UNUSUAL_BACKGROUND_ID, 906),
         ("trait:advantage:alternate-form", 757),
         ("trait:advantage:morph", 757),
+        ("modifier:enhancement:symptoms", 763),
     }
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
@@ -330,7 +332,12 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.source_ledger_rows == 1_285
     assert report.required_source_ledger_rows == 1_044
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
-    assert report.source_ledger_rollups["completion_owner"] == {"none": 1_282, "757": 2, "906": 1}
+    assert report.source_ledger_rollups["completion_owner"] == {
+        "none": 1_281,
+        "757": 2,
+        "763": 1,
+        "906": 1,
+    }
 
 
 def test_characters_section_obligations_are_explicit_and_bounded() -> None:

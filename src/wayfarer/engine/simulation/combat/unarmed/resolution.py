@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast, get_args
 
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
@@ -16,10 +16,15 @@ from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
+from wayfarer.engine.simulation.combat.objects.locations import from_behind
 from wayfarer.engine.simulation.combat.special_melee import actor_size_modifier
 from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.unarmed.choke import start_choke_hold
-from wayfarer.engine.simulation.combat.unarmed.defense import parry_candidates, unarmed_defense
+from wayfarer.engine.simulation.combat.unarmed.defense import (
+    parry_candidates,
+    sensory_encounter,
+    unarmed_defense,
+)
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
     encumbrance_level,
     fighter,
@@ -33,19 +38,29 @@ from wayfarer.engine.simulation.combat.unarmed.injury import (
     drop_held,
     hurt,
 )
+from wayfarer.engine.simulation.combat.unarmed.random_strike import (
+    RandomStrike,
+    random_strike,
+    save,
+)
 from wayfarer.engine.simulation.combat.unarmed.records import (
     BASIC,
+    GrappleLocation,
     Grip,
+    PendingUnarmed,
     UnarmedTrace,
     striking_bonus,
 )
+from wayfarer.engine.simulation.combat.unarmed.senses import visibility
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
-from wayfarer.engine.simulation.health.hit_locations import torso_near_miss
+from wayfarer.engine.simulation.health.hit_locations import select_location, torso_near_miss
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.skills.power_blow import power_blow_strength
 from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
+    from wayfarer.engine.rules.types.injury import InjuryStatus
     from wayfarer.engine.simulation.combat.commands import ChooseDefense
     from wayfarer.engine.simulation.rules_context import RulesContext
 
@@ -56,8 +71,10 @@ def defend(
     pending = encounter.pending_unarmed
     if (
         pending is None
+        or command.defense == "block"
+        or command.second_defense == "block"
         or command.actor_id != pending.target_id
-        or command.defense not in pending.allowed
+        or (pending.choke_hold and command.defense != "none")
     ):
         raise ValidationError("Defense is not authorized for this unarmed attack")
     defense_target, hand = unarmed_defense(
@@ -82,8 +99,6 @@ def defend(
             or target.maneuver_state.enhanced_defense != "double"
         ):
             raise ValidationError("Second defense requires All-Out Defense (Double)")
-        if command.second_defense not in pending.allowed:
-            raise ValidationError("Second defense is not available against this attack")
         second_target, second_hand = unarmed_defense(
             runtime,
             state,
@@ -104,7 +119,8 @@ def defend(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
     value = skill_value(runtime, state, actor.actor_id, pending.skill) - hp.injury.shock
-    value += hp.injury.physical_traits.darkness(encounter.darkness_penalty)
+    sensory_penalty, random = _attack_senses(state, encounter, pending, hp.injury)
+    value += sensory_penalty
     if pending.skill in ("skill:judo", "skill:karate"):
         value -= encumbrance_level(runtime, state, actor.actor_id)
     value -= 4 if actor.grappled else 0
@@ -169,8 +185,26 @@ def defend(
         BASIC, value, check_modifiers(state.resources, actor.actor_id, "dx"), rng=runtime.rng
     )
 
-    near_miss = pending.action in ("punch", "kick") and torso_near_miss(pending.location, attack)
-    resolved_location = "torso" if near_miss else pending.location
+    near_miss = (
+        random is None
+        and pending.action in ("punch", "kick")
+        and torso_near_miss(pending.location, attack)
+    )
+    resolved_location, location_dice = select_location(
+        "random" if random is not None else "torso" if near_miss else pending.location,
+        rng=runtime.rng,
+        from_behind=encounter.spatial_kind == "hex" and from_behind(actor, target),
+    )
+    if random is not None:
+        state = save(
+            state,
+            random.model_copy(
+                update={
+                    "resolved_location": resolved_location,
+                    "location_dice": location_dice,
+                }
+            ),
+        )
     checks: tuple[CheckTrace, ...] = (attack,)
     hit = attack.outcome.succeeded or near_miss
     blocked = None
@@ -397,7 +431,10 @@ def defend(
             table_dice=table,
             effect_dice=effect_dice,
             effect_checks=effect_checks,
-            resolved_location=resolved_location if pending.action in ("punch", "kick") else None,
+            resolved_location=cast(GrappleLocation, resolved_location)
+            if pending.action in ("punch", "kick")
+            and resolved_location in get_args(GrappleLocation)
+            else None,
             defenses=tuple(
                 (choice, selected_hand)
                 for choice, (_, selected_hand) in zip(
@@ -407,3 +444,22 @@ def defend(
             ),
         ),
     )
+
+
+def _attack_senses(
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    injury: InjuryStatus,
+) -> tuple[int, RandomStrike | None]:
+    """Require current blind targeting and score visual impairment exactly once."""
+    sensory = visibility(
+        state, sensory_encounter(state, encounter), pending.actor_id, pending.target_id
+    )
+    random = random_strike(state, encounter.id, pending.id, pending.actor_id, pending.target_id)
+    if acute_blindness(state.resources, pending.actor_id) and random is None:
+        raise ValidationError("Blind unarmed attacks require a private random strike")
+    penalty: int = sensory.attack_penalty
+    if not acute_blindness(state.resources, pending.actor_id):
+        penalty += injury.physical_traits.darkness(encounter.darkness_penalty)
+    return penalty, random

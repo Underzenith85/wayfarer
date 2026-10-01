@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_str
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
+from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.errors import ValidationError
 
@@ -120,7 +121,9 @@ def _aim(
                         "aim_mode_id": aimed_mode.id,
                         "aim_seconds": seconds,
                         "aim_braced": command.braced,
-                        "aim_sight_bonus": min(aimed_mode.accuracy, sight_bonus),
+                        "aim_sight_bonus": 0
+                        if acute_blindness(state.resources, actor.actor_id)
+                        else min(aimed_mode.accuracy, sight_bonus),
                     }
                 )
             }

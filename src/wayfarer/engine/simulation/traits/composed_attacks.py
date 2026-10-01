@@ -16,7 +16,7 @@ from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
 from wayfarer.engine.rules.types.cyclic import require_cyclic_settled
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
-from wayfarer.engine.simulation.health.symptom_state import active, projected_build
+from wayfarer.engine.simulation.health.symptom_state import active, acute_blindness, projected_build
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.simulation.traits.attack_defense import (
     AttackChannel,
@@ -46,6 +46,9 @@ class AttackCompositionContext(Record):
     specialty: Literal["beam", "breath", "gaze", "projectile"] = "projectile"
     aim_seconds: int = Field(default=0, ge=0, le=3)
     defense: Literal["none", "dodge"] = "dodge"
+    defender_attack_awareness: str | None = Field(
+        default=None, min_length=1, max_length=2000, pattern=r"\S"
+    )
     target_perceived: bool = True
     vision_contact: bool = True
     resist: bool = True
@@ -151,6 +154,9 @@ def _resolve_delivery(
         )
     if context.distance_yards > profile.max_range:
         raise ValidationError("Target exceeds the approved composed attack range")
+    blind_defender = acute_blindness(state, context.target_id)
+    if blind_defender and context.defense == "dodge" and context.defender_attack_awareness is None:
+        raise ValidationError("Blind composed defense requires independent attack awareness")
     check = _ordinary_check(state, actor_id, build, profile, context, rng)
     defended = False
     checks = (check,)
@@ -160,7 +166,9 @@ def _resolve_delivery(
         and context.defense == "dodge"
     ):
         assert target.statistics is not None
-        defense = success_roll(PROFILE, target.statistics.dodge, rng=rng)
+        defense = success_roll(
+            PROFILE, target.statistics.dodge - (4 if blind_defender else 0), rng=rng
+        )
         checks += (defense,)
         defended = defense.outcome.succeeded
     return check.outcome.succeeded, defended, checks

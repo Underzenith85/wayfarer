@@ -23,7 +23,7 @@ from wayfarer.engine.simulation.combat.unarmed.choke import finish_choke_turns, 
 from wayfarer.engine.simulation.combat.unarmed.fighters import settle_control
 from wayfarer.engine.simulation.combat.withdrawal import elapsed_seconds
 from wayfarer.engine.simulation.magic.area_fire import crossings
-from wayfarer.engine.simulation.resources import Advance
+from wayfarer.engine.simulation.resources import Advance, Command
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.party import PartyService
@@ -31,7 +31,7 @@ from wayfarer.orchestration.party import PartyService
 
 def _settle_combat(
     step: CombatStep,
-    command: TypedCombatCommand,
+    command: Command | TypedCombatCommand,
     encounters: tuple[Encounter, ...],
     context: CombatContext,
 ) -> tuple[CombatStep, tuple[Encounter, ...]]:
@@ -118,7 +118,7 @@ def _settle_combat(
 
 def _finish_combat(
     step: CombatStep,
-    command: TypedCombatCommand,
+    command: Command | TypedCombatCommand,
     encounters: tuple[Encounter, ...],
     context: CombatContext,
 ) -> tuple[PlayState, CombatResult]:

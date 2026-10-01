@@ -20,9 +20,10 @@ from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.physical_defenses import physical_defenses
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.tactical import move_hex, pose
-from wayfarer.engine.simulation.combat.visibility import combat_visibility
+from wayfarer.engine.simulation.combat.visibility import combat_visibility, external_defense_penalty
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, Shield
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
@@ -111,22 +112,11 @@ def prepare(runtime: RulesContext, state: PlayState, encounter: Encounter) -> En
     modes = tuple(mode for mode in entry.modes if getattr(mode, "shield_attack", False))
     if len(modes) != 1:
         raise ValidationError("Rushing shield requires one authoritative shield attack mode")
-    visibility = combat_visibility(encounter, pending.attacker_id, pending.defender_id)
-    defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
-    allowed: list[Defense] = ["none"]
-    for candidate in visibility.defenses:
-        try:
-            defense_value(
-                runtime,
-                state,
-                defender,
-                candidate,
-                incoming_item_id=pending.weapon_id,
-                incoming_mode_id=modes[0].id,
-            )
-        except ValidationError:
-            continue
-        allowed.append(candidate)
+    visibility = combat_visibility(encounter, pending.attacker_id, pending.defender_id, state=state)
+    physical = physical_defenses(
+        runtime, state, encounter, pending.model_copy(update={"mode_id": modes[0].id}), modes[0]
+    )
+    allowed = tuple(d for d in physical if d == "none" or d in visibility.defenses)
     return encounter.model_copy(
         update={
             "pending_defense": pending.model_copy(
@@ -254,7 +244,10 @@ def _attack_outcome(
     elif hit and derived is not None:
         defense = success_roll(
             catalog(runtime).profile_id,
-            int(derived.value) + pending.visibility_defense_penalty,
+            int(derived.value)
+            + external_defense_penalty(
+                state, pending.defender_id, pending.visibility_defense_penalty
+            ),
             rng=runtime.rng,
         )
         hit = not defense.outcome.succeeded
