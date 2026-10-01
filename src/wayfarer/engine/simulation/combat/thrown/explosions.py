@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts, sa
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.thrown.flight import position
+from wayfarer.engine.simulation.combat.thrown.interposition import contact_space, intercept
 from wayfarer.engine.simulation.combat.unarmed.injury import armor_dr, hurt
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
@@ -352,6 +353,9 @@ def resolve_blast(
         raise ValidationError(
             "Fragmentation requires explicit size modifiers for every exposed object"
         )
+    contact_actor_id, interception = intercept(
+        runtime, state, encounter, responses, resolved_center, contact_actor_id, internal_actor_id
+    )
     evidence: list[dict[str, object]] = []
 
     def roll(count: int) -> tuple[int, ...]:
@@ -383,7 +387,9 @@ def resolve_blast(
         if response.dive_to:
             value, _ = defense_value(runtime, state, actor, "dodge")
             assert value is not None
-            defense = success_roll("gurps-basic-set-4e-2004", int(value.value) + 3, rng=runtime.rng)
+            defense = interception.get(actor.actor_id) or success_roll(
+                "gurps-basic-set-4e-2004", int(value.value) + 3, rng=runtime.rng
+            )
             if defense.outcome.succeeded:
                 point = response.dive_to
                 cover = response.dive_cover_dr
@@ -485,6 +491,7 @@ def resolve_blast(
             actor = next(p for p in encounter.participants if p.actor_id == actor.actor_id)
             # B377: on failure the damage precedes the step; both attempts end prone.
             destination = response.dive_to
+            encounter = contact_space(encounter, response)
             encounter = CombatEngine._replace(
                 encounter,
                 actor.model_copy(
