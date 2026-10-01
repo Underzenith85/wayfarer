@@ -50,6 +50,14 @@ class PowerBlowAid(Record):
     multiplier: Literal[1, 2, 3]
 
 
+def _event_id(kind: str, command_id: str) -> str:
+    return kind + hashlib.sha256(command_id.encode()).hexdigest()
+
+
+def _matches_event(event_id: str, kind: str, command_id: str) -> bool:
+    return event_id in (kind + command_id, _event_id(kind, command_id))
+
+
 def activate_power_blow(
     runtime: RulesContext,
     state: PlayState,
@@ -98,7 +106,10 @@ def activate_power_blow(
         v.target == "skill:power-blow" and v.value > 20 for v in compiled.sheet.values
     ):
         raise ValidationError("Triple ST requires Power Blow above skill 20")
-    if any(e.id == "power-blow:" + command.attack_command_id for e in state.resources.events):
+    if any(
+        _matches_event(e.id, "power-blow:", command.attack_command_id)
+        for e in state.resources.events
+    ):
         raise ConflictError("Attack already has a Power Blow attempt")
     modifiers: tuple[Modifier, ...] = ()
     if command.multiplier == 3:
@@ -136,7 +147,7 @@ def activate_power_blow(
             "events": resources.events
             + (
                 ResourceEvent(
-                    id="power-blow:" + command.attack_command_id,
+                    id=_event_id("power-blow:", command.attack_command_id),
                     at=resources.game_time,
                     target_id=command.actor_id,
                     kind=aid.model_dump_json(),
@@ -234,7 +245,9 @@ def activate_power_blow_lift(
         or route.pounds < 0
     ):
         raise ValidationError("Power Blow requires an available authored lifting route")
-    if any(e.id == "power-lift:" + command.lift_command_id for e in state.resources.events):
+    if any(
+        _matches_event(e.id, "power-lift:", command.lift_command_id) for e in state.resources.events
+    ):
         raise ConflictError("Lift already has a Power Blow attempt")
     modifiers: tuple[Modifier, ...] = ()
     if command.multiplier == 3:
@@ -270,7 +283,7 @@ def activate_power_blow_lift(
             "events": resources.events
             + (
                 ResourceEvent(
-                    id="power-lift:" + command.lift_command_id,
+                    id=_event_id("power-lift:", command.lift_command_id),
                     at=resources.game_time,
                     target_id=command.actor_id,
                     kind=aid.model_dump_json(),
@@ -289,7 +302,9 @@ def power_blow_lift_strength(
     command_id: str,
     strength: int,
 ) -> int:
-    event = next((e for e in resources.events if e.id == "power-lift:" + command_id), None)
+    event = next(
+        (e for e in resources.events if _matches_event(e.id, "power-lift:", command_id)), None
+    )
     if event is None or event.at != resources.game_time or event.target_id != actor_id:
         return strength
     aid = PowerBlowLiftAid.model_validate_json(event.kind)

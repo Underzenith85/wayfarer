@@ -599,6 +599,14 @@ _FEATS: dict[str, Callable[[PreparedFeat, PhysicalCommand, RandomSource], FeatOu
 }
 
 
+def feat_event_id(command_id: str) -> str:
+    """Keep existing IDs while bounding event IDs for long valid commands."""
+    suffix = (
+        command_id if len(command_id) <= 195 else hashlib.sha256(command_id.encode()).hexdigest()
+    )
+    return "feat:" + suffix
+
+
 def reduce_physical(
     before: PlayState, command: PhysicalCommand, context: PhysicalContext
 ) -> tuple[PlayState, PhysicalResult]:
@@ -740,7 +748,7 @@ def _finish(
             "events": resources.events
             + (
                 ResourceEvent(
-                    id="feat:" + command.id,
+                    id=feat_event_id(command.id),
                     at=resources.game_time,
                     target_id=command.actor_id,
                     kind=result.model_dump_json(),
