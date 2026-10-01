@@ -188,7 +188,8 @@ async def test_critical_attack_hits_original_friend_and_cannot_be_intercepted(
 
 @pytest.mark.parametrize("avoid_both", [False, True])
 async def test_sacrificial_dodge_and_drop_combines_ranged_bonus_and_protector_posture(
-    tmp_path: Path, avoid_both: bool,
+    tmp_path: Path,
+    avoid_both: bool,
 ) -> None:
     cid, play = await setup(
         tmp_path,
