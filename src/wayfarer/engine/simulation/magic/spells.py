@@ -24,7 +24,7 @@ from wayfarer.engine.rules.magic.protocols import (
 )
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.location import HitLocation
-from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled
+from wayfarer.engine.rules.types.recovery import RecoveryTask, interrupt_tasks, require_settled
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
@@ -291,6 +291,29 @@ def _spend_ceremonial_energy(
     return state, total, hp_total
 
 
+def _spell_recovery_tasks(
+    state: ResourceState,
+    original: tuple[RecoveryTask, ...],
+    command: SpellCommand,
+    effect: SpellEffect,
+) -> tuple[RecoveryTask, ...]:
+    """B248 allows quiet rest while maintaining spells without concentration."""
+    preserved = {
+        task.id: task
+        for task in original
+        if command.kind == "maintain"
+        and not effect.concentrating
+        and task.kind == "rest"
+        and task.status == "pending"
+        and task.actor_id == command.actor_id
+        and task.target_id == command.actor_id
+    }
+    interrupted = interrupt_tasks(
+        state.recovery_tasks, frozenset({command.actor_id}), state.game_time
+    )
+    return tuple(preserved.get(task.id, task) for task in interrupted)
+
+
 def apply_spell(
     state: ResourceState,
     command: SpellCommand,
@@ -317,6 +340,7 @@ def apply_spell(
         return state, SpellEvent.model_validate_json(previous_event.kind).result
     if state.revision != command.expected_revision:
         raise ConflictError("Spell revision changed")
+    original_recovery = state.recovery_tasks
     require_settled(
         state.recovery_tasks, frozenset({command.actor_id, context.target_id}), state.game_time
     )
@@ -803,11 +827,7 @@ def apply_spell(
     if outcome == "resisted":
         state = break_daze(state, context.target_id, command.id)
     state = state.model_copy(
-        update={
-            "recovery_tasks": interrupt_tasks(
-                state.recovery_tasks, frozenset({command.actor_id}), state.game_time
-            )
-        }
+        update={"recovery_tasks": _spell_recovery_tasks(state, original_recovery, command, effect)}
     )
     state, effect, hp_restored, fp_restored = _restore_patient(state, effect, command, outcome)
     result = SpellResult(

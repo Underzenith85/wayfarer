@@ -195,3 +195,66 @@ def test_lend_vitality_cannot_maintain_and_early_cancellation_returns_hp(tmp_pat
     )
     assert result.energy_spent == 1
     assert next(p.current for p in cancelled.resources.pools if p.id == "hp:b") == 1
+
+
+@pytest.mark.parametrize("concentrating", [False, True])
+def test_ordinary_maintenance_preserves_quiet_rest(concentrating: bool) -> None:
+    from test_spells import command, context, state
+
+    from wayfarer.engine.rules.types.recovery import RecoveryTask
+    from wayfarer.engine.simulation.health.medical.rest import accrue_rest
+    from wayfarer.engine.simulation.magic.spells import PROFILE, apply_spell
+
+    started, _ = apply_spell(state(), command(), context(), rng=RecordedDice([]), system=True)
+    active, _ = apply_spell(
+        started.model_copy(update={"game_time": 1}),
+        command(1, kind="complete"),
+        context(),
+        rng=RecordedDice([3, 3, 3]),
+        system=True,
+    )
+    # Use an actual persisted effect with the source maintenance cost. Focused
+    # maintenance still requires concentration and interrupts quiet rest.
+    from wayfarer.engine.simulation.magic.spell_state import event_id
+    from wayfarer.engine.simulation.magic.spells import SpellEvent
+
+    event = SpellEvent.model_validate_json(active.events[-1].kind)
+    focused = event.model_copy(
+        update={"effect": event.effect.model_copy(update={"concentrating": concentrating})}
+    )
+    task = RecoveryTask(
+        id="rest",
+        actor_id="a",
+        target_id="a",
+        profile_id=PROFILE,
+        kind="rest",
+        start=1,
+        due=601,
+        ordinary_entitlement=1,
+        power_entitlement=1,
+        fp_interval=300,
+        power_interval=300,
+    )
+    resting = active.model_copy(
+        update={
+            "game_time": 61,
+            "recovery_tasks": (task,),
+            "events": tuple(
+                e.model_copy(update={"kind": focused.model_dump_json()})
+                if e.id == event_id("c1")
+                else e
+                for e in active.events
+            ),
+        }
+    )
+    maintained, result = apply_spell(
+        resting, command(2, kind="maintain"), context(), rng=RecordedDice([]), system=True
+    )
+    assert result.energy_spent == 1 and maintained.pools[1].current == 8
+    assert maintained.recovery_tasks[0].status == ("interrupted" if concentrating else "pending")
+    recovered = accrue_rest(maintained, 301)
+    assert recovered.pools[1].current == (8 if concentrating else 9)
+    replay, repeated = apply_spell(
+        maintained, command(2, kind="maintain"), context(), rng=RecordedDice([]), system=True
+    )
+    assert replay == maintained and repeated == result
