@@ -67,6 +67,7 @@ from wayfarer.engine.simulation.health.hit_locations import (
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.missiles import resolve as resolve_spell
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.skills.power_blow import power_blow_strength
 from wayfarer.errors import ValidationError
 
 
@@ -558,10 +559,22 @@ def resolve_melee(
             critical_eye = True
     if head and critical == 8:
         defender = defender.model_copy(update={"forced_do_nothing": True})
-    thrust, swing = (
-        strength_damage(equipment.profile_id, pending.strike_strength)
-        if pending.strike_strength is not None
-        else (attack_build.statistics.thrust, attack_build.statistics.swing)
+    thrust, swing = strength_damage(
+        equipment.profile_id,
+        power_blow_strength(
+            state.resources,
+            attacker.actor_id,
+            attack_build.revision,
+            pending.id,
+            encounter.id,
+            pending.opened_round,
+            pending.opened_turn,
+            pending.strike_strength
+            if pending.strike_strength is not None
+            else attack_build.statistics.st,
+            pending.weapon_id,
+            pending.mode_id,
+        ),
     )
     expression = swing if weapon.damage.basis == "swing" else thrust
     dice_count = pending.mounted_lance_dice or (

@@ -54,6 +54,7 @@ from wayfarer.engine.simulation.resources import (
     decimal_weight,
 )
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.skills.power_blow import power_blow_lift_strength
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -402,7 +403,19 @@ def _lift(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> Fe
     checks = () if lifting is None else (_roll(feat, command, rng, int(lifting)),)
     margin = max(0, checks[0].margin) if checks and checks[0].outcome.succeeded else 0
     capacity, seconds = lift_limit(
-        fatigue_value(feat.fp, feat.stats.st), feat.route.lift_kind, margin=margin
+        fatigue_value(
+            feat.fp,
+            power_blow_lift_strength(
+                feat.state.resources,
+                command.actor_id,
+                feat.compiled.revision,
+                feat.route.id,
+                command.id,
+                feat.stats.st,
+            ),
+        ),
+        feat.route.lift_kind,
+        margin=margin,
     )
     succeeded = feat.route.pounds <= capacity
     return FeatOutcome(

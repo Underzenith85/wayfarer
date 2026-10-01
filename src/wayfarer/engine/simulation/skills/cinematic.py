@@ -9,9 +9,17 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.rules.checks import Modifier, ModifierKind, RandomSource, success_check
+from wayfarer.engine.rules.checks import (
+    Modifier,
+    ModifierKind,
+    Outcome,
+    RandomSource,
+    success_check,
+)
 from wayfarer.engine.rules.skills.cinematic import BINDING_BY_ID, PACKAGE_ID
-from wayfarer.engine.simulation.resources import Pool, Receipt, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.fatigue import ContinueExertion, FatigueCost, apply_fatigue
+from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.skills.physiology import PhysiologyAdjustment
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
@@ -69,6 +77,7 @@ class CinematicSkillOutcome(Record):
     margin: int
     fatigue_spent: int = Field(ge=0)
     physiology: PhysiologyAdjustment | None = Field(default=None, exclude_if=lambda v: v is None)
+    exertion_allowed: bool = Field(default=True, exclude_if=lambda v: v)
 
 
 def _digest(command: CinematicSkillCommand) -> str:
@@ -191,45 +200,60 @@ def apply_cinematic_skill(
             else ()
         )
         + physiology_modifiers
+        + check_modifiers(state, command.actor_id, binding.attribute.value.split(":")[-1])
         + skill_modifiers
     )
-    trace = success_check(
-        level,
-        modifiers,
-        rng=rng,
-        rules_package=PACKAGE_ID,
-        rules_version=VERSION,
-    )
-    pools = list(state.pools)
+    allowed = True
     if procedure.fatigue:
-        index = next(
-            (i for i, pool in enumerate(pools) if pool.id == "fp:" + command.actor_id), None
+        state, exertion = apply_fatigue(
+            state,
+            ContinueExertion(
+                id="cinematic-exertion:" + command.id,
+                actor_id=command.actor_id,
+                expected_revision=state.revision,
+            ),
+            ht=levels.get("attribute:ht", 0),
+            will=levels.get("secondary:will", 0),
+            rng=rng,
+            system=True,
         )
-        if index is None or pools[index].current < procedure.fatigue:
-            raise ValidationError("Cinematic skill requires sufficient FP")
-        pool = pools[index]
-        pools[index] = Pool(
-            id=pool.id,
-            current=pool.current - procedure.fatigue,
-            maximum=pool.maximum,
-            injury=pool.injury,
-            fatigue=pool.fatigue,
+        allowed = exertion.allowed
+    trace = (
+        success_check(level, modifiers, rng=rng, rules_package=PACKAGE_ID, rules_version=VERSION)
+        if allowed
+        else None
+    )
+    spent = 0
+    if procedure.fatigue and allowed:
+        state, cost = apply_fatigue(
+            state,
+            FatigueCost(
+                id="cinematic-cost:" + command.id,
+                actor_id=command.actor_id,
+                expected_revision=state.revision,
+                amount=procedure.fatigue,
+                power=True,
+            ),
+            ht=levels.get("attribute:ht", 0),
+            rng=rng,
+            system=True,
         )
+        spent = cost.fp_lost
     outcome = CinematicSkillOutcome(
         command_id=command.id,
         actor_id=command.actor_id,
         skill_id=command.skill_id,
         target_actor_id=command.target_actor_id,
-        outcome=trace.outcome.value,
-        margin=trace.margin,
-        fatigue_spent=procedure.fatigue,
+        outcome=trace.outcome.value if trace else Outcome.FAILURE.value,
+        margin=trace.margin if trace else 0,
+        fatigue_spent=spent,
+        exertion_allowed=allowed,
         physiology=physiology,
     )
     return (
         state.model_copy(
             update={
-                "revision": state.revision + 1,
-                "pools": tuple(pools),
+                "revision": command.expected_revision + 1,
                 "receipts": state.receipts + (Receipt(command_id=command.id, digest=digest),),
                 "events": state.events
                 + (
