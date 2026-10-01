@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
@@ -33,7 +33,9 @@ from wayfarer.orchestration.builds import canonical_build, spendable_points
 from wayfarer.orchestration.fright_builds import refresh_checks
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class ProposeTransformation(Record):
@@ -123,11 +125,37 @@ def _target_build(
         and routes.get("attribute:iq") != "mind"
     ):
         raise ValidationError("Mind transfer must preserve IQ with the mind")
-    if rule.kind == "body-modification":
+    if rule.kind in ("alternate-form", "morph"):
+        _validate_shapeshifting(rule, before, after)
+    if rule.kind in ("body-modification", "alternate-form", "morph"):
         changed = {key for key in old.keys() | new.keys() if old.get(key) != new.get(key)}
         if any(routes[key] != "body" for key in changed):
             raise ValidationError("Body modification may only alter body-routed traits")
     return proposal, before, after
+
+
+def _validate_shapeshifting(
+    rule: TransformationRule, before: ValidatedBuild, after: ValidatedBuild
+) -> None:
+    """Bind an authored form to the capability on the approved native build."""
+    identifier = "advantage:" + rule.kind
+    purchase = next((p for p in before.trait_purchases if p.definition_id == identifier), None)
+    if purchase is None or purchase.trait is None:
+        raise ValidationError("Shapeshifting requires the purchased approved form capability")
+    if purchase.trait.modifiers:
+        raise ValidationError("Shapeshifting modifiers require a separately implemented form path")
+    parameters = dict(purchase.trait.parameters)
+    if (
+        parameters.get("native-template-cost") != rule.native_template_cost
+        or parameters.get("target-template-cost") != rule.target_template_cost
+    ):
+        raise ValidationError("Authored form exceeds or differs from the approved template limits")
+    assert rule.native_template_cost is not None and rule.target_template_cost is not None
+    if after.spent - before.spent != rule.target_template_cost - rule.native_template_cost:
+        raise ValidationError("Authored build change disagrees with approved racial template costs")
+    retained = next((p for p in after.trait_purchases if p.definition_id == identifier), None)
+    if retained != purchase:
+        raise ValidationError("An alternate build must retain its native shapeshifting capability")
 
 
 def _active(state: PlayState, proposal_id: str) -> TransformationRecord:
@@ -335,6 +363,11 @@ def _apply_build(
             after,
             physical_traits(after, play.engine.reviewer.compiler.definitions),
         )
+        if rule.kind in ("alternate-form", "morph"):
+            loss = (
+                (pool.maximum - pool.current) * updated.maximum + pool.maximum - 1
+            ) // pool.maximum
+            updated = updated.model_copy(update={"current": updated.maximum - loss})
         if updated.injury is not None and body is not None:
             updated = updated.model_copy(
                 update={
@@ -420,6 +453,54 @@ def _apply_build(
     return state.model_copy(
         update={"advancement": state.advancement + (ledger,), "recovery": recovery}
     )
+
+
+def shapeshifting_checkpoint(play: PlayService, state: PlayState) -> PlayState:
+    """B83: knockout and death immediately return an active form to its native build."""
+    for record in state.transformations.records:
+        if record.kind not in ("alternate-form", "morph") or record.status != "active":
+            continue
+        hp = next((p for p in state.resources.pools if p.id == "hp:" + record.actor_id), None)
+        fp = next((p for p in state.resources.pools if p.id == "fp:" + record.actor_id), None)
+        knocked_out = (
+            hp is not None and hp.injury is not None and (hp.injury.dead or hp.injury.unconscious)
+        )
+        fatigue_out = fp is not None and fp.fatigue is not None and fp.fatigue.collapsed
+        if (
+            not knocked_out
+            and not fatigue_out
+            and record.actor_id not in state.recovery.dead_actor_ids
+        ):
+            continue
+        rule = _rule(play, record.actor_id, record.rule_id)
+        state = _apply_build(
+            play,
+            state,
+            record,
+            rule,
+            reverse=True,
+            command_id=f"shapeshift-revert:{record.id}:{state.revision}",
+        )
+        state = state.model_copy(
+            update={
+                "transformations": state.transformations.model_copy(
+                    update={
+                        "records": tuple(
+                            r.model_copy(
+                                update={
+                                    "status": "reverted",
+                                    "resolved_at": state.resources.game_time,
+                                }
+                            )
+                            if r.id == record.id
+                            else r
+                            for r in state.transformations.records
+                        )
+                    }
+                )
+            }
+        )
+    return state
 
 
 APPROVAL_REFUSAL = "Transformation approval requires director authority"

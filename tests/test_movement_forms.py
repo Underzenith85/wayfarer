@@ -117,7 +117,7 @@ def test_registry_accounts_for_every_bounded_issue_entry_and_source_cost() -> No
                 definition_id="advantage:morph",
                 trait=options(**{"native-template-cost": 0, "target-template-cost": 200}),
             ),
-            180,
+            300,
         ),
         (Purchase(definition_id="advantage:arm-dx", amount=2, trait=options(scope="all-arms")), 32),
         (Purchase(definition_id="advantage:arm-st", amount=2, trait=options(scope="two-arms")), 10),

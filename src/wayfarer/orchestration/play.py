@@ -54,6 +54,7 @@ from wayfarer.orchestration.npcs import initialize
 from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
 from wayfarer.orchestration.sessions import SessionRegistry
+from wayfarer.orchestration.transformations import shapeshifting_checkpoint
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
@@ -392,6 +393,7 @@ class PlayService:
         state = recover_stuns(self.rules_context, state)
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
+        state = shapeshifting_checkpoint(self, state)
         if run_npcs:
             state = npc_checkpoint(self, state)
         return objective_checkpoint(self, state, before=before)

@@ -344,7 +344,9 @@ def purchase_cost(binding: MovementFormBinding, levels: int, options: TraitOptio
                 )
             ),
         )
-        base = 15 + premium if binding.id.endswith("alternate-form") else max(100, premium)
+        base = (
+            15 + premium if binding.id.endswith("alternate-form") else 100 + max(0, target - native)
+        )
         percent = max(-80, sum(m.percent for m in binding.modifiers if m.id in options.modifiers))
         return int(
             (Decimal(base) * Decimal(100 + percent) / 100).to_integral_value(rounding=ROUND_CEILING)

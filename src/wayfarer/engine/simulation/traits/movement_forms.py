@@ -106,6 +106,10 @@ def apply_movement_form(
         raise ConflictError("Movement/form command ID was already used")
     if resources.revision != command.expected_revision:
         raise ConflictError("Movement/form revision changed")
+    if command.definition_id in {"advantage:alternate-form", "advantage:morph"}:
+        raise ValidationError(
+            "Shapeshifting requires an authored approved character transformation"
+        )
     if command.definition_id not in SWITCHABLE:
         raise ValidationError("Trait is not a switchable form")
     entities = {entity.id for entity in world.entities}

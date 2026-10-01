@@ -16,7 +16,12 @@ from wayfarer.engine.rules.types.location import HumanBody
 from wayfarer.models import Id, Record
 
 TransformationKind = Literal[
-    "body-modification", "mind-transfer", "supernatural-affliction", "death-transformation"
+    "body-modification",
+    "mind-transfer",
+    "supernatural-affliction",
+    "death-transformation",
+    "alternate-form",
+    "morph",
 ]
 AttachmentKind = Literal["inventory", "credentials", "relationships", "knowledge", "control"]
 AttachmentOwner = Literal["mind", "body", "neither"]
@@ -55,7 +60,9 @@ class TransformationRule(Record):
     id: Id
     actor_id: Id
     kind: TransformationKind
-    source_ref: str = Field(pattern=r"^B29[4-6]$")
+    source_ref: str = Field(pattern=r"^B(?:29[4-6]|8[3-5])$")
+    native_template_cost: int | None = None
+    target_template_cost: int | None = None
     target: CharacterDraft
     target_body_id: Id
     target_body: HumanBody | None = None
@@ -72,8 +79,30 @@ class TransformationRule(Record):
     payment_item_id: Id | None = None
     payment_quantity: int = Field(default=0, ge=0)
 
+    def validate_form_authority(self) -> None:
+        if self.kind in ("alternate-form", "morph"):
+            if self.source_ref not in ("B83", "B84", "B85"):
+                raise ValueError("Shapeshifting requires its own printed source locator")
+            if self.native_template_cost is None or self.target_template_cost is None:
+                raise ValueError("Shapeshifting requires explicit approved template costs")
+            if not self.reversible or self.treatment_seconds != 10 or not self.voluntary:
+                raise ValueError(
+                    "Core shapeshifting requires a voluntary reversible ten-second change"
+                )
+            if self.point_policy != "adjust" or self.payment_item_id is not None:
+                raise ValueError(
+                    "Purchased shapeshifting does not charge advancement or consume payment"
+                )
+            if any(route.follows != "mind" for route in self.attachment_routes):
+                raise ValueError("Core shapeshifting retains attachment ownership")
+        elif self.native_template_cost is not None or self.target_template_cost is not None:
+            raise ValueError("Template limits belong only to shapeshifting")
+        elif self.source_ref not in ("B294", "B295", "B296"):
+            raise ValueError("Character transformations require B294-B296")
+
     @model_validator(mode="after")
     def coherent(self) -> Self:
+        self.validate_form_authority()
         kinds = [route.kind for route in self.attachment_routes]
         if len(set(kinds)) != len(kinds) or set(kinds) != {
             "inventory",
