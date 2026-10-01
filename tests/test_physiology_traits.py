@@ -6,6 +6,7 @@ from trait_support import approved_build, options, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.physiology import physiology_traits
+from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.supernatural import inventory
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.physiology import BINDINGS, PROFILE, RUNTIME_HOOKS
@@ -809,19 +810,28 @@ def test_unhealing_medical_entry_and_completion(level: str) -> None:
             resources,
             request,
             CareContext(PROFILE, 10, physiology=traits),
-            rng=FixedDice(),
+            rng=RecordedDice([]),
             system=True,
         )
     pending, _ = apply_recovery(
-        resources, request, CareContext(PROFILE, 10, food=True), rng=FixedDice(), system=True
+        resources, request, CareContext(PROFILE, 10, food=True), rng=RecordedDice([]), system=True
     )
     finish = FinishRecovery(id="finish", actor_id="a", expected_revision=1, task_id="natural")
     pending = pending.model_copy(update={"game_time": pending.recovery_tasks[0].due})
     updated, result = apply_recovery(
-        pending, finish, CareContext(PROFILE, 10, physiology=traits), rng=FixedDice(), system=True
+        pending,
+        finish,
+        CareContext(PROFILE, 10, physiology=traits),
+        rng=RecordedDice([]),
+        system=True,
     )
     assert updated.pools[0].current == 5 and result.hp_recovered == 0
+    assert result.check is None
     restarted = ResourceState.model_validate_json(updated.model_dump_json())
     assert apply_recovery(
-        restarted, finish, CareContext(PROFILE, 10, physiology=traits), rng=FixedDice(), system=True
+        restarted,
+        finish,
+        CareContext(PROFILE, 10, physiology=traits),
+        rng=RecordedDice([]),
+        system=True,
     ) == (restarted, result)

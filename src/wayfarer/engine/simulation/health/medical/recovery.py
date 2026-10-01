@@ -197,6 +197,27 @@ def _settle_special(
     return state, task, hp, fp, 0, 0, check, awakened, survived
 
 
+def _natural_roll(
+    state: ResourceState,
+    context: CareContext,
+    task: RecoveryTask,
+    multiplier: int,
+    rng: RandomSource,
+) -> tuple[int, CheckTrace | None]:
+    unhealing = context.physiology.parameter("disadvantage:unhealing", "kind")
+    if unhealing is not None and not (unhealing == "partial" and context.unhealing_condition):
+        return 0, None
+    check = success_roll(
+        context.profile_id,
+        task.ht
+        + task.healing_bonus
+        + (1 if task.physician_skill is not None and task.physician_skill >= 12 else 0),
+        check_modifiers(state, task.target_id, "ht"),
+        rng=rng,
+    )
+    return multiplier * task.healing_rate if check.outcome.succeeded else 0, check
+
+
 def _require_natural_healing(command: BeginRecovery | FinishRecovery, context: CareContext) -> None:
     unhealing = context.physiology.parameter("disadvantage:unhealing", "kind")
     if isinstance(command, BeginRecovery) and command.kind == "natural" and unhealing is not None:
@@ -654,15 +675,7 @@ def apply_recovery(
         elif task.kind == "bandage":
             healed = min(multiplier, _wound(state, task.wound_id, target).injury)
         elif task.kind == "natural":
-            check = success_roll(
-                context.profile_id,
-                task.ht
-                + task.healing_bonus
-                + (1 if task.physician_skill is not None and task.physician_skill >= 12 else 0),
-                check_modifiers(state, target, "ht"),
-                rng=rng,
-            )
-            healed = multiplier * task.healing_rate if check.outcome.succeeded else 0
+            healed, check = _natural_roll(state, context, task, multiplier, rng)
         else:
             try:
                 ("unconsciousness", "drug").index(task.kind)
