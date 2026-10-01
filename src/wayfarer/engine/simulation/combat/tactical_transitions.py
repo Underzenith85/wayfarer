@@ -8,8 +8,8 @@ from wayfarer.engine.rules.tables.combat import maneuver_move_allowance
 from wayfarer.engine.simulation.combat.defense_options import prepare_options
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
-from wayfarer.engine.simulation.combat.interposition import prepare_interposition
 from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.combat.interposition import prepare_interposition
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
