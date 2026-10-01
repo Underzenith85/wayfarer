@@ -7,6 +7,7 @@ from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -41,8 +42,6 @@ def contact_space(encounter: Encounter, response: BlastResponse) -> Encounter:
     """An explicit grenade interception can share the friend's occupied hex."""
     if not response.sacrificial_contact:
         return encounter
-    from wayfarer.engine.simulation.combat.thrown.flight import position
-
     pairs = {
         tuple(sorted((response.actor_id, other.actor_id)))
         for other in encounter.participants
