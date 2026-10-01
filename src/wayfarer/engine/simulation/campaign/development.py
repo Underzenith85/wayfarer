@@ -237,6 +237,15 @@ def _instruction_valid(
         or teacher_points.get(rule.subject_id, 0) >= student_points.get(rule.subject_id, 0)
     ):
         raise ValidationError("Teacher is not sufficiently accomplished in the subject")
+    if rule.method == "intensive":
+        # B293: intensive study requires effective HT 12; Fit applies here.
+        fitness = (
+            2
+            if "trait:very-fit" in student.purchased_ids
+            else (1 if "trait:fit" in student.purchased_ids else 0)
+        )
+        if student_levels.get("attribute:ht", 10) + fitness < 12:
+            raise ValidationError("Intensive training requires effective HT 12 or better")
     if rule.method == "intensive" and not (
         teacher_levels.get(rule.subject_id, 0) > student_levels.get(rule.subject_id, 0)
         and teacher_points.get(rule.subject_id, 0) > student_points.get(rule.subject_id, 0)
