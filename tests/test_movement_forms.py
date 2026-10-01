@@ -117,7 +117,15 @@ def test_registry_accounts_for_every_bounded_issue_entry_and_source_cost() -> No
                 definition_id="advantage:morph",
                 trait=options(**{"native-template-cost": 0, "target-template-cost": 200}),
             ),
-            180,
+            300,
+        ),
+        (
+            Purchase(
+                definition_id="advantage:alternate-form",
+                amount=3,
+                trait=options(**{"native-template-cost": 0, "target-template-cost": 100}),
+            ),
+            135,
         ),
         (Purchase(definition_id="advantage:arm-dx", amount=2, trait=options(scope="all-arms")), 32),
         (Purchase(definition_id="advantage:arm-st", amount=2, trait=options(scope="two-arms")), 10),
@@ -214,24 +222,23 @@ def command(
 def test_transformation_lifecycle_is_persisted_restart_safe_and_visibility_filtered() -> None:
     build, engine = approved(
         Purchase(
-            definition_id="advantage:alternate-form",
-            trait=options(**{"native-template-cost": 0, "target-template-cost": 0}),
+            definition_id="advantage:insubstantiality",
         )
     )
     started, pending = apply_movement_form(
         ResourceState(),
         world(),
-        command("start", 0),
+        command("start", 0, "advantage:insubstantiality"),
         build,
         engine.definitions,
         authorized_actor_id="a",
         system=True,
     )
-    assert pending.outcome == "concentrating" and pending.effect.ready_at == 10
+    assert pending.outcome == "concentrating" and pending.effect.ready_at == 1
     assert apply_movement_form(
         started,
         world(),
-        command("start", 0),
+        command("start", 0, "advantage:insubstantiality"),
         build,
         engine.definitions,
         authorized_actor_id="a",
@@ -241,19 +248,19 @@ def test_transformation_lifecycle_is_persisted_restart_safe_and_visibility_filte
         apply_movement_form(
             started,
             world(),
-            command("resolve", 1),
+            command("resolve", 1, "advantage:insubstantiality"),
             build,
             engine.definitions,
             authorized_actor_id="a",
             system=True,
         )
     restarted = ResourceState.model_validate_json(started.model_dump_json()).model_copy(
-        update={"game_time": 10}
+        update={"game_time": 1}
     )
     active, outcome = apply_movement_form(
         restarted,
         world(),
-        command("resolve", 1),
+        command("resolve", 1, "advantage:insubstantiality"),
         build,
         engine.definitions,
         authorized_actor_id="a",
@@ -266,7 +273,7 @@ def test_transformation_lifecycle_is_persisted_restart_safe_and_visibility_filte
     cancelled, result = apply_movement_form(
         active,
         world(),
-        command("cancel", 2),
+        command("cancel", 2, "advantage:insubstantiality"),
         build,
         engine.definitions,
         authorized_actor_id="a",
@@ -306,6 +313,26 @@ def test_transformation_requires_authority_build_and_compare_and_set_revision() 
             value,
             plain,
             plain_engine.definitions,
+            authorized_actor_id="a",
+            system=True,
+        )
+
+
+@pytest.mark.parametrize("identifier", ["advantage:alternate-form", "advantage:morph"])
+def test_character_shapeshifting_cannot_be_a_resource_only_flag(identifier: str) -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id=identifier,
+            trait=options(**{"native-template-cost": 0, "target-template-cost": 0}),
+        )
+    )
+    with pytest.raises(ValidationError, match="authored approved character"):
+        apply_movement_form(
+            ResourceState(),
+            world(),
+            command("start", 0, identifier),
+            build,
+            engine.definitions,
             authorized_actor_id="a",
             system=True,
         )

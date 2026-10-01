@@ -5,9 +5,11 @@ the exact numeric change; no skill purchases, refunds or unrelated edits ride
 along with a fright consequence. Campaign legality and power policy still apply.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
@@ -25,7 +27,9 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class ProposeFrightBuild(Command):

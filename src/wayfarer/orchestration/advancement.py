@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
@@ -37,7 +38,9 @@ from wayfarer.models import Id, Record
 from wayfarer.orchestration.builds import canonical_build as _build
 from wayfarer.orchestration.builds import spendable_points as _spendable
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class GrantPoints(Record):
