@@ -201,7 +201,7 @@ BINDINGS: Final = (
     ),
     MovementFormBinding("advantage:shapeshifting", "Shapeshifting", 0, manual=True),
     MovementFormBinding(
-        "advantage:shrinking", "Shrinking", 5, 8, modifiers=(modifier("full-damage", 100),)
+        "advantage:shrinking", "Shrinking", 5, 12, modifiers=(modifier("full-damage", 100),)
     ),
     MovementFormBinding("advantage:lifting-st", "Lifting ST", 3, 100),
     MovementFormBinding("advantage:slippery", "Slippery", 2, 5),

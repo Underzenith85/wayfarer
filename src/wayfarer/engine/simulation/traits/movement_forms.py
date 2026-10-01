@@ -87,6 +87,8 @@ def _require_activation_protocol(identifier: str) -> None:
         raise ValidationError(
             "Shapeshifting requires an authored approved character transformation"
         )
+    if identifier in {"advantage:growth", "advantage:shrinking"}:
+        raise ValidationError("Size changes require the approved body-size transition service")
     if identifier not in SWITCHABLE:
         raise ValidationError("Trait is not a switchable form")
 

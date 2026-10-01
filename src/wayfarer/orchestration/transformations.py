@@ -33,6 +33,7 @@ from wayfarer.engine.simulation.campaign.transformations import (
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.resources import Consume, Pool
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.traits.size_forms import require_native_size
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.orchestration.advancement import _refreshed
@@ -101,6 +102,7 @@ def _rule(play: PlayService, actor_id: str, rule_id: str) -> TransformationRule:
 def _target_build(
     play: PlayService, state: PlayState, rule: TransformationRule
 ) -> tuple[CharacterProposal, ValidatedBuild, ValidatedBuild]:
+    require_native_size(state.resources, rule.actor_id)
     actor = next(a for a in state.actors if a.actor_id == rule.actor_id)
     if actor.approval is None:
         raise ValidationError("Transformation requires an approved source character")

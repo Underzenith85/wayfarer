@@ -79,6 +79,7 @@ async def setup(
     *,
     trained: bool = True,
     ability_defense: bool = False,
+    allow_supernatural: bool = False,
     human: bool = False,
     free_defender_hand: bool = False,
     ranged_fixture: bool = False,
@@ -448,7 +449,7 @@ async def setup(
         skill_ceiling=30,
         permitted_sources=frozenset(s.id for s in package.sources),
         allowed_equipment=frozenset(e.definition_id for e in equipment.entries),
-        allow_supernatural=ability_defense,
+        allow_supernatural=ability_defense or allow_supernatural,
         technology_level=campaign_technology_level,
     )
     rules = CampaignRules(

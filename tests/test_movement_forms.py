@@ -283,8 +283,8 @@ def test_transformation_lifecycle_is_persisted_restart_safe_and_visibility_filte
 
 
 def test_transformation_requires_authority_build_and_compare_and_set_revision() -> None:
-    build, engine = approved(Purchase(definition_id="advantage:growth"))
-    value = command("start", 0, "advantage:growth")
+    build, engine = approved(Purchase(definition_id="advantage:insubstantiality"))
+    value = command("start", 0, "advantage:insubstantiality")
     with pytest.raises(ValidationError, match="authority"):
         apply_movement_form(
             ResourceState(),

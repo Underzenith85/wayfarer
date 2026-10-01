@@ -10,12 +10,15 @@ from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode, WeaponMode
 from wayfarer.engine.simulation.health.hit_locations import attack_penalty, part
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.traits.size_forms import reduced_body_result, size_delta
 from wayfarer.errors import ValidationError
 
 
 def actor_size_modifier(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
     """Read SM from the approved build; a command can never supply or override it."""
-    return approved_size_modifier(build(runtime, state, actor_id))
+    return approved_size_modifier(build(runtime, state, actor_id)) + size_delta(
+        state.resources, actor_id
+    )
 
 
 def approved_size_modifier(compiled: ValidatedBuild) -> int:
@@ -29,6 +32,13 @@ def approved_size_modifier(compiled: ValidatedBuild) -> int:
 def actor_reaches(
     runtime: RulesContext, state: PlayState, actor_id: str, reaches: tuple[int, ...]
 ) -> tuple[int, ...]:
+    delta = size_delta(state.resources, actor_id)
+    if delta < 0:
+        native = approved_size_modifier(build(runtime, state, actor_id))
+        native_reaches = size_reach(reaches, native)
+        return tuple(
+            sorted({reduced_body_result(state.resources, actor_id, r) for r in native_reaches})
+        )
     return size_reach(reaches, actor_size_modifier(runtime, state, actor_id))
 
 

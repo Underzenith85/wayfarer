@@ -66,14 +66,7 @@ def apply_world_ground(
         if children <= ids:
             break
         ids |= children
-    if any(
-        task.status == "pending" and bool(ids & {task.item_id, task.tool_id})
-        for task in tasks(resources)
-    ) or any(
-        task.status == "pending" and bool(ids & {task.item_id, task.tool_id})
-        for task in salvage_tasks(resources)
-    ):
-        raise ConflictError("Equipment is committed to a pending repair")
+    require_movable_gear(resources, frozenset(ids))
     items = tuple(
         i.model_copy(
             update={
@@ -108,3 +101,15 @@ def apply_world_ground(
     )
     engine.for_world(world).validate(updated)
     return updated, result
+
+
+def require_movable_gear(resources: ResourceState, identifiers: frozenset[str]) -> None:
+    """Moving a root container cannot bypass the busy status of a contained item."""
+    if any(
+        t.status == "pending" and bool(identifiers & {t.item_id, t.tool_id})
+        for t in tasks(resources)
+    ) or any(
+        t.status == "pending" and bool(identifiers & {t.item_id, t.tool_id})
+        for t in salvage_tasks(resources)
+    ):
+        raise ConflictError("Equipment is committed to a pending repair")
