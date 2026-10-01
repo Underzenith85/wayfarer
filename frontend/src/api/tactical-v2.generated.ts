@@ -158,6 +158,11 @@ export interface components {
        */
       catch_thrown: boolean;
       /**
+       * Sacrificial For
+       * @default null
+       */
+      sacrificial_for: string | null;
+      /**
        * Acrobatic Dodge
        * @default false
        */

@@ -502,6 +502,20 @@
             "title": "Catch Thrown",
             "type": "boolean"
           },
+          "sacrificial_for": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sacrificial For"
+          },
           "acrobatic_dodge": {
             "default": false,
             "title": "Acrobatic Dodge",

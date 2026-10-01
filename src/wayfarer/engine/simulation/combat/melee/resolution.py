@@ -49,7 +49,7 @@ from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_flight
 from wayfarer.engine.simulation.combat.unarmed.records import striking_bonus
 from wayfarer.engine.simulation.combat.vocabulary import Defense
-from wayfarer.engine.simulation.equipment.catalog import Armor, RangedMode
+from wayfarer.engine.simulation.equipment.catalog import Armor, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.silver import (
     attack_construction,
     silver_wounding_multiplier,
@@ -112,26 +112,24 @@ def _apply_cattle_prod(
     return state.model_copy(update={"resources": resources}), effect_dice
 
 
-def resolve_melee(
+def _route_weapon(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
     selected: Defense,
     item_id: str | None,
-    *,
-    second_defense: Defense | None = None,
-    second_item_id: str | None = None,
-    parry_mode_id: str | None = None,
-    second_parry_mode_id: str | None = None,
-    catch_thrown: bool = False,
-) -> tuple[PlayState, Encounter, InjuryTrace]:
+    second_defense: Defense | None,
+    second_item_id: str | None,
+    parry_mode_id: str | None,
+    second_parry_mode_id: str | None,
+    catch_thrown: bool,
+) -> MeleeMode | tuple[PlayState, Encounter, InjuryTrace]:
     pending = encounter.pending_defense
     assert pending is not None
     if pending.spell_cast_id is not None:
         return resolve_spell(
             runtime, state, encounter, selected, item_id, second_defense, second_item_id
         )
-    equipment = catalog(runtime)
     weapon = mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
     if isinstance(weapon, RangedMode):
         return resolve(
@@ -147,11 +145,50 @@ def resolve_melee(
             second_parry_mode_id=second_parry_mode_id,
             catch_thrown=catch_thrown,
         )
+    return weapon
+
+
+def resolve_melee(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    second_defense: Defense | None = None,
+    second_item_id: str | None = None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace]:
+    pending = encounter.pending_defense
+    assert pending is not None
+    routed = _route_weapon(
+        runtime,
+        state,
+        encounter,
+        selected,
+        item_id,
+        second_defense,
+        second_item_id,
+        parry_mode_id,
+        second_parry_mode_id,
+        catch_thrown,
+    )
+    if isinstance(routed, tuple):
+        return routed
+    weapon = routed
+    equipment = catalog(runtime)
     weapon_item = next(item for item in state.resources.items if item.id == pending.weapon_id)
     cattle_prod = weapon_item.definition_id == "equipment:cattle-prod"
     damage_type = "cr" if pending.subdual_mode is not None else weapon.damage.damage_type
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    aim_target = next(
+        p
+        for p in encounter.participants
+        if p.actor_id == (pending.protected_defender_id or pending.defender_id)
+    )
     attack_build = build(runtime, state, pending.attacker_id)
     defend_build = build(runtime, state, pending.defender_id)
     assert attack_build.statistics is not None and defend_build.statistics is not None
@@ -234,7 +271,7 @@ def resolve_melee(
     height = height_effect(
         encounter,
         attacker,
-        defender,
+        aim_target,
         reach=max(reaches),
         location=pending.hit_location,
         board=runtime.hex_map(encounter),
@@ -258,13 +295,13 @@ def resolve_melee(
     )
     attack_target += entangle_attack_penalty(attacker)
     if (
-        defender.unarmed_guard_dropped
-        and attacker.maneuver_state.evaluate_target_id == defender.actor_id
+        aim_target.unarmed_guard_dropped
+        and attacker.maneuver_state.evaluate_target_id == aim_target.actor_id
     ):
         attack_target += attacker.maneuver_state.evaluate_bonus
     attack_target = attack_modifier(
         attacker.maneuver_state,
-        defender.actor_id,
+        aim_target.actor_id,
         attack_target,
         check_adjustment=sum(
             m.value for m in check_modifiers(state.resources, attacker.actor_id, "dx")
@@ -289,6 +326,22 @@ def resolve_melee(
         check_modifiers(state.resources, attacker.actor_id, "dx"),
         rng=runtime.rng,
     )
+    if pending.protected_defender_id and attack.outcome is Outcome.CRITICAL_SUCCESS:
+        # B375 uses ordinary Dodge rules: critical attacks cannot be intercepted.
+        unintercepted = pending.model_copy(
+            update={
+                "defender_id": pending.protected_defender_id,
+                "protected_defender_id": None,
+                "attack_roll": attack,
+            }
+        )
+        return resolve_melee(
+            runtime,
+            state,
+            encounter.model_copy(update={"pending_defense": unintercepted}),
+            "none",
+            None,
+        )
     defense = None
     second_trace = None
 
