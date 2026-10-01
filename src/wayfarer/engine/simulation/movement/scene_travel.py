@@ -8,6 +8,7 @@ from wayfarer.engine.simulation.campaign.party import group_for
 from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.recovery_guard import guard
+from wayfarer.engine.simulation.magic.lock_state import passage_blocked
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
@@ -44,6 +45,8 @@ def travel_scene(
     ):
         raise ConflictError("Exit is blocked")
     destination = next(value for value in rules.scenes if value.id == selected.destination_id)
+    if passage_blocked(state.resources, scene.location_id, destination.location_id):
+        raise ConflictError("Exit is blocked by a closed door")
     world = state.world
     fired = set(state.fired_scene_triggers)
     events = list(state.scene_events)

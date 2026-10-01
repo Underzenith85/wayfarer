@@ -2,7 +2,8 @@
 
 from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.magic.backfires import Backfire, save
-from wayfarer.engine.simulation.magic.spell_state import PREFIX, SpellEffect, SpellEvent
+from wayfarer.engine.simulation.magic.spell_state import PREFIX, SpellEvent
+from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellEffect as SpellEffect
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 

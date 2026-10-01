@@ -15,6 +15,8 @@ from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.models import Id, Record
 
 PREFIX = "spell:"
+RUNTIME_PREFIX = "runtime-spell:"
+PRIVATE_SPELLS = frozenset({"lockmaster", "magelock"})
 SpellId = Literal[
     "awaken",
     "light",
@@ -29,11 +31,16 @@ SpellId = Literal[
 ]
 
 
-class SpellEffect(Record):
+RuntimeSpellId = Literal[SpellId, "lockmaster", "magelock"]
+
+
+class RuntimeSpellEffect(Record):
+    """Private engine vocabulary; legacy event contracts keep their closed facade."""
+
     cast_id: Id
     actor_id: Id
     target_id: Id
-    spell_id: SpellId
+    spell_id: RuntimeSpellId
     build_revision: Id
     phase: Literal["casting", "active", "ended"]
     started_at: int
@@ -67,6 +74,10 @@ class SpellEffect(Record):
     area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
+class SpellEffect(RuntimeSpellEffect):
+    spell_id: SpellId
+
+
 class SpellResult(Record):
     outcome: Literal[
         "casting",
@@ -92,25 +103,35 @@ class SpellResult(Record):
     )
 
 
-class SpellEvent(Record):
-    effect: SpellEffect
+class RuntimeSpellEvent(Record):
+    effect: RuntimeSpellEffect
     result: SpellResult
 
 
-def event_id(command_id: str) -> str:
-    return PREFIX + hashlib.sha256(command_id.encode()).hexdigest()
+class SpellEvent(RuntimeSpellEvent):
+    effect: SpellEffect
 
 
-def latest(state: ResourceState) -> dict[str, SpellEffect]:
-    found: dict[str, SpellEffect] = {}
+def event_id(command_id: str, spell_id: str | None = None) -> str:
+    prefix = RUNTIME_PREFIX if spell_id in PRIVATE_SPELLS else PREFIX
+    return prefix + hashlib.sha256(command_id.encode()).hexdigest()
+
+
+def parse_event(event: ResourceEvent) -> RuntimeSpellEvent:
+    model = RuntimeSpellEvent if event.id.startswith(RUNTIME_PREFIX) else SpellEvent
+    return model.model_validate_json(event.kind)
+
+
+def latest(state: ResourceState) -> dict[str, RuntimeSpellEffect]:
+    found: dict[str, RuntimeSpellEffect] = {}
     for event in state.events:
-        if event.id.startswith(PREFIX):
-            effect = SpellEvent.model_validate_json(event.kind).effect
+        if event.id.startswith((PREFIX, RUNTIME_PREFIX)):
+            effect = parse_event(event).effect
             found[effect.cast_id] = effect
     return found
 
 
-def active_spells(state: ResourceState) -> tuple[SpellEffect, ...]:
+def active_spells(state: ResourceState) -> tuple[RuntimeSpellEffect, ...]:
     return tuple(
         effect
         for effect in latest(state).values()
@@ -129,13 +150,13 @@ def interrupt_spells(
         effect = effect.model_copy(
             update={"distracted": True} if distraction else {"phase": "ended"}
         )
-        record = SpellEvent(
+        record = RuntimeSpellEvent(
             effect=effect,
             result=SpellResult(outcome="casting" if distraction else "interrupted"),
         )
         events.append(
             ResourceEvent(
-                id=event_id(command_id + ":interrupt:" + effect.cast_id),
+                id=event_id(command_id + ":interrupt:" + effect.cast_id, effect.spell_id),
                 at=state.game_time,
                 target_id=actor_id,
                 kind=record.model_dump_json(),
@@ -153,7 +174,7 @@ def break_daze(state: ResourceState, actor_id: str, command_id: str) -> Resource
                     id=event_id(command_id + ":daze:" + effect.cast_id),
                     at=state.game_time,
                     target_id=actor_id,
-                    kind=SpellEvent(
+                    kind=RuntimeSpellEvent(
                         effect=effect.model_copy(update={"phase": "ended"}),
                         result=SpellResult(outcome="cancelled"),
                     ).model_dump_json(),

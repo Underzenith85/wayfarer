@@ -86,6 +86,7 @@ from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
 from wayfarer.engine.simulation.magic.enchanting import validate_projects as validate_enchantments
+from wayfarer.engine.simulation.magic.lock_state import passage_blocked
 from wayfarer.engine.simulation.projects.inventions import validate_projects
 from wayfarer.engine.simulation.resources import Advance, Consume
 from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
@@ -413,6 +414,17 @@ class ActionEngine:
     def _location(entity: Entity) -> str | None:
         return entity.id if entity.kind is EntityKind.LOCATION else entity.location_id
 
+    @staticmethod
+    def _move_access(state: PlayState, origin: str | None, destination: Entity) -> str | None:
+        if destination.kind is not EntityKind.LOCATION or not any(
+            c.source_id == origin and c.destination_id == destination.id
+            for c in state.world.connections
+        ):
+            return "move.no_connection"
+        if passage_blocked(state.resources, origin, destination.id):
+            return "move.closed_door"
+        return None
+
     def assess(self, state: PlayState, command: TypedAction) -> ActionResult:
         _guard_transformation_recovery(state, command)
         if command.kind != "question" and (
@@ -513,11 +525,8 @@ class ActionEngine:
             destination = entities.get(command.destination_id)
             if command.destination_id not in known or destination is None:
                 return result("rejected", "target.unavailable")
-            if destination.kind is not EntityKind.LOCATION or not any(
-                c.source_id == entity.location_id and c.destination_id == destination.id
-                for c in state.world.connections
-            ):
-                return result("rejected", "move.no_connection")
+            if refusal := self._move_access(state, entity.location_id, destination):
+                return result("rejected", refusal)
             return result("feasible", "move.allowed")
         if isinstance(command, UseItem):
             if command.item_id is None:

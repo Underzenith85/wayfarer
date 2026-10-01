@@ -122,3 +122,34 @@ route through the canonical hazard, health, and Mind Shield paths. Independent
 expectations live in `tests/fixtures/gurps/characters-magic-residuals.json` and
 `tests/test_characters_magic_residuals.py`; no engine version changes for this
 prerelease work.
+
+## Noncombat critical-failure summoning
+
+The B236 normal-table malign appearance is also executable when no encounter
+was running. The current trusted GM supplies a private `SummonEncounter`
+declaration on the existing backfire command: an authored battlefield, caster
+placement, optional scene, and the summoned actor's facing. The selected saved
+alternative still controls the approved reserve actor and its destination;
+the command cannot invent a creature, damage expression, or spell result.
+Square and hex geometry remain explicit.
+
+The resolver uses the ordinary canonical encounter constructor and settlement
+inside the same backfire transaction. It establishes actual opposition and
+preserves the caster as an involuntary victim even when unconscious; normal
+voluntary encounter starts retain their original eligibility checks. The
+summoned actor must be approved, nearby in the authored world, available and
+capable of attacking, and absent from other active encounters. Invalid or
+occupied placement fails atomically. Without an authored map or reserve build,
+the pending result remains for an explicit GM configuration/interpretation.
+Existing-combat summoning preserves its current actor when initiative is
+reordered and extends explicit hostility without dropping existing sides.
+Both summon routes reuse the same synchronized, same-scene single-actor
+subgroup admission as ordinary reinforcements, preserving reserve companions
+and generation accounting. Ordinary starts cannot bypass the pending-backfire guard.
+
+`tests/test_spell_summoning.py` covers actual later attacks on a helpless caster,
+square/hex persistence, unchanged energy payment, placement rejection, current
+GM revocation, exact/concurrent retries, rollback, and seeded command
+re-execution on both stores. `tests/test_spell_execution.py` retains existing
+combat summoning coverage. This is a shared lifecycle dependency exposed by
+#799, not implementation of the separate Summon Demon spell or autonomous AI.

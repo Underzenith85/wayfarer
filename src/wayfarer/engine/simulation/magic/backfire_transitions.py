@@ -1,5 +1,7 @@
 """State transitions for campaign-authored B236 backfire consequences."""
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -10,24 +12,37 @@ from wayfarer.engine.rules.checks import draw_dice, draw_index
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
-from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.campaign.reinforcements import admit_actor
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.magic import lock_backfires
 from wayfarer.engine.simulation.magic.area_fire import armor
 from wayfarer.engine.simulation.magic.backfires import Backfire, apply_backfire, backfires, save
-from wayfarer.engine.simulation.magic.bindings import BackfireAlternative
+from wayfarer.engine.simulation.magic.bindings import RuntimeBackfireAlternative
 from wayfarer.engine.simulation.magic.effects import break_daze
+from wayfarer.engine.simulation.magic.lock_state import latest as lock_states
+from wayfarer.engine.simulation.magic.lock_state import validate_fixture
+from wayfarer.engine.simulation.magic.spell_state import (
+    RuntimeSpellEffect as SpellEffect,
+)
+from wayfarer.engine.simulation.magic.spell_state import (
+    RuntimeSpellEvent as SpellEvent,
+)
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     SPELLS,
-    SpellEffect,
-    SpellEvent,
     SpellResult,
     active_spells,
     event_id,
     latest,
+)
+from wayfarer.engine.simulation.magic.summoning import (
+    SummonEncounter,
+    hostile_allegiance,
+    validate_summon,
 )
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -40,27 +55,38 @@ class ResolveSpellBackfire(Command):
     backfire_id: Id
     alternative_id: Id
     good_intent: bool = Field(default=False)
+    summon_encounter: SummonEncounter | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 def resolve(
-    runtime: RulesContext, state: PlayState, command: ResolveSpellBackfire
+    runtime: RulesContext,
+    state: PlayState,
+    command: ResolveSpellBackfire,
+    *,
+    start_summon: Callable[[PlayState, ResolveSpellBackfire, BackfireSelection], PlayState]
+    | None = None,
 ) -> tuple[PlayState, Backfire]:
-    return reduce_backfire(state, command, BackfireContext(runtime))
+    return reduce_backfire(state, command, BackfireContext(runtime, start_summon))
 
 
 @dataclass(frozen=True)
 class BackfireContext:
     runtime: RulesContext
+    start_summon: (
+        Callable[[PlayState, ResolveSpellBackfire, BackfireSelection], PlayState] | None
+    ) = None
 
 
 @dataclass(frozen=True)
 class BackfireSelection:
     item: Backfire
-    choice: BackfireAlternative
+    choice: RuntimeBackfireAlternative
     effect: SpellEffect
     encounter: Encounter | None
     target_id: str
-    compiled: ValidatedBuild
+    compiled: ValidatedBuild | None
 
 
 def _select_backfire(
@@ -68,11 +94,14 @@ def _select_backfire(
 ) -> BackfireSelection:
     item = next((b for b in backfires(state.resources) if b.id == command.backfire_id), None)
     rules = runtime.rules.spells
-    choice = (
-        next((a for a in rules.backfire_alternatives if a.id == command.alternative_id), None)
+    alternatives = (
+        lock_backfires.choices(state.resources)
+        if item and item.spell_id in ("lockmaster", "magelock")
+        else rules.backfire_alternatives
         if rules
-        else None
+        else ()
     )
+    choice = next((a for a in alternatives if a.id == command.alternative_id), None)
     if item is None or not item.pending:
         raise ConflictError("Backfire is not awaiting an interpretation")
     if (
@@ -83,6 +112,8 @@ def _select_backfire(
     ):
         raise ValidationError("Backfire alternative does not authorize this result")
     effect = latest(state.resources)[item.cast_id]
+    if command.summon_encounter is not None and choice.effect != "summon":
+        raise ValidationError("Only a summon consequence may create its encounter")
     if choice.effect == "reroll" and choice.target_ids != (item.actor_id,):
         raise ValidationError("Reroll belongs to the original caster")
     if choice.effect == "waive":
@@ -94,61 +125,88 @@ def _select_backfire(
     else:
         _validate_consequence(item, choice, effect)
     encounter = next((e for e in state.encounters if e.id == effect.encounter_id), None)
-    candidates = {}
-    for target_id in choice.target_ids:
-        compiled = build(runtime, state, target_id)
-        assert compiled.statistics
-        entity = next(e for e in state.world.entities if e.id == target_id)
-        if entity.location_id != effect.location_id:
-            raise ValidationError("Backfire target is not nearby")
-        if choice.effect == "summon":
-            if encounter is None or target_id in encounter.turn_order or choice.position is None:
-                raise ValidationError(
-                    "Summoning requires an approved reserve combatant and placement"
-                )
-            point = (
-                Hex(q=choice.position[0], r=choice.position[1])
-                if encounter.spatial_kind == "hex"
-                else GridPoint(x=choice.position[0], y=choice.position[1])
-            )
-            if any(p.position == point for p in encounter.participants):
-                raise ValidationError("Summoned combatant placement is occupied")
-            if encounter.spatial_kind == "hex":
-                if runtime.require_hex(encounter).cell(point).blocked:  # type: ignore[arg-type]
-                    raise ValidationError("Summoned combatant placement is blocked")
-            else:
-                board = (
-                    next(
-                        b
-                        for b in runtime.rules.combat.battlefields
-                        if b.id == encounter.battlefield_id
-                    )
-                    if runtime.rules.combat
-                    else None
-                )
-                assert isinstance(point, GridPoint)
-                if (
-                    not isinstance(board, Battlefield)
-                    or point.x >= board.width
-                    or point.y >= board.height
-                    or point in board.blocked
-                ):
-                    raise ValidationError("Summoned combatant placement is outside the battlefield")
-        elif encounter and target_id not in encounter.turn_order:
-            raise ValidationError("Backfire target is outside the encounter")
-        if choice.effect == "retarget" and target_id == effect.target_id:
-            raise ValidationError("An intended table result must be rerolled")
-        if choice.relationship in ("foe", "companion") and target_id == item.actor_id:
-            raise ValidationError("A companion or foe cannot be the caster")
-        candidates[target_id] = compiled
+    if choice.effect == "summon":
+        encounter = next(
+            (e for e in state.encounters if e.status == "active" and item.actor_id in e.turn_order),
+            None,
+        )
+    candidates = {
+        target_id: _backfire_candidate(
+            runtime, state, item, choice, effect, encounter, target_id, command.summon_encounter
+        )
+        for target_id in choice.target_ids
+    }
     target_id = (
         choice.target_ids[draw_index(runtime.rng, len(choice.target_ids))]
         if len(choice.target_ids) > 1
         else choice.target_ids[0]
     )
-    compiled = candidates[target_id]
+    selected_build = candidates[target_id]
+    return BackfireSelection(item, choice, effect, encounter, target_id, selected_build)
+
+
+def _backfire_candidate(
+    runtime: RulesContext,
+    state: PlayState,
+    item: Backfire,
+    choice: RuntimeBackfireAlternative,
+    effect: SpellEffect,
+    encounter: Encounter | None,
+    target_id: str,
+    summon_encounter: SummonEncounter | None,
+) -> ValidatedBuild | None:
+    if effect.spell_id in ("lockmaster", "magelock") and choice.effect in (
+        "retarget",
+        "reverse",
+    ):
+        _validate_lock_backfire_candidate(state, item, choice, effect, target_id)
+        return None
+    compiled = build(runtime, state, target_id)
     assert compiled.statistics
-    return BackfireSelection(item, choice, effect, encounter, target_id, compiled)
+    entity = next(e for e in state.world.entities if e.id == target_id)
+    if entity.location_id != effect.location_id:
+        raise ValidationError("Backfire target is not nearby")
+    if choice.effect == "summon":
+        validate_summon(
+            runtime,
+            state,
+            caster_id=item.actor_id,
+            location_id=effect.location_id,
+            target_id=target_id,
+            position=choice.position,
+            encounter=encounter,
+            declaration=summon_encounter,
+        )
+    elif encounter and target_id not in encounter.turn_order:
+        raise ValidationError("Backfire target is outside the encounter")
+    if choice.effect == "retarget" and target_id == effect.target_id:
+        raise ValidationError("An intended table result must be rerolled")
+    if choice.relationship in ("foe", "companion") and target_id == item.actor_id:
+        raise ValidationError("A companion or foe cannot be the caster")
+    return compiled
+
+
+def _validate_lock_backfire_candidate(
+    state: PlayState,
+    item: Backfire,
+    choice: RuntimeBackfireAlternative,
+    effect: SpellEffect,
+    target_id: str,
+) -> None:
+    lock_backfires.validate_target(
+        state.resources, effect.spell_id, target_id, reverse=choice.effect == "reverse"
+    )
+    fixture = lock_states(state.resources)[target_id].fixture
+    validate_fixture(state.world, state.resources, fixture)
+    if fixture.location_id != effect.location_id:
+        raise ValidationError("Backfire object is not nearby")
+    if item.severity == "normal" and item.row in (4, 5, 6):
+        raise ValidationError("Person-targeted lock backfires are inappropriate; reroll the table")
+    if choice.effect == "retarget" or item.row in (15, 16):
+        if target_id == effect.target_id:
+            raise ValidationError("Wrong-target lock backfire requires another object")
+    elif item.row == 13 and target_id != effect.target_id:
+        raise ValidationError("Table row 13 reverses the effect on its original object")
 
 
 def _reroll(
@@ -160,7 +218,7 @@ def _reroll(
     runtime = context.runtime
     item = selection.item
     compiled = selection.compiled
-    assert compiled.statistics
+    assert compiled is not None and compiled.statistics
     resources = state.resources
     resources = apply_backfire(
         resources,
@@ -181,9 +239,18 @@ def _summon(
     context: BackfireContext,
     selection: BackfireSelection,
 ) -> PlayState:
+    if selection.encounter is None:
+        if context.start_summon is None:
+            raise ValidationError("Noncombat summoning requires its canonical encounter host")
+        state = context.start_summon(state, command, selection)
+        assert command.summon_encounter is not None
+        encounter = next(
+            e for e in state.encounters if e.id == command.summon_encounter.encounter_id
+        )
+        return _summon_appearance(state, command, encounter, selection.target_id)
     choice = selection.choice
     encounter, target_id, compiled = selection.encounter, selection.target_id, selection.compiled
-    assert compiled.statistics
+    assert compiled is not None and compiled.statistics
     resources = state.resources
     assert encounter and choice.position
     point = (
@@ -214,7 +281,11 @@ def _summon(
             i.id for i in resources.items if i.owner_id == target_id and i.ready and i.equipped
         ),
     )
+    if state.party.groups:
+        state = admit_actor(state, target_id, selection.item.actor_id)
+    current_actor_id = encounter.current_actor_id
     encounter = encounter.add_participant(participant)
+    encounter = hostile_allegiance(encounter, selection.item.actor_id, target_id, selection.item.id)
     order = tuple(
         p.actor_id
         for p in sorted(
@@ -222,20 +293,27 @@ def _summon(
             key=lambda p: (-p.initiative, -p.initiative_dx, p.actor_id),
         )
     )
-    encounter = encounter.model_copy(update={"turn_order": order})
+    encounter = encounter.model_copy(
+        update={"turn_order": order, "turn_index": order.index(current_actor_id)}
+    )
     state = state.model_copy(
         update={
             "encounters": tuple(encounter if e.id == encounter.id else e for e in state.encounters)
         }
     )
+    return _summon_appearance(state, command, encounter, target_id)
+
+
+def _summon_appearance(
+    state: PlayState, command: ResolveSpellBackfire, encounter: Encounter, target_id: str
+) -> PlayState:
     from dataclasses import replace
 
     fact = Fact("summon:" + command.id, target_id, "visible", "A summoned presence arrives.")
     world = replace(state.world, facts=state.world.facts + (fact,))
     for observer in encounter.participants:
         world = world.learn(observer.actor_id, fact.id)
-    state = state.model_copy(update={"world": world})
-    return state.model_copy(update={"resources": resources})
+    return state.model_copy(update={"world": world})
 
 
 def _effect(
@@ -247,6 +325,15 @@ def _effect(
     runtime = context.runtime
     choice, effect = selection.choice, selection.effect
     encounter, target_id, compiled = selection.encounter, selection.target_id, selection.compiled
+    if effect.spell_id in ("lockmaster", "magelock") and choice.effect in ("retarget", "reverse"):
+        return state.model_copy(
+            update={
+                "resources": lock_backfires.apply_effect(
+                    state.resources, effect, choice, command.id, target_id
+                )
+            }
+        )
+    assert compiled is not None
     assert compiled.statistics
     resources = state.resources
     if choice.effect == "damage" or effect.spell_id == "fireball":
@@ -329,6 +416,7 @@ _BACKFIRES: dict[
 def reduce_backfire(
     state: PlayState, command: ResolveSpellBackfire, context: BackfireContext
 ) -> tuple[PlayState, Backfire]:
+    revision = state.revision + 1
     selection = _select_backfire(context.runtime, state, command)
     state = _BACKFIRES[selection.choice.effect](state, command, context, selection)
     item = selection.item.model_copy(
@@ -338,10 +426,8 @@ def reduce_backfire(
             "target_id": selection.target_id,
         }
     )
-    resources = save(state.resources, item, command.id).model_copy(
-        update={"revision": state.revision + 1}
-    )
-    return state.model_copy(update={"revision": state.revision + 1, "resources": resources}), item
+    resources = save(state.resources, item, command.id).model_copy(update={"revision": revision})
+    return state.model_copy(update={"revision": revision, "resources": resources}), item
 
 
 def perceive(state: PlayState) -> PlayState:
@@ -410,7 +496,9 @@ def recover_stuns(runtime: RulesContext, state: PlayState) -> PlayState:
     return state.model_copy(update={"resources": resources})
 
 
-def _validate_consequence(item: Backfire, choice: BackfireAlternative, effect: SpellEffect) -> None:
+def _validate_consequence(
+    item: Backfire, choice: RuntimeBackfireAlternative, effect: SpellEffect
+) -> None:
     if item.row == 0 and item.spell_id in (
         "minor-healing",
         "major-healing",
@@ -450,7 +538,7 @@ def _damage_consequence(
 ) -> ResourceState:
     choice, effect = selection.choice, selection.effect
     target_id, compiled = selection.target_id, selection.compiled
-    assert compiled.statistics
+    assert compiled is not None and compiled.statistics
     resources = state.resources
     count = effect.energy if choice.effect == "retarget" else choice.damage_dice
     damage = max(

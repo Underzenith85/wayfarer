@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.combat.commands import BasicMove
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield
+from wayfarer.engine.simulation.magic.lock_ready import ready_lock
 from wayfarer.engine.simulation.resources import Equip, ResourceState
 from wayfarer.engine.simulation.traits.size_forms import effect_for as size_effect_for
 from wayfarer.engine.simulation.traits.size_forms import ready_step
@@ -152,6 +153,8 @@ def move_square(declared: Declaration) -> Outcome:
 
 
 def ready(declared: Declaration) -> Outcome:
+    if declared.target_id is not None:
+        return ready_lock(declared)
     # A bound actor may spend its Ready struggling with the binding
     # instead of readying an item (#354).
     participant, item_id = declared.participant, declared.item_id

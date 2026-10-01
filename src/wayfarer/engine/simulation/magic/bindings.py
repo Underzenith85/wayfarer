@@ -13,6 +13,7 @@ from wayfarer.engine.rules.magic.protocols import (
     MagicTradition,
     validate_tradition,
 )
+from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellId
 from wayfarer.engine.simulation.magic.spells import SpellId
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
@@ -40,11 +41,9 @@ class SpellChannel(Record):
     light_penalty: int = Field(default=-3, ge=-9, le=0, exclude_if=lambda value: value == -3)
 
 
-class BackfireAlternative(Record):
-    """Campaign-authored interpretation of a contextual B236 result."""
-
+class RuntimeBackfireAlternative(Record):
     id: Id
-    spell_id: SpellId
+    spell_id: RuntimeSpellId
     rows: tuple[int, ...] = Field(min_length=1, max_length=18)
     severity: Literal["normal", "disaster"] = "normal"
     effect: Literal["retarget", "reverse", "damage", "summon", "waive", "reroll"]
@@ -57,12 +56,18 @@ class BackfireAlternative(Record):
     reason: str = Field(min_length=1, max_length=1000)
 
     @model_validator(mode="after")
-    def bounds(self) -> BackfireAlternative:
+    def bounds(self) -> RuntimeBackfireAlternative:
         if any(row not in range(19) for row in self.rows) or len(set(self.target_ids)) != len(
             self.target_ids
         ):
             raise ValueError("Invalid backfire table rows or duplicate targets")
         return self
+
+
+class BackfireAlternative(RuntimeBackfireAlternative):
+    """Campaign-authored interpretation of a contextual B236 result."""
+
+    spell_id: SpellId
 
 
 class SpellRules(Record):

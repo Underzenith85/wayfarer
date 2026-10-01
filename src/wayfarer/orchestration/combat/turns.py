@@ -40,6 +40,7 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import grapple_ready
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
+from wayfarer.engine.simulation.magic.lock_ready import finish_lock_ready, validate_known_lock
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
@@ -105,6 +106,15 @@ def _validate_turn(
     play = context.play
     engine = context.engine
     resources = state.resources
+
+    validate_known_lock(
+        state,
+        command.actor_id,
+        command.target_id,
+        command.maneuver,
+        encounter=encounter,
+        hand=command.ready_hand,
+    )
 
     validate_declaration(play.rules_context, state, encounter, command)
 
@@ -699,14 +709,15 @@ def _after_turn(
             )
         resources = _apply_melee_ready(state, command_for_turn, context, resources)
 
-        encounter = bind_ready_hand(
-            play.rules_context,
-            state.model_copy(update={"resources": resources}),
-            encounter,
-            command.actor_id,
-            command.item_id or "",
-            command.ready_hand,
-        )
+        if command.target_id is None:
+            encounter = bind_ready_hand(
+                play.rules_context,
+                state.model_copy(update={"resources": resources}),
+                encounter,
+                command.actor_id,
+                command.item_id or "",
+                command.ready_hand,
+            )
 
         state, encounter = grapple_ready(
             play.rules_context,
@@ -714,6 +725,7 @@ def _after_turn(
             encounter,
             command_for_turn,
         )
+        state = finish_lock_ready(state, encounter, command_for_turn)
         resources = state.resources
     if engine.rules.gurps_equipment is not None and result.code != "combat.wait_triggered":
         acted = next(p for p in encounter.participants if p.actor_id == command.actor_id)

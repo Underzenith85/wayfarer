@@ -154,7 +154,18 @@ async def test_active_spell_is_not_pending_concentration(tmp_path: Path) -> None
     assert len(active_spells(play._load(await play.store.read(cid)).resources)) == 1
 
 
-@pytest.mark.parametrize("prefix", ["spell:", "ability:"])
+@pytest.mark.parametrize(
+    "prefix",
+    [
+        "spell:",
+        "runtime-spell:",
+        "lock-state:",
+        "lock-channel:",
+        "lock-host:",
+        "lock-backfire-choice:",
+        "ability:",
+    ],
+)
 async def test_scenario_cannot_seed_supernatural_execution(tmp_path: Path, prefix: str) -> None:
     _, play = await setup(tmp_path, spec(), magic=True)
     forged = ResourceState(

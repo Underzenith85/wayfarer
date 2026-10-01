@@ -29,7 +29,11 @@ from wayfarer.orchestration.combat.context import CombatContext, CombatStep, enc
 
 
 def _start_encounter(
-    state: PlayState, command: StartEncounter, context: CombatContext
+    state: PlayState,
+    command: StartEncounter,
+    context: CombatContext,
+    *,
+    involuntary_actor_ids: frozenset[str] = frozenset(),
 ) -> CombatStep:
     play = context.play
     engine = context.engine
@@ -47,13 +51,14 @@ def _start_encounter(
     for placement in command.placements:
         actor = actor_map[placement.actor_id]
         if engine.rules.gurps_equipment is not None:
-            if not fatigue_ready(state, actor.actor_id):
+            if actor.actor_id not in involuntary_actor_ids and not fatigue_ready(
+                state, actor.actor_id
+            ):
                 raise ValidationError("Exhausted actor cannot start combat")
         hp = pools.get(f"hp:{actor.actor_id}")
-        if (
-            actor.conditions
-            or hp is None
-            or (hp.injury.incapacitated if hp.injury else hp.current == 0)
+        if hp is None or (
+            actor.actor_id not in involuntary_actor_ids
+            and (actor.conditions or (hp.injury.incapacitated if hp.injury else hp.current == 0))
         ):
             raise ValidationError("Incapacitated actor cannot start combat")
         build, _ = play.engine.reviewer.activate(
