@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.movement.physical import PhysicalContext as Phys
 from wayfarer.engine.simulation.movement.physical import PhysicalResult as PhysicalResult
 from wayfarer.engine.simulation.movement.physical import PhysicalRoute as PhysicalRoute
 from wayfarer.engine.simulation.movement.physical import RouteResolver as RouteResolver
+from wayfarer.engine.simulation.movement.physical import feat_event_id
 from wayfarer.engine.simulation.movement.physical import reduce_physical as reduce_physical
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
@@ -42,7 +43,7 @@ class PhysicalService:
 
         async def outcome(campaign: Campaign) -> PhysicalResult:
             state = play._load(campaign)
-            event = next(e for e in state.resources.events if e.id == "feat:" + command.id)
+            event = next(e for e in state.resources.events if e.id == feat_event_id(command.id))
             return PhysicalResult.model_validate_json(event.kind)
 
         return CommandPlan(

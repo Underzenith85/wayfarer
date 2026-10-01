@@ -24,6 +24,7 @@ POWER = tuple(
 )
 
 
+@pytest.mark.parametrize("attack_id", ["attack", "a" * 200])
 @pytest.mark.parametrize("success,basic", [(True, 9), (False, 3)])
 @pytest.mark.parametrize("unarmed", [False, True])
 @pytest.mark.parametrize("matching", [False, True])
@@ -33,6 +34,7 @@ async def test_power_blow_changes_real_weapon_damage_and_failure_still_costs_fp(
     basic: int,
     unarmed: bool,
     matching: bool,
+    attack_id: str,
 ) -> None:
     cid, play = await setup(
         tmp_path,
@@ -61,7 +63,7 @@ async def test_power_blow_changes_real_weapon_damage_and_failure_still_costs_fp(
                 expected_revision=state.resources.revision,
                 build_revision=build.revision,
                 encounter_id="fight",
-                attack_command_id="attack" if matching else "another-attack",
+                attack_command_id=attack_id if matching else "another-attack",
             ),
             authorized_actor_id="a",
         )
@@ -71,7 +73,7 @@ async def test_power_blow_changes_real_weapon_damage_and_failure_still_costs_fp(
             expected_revision=state.resources.revision,
             build_revision=build.revision,
             encounter_id="fight",
-            attack_command_id="attack" if matching else "another-attack",
+            attack_command_id=attack_id if matching else "another-attack",
         )
         assert activate_power_blow(play.rules_context, changed, retry, authorized_actor_id="a") == (
             changed,
@@ -101,7 +103,7 @@ async def test_power_blow_changes_real_weapon_damage_and_failure_still_costs_fp(
         await CombatService(play).execute(
             cid,
             TakeUnarmedTurn(
-                id="attack",
+                id=attack_id,
                 actor_id="a",
                 expected_revision=2,
                 encounter_id="fight",
@@ -117,7 +119,7 @@ async def test_power_blow_changes_real_weapon_damage_and_failure_still_costs_fp(
         await CombatService(play).execute(
             cid,
             TakeCombatTurn(
-                id="attack",
+                id=attack_id,
                 actor_id="a",
                 expected_revision=2,
                 encounter_id="fight",
@@ -150,9 +152,10 @@ async def test_power_blow_changes_real_weapon_damage_and_failure_still_costs_fp(
     assert await CombatService(play).execute(cid, defense, principal_id="b") == result
 
 
+@pytest.mark.parametrize("lift_id", ["lift", "l" * 200])
 @pytest.mark.parametrize("success,capacity", [(True, "640"), (False, "160")])
 async def test_power_blow_changes_actual_authored_lift_capacity(
-    tmp_path: Path, success: bool, capacity: str
+    tmp_path: Path, success: bool, capacity: str, lift_id: str
 ) -> None:
     from decimal import Decimal
 
@@ -192,7 +195,7 @@ async def test_power_blow_changes_actual_authored_lift_capacity(
                 expected_revision=state.resources.revision,
                 build_revision=build.revision,
                 route_id=route.id,
-                lift_command_id="lift",
+                lift_command_id=lift_id,
             ),
             route,
             authorized_actor_id="a",
@@ -209,7 +212,7 @@ async def test_power_blow_changes_actual_authored_lift_capacity(
     play.rng = RecordedDice([])
     service = PhysicalService(play, lambda *_: route)
     command = PhysicalCommand(
-        id="lift",
+        id=lift_id,
         actor_id="a",
         expected_revision=campaign["revision"],
         kind="lift",
