@@ -298,7 +298,9 @@ def social_occurrence(
     if trigger.kind in ("fright", "self-control"):
         if not any(a.actor_id == trigger.subject_id for a in state.actors):
             raise ValidationError("Social trigger subject requires an approved build")
-        compiled = build(play.rules_context, state, trigger.subject_id)
+        compiled = build(
+            play.rules_context, state, trigger.subject_id, defensive=trigger.kind == "fright"
+        )
         assert compiled.statistics is not None
         will, ht = compiled.statistics.will, compiled.statistics.ht
         target = will + trigger.modifier

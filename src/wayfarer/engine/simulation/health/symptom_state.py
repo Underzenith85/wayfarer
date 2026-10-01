@@ -36,10 +36,23 @@ def projected_build(
     actor_id: str,
     build: ValidatedBuild,
     definitions: Mapping[str, RuleDefinition],
+    *,
+    defensive: bool = False,
+    correct_attributes: bool = True,
 ) -> ValidatedBuild:
+    """B421: governed skills fall with attributes; defensive reactions are exempt.
+
+    Defensive callers retain the existing ST/lift/equipment consequences. Only
+    their attribute and governed-skill roll inputs are exempted here; injury,
+    fatigue, blindness and equipment eligibility remain the consumer's concern.
+    ``correct_attributes=False`` reproduces historical command inputs.
+    """
     if build.statistics is None or not active(state, actor_id):
         return build
     changes = penalties(state, actor_id)
+    defensive = defensive and correct_attributes
+    if defensive:
+        changes = {key: value if key == "st" else 0 for key, value in changes.items()}
     stats = build.statistics
     st = stats.st - changes["st"]
     thrust, swing = (
@@ -65,11 +78,15 @@ def projected_build(
             if definition and definition.skill
             else value.target.split(":")[-1]
         )
+        if correct_attributes:
+            attribute = attribute.rsplit(":", 1)[-1]
         delta = (
             changes.get(attribute, 0)
             if value.target.startswith(("attribute:", "skill:", "secondary:will", "secondary:per"))
             else 0
         )
+        if defensive and definition and definition.skill:
+            delta = 0
         replacement = (
             stats.basic_lift if value.target == "secondary:basic-lift" else value.value - delta
         )

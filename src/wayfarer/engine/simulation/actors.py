@@ -142,7 +142,9 @@ def catalog(runtime: RulesContext) -> EquipmentCatalog:
     return rules.gurps_equipment
 
 
-def build(runtime: RulesContext, state: PlayState, actor_id: str) -> ValidatedBuild:
+def build(
+    runtime: RulesContext, state: PlayState, actor_id: str, *, defensive: bool = False
+) -> ValidatedBuild:
     actor = next(a for a in state.actors if a.actor_id == actor_id)
     compiled, _ = runtime.reviewer.activate(
         actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor_id
@@ -153,7 +155,12 @@ def build(runtime: RulesContext, state: PlayState, actor_id: str) -> ValidatedBu
     ):
         raise ValidationError("Melee requires the campaign's exact statistics profile")
     return projected_build(
-        state.resources, actor_id, compiled, runtime.reviewer.compiler.definitions
+        state.resources,
+        actor_id,
+        compiled,
+        runtime.reviewer.compiler.definitions,
+        defensive=defensive,
+        correct_attributes=runtime.correct_symptom_attributes,
     )
 
 

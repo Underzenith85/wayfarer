@@ -26,6 +26,14 @@ class CommandEntropy:
     rng_algorithm: str = RNG_ALGORITHM
 
 
+@dataclass(frozen=True, slots=True)
+class CommandInput:
+    """An indexed receipt input, including legacy rows with no retained text."""
+
+    payload_hash: str
+    text: str | None = field(repr=False)
+
+
 def payload_digest(payload: object) -> str:
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(encoded.encode()).hexdigest()

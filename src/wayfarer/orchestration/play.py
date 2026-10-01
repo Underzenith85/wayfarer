@@ -59,6 +59,7 @@ from wayfarer.orchestration.npcs import initialize
 from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.sessions import SessionRegistry
+from wayfarer.orchestration.symptom_generations import correct_symptom_attributes
 from wayfarer.orchestration.transformations import shapeshifting_checkpoint
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -92,6 +93,7 @@ class PlayService:
             reviewer=self.engine.reviewer,
             rules=self.engine.rules,
             combat=self.engine.combat,
+            correct_symptom_attributes=correct_symptom_attributes(),
         )
 
     def __init__(
@@ -487,7 +489,12 @@ class PlayService:
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = self._load(campaign)
             synchronous(current, command.actor_id)
-            state, resolved_events = self.engine.resolve(current, command, rng=self.rng)
+            state, resolved_events = self.engine.resolve(
+                current,
+                command,
+                rng=self.rng,
+                correct_symptom_attributes=correct_symptom_attributes(),
+            )
             result = action_result(resolved_events)
             if result.status != "committed":
                 raise ValidationError("Action is no longer feasible")

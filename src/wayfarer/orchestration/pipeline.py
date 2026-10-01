@@ -22,6 +22,7 @@ from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.entropy import CommandBoundary, commit_command
 from wayfarer.orchestration.membership import member_for, require_control
+from wayfarer.orchestration.symptom_generations import capture, symptom_generation
 from wayfarer.persistence.events import CommandOrigin
 
 # Each raises on refusal, so a plan states its rule instead of checking for itself.
@@ -165,12 +166,15 @@ async def submit[T](
         else None
     )
     authorized(plan, principal_id, state)
+    payload, correct_attributes = await capture(play.store, cid, plan.command_id, plan.payload)
+    plan = replace(plan, payload=payload)
     duplicate = await play.store.duplicate(cid, plan.command_id, plan.payload)
     if duplicate is not None:
         authorized(plan, principal_id, _control_state(await play.store.read(cid), plan))
         return await (plan.replayed or plan.outcome)(duplicate)
     if plan.assess is not None:
-        settled = plan.assess()
+        with symptom_generation(correct_attributes):
+            settled = plan.assess()
         if settled is not None:
             return settled
 
@@ -178,7 +182,8 @@ async def submit[T](
         authorized(plan, principal_id, _control_state(campaign, plan))
         if authorize is not None:
             authorize(campaign)
-        return plan.resolve(campaign)
+        with symptom_generation(correct_attributes):
+            return plan.resolve(campaign)
 
     committed = await commit_command(
         play,

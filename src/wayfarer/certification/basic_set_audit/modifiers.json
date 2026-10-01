@@ -1557,7 +1557,12 @@
         "src/wayfarer/engine/simulation/health/symptom_state.py",
         "tests/test_combat_sensory_authority.py",
         "tests/test_blindness_combat_consumers.py",
-        "src/wayfarer/engine/simulation/combat/visibility.py"
+        "src/wayfarer/engine/simulation/combat/visibility.py",
+        "tests/test_symptom_casting_checks.py",
+        "tests/test_symptom_attribute_consumers.py",
+        "tests/test_symptom_attribute_generations.py",
+        "tests/test_symptom_payload_formats.py",
+        "tests/test_command_input_identity.py"
       ],
       "historical_owners": [
         100,

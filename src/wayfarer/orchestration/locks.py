@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.magic.spells import PROFILE, RuntimeSpellCommand
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.spell_generations import recorded_generations
 
 
 class LockService:
@@ -87,6 +88,7 @@ class LockSpellService:
         command: RuntimeSpellCommand,
         *,
         principal_id: str,
+        check_symptoms: bool = True,
     ) -> CommandPlan[SpellResult]:
         if command.spell_id not in ("lockmaster", "magelock"):
             raise ValidationError("Lock host only executes Lockmaster and Magelock")
@@ -95,6 +97,7 @@ class LockSpellService:
                 "operation": "lock-spell",
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
+                **({"check_generation": 1} if check_symptoms else {}),
             },
             sort_keys=True,
         )
@@ -102,7 +105,9 @@ class LockSpellService:
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated, result = reduce_spell(
-                before, command, SpellExecutionContext(play.rules_context)
+                before,
+                command,
+                SpellExecutionContext(play.rules_context, check_symptoms=check_symptoms),
             )
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
@@ -134,9 +139,17 @@ class LockSpellService:
             raise ValidationError("Lock host only executes Lockmaster and Magelock")
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
+        state = play._load(campaign)
+        generations = await recorded_generations(play, state, command)
         return await submit(
             play,
             cid,
-            self.plan(play, play._load(campaign), command, principal_id=principal_id),
+            self.plan(
+                play,
+                state,
+                command,
+                principal_id=principal_id,
+                check_symptoms=generations.check_symptoms,
+            ),
             principal_id=principal_id,
         )

@@ -1,0 +1,286 @@
+{
+  "source_commit": "3589468dcae9d92641ad2942ae8a725c52644145",
+  "state_after": {
+    "revision": 1,
+    "game_time": 0,
+    "items": [],
+    "owners": [],
+    "pools": [
+      {
+        "id": "hp:a",
+        "current": 10,
+        "maximum": 10,
+        "injury": {
+          "profile_id": "gurps-basic-set-4e-2004",
+          "shock": 0,
+          "stunned": false,
+          "prone": false,
+          "unconscious": false,
+          "mortal_wound": false,
+          "mortal_wound_due": null,
+          "mortal_wound_started": 0,
+          "dead": false,
+          "turn": 0,
+          "phase": "between",
+          "shock_expires": 0,
+          "anatomy": null,
+          "male_groin": false,
+          "lasting_injuries": []
+        },
+        "fatigue": null
+      },
+      {
+        "id": "hp:b",
+        "current": 4,
+        "maximum": 10,
+        "injury": {
+          "profile_id": "gurps-basic-set-4e-2004",
+          "shock": 4,
+          "stunned": false,
+          "prone": false,
+          "unconscious": false,
+          "mortal_wound": false,
+          "mortal_wound_due": null,
+          "mortal_wound_started": 0,
+          "dead": false,
+          "turn": 0,
+          "phase": "between",
+          "shock_expires": 1,
+          "anatomy": null,
+          "male_groin": false,
+          "lasting_injuries": []
+        },
+        "fatigue": null
+      }
+    ],
+    "active_effect_ids": [],
+    "symptom_effects": [
+      {
+        "id": "legacy-iq",
+        "pool_id": "hp:b",
+        "source_id": "source",
+        "actor_id": "b",
+        "spec": {
+          "kind": "attribute-penalty",
+          "attribute": "iq",
+          "level": 4,
+          "numerator": 1,
+          "denominator": 2
+        },
+        "active": true
+      }
+    ],
+    "symptom_debts": [
+      {
+        "id": "legacy-injury",
+        "pool_id": "hp:b",
+        "source_id": "source",
+        "remaining": 6,
+        "restriction_id": null
+      },
+      {
+        "id": "attack-defense-use:injury:71e15d541774ac7cd21e34b44a063b1f52d43cfc5db2f4b588dadc11c97e6b63",
+        "pool_id": "hp:b",
+        "source_id": null,
+        "remaining": 6,
+        "restriction_id": null
+      }
+    ],
+    "scheduled": [],
+    "fired": [],
+    "receipts": [
+      {
+        "command_id": "attack-defense-use:injury:71e15d541774ac7cd21e34b44a063b1f52d43cfc5db2f4b588dadc11c97e6b63",
+        "digest": "87fba7e99f4cbec994713f2a61d2b5529cfdbbe103d1ae58a11042aa05023aec"
+      }
+    ],
+    "events": [
+      {
+        "id": "injury:attack-defense-use:injury:71e15d541774ac7cd21e34b44a063b1f52d43cfc5db2f4b588dadc11c97e6b63",
+        "at": 0,
+        "kind": "{\"penetration\":6,\"injury\":6,\"checks\":[{\"reason\":\"major-wound\",\"threshold\":null,\"check\":{\"rules_package\":\"gurps-basic-set-4e-2004\",\"rules_version\":\"gurps-4e-characters-3p-2008+campaigns-4p-2008\",\"rule_id\":\"gurps.check.success\",\"base_target\":10,\"modifiers\":[],\"effective_target\":10,\"dice\":[3,3,3],\"total\":9,\"margin\":1,\"outcome\":\"success\"}}],\"dropped_ready_items\":[],\"location\":null,\"location_dice\":[],\"duration_dice\":[],\"uncapped_injury\":6,\"effective_resistance\":0,\"lasting_injury_ids\":[]}",
+        "target_id": "b"
+      },
+      {
+        "id": "attack-defense-use:event:71e15d541774ac7cd21e34b44a063b1f52d43cfc5db2f4b588dadc11c97e6b63",
+        "at": 0,
+        "kind": "{\"command_id\":\"trait-hit\",\"command_digest\":\"fc6caee725ae3e7b16f08714dd5e94eb22b8c48d4160f255250cd66e1d2bb92b\",\"channel_id\":\"attack\",\"outcome\":{\"outcome\":\"injured\",\"attacker_id\":\"a\",\"target_id\":\"b\",\"definition_id\":\"advantage:innate-attack\",\"injury\":{\"penetration\":6,\"injury\":6,\"checks\":[{\"reason\":\"major-wound\",\"threshold\":null,\"check\":{\"rules_package\":\"gurps-basic-set-4e-2004\",\"rules_version\":\"gurps-4e-characters-3p-2008+campaigns-4p-2008\",\"rule_id\":\"gurps.check.success\",\"base_target\":10,\"modifiers\":[],\"effective_target\":10,\"dice\":[3,3,3],\"total\":9,\"margin\":1,\"outcome\":\"success\"}}],\"dropped_ready_items\":[],\"location\":null,\"location_dice\":[],\"duration_dice\":[],\"uncapped_injury\":6,\"effective_resistance\":0,\"lasting_injury_ids\":[]},\"effect_id\":null,\"expires_at\":null,\"healed\":0,\"condition\":null,\"resistance_target\":null,\"penetration_reason\":null,\"checks\":[{\"rules_package\":\"gurps-basic-set-4e-2004\",\"rules_version\":\"gurps-4e-characters-3p-2008+campaigns-4p-2008\",\"rule_id\":\"gurps.check.resistance\",\"base_target\":10,\"modifiers\":[{\"value\":0,\"reason\":\"Malediction 1 range\",\"source_id\":\"B106\",\"source_version\":\"characters-third\",\"kind\":\"situational\"}],\"effective_target\":10,\"dice\":[3,3,3],\"total\":9,\"margin\":1,\"outcome\":\"success\"},{\"rules_package\":\"gurps-basic-set-4e-2004\",\"rules_version\":\"gurps-4e-characters-3p-2008+campaigns-4p-2008\",\"rule_id\":\"gurps.check.resistance\",\"base_target\":6,\"modifiers\":[],\"effective_target\":6,\"dice\":[3,3,3],\"total\":9,\"margin\":-3,\"outcome\":\"failure\"}],\"damage_dice\":[3,3],\"modifier_profile\":{\"damage_kind\":\"toxic\",\"accuracy\":3,\"max_range\":100,\"area_radius\":0,\"duration_seconds\":10,\"duration_end_condition\":null,\"armor_divisor\":\"1000000\",\"fatigue_cost\":0,\"activation_seconds\":1,\"damage_tags\":[],\"penetration_modifier\":\"ordinary\",\"penetration_sense\":null,\"affliction_delivery\":\"direct\",\"half_damage_range\":10,\"affects_substantial\":true,\"affects_insubstantial\":false,\"usable_while_insubstantial\":false,\"is_ranged\":true,\"cone_width_yards\":null,\"aura\":false,\"resistance_attribute\":\"ht\",\"cosmic_effect\":null,\"cyclic_interval_seconds\":null,\"cyclic_cycles\":1,\"cyclic_stop_condition\":null,\"contagious\":\"none\",\"delay_seconds\":0,\"delay_trigger\":null,\"variable_delay_max_seconds\":null,\"blunt_trauma_multiplier\":1,\"knockback_multiplier\":1,\"explosion_divisor\":null,\"fragmentation_dice\":0,\"guidance\":\"none\",\"homing_sense\":null,\"hazard\":null,\"carrier_id\":null,\"jet\":false,\"linked_ability_id\":null,\"link_selectable\":false,\"signature\":\"normal\",\"malediction_range\":\"yards\",\"mobile_move\":0,\"overhead\":false,\"persistent\":false,\"drifting\":false,\"radiation_mode\":\"none\",\"rate_of_fire\":1,\"selective_fire\":false,\"selective_area\":false,\"switchable_enhancements\":false,\"disabled_enhancements\":[],\"surge\":false,\"symptom_spec\":null,\"symptom\":null,\"symptom_threshold\":null,\"underwater_range_divisor\":null,\"variable_damage_fraction\":\"1\",\"wall\":\"none\",\"wall_shape_flexible\":false,\"wall_dr_per_die\":0,\"wall_hp_per_die\":\"0\",\"recoil\":1,\"reach\":null,\"parry_allowed\":true,\"wounding\":true,\"preparation_seconds\":0,\"recharge_seconds\":0,\"uses_per_day\":null,\"onset_seconds\":0,\"onset_requires_continuous_exposure\":false,\"resistance_modifier\":null,\"bombardment_skill\":null,\"dissipates_with_distance\":false,\"always_on\":false,\"trained_control_allowed\":true}}}",
+        "target_id": "b"
+      }
+    ],
+    "ammunition_loads": [],
+    "expended_items": [],
+    "recovery_tasks": [],
+    "hazards": [],
+    "illnesses": []
+  },
+  "result": {
+    "outcome": "injured",
+    "attacker_id": "a",
+    "target_id": "b",
+    "definition_id": "advantage:innate-attack",
+    "injury": {
+      "penetration": 6,
+      "injury": 6,
+      "checks": [
+        {
+          "reason": "major-wound",
+          "threshold": null,
+          "check": {
+            "rules_package": "gurps-basic-set-4e-2004",
+            "rules_version": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+            "rule_id": "gurps.check.success",
+            "base_target": 10,
+            "modifiers": [],
+            "effective_target": 10,
+            "dice": [
+              3,
+              3,
+              3
+            ],
+            "total": 9,
+            "margin": 1,
+            "outcome": "success"
+          }
+        }
+      ],
+      "dropped_ready_items": [],
+      "location": null,
+      "location_dice": [],
+      "duration_dice": [],
+      "uncapped_injury": 6,
+      "effective_resistance": 0,
+      "lasting_injury_ids": []
+    },
+    "effect_id": null,
+    "expires_at": null,
+    "healed": 0,
+    "condition": null,
+    "resistance_target": null,
+    "penetration_reason": null,
+    "checks": [
+      {
+        "rules_package": "gurps-basic-set-4e-2004",
+        "rules_version": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+        "rule_id": "gurps.check.resistance",
+        "base_target": 10,
+        "modifiers": [
+          {
+            "value": 0,
+            "reason": "Malediction 1 range",
+            "source_id": "B106",
+            "source_version": "characters-third",
+            "kind": "situational"
+          }
+        ],
+        "effective_target": 10,
+        "dice": [
+          3,
+          3,
+          3
+        ],
+        "total": 9,
+        "margin": 1,
+        "outcome": "success"
+      },
+      {
+        "rules_package": "gurps-basic-set-4e-2004",
+        "rules_version": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+        "rule_id": "gurps.check.resistance",
+        "base_target": 6,
+        "modifiers": [],
+        "effective_target": 6,
+        "dice": [
+          3,
+          3,
+          3
+        ],
+        "total": 9,
+        "margin": -3,
+        "outcome": "failure"
+      }
+    ],
+    "damage_dice": [
+      3,
+      3
+    ],
+    "modifier_profile": {
+      "damage_kind": "toxic",
+      "accuracy": 3,
+      "max_range": 100,
+      "area_radius": 0,
+      "duration_seconds": 10,
+      "duration_end_condition": null,
+      "armor_divisor": "1000000",
+      "fatigue_cost": 0,
+      "activation_seconds": 1,
+      "damage_tags": [],
+      "penetration_modifier": "ordinary",
+      "penetration_sense": null,
+      "affliction_delivery": "direct",
+      "half_damage_range": 10,
+      "affects_substantial": true,
+      "affects_insubstantial": false,
+      "usable_while_insubstantial": false,
+      "is_ranged": true,
+      "cone_width_yards": null,
+      "aura": false,
+      "resistance_attribute": "ht",
+      "cosmic_effect": null,
+      "cyclic_interval_seconds": null,
+      "cyclic_cycles": 1,
+      "cyclic_stop_condition": null,
+      "contagious": "none",
+      "delay_seconds": 0,
+      "delay_trigger": null,
+      "variable_delay_max_seconds": null,
+      "blunt_trauma_multiplier": 1,
+      "knockback_multiplier": 1,
+      "explosion_divisor": null,
+      "fragmentation_dice": 0,
+      "guidance": "none",
+      "homing_sense": null,
+      "hazard": null,
+      "carrier_id": null,
+      "jet": false,
+      "linked_ability_id": null,
+      "link_selectable": false,
+      "signature": "normal",
+      "malediction_range": "yards",
+      "mobile_move": 0,
+      "overhead": false,
+      "persistent": false,
+      "drifting": false,
+      "radiation_mode": "none",
+      "rate_of_fire": 1,
+      "selective_fire": false,
+      "selective_area": false,
+      "switchable_enhancements": false,
+      "disabled_enhancements": [],
+      "surge": false,
+      "symptom_spec": null,
+      "symptom": null,
+      "symptom_threshold": null,
+      "underwater_range_divisor": null,
+      "variable_damage_fraction": "1",
+      "wall": "none",
+      "wall_shape_flexible": false,
+      "wall_dr_per_die": 0,
+      "wall_hp_per_die": "0",
+      "recoil": 1,
+      "reach": null,
+      "parry_allowed": true,
+      "wounding": true,
+      "preparation_seconds": 0,
+      "recharge_seconds": 0,
+      "uses_per_day": null,
+      "onset_seconds": 0,
+      "onset_requires_continuous_exposure": false,
+      "resistance_modifier": null,
+      "bombardment_skill": null,
+      "dissipates_with_distance": false,
+      "always_on": false,
+      "trained_control_allowed": true
+    }
+  }
+}

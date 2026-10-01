@@ -248,7 +248,11 @@ class PartyService:
                         )
                         action = action.model_copy(update={"expected_revision": revision})
                         state, resolved_events = self.play.engine.resolve(
-                            working, action, rng=self.play.rng, advance_time=False
+                            working,
+                            action,
+                            rng=self.play.rng,
+                            advance_time=False,
+                            correct_symptom_attributes=self.play.rules_context.correct_symptom_attributes,
                         )
                         result = action_result(resolved_events)
                         if result.status != "committed":

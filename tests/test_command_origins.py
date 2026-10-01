@@ -25,8 +25,18 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
     row = (await played(play.store, cid))[0]
     assert row.origin == origin
     assert origin.digest == payload_digest(proposal)
-    payload = json.dumps(
+    original = json.dumps(
         {"operation": "typed-action", "command": command.model_dump(mode="json")},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    payload = json.dumps(
+        {
+            "operation": "typed-action",
+            "command": command.model_dump(mode="json"),
+            "symptom_attribute_generation": 1,
+            "symptom_original_input": original,
+        },
         sort_keys=True,
         separators=(",", ":"),
     )

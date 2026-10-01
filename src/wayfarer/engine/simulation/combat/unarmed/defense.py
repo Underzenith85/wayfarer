@@ -145,9 +145,9 @@ def parry_candidates(
     DX parry on a tie, permitting its B403 follow-up without inventing a success.
 
     """
-    compiled = build(runtime, state, actor_id)
-    assert compiled.statistics is not None
     actor = fighter(encounter, actor_id)
+    compiled = build(runtime, state, actor_id, defensive=True)
+    assert compiled.statistics is not None
     targets = [(compiled.statistics.dx // 2 + 3, "attribute:dx")]
     incoming_kick = (
         encounter.pending_unarmed is not None and encounter.pending_unarmed.action == "kick"

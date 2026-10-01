@@ -243,7 +243,14 @@ def apply_composed_attack(
     ):
         raise ValidationError("Composed attack requires approved Basic Set statistics")
     hit, defended, checks = _resolve_delivery(
-        state, command.actor_id, attacker, target, profile, context, definitions, rng
+        state,
+        command.actor_id,
+        attacker,
+        projected_build(state, context.target_id, target_build, definitions, defensive=True),
+        profile,
+        context,
+        definitions,
+        rng,
     )
     channel = channel.model_copy(
         update={

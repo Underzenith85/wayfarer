@@ -10,7 +10,7 @@ from typing import Literal, cast
 
 from pydantic import Field
 
-from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
+from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import Contestant, resolve_quick_contest, success_roll
 from wayfarer.engine.rules.magic.ceremonial import replay_ceremonial_check
 from wayfarer.engine.rules.magic.protocols import (
@@ -33,6 +33,7 @@ from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.health.sleep_state import asleep
+from wayfarer.engine.simulation.health.symptom_state import penalties as symptom_penalties
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.awaken import AwakenSubject, awaken, validate_subjects
 from wayfarer.engine.simulation.magic.backfires import (
@@ -310,11 +311,55 @@ def _require_supported_item_cast(context: SpellContext, cost: int) -> None:
         )
 
 
+def _casting_modifiers(
+    state: ResourceState,
+    actor_id: str,
+    *,
+    check_symptoms: bool,
+) -> tuple[Modifier, ...]:
+    modifiers = check_modifiers(state, actor_id, "iq")
+    penalty = symptom_penalties(state, actor_id)["iq"] if check_symptoms else 0
+    if penalty:
+        # B35-36/B109/B236: temporary IQ loss changes the personal casting roll,
+        # not the base skill used for B237 ritual, time and energy commitments.
+        modifiers += (Modifier(-penalty, "Symptoms IQ loss", "B109", "characters-third"),)
+    return modifiers
+
+
 def _casting_check(
-    state: ResourceState, effect: RuntimeSpellEffect, actor_id: str, rng: RandomSource
+    state: ResourceState,
+    effect: RuntimeSpellEffect,
+    actor_id: str,
+    rng: RandomSource,
+    *,
+    check_symptoms: bool,
 ) -> CheckTrace:
-    check = success_roll(PROFILE, effect.skill, check_modifiers(state, actor_id, "iq"), rng=rng)
+    modifiers = _casting_modifiers(state, actor_id, check_symptoms=check_symptoms)
+    check = success_roll(PROFILE, effect.skill, modifiers, rng=rng)
     return replay_ceremonial_check(check) if effect.ceremonial is not None else check
+
+
+def _require_symptom_check_available(
+    state: ResourceState,
+    effect: RuntimeSpellEffect,
+    context: SpellContext,
+    actor_id: str,
+    *,
+    check_symptoms: bool,
+) -> None:
+    if (
+        not check_symptoms
+        or context.item_cast
+        or effect.spell_id not in ("lockmaster", "magelock")
+        or not symptom_penalties(state, actor_id)["iq"]
+    ):
+        return
+    # Reject an unavailable B345 lock roll before distraction dice or payment.
+    # Historical commands retain their original order.
+    target = completion_targeting(state, effect, context).skill
+    modifiers = _casting_modifiers(state, actor_id, check_symptoms=True)
+    if target + sum(m.value for m in modifiers) < 3:
+        raise ValidationError("Effective lock spell skill must be at least 3")
 
 
 def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None:
@@ -444,6 +489,7 @@ def apply_spell(
     rng: RandomSource,
     system: bool = False,
     capture_targeting: bool = True,
+    check_symptoms: bool = True,
     validate_only: bool = False,
 ) -> tuple[ResourceState, SpellResult]:
     """Commit the returned checkpoint atomically using the existing store CAS.
@@ -826,6 +872,9 @@ def apply_spell(
                     raise ConflictError("Caster no longer has casting energy")
                 if effect.ceremonial is not None:
                     _ceremonial_funds(state, effect)
+                _require_symptom_check_available(
+                    state, effect, context, command.actor_id, check_symptoms=check_symptoms
+                )
                 interrupted = bool(retching_penalty(state, command.actor_id))
                 if not interrupted and (
                     effect.distracted or context.distracted or hp.current < effect.hp_at_start
@@ -842,7 +891,13 @@ def apply_spell(
                     outcome = "interrupted"
                 else:
                     effect = completion_targeting(state, effect, context)
-                    check = _casting_check(state, effect, command.actor_id, rng)
+                    check = _casting_check(
+                        state,
+                        effect,
+                        command.actor_id,
+                        rng,
+                        check_symptoms=check_symptoms and not context.item_cast,
+                    )
                     checks.append(check)
                     effect = effect.model_copy(update={"skill": check.effective_target})
                     if check.outcome is Outcome.CRITICAL_FAILURE or (

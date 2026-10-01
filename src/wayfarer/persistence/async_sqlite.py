@@ -20,9 +20,11 @@ from wayfarer.engine.simulation.events import (
 )
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.persistence import snapshots
+from wayfarer.persistence.command_inputs import same_input
 from wayfarer.persistence.events import (
     COMMAND_SCHEMA_VERSION,
     CommandEntropy,
+    CommandInput,
     CommandOrigin,
     CommandRecord,
     CommandResolution,
@@ -276,16 +278,18 @@ class AsyncSQLiteStore:
     async def _duplicate(
         self, db: aiosqlite.Connection, cid: str, request_id: str, text: str
     ) -> Campaign | None:
-        digest = payload_digest({"input": text})
         cursor = await db.execute(
-            "SELECT payload_hash, resulting_revision FROM command_log WHERE campaign=? AND command_id=?",
+            "SELECT payload_hash, resulting_revision, command_input FROM command_log WHERE campaign=? AND command_id=?",
             (cid, request_id),
         )
         row = await cursor.fetchone()
         await cursor.close()
         if row is None:
             return None
-        if row[0] != digest:
+        record = CommandInput(
+            validation.string(row[0]), validation.string(row[2]) if row[2] is not None else None
+        )
+        if not same_input(record, text):
             raise ConflictError("Request ID already used for different input")
         return await self._read(db, cid, through=validation.integer(row[1]))
 
@@ -296,6 +300,27 @@ class AsyncSQLiteStore:
             # Otherwise a commit between reads can masquerade as a legacy conflict.
             await db.execute("BEGIN")
             return await self._duplicate(db, cid, request_id, text)
+        finally:
+            await db.close()
+
+    async def command_input(self, cid: str, request_id: str) -> CommandInput | None:
+        """Read one indexed input without folding snapshots or the event stream."""
+        db = await self._connect()
+        try:
+            cursor = await db.execute(
+                "SELECT payload_hash, command_input FROM command_log WHERE campaign=? AND command_id=?",
+                (cid, request_id),
+            )
+            row = await cursor.fetchone()
+            await cursor.close()
+            return (
+                None
+                if row is None
+                else CommandInput(
+                    validation.string(row[0]),
+                    validation.string(row[1]) if row[1] is not None else None,
+                )
+            )
         finally:
             await db.close()
 

@@ -4,6 +4,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
+from support.runtime import build_play, seed_campaign
 from test_abilities import command as ability_command
 from test_abilities import context as ability_context
 from test_abilities import spec, world
@@ -27,8 +28,13 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 @pytest.mark.parametrize("first", ["spell", "ability"])
-async def test_services_share_commitment_and_cancel_releases_it(tmp_path: Path, first: str) -> None:
-    cid, play = await setup(tmp_path, spec(), magic=True)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_services_share_commitment_and_cancel_releases_it(
+    tmp_path: Path, first: str, backend: str
+) -> None:
+    cid, original = await setup(tmp_path / "source", spec(), magic=True)
+    play = build_play(tmp_path, original.engine, backend=backend, rng=RecordedDice([]))
+    await seed_campaign(play.store, await original.store.read(cid))
     spells, abilities = SpellService(play, resolve), AbilityService(play)
     if first == "spell":
         await spells.execute(cid, command(), principal_id="gm")

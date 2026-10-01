@@ -205,7 +205,11 @@ class AdjudicationService:
 
         synchronous(state, command.actor_id)
         updated, resolved_events = self.play.engine.resolve(
-            state, reframed, rng=self.play.rng, ruling_id=ruling.id
+            state,
+            reframed,
+            rng=self.play.rng,
+            ruling_id=ruling.id,
+            correct_symptom_attributes=self.play.rules_context.correct_symptom_attributes,
         )
         result = action_result(resolved_events)
         if result.status != "committed":

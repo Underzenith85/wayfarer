@@ -26,6 +26,7 @@ class RulesContext:
     reviewer: PowerReviewer
     rules: ActionRules
     combat: CombatEngine | None
+    correct_symptom_attributes: bool = True
 
     def require_hex(self, encounter: Encounter) -> HexBattlefield:
         board = self.hex_map(encounter)
@@ -43,4 +44,10 @@ class RulesContext:
         build, _ = self.reviewer.activate(
             actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor_id
         )
-        return projected_build(state.resources, actor_id, build, self.reviewer.compiler.definitions)
+        return projected_build(
+            state.resources,
+            actor_id,
+            build,
+            self.reviewer.compiler.definitions,
+            correct_attributes=self.correct_symptom_attributes,
+        )
