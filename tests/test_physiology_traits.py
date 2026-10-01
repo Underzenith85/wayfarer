@@ -21,6 +21,11 @@ from wayfarer.engine.simulation.traits.physiology import (
 from wayfarer.errors import ConflictError, ValidationError
 
 
+class FixedDice:
+    def randbelow(self, upper: int) -> int:
+        return min(2, upper - 1)
+
+
 def compiler() -> CharacterCompiler:
     return trait_compiler("physiology", PROFILE, physiology_package(), hooks=RUNTIME_HOOKS)
 
@@ -154,6 +159,7 @@ def test_weakness_and_extra_life_use_the_same_hp_ledger_and_limits() -> None:
         PhysiologyInterval(id="weak", actor_id="a", kind="weakness", due=60, amount=3),
         weak,
         weak_engine.definitions,
+        rng=FixedDice(),
         authorized_actor_id="a",
         system=True,
     )
@@ -618,3 +624,99 @@ def test_extra_life_unimplemented_modifiers_do_not_claim_generic_revival(modifie
             authorized_actor_id="a",
             system=True,
         )
+
+
+@pytest.mark.parametrize(
+    ("frequency", "due", "cadence"),
+    [("minute", 60, 60), ("hour", 4200, 600), ("day", 90000, 3600), ("week", 626400, 21600)],
+)
+def test_dependency_source_damage_cadence_and_consumption(
+    frequency: str, due: int, cadence: int
+) -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="disadvantage:dependency",
+            trait=options(rarity="common", interval=frequency),
+        )
+    )
+    interval = PhysiologyInterval(id="dose", actor_id="a", kind="dependency", due=due, amount=999)
+    request = command(identifier="dose")
+    updated, outcome = apply_physiology_interval(
+        state(time=due),
+        request,
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert updated.pools[0].current == 4
+    assert outcome.injury is not None and outcome.injury.injury == 1
+    restarted = ResourceState.model_validate_json(updated.model_dump_json())
+    assert apply_physiology_interval(
+        restarted,
+        request,
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    ) == (restarted, outcome)
+    alias = interval.model_copy(update={"id": "alias"})
+    with pytest.raises(ConflictError, match="consumed"):
+        apply_physiology_interval(
+            restarted,
+            command(1, "alias"),
+            alias,
+            build,
+            engine.definitions,
+            rng=FixedDice(),
+            authorized_actor_id="a",
+            system=True,
+        )
+    following = interval.model_copy(update={"id": "next", "due": due + cadence})
+    next_state, _ = apply_physiology_interval(
+        updated.model_copy(update={"game_time": due + cadence}),
+        command(1, "next"),
+        following,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert next_state.pools[0].current == 3
+
+
+def test_weakness_canonical_death_and_ended_exposure() -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="disadvantage:weakness", trait=options(rarity="common", interval="minute")
+        )
+    )
+    interval = PhysiologyInterval(id="weak", actor_id="a", kind="weakness", due=60)
+    updated, outcome = apply_physiology_interval(
+        state(current=-49),
+        command(identifier="weak"),
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert updated.pools[0].current == -52
+    assert updated.pools[0].injury is not None and updated.pools[0].injury.dead
+    assert outcome.damage_dice == (3,) and outcome.injury is not None
+    ended, unavailable = apply_physiology_interval(
+        state(),
+        command(identifier="weak"),
+        interval.model_copy(update={"active": False}),
+        build,
+        engine.definitions,
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert unavailable.kind == "unavailable" and ended.pools == state().pools
