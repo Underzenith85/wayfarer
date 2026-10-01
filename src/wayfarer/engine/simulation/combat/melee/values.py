@@ -138,7 +138,7 @@ def standard_defense_value(
 def _ready_defender(
     runtime: RulesContext, state: PlayState, participant: Combatant
 ) -> tuple[ValidatedBuild, Pool, Pool]:
-    compiled = build(runtime, state, participant.actor_id)
+    compiled = build(runtime, state, participant.actor_id, defensive=True)
     assert compiled.statistics is not None
     hp = next(p for p in state.resources.pools if p.id == f"hp:{participant.actor_id}")
     fp = next(p for p in state.resources.pools if p.id == f"fp:{participant.actor_id}")

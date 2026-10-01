@@ -26,7 +26,11 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
     assert row.origin == origin
     assert origin.digest == payload_digest(proposal)
     payload = json.dumps(
-        {"operation": "typed-action", "command": command.model_dump(mode="json")},
+        {
+            "operation": "typed-action",
+            "command": command.model_dump(mode="json"),
+            "symptom_attribute_generation": 1,
+        },
         sort_keys=True,
         separators=(",", ":"),
     )

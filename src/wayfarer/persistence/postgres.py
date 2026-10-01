@@ -21,6 +21,7 @@ from wayfarer.persistence import snapshots
 from wayfarer.persistence.events import (
     COMMAND_SCHEMA_VERSION,
     CommandEntropy,
+    CommandInput,
     CommandOrigin,
     CommandRecord,
     CommandResolution,
@@ -312,6 +313,26 @@ class AsyncPostgresStore:
         db = await self._connect()
         try:
             return await self._duplicate(db, cid, request_id, text)
+        finally:
+            await db.close()
+
+    async def command_input(self, cid: str, request_id: str) -> CommandInput | None:
+        """Read one indexed input without folding snapshots or the event stream."""
+        db = await self._connect()
+        try:
+            cursor = await db.execute(
+                "SELECT payload_hash, command_input FROM command_log WHERE campaign=%s AND command_id=%s",
+                (cid, request_id),
+            )
+            row = await cursor.fetchone()
+            return (
+                None
+                if row is None
+                else CommandInput(
+                    validation.string(row[0]),
+                    validation.string(row[1]) if row[1] is not None else None,
+                )
+            )
         finally:
             await db.close()
 

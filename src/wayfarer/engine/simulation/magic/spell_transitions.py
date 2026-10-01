@@ -382,6 +382,7 @@ def advance_cast_turn(
     context: SpellContext,
     *,
     turn_started: bool = False,
+    check_symptoms: bool = True,
 ) -> PlayState:
 
     if not turn_started:
@@ -429,7 +430,12 @@ def advance_cast_turn(
         # including physical consequences of the final injury-turn boundary.
         completion_context = approved_context(runtime, state, completed)
         resources, result = apply_spell(
-            state.resources, completed, completion_context, rng=runtime.rng, system=True
+            state.resources,
+            completed,
+            completion_context,
+            rng=runtime.rng,
+            system=True,
+            check_symptoms=check_symptoms,
         )
         completed_effect = latest(resources)[command.cast_id]
         events = []
@@ -520,6 +526,7 @@ class SpellExecutionContext:
     runtime: RulesContext
     resolver: RuntimeSpellResolver | None = None
     capture_targeting: bool = True
+    check_symptoms: bool = True
 
 
 def _prepare_spell(
@@ -760,6 +767,7 @@ def reduce_spell(
             rng=runtime.rng,
             system=True,
             capture_targeting=execution.capture_targeting,
+            check_symptoms=execution.check_symptoms,
         )
     if command.kind == "start" and not any(
         receipt.command_id == command.id for receipt in before.resources.receipts
@@ -798,7 +806,13 @@ def reduce_spell(
         unable_to_handle or command.kind in ("start", "concentrate", "expand", "focus")
     ):
         updated = advance_cast_turn(
-            runtime, updated, encounter, command, context, turn_started=turn_started
+            runtime,
+            updated,
+            encounter,
+            command,
+            context,
+            turn_started=turn_started,
+            check_symptoms=execution.check_symptoms,
         )
     if encounter is not None and command.kind == "release" and not unable_to_handle:
         updated = _release_missile(

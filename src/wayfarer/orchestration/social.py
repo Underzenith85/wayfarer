@@ -171,7 +171,9 @@ def dispatch(
 
         if not any(a.actor_id == command.subject_id for a in before.actors):
             raise ValidationError("Fright requires an approved character")
-        statistics = build(play.rules_context, before, command.subject_id).statistics
+        statistics = build(
+            play.rules_context, before, command.subject_id, defensive=True
+        ).statistics
         assert statistics is not None
         if interaction.context.ht != statistics.ht or interaction.context.will != statistics.will:
             raise ValidationError("Fright context must match approved HT and Will")

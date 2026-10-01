@@ -683,9 +683,15 @@ class ActionEngine:
         rng: RandomSource = NO_RANDOM,
         ruling_id: str | None = None,
         advance_time: bool = True,
+        correct_symptom_attributes: bool = True,
     ) -> tuple[PlayState, list[EngineEvent]]:
         updated, result = self._resolve_action(
-            state, command, rng=rng, ruling_id=ruling_id, advance_time=advance_time
+            state,
+            command,
+            rng=rng,
+            ruling_id=ruling_id,
+            advance_time=advance_time,
+            correct_symptom_attributes=correct_symptom_attributes,
         )
         events = play_events(state, updated, command.actor_id)
         # Rejected/question resolutions still produce a typed result, but are not committed.
@@ -703,6 +709,7 @@ class ActionEngine:
         rng: RandomSource = NO_RANDOM,
         ruling_id: str | None = None,
         advance_time: bool = True,
+        correct_symptom_attributes: bool = True,
     ) -> tuple[PlayState, ActionResult]:
 
         if not isinstance(command, (Wait, Question)) and any(
@@ -812,7 +819,11 @@ class ActionEngine:
                 actor_id=actor.actor_id,
             )
             build = projected_build(
-                state.resources, actor.actor_id, build, self.reviewer.compiler.definitions
+                state.resources,
+                actor.actor_id,
+                build,
+                self.reviewer.compiler.definitions,
+                correct_attributes=correct_symptom_attributes,
             )
             derived, dependencies = self._target(state, actor.actor_id, build, rule)
             if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():
