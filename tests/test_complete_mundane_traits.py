@@ -2,8 +2,9 @@
 
 Counts and representative numeric assertions were transcribed from Basic Set:
 Characters, Fourth Edition, third printing, B21-B165.  The exhaustive loop
-then proves that every independently indexed mundane row constructs through the
-real compiler and produces one typed family-local runtime consequence.
+checks every independently indexed mundane row through the real compiler.
+The unbound B96 row fails closed; its bound admission has separate evidence.
+Family-local effect metadata alone is not universal execution certification.
 """
 
 from collections import Counter
@@ -22,6 +23,7 @@ from wayfarer.engine.rules.traits.mundane.complete import (
     SPECS,
     CompleteTraitSpec,
 )
+from wayfarer.engine.rules.types.background_admission import UNUSUAL_BACKGROUND_ID
 
 
 def options(identifier: str) -> TraitOptions:
@@ -50,9 +52,9 @@ def test_completed_mundane_catalog_still_requires_executed_effect_evidence() -> 
     root = Path(__file__).resolve().parents[1]
     target_ids = {spec.id for spec in SPECS}
     blockers = evaluate(root).blockers
-    assert not target_ids.intersection(
+    assert target_ids.intersection(
         blocker.identifier for blocker in blockers if blocker.kind == "inventory"
-    )
+    ) == {UNUSUAL_BACKGROUND_ID}
     assert target_ids.intersection(
         blocker.identifier for blocker in blockers if blocker.kind == "execution"
     )
@@ -90,6 +92,10 @@ def test_every_mundane_row_compiles_and_projects_one_owned_effect(
     result = compiler.compile(
         gurps_draft(Purchase(definition_id=identifier, trait=options(identifier)))
     )
+    if identifier == UNUSUAL_BACKGROUND_ID:
+        assert result.build is None
+        assert "definition.not_implemented" in {d.code for d in result.diagnostics}
+        return  # The independent B96 suite proves actual GM-bound admission instead.
     assert result.build is not None, result.diagnostics
     projected = mundane_trait_effects(result.build, compiler.definitions)
     assert len(projected) == 1

@@ -1,4 +1,4 @@
-# Ordinary Gizmos source review (#766)
+# Gizmos source review (#766, #853)
 
 Selected source: Basic Set: Characters, Fourth Edition, third printing, printed
 B57 (Gizmos). Checked against the supplied source text before implementation.
@@ -27,18 +27,6 @@ weight, transfer custody, source cost/level bounds, all three categories, sessio
 limits/reset, GM authority, replay/staleness, and atomic rejection. Runtime:
 `src/wayfarer/engine/simulation/traits/gizmos.py`.
 
-## Explicit remaining variant
-
-The B58 “Gadgeteers and Gizmos” extension is **unimplemented and unverified**,
-tracked by follow-up #853 under #742.
-It includes small inventions and building equipment on the spot with actual
-materials, required skills, a secret skill roll at -2 or worse, use consumption
-on failure, and critical-failure backfire. This reducer rejects authored
-Gadgeteer inventions rather than claiming those procedures work. Ordinary
-Gizmos evidence does not certify that extension, the whole technology family,
-or the Basic Set profile. The implementation/source-review parent statuses
-are not promoted to verified by this change.
-
 ## Gadgeteer extension (B58, #853)
 
 The selected Characters third printing permits an approved Gadgeteer to reveal
@@ -52,10 +40,53 @@ spends the Gizmo and creates an actually disabled device. Critical failure also
 applies an explicitly GM-authored backfire through canonical injury; B58 supplies
 no universal backfire damage formula, so the amount is required source context.
 
-Secret check traces live in a separate GM-only snapshot. The host must commit
-that snapshot and resources together; only the ordinary item/use result belongs
-in player projection. Actual device condition, actor HP, remaining materials,
-use expenditure, restart/replay, authority and pre-entropy rejection are tested.
+Secret checks now live in canonical resource events, whose existing event-stream
+projection is GM-only. `GadgeteerGizmoService` uses the shared `CommandPlan`,
+`PlayService.commit`, and campaign compare-and-set transaction. The inventory,
+material consumption receipts, session use, injury, secret roll (including the
+explicit GM penalty), and outer command receipt therefore commit or roll back
+together. There is no detached snapshot for a caller to forget. Successful,
+failed and critical attempts each advance one outer revision. Player inventory
+and HP projections contain the actual consequences but no secret roll trace.
+
+Material consumption uses the existing ResourceEngine instead of editing counts
+around its guards. Carried container contents are available; foreign, grounded,
+missing, repair-reserved or over-reserved ammunition inputs reject before rolling.
+The recipe can free carrying capacity before the finished item enters inventory.
+Required purchases must be actual learned skills, not attribute purchases.
+
+A failed device cannot function through general item use, general/electronic
+activation, a fuel input, container storage, or ammunition loading/firing. Its
+ordinary custody and transfer remain legal; the existing repair procedure can
+restore it, and the existing salvage procedure remains available under its own
+rules. These checks do not prevent handling a broken device as an object.
+
+Executable evidence: `tests/test_gadgeteer_gizmos.py` and
+`tests/test_gadgeteer_gizmos_persistence.py` inspect actual material quantities,
+device condition, custody, repair, HP, shared session limits, explicit -2/-4
+penalties, learned skills, GM event audiences and player projections. SQLite and
+PostgreSQL cases cover concurrent exact retries, restart/fold, one revision per
+attempt, and rollback after the candidate checkpoint has been produced. A revoked
+GM seat is rechecked before retry disclosure and under the transaction lock.
+The original `tests/test_gizmos.py` remains the ordinary B57 baseline.
 Shared Gizmo event IDs are now bounded hashes, with legacy event lookup retained,
 so a valid 200-character command cannot fail solely from a prefix after rolling.
 No source certification or broader Basic Set/end-to-end gate is promoted.
+
+### Acceptance boundary
+
+The bounded #853 procedure is implemented for GM-approved, catalog-backed small
+inventions with actual inventory/material identities, an approved Gadgeteer and
+Gizmos build, and learned skill bindings. Crafting requires a durability profile
+for a nonsentient object so failure can persist a truly disabled item; critical backfire requires an
+explicitly approved injury amount and canonical actor health. Unknown device
+mechanics, automatic invention design, and other unmodeled GM consequences are
+not inferred from prose. This review does not certify the broader technology
+family or promote the Basic Set profile. No public API/UI or new rule source is
+introduced.
+
+On-the-spot sentient-machine construction remains unsupported: its existing actor
+HP authority cannot carry the ordinary item failure condition. Such recipes now
+reject before any roll or material/use expenditure, regardless of the potential
+roll outcome. Revealing an existing valid sentient invention preserves its
+identity and actor-health binding without crafting it.

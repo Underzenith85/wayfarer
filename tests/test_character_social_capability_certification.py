@@ -127,17 +127,23 @@ def test_owner_inventory_rows_are_exact_ready_and_promoted() -> None:
             assert not row.gaps, row_id
 
 
-def test_complete_trait_and_self_control_ledgers_are_ready() -> None:
+def test_complete_trait_and_self_control_ledgers_retain_the_unbound_admission_gap() -> None:
     source_rows = load_source_ledgers(ROOT).rows
     traits = [row for row in source_rows if row.capability_id == "gurps.character.traits"]
     assert len(traits) == 557
     assert sum(row.disposition == "required" for row in traits) == 526
     assert all(row.source_review == "reviewed" for row in traits)
-    assert all(
-        row.implementation in READY_IMPLEMENTATIONS
-        if row.disposition == "required"
-        else row.implementation == "not-applicable"
+    unready = {
+        row.id: row
         for row in traits
+        if row.disposition == "required" and row.implementation not in READY_IMPLEMENTATIONS
+    }
+    assert set(unready) == {"trait:advantage:unusual-background"}
+    background = unready["trait:advantage:unusual-background"]
+    assert background.implementation == "unsupported"
+    assert background.completion_owner == background.consequence_owner == 906
+    assert all(
+        row.implementation == "not-applicable" for row in traits if row.disposition != "required"
     )
 
     self_control = [row for row in trait_inventory() if row.self_control]

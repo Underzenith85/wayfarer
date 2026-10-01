@@ -602,6 +602,11 @@
       "issue": 773,
       "state": "open",
       "title": "[GURPS audit] Implement spell effects: Lend Energy, Lend Vitality, Recover Energy"
+    },
+    {
+      "issue": 906,
+      "state": "open",
+      "title": "Reconcile Unusual Background construction admission and catalog family assignment"
     }
   ]
 }

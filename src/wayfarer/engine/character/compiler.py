@@ -35,6 +35,7 @@ from wayfarer.engine.rules.catalog import (
     ImplementationStatus,
     RuleDefinition,
     RulesCatalog,
+    RulesPackage,
 )
 from wayfarer.engine.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.engine.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
@@ -52,6 +53,7 @@ from wayfarer.engine.rules.supernatural.abilities import validate_purchase as va
 from wayfarer.engine.rules.traits import registry as trait_registry
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.base import cost as trait_cost
+from wayfarer.engine.rules.types.background_admission import UnusualBackgroundDecision
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -164,6 +166,17 @@ class RepairProposal:
     compilation: Compilation
 
 
+def _background_decision(packages: tuple[RulesPackage, ...]) -> UnusualBackgroundDecision | None:
+    backgrounds = tuple(
+        package.unusual_background for package in packages if package.unusual_background is not None
+    )
+    if len(backgrounds) > 1:
+        raise ValidationError(
+            "Multiple Unusual Background decisions require a supported combined construction"
+        )
+    return backgrounds[0] if backgrounds else None
+
+
 class CharacterCompiler:
     """A trusted server creates this with catalog-backed effect bindings.
 
@@ -193,6 +206,7 @@ class CharacterCompiler:
         if not rules.packages or len(set(rules.packages)) != len(rules.packages):
             raise ValidationError("Empty or duplicate package pins")
         packages = tuple(catalog.package(pin) for pin in rules.packages)
+        self.unusual_background = _background_decision(packages)
         if any(p.edition != rules.edition for p in packages):
             raise ValidationError("Rules edition mismatch")
         if any(dep not in {p.id for p in packages} for p in packages for dep in p.dependencies):

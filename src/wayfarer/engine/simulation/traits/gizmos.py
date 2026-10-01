@@ -225,7 +225,7 @@ def reveal_gizmo(
     }
     if not criteria[approved.category]:
         raise ValidationError("Gizmo fails its source-defined eligibility category")
-    if any(e.eligibility_id == approved.id for e in events) or any(
+    if any(e.eligibility_id == approved.id or e.item_id == item.id for e in events) or any(
         i.id == item.id for i in state.items + state.expended_items
     ):
         raise ConflictError("Gizmo instance or eligibility has already entered play")

@@ -530,7 +530,7 @@ class ActionEngine:
                 ),
                 None,
             )
-            if item is None:
+            if item is None or (item.condition is not None and item.condition.disabled):
                 return result("rejected", "item.unavailable")
             if item.container_id is not None or item.equipped:
                 return result("rejected", "item.inaccessible")

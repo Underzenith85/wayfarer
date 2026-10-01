@@ -130,7 +130,9 @@ def authorized(
     """Every declared rule, then the one shape rule: a preview never writes."""
     for rule in plan.control:
         selected = (
-            replace(rule, state=state) if isinstance(rule, Controls) and state is not None else rule
+            replace(rule, state=state)
+            if isinstance(rule, (Controls, Seats)) and state is not None
+            else rule
         )
         selected(principal_id)
     if plan.hypothetical:
@@ -138,7 +140,7 @@ def authorized(
 
 
 def _control_state(campaign: Campaign, plan: CommandPlan[object]) -> PlayState | None:
-    if not any(isinstance(rule, Controls) for rule in plan.control):
+    if not any(isinstance(rule, (Controls, Seats)) for rule in plan.control):
         return None
     raw = campaign.get("play_json")
     return PlayState.model_validate_json(raw) if raw is not None else None
@@ -159,12 +161,13 @@ async def submit[T](
     """
     state = (
         _control_state(await play.store.read(cid), plan)
-        if any(isinstance(rule, Controls) for rule in plan.control)
+        if any(isinstance(rule, (Controls, Seats)) for rule in plan.control)
         else None
     )
     authorized(plan, principal_id, state)
     duplicate = await play.store.duplicate(cid, plan.command_id, plan.payload)
     if duplicate is not None:
+        authorized(plan, principal_id, _control_state(await play.store.read(cid), plan))
         return await (plan.replayed or plan.outcome)(duplicate)
     if plan.assess is not None:
         settled = plan.assess()
@@ -189,6 +192,7 @@ async def submit[T](
         instant=plan.instant,
         origin=plan.origin,
     )
-    if committed["kind"] == "replayed" and plan.replayed is not None:
-        return await plan.replayed(committed["state"])
+    if committed["kind"] == "replayed":
+        authorized(plan, principal_id, _control_state(await play.store.read(cid), plan))
+        return await (plan.replayed or plan.outcome)(committed["state"])
     return await plan.outcome(committed["state"])

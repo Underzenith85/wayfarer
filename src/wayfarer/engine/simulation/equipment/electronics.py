@@ -133,6 +133,8 @@ def _item_and_suite(
     item = next((candidate for candidate in state.items if candidate.id == command.item_id), None)
     if item is None or item.owner_id != command.actor_id or item.container_id is not None:
         raise ValidationError("Electronic device must be accessible to its operator")
+    if item.condition is not None and item.condition.disabled:
+        raise ValidationError("Disabled equipment cannot function")
     suite = engine.specs[item.definition_id].electronics
     if suite is None:
         raise ValidationError("Equipment has no executable electronics profile")

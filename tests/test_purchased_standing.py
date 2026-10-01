@@ -204,6 +204,8 @@ def test_item_audit_retains_inventory_and_concrete_runtime_owners() -> None:
     for entry in inventory():
         assert rows[entry.id].blockers == entry.followup_issues
         assert 113 in entry.followup_issues
-        if not entry.implemented:
+        if entry.id == "trait:advantage:unusual-background":
+            assert not entry.implemented and entry.followup_issues == (113, 680, 906)
+        elif not entry.implemented:
             assert set(entry.followup_issues) & {332, 333, 334, 335}
     assert rows["trait:appearance-very-handsome"].blockers == (113,)

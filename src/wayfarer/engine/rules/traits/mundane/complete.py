@@ -22,6 +22,10 @@ from typing import Final, Literal, cast
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitParameter, cost
 from wayfarer.engine.rules.traits.mastery import SCOPES, scope
+from wayfarer.engine.rules.types.background_admission import (
+    BACKGROUND_ADMISSION_HOOK,
+    UNUSUAL_BACKGROUND_ID,
+)
 from wayfarer.errors import ValidationError
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -131,6 +135,8 @@ def _catalog_path() -> Path:
 
 def _family(title: str) -> TraitFamily:
     value = title.casefold()
+    if value == "unusual background":
+        return "resources"
     groups: tuple[tuple[TraitFamily, tuple[str, ...]], ...] = (
         ("relationship", ("allies", "contact", "dependent", "enemy", "patron", "duty")),
         ("senses", ("vision", "sight", "hearing", "deaf", "smell", "taste", "depth")),
@@ -287,6 +293,10 @@ def validate_purchase(definition: RuleDefinition, levels: int, options: TraitOpt
         raise ValidationError("Unknown complete mundane trait") from exc
     if definition.trait_rules is None or spec.hook not in definition.trait_rules.runtime_hooks:
         raise ValidationError("Mundane trait definition is not bound to its owning family")
+    if definition.id == UNUSUAL_BACKGROUND_ID:
+        if BACKGROUND_ADMISSION_HOOK not in definition.hooks or definition.point_cost is None:
+            raise ValidationError("Unusual Background requires a pinned GM admission decision")
+        return cost(definition.point_cost, levels, options, definition.trait_rules)
     if definition.id == "trait:advantage:weapon-master":
         selected_scope = scope(options)
         if "weapon-scope" not in dict(options.parameters):
@@ -322,6 +332,8 @@ def effects(
 
     projected = []
     for identifier, levels, options in definition_ids:
+        if identifier == UNUSUAL_BACKGROUND_ID:
+            continue  # Its real effect is pinned admission, never a physiology/resource modifier.
         spec = SPEC_BY_ID.get(identifier)
         if spec is None:
             continue

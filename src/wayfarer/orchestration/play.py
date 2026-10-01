@@ -53,7 +53,7 @@ from wayfarer.orchestration.entropy import CommandRandom, SeedSource, token_seed
 from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
 from wayfarer.orchestration.npcs import initialize
 from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
-from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.orchestration.transformations import shapeshifting_checkpoint
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -479,7 +479,9 @@ class PlayService:
             authorize=authorize,
         )
 
-    def approval_plan(self, cid: str, command: ApproveCharacter) -> CommandPlan[Approval]:
+    def approval_plan(
+        self, cid: str, command: ApproveCharacter, state: PlayState
+    ) -> CommandPlan[Approval]:
         """What a power approval writes; the pipeline decides whether it runs."""
         payload = json.dumps(
             {"operation": "power-approval", "command": command.model_dump(mode="json")},
@@ -537,7 +539,11 @@ class PlayService:
             resolve=resolve,
             actor_id=command.actor_id,
             outcome=outcome,
-            control=(Trusted(self.engine.reviewer.gm_ids), ActsAs(command.actor_id)),
+            control=(
+                Trusted(self.engine.reviewer.gm_ids),
+                ActsAs(command.actor_id),
+                Seats(state, refusal="Command requires current GM authority"),
+            ),
             rng=self.rng,
         )
 
@@ -546,7 +552,10 @@ class PlayService:
             command = ApproveCharacter.model_validate(value)
         except SchemaError as exc:
             raise ValidationError("Invalid approval command") from exc
-        return await submit(self, cid, self.approval_plan(cid, command), principal_id=principal_id)
+        state = self._load(await self.store.read(cid))
+        return await submit(
+            self, cid, self.approval_plan(cid, command, state), principal_id=principal_id
+        )
 
 
 def record_play_state(campaign: Campaign, state: PlayState) -> None:

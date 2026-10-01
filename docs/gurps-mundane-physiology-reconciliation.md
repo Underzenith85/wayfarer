@@ -6,8 +6,10 @@ not the separately purchased selected physical/supernatural identities. All six
 mundane partitions account for the 267 complete-catalog records exactly once;
 the independent test rejects unknown families and changed owned identities.
 
-Each owned row currently constructs and projects a family tag. That tag does
-not prove the source operation. Existing canonical intoxication, injury,
+The original catalog projected a family tag for each owned row. That tag does
+not prove the source operation. The #906 implementation now rejects unbound
+Unusual Background purchases and supplies explicit pinned GM admission instead;
+see [its supported construction](gurps-unusual-background.md). Existing canonical intoxication, injury,
 survival and medical reducers provide reusable operations, but an explicit
 context or a differently named purchase does not verify these owned IDs. All
 39 execution statuses therefore remain **unverified**. The machine-readable
@@ -16,17 +18,17 @@ adjacent JSON freezes the exact IDs, source reference and bounded follow-up.
 The selected source is Characters third printing; existing canonical health
 procedures also use Campaigns fourth printing. Missing Digit is B145 (catalog
 locator 5 is erroneous), Terminally Ill is B158 (catalog 100 is erroneous), and
-Unusual Background B96 is a GM construction/admission operation misclassified
-by the substring `back`. This review preserves the denominator and identifies
-those repairs rather than silently changing ownership or rewriting a frozen
-source ledger.
+Unusual Background B96 is a GM construction/admission operation historically
+misclassified by the substring `back`. Its current family is explicitly resources;
+the row stays in this frozen denominator with an explicit #906 admission owner.
+The other historical source-locator corrections remain separately tracked.
 
 | Owned ID | Source | Supported construction / execution | Concrete follow-up |
 | --- | --- | --- | --- |
 | `trait:advantage:alcohol-tolerance` | Characters third printing B100 | Catalog purchase; runtime unverified | [#902](https://github.com/Underzenith85/wayfarer/issues/902) |
 | `trait:advantage:less-sleep` | Characters third printing B65 | Catalog purchase; runtime unverified | [#905](https://github.com/Underzenith85/wayfarer/issues/905) |
 | `trait:advantage:reduced-consumption` | Characters third printing B80 | Catalog purchase; runtime unverified | [#902](https://github.com/Underzenith85/wayfarer/issues/902) |
-| `trait:advantage:unusual-background` | Characters third printing B96 | Catalog purchase; runtime unverified | [#906](https://github.com/Underzenith85/wayfarer/issues/906) |
+| `trait:advantage:unusual-background` | Characters third printing B96 | Fixed GM-authored trait admission; unbound/skill/variable constructions reject; frozen execution status unverified | [#906](https://github.com/Underzenith85/wayfarer/issues/906) |
 | `trait:disadvantage:alcohol-intolerance` | Characters third printing B165 | Catalog purchase; runtime unverified | [#902](https://github.com/Underzenith85/wayfarer/issues/902) |
 | `trait:disadvantage:alcoholism` | Characters third printing B122 | Catalog purchase; runtime unverified | [#902](https://github.com/Underzenith85/wayfarer/issues/902) |
 | `trait:disadvantage:bad-back` | Characters third printing B123 | Catalog purchase; runtime unverified | [#903](https://github.com/Underzenith85/wayfarer/issues/903) |

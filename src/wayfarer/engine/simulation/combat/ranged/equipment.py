@@ -36,8 +36,8 @@ def ammunition_profile(
     if load is None:
         return None
     item = next((value for value in resources.items if value.id == load.ammunition_item_id), None)
-    if item is None:
-        raise ValidationError("Loaded ammunition source no longer exists")
+    if item is None or (item.condition is not None and item.condition.disabled):
+        raise ValidationError("Loaded ammunition source is missing or disabled")
     return next(value for value in catalog.entries if value.definition_id == item.definition_id)
 
 
