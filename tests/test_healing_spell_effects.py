@@ -175,7 +175,7 @@ def test_repeated_attempts_penalty_and_patient_daily_limit(tmp_path):
     assert latest(second.resources)["second"].skill == latest(first.resources)["cast"].skill - 3
     runtime, state = fixture(tmp_path, "great-healing")
     first, _ = cast(runtime, state, "great-healing")
-    with pytest.raises(ConflictError, match="already benefited"):
+    with pytest.raises(ConflictError, match="already had"):
         cast(runtime, first, "great-healing", cast_id="second")
 
 
@@ -256,3 +256,13 @@ def test_approved_physician_mitigates_first_healing_critical_failure(tmp_path):
     assert not backfires(changed.resources) and result.hp_restored == 0
     repeated, result = cast(runtime, changed, "minor-healing", cast_id="second", dice=(6, 6, 6))
     assert result.outcome == "critical-failure" and backfires(repeated.resources)[0].pending
+
+
+def test_great_healing_takes_minute_and_failed_try_blocks_today(tmp_path):
+    runtime, state = fixture(tmp_path, "great-healing")
+    failed, result = cast(runtime, state, "great-healing", dice=(5, 5, 5))
+    effect = latest(failed.resources)["cast"]
+    assert effect.ready_at - effect.started_at == 60
+    assert result.outcome == "failed" and result.energy_spent == 1
+    with pytest.raises(ConflictError, match="already had"):
+        cast(runtime, failed, "great-healing", cast_id="second")

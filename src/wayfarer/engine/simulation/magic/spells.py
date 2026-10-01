@@ -121,7 +121,7 @@ for _key, _cost, _magery, _prerequisite in (
         kind="regular",
         cost=_cost,
         maintenance=0,
-        seconds=1,
+        seconds=60 if _key == "great-healing" else 1,
         duration=None,
         magery=_magery,
         prerequisites=(_prerequisite,),

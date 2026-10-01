@@ -22,7 +22,6 @@ def attempts(state: ResourceState, spell_id: str, actor_id: str, target_id: str)
             and item.effect.target_id == target_id
             and (spell_id == "great-healing" or item.effect.actor_id == actor_id)
             and item.result.outcome in ("active", "failed", "critical-failure")
-            and (spell_id != "great-healing" or item.result.hp_restored > 0)
         ):
             found.add(item.effect.cast_id)
     return len(found)
@@ -53,7 +52,7 @@ def healing_penalty(state: ResourceState, spell_id: str, actor_id: str, target_i
     hp = patient(state, target_id)
     repeated = attempts(state, spell_id, actor_id, target_id)
     if spell_id == "great-healing" and repeated:
-        raise ConflictError("Patient already benefited from Great Healing today")
+        raise ConflictError("Patient already had a Great Healing attempt today")
     return 3 * repeated + (max(0, hp.maximum - hp.current) if actor_id == target_id else 0)
 
 
