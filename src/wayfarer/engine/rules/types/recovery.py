@@ -90,7 +90,8 @@ class RecoveryTask(Record):
     ht: int = Field(default=10, ge=1)
     skill: int | None = Field(default=None, ge=1)
     treatment_modifier: int = 0
-    fp_interval: Literal[300, 600] = Field(default=600, exclude_if=lambda v: v == 600)
+    fp_interval: Literal[120, 300, 600] = Field(default=600, exclude_if=lambda v: v == 600)
+    power_interval: Literal[120, 300, 600] = Field(default=600, exclude_if=lambda v: v == 600)
     power_entitlement: int = Field(default=0, ge=0, exclude_if=lambda v: v == 0)
     healing_bonus: int = Field(default=0, ge=0, exclude_if=lambda v: v == 0)
     healing_rate: Literal[1, 2] = Field(default=1, exclude_if=lambda v: v == 1)
@@ -119,7 +120,7 @@ def rest_entitlement(task: RecoveryTask, at: int | None = None) -> tuple[int, in
             max(
                 0, seconds - (task.ordinary_entitlement - task.power_entitlement) * task.fp_interval
             )
-            // 600,
+            // task.power_interval,
         ),
         min(task.starvation_entitlement, 3 * (seconds // 86400)) if task.food else 0,
         task.dehydration_entitlement if task.water and seconds >= 86400 else 0,

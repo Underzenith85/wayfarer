@@ -16,7 +16,15 @@ from wayfarer.models import Id, Record
 
 PREFIX = "spell:"
 SpellId = Literal[
-    "light", "daze", "fireball", "create-fire", "minor-healing", "major-healing", "great-healing"
+    "light",
+    "daze",
+    "fireball",
+    "create-fire",
+    "minor-healing",
+    "major-healing",
+    "great-healing",
+    "lend-energy",
+    "lend-vitality",
 ]
 
 
@@ -73,6 +81,7 @@ class SpellResult(Record):
         "remembered",
         "forgotten",
     ]
+    fp_restored: int = Field(default=0, exclude_if=lambda value: value == 0)
     hp_restored: int = Field(default=0, exclude_if=lambda value: value == 0)
     energy_spent: int = 0
     hp_spent: int = Field(default=0, exclude_if=lambda value: value == 0)

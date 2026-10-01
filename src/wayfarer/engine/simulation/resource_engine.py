@@ -43,6 +43,7 @@ from wayfarer.engine.simulation.health.fright import advance
 from wayfarer.engine.simulation.health.fright_state import effects as fright_effects
 from wayfarer.engine.simulation.health.medical.rest import accrue_rest
 from wayfarer.engine.simulation.magic.backfires import backfires
+from wayfarer.engine.simulation.magic.healing_support import expire_vitality
 from wayfarer.engine.simulation.resources import (
     Advance,
     Consume,
@@ -700,6 +701,7 @@ class ResourceEngine:
                     )
                 }
             )
+            updated = expire_vitality(updated, command.to)
             updated = accrue_rest(updated, command.to)
         updated = updated.model_copy(
             update={

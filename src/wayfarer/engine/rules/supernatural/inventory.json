@@ -6320,15 +6320,14 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        773
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "status": "verified",
+      "supported_subset": "Source-reviewed construction; actual FP lending, non-stacking hour-limited borrowed HP, or passive approved-skill rest recovery with mana/concentration restrictions.",
       "evidence": [
         "tests/test_spell_healing.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_healing_support_effects.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6346,15 +6345,14 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        773
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "status": "verified",
+      "supported_subset": "Source-reviewed construction; actual FP lending, non-stacking hour-limited borrowed HP, or passive approved-skill rest recovery with mana/concentration restrictions.",
       "evidence": [
         "tests/test_spell_healing.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_healing_support_effects.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6861,15 +6859,14 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [
-        773
-      ],
+      "blockers": [],
       "source": "characters-third",
-      "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "status": "verified",
+      "supported_subset": "Source-reviewed construction; actual FP lending, non-stacking hour-limited borrowed HP, or passive approved-skill rest recovery with mana/concentration restrictions.",
       "evidence": [
         "tests/test_spell_healing.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_healing_support_effects.py"
       ],
       "members": [],
       "talent_cost": null,

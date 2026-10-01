@@ -74,6 +74,7 @@ class CareContext:
     drug_fp: int = 0
     physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS
     unhealing_condition: bool = False
+    recover_energy_interval: Literal[120, 300] | None = None
 
 
 class RecoveryResult(Record):
