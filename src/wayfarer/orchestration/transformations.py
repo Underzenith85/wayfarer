@@ -804,7 +804,9 @@ def _reverse_transformation(
     command: ResolveTransformation,
     current: ValidatedBuild,
 ) -> tuple[PlayState, TransformationRecord]:
-    if record.status != "active":
+    if record.status != "active" and not (
+        record.status == "reverting" and command.resolution == "force"
+    ):
         raise ValidationError("Only an active transformation can be reversed")
     if command.resolution == "cure" and not rule.curable:
         raise ValidationError("Transformation has no authored cure")
@@ -849,6 +851,7 @@ def _reverse_transformation(
         )
     else:
         state = _apply_build(play, state, record, rule, reverse=True, command_id=command.id)
+        record = record.model_copy(update={"status": "reverted"})
     record = record.model_copy(
         update={
             "status": "reverting" if record.status == "reverting" else "reverted",

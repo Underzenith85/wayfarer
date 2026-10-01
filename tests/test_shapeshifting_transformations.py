@@ -92,9 +92,10 @@ def test_core_form_authorship_rejects_instant_change_and_ownership_transfer() ->
         )
 
 
+@pytest.mark.parametrize("return_mode", ["timed", "forced"])
 @pytest.mark.parametrize("kind", ["alternate-form", "morph"])
 async def test_form_changes_the_durable_approved_build_after_ten_seconds(
-    tmp_path: Path, kind: Literal["alternate-form", "morph"]
+    tmp_path: Path, kind: Literal["alternate-form", "morph"], return_mode: str
 ) -> None:
     from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
     from wayfarer.engine.rules.catalog import RulesCatalog
@@ -415,23 +416,30 @@ async def test_form_changes_the_durable_approved_build_after_ten_seconds(
     assert reverting.status == "reverting"
     assert await service.execute(initial["id"], reverse, principal_id="a") == reverting
     assert play._load(await play.store.read(initial["id"])).actors[0].proposal.draft == rule.target
-    await play.execute(
-        initial["id"],
-        Wait(id="reverse-wait", actor_id="a", expected_revision=revision + 1, ticks=10),
-        principal_id="a",
-    )
-    restored = await service.execute(
-        initial["id"],
-        {
-            "operation": "resolve",
-            "id": "reverse-complete",
-            "actor_id": "a",
-            "expected_revision": revision + 2,
-            "proposal_id": proposed.proposal_id,
-            "resolution": "complete",
-        },
-        principal_id="a",
-    )
+    if return_mode == "forced":
+        restored = await service.execute(
+            initial["id"],
+            force | {"id": "force-during-reversion", "expected_revision": revision + 1},
+            principal_id="gm",
+        )
+    else:
+        await play.execute(
+            initial["id"],
+            Wait(id="reverse-wait", actor_id="a", expected_revision=revision + 1, ticks=10),
+            principal_id="a",
+        )
+        restored = await service.execute(
+            initial["id"],
+            {
+                "operation": "resolve",
+                "id": "reverse-complete",
+                "actor_id": "a",
+                "expected_revision": revision + 2,
+                "proposal_id": proposed.proposal_id,
+                "resolution": "complete",
+            },
+            principal_id="a",
+        )
     assert restored.status == "reverted"
     if kind == "morph":
         from wayfarer.orchestration.transformations import _validate_morph_access
