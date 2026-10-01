@@ -150,9 +150,12 @@ def test_plane_shift_requires_summons_for_that_plane() -> None:
 
 def test_unreviewed_learning_has_no_hard_or_empty_prerequisite_fallback() -> None:
     package = healing()
-    awaken = next(d for d in package.definitions if d.id == "spell:awaken")
-    assert awaken.skill is None
-    result = compile_spells((package,), (("spell:awaken", 4),))
+    unreviewed = college_package(
+        224, "healing", (CollegeSpellBinding("unreviewed", "Unreviewed learning", 248, "healing"),)
+    )
+    definition = next(d for d in unreviewed.definitions if d.id == "spell:unreviewed")
+    assert definition.skill is None
+    result = compile_spells((unreviewed,), (("spell:unreviewed", 4),))
     assert not result.legal and result.build is None
     assert any(d.code == "definition.not_implemented" for d in result.diagnostics)
     assert (

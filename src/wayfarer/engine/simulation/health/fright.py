@@ -305,6 +305,7 @@ def advance(
                     to=exposure.due,
                 ),
                 system=True,
+                _clock_rng=rng,
             )
             state = settle_exposure(state, exposure, rng)
             continue
@@ -320,6 +321,7 @@ def advance(
                     to=attack.due,
                 ),
                 system=True,
+                _clock_rng=rng,
             )
             state = settle_cyclic(state, attack, rng)
             continue
@@ -342,6 +344,7 @@ def advance(
                 to=item.due,
             ),
             system=True,
+            _clock_rng=rng,
         )
         state, _ = recover(
             state,
@@ -353,7 +356,7 @@ def advance(
     else:
         raise ValidationError("Fright recovery budget exceeded; advance a shorter interval")
     state = state.model_copy(update={"revision": revision})
-    return engine.apply(state, command, system=True)
+    return engine.apply(state, command, system=True, _clock_rng=rng)
 
 
 def maneuver_allowed(state: ResourceState, actor_id: str, maneuver: str) -> bool:

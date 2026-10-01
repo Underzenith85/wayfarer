@@ -42,6 +42,7 @@ from wayfarer.engine.simulation.health.disease import (
 from wayfarer.engine.simulation.health.fright import advance
 from wayfarer.engine.simulation.health.fright_state import effects as fright_effects
 from wayfarer.engine.simulation.health.medical.rest import accrue_rest
+from wayfarer.engine.simulation.magic.awaken import require_alert_deadline, settle_alerts
 from wayfarer.engine.simulation.magic.backfires import backfires
 from wayfarer.engine.simulation.magic.healing_support import expire_vitality
 from wayfarer.engine.simulation.resources import (
@@ -430,6 +431,7 @@ class ResourceEngine:
         command: ResourceCommand,
         *,
         system: bool = False,
+        _clock_rng: RandomSource | None = None,
         rng: RandomSource | None = None,
     ) -> ResourceState:
         """system is a trusted call-site capability, never a command payload field."""
@@ -599,6 +601,7 @@ class ResourceEngine:
             if command.to < state.game_time:
                 raise ValidationError("Game time cannot move backwards")
             _require_survival_advance(state, command.to)
+            require_alert_deadline(state, command.to)
             living = {
                 p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
             }
@@ -716,6 +719,7 @@ class ResourceEngine:
             )
             updated = expire_vitality(updated, command.to)
             updated = size_checkpoint(updated)
+            updated = settle_alerts(updated, rng=_clock_rng)
             updated = accrue_rest(updated, command.to)
         updated = updated.model_copy(
             update={

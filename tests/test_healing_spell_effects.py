@@ -57,7 +57,15 @@ def fixture(
         replace(base.policy, allow_supernatural=True, technology_level=8, point_budget=200),
         statistics_profile=PROFILE,
     )
-    keys = ("lend-energy", "lend-vitality", "minor-healing", "major-healing", "great-healing")
+    keys: tuple[str, ...] = (
+        "lend-energy",
+        "lend-vitality",
+        "minor-healing",
+        "major-healing",
+        "great-healing",
+    )
+    if spell == "awaken":
+        keys += ("awaken",)
     draft = gurps_draft(
         Purchase(definition_id="trait:magery-0"),
         Purchase(definition_id="secondary:fp", amount=fp),

@@ -16,6 +16,7 @@ ISSUE: Final = 224
 COLLEGE: Final = "healing"
 # B248 dependencies needed to prove Major/Great Healing construction.
 LEARNING: Final = {
+    "awaken": learning_spec(248, spells=("lend-vitality",)),
     "lend-energy": replace(
         learning_spec(248),
         prerequisite_groups=(

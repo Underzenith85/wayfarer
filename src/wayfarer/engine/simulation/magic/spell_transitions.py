@@ -4,9 +4,14 @@ import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from wayfarer.engine.rules.magic.protocols import MagicItemBinding
+from wayfarer.engine.rules.magic.protocols import (
+    AreaSelection,
+    MagicItemBinding,
+    hex_area,
+    square_area,
+)
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import injury_turn
+from wayfarer.engine.simulation.actors import build, injury_turn
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
@@ -18,6 +23,7 @@ from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.hit_locations import require_location
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.magic.awaken import AwakenSubject
 from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
@@ -125,7 +131,7 @@ def approved_context(
             position = (point.q, point.r)
             geometry = "hex"
         distance = CombatEngine.distance(positions[command.actor_id], point)
-    elif command.spell_id in ("create-fire", "fireball"):
+    elif command.spell_id in ("create-fire", "fireball", "awaken"):
         raise ValidationError("Area and missile spells require authoritative combat placements")
     if command.position is not None:
         if command.kind != "focus" or encounter is None:
@@ -213,8 +219,40 @@ def approved_context(
             "area": channel.area,
             "light_radius": channel.light_radius,
             "light_penalty": channel.light_penalty,
+            "awaken_subjects": _awaken_area_subjects(
+                runtime, state, command, encounter, context, position, geometry, channel.area
+            ),
         }
     )
+
+
+def _awaken_area_subjects(
+    runtime: RulesContext,
+    state: PlayState,
+    command: SpellCommand,
+    encounter: Encounter | None,
+    context: SpellContext,
+    position: tuple[int, int] | None,
+    geometry: str,
+    selection: AreaSelection | None,
+) -> tuple[AwakenSubject, ...]:
+    if command.spell_id != "awaken":
+        return ()
+    if encounter is None or position is None:
+        raise ValidationError("Awaken requires authoritative combat placements")
+    area = selection or AreaSelection(center=position)
+    if area.center != position:
+        raise ValidationError("Awaken's approved center must match its target position")
+    cells = (hex_area if geometry == "hex" else square_area)(area, context.radius)
+    subjects = []
+    for participant in encounter.participants:
+        point = participant.position
+        coordinates = (point.x, point.y) if isinstance(point, GridPoint) else (point.q, point.r)
+        if coordinates in cells:
+            approved = build(runtime, state, participant.actor_id)
+            ht = next(int(v.value) for v in approved.sheet.values if v.target == "attribute:ht")
+            subjects.append(AwakenSubject(actor_id=participant.actor_id, ht=ht))
+    return tuple(subjects)
 
 
 def combat_guard(state: PlayState, command: SpellCommand) -> Encounter | None:
