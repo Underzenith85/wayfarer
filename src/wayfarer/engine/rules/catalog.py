@@ -99,6 +99,10 @@ class RulesPackage:
                     del skill["prerequisite_groups"]
                 if not skill["technology_level_required"]:
                     del skill["technology_level_required"]
+                if not skill["minimum_spell_colleges"]:
+                    del skill["minimum_spell_colleges"]
+                if not skill["excluded_spell_colleges"]:
+                    del skill["excluded_spell_colleges"]
                 prerequisites = list(skill["prerequisites"])
                 prerequisites.extend(
                     prerequisite

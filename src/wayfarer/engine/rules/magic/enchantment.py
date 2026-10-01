@@ -7,12 +7,29 @@ from wayfarer.engine.rules.magic.colleges import (
     CAMPAIGNS_SOURCE,
     CollegeSpellBinding,
     college_package,
+    learning_spec,
 )
+from wayfarer.engine.rules.types.skill import Difficulty
 
 ISSUE: Final = 221
 COLLEGE: Final = "enchantment"
 BINDINGS: Final = tuple(
-    CollegeSpellBinding(key, name, page, COLLEGE, CAMPAIGNS_SOURCE)
+    CollegeSpellBinding(
+        key,
+        name,
+        page,
+        COLLEGE,
+        CAMPAIGNS_SOURCE,
+        learning_spec(
+            page,
+            difficulty=Difficulty.VERY_HARD,
+            magery=2,
+            colleges=10,
+            excluded_colleges=(COLLEGE,),
+        )
+        if key == "enchant"
+        else None,
+    )
     for key, name, page in (
         ("accuracy", "Accuracy", 480),
         ("deflect", "Deflect", 480),

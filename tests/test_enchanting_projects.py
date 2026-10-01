@@ -60,6 +60,13 @@ def setup(
 ) -> tuple[ActionEngine, RulesContext, PlayState]:
     enchantment = enchantment_package()
     all_definitions = {d.id: d for d in (*definitions(2), *enchantment.definitions)}
+    # This fixture isolates enchantment execution; the prerequisite count is
+    # independently exercised by test_spell_construction.py.
+    enchant = all_definitions["spell:enchant"]
+    assert enchant.skill is not None
+    all_definitions[enchant.id] = replace(
+        enchant, skill=replace(enchant.skill, minimum_spell_colleges=0)
+    )
     for key in ("sword", "workshop", "silver"):
         all_definitions["equipment:" + key] = RuleDefinition(
             "equipment:" + key,

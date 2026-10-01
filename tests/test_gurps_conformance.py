@@ -488,7 +488,11 @@ def test_requirements_cannot_fall_back_to_another_profile() -> None:
     with pytest.raises(ValidationError, match="Unknown rules capability"):
         require_capabilities("gurps-basic-set-4e-2004", ("gurps.invented",))
     for identifier, entry in CAPABILITIES.items():
-        if entry.status is CoverageStatus.VERIFIED:
+        if identifier == "gurps.magic.spellcasting":
+            with pytest.raises(ValidationError, match="not certified: spell:enchant"):
+                require_capabilities("gurps-basic-set-4e-2004", (identifier,))
+            continue
+        elif entry.status is CoverageStatus.VERIFIED:
             require_capabilities("gurps-basic-set-4e-2004", (identifier,))
             continue
         with pytest.raises(ValidationError, match="not verified"):

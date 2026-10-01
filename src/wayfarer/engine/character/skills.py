@@ -145,6 +145,15 @@ def _credit(difficulty: Difficulty, relative: int) -> int:
     return 0 if steps < 0 else 1 if steps == 0 else 2 if steps == 1 else 4 * (steps - 1)
 
 
+def _validate_college_prerequisite(spec: SkillSpec) -> None:
+    if (
+        type(spec.minimum_spell_colleges) is not int
+        or spec.minimum_spell_colleges < 0
+        or any(not isinstance(value, str) or not value for value in spec.excluded_spell_colleges)
+    ):
+        raise SkillError("skill.definition", "Invalid distinct-college prerequisite")
+
+
 class SkillCompiler:
     def __init__(
         self,
@@ -248,6 +257,7 @@ class SkillCompiler:
                             raise SkillError(
                                 "skill.definition", "Unsupported action-mode default"
                             ) from None
+            _validate_college_prerequisite(spec)
             alternatives = tuple(p for g in spec.prerequisite_groups for p in g.alternatives)
             if any(
                 type(p.minimum) is not int

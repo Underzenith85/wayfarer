@@ -38,8 +38,8 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.engine.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
+from wayfarer.engine.rules.magic.colleges import college_prerequisite_failures
 from wayfarer.engine.rules.magic.gurps_magic import (
-    PREREQUISITES,
     magery_level,
     validate_definitions,
 )
@@ -615,7 +615,13 @@ class CharacterCompiler:
                     magery = max(magery, mana_magery.amount)
 
             def spell_bonus(key: str) -> int:
-                return magery if key in {"spell:" + name for name in PREREQUISITES} else 0
+                definition = self.definitions[key]
+                return (
+                    magery
+                    if "magic.learning" in definition.hooks
+                    or "magic.college-learning" in definition.hooks
+                    else 0
+                )
 
             def adjust_skill(key: str, base: int) -> int:
                 base += spell_bonus(key)
@@ -690,6 +696,16 @@ class CharacterCompiler:
             diagnostics.append(
                 Diagnostic("spell.prerequisite", ("purchases",), "Foolishness requires IQ 12")
             )
+        diagnostics.extend(
+            Diagnostic(
+                "spell.prerequisite",
+                ("purchases",),
+                f"Missing distinct-college prerequisites: {key}",
+            )
+            for key in college_prerequisite_failures(
+                self.definitions, {p.definition_id: p.amount for p in draft.purchases}
+            )
+        )
         target_ids = set(bases) | {e.target for e in effects}
         if self.skills is not None:
             # An effect cannot manufacture access to a skill with no legal default.

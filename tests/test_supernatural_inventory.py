@@ -133,7 +133,7 @@ def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evide
         else:
             assert entry.status is CoverageStatus.VERIFIED
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert coverage_blockers(PROFILE) == ()
+    assert coverage_blockers(PROFILE) == (746, 747, 772, 785, 802)
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 
@@ -165,7 +165,7 @@ def test_unknown_names_and_nonpurchasable_protocols_reject() -> None:
         require_family("gurps.fake")
 
 
-@pytest.mark.parametrize("family", ["gurps.magic.spellcasting", "gurps.supernatural.abilities"])
+@pytest.mark.parametrize("family", ["gurps.supernatural.abilities"])
 def test_completed_supernatural_families_pass_both_gates(family: str) -> None:
     assert conformance.require_verified(family).id == family
 
@@ -254,3 +254,8 @@ def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() 
     assert Counter(e.source_review for e in owned) == {"reviewed": 334}
     assert all(e.owner == 119 for e in owned)
     assert {n for e in owned for n in e.blockers} == set(coverage_blockers(PROFILE))
+
+
+def test_spell_family_is_not_certified_by_construction_or_command_seams() -> None:
+    with pytest.raises(ValidationError, match="not certified"):
+        conformance.require_verified("gurps.magic.spellcasting")

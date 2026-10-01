@@ -422,6 +422,31 @@
       "issue": 714,
       "state": "closed",
       "title": "Execute shield rush through Slam combat"
+    },
+    {
+      "issue": 746,
+      "state": "open",
+      "title": "[GURPS audit] Route college casts through authoritative energy and time resolution"
+    },
+    {
+      "issue": 747,
+      "state": "open",
+      "title": "[GURPS audit] Resolve spell maintenance, interruption, expiry and resistance"
+    },
+    {
+      "issue": 772,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Minor Healing, Major Healing, Great Healing"
+    },
+    {
+      "issue": 785,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Enchant, Staff, Power"
+    },
+    {
+      "issue": 802,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Plane Shift"
     }
   ]
 }
