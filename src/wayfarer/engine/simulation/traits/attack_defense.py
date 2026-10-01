@@ -70,6 +70,8 @@ class AttackChannel(Record):
     duration_seconds: int = Field(default=1, ge=1)
     effect_level: int = Field(default=1, ge=1)
     condition: AfflictionCondition = "stun"
+    contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
+    incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
     penetration: PenetrationContext = Field(default_factory=PenetrationContext)
 
 
@@ -422,6 +424,9 @@ def _schedule_cyclic(
                     "attack_id": channel.id,
                     "basic_damage": channel.basic_damage,
                     "damage_dice": damage_dice,
+                    "contagious": cyclic.contagious,
+                    "contagion_vector": channel.contagion_vector,
+                    "incubation_seconds": channel.incubation_seconds,
                     "damage_type": channel.damage_type,
                     "resistance": target.damage_resistance(),
                     "armor_divisor": channel.armor_divisor,
@@ -497,8 +502,14 @@ def apply_trait_attack(
     )
     selections = () if purchased.trait is None else purchased.trait.attack_modifiers
     cyclic = cyclic_profile(selections, channel.damage_type) if selections else None
-    if cyclic is not None and cyclic.contagious != "none":
-        raise ValidationError("Contagious Cyclic execution requires the exposure extension")
+    if (
+        cyclic is not None
+        and cyclic.contagious != "none"
+        and (channel.damage_type != "tox" or channel.contagion_vector is None)
+    ):
+        raise ValidationError(
+            "Contagious Cyclic requires a toxic attack with an authored illness vector"
+        )
     check = _cyclic_check(cyclic, channel, target_ht, rng)
     if cyclic is not None and not _roll_succeeds(channel.attack_roll, channel.attack_score):
         state = resources.model_copy(update={"revision": resources.revision + 1})

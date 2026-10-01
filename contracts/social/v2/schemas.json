@@ -3740,6 +3740,110 @@
         "title": "Connection",
         "type": "object"
       },
+      "ContactExposure": {
+        "additionalProperties": false,
+        "description": "One trusted contact relationship; proximity alone is never exposure.",
+        "properties": {
+          "id": {
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "disease_id": {
+            "minLength": 1,
+            "title": "Disease Id",
+            "type": "string"
+          },
+          "vector": {
+            "enum": [
+              "blood",
+              "contact",
+              "digestive",
+              "respiratory"
+            ],
+            "title": "Vector",
+            "type": "string"
+          },
+          "contact": {
+            "enum": [
+              "avoided",
+              "shared-building",
+              "close-conversation",
+              "brief-touch",
+              "shared-material",
+              "cooked-flesh",
+              "raw-flesh",
+              "prolonged-contact",
+              "intimate-contact"
+            ],
+            "title": "Contact",
+            "type": "string"
+          },
+          "occurred_at": {
+            "minimum": 0,
+            "title": "Occurred At",
+            "type": "integer"
+          },
+          "check_after_seconds": {
+            "default": 86400,
+            "maximum": 604800,
+            "minimum": 1,
+            "title": "Check After Seconds",
+            "type": "integer"
+          },
+          "carrier_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Carrier Id"
+          },
+          "protection_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Protection Id"
+          },
+          "protection_bonus": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Protection Bonus",
+            "type": "integer"
+          },
+          "protection_understood": {
+            "default": false,
+            "title": "Protection Understood",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "disease_id",
+          "vector",
+          "contact",
+          "occurred_at"
+        ],
+        "title": "ContactExposure",
+        "type": "object"
+      },
       "CraftRule": {
         "additionalProperties": false,
         "description": "One B515 recipe with an exact parts-to-finished-price binding.",
@@ -4837,7 +4941,7 @@
           },
           "cycle": {
             "default": 1,
-            "minimum": 1,
+            "minimum": 0,
             "title": "Cycle",
             "type": "integer"
           },
@@ -4862,6 +4966,31 @@
             ],
             "title": "Contagious",
             "type": "string"
+          },
+          "contagion_vector": {
+            "anyOf": [
+              {
+                "enum": [
+                  "blood",
+                  "contact",
+                  "digestive",
+                  "respiratory"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Contagion Vector"
+          },
+          "incubation_seconds": {
+            "default": 86400,
+            "maximum": 31536000,
+            "minimum": 1,
+            "title": "Incubation Seconds",
+            "type": "integer"
           }
         },
         "required": [
@@ -4880,6 +5009,78 @@
           "stop_condition"
         ],
         "title": "CyclicAttack",
+        "type": "object"
+      },
+      "CyclicExposure": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/$defs/CyclicAttack"
+          },
+          "relationship": {
+            "$ref": "#/$defs/ContactExposure"
+          },
+          "ht": {
+            "minimum": 1,
+            "title": "Ht",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "stage": {
+            "default": "exposure",
+            "enum": [
+              "exposure",
+              "resisted",
+              "infected"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "check": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CheckTrace"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "infection_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Infection Id"
+          },
+          "immune": {
+            "default": false,
+            "title": "Immune",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "relationship",
+          "ht",
+          "due"
+        ],
+        "title": "CyclicExposure",
         "type": "object"
       },
       "Damage": {
@@ -8661,6 +8862,14 @@
               "$ref": "#/$defs/AfflictionEffect"
             },
             "title": "Afflictions",
+            "type": "array"
+          },
+          "cyclic_exposures": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CyclicExposure"
+            },
+            "title": "Cyclic Exposures",
             "type": "array"
           },
           "cyclic_attacks": {
