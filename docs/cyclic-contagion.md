@@ -34,3 +34,45 @@ These tests establish engine behavior for the selected authored illness variant.
 They do not promote generic modifier certification or claim end-to-end compliance.
 Non-toxic contagious powers, unimplemented penetration combinations and diagnosis
 or treatment beyond a trusted source stopping condition remain outside this PR.
+
+
+The private persisted observation host binds contact to an active source occurrence,
+current co-location, a qualitative vector fact and the corresponding contact
+category. It derives HT from the subject's current approved build. Properly used,
+understood precautions are selected by source-approved ID; the numerical bonus is
+GM-authored B443 adjudication stored at source binding, not a printed fixed value
+or an attack/exposure payload. The existing ContactExposure model limits that
+bonus to 0–10; no new source rule is inferred from that engine boundary. A source
+policy explicitly controls whether a secondary is infectious during incubation;
+the default policy starts contagiousness after incubation.
+
+For new host observations B443 incubation starts at actual contact: contact at
+zero with a one-day delay can inflict first disease damage at 86400 after the
+failed daily resistance, rather than adding another day to that deadline. When
+a source delay would expire before the daily check, the observation requires an
+explicit `defer-to-daily-check` GM choice. Its receipt records that campaign
+adjudication, and no earlier damage is inserted retrospectively. Missing choice
+rejects without mutation or dice and can be resubmitted with the explicit choice.
+Legacy recorded exposures retain their old check-time-based incubation semantics.
+
+Resistance uses the current permanently approved HT at the daily deadline, with
+B421's temporary-attribute exemption. Same-day contacts use their least favorable
+applicable contact plus approved precaution. A first exposure check totaling three
+or four establishes natural immunity; a later lucky roll does not. A pending
+contact cannot replace an independently established infection, reset its clock,
+or wipe its healing debt. Prior contacts still settle after the original carrier
+is cured. New secondary disease damage bypasses DR and uses canonical internal
+disease injury, including the current target physiology. Secondary bindings keep
+the original source policy while giving each infected subject an independent clock.
+
+For newly bound secondary disease, a failed exposure check commits infection and
+its delayed first damage. Cycle-zero onset grants no second resistance roll;
+later cycles allow resistance before damage. This separates B443's exposure and
+incubation from B103–104's subsequent cycles. Legacy secondary records retain
+their former cycle-zero resistance behavior for replay.
+
+The Illness transmission route also gives new secondary infections HT recovery
+rolls on subsequent cycles even when the original direct attack has no Resistible
+modifier. The secondary uses the source's resistance modifier when present and
+HT+0 otherwise. This changes neither the original direct attack's resistance nor
+legacy recorded disease occurrences.

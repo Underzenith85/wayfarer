@@ -1566,7 +1566,7 @@ _LIMITATION_PARAMETER_FIELDS: Final[dict[str, frozenset[str]]] = {
 
 def _validate_limitation_parameters(selection: ModifierSelection) -> None:
     params = selection.limitation
-    provided = frozenset() if params is None else frozenset(params.model_fields_set)
+    provided = _provided_parameter_fields(params)
     allowed = _LIMITATION_PARAMETER_FIELDS.get(selection.definition_id, frozenset())
     if provided - allowed:
         raise ValidationError("Limitation has unsupported runtime parameters")
@@ -1607,10 +1607,23 @@ def _validate_limitation_parameters(selection: ModifierSelection) -> None:
         raise ValidationError("Temporary Disadvantage requires at least one exact trait")
 
 
-def _provided_parameter_fields(parameters: EnhancementParameters | None) -> frozenset[str]:
+def _provided_parameter_fields(
+    parameters: EnhancementParameters | LimitationParameters | None,
+) -> frozenset[str]:
+    """Canonical JSON expands omitted defaults; those cannot invent authored intent.
+
+    Keep the serialized representation (and existing approval/build digests)
+    unchanged. Only meaningful values count as supplied runtime parameters;
+    unsupported non-default values still fail before execution. Every required
+    parameter has a non-default meaningful value, including HT+0 resistance.
+    """
     if parameters is None:
         return frozenset()
-    return frozenset(parameters.model_fields_set)
+    return frozenset(
+        name
+        for name in parameters.model_fields_set
+        if getattr(parameters, name) != type(parameters).model_fields[name].default
+    )
 
 
 def _validate_cosmic_parameters(

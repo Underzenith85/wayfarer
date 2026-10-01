@@ -12,13 +12,17 @@ from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
     EndEncounter,
     JoinEncounter,
+    RepairEquipment,
     ResolveChokeEffects,
     ResumeInterruptedTurn,
+    RetrieveEquipment,
+    SalvageEquipment,
     StartBasicEncounter,
     StartEncounter,
     TakeCombatTurn,
     TakeUnarmedTurn,
     TypedCombatCommand,
+    WithdrawEncounter,
 )
 from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
@@ -26,6 +30,7 @@ from wayfarer.engine.simulation.combat.sensory_combat import blind_hit_location
 from wayfarer.engine.simulation.health.fright import maneuver_allowed
 from wayfarer.engine.simulation.health.fright_state import can_defend
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, encounter_for
 from wayfarer.orchestration.recovery import guard
@@ -95,9 +100,18 @@ def _normalize_sensory_location(
     return command
 
 
+def _require_voluntary_equipment(state: PlayState, command: TypedCombatCommand) -> None:
+    if isinstance(command, WithdrawEncounter) or (
+        isinstance(command, (RetrieveEquipment, RepairEquipment, SalvageEquipment))
+        and command.stage != "cancel"
+    ):
+        require_innate_actor_action(state, command.actor_id)
+
+
 def _prepare_command(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> tuple[PlayState, TypedCombatCommand, CombatContext]:
+    _require_voluntary_equipment(state, command)
     engine = context.engine
     resuming = context.resuming
     reaction = context.reaction

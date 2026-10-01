@@ -35,7 +35,9 @@ def physical_defenses(
     ):
         return ("none",)
     candidates: tuple[Defense, ...] = (
-        ("dodge", "block")
+        ("dodge",)
+        if pending.composed_attack_id is not None
+        else ("dodge", "block")
         if pending.spell_cast_id is not None
         else ("dodge", "block", "parry")
         if ranged

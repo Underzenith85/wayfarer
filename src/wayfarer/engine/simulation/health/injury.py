@@ -238,9 +238,14 @@ def apply_injury(
     if pool is None or pool.injury is None:
         raise ValidationError("Explicit GURPS HP pool required; prototype pools are unchanged")
     if len(set(held_item_ids)) != len(held_item_ids) or not set(held_item_ids) <= {
-        i.id for i in state.items if i.owner_id == command.actor_id and i.ready
+        i.id
+        for i in state.items
+        if i.owner_id == command.actor_id
+        and (i.ready or i.id in {item_id for item_id, _ in held_item_locations})
     }:
-        raise ValidationError("Held items must be unique, ready and owned by the injured actor")
+        raise ValidationError(
+            "Held items must be unique, ready or hand-bound, and owned by the injured actor"
+        )
     if not set(shield_item_ids) <= set(held_item_ids):
         raise ValidationError("Shields must be authoritative held items")
     if len(set(held_item_locations)) != len(held_item_locations) or any(

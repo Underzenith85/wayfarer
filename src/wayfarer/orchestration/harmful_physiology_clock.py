@@ -54,18 +54,17 @@ def advance(
         ]
         due = min(deadlines, default=command.to)
         before = state
-        resources = play.engine.resources.for_world(state.world).apply(
-            state.resources,
+        state = play.advance_clock(
+            state.model_copy(update={"revision": revision - 1}),
             Advance(
                 id=f"physiology-clock:{command.id}:{index}",
                 actor_id=command.actor_id,
                 expected_revision=state.resources.revision,
                 to=due,
             ),
-            system=True,
-            rng=play.rng,
         )
-        state = state.model_copy(update={"resources": resources, "revision": revision})
+        resources = state.resources
+        state = state.model_copy(update={"revision": revision})
         subjects = sorted({i.actor_id for i in conditions(resources) if not i.retired})
         for actor_id in subjects:
             state = settle_actor(play.rules_context, state, actor_id, command.id)

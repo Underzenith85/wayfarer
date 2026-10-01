@@ -27,6 +27,7 @@ from wayfarer.engine.simulation.equipment.gadget_limitations import (
 )
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Advance
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Seats, submit
@@ -73,6 +74,7 @@ def _prepare_ability(
     play = execution.play
     guard(state, command.actor_id, "ability")
     if command.kind != "cancel":
+        require_innate_actor_action(state, command.actor_id)
         synchronous(state, command.actor_id)
         require_hazards_settled(
             state.resources.hazards, frozenset({command.actor_id}), state.resources.game_time
@@ -248,19 +250,25 @@ def reduce_ability(
             )
         )
         prior = next(e for e in state.encounters if e.id == encounter.id)
+        updated = updated.model_copy(
+            update={
+                "encounters": tuple(
+                    encounter if e.id == encounter.id else e for e in updated.encounters
+                )
+            }
+        )
         if encounter.round > prior.round:
-            resources = play.engine.resources.apply(
-                resources,
+            revision = updated.revision
+            updated = play.advance_clock(
+                updated.model_copy(update={"revision": state.revision}),
                 Advance(
                     id=internal_id(command.id, "round-time"),
                     actor_id=command.actor_id,
                     expected_revision=resources.revision,
                     to=resources.game_time + encounter.round - prior.round,
                 ),
-                system=True,
-                rng=play.rng,
-            )
-            resources = resources.model_copy(update={"revision": updated.revision})
+            ).model_copy(update={"revision": revision})
+            resources = updated.resources.model_copy(update={"revision": revision})
             updated = updated.model_copy(
                 update={
                     "resources": resources,
@@ -274,13 +282,6 @@ def reduce_ability(
                     ),
                 }
             )
-        updated = updated.model_copy(
-            update={
-                "encounters": tuple(
-                    encounter if e.id == encounter.id else e for e in state.encounters
-                )
-            }
-        )
     if taking_turn:
         updated = injury_turn(
             play.rules_context, updated, command.actor_id, command.id, start=False, do_nothing=False

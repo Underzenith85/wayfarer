@@ -179,17 +179,18 @@ class PartyService:
         for at in times:
             if at < state.resources.game_time:
                 raise ValidationError("Scheduled effect precedes committed time")
-            resources = self.play.engine.resources.apply(
-                state.resources,
+            revision = state.revision
+            state = self.play.advance_clock(
+                state.model_copy(update={"revision": revision - 1}),
                 Advance(
                     id=f"party:{state.revision}:{at}:time",
                     actor_id=state.party.groups[0].actor_ids[0],
                     expected_revision=state.resources.revision,
                     to=at,
                 ),
-                system=True,
-                rng=self.play.rng,
-            )
+                run_npcs=False,
+            ).model_copy(update={"revision": revision})
+            resources = state.resources
             state = state.model_copy(
                 update={"resources": resources.model_copy(update={"revision": state.revision})}
             )

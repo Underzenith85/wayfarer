@@ -54,6 +54,7 @@ from wayfarer.engine.simulation.magic.spells import (
 from wayfarer.engine.simulation.magic.spells import SpellCommand as LegacySpellCommand
 from wayfarer.engine.simulation.resources import Advance, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 
 
@@ -481,23 +482,26 @@ def advance_cast_turn(
             ),
         )
     )
-    resources = state.resources
+    revision = state.revision
+    state = state.model_copy(
+        update={
+            "encounters": tuple(updated if e.id == encounter.id else e for e in state.encounters)
+        }
+    )
     if updated.round > encounter.round:
-        resources = runtime.resources.apply(
-            resources,
+        state = runtime.advance(
+            state.model_copy(update={"revision": revision - 1}),
             Advance(
                 id=event_id(command.id, command.spell_id) + ":round",
                 actor_id=command.actor_id,
-                expected_revision=resources.revision,
-                to=resources.game_time + updated.round - encounter.round,
+                expected_revision=state.resources.revision,
+                to=state.resources.game_time + updated.round - encounter.round,
             ),
-            system=True,
-            rng=runtime.rng,
-        ).model_copy(update={"revision": state.revision})
+        ).model_copy(update={"revision": revision})
+    resources = state.resources.model_copy(update={"revision": revision})
     return state.model_copy(
         update={
             "resources": resources,
-            "encounters": tuple(updated if e.id == encounter.id else e for e in state.encounters),
             "party": state.party.model_copy(
                 update={
                     "groups": tuple(
@@ -535,6 +539,8 @@ def _prepare_spell(
     runtime = execution.runtime
     if not any(r.command_id == command.id for r in before.resources.receipts):
         guard(before, command.actor_id, "spell")
+        if command.kind not in ("cancel", "complete", "remember"):
+            require_innate_actor_action(before, command.actor_id)
     encounter = combat_guard(before, command)
     if encounter is not None and execution.resolver is not None:
         raise ValidationError("Combat spell dispatch requires the maneuver adapter")

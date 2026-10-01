@@ -173,8 +173,10 @@ def test_profile_source_blockers_do_not_cross_contaminate_certification() -> Non
         "ledger:section:campaigns:b481:interruptions",
         "ledger:section:campaigns:b482:using-magic-items",
         "ledger:trait:advantage:alternate-form",
+        "ledger:trait:advantage:innate-attack",
         "ledger:trait:advantage:morph",
         "ledger:trait:advantage:unusual-background",
+        "ledger:modifier:enhancement:cyclic",
         "ledger:modifier:enhancement:symptoms",
     )
 

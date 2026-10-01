@@ -101,8 +101,30 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
     )
 
 
+def _guard_innate_balance(
+    encounter: Encounter, command: TypedCombatCommand, state: PlayState
+) -> None:
+    # deferred: innate critical reducers use CombatEngine, which loads unarmed mechanics.
+    from wayfarer.engine.simulation.traits.innate_criticals import require_innate_action
+
+    if isinstance(command, TakeUnarmedTurn):
+        # Includes release and lock_damage, which do not spend a new maneuver.
+        require_innate_action(state.resources, encounter, command.actor_id)
+    elif isinstance(command, TakeCombatTurn):
+        passive = TakeCombatTurn(
+            id=command.id,
+            actor_id=command.actor_id,
+            expected_revision=command.expected_revision,
+            encounter_id=command.encounter_id,
+            maneuver="do_nothing",
+        )
+        if command != passive:
+            require_innate_action(state.resources, encounter, command.actor_id, command.item_id)
+
+
 def guard_control(encounter: Encounter, command: TypedCombatCommand, state: PlayState) -> None:
     require_choke_turn_settled(state, encounter, exempt=isinstance(command, ResolveChokeEffects))
+    _guard_innate_balance(encounter, command, state)
 
     if encounter.pending_unarmed is not None:
         if isinstance(command, MigrateEncounterBasic):

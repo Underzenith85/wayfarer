@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.health.condition_checks import definition_modifi
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
@@ -33,6 +34,7 @@ class NoncombatService:
         self, state: PlayState, command: NoncombatCommand, *, advance_time: bool = True
     ) -> PlayState:
 
+        require_innate_actor_action(state, command.actor_id)
         guard(state, command.actor_id, command.kind)
         rules = self.play.engine.rules.noncombat
         if rules is None:
@@ -157,17 +159,16 @@ class NoncombatService:
             )
             resources = resources.model_copy(update={"pools": tuple(pools.values())})
             if advance_time:
-                resources = self.play.engine.resources.apply(
-                    resources,
+                state = self.play.advance_clock(
+                    state.model_copy(update={"world": world, "resources": resources}),
                     Advance(
                         id=f"{command.id}:time",
                         actor_id=actor.actor_id,
                         expected_revision=resources.revision,
                         to=resources.game_time + check_rule.duration,
                     ),
-                    system=True,
-                    rng=self.play.rng,
                 )
+                resources, world = state.resources, state.world
             encounter = encounter.model_copy(
                 update={
                     "status": status,

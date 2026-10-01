@@ -23,6 +23,7 @@ from wayfarer.engine.simulation.magic.lock_state import (
 )
 from wayfarer.engine.simulation.resources import Advance, Command, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 
@@ -71,6 +72,7 @@ def _receipt_id(command_id: str) -> str:
 def _operate(
     runtime: RulesContext, before: PlayState, command: OperateLock
 ) -> tuple[PlayState, str]:
+    require_innate_actor_action(before, command.actor_id)
     synchronous(before, command.actor_id)
     guard(before, command.actor_id, "lock")
     runtime.approved_build(before, command.actor_id)
@@ -116,18 +118,16 @@ def _operate(
         }
     )
     resources = interrupt_concentration(before.resources, command.actor_id, command.id)
-    resources = runtime.resources.for_world(before.world).apply(
-        resources,
+    before = runtime.advance(
+        before.model_copy(update={"resources": resources}),
         Advance(
             id="lock-time:" + command.id,
             actor_id=command.actor_id,
             expected_revision=resources.revision,
             to=resources.game_time + 1,
         ),
-        rng=runtime.rng,
-        system=True,
     )
-    resources = save(resources, value, command.id)
+    resources = save(before.resources, value, command.id)
     return before.model_copy(
         update={
             "resources": resources,

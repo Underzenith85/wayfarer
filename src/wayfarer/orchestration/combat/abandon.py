@@ -7,10 +7,15 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack, abandon
 from wayfarer.engine.simulation.combat.encounter import CombatResult
+from wayfarer.engine.simulation.traits.composed_host import AbandonComposedAttack
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
 from wayfarer.orchestration.combat.service import CombatService
 from wayfarer.orchestration.combat.settlement import _finish_combat, _settle_combat
+from wayfarer.orchestration.composed_attacks import (
+    ComposedAttackService,
+    recorded_operation,
+)
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -73,4 +78,25 @@ class AbandonPendingAttackService:
             return await AbandonPendingAttackService(bound).execute(
                 cid, value, principal_id=principal_id
             )
+
+        state = self.play._load(await self.play.store.read(cid))
+        encounter = next((e for e in state.encounters if e.id == command.encounter_id), None)
+        composed = bool(
+            encounter and encounter.pending_defense and encounter.pending_defense.composed_attack_id
+        )
+        if composed or await recorded_operation(self.play, cid, command.id, "composed-attack"):
+            result = await ComposedAttackService(self.play).execute(
+                cid,
+                AbandonComposedAttack(
+                    id=command.id,
+                    actor_id=command.actor_id,
+                    expected_revision=command.expected_revision,
+                    encounter_id=command.encounter_id,
+                    pending_id=command.pending_id,
+                ),
+                principal_id=principal_id,
+            )
+            if result.combat is None:
+                raise ValidationError("Missing composed abandonment result")
+            return result.combat
         return await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)

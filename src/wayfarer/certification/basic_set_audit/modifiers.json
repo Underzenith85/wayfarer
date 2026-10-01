@@ -25,7 +25,10 @@
         "tests/test_advantage_enhancements.py",
         "tests/test_composed_attacks.py",
         "docs/composed-attacks.md",
-        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py",
+        "docs/composed-attack-host.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py"
       ],
       "historical_owners": [
         100,
@@ -163,7 +166,10 @@
         "tests/test_advantage_enhancements.py",
         "tests/test_composed_attacks.py",
         "docs/composed-attacks.md",
-        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py",
+        "docs/composed-attack-host.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py"
       ],
       "historical_owners": [
         100,
@@ -398,7 +404,7 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
@@ -406,16 +412,25 @@
         "tests/test_cyclic_attacks.py",
         "src/wayfarer/engine/simulation/health/cyclic.py",
         "tests/test_cyclic_contagion.py",
-        "src/wayfarer/engine/simulation/health/cyclic_contagion.py"
+        "src/wayfarer/engine/simulation/health/cyclic_contagion.py",
+        "docs/cyclic-attacks.md",
+        "docs/cyclic-play-clock.md",
+        "tests/test_cyclic_host.py",
+        "tests/test_cyclic_current_context.py",
+        "tests/test_cyclic_host_replay.py",
+        "tests/test_cyclic_location_adjudication.py",
+        "tests/test_cyclic_play_clock.py",
+        "tests/test_composed_cyclic_host_integration.py"
       ],
       "historical_owners": [
         100,
         497,
         682,
         761,
-        762
+        762,
+        764
       ],
-      "completion_owner": null,
+      "completion_owner": 764,
       "capability_id": "gurps.character.ability_modifiers",
       "runtime_binding": "modifier:enhancement:cyclic",
       "parent_id": null,
@@ -423,7 +438,7 @@
       "listed_value": "Variable",
       "construction_binding": "modifier:enhancement:cyclic",
       "cost_owner": "modifier-catalog:modifier:enhancement:cyclic",
-      "consequence_owner": 682,
+      "consequence_owner": 764,
       "source_review_owner": null
     },
     {
@@ -876,7 +891,10 @@
         "tests/test_advantage_enhancements.py",
         "tests/test_composed_attacks.py",
         "docs/composed-attacks.md",
-        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py",
+        "docs/composed-attack-host.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py"
       ],
       "historical_owners": [
         100,
@@ -1012,7 +1030,11 @@
         "tests/test_advantage_enhancements.py",
         "tests/test_composed_attacks.py",
         "docs/composed-attacks.md",
-        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py",
+        "docs/composed-attack-host.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py",
+        "tests/test_composed_malediction_checks.py"
       ],
       "historical_owners": [
         100,
@@ -1562,7 +1584,10 @@
         "tests/test_symptom_attribute_consumers.py",
         "tests/test_symptom_attribute_generations.py",
         "tests/test_symptom_payload_formats.py",
-        "tests/test_command_input_identity.py"
+        "tests/test_command_input_identity.py",
+        "docs/composed-attack-host.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py"
       ],
       "historical_owners": [
         100,
@@ -2200,7 +2225,10 @@
         "tests/test_advantage_limitations.py",
         "tests/test_composed_attacks.py",
         "docs/composed-attacks.md",
-        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py",
+        "docs/composed-attack-host.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py"
       ],
       "historical_owners": [
         100,
@@ -2567,7 +2595,10 @@
         "tests/test_advantage_limitations.py",
         "tests/test_composed_attacks.py",
         "docs/composed-attacks.md",
-        "src/wayfarer/engine/simulation/traits/composed_attacks.py"
+        "src/wayfarer/engine/simulation/traits/composed_attacks.py",
+        "docs/composed-attack-host.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py"
       ],
       "historical_owners": [
         100,

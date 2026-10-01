@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.shield_rush import resolve as resolve_shield_rush
 from wayfarer.engine.simulation.combat.thrown.items import validate_catch
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
+from wayfarer.engine.simulation.traits.composed_resolution import resolve
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.handlers import _unarmed
@@ -85,6 +86,26 @@ def _drop_friend(encounter: Encounter, pending: PendingDefense, injury: InjuryTr
     return encounter
 
 
+def _non_inventory_defense(
+    state: PlayState, command: ChooseDefense, encounter: Encounter, context: CombatContext
+) -> CombatStep | None:
+    if (
+        encounter.pending_defense is not None
+        and encounter.pending_defense.composed_attack_id is not None
+    ):
+        resolved = resolve(context.play.rules_context, state, encounter, command)
+        return CombatStep(
+            resolved.state,
+            resolved.encounter,
+            resolved.state.resources,
+            resolved.result,
+            defense_before=encounter,
+        )
+    if encounter.pending_unarmed is not None:
+        return _unarmed(state, command, encounter, context)
+    return None
+
+
 def _defend(
     state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
 ) -> CombatStep:
@@ -92,8 +113,9 @@ def _defend(
     engine = context.engine
     resources = state.resources
     assert isinstance(command, ChooseDefense)
-    if encounter.pending_unarmed is not None:
-        return _unarmed(state, command, encounter, context)
+    non_inventory = _non_inventory_defense(state, command, encounter, context)
+    if non_inventory is not None:
+        return non_inventory
     if command.catch_thrown:
         validate_catch(play.rules_context, state, encounter, command)
 

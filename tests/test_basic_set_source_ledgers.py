@@ -51,6 +51,8 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
         "trait:advantage:alternate-form",
         "trait:advantage:morph",
         "modifier:enhancement:symptoms",
+        "trait:advantage:innate-attack",
+        "modifier:enhancement:cyclic",
         *ENCHANTING_RESIDUAL_IDS,
     }
 
@@ -340,6 +342,8 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         ("trait:advantage:alternate-form", 757),
         ("trait:advantage:morph", 757),
         ("modifier:enhancement:symptoms", 763),
+        ("trait:advantage:innate-attack", 764),
+        ("modifier:enhancement:cyclic", 764),
         *((identifier, 785) for identifier in ENCHANTING_RESIDUAL_IDS),
     }
     assert all(
@@ -349,7 +353,8 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.required_source_ledger_rows == 1_044
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {
-        "none": 1_276,
+        "none": 1_274,
+        "764": 2,
         "757": 2,
         "763": 1,
         "785": 5,

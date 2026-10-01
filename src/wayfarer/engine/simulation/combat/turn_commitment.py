@@ -215,6 +215,7 @@ def _observation(
     target_id: str | None,
     item_id: str | None,
     basic: bool,
+    composed_source_id: str | None = None,
 ) -> ManeuverState:
     target = next((p for p in encounter.participants if p.actor_id == target_id), None)
     if target is None or target.actor_id == actor_id:
@@ -245,7 +246,11 @@ def _observation(
             and item_id == "spell:" + hashlib.sha256(effect.cast_id.encode()).hexdigest()
             for effect in active_spells(resources)
         )
-        if item_id not in participant.ready_item_ids and not held_missile:
+        if (
+            item_id not in participant.ready_item_ids
+            and not held_missile
+            and (composed_source_id is None or item_id != composed_source_id)
+        ):
             raise ValidationError("Aim requires a ready ranged weapon")
         return commitment.model_copy(
             update={
@@ -278,6 +283,7 @@ def prepare(
     second_target_id: str | None,
     second_mode_id: str | None,
     basic: bool,
+    composed_source_id: str | None = None,
 ) -> Combatant:
     """Return the participant with the maneuver's lasting commitments recorded."""
     dual_weapon = (
@@ -376,5 +382,6 @@ def prepare(
             target_id=target_id,
             item_id=item_id,
             basic=basic,
+            composed_source_id=composed_source_id,
         )
     return participant.model_copy(update={"maneuver_state": commitment})

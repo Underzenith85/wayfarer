@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 from copy import copy
 from fractions import Fraction
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.catalog import (
     CampaignPolicy,
@@ -35,6 +36,9 @@ from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
 from wayfarer.engine.simulation.equipment.salvage_state import tasks as salvage_tasks
+from wayfarer.engine.simulation.health.cyclic_host_state import (
+    require_context as require_cyclic_context,
+)
 from wayfarer.engine.simulation.health.disease import (
     require_health_settled,
     require_no_health_deadline_before,
@@ -70,6 +74,20 @@ from wayfarer.engine.simulation.traits.size_forms import checkpoint as size_chec
 from wayfarer.engine.simulation.traits.size_forms import validate as validate_size_forms
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.health.cyclic_types import CyclicContextResolver
+
+
+def _require_cyclic_clock(
+    state: ResourceState,
+    command: ResourceCommand,
+    context: CyclicContextResolver | None,
+    rng: RandomSource | None,
+    clock_rng: RandomSource | None,
+) -> None:
+    if isinstance(command, Advance) and (context is None or (rng is None and clock_rng is None)):
+        require_cyclic_context(state, command.to)
 
 
 def _require_splittable(item: Item) -> None:
@@ -446,6 +464,7 @@ class ResourceEngine:
         system: bool = False,
         _clock_rng: RandomSource | None = None,
         rng: RandomSource | None = None,
+        cyclic_context: CyclicContextResolver | None = None,
     ) -> ResourceState:
         """system is a trusted call-site capability, never a command payload field."""
         self.validate(state)
@@ -463,8 +482,9 @@ class ResourceEngine:
             return state
         if command.expected_revision != state.revision:
             raise ConflictError("Resource revision changed")
+        _require_cyclic_clock(state, command, cyclic_context, rng, _clock_rng)
         if isinstance(command, Advance) and rng is not None:
-            return advance(self, state, command, rng=rng)
+            return advance(self, state, command, rng=rng, cyclic_context=cyclic_context)
         if not isinstance(command, Advance):
             require_physiology_deadline(state, state.game_time + 1, actor_id=command.actor_id)
             require_cyclic_settled(state.cyclic_attacks, state.game_time + 1)

@@ -9,8 +9,8 @@ from wayfarer.engine.simulation.combat.defense_options import prepare_options
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.combat.incoming import incoming_ranged
 from wayfarer.engine.simulation.combat.interposition import prepare_interposition
-from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
     CoverSpatialFact,
@@ -31,7 +31,6 @@ from wayfarer.engine.simulation.combat.tactical import (
     sight,
     validate_hex_encounter,
 )
-from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.hex_geometry import (
     HexBattlefield,
     Occupant,
@@ -431,10 +430,7 @@ def _prepare_defense_geometry(
                 or pending
                 and runtime.rules.combat is not None
                 and runtime.rules.combat.gurps_equipment is not None
-                and isinstance(
-                    mode(runtime, state, actor.actor_id, pending.weapon_id, pending.mode_id),
-                    RangedMode,
-                )
+                and incoming_ranged(runtime, state, encounter, pending)
             ):
                 raise ValidationError("Retreat is unavailable")
             bonus = 3 if command.defense == "dodge" else 1
@@ -483,9 +479,7 @@ def _prepare_defense_geometry(
     if command.retreat is not None:
         if command.defense == "none" or command.second_defense is not None:
             raise ValidationError("Retreat requires one active defense")
-        if pending and isinstance(
-            mode(runtime, state, actor.actor_id, pending.weapon_id, pending.mode_id), RangedMode
-        ):
+        if pending and incoming_ranged(runtime, state, encounter, pending):
             raise ValidationError("Retreat bonus is not available against ranged attacks")
         if unarmed and unarmed.action in ("grapple", "arm_lock"):
             raise ValidationError(

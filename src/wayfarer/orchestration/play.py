@@ -46,13 +46,14 @@ from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpo
 from wayfarer.engine.simulation.magic.item_state import checkpoint as item_magic_checkpoint
 from wayfarer.engine.simulation.magic.power_lifecycle import checkpoint as power_checkpoint
 from wayfarer.engine.simulation.magic.staff_casting_state import checkpoint as staff_checkpoint
-from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.resources import Advance, Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.size_geometry import checkpoint as size_geometry_checkpoint
 from wayfarer.engine.world import World
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.cyclic_clock import advance as advance_cyclic_clock
 from wayfarer.orchestration.entropy import CommandRandom, SeedSource, token_seed
 from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
 from wayfarer.orchestration.npcs import initialize
@@ -94,7 +95,18 @@ class PlayService:
             rules=self.engine.rules,
             combat=self.engine.combat,
             correct_symptom_attributes=correct_symptom_attributes(),
+            clock=self.advance_clock,
         )
+
+    def advance_clock(
+        self,
+        state: PlayState,
+        command: Advance,
+        rng: RandomSource | None = None,
+        *,
+        run_npcs: bool = True,
+    ) -> PlayState:
+        return advance_cyclic_clock(self, state, command, rng or self.rng, run_npcs=run_npcs)
 
     def __init__(
         self,
@@ -227,6 +239,16 @@ class PlayService:
                     "mana-refund:",
                     "harmful-physiology:",
                     "physiology:",
+                    "composed-source:",
+                    "composed-pending:",
+                    "composed-finished:",
+                    "composed-result:",
+                    "composed-resolution:",
+                    "cyclic-host-binding:",
+                    "cyclic-host:",
+                    "innate-critical:",
+                    "innate-critical-outcome:",
+                    "fatigue-critical-knockdown:",
                 )
             )
             for event in resources.events
@@ -494,6 +516,7 @@ class PlayService:
                 command,
                 rng=self.rng,
                 correct_symptom_attributes=correct_symptom_attributes(),
+                clock=self.advance_clock,
             )
             result = action_result(resolved_events)
             if result.status != "committed":

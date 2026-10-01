@@ -355,10 +355,16 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             identifier,
             f"B{definition.page}",
             682,
-            "partial" if identifier == "modifier:enhancement:symptoms" else "verified",
+            "partial"
+            if identifier in {"modifier:enhancement:symptoms", "modifier:enhancement:cyclic"}
+            else "verified",
             "ability-modifier-ledger",
             source_review="reviewed",
-            blockers=(763,) if identifier == "modifier:enhancement:symptoms" else (),
+            blockers=(763,)
+            if identifier == "modifier:enhancement:symptoms"
+            else (764,)
+            if identifier == "modifier:enhancement:cyclic"
+            else (),
             evidence=("tests/test_advantage_enhancements.py",),
         )
         for identifier, definition in sorted(MODIFIER_INDEX.items())
@@ -383,11 +389,13 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             "supernatural/" + e.id,
             f"B{e.page}",
             119,
-            e.status.value,
+            "partial" if e.id == "advantage:innate-attack" else e.status.value,
             "supernatural-skills" if e.kind == "skill" else "supernatural-catalog",
             () if e.optional else ("gurps-basic-set-4e-2004",),
             "reviewed" if e.source in reconciled_sources else "pending",
-            blockers=e.blockers,
+            blockers=tuple(sorted(set(e.blockers) | {764}))
+            if e.id == "advantage:innate-attack"
+            else e.blockers,
         )
         for e in supernatural.entries
     )

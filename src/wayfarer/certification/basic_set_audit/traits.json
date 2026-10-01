@@ -3562,17 +3562,25 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-set-source-review.md",
-        "tests/test_attack_defense_traits.py"
+        "tests/test_attack_defense_traits.py",
+        "docs/composed-attack-host.md",
+        "docs/innate-critical-consequences.md",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py",
+        "tests/test_innate_criticals.py",
+        "tests/test_innate_host_action_guards.py",
+        "tests/test_composed_cyclic_host_integration.py"
       ],
       "historical_owners": [
         113,
-        496
+        496,
+        764
       ],
-      "completion_owner": null,
+      "completion_owner": 764,
       "capability_id": "gurps.character.traits",
       "runtime_binding": "supernatural/advantage:innate-attack",
       "parent_id": null,
@@ -3580,7 +3588,7 @@
       "listed_value": "Variable",
       "construction_binding": "supernatural/advantage:innate-attack",
       "cost_owner": "supernatural/advantage:innate-attack",
-      "consequence_owner": 113,
+      "consequence_owner": 764,
       "source_review_owner": null
     },
     {

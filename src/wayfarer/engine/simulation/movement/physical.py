@@ -55,6 +55,7 @@ from wayfarer.engine.simulation.resources import (
 )
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.skills.power_blow import power_blow_lift_strength
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -140,6 +141,8 @@ class PreparedFeat:
 
 def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalContext) -> PreparedFeat:
     runtime = context.runtime
+    if command.kind != "fall":
+        require_innate_actor_action(before, command.actor_id)
     synchronous(before, command.actor_id)
     actor = next(a for a in before.actors if a.actor_id == command.actor_id)
     if actor.available_at > before.resources.game_time or any(
@@ -692,17 +695,17 @@ def _finish(
         do_nothing=False,
     )
     resources = state.resources
-    resources = runtime.resources.apply(
-        resources,
+    state = runtime.advance(
+        state,
         Advance(
             id="feat-time:" + internal,
             actor_id=command.actor_id,
             expected_revision=resources.revision,
             to=resources.game_time + seconds,
         ),
-        system=True,
         rng=context.advance_rng,
     )
+    resources = state.resources
     if command.kind == "swim" and allowed and not succeeded:
         hazard_id = "swim:" + internal
         schedule_id = (

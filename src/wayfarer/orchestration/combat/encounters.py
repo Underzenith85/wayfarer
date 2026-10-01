@@ -330,6 +330,7 @@ def _prepare_encounter(
                 engine.rules.gurps_equipment is None
                 or pending is None
                 or pending.spell_cast_id is not None
+                or pending.composed_attack_id is not None
             ):
                 raise ValidationError(
                     "Explicit parry damage modes require a weapon or unarmed attack"
