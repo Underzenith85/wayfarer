@@ -828,7 +828,15 @@ export interface components {
        * @default null
        */
       attack_option:
-        ("determined" | "strong" | "double" | "feint" | "suppression") | null;
+        | (
+            | "determined"
+            | "strong"
+            | "double"
+            | "feint"
+            | "suppression"
+            | "rapid-strike"
+          )
+        | null;
       /**
        * Defense Option
        * @default null
@@ -999,7 +1007,15 @@ export interface components {
        * @default null
        */
       attack_option:
-        ("determined" | "strong" | "double" | "feint" | "suppression") | null;
+        | (
+            | "determined"
+            | "strong"
+            | "double"
+            | "feint"
+            | "suppression"
+            | "rapid-strike"
+          )
+        | null;
       /** @default null */
       second_attack: components["schemas"]["UnarmedReaction"] | null;
     };
@@ -1097,7 +1113,15 @@ export interface components {
        * @default null
        */
       attack_option:
-        ("determined" | "strong" | "double" | "feint" | "suppression") | null;
+        | (
+            | "determined"
+            | "strong"
+            | "double"
+            | "feint"
+            | "suppression"
+            | "rapid-strike"
+          )
+        | null;
       /**
        * Zone
        * @default []

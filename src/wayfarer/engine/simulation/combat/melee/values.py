@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from wayfarer.engine.character.compiler import ValidatedBuild
+from wayfarer.engine.character.traits.mastery import parry_multiplier
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty
 from wayfarer.engine.simulation.actions import PlayState
@@ -320,7 +321,13 @@ def score_defense(
                 # Lite permits only one parry with each weapon per turn.
                 if repeats and equipment.profile_id == "gurps-lite-4e-2004":
                     continue
-                repeat_penalty = repeats * (2 if parry.fencing else 4)
+                repeat_penalty = (
+                    repeats
+                    * (2 if parry.fencing else 4)
+                    // parry_multiplier(
+                        compiled, item.definition_id, weapon_mode.skill_id, weapon_mode.hands
+                    )
+                )
                 candidates.append(
                     (
                         (

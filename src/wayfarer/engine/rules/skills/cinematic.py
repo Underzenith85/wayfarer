@@ -44,8 +44,8 @@ def _purchased(name: str, minimum: int = 1) -> SkillPrerequisite:
 
 MASTER = PrerequisiteGroup(
     (
-        _purchased("advantage:trained-by-a-master"),
-        _purchased("advantage:weapon-master"),
+        _purchased("trait:advantage:trained-by-a-master"),
+        _purchased("trait:advantage:weapon-master"),
     )
 )
 
@@ -79,7 +79,7 @@ BINDINGS: Final = (
         (
             _trained("breath-control"),
             _trained("meditation"),
-            _purchased("advantage:trained-by-a-master"),
+            _purchased("trait:advantage:trained-by-a-master"),
         ),
     ),
     CinematicSkillBinding(
@@ -119,7 +119,7 @@ BINDINGS: Final = (
         A.DX,
         D.HARD,
         201,
-        (_purchased("advantage:trained-by-a-master"),),
+        (_purchased("trait:advantage:trained-by-a-master"),),
     ),
     CinematicSkillBinding(
         "invisibility-art",
@@ -139,7 +139,7 @@ BINDINGS: Final = (
         (
             _trained("acrobatics", 14),
             _trained("stealth", 14),
-            _purchased("advantage:trained-by-a-master"),
+            _purchased("trait:advantage:trained-by-a-master"),
         ),
     ),
     CinematicSkillBinding("mental-strength", "Mental Strength", A.WILL, D.EASY, 209),
@@ -165,7 +165,7 @@ BINDINGS: Final = (
         A.IQ,
         D.VERY_HARD,
         215,
-        (_trained("pressure-points", 16), _purchased("advantage:trained-by-a-master")),
+        (_trained("pressure-points", 16), _purchased("trait:advantage:trained-by-a-master")),
     ),
     CinematicSkillBinding("push", "Push", A.DX, D.HARD, 216, prerequisite_groups=(MASTER,)),
     CinematicSkillBinding("suggest", "Suggest", A.WILL, D.HARD, 191, (_trained("persuade", 12),)),

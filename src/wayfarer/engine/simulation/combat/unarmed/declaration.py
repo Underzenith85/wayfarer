@@ -442,7 +442,7 @@ def validate_sequence(
 ) -> None:
     """Validate the whole declaration before consuming randomness or moving."""
     validate_action(runtime, state, encounter, command)
-    if command.attack_option != "double":
+    if command.attack_option not in ("double", "rapid-strike"):
         return
     second = followup(command)
     # Both attacks share the first step; validate attack two at the resulting pose.
@@ -479,11 +479,17 @@ def validate_options(command: TakeUnarmedTurn) -> None:
             raise ValidationError("This control action requires the ordinary Attack maneuver")
         if command.attack_option == "strong" and command.action not in ("punch", "kick"):
             raise ValidationError("Strong requires a damaging strike")
+    elif command.attack_option == "rapid-strike":
+        if command.maneuver != "attack" or command.action not in ("punch", "kick"):
+            raise ValidationError("Unarmed Rapid Strike requires an Attack with punch or kick")
     elif command.attack_option is not None:
         raise ValidationError("Attack options require All-Out Attack")
     if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
         raise ValidationError("Move and Attack requires a strike or grapple")
-    if command.second_attack is not None and command.attack_option != "double":
+    if command.second_attack is not None and command.attack_option not in (
+        "double",
+        "rapid-strike",
+    ):
         raise ValidationError("A second unarmed attack requires All-Out Attack (Double)")
     if command.attack_option == "feint" and command.skill == "attribute:dx":
         raise ValidationError("An unarmed feint requires an unarmed combat skill")

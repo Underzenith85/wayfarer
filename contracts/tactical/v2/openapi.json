@@ -2028,7 +2028,8 @@
                   "strong",
                   "double",
                   "feint",
-                  "suppression"
+                  "suppression",
+                  "rapid-strike"
                 ],
                 "type": "string"
               },
@@ -2359,7 +2360,8 @@
                   "strong",
                   "double",
                   "feint",
-                  "suppression"
+                  "suppression",
+                  "rapid-strike"
                 ],
                 "type": "string"
               },
@@ -2572,7 +2574,8 @@
                   "strong",
                   "double",
                   "feint",
-                  "suppression"
+                  "suppression",
+                  "rapid-strike"
                 ],
                 "type": "string"
               },

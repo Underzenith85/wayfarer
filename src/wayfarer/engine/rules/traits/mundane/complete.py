@@ -21,6 +21,7 @@ from typing import Final, Literal, cast
 
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitParameter, cost
+from wayfarer.engine.rules.traits.mastery import SCOPES, scope
 from wayfarer.errors import ValidationError
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -106,7 +107,10 @@ class CompleteTraitSpec:
     def parameters(self) -> tuple[TraitParameter, ...]:
         if not self.point_cost_choices:
             return ()
-        return (TraitParameter(POINT_COST_PARAMETER, "integer", self.point_cost_choices),)
+        parameters = (TraitParameter(POINT_COST_PARAMETER, "integer", self.point_cost_choices),)
+        if self.id == "trait:advantage:weapon-master":
+            return parameters + (TraitParameter("weapon-scope", "text", tuple(SCOPES)),)
+        return parameters
 
 
 @dataclass(frozen=True, slots=True)
@@ -279,10 +283,20 @@ def validate_purchase(definition: RuleDefinition, levels: int, options: TraitOpt
         raise ValidationError("Unknown complete mundane trait") from exc
     if definition.trait_rules is None or spec.hook not in definition.trait_rules.runtime_hooks:
         raise ValidationError("Mundane trait definition is not bound to its owning family")
+    if definition.id == "trait:advantage:weapon-master":
+        selected_scope = scope(options)
+        if "weapon-scope" not in dict(options.parameters):
+            options = options.model_copy(
+                update={"parameters": options.parameters + (("weapon-scope", selected_scope),)}
+            )
+    elif any(p[0] == "weapon-scope" for p in options.parameters):
+        raise ValidationError("Weapon scope applies only to Weapon Master")
     selected_cost = spec.point_cost
     if spec.point_cost_choices:
         supplied = dict(options.parameters)
-        if set(supplied) != {POINT_COST_PARAMETER} or len(options.parameters) != 1:
+        if set(supplied) != {p.name for p in spec.parameters} or len(options.parameters) != len(
+            spec.parameters
+        ):
             raise ValidationError("Variable trait requires an explicit point-cost selection")
         value = supplied[POINT_COST_PARAMETER]
         if type(value) is not int or value not in spec.point_cost_choices:

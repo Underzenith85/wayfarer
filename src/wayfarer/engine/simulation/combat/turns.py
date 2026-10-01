@@ -718,7 +718,11 @@ def apply_turn(
     ):
         raise ValidationError("Maneuver requires exact GURPS profile dispatch")
     if (
-        (attack_option is not None and maneuver != "all_out_attack")
+        (
+            attack_option is not None
+            and maneuver != "all_out_attack"
+            and not (maneuver == "attack" and attack_option == "rapid-strike")
+        )
         or (defense_option is not None and maneuver != "all_out_defense")
         or (wait_trigger is not None and maneuver != "wait")
     ):

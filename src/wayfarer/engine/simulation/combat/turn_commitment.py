@@ -61,6 +61,10 @@ def _all_out_attack(
     second_target_id: str | None,
     second_mode_id: str | None,
 ) -> ManeuverState:
+    if attack_option == "rapid-strike":
+        raise ValidationError(
+            "All-Out Rapid Strike combinations require a separately supported sequence"
+        )
     if attack_option is None:
         raise ValidationError("Choose an All-Out Attack option")
     commitment = commitment.model_copy(
@@ -282,7 +286,10 @@ def prepare(
         and "gurps.techniques.dual-weapon-attack" in engine.rules.optional_rules
     )
     if any(v is not None for v in (second_item_id, second_target_id, second_mode_id)) and not (
-        maneuver == "all_out_attack" and attack_option == "double" or dual_weapon
+        maneuver == "all_out_attack"
+        and attack_option == "double"
+        or dual_weapon
+        or attack_option == "rapid-strike"
     ):
         raise ValidationError(
             "A second attack requires All-Out Attack (Double) or enabled Dual-Weapon Attack"
@@ -305,6 +312,20 @@ def prepare(
             second_item_id=second_item_id,
             second_target_id=second_target_id,
             second_mode_id=second_mode_id,
+        )
+    elif attack_option == "rapid-strike":
+        if maneuver != "attack" or item_id is None or target_id is None:
+            raise ValidationError("Rapid Strike requires an Attack with a melee weapon and target")
+        commitment = commitment.model_copy(
+            update={
+                "attacks_remaining": 1,
+                "attack_bonus": -6,
+                "second_attack_penalty": -6,
+                "rapid_strike": True,
+                "second_attack_item_id": second_item_id,
+                "second_attack_target_id": second_target_id or target_id,
+                "second_attack_mode_id": second_mode_id,
+            }
         )
     elif dual_weapon:
         commitment = _dual_weapon_attack(

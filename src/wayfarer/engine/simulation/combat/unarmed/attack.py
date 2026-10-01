@@ -5,8 +5,9 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.character.traits.mastery import trained_by_master
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import catalog, exertion, injury_turn
+from wayfarer.engine.simulation.actors import build, catalog, exertion, injury_turn
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -142,16 +143,19 @@ def execute_unarmed(
                     if command.attack_option == "determined"
                     else -4
                     if command.maneuver == "move_and_attack"
+                    else (-3 if trained_by_master(build(runtime, state, command.actor_id)) else -6)
+                    if command.attack_option == "rapid-strike"
                     else 0,
+                    rapid_strike=command.attack_option == "rapid-strike",
                     attack_cap=9 if command.maneuver == "move_and_attack" else None,
                     strong=command.attack_option == "strong",
-                    attacks_remaining=int(command.attack_option == "double"),
+                    attacks_remaining=int(command.attack_option in ("double", "rapid-strike")),
                     second_unarmed_attack=UnarmedReaction.model_validate(
                         followup(command).model_dump(
                             include={"action", "skill", "hands", "foot", "location", "grip_id"}
                         )
                     )
-                    if command.attack_option == "double"
+                    if command.attack_option in ("double", "rapid-strike")
                     else None,
                 ),
             }
