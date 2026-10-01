@@ -8,11 +8,14 @@ none of those trusted facts are accepted in player command payloads.
 from __future__ import annotations
 
 import hashlib
+import math
 from dataclasses import dataclass
+from fractions import Fraction
 from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.engine.character.traits.physiology import NO_PHYSIOLOGY_TRAITS, PhysiologyTraits
 from wayfarer.engine.rules.checks import CheckTrace, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled
@@ -74,6 +77,7 @@ class SurvivalContext:
     waking_day: int = 57600
     active: bool = True
     does_not_sleep: bool = False
+    physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS
 
 
 @dataclass(frozen=True)
@@ -261,8 +265,11 @@ def begin_survival(
     status = SurvivalStatus(
         actor_id=command.actor_id,
         started=state.game_time,
-        next_meal_due=state.game_time + NEED_INTERVAL,
-        next_water_due=state.game_time + NEED_INTERVAL,
+        next_meal_due=state.game_time + context.physiology.consumption_period("food"),
+        next_water_due=state.game_time
+        + min(NEED_INTERVAL, context.physiology.consumption_period("water"))
+        if context.physiology.consumption_period("water") == 86400
+        else state.game_time + context.physiology.consumption_period("water"),
         awake_since=state.game_time,
         next_sleep_due=state.game_time + context.waking_day,
         sleep_period=context.sleep_period,
@@ -282,7 +289,13 @@ def _settle_water(
     status: SurvivalStatus,
     rng: RandomSource,
 ) -> tuple[ResourceState, SurvivalStatus, int, int, int]:
-    shortage = max(0, status.water_quarts_required - status.water_quarts_consumed)
+    needs_water = "water" in context.physiology.survival_requirements()
+    period = context.physiology.consumption_period("water")
+    fraction = context.physiology.consumption_fraction("water")
+    required = status.water_quarts_required * fraction * Fraction(period, 86400)
+    shortage = (
+        math.ceil(max(Fraction(0), required - status.water_quarts_consumed)) if needs_water else 0
+    )
     state, consumed = _consume(
         state,
         context.water_item_ids,
@@ -291,19 +304,23 @@ def _settle_water(
         marker=f"{command.id}:water",
     )
     total = status.water_quarts_consumed + consumed
-    fp_loss = int(total < status.water_quarts_required)
-    daily_boundary = state.game_time >= status.water_day_started + 3 * NEED_INTERVAL
-    hp_loss = int(daily_boundary and total < 1)
+    fp_loss = int(needs_water and total < required)
+    daily_boundary = state.game_time >= status.water_day_started + period
+    hp_loss = int(needs_water and daily_boundary and total < fraction * Fraction(period, 86400))
     if daily_boundary:
         status = status.model_copy(
             update={
-                "water_day_started": status.water_day_started + 3 * NEED_INTERVAL,
-                "water_quarts_consumed": 0,
+                "water_day_started": status.water_day_started + period,
+                "water_quarts_consumed": max(Fraction(0), total - required),
             }
         )
     else:
         status = status.model_copy(update={"water_quarts_consumed": total})
-    status = status.model_copy(update={"next_water_due": status.next_water_due + NEED_INTERVAL})
+    status = status.model_copy(
+        update={
+            "next_water_due": status.next_water_due + (NEED_INTERVAL if period == 86400 else period)
+        }
+    )
     state, lost, spill = _restricted_fatigue(
         state, command, context, "dehydration", fp_loss + hp_loss, rng
     )
@@ -416,13 +433,23 @@ def settle_survival(
         state, meals = _consume(
             state,
             context.meal_item_ids,
-            1,
+            int("food" in context.physiology.survival_requirements()),
             owner_id=command.actor_id,
             marker=f"{command.id}:meal",
         )
-        status = status.model_copy(update={"next_meal_due": status.next_meal_due + NEED_INTERVAL})
+        status = status.model_copy(
+            update={
+                "next_meal_due": status.next_meal_due
+                + context.physiology.consumption_period("food")
+            }
+        )
         state, lost, spill = _restricted_fatigue(
-            state, command, context, "starvation", int(not meals), rng
+            state,
+            command,
+            context,
+            "starvation",
+            int(not meals and "food" in context.physiology.survival_requirements()),
+            rng,
         )
         fp_lost += lost
         hp_lost += spill

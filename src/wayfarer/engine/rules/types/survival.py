@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from fractions import Fraction
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -22,7 +23,7 @@ class SurvivalStatus(Record):
     waking_day: int = Field(default=57600, ge=3600, le=172800)
     water_day_started: int = Field(ge=0)
     water_quarts_required: Literal[2, 3, 5] = 2
-    water_quarts_consumed: int = Field(default=0, ge=0, le=5)
+    water_quarts_consumed: Fraction = Field(default=Fraction(0), ge=0, le=5)
     next_drowsiness_due: int | None = Field(default=None, ge=0)
     drowsy_until: int | None = Field(default=None, ge=0)
     forced_asleep: bool = False

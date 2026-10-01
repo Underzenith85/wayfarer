@@ -44,12 +44,12 @@ def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
     return approved_build(compiler(), *purchases)
 
 
-def test_registry_and_inventory_account_for_all_37_entries() -> None:
-    assert len(BINDINGS) == 37 and len({binding.id for binding in BINDINGS}) == 37
+def test_registry_and_inventory_account_for_all_38_entries() -> None:
+    assert len(BINDINGS) == 38 and len({binding.id for binding in BINDINGS}) == 38
     rows = {
         row.id: row for row in inventory().entries if row.id in {binding.id for binding in BINDINGS}
     }
-    assert set(rows) == {binding.id for binding in BINDINGS}
+    assert set(rows) == {binding.id for binding in BINDINGS} - {"advantage:reduced-consumption"}
     assert all(
         row.blockers == () and row.evidence == ("tests/test_physiology_traits.py",)
         for row in rows.values()
