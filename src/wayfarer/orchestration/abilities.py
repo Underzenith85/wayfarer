@@ -110,6 +110,7 @@ def _prepare_ability(
         )
     target = next((a for a in state.actors if channel and a.actor_id == channel.target_id), None)
     target_values: dict[str, int] = {}
+    target_psi_static = False
     if target is not None:
         target_build, _ = play.engine.reviewer.activate(
             target.proposal,
@@ -118,6 +119,9 @@ def _prepare_ability(
             actor_id=target.actor_id,
         )
         target_values = {v.target: int(v.value) for v in target_build.sheet.values}
+        target_psi_static = any(
+            p.definition_id == "advantage:psi-static" for p in target_build.purchases
+        )
     if spec.kind in ("burning-malediction", "mind-reading") and target is None:
         raise ValidationError("Resisted ability requires an authoritative target build")
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
@@ -168,6 +172,7 @@ def _prepare_ability(
         target_values.get("secondary:will", 10),
         target_values.get("attribute:ht", 10),
         channel=channel,
+        target_psi_static=target_psi_static,
         interrupted=incapacitated,
         unavailable=incapacitated and taking_turn,
         shock=hp.injury.shock if hp.injury else 0,

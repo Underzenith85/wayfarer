@@ -38,6 +38,7 @@ from wayfarer.engine.simulation.traits.neutralization import (
     suppressions,
 )
 from wayfarer.engine.simulation.traits.neutralization import PREFIX as NEUTRALIZATION_PREFIX
+from wayfarer.engine.simulation.traits.psi_protection import protects
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -91,6 +92,7 @@ class MentalChannel(Record):
     target_visible: bool = True
     concentration_seconds: int = Field(default=1, ge=1)
     target_wary: bool = False
+    target_psi_static: bool | None = None
 
 
 class MentalCommand(Command):
@@ -456,6 +458,8 @@ def apply_mental_use(
             or power_suppressed(
                 resources, command.actor_id, channel.power_family, command.definition_id
             )
+            or (channel.power_family == "psi" or channel.power_family in PSI_FAMILIES)
+            and protects(resources, channel.target_id, purchased=channel.target_psi_static)
         }
     )
     extra_events: tuple[ResourceEvent, ...] = ()

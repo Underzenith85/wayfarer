@@ -16,6 +16,8 @@ from wayfarer.engine.simulation.abilities import AbilityContext
 from wayfarer.engine.simulation.ability_types import AbilitySpec
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState, Scheduled
 from wayfarer.engine.simulation.traits.neutralization import power_suppressed
+from wayfarer.engine.simulation.traits.psi_protection import PREFIX as STATIC_PREFIX
+from wayfarer.engine.simulation.traits.psi_protection import PsiStaticState, protects
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -47,6 +49,9 @@ class PsiInterferenceOutcome(Record):
 
 class PsiInterferenceEvent(Record):
     command_id: str
+    action: Literal["activate", "deactivate"] | None = None
+    actor_id: str | None = None
+    request_digest: str | None = None
     outcome: PsiInterferenceOutcome
 
 
@@ -66,6 +71,21 @@ def history(resources: ResourceState) -> tuple[PsiInterferenceEvent, ...]:
     )
 
 
+def _require_static_scope(
+    build: ValidatedBuild, command: PsiInterferenceCommand, interference: PsiInterference
+) -> None:
+    purchase = next(p for p in build.trait_purchases if p.definition_id == "advantage:psi-static")
+    modifiers = () if purchase.trait is None else purchase.trait.modifiers
+    if interference.blocked_power_id is not None:
+        raise ValidationError(
+            "Base Psi Static protects against every directly affecting psionic power"
+        )
+    if command.action == "deactivate" and "switchable" not in modifiers:
+        raise ValidationError("Only purchased Switchable Psi Static can be deactivated")
+    if interference.duration_seconds is not None and "switchable" not in modifiers:
+        raise ValidationError("Base Psi Static is always active")
+
+
 def apply_interference(
     resources: ResourceState,
     world: World,
@@ -80,9 +100,16 @@ def apply_interference(
 ) -> tuple[ResourceState, PsiInterferenceOutcome]:
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Antipsi interference requires actor authority")
+    selected = next((value for value in authored if value.id == command.interference_id), None)
+    digest = hashlib.sha256((command.model_dump_json() + repr(selected)).encode()).hexdigest()
     previous = next((event for event in history(resources) if event.command_id == command.id), None)
     if previous is not None:
-        if previous.outcome.interference_id == command.interference_id:
+        if (
+            previous.outcome.interference_id == command.interference_id
+            and previous.actor_id in {None, command.actor_id}
+            and previous.action in {None, command.action}
+            and previous.request_digest in {None, digest}
+        ):
             return resources, previous.outcome
         raise ConflictError("Antipsi command ID was already used")
     if resources.revision != command.expected_revision:
@@ -121,7 +148,8 @@ def apply_interference(
     if interference.ability_id == "advantage:neutralize":
         raise ValidationError("Neutralize requires its canonical touch and Will contest procedure")
     if interference.ability_id == "advantage:psi-static" and target is not None:
-        raise ValidationError("Psi Static is an area around its owner")
+        raise ValidationError("Base Psi Static protects its owner")
+    _require_static_scope(build, command, interference)
     effect_id = _effect_id(interference.id)
     active = effect_id in resources.active_effect_ids
     if command.action == "activate" and active:
@@ -153,7 +181,19 @@ def apply_interference(
         effect_id=effect_id,
         expires_at=expires_at,
     )
-    event = PsiInterferenceEvent(command_id=command.id, outcome=outcome)
+    event = PsiInterferenceEvent(
+        command_id=command.id,
+        outcome=outcome,
+        action=command.action,
+        actor_id=command.actor_id,
+        request_digest=digest,
+    )
+    protection = PsiStaticState(
+        owner_id=command.actor_id,
+        effect_id=effect_id,
+        active=command.action == "activate",
+        expires_at=expires_at,
+    )
     state = resources.model_copy(
         update={
             "revision": resources.revision + 1,
@@ -161,6 +201,12 @@ def apply_interference(
             "scheduled": scheduled,
             "events": resources.events
             + (
+                ResourceEvent(
+                    id=STATIC_PREFIX + command.id,
+                    at=resources.game_time,
+                    kind=protection.model_dump_json(),
+                    target_id=command.actor_id,
+                ),
                 ResourceEvent(
                     id=_id(command.id, "event"),
                     at=resources.game_time,
@@ -184,14 +230,7 @@ def power_is_blocked(
     actor = next((entity for entity in world.entities if entity.id == actor_id), None)
     if actor is None or actor.kind is not EntityKind.ACTOR:
         raise ValidationError("Psionic actor is unavailable")
-    return power_suppressed(resources, actor_id, power_id) or any(
-        _effect_id(value.id) in resources.active_effect_ids
-        and value.actor_id != actor_id
-        and value.location_id == actor.location_id
-        and (value.target_actor_id is None or value.target_actor_id == actor_id)
-        and (value.blocked_power_id is None or value.blocked_power_id == power_id)
-        for value in authored
-    )
+    return power_suppressed(resources, actor_id, power_id) or protects(resources, actor_id)
 
 
 def apply_ability_context(
@@ -230,4 +269,5 @@ def apply_ability_context(
         build_revision=context.build_revision,
         held_item_ids=context.held_item_ids,
         power_id=power_id,
+        target_psi_static=context.target_psi_static,
     )
