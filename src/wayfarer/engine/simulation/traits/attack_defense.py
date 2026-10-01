@@ -16,7 +16,7 @@ from wayfarer.engine.character.traits.attack_defense import (
 )
 from wayfarer.engine.character.traits.physiology import PhysiologyTraits, physiology_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
-from wayfarer.engine.rules.checks import CheckTrace, RandomSource
+from wayfarer.engine.rules.checks import CheckTrace, RandomSource, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
@@ -74,6 +74,12 @@ class AttackChannel(Record):
     condition: AfflictionCondition = "stun"
     contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
     incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
+    composed: bool = False
+    distance_yards: int = Field(default=0, ge=0)
+    defense_succeeded: bool = False
+    malediction_resolved: bool = False
+    malediction_resisted: bool = False
+    resolved_checks: tuple[CheckTrace, ...] = Field(default=(), exclude_if=lambda v: not v)
     penetration: PenetrationContext = Field(default_factory=PenetrationContext)
 
 
@@ -83,7 +89,7 @@ class TraitAttackCommand(Command):
 
 
 class TraitAttackOutcome(Record):
-    outcome: Literal["injured", "applied", "resisted", "missed", "unaffected"]
+    outcome: Literal["injured", "applied", "resisted", "missed", "defended", "unaffected"]
     attacker_id: str
     target_id: str
     definition_id: str
@@ -96,6 +102,8 @@ class TraitAttackOutcome(Record):
     resistance_target: int | None = None
     penetration_reason: str | None = None
     checks: tuple[CheckTrace, ...] = Field(default=(), exclude_if=lambda value: not value)
+    damage_dice: tuple[int, ...] = Field(default=(), exclude_if=lambda value: not value)
+    modifier_profile: AttackProfile | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class TraitAttackEvent(Record):
@@ -339,7 +347,7 @@ def _apply_fatigue_attack(
         result_kind = "missed"
     elif not hp.injury.machine:
         resistance = effective_dr(
-            target.damage_resistance(),
+            0 if channel.malediction_resolved else target.damage_resistance(),
             channel.armor_divisor,
             location="torso",
             damage_type="fat",
@@ -432,7 +440,9 @@ def _schedule_cyclic(
                     "contagion_vector": channel.contagion_vector,
                     "incubation_seconds": channel.incubation_seconds,
                     "damage_type": channel.damage_type,
-                    "resistance": target.damage_resistance(),
+                    "resistance": 0
+                    if cyclic.malediction_range != "none"
+                    else target.damage_resistance(),
                     "armor_divisor": channel.armor_divisor,
                     "vulnerability_multiplier": target.injury_multiplier("natural-attacks"),
                     "ht": target_ht,
@@ -497,6 +507,49 @@ def _cyclic_check(
     return success_roll("gurps-basic-set-4e-2004", target_ht + cyclic.resistance_modifier, rng=rng)
 
 
+def _modified_channel(profile: AttackProfile | None, channel: AttackChannel) -> AttackChannel:
+    if (
+        profile is not None
+        and profile.contagious != "none"
+        and (channel.damage_type != "tox" or channel.contagion_vector is None)
+    ):
+        raise ValidationError(
+            "Contagious Cyclic requires a toxic attack with an authored illness vector"
+        )
+    if channel.malediction_resolved and (profile is None or profile.malediction_range == "none"):
+        raise ValidationError("Unmodified attacks cannot bypass DR as Malediction")
+    if profile is not None:
+        if profile.malediction_range == "none" and channel.distance_yards > profile.max_range:
+            raise ValidationError("Target exceeds the approved composed attack range")
+        if profile.malediction_range != "none" and not channel.malediction_resolved:
+            raise ValidationError("Malediction requires the composed resistance consumer")
+        channel = channel.model_copy(update={"armor_divisor": profile.armor_divisor})
+    return channel
+
+
+def _roll_composed_damage(
+    profile: AttackProfile | None,
+    channel: AttackChannel,
+    hit: bool,
+    check: CheckTrace | None,
+    levels: int,
+    rng: RandomSource,
+) -> tuple[AttackChannel, tuple[int, ...]]:
+    if (
+        not channel.composed
+        or not hit
+        or channel.defense_succeeded
+        or (check and check.outcome.succeeded)
+    ):
+        return channel, ()
+    dice = draw_dice(rng, levels)
+    basic = sum(dice)
+    profile = profile or AttackProfile(accuracy=3)
+    if profile.malediction_range == "none" and channel.distance_yards > profile.half_damage_range:
+        basic //= 2
+    return channel.model_copy(update={"basic_damage": basic}), dice
+
+
 def apply_trait_attack(
     resources: ResourceState,
     world: World,
@@ -537,19 +590,22 @@ def apply_trait_attack(
     )
     selections = () if purchased.trait is None else purchased.trait.attack_modifiers
     cyclic = cyclic_profile(selections, channel.damage_type) if selections else None
-    if (
-        cyclic is not None
-        and cyclic.contagious != "none"
-        and (channel.damage_type != "tox" or channel.contagion_vector is None)
-    ):
-        raise ValidationError(
-            "Contagious Cyclic requires a toxic attack with an authored illness vector"
-        )
-    check = _cyclic_check(cyclic, channel, target_ht, rng)
-    if cyclic is not None and not _roll_succeeds(channel.attack_roll, channel.attack_score):
+    channel = _modified_channel(cyclic, channel)
+    hit = _roll_succeeds(channel.attack_roll, channel.attack_score)
+    check = (
+        _cyclic_check(cyclic, channel, target_ht, rng)
+        if hit and not channel.defense_succeeded
+        else None
+    )
+    channel, damage_dice = _roll_composed_damage(cyclic, channel, hit, check, purchased.amount, rng)
+    if (cyclic is not None or channel.composed) and (not hit or channel.defense_succeeded):
         state = resources.model_copy(update={"revision": resources.revision + 1})
         outcome = TraitAttackOutcome(
-            outcome="missed",
+            outcome="defended"
+            if channel.defense_succeeded
+            else "resisted"
+            if channel.malediction_resisted
+            else "missed",
             attacker_id=channel.attacker_id,
             target_id=channel.target_id,
             definition_id=command.definition_id,
@@ -567,7 +623,9 @@ def apply_trait_attack(
             resources, command, channel, attacker, target, target_ht, rng
         )
     elif channel.kind == "damage":
-        if channel.basic_damage < 1 or channel.resistance_score is not None:
+        if (
+            channel.basic_damage < 1 and not channel.composed
+        ) or channel.resistance_score is not None:
             raise ValidationError("Damaging trait attack requires positive authored damage")
         if attacker.natural_damage_type(command.definition_id) != channel.damage_type:
             raise ValidationError("Damage type differs from the approved natural attack")
@@ -583,7 +641,9 @@ def apply_trait_attack(
                 actor_id=channel.target_id,
                 expected_revision=resources.revision,
                 basic_damage=channel.basic_damage,
-                resistance=target.damage_resistance(),
+                resistance=0
+                if cyclic and cyclic.malediction_range != "none"
+                else target.damage_resistance(),
                 damage_type=channel.damage_type,
                 armor_divisor=channel.armor_divisor,
                 vulnerability_multiplier=Decimal(target.injury_multiplier("natural-attacks")),
@@ -638,7 +698,13 @@ def apply_trait_attack(
             )
         state = resources.model_copy(update=binding_update)
 
-    outcome = outcome.model_copy(update={"checks": () if check is None else (check,)})
+    outcome = outcome.model_copy(
+        update={
+            "checks": channel.resolved_checks + (() if check is None else (check,)),
+            "damage_dice": damage_dice,
+            "modifier_profile": cyclic if channel.composed else None,
+        }
+    )
     state = _schedule_cyclic(
         state,
         command,

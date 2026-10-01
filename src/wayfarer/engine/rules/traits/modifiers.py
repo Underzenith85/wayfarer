@@ -1805,6 +1805,8 @@ def _range_adapter(
         else profile.max_range // multiplier
     )
     update = {"max_range": value}
+    if definition.classification is ModifierClass.ENHANCEMENT:
+        update["half_damage_range"] = profile.half_damage_range * multiplier
     if definition.classification is ModifierClass.LIMITATION:
         params = selection.limitation
         if params is None or not params.half_damage_range_only:

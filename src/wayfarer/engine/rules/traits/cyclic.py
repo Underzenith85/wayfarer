@@ -12,6 +12,18 @@ from wayfarer.engine.rules.traits.modifiers import (
 from wayfarer.engine.rules.traits.symptoms import SYMPTOMS, symptom_percentage, symptom_spec
 from wayfarer.errors import ValidationError
 
+ROUTED = frozenset(
+    {
+        "modifier:enhancement:armor-divisor",
+        "modifier:limitation:armor-divisor",
+        "modifier:enhancement:accurate",
+        "modifier:limitation:inaccurate",
+        "modifier:enhancement:increased-range",
+        "modifier:limitation:reduced-range",
+        "modifier:enhancement:malediction",
+        "modifier:limitation:sense-based",
+    }
+)
 CYCLIC = "modifier:enhancement:cyclic"
 RESISTIBLE = "modifier:limitation:resistible"
 KINDS = {
@@ -30,13 +42,39 @@ KINDS = {
 
 
 def approvals(selections: tuple[ModifierSelection, ...]) -> tuple[ModifierApproval, ...]:
-    if {s.definition_id for s in selections} - {CYCLIC, RESISTIBLE, SYMPTOMS}:
-        raise ValidationError(
-            "Execution supports only Cyclic, Resistible and typed Symptoms modifiers"
+    if {s.definition_id for s in selections} - ({CYCLIC, RESISTIBLE, SYMPTOMS} | ROUTED):
+        raise ValidationError("Modifier has no approved composed-attack consumer")
+    for selection in selections:
+        if (
+            selection.definition_id == "modifier:enhancement:malediction"
+            and selection.option != "1"
+        ):
+            raise ValidationError("Composed attacks currently support Malediction 1")
+        if selection.definition_id == "modifier:limitation:sense-based" and (
+            selection.option != "vision"
+            or selection.limitation is None
+            or selection.limitation.sense != "vision"
+        ):
+            raise ValidationError("Composed Sense-Based requires approved vision")
+    sense = next(
+        (s for s in selections if s.definition_id == "modifier:limitation:sense-based"), None
+    )
+    sense_approval: tuple[ModifierApproval, ...] = (
+        ()
+        if sense is None
+        else (
+            ModifierApproval(
+                "modifier:limitation:sense-based", "vision", -20, frozenset({"innate-attack"})
+            ),
         )
+    )
+    if sense is not None and not any(
+        s.definition_id == "modifier:enhancement:malediction" for s in selections
+    ):
+        raise ValidationError("Sense-Based limitation requires Malediction")
     cyclic = next((s for s in selections if s.definition_id == CYCLIC), None)
     symptoms = next((s for s in selections if s.definition_id == SYMPTOMS), None)
-    extra = (
+    extra: tuple[ModifierApproval, ...] = (
         ()
         if symptoms is None
         else (
@@ -48,8 +86,9 @@ def approvals(selections: tuple[ModifierSelection, ...]) -> tuple[ModifierApprov
             ),
         )
     )
+    extra += sense_approval
     if cyclic is None:
-        if symptoms is None or any(s.definition_id == RESISTIBLE for s in selections):
+        if any(s.definition_id == RESISTIBLE for s in selections):
             raise ValidationError("Modifier combination has no supported attack consumer")
         return extra
     if cyclic.parameters is None or cyclic.option is None:
@@ -83,7 +122,7 @@ def cyclic_profile(selections: tuple[ModifierSelection, ...], damage_type: str) 
         if s.definition_id in {CYCLIC, SYMPTOMS}
     ):
         raise ValidationError("Cyclic damage kind differs from the approved attack")
-    profile = AttackProfile.model_validate({"damage_kind": kind})
+    profile = AttackProfile.model_validate({"damage_kind": kind, "accuracy": 3})
     result = apply_attack_modifiers(
         profile, "innate-attack", selections, approvals(selections)
     ).modified
