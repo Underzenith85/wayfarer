@@ -147,6 +147,29 @@ def _ready_defender(
     return compiled, hp, fp
 
 
+def fencing_retreat_bonus(state: PlayState, participant: Combatant, *, fencing: bool) -> int:
+    """B377: fencing gets +3 total only against the foe being retreated from."""
+    if not fencing or participant.retreat_attacker_id is None:
+        return 0
+    return (
+        2
+        if any(
+            (
+                encounter.pending_defense is not None
+                and encounter.pending_defense.defender_id == participant.actor_id
+                and encounter.pending_defense.attacker_id == participant.retreat_attacker_id
+            )
+            or (
+                encounter.pending_unarmed is not None
+                and encounter.pending_unarmed.target_id == participant.actor_id
+                and encounter.pending_unarmed.actor_id == participant.retreat_attacker_id
+            )
+            for encounter in state.encounters
+        )
+        else 0
+    )
+
+
 def score_defense(
     runtime: RulesContext,
     state: PlayState,
@@ -314,6 +337,7 @@ def score_defense(
                         // 2
                         + 3
                         + parry.modifier
+                        + fencing_retreat_bonus(state, participant, fencing=parry.fencing)
                         - repeat_penalty
                         + defense_height_bonus(
                             runtime,
