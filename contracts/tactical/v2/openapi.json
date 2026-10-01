@@ -502,6 +502,16 @@
             "title": "Catch Thrown",
             "type": "boolean"
           },
+          "acrobatic_dodge": {
+            "default": false,
+            "title": "Acrobatic Dodge",
+            "type": "boolean"
+          },
+          "dodge_and_drop": {
+            "default": false,
+            "title": "Dodge And Drop",
+            "type": "boolean"
+          },
           "retreat": {
             "anyOf": [
               {

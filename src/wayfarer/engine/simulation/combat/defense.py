@@ -42,7 +42,12 @@ def choose_defense(
             else defender.maneuver_state,
         }
     )
-    choice = DefenseChoice(pending=pending, selected=selected, chosen_by=actor_id)
+    choice = DefenseChoice(
+        pending=pending,
+        selected=selected,
+        chosen_by=actor_id,
+        acrobatic_dodge_trace=defender.acrobatic_dodge_trace,
+    )
     encounter = engine._replace(encounter, defender).model_copy(
         update={
             "pending_defense": None,
