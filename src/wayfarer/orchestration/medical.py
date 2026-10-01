@@ -9,6 +9,7 @@ from typing import Literal, cast
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import ValidatedBuild
+from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.health.medical.commands import (
@@ -186,6 +187,9 @@ class MedicalService:
                     drug_item_id=task.drug_item_id,
                     drug_hp=task.drug_hp,
                     drug_fp=task.drug_fp,
+                    physiology=physiology_traits(
+                        _build(play, before, target_id), play.engine.reviewer.compiler.definitions
+                    ),
                 )
                 resources, result = apply_recovery(
                     before.resources, command, context, rng=play.rng, system=True
@@ -271,7 +275,10 @@ class MedicalService:
                     )
                 ):
                     raise ValidationError("Physician must be capable of providing care")
-            context = care_context(selected, actor, target, kind, env, physician)
+            context = replace(
+                care_context(selected, actor, target, kind, env, physician),
+                physiology=physiology_traits(target, play.engine.reviewer.compiler.definitions),
+            )
             resources, result = apply_recovery(
                 before.resources, command, context, rng=play.rng, system=True
             )

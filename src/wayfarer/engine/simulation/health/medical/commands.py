@@ -7,6 +7,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.character.traits.physiology import NO_PHYSIOLOGY_TRAITS, PhysiologyTraits
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.resources import Command
@@ -71,6 +72,8 @@ class CareContext:
     drug_form: Literal["pill", "contact", "aerosol", "injection"] | None = None
     drug_hp: int = 0
     drug_fp: int = 0
+    physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS
+    unhealing_condition: bool = False
 
 
 class RecoveryResult(Record):

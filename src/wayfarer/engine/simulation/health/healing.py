@@ -1,5 +1,6 @@
 """Canonical positive HP recovery shared by medical care and trait intervals."""
 
+from wayfarer.engine.character.traits.physiology import NO_PHYSIOLOGY_TRAITS, PhysiologyTraits
 from wayfarer.engine.rules.types.hazard import blocked_hp
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ValidationError
@@ -12,6 +13,8 @@ def restore_hp(
     *,
     kind: str,
     entitlement: int | None = None,
+    physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS,
+    unhealing_condition: bool = False,
 ) -> tuple[Pool, int]:
     """Restore eligible HP without clearing unrelated injury or death facts."""
     if hp.injury is None or not hp.id.startswith("hp:"):
@@ -21,6 +24,12 @@ def restore_hp(
     if amount < 0 or (entitlement is not None and entitlement < 0):
         raise ValidationError("Positive recovery cannot apply injury")
     actor_id = hp.id.removeprefix("hp:")
+    unhealing = physiology.parameter("disadvantage:unhealing", "kind")
+    if unhealing is not None and kind in {"natural", "bandage", "first-aid", "physician", "drug"}:
+        if not (unhealing == "partial" and unhealing_condition):
+            return hp, 0
+    if unhealing == "total" and kind == "steal-hp":
+        return hp, 0
     healed = min(
         amount,
         max(0, hp.maximum - hp.current - blocked_hp(state.illnesses, actor_id, kind)),

@@ -197,6 +197,15 @@ def _settle_special(
     return state, task, hp, fp, 0, 0, check, awakened, survived
 
 
+def _require_natural_healing(command: BeginRecovery | FinishRecovery, context: CareContext) -> None:
+    unhealing = context.physiology.parameter("disadvantage:unhealing", "kind")
+    if isinstance(command, BeginRecovery) and command.kind == "natural" and unhealing is not None:
+        if not (unhealing == "partial" and context.unhealing_condition):
+            raise ValidationError(
+                "Unhealing prevents natural recovery without its approved condition"
+            )
+
+
 def apply_recovery(
     state: ResourceState,
     command: BeginRecovery | FinishRecovery,
@@ -241,6 +250,7 @@ def apply_recovery(
         ),
         None,
     )
+    _require_natural_healing(command, context)
     if isinstance(command, FinishRecovery) and (task is None or task.actor_id != command.actor_id):
         raise ValidationError("Unknown or unauthorized recovery task")
     target = (
@@ -714,7 +724,13 @@ def apply_recovery(
             hp = next(p for p in state.pools if p.id == hp.id)
         else:
             hp, healed = restore_hp(
-                state, hp, healed, kind=task.kind, entitlement=task.hp_entitlement
+                state,
+                hp,
+                healed,
+                kind=task.kind,
+                entitlement=task.hp_entitlement,
+                physiology=context.physiology,
+                unhealing_condition=context.unhealing_condition,
             )
         status_result: Literal["completed", "interrupted"] = (
             "interrupted" if task.status == "interrupted" else "completed"
