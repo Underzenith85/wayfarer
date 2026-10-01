@@ -707,6 +707,7 @@ class CombatEngine:
                             "unarmed_guard_dropped": False,
                             "retreat_used": False,
                             "acrobatic_dodge_trace": None,
+                            "drop_attacker_id": None,
                             "retreat_attacker_id": None,
                             "tactical_defense_bonus": 0,
                             "maneuver_state": p.maneuver_state.new_turn(),

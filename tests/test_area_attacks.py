@@ -7,11 +7,14 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import scene, weapon
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.explosion import BlastResponse, ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmSpec
 from wayfarer.engine.rules.types.object import GroundPosition, ObjectProfile
+from wayfarer.engine.rules.types.special_combat import PersonalFlightState
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
@@ -215,4 +218,94 @@ async def test_barrier_objects_and_multiple_distances_share_blast_transaction(
     state = play._load(await play.store.read(cid))
     assert len(state.resources.object_results) == 4
     assert all(result.injury == 0 for result in state.resources.object_results)
+    assert await play.store.read(cid) == await play.store.replay(cid)
+
+
+@pytest.mark.parametrize("medium", ["ground", "flying", "water"])
+@pytest.mark.parametrize("succeeds", [False, True])
+async def test_source_dive_cover_applies_before_success_damage_and_after_failed_damage(
+    tmp_path: Path, succeeds: bool, medium: str
+) -> None:
+    cid, play = await setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        human=True,
+        third_actor=True,
+        ranged_mode=grenade(),
+        ranged_scene=scene(),
+        warhead=ExplosionSpec(dice=1),
+    )
+    point = GroundPosition(encounter_id="fight", geometry="grid", x=1, y=0)
+    await launch(cid, play, point, [3, 3, 3])
+    await turn(cid, play, "b", "do_nothing")
+    await turn(cid, play, "c", "do_nothing")
+    seed = play._load(await play.store.read(cid))
+    if medium == "flying":
+
+        def install_flight(campaign: Campaign) -> CommandReceipt:
+            encounter = CombatEngine._replace(
+                seed.encounters[0],
+                seed.encounters[0]
+                .participants[1]
+                .model_copy(
+                    update={
+                        "personal_flight": PersonalFlightState(
+                            altitude=1, basic_air_move=5, top_air_speed=10
+                        )
+                    }
+                ),
+            )
+            updated = seed.model_copy(
+                update={
+                    "encounters": (encounter,),
+                    "revision": seed.revision + 1,
+                    "resources": seed.resources.model_copy(update={"revision": seed.revision + 1}),
+                }
+            )
+            campaign["revision"], campaign["play_json"] = (
+                updated.revision,
+                updated.model_dump_json(),
+            )
+            return CommandReceipt(action="combat", outcome="flight-fixture")
+
+        await play.store.commit_turn(
+            cid, "flight-fixture", seed.revision, "flight-fixture", install_flight
+        )
+        seed = play._load(await play.store.read(cid))
+    command = ResolveWeaponExplosion(
+        id="dive-cover",
+        actor_id="gm",
+        expected_revision=seed.revision,
+        encounter_id="fight",
+        blast_id=blasts(seed.resources)[0].id,
+        responses=tuple(
+            BlastResponse(
+                actor_id=actor,
+                cover_dr=0,
+                size_modifier=0,
+                dive_to=GroundPosition(encounter_id="fight", geometry="grid", x=1, y=1)
+                if actor == "b"
+                else None,
+                dive_cover_dr=100 if actor == "b" else 0,
+                dive_covered_locations=("torso",) if actor == "b" else (),
+            )
+            for actor in ("a", "b", "c")
+        ),
+        object_cover={},
+        environment="water" if medium == "water" else "air",
+    )
+    roll = 2 if succeeds else 5
+    play.rng = RecordedDice([3, roll, roll, roll, 3, 3])
+    service = CombatService(play)
+    result = await service.execute(cid, command, principal_id="gm")
+    updated = play._load(await play.store.read(cid))
+    assert next(p.current for p in updated.resources.pools if p.id == "hp:b") == (
+        10 if succeeds else 7
+    )
+    defender = next(p for p in updated.encounters[0].participants if p.actor_id == "b")
+    assert defender.position == GridPoint(x=1, y=1)
+    assert defender.posture == ("prone" if medium == "ground" else "standing")
+    assert play.rng.exhausted()
+    play.rng = RecordedDice([])
+    assert await service.execute(cid, command, principal_id="gm") == result
     assert await play.store.read(cid) == await play.store.replay(cid)

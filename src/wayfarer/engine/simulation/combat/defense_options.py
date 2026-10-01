@@ -12,6 +12,22 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 
+def _repeat_drop(encounter: Encounter, command: ChooseDefense) -> Encounter:
+    pending = encounter.pending_defense
+    target = next((p for p in encounter.participants if p.actor_id == command.actor_id), None)
+    if (
+        pending
+        and target
+        and target.drop_attacker_id == pending.attacker_id
+        and command.defense != "none"
+    ):
+        return CombatEngine._replace(
+            encounter,
+            target.model_copy(update={"tactical_defense_bonus": target.tactical_defense_bonus + 3}),
+        )
+    return encounter
+
+
 def prepare_options(
     runtime: RulesContext,
     state: PlayState,
@@ -21,7 +37,7 @@ def prepare_options(
     resolve: bool,
 ) -> Encounter:
     if not command.acrobatic_dodge and not command.dodge_and_drop:
-        return encounter
+        return _repeat_drop(encounter, command)
     if (
         runtime.rules.combat is None
         or runtime.rules.combat.gurps_equipment is None
@@ -55,14 +71,27 @@ def prepare_options(
     if command.acrobatic_dodge:
         if target.acrobatic_dodge_trace is not None:
             raise ValidationError("Acrobatic Dodge was already attempted this turn")
-        if not any(
-            p.definition_id == "skill:acrobatics" and p.amount >= 1 for p in compiled.purchases
-        ):
-            raise ValidationError("Acrobatic Dodge requires a purchased Acrobatics skill")
-        skill = int(level(compiled, "skill:acrobatics").value)
+        skill_id = (
+            "skill:aerobatics"
+            if target.personal_flight is not None and target.personal_flight.altitude > 0
+            else "skill:acrobatics"
+        )
+        if not any(p.definition_id == skill_id and p.amount >= 1 for p in compiled.purchases):
+            raise ValidationError(
+                f"Acrobatic Dodge requires a purchased {skill_id.split(':')[1].title()} skill"
+            )
+        skill = int(level(compiled, skill_id).value)
     if not resolve:
         return encounter
-    bonus = 3 if command.dodge_and_drop else 0
+    bonus = (
+        3
+        if command.dodge_and_drop
+        or pending is not None
+        and target.drop_attacker_id == pending.attacker_id
+        else 0
+    )
+    if command.dodge_and_drop and pending is not None:
+        target = target.model_copy(update={"drop_attacker_id": pending.attacker_id})
     if command.acrobatic_dodge:
         trace = success_roll("gurps-basic-set-4e-2004", skill, rng=runtime.rng)
         bonus += 2 if trace.outcome.succeeded else -2

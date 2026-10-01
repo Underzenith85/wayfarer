@@ -70,6 +70,7 @@ class Combatant(Record):
     facing: Facing = "north"
     hex_facing: HexFacing | None = None
     acrobatic_dodge_trace: CheckTrace | None = Field(default=None, exclude_if=lambda v: v is None)
+    drop_attacker_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     retreat_used: bool = False
     retreat_attacker_id: str | None = None
     tactical_defense_bonus: int = 0
