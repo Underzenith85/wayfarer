@@ -43,6 +43,7 @@ def transition(
     maneuver: str,
     current: HighSpeedState | None,
     enter: bool,
+    interrupted: bool = False,
 ) -> HighSpeedState | None:
     """Validate B394 direction/turn constraints and return the next saved state."""
     if current is None and not enter:
@@ -63,24 +64,11 @@ def transition(
     ):
         raise ValidationError("High-speed difficult terrain requires the B395 slowing rules")
 
-    if current is None:
-        if len(path) != basic_move:
-            raise ValidationError("Entering high speed requires a full Basic Move")
-        if _turn_distance(origin.facing, directions[0]) > 1 or any(
-            _turn_distance(left, right) > 1
-            for left, right in zip(directions, directions[1:], strict=False)
-        ):
-            raise ValidationError("Entering high speed permits only gradual forward movement")
-        if sum(left != right for left, right in zip(directions, directions[1:], strict=False)) > 1:
-            raise ValidationError("Entering high speed permits at most one change of direction")
-        return HighSpeedState(
-            velocity=personal_high_speed_velocity(basic_move),
-            straight_yards=0,
-            direction=directions[-1],
-        )
+    if current is None or current.entry_turns is not None:
+        return _entry(origin, directions, basic_move, current, interrupted)
 
-    if len(path) != current.velocity:
-        raise ValidationError("High-speed movement must cover the saved velocity")
+    required = current.remaining_yards or current.velocity
+    _require_distance(len(path), required, interrupted)
     radius = high_speed_turning_radius(current.velocity, basic_move)
     direction = current.direction if current.direction is not None else origin.facing
     straight = current.straight_yards
@@ -92,4 +80,46 @@ def transition(
                 raise ValidationError("High-speed turn occurs before the turning radius")
             direction, straight = next_direction, 0
         straight += 1
-    return current.model_copy(update={"straight_yards": straight, "direction": direction})
+    return current.model_copy(
+        update={
+            "straight_yards": straight,
+            "direction": direction,
+            "remaining_yards": required - len(path) or None,
+        }
+    )
+
+
+def _require_distance(length: int, required: int, interrupted: bool) -> None:
+    if length > required or length != required and not interrupted:
+        raise ValidationError("High-speed movement must cover the saved velocity")
+
+
+def _entry(
+    origin: Pose,
+    directions: tuple[int, ...],
+    basic_move: int,
+    current: HighSpeedState | None,
+    interrupted: bool,
+) -> HighSpeedState:
+    required = current.remaining_yards if current is not None else basic_move
+    assert required is not None
+    _require_distance(len(directions), required, interrupted)
+    initial_direction = current.direction if current is not None else origin.facing
+    assert initial_direction is not None
+    if _turn_distance(initial_direction, directions[0]) > 1 or any(
+        _turn_distance(left, right) > 1
+        for left, right in zip(directions, directions[1:], strict=False)
+    ):
+        raise ValidationError("Entering high speed permits only gradual forward movement")
+    turns = sum(left != right for left, right in zip(directions, directions[1:], strict=False))
+    if current is not None:
+        turns += (current.entry_turns or 0) + int(initial_direction != directions[0])
+    if turns > 1:
+        raise ValidationError("Entering high speed permits at most one change of direction")
+    remaining = required - len(directions)
+    return HighSpeedState(
+        velocity=personal_high_speed_velocity(basic_move),
+        direction=directions[-1],
+        remaining_yards=remaining or None,
+        entry_turns=turns if remaining else None,
+    )

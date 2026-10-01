@@ -140,6 +140,54 @@ def _finish_crouch(participant: Combatant, crouch: CrouchAction | None) -> Comba
     )
 
 
+def _wait_movement(
+    engine: CombatEngine,
+    encounter: Encounter,
+    before: Combatant,
+    after: Combatant,
+    path: tuple[Hex, ...],
+    trigger: WaitTrigger,
+    maneuver: Maneuver,
+) -> tuple[Combatant, int | None, bool]:
+    points = path or ((after.position,) if isinstance(after.position, Hex) else ())
+    at_checkpoint = bool(before.high_speed and before.high_speed.remaining_yards and path)
+    if at_checkpoint:
+        assert isinstance(before.position, Hex)
+        points = (before.position,) + points
+    hit = next(
+        (
+            i
+            for i, point in enumerate(points)
+            if not trigger.zone or (point.q, point.r) in trigger.zone
+        ),
+        None,
+    )
+    zone_hit = hit is not None or not points and not trigger.zone
+    consumed = None if hit is None else hit if at_checkpoint else hit + 1
+    if (
+        encounter.spatial_kind == "hex"
+        and trigger.action == "move"
+        and consumed is not None
+        and path
+    ):
+        after = (
+            move_hex(
+                encounter,
+                before,
+                maneuver,
+                path[:consumed],
+                None,
+                None,
+                board=engine.hex_map(encounter),
+                enter_high_speed=before.high_speed is None and after.high_speed is not None,
+                interrupted=True,
+            )
+            if consumed
+            else before
+        )
+    return after, None if consumed is None else consumed - 1, zone_hit
+
+
 def _wait_interruption(
     engine: CombatEngine,
     original: Encounter,
@@ -164,37 +212,9 @@ def _wait_interruption(
             assert waiter is not None
             before_actor = next(p for p in original.participants if p.actor_id == actor_id)
             after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
-            path_points = hex_path or (
-                (after_actor.position,) if isinstance(after_actor.position, Hex) else ()
+            after_actor, trigger_index, zone_hit = _wait_movement(
+                engine, original, before_actor, after_actor, hex_path, trigger, maneuver
             )
-            trigger_index = (
-                next(
-                    (
-                        index
-                        for index, point in enumerate(path_points)
-                        if not trigger.zone or (point.q, point.r) in trigger.zone
-                    ),
-                    None,
-                )
-                if path_points
-                else None
-            )
-            zone_hit = trigger_index is not None or not path_points and not trigger.zone
-            if (
-                original.spatial_kind == "hex"
-                and trigger.action == "move"
-                and trigger_index is not None
-                and hex_path
-            ):
-                after_actor = move_hex(
-                    original,
-                    before_actor,
-                    maneuver,
-                    hex_path[: trigger_index + 1],
-                    None,
-                    None,
-                    board=engine.hex_map(original),
-                )
             stop_candidate = trigger.stop_thrust and (
                 original.spatial_kind != "basic"
                 and action == "attack"
@@ -263,6 +283,7 @@ def _wait_interruption(
                             "facing": after_actor.facing,
                             "hex_facing": after_actor.hex_facing,
                             "posture": after_actor.posture,
+                            "high_speed": after_actor.high_speed,
                         }
                     ),
                 )
@@ -281,6 +302,7 @@ def _wait_interruption(
                     "hex_facing": saved.get("hex_facing") if remaining_hex_path else None,
                     "basic_move": None,
                     "step_timing": "before",
+                    "enter_high_speed": False,
                     "crouch": None if crouch in ("before", "rise") else crouch,
                 }
             )
@@ -516,12 +538,6 @@ def _validate_high_speed(
 ) -> None:
     if enter_high_speed and encounter.spatial_kind != "hex":
         raise ValidationError("High-speed movement requires an exact hex battlefield")
-    if (enter_high_speed or participant.high_speed is not None) and any(
-        combatant.maneuver_state.wait is not None
-        for combatant in encounter.participants
-        if combatant.actor_id != actor_id
-    ):
-        raise ValidationError("High-speed movement with an active Wait is not yet supported")
 
 
 def apply_turn(

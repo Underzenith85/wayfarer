@@ -28,6 +28,13 @@ from wayfarer.orchestration.combat.context import CombatContext, encounter_for
 from wayfarer.orchestration.recovery import guard
 
 
+def _require_supported_resume(state: PlayState, command: ResumeInterruptedTurn) -> None:
+    paused = encounter_for(state, command.encounter_id)
+    mover = next(p for p in paused.participants if p.actor_id == command.actor_id)
+    if command.cancel and mover.high_speed and mover.high_speed.remaining_yards:
+        raise ValidationError("Cancelling high-speed movement requires the B395 braking rules")
+
+
 def _prepare_command(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> tuple[PlayState, TypedCombatCommand, CombatContext]:
@@ -47,6 +54,7 @@ def _prepare_command(
         interrupt = paused.wait_interrupt
         if interrupt is None or not interrupt.ready or interrupt.actor_id != command.actor_id:
             raise ConflictError("No interrupted turn is ready for this actor")
+        _require_supported_resume(state, command)
         # An interrupted unarmed turn had not begun when it paused, so it resumes
         # whole instead of replaying turn bookkeeping the armed path already spent.
         unarmed_turn = json.loads(interrupt.command_json)["kind"] == "take_unarmed_turn"

@@ -34,6 +34,13 @@ class HighSpeedState(Record):
     velocity: int = Field(ge=1, le=200)
     straight_yards: int = Field(default=0, ge=0, le=10000)
     direction: int | None = Field(default=None, ge=0, le=5)
+    # Trusted Wait checkpoints pin the unspent path; ordinary completed turns omit these.
+    remaining_yards: int | None = Field(
+        default=None, ge=1, le=200, exclude_if=lambda value: value is None
+    )
+    entry_turns: int | None = Field(
+        default=None, ge=0, le=1, exclude_if=lambda value: value is None
+    )
 
 
 class CombatVisibility(Record):

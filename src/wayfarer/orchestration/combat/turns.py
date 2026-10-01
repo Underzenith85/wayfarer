@@ -420,6 +420,10 @@ def _begin_turn(
         ),
     )
     if not allowed:
+        # A Wait reaction can incapacitate the mover before its saved path resumes.
+        # Retire the unspent trajectory rather than granting it on a later turn.
+        acted = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+        encounter = engine._replace(encounter, acted.model_copy(update={"high_speed": None}))
         if command.recover_thrown_item:
             resources = undo_recovery(initial_state.resources, resources, command.item_id)
             state = state.model_copy(update={"resources": resources})
