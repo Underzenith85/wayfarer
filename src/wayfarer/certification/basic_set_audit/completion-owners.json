@@ -447,6 +447,161 @@
       "issue": 802,
       "state": "open",
       "title": "[GURPS audit] Implement spell effects: Plane Shift"
+    },
+    {
+      "issue": 805,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Shape Water, Fog, Icy Weapon"
+    },
+    {
+      "issue": 804,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Seek Water, Purify Water, Create Water, Destroy Water"
+    },
+    {
+      "issue": 803,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Zombie, Turn Zombie"
+    },
+    {
+      "issue": 801,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Summon Demon, Planar Summons, Banish"
+    },
+    {
+      "issue": 800,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Sense Spirit, Summon Spirit, Death Vision"
+    },
+    {
+      "issue": 799,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Lockmaster, Magelock"
+    },
+    {
+      "issue": 798,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Armor, Shield, Deflect Missile"
+    },
+    {
+      "issue": 797,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Apportation, Haste, Great Haste"
+    },
+    {
+      "issue": 796,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Foolishness, Forgetfulness, Command"
+    },
+    {
+      "issue": 795,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Daze, Mass Daze, Sleep, Mass Sleep"
+    },
+    {
+      "issue": 794,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Seeker, Trace"
+    },
+    {
+      "issue": 793,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Counterspell, Dispel Magic"
+    },
+    {
+      "issue": 792,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Light, Continual Light, Darkness, Blur"
+    },
+    {
+      "issue": 791,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Detect Magic, Identify Spell, Analyze Magic, Aura"
+    },
+    {
+      "issue": 790,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Create Fire, Fireball"
+    },
+    {
+      "issue": 789,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Deflect Energy, Explosive Fireball"
+    },
+    {
+      "issue": 788,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Heat, Cold, Resist Fire, Resist Cold"
+    },
+    {
+      "issue": 787,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Ignite Fire, Extinguish Fire, Shape Fire"
+    },
+    {
+      "issue": 786,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Accuracy, Puissance, Fortify, Deflect"
+    },
+    {
+      "issue": 784,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Flesh to Stone, Stone to Flesh, Entombment"
+    },
+    {
+      "issue": 783,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Earth to Stone, Stone to Earth"
+    },
+    {
+      "issue": 782,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Seek Earth, Shape Earth, Create Earth"
+    },
+    {
+      "issue": 781,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Hide Thoughts, Mind-Reading"
+    },
+    {
+      "issue": 780,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Sense Emotion, Sense Foes, Truthsayer"
+    },
+    {
+      "issue": 779,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Deathtouch, Paralyze Limb, Rooted Feet, Wither Limb"
+    },
+    {
+      "issue": 778,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Clumsiness, Hinder, Itch, Pain, Spasm"
+    },
+    {
+      "issue": 777,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Earth to Air, Lightning, Predict Weather"
+    },
+    {
+      "issue": 776,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Breathe Water, Walk on Air, Stench"
+    },
+    {
+      "issue": 775,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Create Air, Purify Air, Shape Air, No-Smell"
+    },
+    {
+      "issue": 774,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Awaken"
+    },
+    {
+      "issue": 773,
+      "state": "open",
+      "title": "[GURPS audit] Implement spell effects: Lend Energy, Lend Vitality, Recover Energy"
     }
   ]
 }

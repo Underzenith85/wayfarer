@@ -8,9 +8,13 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.rules.checks import RandomSource, success_check
+from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.magic.colleges import CollegeSpellBinding
-from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.magic.spell_transitions import SpellExecutionContext, reduce_spell
+from wayfarer.engine.simulation.magic.spells import SPELLS, SpellCommand, SpellResult
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Record
@@ -41,10 +45,6 @@ def _digest(command: CollegeSpellCommand) -> str:
     return hashlib.sha256(command.model_dump_json().encode()).hexdigest()
 
 
-def _event(command_id: str) -> str:
-    return "college-spell:" + hashlib.sha256(command_id.encode()).hexdigest()
-
-
 def history(state: ResourceState) -> tuple[CollegeSpellOutcome, ...]:
     return tuple(
         CollegeSpellOutcome.model_validate_json(value.kind)
@@ -69,6 +69,8 @@ def apply_college_spell(
     authorized_actor_id: str,
     rng: RandomSource,
 ) -> tuple[ResourceState, CollegeSpellOutcome]:
+    if command.actor_id != authorized_actor_id:
+        raise AuthorizationError("Spell actor lacks authority")
     digest = _digest(command)
     previous = next((value for value in state.receipts if value.command_id == command.id), None)
     if previous is not None:
@@ -80,8 +82,6 @@ def apply_college_spell(
         return state, outcome
     if command.expected_revision != state.revision:
         raise ConflictError("Spell revision conflict")
-    if command.actor_id != authorized_actor_id:
-        raise AuthorizationError("Spell actor lacks authority")
     if command.build_revision != build.revision:
         raise ValidationError("Spell build approval changed")
     if command.interrupted:
@@ -108,36 +108,32 @@ def apply_college_spell(
     level = levels.get(command.spell_id)
     if level is None:
         raise ValidationError("Approved build does not know this spell")
-    trace = success_check(
-        level,
-        rng=rng,
-        rules_package="package:gurps-basic-spell-colleges",
-        rules_version="1.0.0",
+    raise ValidationError(
+        "College check has no executable effect; use an authoritative spell channel"
     )
-    outcome = CollegeSpellOutcome(
-        command_id=command.id,
-        actor_id=command.actor_id,
-        spell_id=command.spell_id,
-        target_actor_id=command.target_actor_id,
-        target_item_id=command.target_item_id,
-        outcome=trace.outcome.value,
-        margin=trace.margin,
-    )
-    return (
-        state.model_copy(
-            update={
-                "revision": state.revision + 1,
-                "receipts": state.receipts + (Receipt(command_id=command.id, digest=digest),),
-                "events": state.events
-                + (
-                    ResourceEvent(
-                        id=_event(command.id),
-                        at=state.game_time,
-                        kind=outcome.model_dump_json(),
-                        target_id=command.actor_id,
-                    ),
-                ),
-            }
-        ),
-        outcome,
-    )
+
+
+def dispatch_college_spell(
+    runtime: RulesContext,
+    state: PlayState,
+    command: SpellCommand,
+    bindings: tuple[CollegeSpellBinding, ...],
+    *,
+    authorized_actor_id: str,
+) -> tuple[PlayState, SpellResult]:
+    """One source-reviewed reducer owns time, energy and typed concrete effects.
+
+    College identity narrows the allowed spells; campaign-authored channels own
+    targets and modifiers, and approved builds own trained skill. Unsupported
+    effects have no SpellCommand variant and cannot reach a successful check.
+    """
+    if command.actor_id != authorized_actor_id:
+        raise AuthorizationError("Spell actor lacks authority")
+    if "spell:" + command.spell_id not in {binding.id for binding in bindings}:
+        raise ValidationError("Spell is outside the selected college package")
+    if command.spell_id not in SPELLS:
+        raise ValidationError("College spell has no executable effect")
+    rules = runtime.rules.spells
+    if rules is None or rules.execution_version != 2:
+        raise ValidationError("College casts require source-reviewed execution version 2")
+    return reduce_spell(state, command, SpellExecutionContext(runtime))
