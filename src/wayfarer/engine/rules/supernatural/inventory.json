@@ -3272,9 +3272,10 @@
       "blockers": [],
       "source": "characters-third",
       "status": "verified",
-      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "supported_subset": "Unmodified B130/B161 purchases; persisted director observations, approved frequency, exact-clock canonical injury, source-duration Dependency satisfaction, and calendar deadlines. Aging, Fatigue Only, Variable, multiple separately purchased conditions, and actors with authored transformations remain unsupported.",
       "evidence": [
-        "tests/test_physiology_traits.py"
+        "tests/test_physiology_traits.py",
+        "tests/test_harmful_physiology_persistence.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -4028,9 +4029,10 @@
       "blockers": [],
       "source": "characters-third",
       "status": "verified",
-      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "supported_subset": "Unmodified B130/B161 purchases; persisted director observations, approved frequency, exact-clock canonical injury, source-duration Dependency satisfaction, and calendar deadlines. Aging, Fatigue Only, Variable, multiple separately purchased conditions, and actors with authored transformations remain unsupported.",
       "evidence": [
-        "tests/test_physiology_traits.py"
+        "tests/test_physiology_traits.py",
+        "tests/test_harmful_physiology_persistence.py"
       ],
       "members": [],
       "talent_cost": null,

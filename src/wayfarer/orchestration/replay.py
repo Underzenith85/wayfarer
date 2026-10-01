@@ -6,6 +6,7 @@ from wayfarer import validation
 from wayfarer.engine.simulation.magic.spells import SpellCommand
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
+from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
@@ -35,6 +36,10 @@ async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
     with replay_inputs(record):
         if operation == "typed-action":
             await play.execute(record.campaign_id, command, principal_id=record.actor_id)
+        elif operation == "harmful-physiology":
+            await HarmfulPhysiologyService(play).execute(
+                record.campaign_id, command, principal_id=record.actor_id
+            )
         elif operation == "combat":
             await CombatService(play).execute(
                 record.campaign_id,
