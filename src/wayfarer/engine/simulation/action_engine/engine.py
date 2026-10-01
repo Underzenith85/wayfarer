@@ -80,6 +80,7 @@ from wayfarer.engine.simulation.events import (
     play_events,
 )
 from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
+from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.fright_state import blocked, requires_adjudication
 from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
@@ -475,7 +476,9 @@ class ActionEngine:
             and pools[f"fp:{actor.actor_id}"].current < self.rules.fatigue_cost
         ):
             return result("rejected", "resource.fatigue")
-        if not isinstance(command, Wait) and actor.conditions:
+        if not isinstance(command, Wait) and (
+            actor.conditions or drug_unconscious(state.resources, actor.actor_id)
+        ):
             return result("rejected", "actor.condition")
         if actor.available_at > state.resources.game_time and not isinstance(command, Wait):
             return result("rejected", "actor.not_ready")

@@ -23,7 +23,7 @@ from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.hit_locations import require_location
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.hex_geometry import Hex
-from wayfarer.engine.simulation.magic.awaken import AwakenSubject
+from wayfarer.engine.simulation.magic.awaken import AwakenSubject, mirror_waking
 from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
@@ -251,7 +251,14 @@ def _awaken_area_subjects(
         if coordinates in cells:
             approved = build(runtime, state, participant.actor_id)
             ht = next(int(v.value) for v in approved.sheet.values if v.target == "attribute:ht")
-            subjects.append(AwakenSubject(actor_id=participant.actor_id, ht=ht))
+            actor = next(a for a in state.actors if a.actor_id == participant.actor_id)
+            subjects.append(
+                AwakenSubject(
+                    actor_id=participant.actor_id,
+                    ht=ht,
+                    authored_unconscious="unconscious" in actor.conditions,
+                )
+            )
     return tuple(subjects)
 
 
@@ -711,6 +718,7 @@ def reduce_spell(
         updated = _release_missile(
             runtime, before, updated, command, context, encounter, turn_started
         )
+    updated = mirror_waking(before, updated)
     return updated, _recorded_spell_result(updated, command)
 
 

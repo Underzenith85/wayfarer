@@ -241,22 +241,6 @@ def test_awaken_construction_requires_lend_vitality(trained: tuple[str, ...], le
     assert result.legal is legal
 
 
-def test_drugged_awaken_is_explicitly_unsupported_and_atomic(tmp_path: Path) -> None:
-    from wayfarer.engine.rules.types.toxin import Intoxication
-    from wayfarer.engine.simulation.magic.awaken import validate_subjects
-
-    _, state = fixture(tmp_path, "awaken")
-    drugged = state.resources.model_copy(
-        update={
-            "intoxications": (Intoxication(actor_id="b", window_started=0, level="unconscious"),)
-        }
-    )
-    serialized = drugged.model_dump_json()
-    with pytest.raises(ValidationError, match="Drugged"):
-        validate_subjects(drugged, (AwakenSubject(actor_id="b", ht=10),))
-    assert drugged.model_dump_json() == serialized
-
-
 def test_awaken_critical_failure_records_patient_harm_for_actual_area(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.magic.backfires import backfires
     from wayfarer.engine.simulation.magic.spells import SpellContext
