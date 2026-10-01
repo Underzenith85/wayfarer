@@ -210,7 +210,9 @@ async def test_destroyed_shield_remains_carried_until_minus_ten_hp(tmp_path: Pat
     await attack(cid, play)
     state = play._load(await play.store.read(cid))
     damage = Damage(basis="fixed", dice=1, damage_type="cr")
-    play.rng = RecordedDice([])
+    # B378 requires a balance roll for each crushing shield impact's knockback.
+    # Critical successes keep this durability-focused defender standing.
+    play.rng = RecordedDice([1, 1, 1, 1, 1, 1])
     state, encounter, residual = shield_damage(
         play.rules_context, state, state.encounters[0], "shield-b", 72, damage, impact=0
     )
