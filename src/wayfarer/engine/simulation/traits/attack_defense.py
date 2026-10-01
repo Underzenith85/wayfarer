@@ -32,6 +32,7 @@ from wayfarer.engine.simulation.health.fatigue import FatigueCost, FatigueResult
 from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
+from wayfarer.engine.simulation.health.symptoms import reconcile_recovery
 from wayfarer.engine.simulation.health.symptoms import register as register_symptoms
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState, Scheduled
 from wayfarer.engine.world import World
@@ -184,16 +185,12 @@ def _heal_attacker(
     restored, healed = restore_hp(resources, pool, amount, kind="steal-hp", physiology=physiology)
     if healed == 0:
         return resources, 0
-    return (
-        resources.model_copy(
-            update={
-                "pools": tuple(
-                    restored if value.id == pool_id else value for value in resources.pools
-                )
-            }
-        ),
-        healed,
+    updated = resources.model_copy(
+        update={
+            "pools": tuple(restored if value.id == pool_id else value for value in resources.pools)
+        }
     )
+    return reconcile_recovery(resources, updated), healed
 
 
 def _bind_target_tolerance(

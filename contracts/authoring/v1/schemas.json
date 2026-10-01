@@ -7084,6 +7084,29 @@
             "default": null,
             "title": "Contagion Vector"
           },
+          "symptom_spec": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SymptomSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "symptom_source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symptom Source Id"
+          },
           "incubation_seconds": {
             "default": 86400,
             "maximum": 31536000,
@@ -10961,6 +10984,22 @@
               "$ref": "#/$defs/AfflictionEffect"
             },
             "title": "Afflictions",
+            "type": "array"
+          },
+          "symptom_effects": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/SymptomEffect"
+            },
+            "title": "Symptom Effects",
+            "type": "array"
+          },
+          "symptom_debts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/SymptomDebt"
+            },
+            "title": "Symptom Debts",
             "type": "array"
           },
           "cyclic_exposures": {
@@ -18880,6 +18919,155 @@
           "attack"
         ],
         "title": "SwarmSpec",
+        "type": "object"
+      },
+      "SymptomDebt": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "pool_id": {
+            "title": "Pool Id",
+            "type": "string"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Id"
+          },
+          "remaining": {
+            "minimum": 0,
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "restriction_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Restriction Id"
+          }
+        },
+        "required": [
+          "id",
+          "pool_id",
+          "remaining"
+        ],
+        "title": "SymptomDebt",
+        "type": "object"
+      },
+      "SymptomEffect": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "pool_id": {
+            "title": "Pool Id",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/$defs/SymptomSpec"
+          },
+          "active": {
+            "default": false,
+            "title": "Active",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "pool_id",
+          "source_id",
+          "actor_id",
+          "spec"
+        ],
+        "title": "SymptomEffect",
+        "type": "object"
+      },
+      "SymptomSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "blindness",
+              "coughing",
+              "attribute-penalty"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "attribute": {
+            "anyOf": [
+              {
+                "enum": [
+                  "st",
+                  "dx",
+                  "iq",
+                  "ht"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Attribute"
+          },
+          "level": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Level",
+            "type": "integer"
+          },
+          "numerator": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Numerator",
+            "type": "integer"
+          },
+          "denominator": {
+            "default": 2,
+            "enum": [
+              2,
+              3
+            ],
+            "title": "Denominator",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "SymptomSpec",
         "type": "object"
       },
       "TeachingBinding": {

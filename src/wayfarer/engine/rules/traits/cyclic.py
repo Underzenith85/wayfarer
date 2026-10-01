@@ -31,7 +31,9 @@ KINDS = {
 
 def approvals(selections: tuple[ModifierSelection, ...]) -> tuple[ModifierApproval, ...]:
     if {s.definition_id for s in selections} - {CYCLIC, RESISTIBLE, SYMPTOMS}:
-        raise ValidationError("Cyclic execution supports only Cyclic and Resistible modifiers")
+        raise ValidationError(
+            "Execution supports only Cyclic, Resistible and typed Symptoms modifiers"
+        )
     cyclic = next((s for s in selections if s.definition_id == CYCLIC), None)
     symptoms = next((s for s in selections if s.definition_id == SYMPTOMS), None)
     extra = (

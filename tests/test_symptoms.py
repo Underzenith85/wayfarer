@@ -2,22 +2,30 @@
 
 import pytest
 from test_attack_defense_traits import approved, channel, command, resources, world
+from test_resources import engine
 from trait_support import options
 
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.rules.traits.modifiers import ModifierSelection
+from wayfarer.engine.rules.traits.modifiers import EnhancementParameters, ModifierSelection
 from wayfarer.engine.rules.traits.symptoms import symptom_percentage, symptom_spec
+from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.health.condition_checks import (
     check_modifiers,
     require_hazard_capacity,
 )
 from wayfarer.engine.simulation.health.healing import restore_hp
+from wayfarer.engine.simulation.health.medical.commands import (
+    BeginRecovery,
+    CareContext,
+    FinishRecovery,
+)
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.health.symptoms import reconcile_recovery, track_damage
-from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.resources import Advance, Pool, ResourceState
 from wayfarer.engine.simulation.traits.attack_defense import apply_trait_attack
-from wayfarer.errors import ValidationError
+from wayfarer.errors import ConflictError, ValidationError
 
 
 def selection(effect: str = "blindness", threshold: str = "one-half") -> ModifierSelection:
@@ -171,4 +179,198 @@ def test_unexecutable_effects_are_rejected_in_approved_construction() -> None:
                     update={"attack_modifiers": (selection("untyped-effect"),)}
                 ),
             )
+        )
+
+
+def test_natural_medical_recovery_removes_real_symptoms_after_healing_past_threshold() -> None:
+    state = hit(damage=6)
+    context = CareContext("gurps-basic-set-4e-2004", 12, food=True)
+    for day in (1, 2):
+        state, _ = apply_recovery(
+            state,
+            BeginRecovery(
+                id=f"day:{day}",
+                actor_id="b",
+                expected_revision=state.revision,
+                kind="natural",
+                target_id="b",
+            ),
+            context,
+            rng=RecordedDice([]),
+            system=True,
+        )
+        task = state.recovery_tasks[-1]
+        state = state.model_copy(update={"game_time": task.due})
+        state, result = apply_recovery(
+            state,
+            FinishRecovery(
+                id=f"finish:{day}", actor_id="b", expected_revision=state.revision, task_id=task.id
+            ),
+            context,
+            rng=RecordedDice([2, 2, 2]),
+            system=True,
+        )
+        assert result.hp_recovered == 1
+        assert state.symptom_effects[0].active == (day == 1)
+
+
+def test_fatigue_attack_symptoms_clear_on_authoritative_rest() -> None:
+    initial = resources().model_copy(
+        update={
+            "pools": resources().pools
+            + (
+                Pool(
+                    id="fp:b",
+                    current=10,
+                    maximum=10,
+                    fatigue=FatigueStatus(profile_id="gurps-basic-set-4e-2004"),
+                ),
+            )
+        }
+    )
+    chosen = selection("coughing").model_copy(
+        update={
+            "parameters": EnhancementParameters(
+                symptom="coughing", symptom_threshold="one-half", damage_kind="fatigue"
+            )
+        }
+    )
+    attacker, compiler = approved(
+        Purchase(
+            definition_id="advantage:innate-attack",
+            trait=options(**{"damage-type": "fat"}).model_copy(
+                update={"attack_modifiers": (chosen,)}
+            ),
+        )
+    )
+    target, _ = approved()
+    state, _ = apply_trait_attack(
+        initial,
+        world(),
+        command(),
+        attacker,
+        target,
+        compiler.definitions,
+        (channel(basic_damage=6, damage_type="fat"),),
+        target_ht=12,
+        rng=RecordedDice([2] * 30),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert state.symptom_effects[0].active
+    context = CareContext("gurps-basic-set-4e-2004", 12)
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="rest",
+            actor_id="b",
+            expected_revision=state.revision,
+            kind="rest",
+            target_id="b",
+            seconds=1200,
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state = engine().apply(
+        state,
+        Advance(id="clock", actor_id="b", expected_revision=state.revision, to=1200),
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert next(p.current for p in state.pools if p.id == "fp:b") == 6
+    assert not state.symptom_effects[0].active
+
+
+def test_cyclic_repeat_registers_same_source_without_double_counting_debt() -> None:
+    cyclic = ModifierSelection(
+        definition_id="modifier:enhancement:cyclic",
+        option="test",
+        parameters=EnhancementParameters(
+            interval_seconds=10,
+            cycles=3,
+            stop_condition="wash",
+            contagious="none",
+            damage_kind="burning",
+        ),
+    )
+    attacker, compiler = approved(
+        Purchase(
+            definition_id="advantage:innate-attack",
+            trait=options(**{"damage-type": "burn"}).model_copy(
+                update={"attack_modifiers": (cyclic, selection())}
+            ),
+        )
+    )
+    target, _ = approved()
+    state, _ = apply_trait_attack(
+        resources(),
+        world(),
+        command(),
+        attacker,
+        target,
+        compiler.definitions,
+        (channel(basic_damage=2),),
+        target_ht=12,
+        rng=RecordedDice([2] * 30),
+        authorized_actor_id="a",
+        system=True,
+    )
+    state = engine().apply(
+        state,
+        Advance(id="repeat", actor_id="a", expected_revision=state.revision, to=20),
+        rng=RecordedDice([2, 2]),
+        system=True,
+    )
+    assert len(state.symptom_effects) == 1
+    assert sum(d.remaining for d in state.symptom_debts) == 6
+    assert state.symptom_effects[0].active
+
+
+def test_receipt_retries_stale_revision_and_authority_do_not_repeat_damage() -> None:
+    attacker, compiler = approved(
+        Purchase(
+            definition_id="advantage:innate-attack",
+            trait=options(**{"damage-type": "burn"}).model_copy(
+                update={"attack_modifiers": (selection(),)}
+            ),
+        )
+    )
+    target, _ = approved()
+    initial = resources()
+    args = (world(), command(), attacker, target, compiler.definitions, (channel(),))
+    state, result = apply_trait_attack(
+        initial,
+        *args,
+        target_ht=12,
+        rng=RecordedDice([2, 2, 2]),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert apply_trait_attack(
+        state, *args, target_ht=12, rng=RecordedDice([]), authorized_actor_id="a", system=True
+    ) == (state, result)
+    with pytest.raises(ConflictError):
+        apply_trait_attack(
+            state,
+            world(),
+            command().model_copy(update={"id": "new"}),
+            attacker,
+            target,
+            compiler.definitions,
+            (channel(),),
+            target_ht=12,
+            rng=RecordedDice([]),
+            authorized_actor_id="a",
+            system=True,
+        )
+    with pytest.raises(ValidationError):
+        apply_trait_attack(
+            initial,
+            *args,
+            target_ht=12,
+            rng=RecordedDice([]),
+            authorized_actor_id="b",
+            system=False,
         )
