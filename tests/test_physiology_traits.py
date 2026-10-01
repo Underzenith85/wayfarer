@@ -926,3 +926,35 @@ def test_weakness_printed_frequency_and_rarity_costs(
             next(p.cost for p in build.purchases if p.definition_id == "disadvantage:weakness")
             == expected
         )
+
+
+def test_harmful_interval_identity_cannot_be_reused_after_exposure_restart() -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="disadvantage:weakness", trait=options(rarity="common", interval="minute")
+        )
+    )
+    interval = PhysiologyInterval(id="weak", actor_id="a", kind="weakness", due=60)
+    updated, _ = apply_physiology_interval(
+        state(),
+        command(identifier="weak"),
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    restarted = interval.model_copy(update={"started": 60, "due": 120})
+    request = command(1, "weak").model_copy(update={"id": "new-command"})
+    with pytest.raises(ConflictError, match="consumed"):
+        apply_physiology_interval(
+            updated.model_copy(update={"game_time": 120}),
+            request,
+            restarted,
+            build,
+            engine.definitions,
+            rng=FixedDice(),
+            authorized_actor_id="a",
+            system=True,
+        )

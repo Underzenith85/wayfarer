@@ -205,6 +205,13 @@ def _harmful_interval(
     )
     if interval.due < first or (interval.due - first) % cadence:
         raise ValidationError("Physiology interval differs from the approved frequency")
+    if any(
+        entry.outcome.actor_id == interval.actor_id
+        and entry.outcome.interval_id == interval.id
+        and entry.outcome.kind == "injured"
+        for entry in history(resources)
+    ):
+        raise ConflictError("Physiology interval was already consumed")
     previous = [
         entry.interval.due
         for entry in history(resources)
