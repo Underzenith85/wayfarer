@@ -1,5 +1,7 @@
 """Cinematic power costs use B426-427 fatigue and authority receipts."""
 
+from typing import Final
+
 import pytest
 from test_cinematic_skills import compiler, world
 from test_mastery_combat import purchase
@@ -14,7 +16,7 @@ from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.skills.cinematic import CinematicSkillCommand, apply_cinematic_skill
 from wayfarer.errors import AuthorizationError, ValidationError
 
-PROFILE = "gurps-basic-set-4e-2004"
+PROFILE: Final = "gurps-basic-set-4e-2004"
 
 
 def power_build() -> ValidatedBuild:
