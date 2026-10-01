@@ -6,6 +6,7 @@ from fractions import Fraction
 from pydantic import Field
 
 from wayfarer.engine.character.compiler import ValidatedBuild
+from wayfarer.engine.character.traits import mundane_trait_effects
 from wayfarer.engine.rules.catalog import ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.traits.physiology import BINDING_BY_ID, PROFILE, metadata
 from wayfarer.errors import ValidationError
@@ -66,6 +67,12 @@ class PhysiologyTraits(Record):
         if rate not in intervals:
             raise ValidationError("Unsupported regeneration rate")
         return intervals[rate]
+
+    def recovery_interval_multiplier(self) -> int:
+        level = self.level("trait:disadvantage:slow-healing")
+        if level > 3:
+            raise ValidationError("Slow Healing exceeds its source maximum of three levels")
+        return (1, 2, 4, 8)[level]
 
     def regeneration_amount(self) -> int:
         rate = self.parameter("advantage:regeneration", "rate")
@@ -154,4 +161,9 @@ def physiology_traits(
                 modifiers=() if purchase.trait is None else purchase.trait.modifiers,
             )
         )
+    entries.extend(
+        PurchasedPhysiology(definition_id=effect.definition_id, levels=effect.levels)
+        for effect in mundane_trait_effects(build, definitions)
+        if effect.definition_id == "trait:disadvantage:slow-healing"
+    )
     return PhysiologyTraits(entries=tuple(entries))

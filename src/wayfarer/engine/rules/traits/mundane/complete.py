@@ -241,6 +241,8 @@ def _load_specs() -> tuple[CompleteTraitSpec, ...]:
         )
         if identifier == "trait:advantage:gizmos":
             maximum = 3  # B57: at most three ordinary Gizmos per game session.
+        if identifier == "trait:disadvantage:slow-healing":
+            maximum = 3  # B155: normal humans are further limited to one level.
         choices = POINT_COST_OVERRIDES.get(identifier, choices)
         if choices:
             base = choices[0]
