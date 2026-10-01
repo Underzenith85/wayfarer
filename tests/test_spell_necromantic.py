@@ -23,7 +23,7 @@ def test_exact_necromantic_inventory_pages_and_runtime() -> None:
         for value in inventory().entries
         if value.id in {binding.id for binding in BINDINGS}
     }
-    assert rows["spell:plane-shift"].blockers == (747, 802)
+    assert rows["spell:plane-shift"].blockers == (802,)
     assert rows["spell:plane-shift"].evidence == (
         "tests/test_spell_construction.py",
         "tests/test_college_dispatch.py",
