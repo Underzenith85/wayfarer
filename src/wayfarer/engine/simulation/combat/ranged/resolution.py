@@ -28,7 +28,7 @@ from wayfarer.engine.rules.types.spray import Stream
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.engine.simulation.combat.entangle import bind as entangle_bind
@@ -312,6 +312,14 @@ def _shield_side_effect(
     return effect_dice + (side_die,)
 
 
+def _maneuver_bonus(actor: Combatant, weapon: RangedMode, bonus: int) -> int:
+    if actor.last_maneuver == "move_and_attack":
+        return min(-2, weapon.bulk)
+    if actor.last_maneuver == "all_out_attack":
+        return bonus + 1
+    return bonus
+
+
 def resolve(
     runtime: RulesContext,
     state: PlayState,
@@ -342,6 +350,7 @@ def resolve(
         raise ValidationError("Defense cannot stop this projectile")
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    aim_target_id = pending.protected_defender_id or pending.defender_id
     original_target = target
     geometry = encounter
     if pending.target_item_id:
@@ -350,7 +359,7 @@ def resolve(
         runtime,
         geometry,
         actor.actor_id,
-        target.actor_id,
+        aim_target_id,
         weapon,
         ground=bool(
             pending.target_item_id
@@ -385,7 +394,7 @@ def resolve(
         == (
             pending.weapon_id,
             weapon.id,
-            target.actor_id,
+            aim_target_id,
         )
         and aim.aim_seconds > 0
         and not pending.vehicle_aim_lost
@@ -399,10 +408,7 @@ def resolve(
         else 0
     )
     if pending.suppression_zone_id is None:
-        if actor.last_maneuver == "move_and_attack":
-            bonus = min(-2, weapon.bulk)
-        elif actor.last_maneuver == "all_out_attack":
-            bonus += 1
+        bonus = _maneuver_bonus(actor, weapon, bonus)
     bonus += accuracy_bonus(
         compiled,
         runtime.reviewer.compiler.definitions,
@@ -514,7 +520,7 @@ def resolve(
         update={"resources": before_attack(state.resources, pending.weapon_id, weapon)}
     )
     state = _apply_one_handed_readiness(state, actor.actor_id, pending.weapon_id, weapon, st)
-    attack = success_roll(
+    attack = pending.attack_roll or success_roll(
         equipment.profile_id,
         attack_target,
         check_modifiers(state.resources, actor.actor_id, "dx"),
@@ -539,6 +545,24 @@ def resolve(
         if attack.outcome is Outcome.CRITICAL_FAILURE and attack.total < 17:
             attack = replace(attack, outcome=Outcome.FAILURE)
 
+    if pending.protected_defender_id and attack.outcome is Outcome.CRITICAL_SUCCESS:
+        unintercepted = pending.model_copy(
+            update={
+                "defender_id": pending.protected_defender_id,
+                "protected_defender_id": None,
+                "attack_roll": attack,
+            }
+        )
+        return resolve(
+            runtime,
+            state,
+            encounter.model_copy(update={"pending_defense": unintercepted}),
+            weapon,
+            "none",
+            None,
+            second_defense=None,
+            second_item_id=None,
+        )
     near_miss = bool(shots_fired) and torso_near_miss(pending.hit_location, attack)
     effective_shots_fired = (
         shots_fired
@@ -562,7 +586,14 @@ def resolve(
     second_trace = None
     if hits and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense_value_ is not None:
         defense = success_roll(equipment.profile_id, int(defense_value_.value), rng=runtime.rng)
-        if defense.outcome.succeeded:
+        if pending.protected_defender_id:
+            hits = (
+                hits
+                if defense.outcome.succeeded
+                and not (pending.sacrificial_drop and defense.margin >= 3)
+                else 0
+            )
+        elif defense.outcome.succeeded:
             avoided = (
                 hits
                 if defense.outcome is Outcome.CRITICAL_SUCCESS
@@ -748,7 +779,9 @@ def resolve(
             update={"pending_defense": pending.model_copy(update={"spray_targets": ()})}
         )
     encounter = CombatEngine._replace(encounter, target)
-    if pending.suppression_zone_id is None:
+    if pending.suppression_zone_id is None and not (
+        pending.protected_defender_id and defense is not None and not defense.outcome.succeeded
+    ):
         state, encounter = expend(
             runtime,
             state,

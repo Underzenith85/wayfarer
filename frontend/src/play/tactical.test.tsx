@@ -13,6 +13,7 @@ const command: Extract<TacticalCommand, { kind: "choose_defense" }> = {
   catch_thrown: false,
   acrobatic_dodge: false,
   dodge_and_drop: false,
+  sacrificial_for: null,
   basic_retreat: false,
   id: "same-receipt",
   actor_id: "a",

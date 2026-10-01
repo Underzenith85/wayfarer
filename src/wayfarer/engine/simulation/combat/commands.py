@@ -208,6 +208,7 @@ class ChooseDefense(CombatCommand):
     second_defense: Defense | None = None
     second_item_id: str | None = None
     catch_thrown: bool = Field(default=False, exclude_if=lambda v: not v)
+    sacrificial_for: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     acrobatic_dodge: bool = Field(default=False, exclude_if=lambda v: not v)
     dodge_and_drop: bool = Field(default=False, exclude_if=lambda v: not v)
     retreat: Hex | None = None

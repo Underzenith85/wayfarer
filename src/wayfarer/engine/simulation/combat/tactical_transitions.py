@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.combat.defense_options import prepare_options
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.combat.interposition import prepare_interposition
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
@@ -393,6 +394,7 @@ def prepare_defense(
     *,
     resolve_options: bool = False,
 ) -> Encounter:
+    encounter = prepare_interposition(runtime, state, encounter, command)
     prepared = _prepare_defense_geometry(runtime, state, encounter, command)
     return prepare_options(runtime, state, prepared, command, resolve=resolve_options)
 

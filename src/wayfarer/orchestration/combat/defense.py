@@ -2,21 +2,87 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import injury_turn
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TypedCombatCommand
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, PendingDefense
 from wayfarer.engine.simulation.combat.lite_resolution import resolve_injury
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
 from wayfarer.engine.simulation.combat.melee.defense import exert_defense, validate_defense_choices
 from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
+from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.shield_rush import resolve as resolve_shield_rush
 from wayfarer.engine.simulation.combat.thrown.items import validate_catch
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.handlers import _unarmed
+
+
+def _failed_interposition(
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingDefense,
+    previous: Encounter,
+    context: CombatContext,
+    injury: InjuryTrace | None = None,
+) -> CombatStep:
+    restored = pending.model_copy(
+        update={
+            "defender_id": pending.protected_defender_id,
+            "protected_defender_id": None,
+            "attack_roll": injury.attack if injury else pending.attack_roll,
+        }
+    )
+    encounter = encounter.model_copy(update={"pending_defense": restored})
+    result = CombatResult(
+        encounter_id=encounter.id,
+        code="combat.sacrificial_failed",
+        round=encounter.round,
+        current_actor_id=encounter.current_actor_id,
+        available=context.engine.available(encounter, encounter.current_actor_id),
+        injury=injury,
+    )
+    return CombatStep(state, encounter, state.resources, result, defense_before=previous)
+
+
+def _settled_choice(
+    command: ChooseDefense,
+    encounter: Encounter,
+    selected_defense: Literal["dodge", "parry", "block", "none"],
+) -> tuple[str, Literal["dodge", "parry", "block", "none"]]:
+    selected_actor = command.actor_id
+    if (
+        command.sacrificial_for
+        and encounter.pending_defense
+        and encounter.pending_defense.defender_id != command.actor_id
+    ):
+        selected_actor = encounter.pending_defense.defender_id
+        selected_defense = "none"
+    return selected_actor, selected_defense
+
+
+def _drop_friend(encounter: Encounter, pending: PendingDefense, injury: InjuryTrace) -> Encounter:
+    if (
+        pending.sacrificial_drop
+        and pending.protected_defender_id
+        and injury.defense
+        and injury.defense.outcome.succeeded
+    ):
+        encounter = encounter.model_copy(
+            update={
+                "participants": tuple(
+                    p.model_copy(update={"posture": "prone"})
+                    if p.actor_id == pending.protected_defender_id
+                    else p
+                    for p in encounter.participants
+                )
+            }
+        )
+    return encounter
 
 
 def _defend(
@@ -73,6 +139,8 @@ def _defend(
             incoming_item_id=pending.weapon_id,
             incoming_mode_id=pending.mode_id,
         )
+        if pending.protected_defender_id and selected_defense == "none":
+            return _failed_interposition(state, encounter, pending, previous, context)
         if pending.shield_rush:
             if command.second_defense is not None or command.catch_thrown:
                 raise ValidationError("Shield rush accepts one ordinary active defense")
@@ -94,6 +162,16 @@ def _defend(
                 else None,
                 catch_thrown=command.catch_thrown,
             )
+
+        encounter = _drop_friend(encounter, pending, injury)
+
+        if (
+            pending.protected_defender_id
+            and injury.attack.outcome.succeeded
+            and injury.defense is not None
+            and not injury.defense.outcome.succeeded
+        ):
+            return _failed_interposition(state, encounter, pending, previous, context, injury)
 
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         if (
@@ -133,8 +211,9 @@ def _defend(
         or command.second_item_id is not None
     ):
         raise ValidationError("Defense equipment selection requires GURPS dispatch")
+    selected_actor, selected_defense = _settled_choice(command, encounter, selected_defense)
     encounter, result = engine.choose_defense(
-        encounter, actor_id=command.actor_id, selected=selected_defense
+        encounter, actor_id=selected_actor, selected=selected_defense
     )
     if encounter.pending_defense is not None and engine.rules.gurps_equipment is not None:
         queued = encounter.pending_defense
