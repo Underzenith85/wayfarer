@@ -1,0 +1,318 @@
+{
+  "issue": 822,
+  "frozen_commit": "5b1fad55",
+  "rows": [
+    {
+      "id": "trait:advantage:alcohol-tolerance",
+      "family": "physiology",
+      "source": "Characters third printing B100",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 902
+    },
+    {
+      "id": "trait:advantage:less-sleep",
+      "family": "recovery",
+      "source": "Characters third printing B65",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 905
+    },
+    {
+      "id": "trait:advantage:reduced-consumption",
+      "family": "physiology",
+      "source": "Characters third printing B80",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 902
+    },
+    {
+      "id": "trait:advantage:unusual-background",
+      "family": "physiology",
+      "source": "Characters third printing B96",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 906
+    },
+    {
+      "id": "trait:disadvantage:alcohol-intolerance",
+      "family": "physiology",
+      "source": "Characters third printing B165",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 902
+    },
+    {
+      "id": "trait:disadvantage:alcoholism",
+      "family": "physiology",
+      "source": "Characters third printing B122",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 902
+    },
+    {
+      "id": "trait:disadvantage:bad-back",
+      "family": "physiology",
+      "source": "Characters third printing B123",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:bad-grip",
+      "family": "physiology",
+      "source": "Characters third printing B123",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:cannot-float",
+      "family": "physiology",
+      "source": "Characters third printing B165",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:cannot-speak",
+      "family": "physiology",
+      "source": "Characters third printing B125",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:chronic-pain",
+      "family": "recovery",
+      "source": "Characters third printing B126",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:dwarfism",
+      "family": "physiology",
+      "source": "Characters third printing B19",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:epilepsy",
+      "family": "physiology",
+      "source": "Characters third printing B136",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:extra-sleep",
+      "family": "recovery",
+      "source": "Characters third printing B136",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 905
+    },
+    {
+      "id": "trait:disadvantage:fat",
+      "family": "physiology",
+      "source": "Characters third printing B19",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:flashbacks",
+      "family": "physiology",
+      "source": "Characters third printing B136",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:gigantism",
+      "family": "physiology",
+      "source": "Characters third printing B20",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:hemophilia",
+      "family": "recovery",
+      "source": "Characters third printing B138",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 905
+    },
+    {
+      "id": "trait:disadvantage:hunchback",
+      "family": "physiology",
+      "source": "Characters third printing B139",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:increased-consumption",
+      "family": "physiology",
+      "source": "Characters third printing B139",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 902
+    },
+    {
+      "id": "trait:disadvantage:light-sleeper",
+      "family": "recovery",
+      "source": "Characters third printing B142",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:low-pain-threshold",
+      "family": "recovery",
+      "source": "Characters third printing B142",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 905
+    },
+    {
+      "id": "trait:disadvantage:minor-handicaps",
+      "family": "physiology",
+      "source": "Characters third printing B165",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:missing-digit",
+      "family": "physiology",
+      "source": "Characters third printing B145",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:motion-sickness",
+      "family": "physiology",
+      "source": "Characters third printing B144",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:neurological-disorder",
+      "family": "physiology",
+      "source": "Characters third printing B144",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:numb",
+      "family": "physiology",
+      "source": "Characters third printing B146",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:one-arm",
+      "family": "physiology",
+      "source": "Characters third printing B147",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:one-hand",
+      "family": "physiology",
+      "source": "Characters third printing B147",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:skinny",
+      "family": "physiology",
+      "source": "Characters third printing B18",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:sleepwalker",
+      "family": "recovery",
+      "source": "Characters third printing B154",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:slow-healing",
+      "family": "recovery",
+      "source": "Characters third printing B155",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 905
+    },
+    {
+      "id": "trait:disadvantage:space-sickness",
+      "family": "physiology",
+      "source": "Characters third printing B156",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:stuttering",
+      "family": "physiology",
+      "source": "Characters third printing B157",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:susceptible",
+      "family": "physiology",
+      "source": "Characters third printing B158",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 902
+    },
+    {
+      "id": "trait:disadvantage:terminally-ill",
+      "family": "recovery",
+      "source": "Characters third printing B158",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 905
+    },
+    {
+      "id": "trait:disadvantage:timesickness",
+      "family": "physiology",
+      "source": "Characters third printing B158",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 904
+    },
+    {
+      "id": "trait:disadvantage:very-fat",
+      "family": "physiology",
+      "source": "Characters third printing B19",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 903
+    },
+    {
+      "id": "trait:disadvantage:wounded",
+      "family": "recovery",
+      "source": "Characters third printing B162",
+      "construction": "Complete-catalog purchase only; source variants require review",
+      "execution": "unverified",
+      "follow_up": 905
+    }
+  ]
+}
