@@ -78,6 +78,7 @@ def capture_critical(
         for m in modes
     )
     participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+    position = participant.runtime_position
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     armor = tuple(
         e.armor
@@ -105,12 +106,8 @@ def capture_critical(
             "catalog_digest": hashlib.sha256(equipment.model_dump_json().encode()).hexdigest(),
             "ht": statistics.ht,
             "created_at": state.resources.game_time,
-            "position": (participant.position.x, participant.position.y)
-            if isinstance(participant.position, GridPoint)
-            else None,
-            "hex_position": (participant.position.q, participant.position.r)
-            if isinstance(participant.position, Hex)
-            else None,
+            "position": (position.x, position.y) if isinstance(position, GridPoint) else None,
+            "hex_position": (position.q, position.r) if isinstance(position, Hex) else None,
             "hex_facing": participant.hex_facing,
             "facing": participant.facing,
             "anatomy": hp.injury.anatomy if hp.injury else None,

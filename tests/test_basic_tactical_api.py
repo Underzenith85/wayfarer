@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import aiohttp
+import pytest
 from aiohttp import web
 from support.runtime import build_runtime
 from test_basic_combat import provenance, start_basic
@@ -27,11 +28,13 @@ from wayfarer.transport.campaign_api import create_campaign_app
 
 @asynccontextmanager
 async def api(
-    tmp_path: Path, *, profiled: bool = False, distance: int = 2
+    tmp_path: Path, *, profiled: bool = False, distance: int = 2, command_seed: int | None = None
 ) -> AsyncIterator[tuple[str, str]]:
     cid, play = (
         await setup_profiled_basic(tmp_path, distance) if profiled else await setup(tmp_path)
     )
+    if command_seed is not None:
+        play.seeds = lambda: format(command_seed, "064x")
     principals = (
         {"alice-token": "a", "bob-token": "b", "charlie-token": "c", "gm-token": "gm"}
         if profiled
@@ -183,9 +186,12 @@ async def test_gm_basic_start_reinforcement_and_hex_escalation_use_v2(tmp_path: 
         assert tactical.encounters[0].coordinate_system == "hex-axial-v1"
 
 
-async def test_basic_pending_defense_reconnect_retry_and_stale_choice(tmp_path: Path) -> None:
+@pytest.mark.parametrize("command_seed", [1, 316])
+async def test_basic_pending_defense_reconnect_retry_and_stale_choice(
+    tmp_path: Path, command_seed: int
+) -> None:
     async with (
-        api(tmp_path, profiled=True, distance=1) as (url, _cid),
+        api(tmp_path, profiled=True, distance=1, command_seed=command_seed) as (url, _cid),
         aiohttp.ClientSession() as client,
     ):
         attacker = await read(client, url, "alice", "a")
