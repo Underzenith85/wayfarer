@@ -201,3 +201,6 @@ class SkillSpec:
     prerequisite_groups: tuple[PrerequisiteGroup, ...] = ()
     # B168: a /TL skill purchase records the TL at which it was learned.
     technology_level_required: bool = False
+    # B247/B480: purchased spells from distinct colleges, excluding own college.
+    minimum_spell_colleges: int = 0
+    excluded_spell_colleges: tuple[str, ...] = ()

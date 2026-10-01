@@ -29,8 +29,9 @@ def test_exact_healing_inventory_pages_and_runtime() -> None:
         for value in inventory().entries
         if value.id in {binding.id for binding in BINDINGS}
     }
-    assert all(value.blockers == () for value in rows.values())
-    assert all(value.evidence == ("tests/test_spell_healing.py",) for value in rows.values())
+    assert rows["spell:major-healing"].blockers == (746, 747, 772)
+    assert rows["spell:great-healing"].blockers == (746, 747, 772)
+    assert rows["spell:major-healing"].evidence == ("tests/test_spell_construction.py",)
     build = approved_spell(package(), BINDINGS[0].id)
     world = World(
         entities=(

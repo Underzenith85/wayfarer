@@ -1,14 +1,45 @@
 """Basic Set healing spell inventory."""
 
+from dataclasses import replace
 from typing import Final
 
 from wayfarer.engine.rules.catalog import RulesPackage
-from wayfarer.engine.rules.magic.colleges import CollegeSpellBinding, college_package
+from wayfarer.engine.rules.magic.colleges import CollegeSpellBinding, college_package, learning_spec
+from wayfarer.engine.rules.types.skill import (
+    Difficulty,
+    PrerequisiteGroup,
+    PrerequisiteKind,
+    SkillPrerequisite,
+)
 
 ISSUE: Final = 224
 COLLEGE: Final = "healing"
+# B248 dependencies needed to prove Major/Great Healing construction.
+LEARNING: Final = {
+    "lend-energy": replace(
+        learning_spec(248),
+        prerequisite_groups=(
+            PrerequisiteGroup(
+                (
+                    SkillPrerequisite("trait:magery", 1, PrerequisiteKind.PURCHASED_DEFINITION),
+                    SkillPrerequisite(
+                        "advantage:empathy", 1, PrerequisiteKind.PURCHASED_DEFINITION
+                    ),
+                )
+            ),
+        ),
+    ),
+    "lend-vitality": learning_spec(248, spells=("lend-energy",)),
+    "minor-healing": learning_spec(248, spells=("lend-vitality",)),
+    "major-healing": learning_spec(
+        248, difficulty=Difficulty.VERY_HARD, magery=1, spells=("minor-healing",)
+    ),
+    "great-healing": learning_spec(
+        248, difficulty=Difficulty.VERY_HARD, magery=3, spells=("major-healing",)
+    ),
+}
 BINDINGS: Final = tuple(
-    CollegeSpellBinding(key, name, page, COLLEGE)
+    CollegeSpellBinding(key, name, page, COLLEGE, learning=LEARNING.get(key))
     for key, name, page in (
         ("awaken", "Awaken", 248),
         ("great-healing", "Great Healing", 248),

@@ -27,7 +27,7 @@
   "entries": [
     {
       "id": "advantage:360-vision",
-      "name": "360° Vision",
+      "name": "360\u00b0 Vision",
       "kind": "advantage",
       "page": 34,
       "classification": "X",
@@ -657,7 +657,7 @@
     },
     {
       "id": "advantage:doesnt-breathe",
-      "name": "Doesn’t Breathe",
+      "name": "Doesn\u2019t Breathe",
       "kind": "advantage",
       "page": 49,
       "classification": "X",
@@ -678,7 +678,7 @@
     },
     {
       "id": "advantage:doesnt-eat-or-drink",
-      "name": "Doesn’t Eat or Drink",
+      "name": "Doesn\u2019t Eat or Drink",
       "kind": "advantage",
       "page": 50,
       "classification": "X",
@@ -699,7 +699,7 @@
     },
     {
       "id": "advantage:doesnt-sleep",
-      "name": "Doesn’t Sleep",
+      "name": "Doesn\u2019t Sleep",
       "kind": "advantage",
       "page": 50,
       "classification": "X",
@@ -5716,12 +5716,16 @@
       "colleges": [
         "enchantment"
       ],
-      "blockers": [],
+      "blockers": [
+        746,
+        747,
+        785
+      ],
       "source": "campaigns-fourth",
-      "status": "verified",
-      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
       "evidence": [
-        "tests/test_spell_enchantment.py"
+        "tests/test_spell_construction.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5972,12 +5976,16 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [],
+      "blockers": [
+        746,
+        747,
+        772
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
       "evidence": [
-        "tests/test_spell_healing.py"
+        "tests/test_spell_construction.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6318,12 +6326,16 @@
       "colleges": [
         "healing"
       ],
-      "blockers": [],
+      "blockers": [
+        746,
+        747,
+        772
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Source-reviewed Very Hard construction and purchased prerequisites; effect execution remains unverified.",
       "evidence": [
-        "tests/test_spell_healing.py"
+        "tests/test_spell_construction.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6525,12 +6537,16 @@
       "colleges": [
         "gate"
       ],
-      "blockers": [],
+      "blockers": [
+        746,
+        747,
+        802
+      ],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "status": "partial",
+      "supported_subset": "Source-reviewed plane-specific Very Hard construction requires Planar Summons for the same plane; generic learning and effect execution remain unavailable.",
       "evidence": [
-        "tests/test_spell_necromantic.py"
+        "tests/test_spell_construction.py"
       ],
       "members": [],
       "talent_cost": null,

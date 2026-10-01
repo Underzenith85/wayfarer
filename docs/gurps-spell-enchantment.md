@@ -1,16 +1,7 @@
 # GURPS Basic Set enchantment spells
 
-Issue #221 accounts for Accuracy, Deflect, Enchant, Fortify, Power, Puissance,
-and Staff from Campaigns B479-482. Their identities, college, learning shape,
-source pages, and package selection are pinned independently from the historic
-seven-spell profile.
-
-The shared college-spell boundary requires an approved learned spell, actor and
-target authority, current co-location, explicit randomness, compare-and-set
-revision, and an uninterrupted command. Outcomes are private, durable across
-JSON restart, and exactly-once through the existing receipt ledger. Concrete
-enchantment energy schedules and item-stat mutations remain bounded by the
-existing magic-item protocols; this package does not invent recipe values.
-
-The selected-printing review and #221 implementation evidence are reconciled;
-all seven inventory rows are verified.
+The inventory preserves spell identities and printed-page locators. Source-specific
+construction now requires explicit metadata; unreviewed entries are unavailable
+for automatic learning. See [spell construction](gurps-spell-construction.md) for
+the reviewed #745 subset and its behavioral evidence. Runtime command-boundary
+checks do not certify concrete effects, energy, or lifecycle behavior.

@@ -1,3 +1,7 @@
 # GURPS Basic Set necromantic spells
 
-Issue #225 accounts for Banish, Death Vision, Planar Summons, Plane Shift, Sense Spirit, Summon Demon, Summon Spirit, Turn Zombie, Zombie. The package pins their identities, source pages, IQ/Hard learning shape, and family selection. Runtime attempts use the shared authority, targeting, interruption, privacy, replay, and restart boundary. Unsupported effect variants remain explicit boundaries. The selected-printing review and implementation evidence are reconciled; these inventory rows are verified.
+The inventory preserves spell identities and printed-page locators. Source-specific
+construction now requires explicit metadata; unreviewed entries are unavailable
+for automatic learning. See [spell construction](gurps-spell-construction.md) for
+the reviewed #745 subset and its behavioral evidence. Runtime command-boundary
+checks do not certify concrete effects, energy, or lifecycle behavior.

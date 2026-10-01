@@ -1,4 +1,4 @@
-"""Shared test construction for independently owned Basic Set spell colleges."""
+"""Synthetic builds for college command-boundary tests, not learning evidence."""
 
 from dataclasses import replace
 
@@ -8,14 +8,31 @@ from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, Vali
 from wayfarer.engine.rules.catalog import (
     CampaignPolicy,
     CampaignRules,
+    ImplementationStatus,
     PackagePin,
     RulesCatalog,
     RulesPackage,
 )
 from wayfarer.engine.rules.magic.colleges import PROFILE
+from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec
 
 
 def approved_spell(definition: RulesPackage, spell_id: str) -> ValidatedBuild:
+    # These tests exercise command receipts only. Production learning validation
+    # has independent tests and must never use this synthetic specification.
+    definition = replace(
+        definition,
+        definitions=tuple(
+            replace(
+                entry,
+                status=ImplementationStatus.IMPLEMENTED,
+                skill=SkillSpec(ControllingAttribute.IQ, Difficulty.HARD, "test:command-boundary"),
+            )
+            if entry.id == spell_id
+            else entry
+            for entry in definition.definitions
+        ),
+    )
     base = profile_package(PROFILE)
     combined = replace(
         base,
