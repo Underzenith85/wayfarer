@@ -1,16 +1,26 @@
 """Independent physiology expectations, Characters 4e B41-160."""
 
 import pytest
+from test_statistics import gurps_draft
 from trait_support import approved_build, options, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.physiology import physiology_traits
+from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.supernatural import inventory
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.physiology import BINDINGS, PROFILE, RUNTIME_HOOKS
 from wayfarer.engine.rules.traits.physiology import package as physiology_package
 from wayfarer.engine.rules.types.injury import ElectricalStun, InjuryStatus
 from wayfarer.engine.rules.types.location import LastingInjury
+from wayfarer.engine.rules.types.recovery import FatigueStatus
+from wayfarer.engine.simulation.health.healing import restore_hp
+from wayfarer.engine.simulation.health.medical.commands import (
+    BeginRecovery,
+    CareContext,
+    FinishRecovery,
+)
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.traits.physiology import (
     PhysiologyCommand,
@@ -720,3 +730,108 @@ def test_weakness_canonical_death_and_ended_exposure() -> None:
         system=True,
     )
     assert unavailable.kind == "unavailable" and ended.pools == state().pools
+
+
+@pytest.mark.parametrize("level", ["partial", "total"])
+@pytest.mark.parametrize("kind", ["natural", "bandage", "first-aid", "physician", "drug"])
+def test_unhealing_canonical_recovery(level: str, kind: str) -> None:
+    build, engine = approved(
+        Purchase(definition_id="disadvantage:unhealing", trait=options(kind=level))
+    )
+    resources = state()
+    ordinary, amount = restore_hp(resources, resources.pools[0], 3, kind=kind)
+    assert ordinary.current == 8 and amount == 3
+    blocked, amount = restore_hp(
+        resources,
+        resources.pools[0],
+        3,
+        kind=kind,
+        physiology=physiology_traits(build, engine.definitions),
+    )
+    assert blocked == resources.pools[0] and amount == 0
+
+
+def test_partial_unhealing_condition_and_magical_exception() -> None:
+    resources = state()
+    for level in ("partial", "total"):
+        build, engine = approved(
+            Purchase(definition_id="disadvantage:unhealing", trait=options(kind=level))
+        )
+        traits = physiology_traits(build, engine.definitions)
+        healed, amount = restore_hp(
+            resources,
+            resources.pools[0],
+            3,
+            kind="natural",
+            physiology=traits,
+            unhealing_condition=True,
+        )
+        assert healed.current == (8 if level == "partial" else 5)
+        healed, amount = restore_hp(
+            resources, resources.pools[0], 3, kind="magical", physiology=traits
+        )
+        assert healed.current == 8 and amount == 3
+        healed, amount = restore_hp(
+            resources, resources.pools[0], 3, kind="steal-hp", physiology=traits
+        )
+        assert healed.current == (8 if level == "partial" else 5)
+
+
+def test_regeneration_cannot_be_purchased_with_unhealing() -> None:
+    result = compiler().compile(
+        gurps_draft(
+            Purchase(definition_id="disadvantage:unhealing", trait=options(kind="total")),
+            Purchase(definition_id="advantage:regeneration", trait=options(rate="fast")),
+        )
+    )
+    assert result.build is None
+    assert any(
+        d.code == "trait.exclusion" and "regeneration" in d.message for d in result.diagnostics
+    )
+
+
+@pytest.mark.parametrize("level", ["partial", "total"])
+def test_unhealing_medical_entry_and_completion(level: str) -> None:
+    build, engine = approved(
+        Purchase(definition_id="disadvantage:unhealing", trait=options(kind=level))
+    )
+    traits = physiology_traits(build, engine.definitions)
+    resources = state().model_copy(
+        update={
+            "pools": state().pools
+            + (Pool(id="fp:a", current=10, maximum=10, fatigue=FatigueStatus(profile_id=PROFILE)),)
+        }
+    )
+    request = BeginRecovery(
+        id="natural", actor_id="a", expected_revision=0, kind="natural", target_id="a"
+    )
+    with pytest.raises(ValidationError, match="Unhealing"):
+        apply_recovery(
+            resources,
+            request,
+            CareContext(PROFILE, 10, physiology=traits),
+            rng=RecordedDice([]),
+            system=True,
+        )
+    pending, _ = apply_recovery(
+        resources, request, CareContext(PROFILE, 10, food=True), rng=RecordedDice([]), system=True
+    )
+    finish = FinishRecovery(id="finish", actor_id="a", expected_revision=1, task_id="natural")
+    pending = pending.model_copy(update={"game_time": pending.recovery_tasks[0].due})
+    updated, result = apply_recovery(
+        pending,
+        finish,
+        CareContext(PROFILE, 10, physiology=traits),
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert updated.pools[0].current == 5 and result.hp_recovered == 0
+    assert result.check is None
+    restarted = ResourceState.model_validate_json(updated.model_dump_json())
+    assert apply_recovery(
+        restarted,
+        finish,
+        CareContext(PROFILE, 10, physiology=traits),
+        rng=RecordedDice([]),
+        system=True,
+    ) == (restarted, result)

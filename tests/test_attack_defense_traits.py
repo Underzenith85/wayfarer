@@ -13,6 +13,9 @@ from wayfarer.engine.rules.supernatural import inventory
 from wayfarer.engine.rules.traits.attack_defense import BINDINGS, PROFILE, RUNTIME_HOOKS
 from wayfarer.engine.rules.traits.attack_defense import package as attack_defense_package
 from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.rules.traits.physiology import RUNTIME_HOOKS as PHYSIOLOGY_HOOKS
+from wayfarer.engine.rules.traits.physiology import package as physiology_package
+from wayfarer.engine.rules.types.hazard import RecoveryRestriction
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.traits.attack_defense import (
@@ -404,3 +407,67 @@ def test_unkillable_changes_the_shared_injury_death_state() -> None:
     status = next(pool for pool in state.pools if pool.id == "hp:b").injury
     assert result.injury is not None and status is not None
     assert not status.dead and status.unconscious
+
+
+@pytest.mark.parametrize(
+    ("level", "debt", "expected"),
+    [(None, 0, 7), ("partial", 0, 7), ("total", 0, 5), ("partial", 5, 5)],
+)
+def test_vampiric_bite_uses_canonical_unhealing_and_cyclic_debt(
+    level: str | None, debt: int, expected: int
+) -> None:
+    engine = trait_compiler(
+        "vampiric-unhealing",
+        PROFILE,
+        attack_defense_package(),
+        physiology_package(),
+        hooks=RUNTIME_HOOKS | PHYSIOLOGY_HOOKS,
+    )
+    purchases = (Purchase(definition_id="advantage:vampiric-bite"),) + (
+        ()
+        if level is None
+        else (Purchase(definition_id="disadvantage:unhealing", trait=options(kind=level)),)
+    )
+    attacker, _ = approved_build(engine, *purchases)
+    target, _ = approved_build(engine)
+    before = resources(attacker_hp=5)
+    if debt:
+        before = before.model_copy(
+            update={
+                "illnesses": (
+                    RecoveryRestriction(
+                        id="cyclic", actor_id="a", hp_debt=debt, blocks_physician_healing=True
+                    ),
+                )
+            }
+        )
+    request = command("advantage:vampiric-bite")
+    updated, result = apply_trait_attack(
+        before,
+        world(),
+        request,
+        attacker,
+        target,
+        engine.definitions,
+        (channel("advantage:vampiric-bite", basic_damage=3, damage_type="imp"),),
+        target_ht=12,
+        rng=RecordedDice([3, 3, 3]),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert updated.pools[0].current == expected and result.healed == expected - 5
+    assert updated.pools[1].current == 4
+    restarted = ResourceState.model_validate_json(updated.model_dump_json())
+    assert apply_trait_attack(
+        restarted,
+        world(),
+        request,
+        attacker,
+        target,
+        engine.definitions,
+        (channel("advantage:vampiric-bite", basic_damage=3, damage_type="imp"),),
+        target_ht=12,
+        rng=RecordedDice([]),
+        authorized_actor_id="a",
+        system=True,
+    ) == (restarted, result)

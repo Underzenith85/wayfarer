@@ -225,6 +225,7 @@ def apply_physiology_interval(
     authorized_actor_id: str,
     system: bool = False,
     rng: RandomSource | None = None,
+    unhealing_condition: bool = False,
 ) -> tuple[ResourceState, PhysiologyOutcome]:
     if (
         not system
@@ -276,7 +277,12 @@ def apply_physiology_interval(
             raise ValidationError("Regeneration requires canonical Basic Set HP")
         # B424 explicitly scales Regeneration along with other HP healing.
         healed_hp, _ = restore_hp(
-            resources, hp, traits.regeneration_amount() * max(1, hp.maximum // 10), kind="natural"
+            resources,
+            hp,
+            traits.regeneration_amount() * max(1, hp.maximum // 10),
+            kind="natural",
+            physiology=traits,
+            unhealing_condition=unhealing_condition,
         )
         kind, after = "regenerated", healed_hp.current
     elif interval.kind in {"dependency", "weakness"}:
