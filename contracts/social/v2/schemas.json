@@ -9241,6 +9241,12 @@
             },
             "title": "Lasting Injuries",
             "type": "array"
+          },
+          "rest_only_injury": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Rest Only Injury",
+            "type": "integer"
           }
         },
         "required": [
@@ -10527,7 +10533,8 @@
               "severed",
               "disabled",
               "deafened",
-              "scarred"
+              "scarred",
+              "bad-back"
             ],
             "title": "Kind",
             "type": "string"

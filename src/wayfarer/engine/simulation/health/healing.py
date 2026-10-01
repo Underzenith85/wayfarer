@@ -30,9 +30,18 @@ def restore_hp(
             return hp, 0
     if unhealing == "total" and kind == "steal-hp":
         return hp, 0
+    if kind in {"bandage", "first-aid"}:
+        amount = min(amount, max(0, hp.maximum - hp.current - hp.injury.rest_only_injury))
     healed = min(
         amount,
         max(0, hp.maximum - hp.current - blocked_hp(state.illnesses, actor_id, kind)),
         amount if entitlement is None else entitlement,
     )
-    return hp.model_copy(update={"current": hp.current + healed}), healed
+    status = hp.injury.model_copy(
+        update={
+            "rest_only_injury": min(
+                hp.injury.rest_only_injury, max(0, hp.maximum - hp.current - healed)
+            )
+        }
+    )
+    return hp.model_copy(update={"current": hp.current + healed, "injury": status}), healed

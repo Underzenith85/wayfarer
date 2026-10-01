@@ -9,6 +9,8 @@ from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.traits.physiology import PROFILE, RUNTIME_HOOKS
 from wayfarer.engine.rules.traits.physiology import package as physiology_package
+from wayfarer.engine.rules.types.injury import InjuryStatus
+from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.campaign.activities import (
     ActivityActor,
     ActivityOutcome,
@@ -21,7 +23,7 @@ from wayfarer.engine.simulation.campaign.activities import (
     apply_activity,
     gravity_effects,
 )
-from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.resources import Pool, ResourceState
 
 
 def advance(state: ResourceState, to: int, _parent: str) -> ResourceState:
@@ -137,6 +139,24 @@ def test_digging_breath_running_and_extra_effort() -> None:
         (6, 6, 6),
     )
     assert (ran.move, ran.progress, ran.fp_lost) == (6, Decimal(89), 1)
+    state = state.model_copy(
+        update={
+            "pools": (
+                Pool(
+                    id="hp:a",
+                    current=10,
+                    maximum=10,
+                    injury=InjuryStatus(profile_id="gurps-basic-set-4e-2004", anatomy="human"),
+                ),
+                Pool(
+                    id="fp:a",
+                    current=10,
+                    maximum=10,
+                    fatigue=FatigueStatus(profile_id="gurps-basic-set-4e-2004"),
+                ),
+            )
+        }
+    )
     state, effort = perform(
         state,
         "effort",
@@ -144,10 +164,12 @@ def test_digging_breath_running_and_extra_effort() -> None:
             id="heave",
             requested_percent=10,
             critical_failure_consequence="strained-back",
+            task="lifting",
         ),
-        1,
-        (6, 6, 6),
+        60,
+        (6, 6, 6, 3, 3, 3),
     )
+    assert effort.hp_lost == 1
     assert effort.fp_lost == 1 and effort.consequence == "strained-back"
 
 
