@@ -423,7 +423,9 @@ def apply_drinking(
             )
             check = success_roll("gurps-basic-set-4e-2004", max(1, target), rng=rng)
             if not check.outcome.succeeded:
-                level, hallucinating, retching = _failed_drinking_check(item, check, ht=ht + tolerance, rng=rng)
+                level, hallucinating, retching = _failed_drinking_check(
+                    item, check, ht=ht + tolerance, rng=rng
+                )
         item = item.model_copy(
             update={"drinks": drinks, "total_session_drinks": total, "level": level}
         )
@@ -432,7 +434,9 @@ def apply_drinking(
             raise ConflictError("Drinking session already stopped or empty")
         hours = max(1, item.total_session_drinks // 2)
         penalty = -4 if item.level == "unconscious" else -2 if item.level == "drunk" else 0
-        hangover = success_roll("gurps-basic-set-4e-2004", max(1, ht + penalty + tolerance), rng=rng)
+        hangover = success_roll(
+            "gurps-basic-set-4e-2004", max(1, ht + penalty + tolerance), rng=rng
+        )
         hangover_due = (
             state.game_time + sum(rng.randbelow(6) + 1 for _ in range(1)) * 3600
             if not hangover.outcome.succeeded
