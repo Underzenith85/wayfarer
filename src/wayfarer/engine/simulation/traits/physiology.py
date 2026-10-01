@@ -165,7 +165,15 @@ def _harmful_interval(
     periods = (
         {"minute": 60, "five-minutes": 300, "thirty-minutes": 1800}
         if interval.kind == "weakness"
-        else {"minute": 60, "hour": 3600, "day": 86400, "week": 604800}
+        else {
+            "minute": 60,
+            "hour": 3600,
+            "day": 86400,
+            "week": 604800,
+            "month": 2592000,
+            "season": 7776000,
+            "year": 31536000,
+        }
     )
     period = periods.get(str(frequency))
     if period is None:
@@ -173,15 +181,38 @@ def _harmful_interval(
     first = interval.started + (
         period
         if interval.kind == "weakness" or frequency == "minute"
-        else period + {"hour": 600, "day": 3600, "week": 21600}[str(frequency)]
+        else period
+        + {
+            "hour": 600,
+            "day": 3600,
+            "week": 21600,
+            "month": 86400,
+            "season": 259200,
+            "year": 1209600,
+        }[str(frequency)]
     )
     cadence = (
         period
         if interval.kind == "weakness"
-        else {"minute": 60, "hour": 600, "day": 3600, "week": 21600}[str(frequency)]
+        else {
+            "minute": 60,
+            "hour": 600,
+            "day": 3600,
+            "week": 21600,
+            "month": 86400,
+            "season": 259200,
+            "year": 1209600,
+        }[str(frequency)]
     )
     if interval.due < first or (interval.due - first) % cadence:
         raise ValidationError("Physiology interval differs from the approved frequency")
+    if any(
+        entry.outcome.actor_id == interval.actor_id
+        and entry.outcome.interval_id == interval.id
+        and entry.outcome.kind == "injured"
+        for entry in history(resources)
+    ):
+        raise ConflictError("Physiology interval was already consumed")
     previous = [
         entry.interval.due
         for entry in history(resources)

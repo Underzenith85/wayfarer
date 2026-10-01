@@ -76,7 +76,7 @@ def test_registry_and_inventory_account_for_all_38_entries() -> None:
                 definition_id="disadvantage:weakness",
                 trait=options(rarity="common", interval="minute"),
             ),
-            -45,
+            -40,
         ),
     ],
 )
@@ -849,3 +849,112 @@ def test_limited_breathing_does_not_claim_unconditional_air_immunity(modifier: s
     traits = physiology_traits(build, engine.definitions)
     assert "air" in traits.survival_requirements()
     assert traits.breath_multiplier() == 1
+
+
+@pytest.mark.parametrize(
+    ("frequency", "cost", "first", "cadence"),
+    [
+        ("week", -20, 626400, 21600),
+        ("month", -10, 2678400, 86400),
+        ("season", -3, 8035200, 259200),
+        ("year", -1, 32745600, 1209600),
+    ],
+)
+def test_dependency_all_printed_frequencies(
+    frequency: str, cost: int, first: int, cadence: int
+) -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="disadvantage:dependency",
+            trait=options(rarity="common", interval=frequency),
+        )
+    )
+    assert (
+        next(p.cost for p in build.purchases if p.definition_id == "disadvantage:dependency")
+        == cost
+    )
+    interval = PhysiologyInterval(id="dose", actor_id="a", kind="dependency", due=first)
+    updated, result = apply_physiology_interval(
+        state(time=first),
+        command(identifier="dose"),
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert result.hp_after == 4 and result.injury is not None
+    interval = interval.model_copy(update={"id": "next", "due": first + cadence})
+    updated, result = apply_physiology_interval(
+        updated.model_copy(update={"game_time": interval.due}),
+        command(1, "next"),
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    assert result.hp_after == 3
+
+
+@pytest.mark.parametrize(
+    ("rarity", "minute", "five", "thirty"),
+    [
+        ("rare", -10, -5, -2),
+        ("occasional", -20, -10, -5),
+        ("common", -40, -20, -10),
+        ("very-common", -60, -30, -15),
+    ],
+)
+def test_weakness_printed_frequency_and_rarity_costs(
+    rarity: str, minute: int, five: int, thirty: int
+) -> None:
+    for frequency, expected in (
+        ("minute", minute),
+        ("five-minutes", five),
+        ("thirty-minutes", thirty),
+    ):
+        build, _ = approved(
+            Purchase(
+                definition_id="disadvantage:weakness",
+                trait=options(rarity=rarity, interval=frequency),
+            )
+        )
+        assert (
+            next(p.cost for p in build.purchases if p.definition_id == "disadvantage:weakness")
+            == expected
+        )
+
+
+def test_harmful_interval_identity_cannot_be_reused_after_exposure_restart() -> None:
+    build, engine = approved(
+        Purchase(
+            definition_id="disadvantage:weakness", trait=options(rarity="common", interval="minute")
+        )
+    )
+    interval = PhysiologyInterval(id="weak", actor_id="a", kind="weakness", due=60)
+    updated, _ = apply_physiology_interval(
+        state(),
+        command(identifier="weak"),
+        interval,
+        build,
+        engine.definitions,
+        rng=FixedDice(),
+        authorized_actor_id="a",
+        system=True,
+    )
+    restarted = interval.model_copy(update={"started": 60, "due": 120})
+    request = command(1, "weak").model_copy(update={"id": "new-command"})
+    with pytest.raises(ConflictError, match="consumed"):
+        apply_physiology_interval(
+            updated.model_copy(update={"game_time": 120}),
+            request,
+            restarted,
+            build,
+            engine.definitions,
+            rng=FixedDice(),
+            authorized_actor_id="a",
+            system=True,
+        )
