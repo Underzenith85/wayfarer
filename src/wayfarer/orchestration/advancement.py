@@ -33,11 +33,9 @@ from wayfarer.engine.simulation.campaign.party import migrate
 from wayfarer.engine.simulation.campaign.scenario_references import boundary
 from wayfarer.engine.simulation.campaign.scenes import ActorScene
 from wayfarer.engine.simulation.resources import Pool
+from wayfarer.engine.simulation.traits.harmful_physiology_play import reconcile_actor
 from wayfarer.engine.simulation.traits.harmful_physiology_state import (
     require_deadline as require_physiology_deadline,
-)
-from wayfarer.engine.simulation.traits.harmful_physiology_state import (
-    require_no_transformation_bindings,
 )
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -297,7 +295,7 @@ class AdvancementService:
             else pool
             for pool in state.resources.pools
         )
-        return state.model_copy(
+        state = state.model_copy(
             update={
                 "revision": revision,
                 "actors": actors,
@@ -309,6 +307,7 @@ class AdvancementService:
                 "rulings": expire_rulings(state.rulings, revision, state.resources.game_time),
             }
         )
+        return reconcile_actor(self.play.rules_context, state, command.actor_id, command.id)
 
     def advance_plan(self, command: AdvanceCharacter) -> CommandPlan[AdvancementEntry]:
         """What an advancement writes; the pipeline decides whether it runs.
@@ -423,13 +422,6 @@ class MigrationService:
         def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.current._load(campaign)
             require_physiology_deadline(state.resources, state.resources.game_time + 1)
-            transformations = self.target.engine.rules.transformations
-            require_no_transformation_bindings(
-                state.resources,
-                frozenset(rule.actor_id for rule in transformations.transformations)
-                if transformations is not None
-                else frozenset(),
-            )
             # The target rules must still accept every character under the lock.
             self._diffs(state)
             approvals = []
@@ -521,6 +513,10 @@ class MigrationService:
                     update={"runtime_digest": self.target.engine.digest}
                 ).model_dump_json()
             campaign["rules_ref"] = reference(self.target.engine.resources.rules)
+            for actor in updated.actors:
+                updated = reconcile_actor(
+                    self.target.rules_context, updated, actor.actor_id, command.id
+                )
             self.target.commit(campaign, updated)
             return CommandReceipt(action="rules-migration", outcome=entry.model_dump_json())
 

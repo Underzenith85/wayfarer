@@ -12,7 +12,7 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import RandomSource
-from wayfarer.engine.simulation.resources import Advance, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.simulation.traits.harmful_physiology_state import (
     PREFIX,
     AdvancePhysiology,
@@ -26,6 +26,7 @@ from wayfarer.engine.simulation.traits.harmful_physiology_state import (
     SettlePhysiology,
     calendar,
     conditions,
+    history,
     living,
 )
 from wayfarer.engine.simulation.traits.physiology import apply_physiology_interval, harmful_timing
@@ -46,12 +47,6 @@ class HarmfulContext:
     definitions: Mapping[str, RuleDefinition]
     engine: ResourceEngine
     rng: RandomSource
-    transformation_actor_ids: frozenset[str] = frozenset()
-
-
-def require_supported_actor(context: HarmfulContext, actor_id: str) -> None:
-    if actor_id in context.transformation_actor_ids:
-        raise ValidationError("Harmful physiology and transformations require supported ordering")
 
 
 def purchase(context: HarmfulContext, actor_id: str, source: HarmfulKind) -> tuple[str, str] | None:
@@ -114,7 +109,9 @@ def reconcile(
     state: ResourceState, item: HarmfulCondition, context: HarmfulContext, command_id: str
 ) -> HarmfulCondition:
     if not living(state, item):
-        return item.model_copy(update={"retired": True, "due": None, "contact_due": None})
+        return item.model_copy(
+            update={"retired": True, "dormant": False, "due": None, "contact_due": None}
+        )
     if item.retired and item.actor_id not in context.builds:
         return item
     current = purchase(context, item.actor_id, item.source)
@@ -122,25 +119,98 @@ def reconcile(
         return item
     _owed(state, item)
     if current is None:
-        return item.model_copy(update={"retired": True, "due": None, "contact_due": None})
-    require_supported_actor(context, item.actor_id)
-    # An approved replacement takes effect now, never retroactively. Existing
-    # exposure persists, but it must earn the replacement's full interval.
+        return item.model_copy(
+            update={"retired": True, "dormant": True, "due": None, "contact_due": None}
+        )
+    # A body cannot owe injury for time when it lacked the purchase. Physical
+    # contact and administered doses remain facts, rather than refreshing grace.
     item = item.model_copy(
         update={
             "purchase_digest": current[0],
             "frequency": current[1],
+            "generation": command_id,
+            "due": None,
+            "contact_due": None,
+            "retired": False,
+            "dormant": False,
+        }
+    )
+    if item.source == "weakness":
+        return _schedule_observation(
+            state, item.model_copy(update={"started": state.game_time}), fresh=False
+        )
+    first, cadence = timing(state, item)
+    if first <= state.game_time + cadence:
+        item = item.model_copy(update={"dependency_due": state.game_time})
+    if item.dependency_mode == "contact":
+        credit = _contact_credit(state, item)
+        if item.present and item.contact_started is None:
+            return _satisfied(state, item, command_id)
+        if credit >= cadence:
+            item = _satisfied(state, item, command_id)
+            if item.present:
+                return item
+            item = item.model_copy(
+                update={
+                    "started": item.contact_ended
+                    if item.contact_ended is not None
+                    else state.game_time
+                }
+            )
+            first, cadence = timing(state, item)
+            if first <= state.game_time + cadence:
+                item = item.model_copy(update={"dependency_due": state.game_time})
+        else:
+            item = item.model_copy(update={"contact_seconds": credit})
+
+    return _schedule_observation(state, item, fresh=False)
+
+
+def _contact_credit(state: ResourceState, item: HarmfulCondition) -> int:
+    return item.contact_seconds + (
+        state.game_time - item.contact_started
+        if item.present and item.contact_started is not None
+        else 0
+    )
+
+
+def _satisfied(state: ResourceState, item: HarmfulCondition, command_id: str) -> HarmfulCondition:
+    return item.model_copy(
+        update={
             "started": state.game_time,
             "generation": command_id,
             "dependency_due": None,
-            "due": None,
+            "contact_due": None,
             "contact_started": None,
             "contact_seconds": 0,
-            "contact_due": None,
-            "retired": False,
+            "due": None,
         }
     )
-    return _schedule_observation(state, item, fresh=True)
+
+
+def _observe_dormant(
+    state: ResourceState, item: HarmfulCondition, command: ObservePhysiology
+) -> HarmfulCondition:
+    if item.source == "dependency" and item.dependency_mode == "contact":
+        credit = _contact_credit(state, item)
+        _, cadence = timing(state, item)
+        if item.present and (item.contact_started is None or credit >= cadence):
+            item = _satisfied(state, item, command.id)
+        else:
+            item = item.model_copy(update={"contact_seconds": credit})
+        return item.model_copy(
+            update={
+                "present": command.present,
+                "contact_ended": state.game_time if not command.present else item.contact_ended,
+                "contact_started": state.game_time
+                if command.present and (not item.present or item.contact_started is not None)
+                else None,
+            }
+        )
+    changes: dict[str, object] = {"present": command.present}
+    if item.source == "dependency" and command.present:
+        changes.update(started=state.game_time, dependency_due=None, generation=command.id)
+    return item.model_copy(update=changes)
 
 
 def _schedule_observation(
@@ -176,7 +246,6 @@ def _schedule_observation(
 def observe(
     state: ResourceState, command: ObservePhysiology, context: HarmfulContext
 ) -> HarmfulCondition:
-    require_supported_actor(context, command.actor_id)
     if any(
         p.id == "hp:" + command.actor_id and p.injury is not None and p.injury.dead
         for p in state.pools
@@ -193,8 +262,6 @@ def observe(
     if command.source == "weakness" and command.dependency_mode != "dose":
         raise ValidationError("Weakness cannot declare a Dependency contact mode")
     selected = purchase(context, command.actor_id, command.source)
-    if selected is None:
-        raise ValidationError("Observation requires the currently approved physiology purchase")
     if old is not None:
         _owed(state, old)
         if (old.condition_id, old.dependency_mode) != (
@@ -203,6 +270,10 @@ def observe(
         ):
             raise ConflictError("The approved harmful condition binding cannot be aliased")
         old = reconcile(state, old, context, command.id)
+        if old.dormant:
+            return _observe_dormant(state, old, command)
+    if selected is None:
+        raise ValidationError("Observation requires the currently approved physiology purchase")
     if old is None or old.retired:
         item = HarmfulCondition(
             actor_id=command.actor_id,
@@ -246,6 +317,7 @@ def observe(
             return old.model_copy(
                 update={
                     "present": False,
+                    "contact_ended": state.game_time,
                     "contact_seconds": old.contact_seconds
                     + state.game_time
                     - (old.contact_started or 0),
@@ -261,6 +333,7 @@ def observe(
                 "generation": command.id,
                 "dependency_due": None,
                 "contact_started": None,
+                "contact_ended": state.game_time,
             }
         )
         return _schedule_observation(state, item, fresh=False)
@@ -285,7 +358,9 @@ def settle(
     if not living(state, item):
         return (
             state,
-            item.model_copy(update={"retired": True, "due": None, "contact_due": None}),
+            item.model_copy(
+                update={"retired": True, "dormant": False, "due": None, "contact_due": None}
+            ),
             (),
         )
     if item.deadline is None or item.deadline != state.game_time:
@@ -300,16 +375,7 @@ def settle(
         # damage tick; merely entering or briefly touching never resets the dose.
         return (
             state,
-            item.model_copy(
-                update={
-                    "started": state.game_time,
-                    "generation": command_id,
-                    "dependency_due": None,
-                    "contact_due": None,
-                    "contact_seconds": 0,
-                    "due": None,
-                }
-            ),
+            _satisfied(state, item, command_id),
             (),
         )
     state, outcome = apply_physiology_interval(
@@ -349,69 +415,6 @@ def settle(
     )
 
 
-def advance(
-    state: ResourceState, command: AdvancePhysiology, context: HarmfulContext
-) -> tuple[ResourceState, tuple[PhysiologyOutcome, ...]]:
-    injuries: list[PhysiologyOutcome] = []
-    if command.to < state.game_time:
-        raise ValidationError("Game time cannot move backwards")
-    for item in conditions(state):
-        updated = reconcile(state, item, context, command.id)
-        if updated != item:
-            state = save(
-                state,
-                HarmfulReceipt(
-                    command_id=command.id, conditions=(updated,), game_time=state.game_time
-                ),
-                suffix=":reconcile:" + item.actor_id + ":" + item.source,
-            )
-    for index in range(10000):
-        due = sorted(
-            (
-                i
-                for i in conditions(state)
-                if not i.retired and i.deadline is not None and i.deadline <= command.to
-            ),
-            key=lambda i: (i.deadline or 0, i.actor_id, i.source),
-        )
-        if not due:
-            break
-        item = due[0]
-        assert item.deadline is not None
-        state = context.engine.apply(
-            state,
-            Advance(
-                id=f"physiology-clock:{command.id}:{index}",
-                actor_id=command.actor_id,
-                expected_revision=state.revision,
-                to=item.deadline,
-            ),
-            system=True,
-            rng=context.rng,
-        )
-        state, updated, outcomes = settle(state, item, context, command.id)
-        injuries.extend(outcomes)
-        state = save(
-            state,
-            HarmfulReceipt(command_id=command.id, conditions=(updated,), game_time=state.game_time),
-            suffix=f":{index}",
-        )
-    else:
-        raise ValidationError("Physiology advancement exceeds the bounded interval limit")
-    state = context.engine.apply(
-        state,
-        Advance(
-            id="physiology-clock:" + command.id + ":final",
-            actor_id=command.actor_id,
-            expected_revision=state.revision,
-            to=command.to,
-        ),
-        system=True,
-        rng=context.rng,
-    )
-    return state, tuple(injuries)
-
-
 def apply(
     state: ResourceState, command: HarmfulCommand, context: HarmfulContext
 ) -> tuple[ResourceState, HarmfulReceipt]:
@@ -449,16 +452,14 @@ def apply(
         state, updated, injuries = settle(state, item, context, command.id)
         changed = (updated,)
     elif isinstance(command, AdvancePhysiology):
-        state, injuries = advance(state, command, context)
-        changed = conditions(state)
+        raise ValidationError("Physiology advancement requires the play aggregate scheduler")
     else:
         assert isinstance(command, DeclarePhysiologyCalendar)
         existing = calendar(state)
         if any(
-            not i.retired
-            and i.source == "dependency"
-            and i.frequency in {"month", "season", "year"}
-            for i in conditions(state)
+            i.source == "dependency" and i.frequency in {"month", "season", "year"}
+            for receipt in history(state)
+            for i in receipt.conditions
         ) and (
             existing is None
             or command.calendar.month_boundaries[: len(existing.month_boundaries)]

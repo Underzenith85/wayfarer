@@ -13,6 +13,7 @@ from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 from wayfarer.orchestration.replay_inputs import replay_inputs
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
 from wayfarer.orchestration.spells import SpellService
+from wayfarer.orchestration.transformations import TransformationService
 from wayfarer.persistence.events import CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
 
@@ -38,6 +39,14 @@ async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
             await play.execute(record.campaign_id, command, principal_id=record.actor_id)
         elif operation == "harmful-physiology":
             await HarmfulPhysiologyService(play).execute(
+                record.campaign_id, command, principal_id=record.actor_id
+            )
+        elif operation == "transformation":
+            await TransformationService(play).execute(
+                record.campaign_id, command, principal_id=record.actor_id
+            )
+        elif operation == "morph-memory":
+            await TransformationService(play).memorize(
                 record.campaign_id, command, principal_id=record.actor_id
             )
         elif operation == "combat":

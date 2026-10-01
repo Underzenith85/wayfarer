@@ -200,6 +200,7 @@ def event_action(value: object) -> EventAction:
             | "director"
             | "workshop"
             | "setup"
+            | "transformation"
         ):
             return value
         case "observe" | "talk" | "sneak" | "rest" | "ask" | "legacy":

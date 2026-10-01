@@ -9,7 +9,7 @@ from pydantic import Field, TypeAdapter
 from wayfarer.engine.simulation.resources import Command, ResourceState
 from wayfarer.engine.simulation.traits.physiology_calendar import PhysiologyCalendar
 from wayfarer.engine.simulation.traits.physiology_types import PhysiologyOutcome
-from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.errors import ConflictError
 from wayfarer.models import Id, Record
 
 PREFIX = "harmful-physiology:"
@@ -76,8 +76,10 @@ class HarmfulCondition(Record):
     due: int | None = Field(default=None, ge=0)
     contact_seconds: int = Field(default=0, ge=0)
     contact_started: int | None = Field(default=None, ge=0)
+    contact_ended: int | None = Field(default=None, ge=0)
     contact_due: int | None = Field(default=None, ge=0)
     retired: bool = False
+    dormant: bool = False
 
     @property
     def deadline(self) -> int | None:
@@ -136,8 +138,3 @@ def require_deadline(state: ResourceState, to: int, *, actor_id: str | None = No
         for item in conditions(state)
     ):
         raise ConflictError("Settle the harmful physiology deadline before continuing")
-
-
-def require_no_transformation_bindings(state: ResourceState, actor_ids: frozenset[str]) -> None:
-    if any(not item.retired and item.actor_id in actor_ids for item in conditions(state)):
-        raise ValidationError("Harmful physiology and transformations require supported ordering")
