@@ -33,6 +33,7 @@ from wayfarer.engine.simulation.combat.encounter import (
     Encounter,
     basic_visible,
 )
+from wayfarer.engine.simulation.combat.generations import combat_generation
 from wayfarer.engine.simulation.combat.visibility import visible_actors
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import (
@@ -40,6 +41,7 @@ from wayfarer.orchestration.combat.context import (
     _bind_combat_command,
     encounter_for,
 )
+from wayfarer.orchestration.combat.generations import KEY, capture
 from wayfarer.orchestration.combat.steps import reduce_combat
 from wayfarer.orchestration.composed_attacks import (
     ComposedAttackService,
@@ -152,7 +154,13 @@ class CombatService:
                     ):
                         raise ValidationError("Target is unavailable")
 
-    def plan(self, cid: str, command: TypedCombatCommand) -> CommandPlan[CombatResult]:
+    def plan(
+        self,
+        cid: str,
+        command: TypedCombatCommand,
+        *,
+        features: frozenset[str] = frozenset(),
+    ) -> CommandPlan[CombatResult]:
         """What a combat command writes; the pipeline decides whether it runs."""
         engine = self.play.engine.combat
         if engine is None:
@@ -180,14 +188,21 @@ class CombatService:
         ):
             raise ValidationError("GM admission requires GM authority")
         payload = json.dumps(
-            {"operation": "combat", "command": command.model_dump(mode="json")},
+            {
+                "operation": "combat",
+                "command": command.model_dump(mode="json"),
+                **({KEY: sorted(features)} if features else {}),
+            },
             sort_keys=True,
             separators=(",", ":"),
         )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             play, before, effective_command = _bind_combat_command(campaign, command, self.play)
-            updated, result = reduce_combat(before, effective_command, CombatContext(play, before))
+            with combat_generation(features):
+                updated, result = reduce_combat(
+                    before, effective_command, CombatContext(play, before)
+                )
             updated = preserve_attack_visibility(before, updated, command.encounter_id, command.id)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
@@ -232,7 +247,10 @@ class CombatService:
                 return await ComposedAttackService(self.play).defend(
                     cid, command, principal_id=principal_id
                 )
-        result = await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)
+        features = await capture(self.play.store, cid, command.id)
+        result = await submit(
+            self.play, cid, self.plan(cid, command, features=features), principal_id=principal_id
+        )
         campaign = await self.play.store.read(cid)
         committed_play = self.play.for_campaign(campaign)
         current = committed_play._load(campaign)
