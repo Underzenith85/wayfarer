@@ -28,6 +28,7 @@ from wayfarer.engine.rules.types.location import disabled_locations
 from wayfarer.engine.rules.types.recovery import interrupt_tasks
 from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.ability_types import validate_channels as validate_ability_channels
+from wayfarer.engine.simulation.action_engine.calendar import action_duration, require_action_time
 from wayfarer.engine.simulation.action_engine.digest import _configuration_digest
 from wayfarer.engine.simulation.action_engine.rules_validation import (
     _index_checks,
@@ -767,6 +768,8 @@ class ActionEngine:
         feasible = self.assess(state, command)
         if feasible.status != "feasible":
             return state, feasible
+        duration = action_duration(self.rules, command)
+        require_action_time(state, command.actor_id, duration * advance_time)
         world, resources = state.world, state.resources
         if not isinstance(command, Wait):
             resources = interrupt_concentration(resources, command.actor_id, command.id)
@@ -792,7 +795,6 @@ class ActionEngine:
                     )
                 }
             )
-        duration = 0
         trace: CheckTrace | None = None
         derived: DerivedValue | None = None
         dependencies: tuple[DerivedValue, ...] = ()
@@ -807,7 +809,6 @@ class ActionEngine:
                     for e in world.entities
                 ),
             )
-            duration = self.rules.movement_ticks
         elif isinstance(command, UseItem):
             assert command.item_id is not None
             resources = self.resources.apply(
@@ -820,9 +821,6 @@ class ActionEngine:
                     quantity=command.quantity,
                 ),
             )
-            duration = self.rules.item_ticks
-        elif isinstance(command, Wait):
-            duration = command.ticks
         elif isinstance(command, (Inspect, Social)):
             assert command.target_id is not None
             rule = self.checks[(command.kind, command.target_id)]
@@ -875,8 +873,7 @@ class ActionEngine:
                 revealed = rule.reveal_fact_ids
                 for fact_id in revealed:
                     world = world.learn(actor.actor_id, fact_id)
-            duration = rule.duration
-        else:
+        elif not isinstance(command, Wait):
             raise ValidationError("No implemented resolver")
         if advance_time:
             state = advance_play(

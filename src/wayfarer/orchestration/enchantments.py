@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.magic.staff_state import (
     identifier,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.enchantment_generations import current_settlement
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -32,6 +33,7 @@ class EnchantmentService:
         command: TypedEnchantmentCommand | DeclareStaffConstruction,
         *,
         principal_id: str,
+        correct_settlement: bool = True,
     ) -> CommandPlan[EnchantmentOutcome | StaffConstruction]:
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Enchanting requires the exact Basic Set profile")
@@ -42,6 +44,7 @@ class EnchantmentService:
                 else "enchantment",
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
+                **({"enchantment_settlement_generation": 1} if correct_settlement else {}),
             },
             sort_keys=True,
         )
@@ -58,7 +61,11 @@ class EnchantmentService:
                 result = "staff-construction"
             else:
                 updated, receipt = apply_enchantment(
-                    play.rules_context, before, command, system=True
+                    play.rules_context,
+                    before,
+                    command,
+                    system=True,
+                    correct_settlement=correct_settlement,
                 )
                 result = receipt.status
             play.commit(campaign, play.checkpoint(updated, before=before))
@@ -96,7 +103,13 @@ class EnchantmentService:
         return await submit(
             play,
             cid,
-            self.plan(play, play._load(campaign), command, principal_id=principal_id),
+            self.plan(
+                play,
+                play._load(campaign),
+                command,
+                principal_id=principal_id,
+                correct_settlement=await current_settlement(play, cid, command.id),
+            ),
             principal_id=principal_id,
         )
 

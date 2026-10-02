@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import Field
 
 from wayfarer.engine.simulation.magic.enchanting import busy_actor_ids as enchanting_actor_ids
+from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchanting_free
 from wayfarer.engine.simulation.projects.inventions import busy_actor_ids
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -194,12 +195,27 @@ def group_for(state: PlayState, actor_id: str) -> Subgroup:
     return group
 
 
-def synchronous(state: PlayState, actor_id: str) -> None:
-    """Legacy immediate mutations must not bypass scheduled concurrent activity."""
+def synchronous(
+    state: PlayState,
+    actor_id: str,
+    *,
+    enchanting_rest: bool = False,
+    activity_started_at: int | None = None,
+) -> None:
+    """Immediate mutations must not bypass scheduled concurrent activity.
+
+    Only callers that check the full activity interval may admit enchanting
+    rest. Other timed service families retain their existing project refusal.
+    """
     if actor_id in busy_actor_ids(state.resources.inventions):
         raise ConflictError("Actor is committed to full-time invention work")
-    if actor_id in enchanting_actor_ids(state.resources.enchantment_projects):
+    if not enchanting_rest and actor_id in enchanting_actor_ids(
+        state.resources.enchantment_projects
+    ):
         raise ConflictError("Actor is committed to enchanting work")
+    require_enchanting_free(
+        state.resources, actor_id, start=activity_started_at, through=state.resources.game_time
+    )
     if not state.party.groups:
         return
     group = group_for(state, actor_id)

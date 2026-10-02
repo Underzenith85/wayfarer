@@ -130,13 +130,48 @@ RuntimeSpellResolver = Callable[[RulesContext, PlayState, SpellCommand], SpellEn
 SpellResolver = Callable[[RulesContext, PlayState, LegacySpellCommand], SpellEnvironment]
 
 
+def _completion_start(state: PlayState, command: SpellCommand) -> int | None:
+    """A recorded cast may finish or cancel exactly as the next work shift starts."""
+    effect = latest(state.resources).get(command.cast_id)
+    if (
+        command.kind in ("complete", "cancel")
+        and effect is not None
+        and effect.phase == "casting"
+        and (effect.actor_id, effect.spell_id) == (command.actor_id, command.spell_id)
+        and effect.started_at < effect.ready_at == state.resources.game_time
+    ):
+        return effect.started_at
+    return None
+
+
+def _nighttime_cast(runtime: RulesContext, state: PlayState, command: SpellCommand) -> bool:
+    """Only ordinary casts have a fully bounded nighttime concentration interval."""
+    rules = runtime.rules.spells
+    channel = (
+        next((c for c in rules.channels if c.id == command.channel_id), None) if rules else None
+    )
+    return (
+        channel is not None
+        and channel.ceremonial is None
+        and not any(
+            encounter.status == "active" and command.actor_id in encounter.turn_order
+            for encounter in state.encounters
+        )
+    )
+
+
 def approved_context(
     runtime: RulesContext, state: PlayState, command: SpellCommand
 ) -> SpellContext:
     # deferred: Staff joins share the completed spell context without a public schema change.
     from wayfarer.engine.simulation.magic.staff_casting import apply_targeting, existing_context
 
-    synchronous(state, command.actor_id)
+    synchronous(
+        state,
+        command.actor_id,
+        enchanting_rest=_nighttime_cast(runtime, state, command),
+        activity_started_at=_completion_start(state, command),
+    )
     existing = existing_context(runtime, state, command)
     if existing is not None or command.spell_id in ("lockmaster", "magelock"):
         # deferred: private lock bindings share the spell types used by this dispatcher.
@@ -146,7 +181,6 @@ def approved_context(
             runtime, state, command, lock_context(runtime, state, command)
         )
 
-    synchronous(state, command.actor_id)
     rules = runtime.rules.spells
     if rules is None:
         raise ValidationError("Campaign has no executable spell bindings")

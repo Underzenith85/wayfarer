@@ -48,6 +48,7 @@ from wayfarer.engine.simulation.magic.casting_targeting import (
     remember_targeting,
 )
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchanting_free
 from wayfarer.engine.simulation.magic.healing_effects import (
     HEALING,
     heal,
@@ -711,6 +712,7 @@ def apply_spell(
             ceremonial_ht=context.ceremonial_ht,
             area=context.area,
         )
+        require_enchanting_free(state, command.actor_id, through=effect.ready_at)
         state = remember_targeting(
             state, effect, context, kind=spec.kind, enabled=capture_targeting
         )
