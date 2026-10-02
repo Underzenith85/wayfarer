@@ -188,6 +188,7 @@ class ModifierApproval:
     option: str
     percent: int
     allowed_subjects: frozenset[AbilityKind]
+    parameters: EnhancementParameters | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -262,6 +263,7 @@ class AttackProfile(Record):
     disabled_enhancements: tuple[str, ...] = ()
     surge: bool = False
     symptom_spec: SymptomSpec | None = None
+    additional_symptoms: tuple[SymptomSpec, ...] = Field(default=(), exclude_if=lambda v: not v)
     symptom: str | None = None
     symptom_threshold: str | None = None
     underwater_range_divisor: int | None = Field(default=None, ge=1)
@@ -1230,7 +1232,9 @@ def _approved_percentage(
     matches = tuple(
         approval
         for approval in approvals
-        if approval.modifier_id == selection.definition_id and approval.option == selection.option
+        if approval.modifier_id == selection.definition_id
+        and approval.option == selection.option
+        and (approval.parameters is None or approval.parameters == selection.parameters)
     )
     if selection.level != 1 or len(matches) != 1:
         raise ValidationError("Modifier requires an exact campaign approval")
@@ -1494,10 +1498,21 @@ def validate_selections(
     approvals: tuple[ModifierApproval, ...] = (),
 ) -> tuple[ModifierCost, ...]:
     identifiers = tuple(selection.definition_id for selection in selections)
-    if len(identifiers) != len(set(identifiers)):
+    unique = tuple(i for i in identifiers if i != "modifier:enhancement:symptoms")
+    if len(unique) != len(set(unique)):
         raise ValidationError("Duplicate ability modifier")
+    symptoms = tuple(
+        (s.parameters.symptom, s.parameters.symptom_threshold)
+        for s in selections
+        if s.definition_id == "modifier:enhancement:symptoms" and s.parameters is not None
+    )
+    if len(symptoms) != len(set(symptoms)):
+        raise ValidationError("Duplicate Symptoms effect and threshold")
     selected = set(identifiers)
-    approval_index = {(approval.modifier_id, approval.option): approval for approval in approvals}
+    approval_index = {
+        (approval.modifier_id, approval.option, approval.parameters): approval
+        for approval in approvals
+    }
     if len(approval_index) != len(approvals):
         raise ValidationError("Duplicate campaign modifier approval")
     costs: list[ModifierCost] = []
@@ -1509,7 +1524,9 @@ def validate_selections(
         _validate_delivery_relationships(selection, selected)
         _validate_selectivity(selection, selected)
         _validate_limitation_parameters(selection)
-        approval = approval_index.get((selection.definition_id, selection.option or ""))
+        approval = approval_index.get(
+            (selection.definition_id, selection.option or "", selection.parameters)
+        ) or approval_index.get((selection.definition_id, selection.option or "", None))
         if approval is not None and subject not in approval.allowed_subjects:
             raise ValidationError("Campaign approval does not allow this ability kind")
         costs.append(
@@ -2243,15 +2260,15 @@ def _validate_profile_compatibility(
         raise ValidationError("Explosion requires crushing or burning damage")
     if "modifier:enhancement:incendiary-inc" in selected and profile.damage_kind == "burning":
         raise ValidationError("A burning attack cannot add Incendiary")
-    for identifier in (
-        "modifier:enhancement:cyclic",
-        "modifier:enhancement:hazard",
-        "modifier:enhancement:radiation-rad",
-        "modifier:enhancement:symptoms",
-    ):
-        selection = selected.get(identifier)
+    for selection in selections:
         if (
-            selection is not None
+            selection.definition_id
+            in {
+                "modifier:enhancement:cyclic",
+                "modifier:enhancement:hazard",
+                "modifier:enhancement:radiation-rad",
+                "modifier:enhancement:symptoms",
+            }
             and selection.parameters is not None
             and selection.parameters.damage_kind != profile.damage_kind
         ):

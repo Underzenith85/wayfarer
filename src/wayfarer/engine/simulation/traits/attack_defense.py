@@ -22,11 +22,8 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
 from wayfarer.engine.rules.types.affliction import AfflictionCondition, AfflictionEffect
-from wayfarer.engine.rules.types.cyclic import (
-    CyclicAttack,
-    ZeroDamageCyclicAttack,
-    require_cyclic_settled,
-)
+from wayfarer.engine.rules.types.cyclic import require_cyclic_settled
+from wayfarer.engine.rules.types.cyclic_runtime import create_attack as create_cyclic_attack
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.combat.special_damage import (
     PenetrationContext,
@@ -467,10 +464,9 @@ def _schedule_cyclic(
         assert (
             cyclic.cyclic_interval_seconds is not None and cyclic.cyclic_stop_condition is not None
         )
-        attack_type = ZeroDamageCyclicAttack if channel.basic_damage == 0 else CyclicAttack
         state = save_cyclic(
             state,
-            attack_type.model_validate(
+            create_cyclic_attack(
                 {
                     "id": _id(command.id, "cyclic"),
                     "attacker_id": channel.attacker_id,
@@ -479,6 +475,7 @@ def _schedule_cyclic(
                     "basic_damage": channel.basic_damage,
                     "damage_dice": damage_dice,
                     "symptom_spec": cyclic.symptom_spec,
+                    "additional_symptoms": cyclic.additional_symptoms,
                     "symptom_source_id": channel.attacker_id + ":" + channel.id,
                     "contagious": cyclic.contagious,
                     "contagion_vector": channel.contagion_vector,
@@ -535,6 +532,7 @@ def _register_symptoms(
         amount=amount,
         pool_id=("fp:" if fatigue else "hp:") + channel.target_id,
         spec=profile.symptom_spec,
+        additional_specs=profile.additional_symptoms,
         restriction_id=_id(command.id, "cyclic")
         if profile.cyclic_interval_seconds is not None
         else None,

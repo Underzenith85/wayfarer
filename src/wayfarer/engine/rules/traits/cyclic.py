@@ -73,18 +73,19 @@ def approvals(selections: tuple[ModifierSelection, ...]) -> tuple[ModifierApprov
     ):
         raise ValidationError("Sense-Based limitation requires Malediction")
     cyclic = next((s for s in selections if s.definition_id == CYCLIC), None)
-    symptoms = next((s for s in selections if s.definition_id == SYMPTOMS), None)
-    extra: tuple[ModifierApproval, ...] = (
-        ()
-        if symptoms is None
-        else (
-            ModifierApproval(
-                SYMPTOMS,
-                symptoms.option or "",
-                symptom_percentage(symptom_spec(symptoms)),
-                frozenset({"innate-attack"}),
-            ),
+    symptoms = tuple(s for s in selections if s.definition_id == SYMPTOMS)
+    specs = tuple(symptom_spec(s) for s in symptoms)
+    if len(set(specs)) != len(specs):
+        raise ValidationError("Duplicate Symptoms effect and threshold")
+    extra = tuple(
+        ModifierApproval(
+            SYMPTOMS,
+            symptom.option or "",
+            symptom_percentage(spec),
+            frozenset({"innate-attack"}),
+            symptom.parameters if len(symptoms) > 1 else None,
         )
+        for symptom, spec in zip(symptoms, specs, strict=True)
     )
     extra += sense_approval
     if cyclic is None:
@@ -126,9 +127,12 @@ def cyclic_profile(selections: tuple[ModifierSelection, ...], damage_type: str) 
     result = apply_attack_modifiers(
         profile, "innate-attack", selections, approvals(selections)
     ).modified
-    symptoms = next((s for s in selections if s.definition_id == SYMPTOMS), None)
+    symptoms = tuple(symptom_spec(s) for s in selections if s.definition_id == SYMPTOMS)
     return result.model_copy(
-        update={"symptom_spec": None if symptoms is None else symptom_spec(symptoms)}
+        update={
+            "symptom_spec": symptoms[0] if symptoms else None,
+            "additional_symptoms": symptoms[1:],
+        }
     )
 
 

@@ -8,12 +8,8 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.types.cyclic import (
-    CyclicAttack,
-    CyclicExposure,
-    ZeroDamageCyclicAttack,
-    ZeroDamageCyclicExposure,
-)
+from wayfarer.engine.rules.types.cyclic import CyclicExposure
+from wayfarer.engine.rules.types.cyclic_runtime import create_attack, create_exposure
 from wayfarer.engine.rules.types.disease import CONTACT_MODIFIERS, ContactExposure
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.simulation.health.cyclic import save as save_cyclic
@@ -97,11 +93,10 @@ def expose(
     if any(e.relationship.id == relationship.id for e in state.cyclic_exposures):
         raise ConflictError("Cyclic contact relationship was already recorded")
     due = (state.game_time // 86400 + 1) * 86400
-    exposure_type = ZeroDamageCyclicExposure if source.basic_damage == 0 else CyclicExposure
-    exposure = exposure_type.model_validate(
+    exposure = create_exposure(
+        source,
         {
             "id": "cyclic-exposure:" + hashlib.sha256(relationship.id.encode()).hexdigest(),
-            "source": source,
             "relationship": relationship,
             "ht": ht,
             "due": due,
@@ -110,7 +105,7 @@ def expose(
             and source.damage_type == "tox"
             and subject.machine
             else "exposure",
-        }
+        },
     )
     return state.model_copy(
         update={
@@ -227,8 +222,7 @@ def settle(
         )
     if infected:
         source = exposure.source
-        attack_type = ZeroDamageCyclicAttack if source.basic_damage == 0 else CyclicAttack
-        attack = attack_type.model_validate(
+        attack = create_attack(
             {
                 **source.model_dump(),
                 "id": infection_id,
