@@ -23,6 +23,7 @@ from wayfarer.engine.simulation.campaign._task_phases import (
     select_long_task_check,
 )
 from wayfarer.engine.simulation.campaign.activities import PerformActivity
+from wayfarer.engine.simulation.combat.generations import combat_generation
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.resources import Advance
@@ -86,6 +87,8 @@ from wayfarer.orchestration.real_play_clock import (
     spend_real_play_cooldown,
 )
 from wayfarer.orchestration.secret_tasks import choose_secret, open_secret
+from wayfarer.orchestration.task_combat_generations import KEY as TASK_COMBAT_KEY
+from wayfarer.orchestration.task_combat_generations import capture as capture_task_combat
 from wayfarer.orchestration.task_context import (
     activity_actor,
     approved,
@@ -757,12 +760,16 @@ class TaskService:
         play = self.play.for_campaign(campaign)
         initial = play._load(campaign)
         command = await _bind_task_sources(play, cid, command)
+        task_features = await capture_task_combat(play.store, cid, command, command.id)
+        envelope: dict[str, object] = {
+            "operation": "task-host",
+            "principal_id": principal_id,
+            "command": command.model_dump(mode="json"),
+        }
+        if task_features:
+            envelope[TASK_COMBAT_KEY] = sorted(task_features)
         payload = json.dumps(
-            {
-                "operation": "task-host",
-                "principal_id": principal_id,
-                "command": command.model_dump(mode="json"),
-            },
+            envelope,
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -827,7 +834,15 @@ class TaskService:
                     ChooseOpponentFragment,
                 ),
             ):
-                state, saved, clock, result = _continued_roll(play, state, command, saved, clock)
+                if isinstance(command, ChooseOpponentAttack):
+                    with combat_generation(task_features):
+                        state, saved, clock, result = _continued_roll(
+                            play, state, command, saved, clock
+                        )
+                else:
+                    state, saved, clock, result = _continued_roll(
+                        play, state, command, saved, clock
+                    )
             else:
                 state, saved, clock, result = _choose(
                     play, state, command, saved, clock, principal_id

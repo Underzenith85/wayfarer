@@ -10,6 +10,8 @@ from wayfarer.engine.simulation.combat.commands import COMBAT_ADAPTER, ChooseDef
 from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.generations import features
+from wayfarer.orchestration.task_combat_generations import features as task_features
+from wayfarer.orchestration.task_combat_generations import producer as task_producer
 from wayfarer.persistence.command_inputs import replay_payload
 from wayfarer.persistence.events import CommandInput, CommandRecord, payload_digest
 
@@ -95,9 +97,22 @@ def latest_delivery(history: list[CommandRecord], blast_id: str) -> FragmentDeli
             continue
         record = CommandInput(payload_hash=row.payload_hash, text=row.command_input)
         payload = _payload(row)
-        if payload.get("operation") != "combat" or "grenade-fuse" not in features(record):
-            raise ValidationError("Grenade delivery lacks its trusted canonical generation")
-        command = COMBAT_ADAPTER.validate_json(json.dumps(payload.get("command")))
+        command: object
+        if payload.get("operation") == "task-host":
+            if "grenade-fuse" not in task_features(record):
+                raise ValidationError(
+                    "Grenade delivery lacks its trusted canonical task generation"
+                )
+            task = task_producer(record)
+            if task.id != row.command_id or payload.get("principal_id") != row.actor_id:
+                raise ValidationError(
+                    "Grenade task delivery differs from its accepted receipt identity"
+                )
+            command = task.response
+        else:
+            if payload.get("operation") != "combat" or "grenade-fuse" not in features(record):
+                raise ValidationError("Grenade delivery lacks its trusted canonical generation")
+            command = COMBAT_ADAPTER.validate_json(json.dumps(payload.get("command")))
         if not isinstance(command, ChooseDefense) or command.encounter_id != prior.encounter_id:
             raise ValidationError("Grenade delivery lacks its accepted defense producer")
         relocated = BlastRecord.model_validate_json(event.kind)
