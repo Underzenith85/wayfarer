@@ -64,7 +64,9 @@ async def bind_fragment_source(
         captured = PrepareOpponentFragment.model_validate_json(json.dumps(original))
         if command.launch is not None and command.launch != captured.launch:
             raise ConflictError("Recorded fragment launch changed")
-        return command.model_copy(update={"launch": captured.launch})
+        return command.model_copy(
+            update={"launch": captured.launch, "incendiary_objects": captured.incendiary_objects}
+        )
     source_input = await play.store.command_input(cid, command.launch_command_id)
     if source_input is None:
         raise ValidationError("Fragment Luck requires its recorded original launch command")
@@ -79,7 +81,15 @@ async def bind_fragment_source(
     )
     if command.launch is not None and command.launch != launch:
         raise ConflictError("Supplied fragment source differs from its recorded launch")
-    return command.model_copy(update={"launch": launch})
+    resolution = command.resolution.model_copy(
+        update={
+            "object_cover": dict(sorted(command.resolution.object_cover.items())),
+            "object_sizes": dict(sorted(command.resolution.object_sizes.items())),
+        }
+    )
+    return command.model_copy(
+        update={"launch": launch, "resolution": resolution, "incendiary_objects": True}
+    )
 
 
 def validate_fragment_launch(

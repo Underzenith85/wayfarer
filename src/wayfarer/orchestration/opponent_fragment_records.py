@@ -23,6 +23,7 @@ class PrepareOpponentFragment(Command):
     launch_command_id: Id
     owner_ids: tuple[Id, ...] = ()
     secret: bool = False
+    incendiary_objects: bool = Field(default=False, exclude_if=lambda value: not value)
     launch: RecordedFragmentLaunch | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
