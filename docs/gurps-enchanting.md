@@ -149,7 +149,8 @@ conservative project-busy refusal until their full intervals are joined.
 Quick and Dirty
 perversions require explicit director resolution. Power's outward zero-cast-cost
 and missile/duplicate-Power compositions remain unverified; source-clear upkeep
-and suitable wearer-effect behavior must be assessed separately. The section
+and suitable wearer-effect behavior are separate. Bounded Haste now provides an
+executable zero-casting-cost wearer effect; see [Haste and Power](gurps-haste-power-wearer.md). The section
 ledger therefore remains partial, and the broader enchantment spell inventory is
 not certified by these three named spells.
 

@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.health.hazard_records import HazardCommand
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
 )
+from wayfarer.engine.simulation.magic.haste_host import ADAPTER as HASTE_ADAPTER
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
@@ -29,6 +30,7 @@ from wayfarer.orchestration.composed_attacks import ComposedAttackService
 from wayfarer.orchestration.cyclic import CyclicService
 from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
+from wayfarer.orchestration.haste import HasteService
 from wayfarer.orchestration.hazard_resume import recorded_resume
 from wayfarer.orchestration.hazards import HazardContext, HazardService
 from wayfarer.orchestration.locks import LockService, LockSpellService
@@ -163,7 +165,16 @@ async def _composed_defense(play: PlayService, record: CommandRecord, encoded: s
     )
 
 
+async def _haste(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await HasteService(play).execute(
+        record.campaign_id,
+        HASTE_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "haste": _haste,
     "gurps-social": _social,
     "task-host": _task_host,
     "gurps-hazard": _natural_hazard_resume,

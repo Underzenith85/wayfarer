@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.health.hit_locations import disabled, part
 from wayfarer.engine.simulation.health.injury import InjuryTurn, apply_injury, impaired_movement
 from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.magic.backfires import clear_stun, mental_stun, refund_due
+from wayfarer.engine.simulation.magic.haste_effects import bonus as haste_bonus
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
 from wayfarer.errors import ValidationError
@@ -90,7 +91,13 @@ def movement(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     fp = next(p for p in state.resources.pools if p.id == f"fp:{actor_id}")
     return fatigue_value(
-        fp, impaired_movement(hp, reduced_body_result(state.resources, actor_id, loaded.move))
+        fp,
+        impaired_movement(
+            hp,
+            reduced_body_result(
+                state.resources, actor_id, loaded.move + haste_bonus(state.resources, actor_id)
+            ),
+        ),
     )
 
 

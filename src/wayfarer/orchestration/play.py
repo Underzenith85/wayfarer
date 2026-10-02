@@ -44,10 +44,12 @@ from wayfarer.engine.simulation.magic.backfires import refund_due
 from wayfarer.engine.simulation.magic.enchanting_lifecycle import (
     checkpoint as enchanting_checkpoint,
 )
+from wayfarer.engine.simulation.magic.haste_effects import checkpoint as haste_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
 from wayfarer.engine.simulation.magic.item_state import checkpoint as item_magic_checkpoint
 from wayfarer.engine.simulation.magic.power_lifecycle import checkpoint as power_checkpoint
+from wayfarer.engine.simulation.magic.power_wearer import checkpoint as wearer_checkpoint
 from wayfarer.engine.simulation.magic.staff_casting_state import checkpoint as staff_checkpoint
 from wayfarer.engine.simulation.resources import Advance, Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -238,6 +240,12 @@ class PlayService:
                     "enchantment-lifecycle:",
                     "enchantment-loss:",
                     "power-cast-origin:",
+                    "haste-channel:",
+                    "haste-item:",
+                    "haste-mana:",
+                    "haste-switch:",
+                    "haste-host:",
+                    "power-wearer:",
                     "lock-state:",
                     "lock-channel:",
                     "lock-host:",
@@ -461,6 +469,7 @@ class PlayService:
         if before is not None:
             state = concentration_checkpoint(self.rules_context, state, before)
             state = held_checkpoint(self.rules_context, state, before)
+        state = wearer_checkpoint(self.rules_context, state)
         state = power_checkpoint(self.rules_context, state, before=before)
         before_fire = state
         state = spell_checkpoint(self.rules_context, state)
@@ -484,6 +493,8 @@ class PlayService:
             }
         )
         state = power_checkpoint(self.rules_context, state, before=before_late_magic)
+        state = wearer_checkpoint(self.rules_context, state)
+        state = haste_checkpoint(self.rules_context, state)
         state = objective_checkpoint(self, state, before=before)
         if before is not None:
             state = staff_checkpoint(state, before=before)

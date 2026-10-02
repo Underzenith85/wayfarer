@@ -10,6 +10,7 @@ COLLEGE: Final = "movement"
 # B251/B253: the two lock spells and Lockmaster's sole learned prerequisite.
 # Apportation construction is available; this does not implement its effects.
 LEARNING: Final = {
+    "haste": learning_spec(251),
     "apportation": learning_spec(251, magery=1),
     "lockmaster": learning_spec(251, magery=2, spells=("apportation",)),
     "magelock": learning_spec(253, magery=1),

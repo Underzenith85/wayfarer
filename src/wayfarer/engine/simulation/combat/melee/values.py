@@ -29,6 +29,7 @@ from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.injury import impaired_movement
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
+from wayfarer.engine.simulation.magic.haste_effects import bonus as haste_bonus
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
@@ -258,7 +259,16 @@ def score_defense(
             raise ValidationError("Overloaded actor cannot dodge")
         return DerivedValue(
             "defense:dodge",
-            Decimal(fatigue_value(fp, impaired_movement(hp, loaded.dodge)) + bonus + penalty),
+            Decimal(
+                fatigue_value(
+                    fp,
+                    impaired_movement(
+                        hp, loaded.dodge + haste_bonus(state.resources, participant.actor_id)
+                    ),
+                )
+                + bonus
+                + penalty
+            ),
             (),
         ), None
     candidates: list[tuple[int, str, str]] = []
