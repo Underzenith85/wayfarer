@@ -243,6 +243,11 @@ def _long_task(
     actor: ActivityActor,
     rng: RandomSource,
 ) -> _Resolution:
+    """Historical one-shot helper; persisted task hosts use ``_task_phases``.
+
+    Keep the old dice order for existing callers. The staged host resolves
+    overtime before the worker and shares only the consequence calculation.
+    """
     if command.seconds % 3600 or command.seconds > 24 * 3600:
         raise ValidationError("Long-task contributions are whole hours within one day")
     hours = command.seconds // 3600
@@ -260,6 +265,22 @@ def _long_task(
         PROFILE, actor.target(rule.target_id) + bonus + rule.time_spent_modifier, rng=rng
     )
     checks.append(work)
+    result = _long_task_result(hours, work, rng)
+    fp = 0
+    consequence = ""
+    if hours > 8:
+        overtime = success_roll(PROFILE, actor.ht - max(0, hours - 10), rng=rng)
+        checks.append(overtime)
+        if not overtime.outcome.succeeded:
+            fp = max(2, -overtime.margin)
+            consequence = (
+                "exhausted-next-day" if overtime.outcome is Outcome.CRITICAL_FAILURE else ""
+            )
+    return result.model_copy(update={"fp": fp, "consequence": consequence, "checks": tuple(checks)})
+
+
+def _long_task_result(hours: int, work: CheckTrace, rng: RandomSource) -> _Resolution:
+    """Apply B346 work consequences to a selected check without rolling it again."""
     progress = (
         Decimal(hours) * Decimal("1.5")
         if work.outcome is Outcome.CRITICAL_SUCCESS
@@ -274,23 +295,7 @@ def _long_task(
         if work.outcome is Outcome.CRITICAL_FAILURE
         else 0
     )
-    fp = 0
-    consequence = ""
-    if hours > 8:
-        overtime = success_roll(PROFILE, actor.ht - max(0, hours - 10), rng=rng)
-        checks.append(overtime)
-        if not overtime.outcome.succeeded:
-            fp = max(2, -overtime.margin)
-            consequence = (
-                "exhausted-next-day" if overtime.outcome is Outcome.CRITICAL_FAILURE else ""
-            )
-    return _Resolution(
-        progress=progress,
-        fp=fp,
-        ruined=ruined,
-        consequence=consequence,
-        checks=tuple(checks),
-    )
+    return _Resolution(progress=progress, ruined=ruined, checks=(work,))
 
 
 def _digging(rule: DiggingRule, command: PerformActivity, actor: ActivityActor) -> _Resolution:

@@ -15,6 +15,7 @@ from pydantic import Field, model_validator
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits import mundane_trait_effects
 from wayfarer.engine.rules.catalog import RuleDefinition
+from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.randomness import SeededRandom
 from wayfarer.engine.simulation.resources import Command
 from wayfarer.errors import ConflictError, ValidationError
@@ -144,15 +145,17 @@ def apply_luck(
     definitions: Mapping[str, RuleDefinition],
     *,
     real_time: int,
-    seed: str,
+    seed: str | None = None,
     authorized_actor_id: str,
     system: bool = False,
+    rng: RandomSource | None = None,
 ) -> tuple[LuckState, LuckReceipt]:
     """Resolve one immediate Luck choice and consume its elapsed-play cooldown.
 
-    Equal totals keep the earlier attempt. The seed comes from persisted command
-    entropy, so a transaction retry produces identical dice. Exact command replay
-    returns its original receipt without drawing dice or consuming another use.
+    Equal totals keep the earlier attempt. Persisted hosts inject their command
+    random source, sharing its stream with any later consequences. The seed-only
+    fallback retains historical helper behavior. Exact command replay returns
+    its original receipt without drawing dice or consuming another use.
     """
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Luck requires trusted actor authority")
@@ -192,7 +195,10 @@ def apply_luck(
     previous_uses = [use for use in state.receipts if use.command.actor_id == command.actor_id]
     if previous_uses and real_time < max(use.available_at for use in previous_uses):
         raise ValidationError("Luck is cooling down in real play time")
-    rng = SeededRandom(seed)
+    if rng is None:
+        if seed is None:
+            raise ValidationError("Luck requires an explicit random source or seed")
+        rng = SeededRandom(seed)
     attempts: tuple[tuple[int, ...], ...] = () if roll.original is None else (roll.original,)
     attempts += tuple(
         tuple(1 + rng.randbelow(6) for _ in range(roll.dice_count))

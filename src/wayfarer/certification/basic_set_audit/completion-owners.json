@@ -622,6 +622,11 @@
       "issue": 764,
       "state": "open",
       "title": "[GURPS audit] Connect composed purchased attacks to modifier-aware resolution"
+    },
+    {
+      "issue": 854,
+      "state": "open",
+      "title": "[GURPS audit] Wire B66 Luck into remaining task/combat consumers"
     }
   ]
 }

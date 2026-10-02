@@ -337,13 +337,13 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             ("transformation:death-boundary", "B296"),
         )
     )
-    # A bound runtime effect is reported as implemented; naming one is still partial.
+    # Purchase availability does not complete a family's outstanding source obligations.
     rows.extend(
         InventoryItem(
             e.id,
             e.reference,
             113,
-            "implemented" if e.implemented else "partial",
+            e.certification_status,
             "mundane-traits",
             blockers=e.followup_issues,
             evidence=e.evidence,

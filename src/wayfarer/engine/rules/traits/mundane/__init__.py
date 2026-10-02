@@ -5,6 +5,8 @@ the selected source baseline.
 Construction cost and executable effect are separate: an entry is implemented
 only when `runtime.SUPPORTED_HOOKS` binds its effect to a service that already
 resolves it. Every other record stays unsupported and cannot activate.
+Certification additionally tracks incomplete behavior without disabling the
+supported purchases that already bind an executable effect.
 """
 
 from collections import Counter
@@ -97,11 +99,17 @@ class TraitEntry:
     followup_issues: tuple[int, ...] = (113, 122)
     parameters: tuple[TraitParameter, ...] = ()
     evidence: tuple[str, ...] = ()
+    completion_issues: tuple[int, ...] = ()
 
     @property
     def implemented(self) -> bool:
-        """A bound effect executes; naming an effect never implements it."""
+        """Purchase availability: a bound effect executes, even for a partial family."""
         return self.id != UNUSUAL_BACKGROUND_ID and self.effect in SUPPORTED_HOOKS
+
+    @property
+    def certification_status(self) -> Literal["implemented", "partial"]:
+        """A bound hook does not complete its outstanding source obligations."""
+        return "implemented" if self.implemented and not self.completion_issues else "partial"
 
     @property
     def status(self) -> ImplementationStatus:
@@ -655,9 +663,10 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
             effect=spec.hook,
             maximum_level=spec.maximum_level,
             self_control=spec.self_control,
-            followup_issues=(113, spec.owner_issue)
+            followup_issues=(113, spec.owner_issue, *spec.completion_issues)
             + ((906,) if spec.id == UNUSUAL_BACKGROUND_ID else ()),
             parameters=spec.parameters,
+            completion_issues=spec.completion_issues,
         )
         for spec in COMPLETE_SPECS
     )
@@ -739,7 +748,13 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
         "scope": "selected mundane traits and finite campaign background identities",
         "level_bounds": "Finite candidate selection ceilings, not new universal source limits",
         "entries": [
-            asdict(e) | {"reference": e.reference, "blockers": e.blockers, "status": e.status.value}
+            asdict(e)
+            | {
+                "reference": e.reference,
+                "blockers": e.blockers,
+                "status": e.status.value,
+                "certification_status": e.certification_status,
+            }
             for e in entries
         ],
         "bindings": {

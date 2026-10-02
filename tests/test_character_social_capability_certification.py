@@ -143,6 +143,7 @@ def test_complete_trait_and_self_control_ledgers_retain_the_unbound_admission_ga
         "trait:advantage:alternate-form",
         "trait:advantage:morph",
         "trait:advantage:innate-attack",
+        "trait:advantage:luck",
     }
     # Real return-state coverage does not certify the remaining form paths.
     for identifier in ("trait:advantage:alternate-form", "trait:advantage:morph"):
@@ -157,6 +158,9 @@ def test_complete_trait_and_self_control_ledgers_retain_the_unbound_admission_ga
     assert attack.implementation == "partial"
     assert attack.completion_owner == attack.consequence_owner == 764
     assert "tests/test_composed_attack_host.py" in attack.evidence_paths
+    luck = unready["trait:advantage:luck"]
+    assert luck.implementation == "partial"
+    assert luck.completion_owner == luck.consequence_owner == 854
     assert all(
         row.implementation == "not-applicable" for row in traits if row.disposition != "required"
     )

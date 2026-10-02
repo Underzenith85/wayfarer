@@ -37,6 +37,8 @@ from wayfarer.orchestration.spell_rituals import SpellRitualService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.orchestration.staff_casting import StaffCastingService
 from wayfarer.orchestration.symptom_generations import replay_payload
+from wayfarer.orchestration.task_records import ADAPTER as TASK_ADAPTER
+from wayfarer.orchestration.tasks import TaskService
 from wayfarer.orchestration.transformations import TransformationService
 from wayfarer.persistence.events import CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
@@ -46,6 +48,14 @@ async def _enchantment(play: PlayService, record: CommandRecord, encoded: str) -
     await EnchantmentService(play).execute(
         record.campaign_id,
         ENCHANTMENT_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _task_host(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await TaskService(play).execute(
+        record.campaign_id,
+        TASK_ADAPTER.validate_json(encoded),
         principal_id=record.actor_id,
     )
 
@@ -117,6 +127,7 @@ async def _composed_defense(play: PlayService, record: CommandRecord, encoded: s
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "task-host": _task_host,
     "composed-attack": _composed_attack,
     "composed-defense": _composed_defense,
     "enchantment": _enchantment,

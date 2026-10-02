@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from decimal import Decimal
 from typing import TYPE_CHECKING, Literal
 
@@ -20,6 +20,7 @@ from wayfarer.engine.rules.checks import (
     Modifier,
     Outcome,
     RandomSource,
+    evaluate_success,
     success_check,
 )
 from wayfarer.engine.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
@@ -90,7 +91,7 @@ from wayfarer.engine.simulation.magic.enchanting import validate_projects as val
 from wayfarer.engine.simulation.magic.lock_state import passage_blocked
 from wayfarer.engine.simulation.play_clock import PlayClock, advance_play
 from wayfarer.engine.simulation.projects.inventions import validate_projects
-from wayfarer.engine.simulation.resources import Advance, Consume
+from wayfarer.engine.simulation.resources import Advance, Consume, ResourceState
 from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.simulation.traits.size_forms import effect_for as size_effect_for
@@ -100,6 +101,32 @@ from wayfarer.errors import ConflictError, ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.resource_engine import ResourceEngine
+
+
+@dataclass(frozen=True, slots=True)
+class TaskCheckPreparation:
+    """Canonical ordinary check inputs, without time, resource or world effects."""
+
+    campaign_id: str
+    actor_id: str
+    action: Literal["inspect", "social"]
+    target_id: str
+    configuration_digest: str
+    target: int
+    modifiers: tuple[Modifier, ...]
+    rules_package: str
+    rules_version: str
+    derived: DerivedValue
+    dependencies: tuple[DerivedValue, ...]
+
+    def check(self, *, rng: RandomSource = NO_RANDOM) -> CheckTrace:
+        return success_check(
+            self.target,
+            self.modifiers,
+            rng=rng,
+            rules_package=self.rules_package,
+            rules_version=self.rules_version,
+        )
 
 
 def _guard_transformation_recovery(state: PlayState, command: TypedAction) -> None:
@@ -447,7 +474,9 @@ class ActionEngine:
             return "move.closed_door"
         return None
 
-    def assess(self, state: PlayState, command: TypedAction) -> ActionResult:
+    def assess(
+        self, state: PlayState, command: TypedAction, *, _fatigue_already_paid: bool = False
+    ) -> ActionResult:
         _guard_transformation_recovery(state, command)
         if command.kind != "question" and (
             command.actor_id in state.recovery.dead_actor_ids
@@ -507,6 +536,7 @@ class ActionEngine:
             return result("rejected", "actor.incapacitated")
         if (
             not isinstance(command, Wait)
+            and not _fatigue_already_paid
             and pools[f"fp:{actor.actor_id}"].current < self.rules.fatigue_cost
         ):
             return result("rejected", "resource.fatigue")
@@ -618,6 +648,98 @@ class ActionEngine:
             return result("rejected", "check.skill_required")
         return result("feasible", "check.allowed")
 
+    def prepare_task_check(
+        self,
+        state: PlayState,
+        command: Inspect | Social,
+        *,
+        correct_symptom_attributes: bool = True,
+        fatigue_already_paid: bool = False,
+    ) -> TaskCheckPreparation:
+        """Prepare a feasible ordinary check without rolling or committing effects.
+
+        A staged host must settle prerequisite time before preparation, then keep
+        the resulting check and its context together until selection. Assessment
+        uses the current approved build and equipment. Preparation alone does
+        not admit a persisted pending task: the host owns duration admission,
+        authorization and the atomic commit of the selected consequences.
+        A host that has settled profile fatigue may skip that cost's affordability
+        gate; all other current feasibility checks still apply.
+        """
+        if not isinstance(command, (Inspect, Social)):
+            raise ValidationError("Only ordinary Inspect and Social checks can be prepared")
+        _require_ready_action(state, command)
+        feasible = self.assess(state, command, _fatigue_already_paid=fatigue_already_paid)
+        if feasible.status != "feasible":
+            raise ValidationError(f"Cannot prepare ordinary task check: {feasible.code}")
+        return self._prepare_task_check(
+            state, command, correct_symptom_attributes=correct_symptom_attributes
+        )
+
+    def _prepare_task_check(
+        self,
+        state: PlayState,
+        command: Inspect | Social,
+        *,
+        correct_symptom_attributes: bool,
+        extra_modifiers: tuple[Modifier, ...] = (),
+    ) -> TaskCheckPreparation:
+        assert command.target_id is not None
+        rule = self.checks[(command.kind, command.target_id)]
+        actor = next(a for a in state.actors if a.actor_id == command.actor_id)
+        build, _ = self.reviewer.activate(
+            actor.proposal,
+            actor.approval,
+            campaign_id=state.campaign_id,
+            actor_id=actor.actor_id,
+        )
+        build = projected_build(
+            state.resources,
+            actor.actor_id,
+            build,
+            self.reviewer.compiler.definitions,
+            correct_attributes=correct_symptom_attributes,
+        )
+        derived, dependencies = self._target(state, actor.actor_id, build, rule)
+        if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():
+            raise ValidationError("Check target must be a finite integer")
+        darkness = lighting_penalty(state, rule.target_id, rule.darkness_penalty)
+        modifiers = (
+            (Modifier(rule.modifier, rule.id, rule.definition_id, rule.package_version),)
+            + (
+                (
+                    Modifier(
+                        darkness,
+                        rule.id + ":darkness",
+                        rule.definition_id,
+                        rule.package_version,
+                    ),
+                )
+                if darkness
+                else ()
+            )
+            + extra_modifiers
+            + definition_modifiers(
+                state.resources,
+                actor.actor_id,
+                rule.definition_id,
+                self.reviewer.compiler.definitions,
+            )
+        )
+        return TaskCheckPreparation(
+            campaign_id=state.campaign_id,
+            actor_id=command.actor_id,
+            action=command.kind,
+            target_id=command.target_id,
+            configuration_digest=self.digest,
+            target=int(derived.value),
+            modifiers=modifiers,
+            rules_package=rule.package_id,
+            rules_version=rule.package_version,
+            derived=derived,
+            dependencies=dependencies,
+        )
+
     def _target(
         self, state: PlayState, actor_id: str, build: ValidatedBuild, rule: CheckRule
     ) -> tuple[DerivedValue, tuple[DerivedValue, ...]]:
@@ -711,13 +833,98 @@ class ActionEngine:
             correct_symptom_attributes=correct_symptom_attributes,
             clock=clock,
         )
-        events = play_events(state, updated, command.actor_id)
+        return self._resolved_events(state, updated, command.actor_id, result)
+
+    def resolve_prepared_task(
+        self,
+        state: PlayState,
+        command: Inspect | Social,
+        preparation: TaskCheckPreparation,
+        selected_trace: CheckTrace,
+        *,
+        fatigue_already_paid: bool = False,
+    ) -> tuple[PlayState, list[EngineEvent]]:
+        """Commit an already attempted task using its captured check context.
+
+        The trusted host admits and persists the pending attempt, then authorizes
+        and consumes it exactly once. Time must already be settled. A completed
+        roll is not rescored against later equipment, attributes or conditions;
+        only its selected dice are verified against the captured preparation.
+        No state snapshot is restored and no new randomness is consumed.
+        Hosts that settle profile fatigue before the original roll must persist
+        that expenditure and pass ``fatigue_already_paid=True`` at completion.
+        """
+        if (
+            not isinstance(command, (Inspect, Social))
+            or command.hypothetical
+            or (isinstance(command, Social) and command.approach != "diplomacy")
+            or (
+                preparation.campaign_id,
+                preparation.actor_id,
+                preparation.action,
+                preparation.target_id,
+                preparation.configuration_digest,
+            )
+            != (
+                state.campaign_id,
+                command.actor_id,
+                command.kind,
+                command.target_id,
+                self.digest,
+            )
+        ):
+            raise ValidationError("Prepared task does not match the current action")
+        self.validate(state)
+        if command.expected_revision != state.revision:
+            raise ConflictError("Play revision changed")
+        trace = evaluate_success(
+            preparation.target,
+            preparation.modifiers,
+            selected_trace.dice,
+            rules_package=preparation.rules_package,
+            rules_version=preparation.rules_version,
+            rule_id="check:success",
+        )
+        if trace != selected_trace:
+            raise ValidationError("Selected task check does not match its captured context")
+        updated, result = self._resolve_action(
+            state,
+            command,
+            advance_time=False,
+            prepared_task=(preparation, trace),
+            task_fatigue_paid=fatigue_already_paid,
+        )
+        return self._resolved_events(state, updated, command.actor_id, result)
+
+    @staticmethod
+    def _resolved_events(
+        state: PlayState, updated: PlayState, actor_id: str, result: ActionResult
+    ) -> tuple[PlayState, list[EngineEvent]]:
+        events = play_events(state, updated, actor_id)
         # Rejected/question resolutions still produce a typed result, but are not committed.
         events = [e for e in events if not isinstance(e, ActionResolved)]
-        events.append(
-            ActionResolved(audience=ActorAudience(actor_ids=(command.actor_id,)), result=result)
-        )
+        events.append(ActionResolved(audience=ActorAudience(actor_ids=(actor_id,)), result=result))
         return updated, events
+
+    def _spend_action_fatigue(self, resources: ResourceState, actor_id: str) -> ResourceState:
+        """Charge the configured ordinary action cost without overdrawing its pool."""
+        if any(p.id == f"fp:{actor_id}" and p.fatigue is not None for p in resources.pools):
+            raise ValidationError("Profile fatigue costs require the GURPS exertion adapter")
+        if any(
+            p.id == f"fp:{actor_id}" and p.current < self.rules.fatigue_cost
+            for p in resources.pools
+        ):
+            raise ConflictError("Task fatigue resources changed")
+        return resources.model_copy(
+            update={
+                "pools": tuple(
+                    p.model_copy(update={"current": p.current - self.rules.fatigue_cost})
+                    if p.id == f"fp:{actor_id}"
+                    else p
+                    for p in resources.pools
+                )
+            }
+        )
 
     def _resolve_action(
         self,
@@ -729,9 +936,12 @@ class ActionEngine:
         advance_time: bool = True,
         correct_symptom_attributes: bool = True,
         clock: PlayClock | None = None,
+        prepared_task: tuple[TaskCheckPreparation, CheckTrace] | None = None,
+        task_fatigue_paid: bool = False,
     ) -> tuple[PlayState, ActionResult]:
 
-        _require_ready_action(state, command)
+        if prepared_task is None:
+            _require_ready_action(state, command)
         ruling = None
         extra_modifiers: tuple[Modifier, ...] = ()
         if ruling_id is not None:
@@ -765,11 +975,13 @@ class ActionEngine:
                     ruling.configuration_digest,
                 ),
             )
-        feasible = self.assess(state, command)
-        if feasible.status != "feasible":
-            return state, feasible
-        duration = action_duration(self.rules, command)
-        require_action_time(state, command.actor_id, duration * advance_time)
+        duration = 0
+        if prepared_task is None:
+            feasible = self.assess(state, command)
+            if feasible.status != "feasible":
+                return state, feasible
+            duration = action_duration(self.rules, command)
+            require_action_time(state, command.actor_id, duration * advance_time)
         world, resources = state.world, state.resources
         if not isinstance(command, Wait):
             resources = interrupt_concentration(resources, command.actor_id, command.id)
@@ -780,21 +992,12 @@ class ActionEngine:
                     )
                 }
             )
-        if not isinstance(command, Wait) and self.rules.fatigue_cost:
-            if any(
-                p.id == f"fp:{command.actor_id}" and p.fatigue is not None for p in resources.pools
-            ):
-                raise ValidationError("Profile fatigue costs require the GURPS exertion adapter")
-            resources = resources.model_copy(
-                update={
-                    "pools": tuple(
-                        p.model_copy(update={"current": p.current - self.rules.fatigue_cost})
-                        if p.id == f"fp:{command.actor_id}"
-                        else p
-                        for p in resources.pools
-                    )
-                }
-            )
+        if (
+            not isinstance(command, Wait)
+            and self.rules.fatigue_cost
+            and not (prepared_task is not None and task_fatigue_paid)
+        ):
+            resources = self._spend_action_fatigue(resources, command.actor_id)
         trace: CheckTrace | None = None
         derived: DerivedValue | None = None
         dependencies: tuple[DerivedValue, ...] = ()
@@ -824,55 +1027,21 @@ class ActionEngine:
         elif isinstance(command, (Inspect, Social)):
             assert command.target_id is not None
             rule = self.checks[(command.kind, command.target_id)]
-            actor = next(a for a in state.actors if a.actor_id == command.actor_id)
-            build, _ = self.reviewer.activate(
-                actor.proposal,
-                actor.approval,
-                campaign_id=state.campaign_id,
-                actor_id=actor.actor_id,
-            )
-            build = projected_build(
-                state.resources,
-                actor.actor_id,
-                build,
-                self.reviewer.compiler.definitions,
-                correct_attributes=correct_symptom_attributes,
-            )
-            derived, dependencies = self._target(state, actor.actor_id, build, rule)
-            if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():
-                raise ValidationError("Check target must be a finite integer")
-
-            darkness = lighting_penalty(state, rule.target_id, rule.darkness_penalty)
-            trace = success_check(
-                int(derived.value),
-                (Modifier(rule.modifier, rule.id, rule.definition_id, rule.package_version),)
-                + (
-                    (
-                        Modifier(
-                            darkness,
-                            rule.id + ":darkness",
-                            rule.definition_id,
-                            rule.package_version,
-                        ),
-                    )
-                    if darkness
-                    else ()
+            if prepared_task is None:
+                prepared = self._prepare_task_check(
+                    state,
+                    command,
+                    correct_symptom_attributes=correct_symptom_attributes,
+                    extra_modifiers=extra_modifiers,
                 )
-                + extra_modifiers
-                + definition_modifiers(
-                    state.resources,
-                    actor.actor_id,
-                    rule.definition_id,
-                    self.reviewer.compiler.definitions,
-                ),
-                rng=rng,
-                rules_package=rule.package_id,
-                rules_version=rule.package_version,
-            )
+                trace = prepared.check(rng=rng)
+            else:
+                prepared, trace = prepared_task
+            derived, dependencies = prepared.derived, prepared.dependencies
             if trace.outcome in (Outcome.SUCCESS, Outcome.CRITICAL_SUCCESS):
                 revealed = rule.reveal_fact_ids
                 for fact_id in revealed:
-                    world = world.learn(actor.actor_id, fact_id)
+                    world = world.learn(command.actor_id, fact_id)
         elif not isinstance(command, Wait):
             raise ValidationError("No implemented resolver")
         if advance_time:
