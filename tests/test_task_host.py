@@ -3,6 +3,7 @@
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
+from typing import Literal
 
 import pytest
 from support.runtime import build_play, seed_campaign
@@ -34,7 +35,13 @@ from wayfarer.orchestration.tasks import TaskService
 
 
 async def fixture(
-    path: Path, backend: str = "sqlite", *, points: int = 15, fatigue_cost: int = 0
+    path: Path,
+    backend: str = "sqlite",
+    *,
+    points: int = 15,
+    fatigue_cost: int = 0,
+    action: Literal["inspect", "social"] = "inspect",
+    modifiers: tuple[str, ...] = (),
 ) -> tuple[str, PlayService]:
     luck = next(
         definition
@@ -51,9 +58,14 @@ async def fixture(
             None,
             ImplementationStatus.IMPLEMENTED,
             hooks=("character.gurps-skill", "check.target"),
-            skill=SkillSpec(ControllingAttribute.IQ, Difficulty.AVERAGE, page),
+            skill=SkillSpec(
+                ControllingAttribute.IQ,
+                Difficulty.HARD if key == "diplomacy" else Difficulty.AVERAGE,
+                page,
+            ),
         )
         for key, page in (("carpentry", "B183"), ("administration", "B174"), ("leadership", "B204"))
+        + ((("diplomacy", "B187"),) if action == "social" else ())
     )
     cid, original = await setup(
         path / "source",
@@ -66,10 +78,14 @@ async def fixture(
         trait_runtime_hooks=SUPPORTED_HOOKS,
         extra_purchases=(
             Purchase(
-                definition_id=luck.id, trait=TraitOptions(parameters=(("point-cost", points),))
+                definition_id=luck.id,
+                trait=TraitOptions(parameters=(("point-cost", points),), modifiers=modifiers),
             ),
         )
-        + tuple(Purchase(definition_id=skill.id, amount=8) for skill in skills),
+        + tuple(
+            Purchase(definition_id=skill.id, amount=12 if skill.id == "skill:diplomacy" else 8)
+            for skill in skills
+        ),
         runtime_world=world(),
         aware_of=("chest", "b"),
         runtime_rules=ActionRules(
@@ -79,13 +95,13 @@ async def fixture(
             checks=(
                 CheckRule(
                     id="carpentry-inspect",
-                    action="inspect",
-                    target_id="chest",
-                    definition_id="skill:carpentry",
+                    action=action,
+                    target_id="chest" if action == "inspect" else "b",
+                    definition_id="skill:carpentry" if action == "inspect" else "skill:diplomacy",
                     package_id="package:gurps-basic-set-4e-2004-characters",
                     package_version="1.0.0",
                     duration=1,
-                    reveal_fact_ids=("clue",),
+                    reveal_fact_ids=("clue" if action == "inspect" else "promise",),
                 ),
             ),
         ),
