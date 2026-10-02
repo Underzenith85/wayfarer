@@ -117,8 +117,12 @@ def original_input(text: str) -> str:
 def same_input(record: CommandInput, requested: str) -> bool:
     """Verify stored bytes before removing only validated private metadata."""
     recorded_generation = generation(record)
-    requested_input = combat_intent(intent_input(requested))
-    recorded_input = combat_intent(intent_input(record.text)) if record.text is not None else None
+    requested_input = great_haste_intent(combat_intent(intent_input(requested)))
+    recorded_input = (
+        great_haste_intent(combat_intent(intent_input(record.text)))
+        if record.text is not None
+        else None
+    )
     if payload_digest({"input": requested}) == record.payload_hash:
         return True
     if record.text is None or not (
@@ -165,3 +169,24 @@ def replay_payload(text: str) -> object:
         return validation.decode(raw)
     except json.JSONDecodeError:
         return raw
+
+
+def great_haste_intent(text: str) -> str:
+    """Recover exact private host bytes only through validated generation metadata."""
+    payload = object_input(text)
+    key, original = "great_haste_combat_generation", "great_haste_original_input"
+    if payload is None or not {key, original}.intersection(payload):
+        return text
+    raw = payload.get(original)
+    source = object_input(raw) if isinstance(raw, str) else None
+    intended = {name: value for name, value in payload.items() if name not in {key, original}}
+    if (
+        payload.get("operation") != "great-haste"
+        or type(payload.get(key)) is not int
+        or payload[key] != 1
+        or source is None
+        or {key, original}.intersection(source)
+        or canonical(source) != canonical(intended)
+    ):
+        raise ValidationError("Invalid recorded Great Haste combat generation")
+    return validation.string(raw)
