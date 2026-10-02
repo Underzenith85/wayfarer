@@ -1,8 +1,10 @@
-"""Advance new persisted Cyclic occurrences against current full campaign state.
+"""Advance new Cyclic and enchanting records against current full campaign state.
 
 The legacy resource-only path remains byte-stable. New host-bound occurrences
 checkpoint the current body between deadlines, including automatic reversion,
 so later damage never reuses an earlier form's defenses (B83/B103/B421).
+Enrolled work observes actual mage-loss deadlines (B482), and marked B235 refunds
+arrive before later consequences. Unmarked histories retain their old boundaries.
 """
 
 import hashlib
@@ -20,6 +22,8 @@ from wayfarer.engine.simulation.health.cyclic_host_state import binding
 from wayfarer.engine.simulation.health.fright import advance as advance_resource_clock
 from wayfarer.engine.simulation.health.fright import effects as fright_effects
 from wayfarer.engine.simulation.health.injury import InjuryResult
+from wayfarer.engine.simulation.magic.backfires import chronological_refund_deadlines
+from wayfarer.engine.simulation.magic.enchanting_lifecycle import needs_clock_checkpoints
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.harmful_physiology_play import settle_actor
@@ -33,14 +37,19 @@ if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
 
 
-def _bound_deadline(state: PlayState, to: int) -> bool:
+def _needs_checkpoints(state: PlayState, to: int) -> bool:
     resources = state.resources
-    return any(
-        a.active and a.due <= to and binding(resources, a.id) is not None
-        for a in resources.cyclic_attacks
-    ) or any(
-        e.stage == "exposure" and e.due <= to and binding(resources, e.source.id) is not None
-        for e in resources.cyclic_exposures
+    return (
+        needs_clock_checkpoints(resources)
+        or any(t <= to for t in chronological_refund_deadlines(resources))
+        or any(
+            a.active and a.due <= to and binding(resources, a.id) is not None
+            for a in resources.cyclic_attacks
+        )
+        or any(
+            e.stage == "exposure" and e.due <= to and binding(resources, e.source.id) is not None
+            for e in resources.cyclic_exposures
+        )
     )
 
 
@@ -66,6 +75,21 @@ def _next_deadline(play: PlayService, state: PlayState, to: int, run_npcs: bool)
     deadlines += [
         i.deadline for i in conditions(resources) if not i.retired and i.deadline is not None
     ]
+    deadlines += list(chronological_refund_deadlines(resources))
+    if needs_clock_checkpoints(resources):
+        living = {
+            p.id.removeprefix("hp:")
+            for p in resources.pools
+            if p.injury is not None and not p.injury.dead
+        }
+        deadlines += [
+            p.fatigue.heart_attack_deadline
+            for p in resources.pools
+            if p.id.removeprefix("fp:") in living
+            and p.fatigue is not None
+            and p.fatigue.heart_attack
+            and p.fatigue.heart_attack_deadline is not None
+        ]
     if run_npcs:
         deadlines += list(due_times(play, state, to))
     return min((max(now, t) for t in deadlines if t <= to), default=to)
@@ -177,7 +201,7 @@ def advance(
     *,
     run_npcs: bool = True,
 ) -> PlayState:
-    if not _bound_deadline(state, command.to):
+    if not _needs_checkpoints(state, command.to):
         resources = play.engine.resources.for_world(state.world).apply(
             state.resources, command, system=True, rng=rng
         )

@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.magic.backfires import refund_later
 from wayfarer.engine.simulation.magic.enchanting import (
     EnchantingRules,
     EnchantmentInterruption,
@@ -31,8 +32,28 @@ from wayfarer.engine.simulation.magic.enchanting_calendar import (
     CALENDAR_DAY as CALENDAR_DAY,
 )
 from wayfarer.engine.simulation.magic.enchanting_calendar import (
+    MAGE_DAY as MAGE_DAY,
+)
+from wayfarer.engine.simulation.magic.enchanting_calendar import (
+    EnchantmentSchedule as EnchantmentSchedule,
+)
+from wayfarer.engine.simulation.magic.enchanting_calendar import (
+    enchanting_work_active as enchanting_work_active,
+)
+from wayfarer.engine.simulation.magic.enchanting_calendar import (
     next_shift_at,
     record_rest,
+    require_pending_cast_time,
+)
+from wayfarer.engine.simulation.magic.enchanting_calendar import (
+    schedule as _schedule,
+)
+from wayfarer.engine.simulation.magic.enchanting_lifecycle import (
+    checkpoint as enchanting_checkpoint,
+)
+from wayfarer.engine.simulation.magic.enchanting_lifecycle import (
+    enroll,
+    require_participants,
 )
 from wayfarer.engine.simulation.magic.item_state import has_item_magic, require_power_installation
 from wayfarer.engine.simulation.magic.staff_state import require_staff_construction
@@ -47,41 +68,10 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 
-MAGE_DAY = 8 * 60 * 60
-
 
 def replay_enchantment_check(check: CheckTrace) -> CheckTrace:
     """Score recorded B481 ceremonial dice while preserving the real skill target."""
     return replace(replay_ceremonial_check(check), rule_id="gurps.magic.enchanting")
-
-
-class EnchantmentSchedule(Record):
-    """Private daily-work facts; the public project schema remains unchanged."""
-
-    first_shift_at: int = Field(ge=0)
-    makeup_shifts: int = Field(default=0, ge=0)
-
-
-def _schedule(resources: ResourceState, work: EnchantmentWork) -> EnchantmentSchedule:
-    event = next((e for e in resources.events if e.id == "enchantment-schedule:" + work.id), None)
-    return (
-        EnchantmentSchedule.model_validate_json(event.kind)
-        if event
-        else EnchantmentSchedule(first_shift_at=work.start)
-    )
-
-
-def enchanting_work_active(resources: ResourceState, project: EnchantmentProject) -> bool:
-    """Whether a mage is concentrating now, excluding nightly rest and completed work."""
-    work = project.active_work
-    if work is None or project.status != "active" or resources.game_time >= work.due:
-        return False
-    event = next((e for e in resources.events if e.id == "enchantment-schedule:" + work.id), None)
-    if event is None:
-        return True
-    schedule = EnchantmentSchedule.model_validate_json(event.kind)
-    elapsed = resources.game_time - schedule.first_shift_at
-    return elapsed >= 0 and elapsed % CALENDAR_DAY < MAGE_DAY
 
 
 def _end_daily_work(
@@ -600,6 +590,79 @@ def _interrupt(
     )
 
 
+def _critical_failure(
+    check: CheckTrace, recipe: EnchantmentRecipe, correct_settlement: bool
+) -> bool:
+    # Retain the natural roll in CheckTrace, as ordinary spell settlement does.
+    return check.outcome is Outcome.CRITICAL_FAILURE or (
+        correct_settlement and recipe.mana == "very-high" and not check.outcome.succeeded
+    )
+
+
+def _settlement_energy(
+    runtime: RulesContext,
+    state: PlayState,
+    work: EnchantmentWork,
+    recipe: EnchantmentRecipe,
+    command_id: str,
+    *,
+    correct_settlement: bool,
+) -> ResourceState:
+    if recipe.method != "quick-and-dirty":
+        return state.resources
+    resources = _spend_energy(runtime, state, work.contributions, command_id)
+    if correct_settlement and recipe.mana == "very-high":
+        for contribution in work.contributions:
+            if contribution.fp:
+                resources = refund_later(
+                    resources,
+                    contribution.actor_id,
+                    command_id + ":" + contribution.actor_id,
+                    contribution.fp,
+                    combat=False,
+                    chronological=True,
+                )
+    return resources
+
+
+def _settle_project(
+    runtime: RulesContext,
+    state: PlayState,
+    command: SettleEnchanting,
+    project: EnchantmentProject,
+    recipe: EnchantmentRecipe,
+    *,
+    correct_settlement: bool,
+) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
+    work = project.active_work
+    if work is None or work.id != command.work_id:
+        raise ConflictError("Enchanting work receipt is not active")
+    if correct_settlement:
+        state = state.model_copy(
+            update={"resources": enroll(state.resources, project, recipe.method)}
+        )
+        state = enchanting_checkpoint(state)
+        project = _project(state.resources, project.id, project.owner_id)
+        if project.status == "failed":
+            return (
+                state,
+                project,
+                EnchantmentOutcome(
+                    command_id=command.id,
+                    project_id=project.id,
+                    status="mage-lost",
+                    energy_completed=project.energy_completed,
+                ),
+            )
+        require_participants(state, project.enchanter_ids)
+    power = _validate_bindings(
+        runtime, state, recipe, project.target_item_id, project.enchanter_ids
+    )
+    return _settle(
+        runtime, state, command, project, recipe, power, correct_settlement=correct_settlement
+    )
+
+
 def _settle(
     runtime: RulesContext,
     state: PlayState,
@@ -607,6 +670,8 @@ def _settle(
     project: EnchantmentProject,
     recipe: EnchantmentRecipe,
     power: int,
+    *,
+    correct_settlement: bool,
 ) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     work = project.active_work
     if work is None or work.id != command.work_id:
@@ -659,10 +724,8 @@ def _settle(
         success_roll("gurps-basic-set-4e-2004", power, modifiers, rng=runtime.rng)
     )
     critical_bonus = draw_dice(runtime.rng, 2) if check.outcome is Outcome.CRITICAL_SUCCESS else ()
-    resources = (
-        _spend_energy(runtime, state, work.contributions, command.id)
-        if recipe.method == "quick-and-dirty"
-        else state.resources
+    resources = _settlement_energy(
+        runtime, state, work, recipe, command.id, correct_settlement=correct_settlement
     )
     resources = _end_daily_work(resources, project, recipe, command.id)
     completed = recipe.energy_required
@@ -719,7 +782,7 @@ def _settle(
                     )
                 }
             )
-    elif check.outcome is Outcome.CRITICAL_FAILURE or (
+    elif _critical_failure(check, recipe, correct_settlement) or (
         recipe.method == "slow-and-sure"
         and not next(i for i in resources.items if i.id == project.target_item_id).enchantments
     ):
@@ -730,7 +793,9 @@ def _settle(
                 "expended_items": resources.expended_items + (destroyed,),
             }
         )
-        status = "critical-failure" if check.outcome is Outcome.CRITICAL_FAILURE else "failed"
+        status = (
+            "critical-failure" if _critical_failure(check, recipe, correct_settlement) else "failed"
+        )
     elif recipe.method == "quick-and-dirty":
         resources = resources.model_copy(
             update={
@@ -775,7 +840,7 @@ def _advance_work(
     state: PlayState,
     command: AdvanceEnchanting,
     project: EnchantmentProject,
-) -> tuple[PlayState, EnchantmentOutcome]:
+) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     work = project.active_work
     if project.status != "active" or work is None or work.id != command.work_id:
         raise ConflictError("Enchanting work receipt is not active")
@@ -785,6 +850,7 @@ def _advance_work(
         raise ValidationError("Grouped campaigns must use their shared party timeline")
     if any(encounter.status == "active" for encounter in state.encounters):
         raise ValidationError("Active combat must settle before advancing enchanting work")
+    require_pending_cast_time(state.resources, command.to)
     state = runtime.advance(
         state,
         Advance(
@@ -794,12 +860,30 @@ def _advance_work(
             to=command.to,
         ),
     )
-    return state, EnchantmentOutcome(
-        command_id=command.id,
-        project_id=project.id,
-        status="advanced",
-        energy_completed=project.energy_completed,
+    state = enchanting_checkpoint(state)
+    project = _project(state.resources, project.id, project.owner_id)
+    return (
+        state,
+        project,
+        EnchantmentOutcome(
+            command_id=command.id,
+            project_id=project.id,
+            status="mage-lost" if project.status == "failed" else "advanced",
+            energy_completed=project.energy_completed,
+        ),
     )
+
+
+def _require_new_participants(
+    state: PlayState, command: TypedEnchantmentCommand, correct_settlement: bool
+) -> None:
+    if not correct_settlement:
+        return
+    if isinstance(command, CreateEnchantment):
+        require_participants(state, command.enchanter_ids)
+    elif isinstance(command, BeginEnchanting):
+        project = _project(state.resources, command.project_id, command.actor_id)
+        require_participants(state, project.enchanter_ids)
 
 
 def apply_enchantment(
@@ -808,6 +892,7 @@ def apply_enchantment(
     command: TypedEnchantmentCommand,
     *,
     system: bool = False,
+    correct_settlement: bool = True,
 ) -> tuple[PlayState, EnchantmentOutcome]:
     """Apply one project command; persisted receipts suppress repeated costs and rolls."""
     if not system:
@@ -820,6 +905,7 @@ def apply_enchantment(
         return state, prior
     if command.expected_revision != state.revision or state.revision != state.resources.revision:
         raise ConflictError("Enchantment project revision changed")
+    _require_new_participants(state, command, correct_settlement)
     if isinstance(command, CreateEnchantment):
         if any(p.id == command.project_id for p in state.resources.enchantment_projects):
             raise ConflictError("Enchantment project ID already exists")
@@ -856,7 +942,7 @@ def apply_enchantment(
         elif isinstance(command, InterruptEnchanting):
             state, project, outcome = _interrupt(runtime, state, command, project, recipe)
         elif isinstance(command, AdvanceEnchanting):
-            state, outcome = _advance_work(runtime, state, command, project)
+            state, project, outcome = _advance_work(runtime, state, command, project)
         elif isinstance(command, AbandonEnchantment):
             if project.status not in ("active", "interrupted"):
                 raise ConflictError("Only an unfinished enchantment can be abandoned")
@@ -872,9 +958,12 @@ def apply_enchantment(
             )
         else:
             assert isinstance(command, SettleEnchanting)
-            power = _validate_bindings(
-                runtime, state, recipe, project.target_item_id, project.enchanter_ids
+            state, project, outcome = _settle_project(
+                runtime, state, command, project, recipe, correct_settlement=correct_settlement
             )
-            state, project, outcome = _settle(runtime, state, command, project, recipe, power)
     state = _record(state, command, project, outcome)
+    if correct_settlement and isinstance(command, (CreateEnchantment, BeginEnchanting)):
+        state = state.model_copy(
+            update={"resources": enroll(state.resources, project, recipe.method)}
+        )
     return state, outcome

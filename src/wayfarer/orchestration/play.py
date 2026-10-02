@@ -41,6 +41,9 @@ from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.magic.area_fire import checkpoint as spell_checkpoint
 from wayfarer.engine.simulation.magic.backfire_transitions import perceive, recover_stuns
 from wayfarer.engine.simulation.magic.backfires import refund_due
+from wayfarer.engine.simulation.magic.enchanting_lifecycle import (
+    checkpoint as enchanting_checkpoint,
+)
 from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
 from wayfarer.engine.simulation.magic.item_state import checkpoint as item_magic_checkpoint
@@ -230,6 +233,8 @@ class PlayService:
                     "item-magic-loss:",
                     "enchantment:",
                     "enchantment-rest:",
+                    "enchantment-lifecycle:",
+                    "enchantment-loss:",
                     "power-cast-origin:",
                     "lock-state:",
                     "lock-channel:",
@@ -476,7 +481,7 @@ class PlayService:
         if before is not None:
             state = staff_checkpoint(state, before=before)
             state = sensory_checkpoint(state, before=before)
-        return state
+        return enchanting_checkpoint(state, before=before)
 
     @staticmethod
     def propose(value: object) -> TypedAction:
@@ -510,7 +515,7 @@ class PlayService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = self._load(campaign)
-            synchronous(current, command.actor_id)
+            synchronous(current, command.actor_id, enchanting_rest=True)
             state, resolved_events = self.engine.resolve(
                 current,
                 command,

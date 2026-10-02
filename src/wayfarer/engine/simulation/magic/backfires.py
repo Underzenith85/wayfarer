@@ -51,6 +51,9 @@ class ManaRefund(Record):
     due_turn: int | None = None
     settled: bool = False
     granted: int = 0
+    clock_generation: Literal[1] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 def backfires(state: ResourceState) -> tuple[Backfire, ...]:
@@ -212,6 +215,7 @@ def refund_later(
     *,
     combat: bool,
     before_turn: bool = False,
+    chronological: bool = False,
 ) -> ResourceState:
     pool = next(p for p in state.pools if p.id == "hp:" + actor_id)
     assert pool.injury
@@ -221,6 +225,7 @@ def refund_later(
         amount=amount,
         due_at=state.game_time + 1,
         due_turn=pool.injury.turn + 1 + int(before_turn) if combat else None,
+        clock_generation=1 if chronological else None,
     )
     return state.model_copy(
         update={
@@ -237,13 +242,26 @@ def refund_later(
     )
 
 
-def refund_due(state: ResourceState, actor_id: str, *, turn: int | None = None) -> ResourceState:
+def refunds(state: ResourceState) -> tuple[ManaRefund, ...]:
     found = {}
     for event in state.events:
         if event.id.startswith(REFUND):
             item = ManaRefund.model_validate_json(event.kind)
             found[item.id] = item
-    for item in found.values():
+    return tuple(found.values())
+
+
+def chronological_refund_deadlines(state: ResourceState) -> tuple[int, ...]:
+    """Opted-in private records join time advancement without changing old logs."""
+    return tuple(
+        item.due_at
+        for item in refunds(state)
+        if item.clock_generation == 1 and not item.settled and item.due_turn is None
+    )
+
+
+def refund_due(state: ResourceState, actor_id: str, *, turn: int | None = None) -> ResourceState:
+    for item in refunds(state):
         if item.actor_id != actor_id or item.settled:
             continue
         if (item.due_turn is not None and (turn is None or turn < item.due_turn)) or (
