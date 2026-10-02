@@ -37,9 +37,11 @@ from wayfarer.engine.simulation.combat.fragment_state import (
     fragment_attack_id,
     save_fragment,
 )
+from wayfarer.engine.simulation.combat.generations import preserve_grenade_fuse
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.thrown.interposition import contact_space, intercept
+from wayfarer.engine.simulation.combat.thrown.live_grenades import armed_cause
 from wayfarer.engine.simulation.combat.unarmed.injury import armor_dr, hurt
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
@@ -107,9 +109,14 @@ def schedule_payload(
                 )
             }
         )
+    armed = (
+        armed_cause(original_resources, source.id, encounter.id)
+        if grenade and preserve_grenade_fuse()
+        else None
+    )
     count = 1 if grenade or explodes else shots_fired
     for index in range(count):
-        fuse = (draw_dice(runtime.rng, 1)[0],) if delayed else ()
+        fuse = (draw_dice(runtime.rng, 1)[0],) if delayed and armed is None else ()
         direct = pending.attacker_id if explodes else pending.defender_id if index < hits else None
         aim_point = pending.area_aim_point
         attack_range = separation(position(encounter, attacker), aim_point) if aim_point else None
@@ -151,6 +158,21 @@ def schedule_payload(
                     )
                 }
             )
+        if armed is not None:
+            relocated = armed.model_copy(
+                update={
+                    "center": center,
+                    "direct_actor_id": direct,
+                    "critical": critical if index == 0 and not failure else 0,
+                    "aim_point": aim_point,
+                    "attack_range": attack_range,
+                    "attack_dice": attack.dice if aim_point is not None else (),
+                    "scatter_direction": scatter_direction,
+                    "scatter_distance": scatter_distance,
+                }
+            )
+            resources = save(resources, relocated, f"{pending.id}:grenade-rethrow")
+            continue
         resources = save(
             resources,
             BlastRecord(
