@@ -244,6 +244,7 @@ class SpellContext(Record):
     )
     item_power_reduction: int = Field(default=0, ge=0, le=100, exclude_if=lambda value: value == 0)
     item_cast: bool = Field(default=False, exclude_if=lambda value: not value)
+    area_targeting: bool = Field(default=False, exclude_if=lambda value: not value)
     area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
@@ -360,7 +361,7 @@ def _require_casting_check_available(
         and effect.spell_id in ("lockmaster", "magelock")
         and symptom_penalties(state, actor_id)["iq"]
     )
-    if not (item_check or personal_lock_check):
+    if not (item_check or personal_lock_check or context.area_targeting):
         return
     # B345: admit the current casting target before distraction dice or payment.
     # Historical commands retain their original order.
@@ -369,7 +370,7 @@ def _require_casting_check_available(
         state, actor_id, check_symptoms=check_symptoms and not context.item_cast
     )
     if target + sum(m.value for m in modifiers) < 3:
-        kind = "item" if item_check else "lock"
+        kind = "item" if item_check else "Area" if context.area_targeting else "lock"
         raise ValidationError(f"Effective {kind} spell skill must be at least 3")
 
 
@@ -394,7 +395,13 @@ def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None
     if context.area is not None:
         if spec.kind != "area" or context.position != context.area.center:
             raise ValidationError("Area selection must match an Area spell destination")
-        (hex_area if context.geometry == "hex" else square_area)(context.area, context.radius)
+        if context.area_targeting:
+            # deferred: Area geometry shares these canonical spell types.
+            from wayfarer.engine.simulation.magic.area_targeting import cells
+
+            cells(context.area, context.radius, context.geometry)
+        else:
+            (hex_area if context.geometry == "hex" else square_area)(context.area, context.radius)
     if spec.kind == "missile" and context.energy > context.magery:
         raise ValidationError("Initial missile energy exceeds Magery")
 
@@ -558,8 +565,8 @@ def apply_spell(
 
     backfires_settled(state, command.actor_id)
     spec = _executable_spec(command.spell_id)
-    if command.spell_id == "awaken":
-        validate_subjects(state, context.awaken_subjects)
+    if command.spell_id == "awaken" and not cancelling:
+        validate_subjects(state, context.awaken_subjects, allow_empty=context.area_targeting)
     validate_lock_operation(
         state,
         command.spell_id,
@@ -1144,7 +1151,12 @@ def _awaken_patients(
     if command.kind != "complete" or effect.spell_id != "awaken" or outcome != "active":
         return state, effect, ()
     state, awakening_checks = awaken(
-        state, context.awaken_subjects, margin=checks[-1].margin, command_id=command.id, rng=rng
+        state,
+        context.awaken_subjects,
+        margin=checks[-1].margin,
+        command_id=command.id,
+        rng=rng,
+        area_cast=(effect.cast_id, effect.actor_id) if context.area_targeting else None,
     )
     return state, effect.model_copy(update={"phase": "ended"}), awakening_checks
 

@@ -184,7 +184,12 @@ def _cancellation_context(
 
 
 def approved_context(
-    runtime: RulesContext, state: PlayState, command: SpellCommand, *, item_sight: bool = True
+    runtime: RulesContext,
+    state: PlayState,
+    command: SpellCommand,
+    *,
+    item_sight: bool = True,
+    area_targeting: bool = False,
 ) -> SpellContext:
     # deferred: Staff joins share the completed spell context without a public schema change.
     from wayfarer.engine.simulation.magic.staff_casting import apply_targeting, existing_context
@@ -215,10 +220,17 @@ def approved_context(
         command.spell_id,
     ):
         raise AuthorizationError("Spell channel does not authorize this actor and spell")
+    # deferred: the private Area adapter consumes the canonical spell context.
+    from wayfarer.engine.simulation.magic.area_targeting import enabled as area_enabled
+
+    # deferred: Area geometry imports the canonical spell types below this adapter.
+    from wayfarer.engine.simulation.magic.area_targeting import resolve as area_resolve
+
+    area_cast = area_enabled(state, command, area_targeting)
     entities = {e.id: e for e in state.world.entities}
     if command.kind not in ("cancel", "dissipate", "drop") and any(
         entities[e].location_id != channel.location_id
-        for e in (command.actor_id, channel.target_id)
+        for e in ((command.actor_id,) if area_cast else (command.actor_id, channel.target_id))
     ):
         raise ValidationError("Spell channel location changed")
     encounter = next(
@@ -228,17 +240,17 @@ def approved_context(
     position = None
     geometry = "square"
     distance = channel.distance_yards
-    if encounter:
-        positions = {p.actor_id: p.position for p in encounter.participants}
-        if channel.target_id not in positions:
-            raise ValidationError("Spell target is outside the encounter")
-        point = positions[channel.target_id]
-        if isinstance(point, GridPoint):
-            position = (point.x, point.y)
-        else:
-            position = (point.q, point.r)
-            geometry = "hex"
-        distance = CombatEngine.distance(positions[command.actor_id], point)
+    area = (
+        area_resolve(runtime, state, command, channel, encounter)
+        if area_cast and encounter
+        else None
+    )
+    if area is not None:
+        position, geometry, distance = area.selection.center, area.geometry, area.distance
+    elif encounter:
+        position, geometry, distance = _participant_target(
+            encounter, command.actor_id, channel.target_id
+        )
     elif command.spell_id in ("create-fire", "fireball", "awaken"):
         raise ValidationError("Area and missile spells require authoritative combat placements")
     if command.position is not None:
@@ -276,7 +288,8 @@ def approved_context(
             target_id=channel.target_id,
             mana=channel.mana,
             distance=distance,
-            radius=command.radius,
+            radius=area.radius if area is not None else command.radius,
+            unseen=area.unseen if area is not None else False,
             energy=command.energy,
             magic_item=magic_item,
             personal_ritual=channel.ceremonial is None,
@@ -325,16 +338,39 @@ def approved_context(
             "encounter_id": encounter.id if encounter else None,
             "position": position,
             "geometry": geometry,
-            "area": channel.area,
+            "area": area.selection if area is not None else channel.area,
+            "area_targeting": area is not None,
             "light_radius": channel.light_radius,
             "light_penalty": channel.light_penalty,
             "awaken_subjects": _awaken_area_subjects(
-                runtime, state, command, encounter, context, position, geometry, channel.area
+                runtime,
+                state,
+                command,
+                encounter,
+                context,
+                position,
+                geometry,
+                area.selection if area is not None else channel.area,
+                area_targeting=area is not None,
             ),
         }
     )
 
     return apply_targeting(runtime, state, command, context, item_sight=item_sight)
+
+
+def _participant_target(
+    encounter: Encounter, actor_id: str, target_id: str
+) -> tuple[tuple[int, int], str, int]:
+    positions = {p.actor_id: p.position for p in encounter.participants}
+    if target_id not in positions:
+        raise ValidationError("Spell target is outside the encounter")
+    point = positions[target_id]
+    if isinstance(point, GridPoint):
+        position, geometry = (point.x, point.y), "square"
+    else:
+        position, geometry = (point.q, point.r), "hex"
+    return position, geometry, CombatEngine.distance(positions[actor_id], point)
 
 
 def _awaken_area_subjects(
@@ -346,6 +382,8 @@ def _awaken_area_subjects(
     position: tuple[int, int] | None,
     geometry: str,
     selection: AreaSelection | None,
+    *,
+    area_targeting: bool = False,
 ) -> tuple[AwakenSubject, ...]:
     if command.spell_id != "awaken":
         return ()
@@ -354,7 +392,13 @@ def _awaken_area_subjects(
     area = selection or AreaSelection(center=position)
     if area.center != position:
         raise ValidationError("Awaken's approved center must match its target position")
-    cells = (hex_area if geometry == "hex" else square_area)(area, context.radius)
+    if area_targeting:
+        # deferred: the Area adapter shares the canonical spell context.
+        from wayfarer.engine.simulation.magic.area_targeting import cells as area_cells
+
+        cells = area_cells(area, context.radius, geometry)
+    else:
+        cells = (hex_area if geometry == "hex" else square_area)(area, context.radius)
     subjects = []
     for participant in encounter.participants:
         point = participant.position
@@ -489,7 +533,9 @@ def advance_cast_turn(
         )
         # B239 range and Staff custody/contact are current when the dice roll,
         # including physical consequences of the final injury-turn boundary.
-        completion_context = approved_context(runtime, state, completed, item_sight=item_sight)
+        completion_context = approved_context(
+            runtime, state, completed, item_sight=item_sight, area_targeting=context.area_targeting
+        )
         resources, result = apply_spell(
             state.resources,
             completed,
@@ -593,6 +639,7 @@ class SpellExecutionContext:
     capture_targeting: bool = True
     check_symptoms: bool = True
     item_sight: bool = True
+    area_targeting: bool = False
 
 
 def _prepare_spell(
@@ -614,7 +661,13 @@ def _prepare_spell(
             SpellEnvironment.model_validate(execution.resolver(runtime, before, command)),
         )
         if execution.resolver
-        else approved_context(runtime, before, command, item_sight=execution.item_sight)
+        else approved_context(
+            runtime,
+            before,
+            command,
+            item_sight=execution.item_sight,
+            area_targeting=execution.area_targeting,
+        )
     )
     if encounter is not None and context.execution_version == 2 and command.kind == "complete":
         raise ValidationError("Combat casting completes within its final Concentrate maneuver")
@@ -639,6 +692,7 @@ def _prepare_spell(
     perceived = {e.id for e in before.world.perspective(command.actor_id).entities}
     if (
         command.kind not in ("cancel", "maintain", "remember")
+        and not context.area_targeting
         and context.target_id != command.actor_id
         and context.target_id not in perceived
         and not context.unseen

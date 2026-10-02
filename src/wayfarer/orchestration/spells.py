@@ -6,6 +6,7 @@ from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
+from wayfarer.engine.simulation.magic.casting_targeting import awaken_checks
 from wayfarer.engine.simulation.magic.spell_transitions import RuntimeSpellResolver
 from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellExecutionContext as SpellExecutionContext,
@@ -59,6 +60,32 @@ def _runtime_resolver(resolve: SpellResolver | None) -> RuntimeSpellResolver | N
     return legacy
 
 
+async def _player_result(
+    play: PlayService, saved: PlayState, command: SpellCommand, result: SpellResult
+) -> SpellResult:
+    result = apparent_result(saved.resources, command, result)
+    subjects = awaken_checks(saved.resources, command.cast_id)
+    if not subjects:
+        return result
+    if len(subjects) > len(result.checks):
+        raise ValidationError("Recorded Awaken subject checks are inconsistent")
+    current = play._load(await play.store.read(saved.campaign_id))
+    known = {e.id for e in current.world.perspective(command.actor_id).entities} | {
+        command.actor_id
+    }
+    prefix = len(result.checks) - len(subjects)
+    return result.model_copy(
+        update={
+            "checks": result.checks[:prefix]
+            + tuple(
+                trace
+                for actor_id, trace in zip(subjects, result.checks[prefix:], strict=True)
+                if actor_id in known
+            )
+        }
+    )
+
+
 class SpellService:
     """An internal transaction seam, not permission to invent spell bindings."""
 
@@ -75,6 +102,7 @@ class SpellService:
         capture_targeting: bool = True,
         check_symptoms: bool = True,
         item_sight: bool = True,
+        area_targeting: bool = True,
         state: PlayState | None = None,
     ) -> CommandPlan[SpellResult]:
         """What a spell lifecycle command writes; the pipeline decides whether it runs.
@@ -98,6 +126,7 @@ class SpellService:
                 **({"targeting_generation": 1} if capture_targeting else {}),
                 **({"check_generation": 1} if check_symptoms else {}),
                 **({"item_sight_generation": 1} if item_sight else {}),
+                **({"area_targeting_generation": 1} if area_targeting else {}),
             },
             sort_keys=True,
         )
@@ -108,6 +137,7 @@ class SpellService:
             capture_targeting=capture_targeting,
             check_symptoms=check_symptoms,
             item_sight=item_sight,
+            area_targeting=area_targeting,
         )
         control: tuple[Control, ...] = (
             Controls(member, command.actor_id, "Spell actor is not controlled by principal")
@@ -117,9 +147,11 @@ class SpellService:
                 refusal="Spell lifecycle requires trusted director authority",
             ),
         )
-        if not player and item_sight and command.kind == "cancel":
+        if not player and (
+            item_sight and command.kind == "cancel" or command.spell_id in ("create-fire", "awaken")
+        ):
             if state is None:
-                raise ValidationError("Spell cancellation requires current campaign membership")
+                raise ValidationError("Spell lifecycle requires current campaign membership")
             control = (Seats(state), *control)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
@@ -140,7 +172,7 @@ class SpellService:
             result = SpellEvent.model_validate_json(recorded.kind).result
             if not player:
                 return result
-            return apparent_result(saved.resources, command, result)
+            return await _player_result(play, saved, command, result)
 
         return CommandPlan(
             command_id=command.id,
@@ -172,6 +204,7 @@ class SpellService:
                 capture_targeting=generations.capture_targeting,
                 check_symptoms=generations.check_symptoms,
                 item_sight=generations.item_sight,
+                area_targeting=generations.area_targeting,
                 state=state,
             ),
             principal_id=principal_id,

@@ -10,6 +10,7 @@ from pydantic import Field
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import draw_dice, draw_index
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.magic.protocols import AreaSelection
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.reinforcements import admit_actor
@@ -179,11 +180,35 @@ def _backfire_candidate(
         )
     elif encounter and target_id not in encounter.turn_order:
         raise ValidationError("Backfire target is outside the encounter")
+    if choice.effect == "retarget":
+        _retarget_surface(runtime, state, effect, encounter, target_id, choice.position)
     if choice.effect == "retarget" and target_id == effect.target_id:
         raise ValidationError("An intended table result must be rerolled")
     if choice.relationship in ("foe", "companion") and target_id == item.actor_id:
         raise ValidationError("A companion or foe cannot be the caster")
     return compiled
+
+
+def _retarget_surface(
+    runtime: RulesContext,
+    state: PlayState,
+    effect: SpellEffect,
+    encounter: Encounter | None,
+    target_id: str,
+    proposed_center: tuple[int, int] | None,
+) -> AreaSelection | None:
+    # deferred: Area targeting shares the spell/backfire state vocabulary.
+    from wayfarer.engine.simulation.magic.area_targeting import retarget_area
+
+    point = (
+        next((p.position for p in encounter.participants if p.actor_id == target_id), None)
+        if encounter
+        else None
+    )
+    position = (
+        (point.q, point.r) if isinstance(point, Hex) else (point.x, point.y) if point else None
+    )
+    return retarget_area(runtime, state, effect, encounter, position, proposed_center)
 
 
 def _validate_lock_backfire_candidate(
@@ -364,12 +389,20 @@ def _effect(
         if encounter:
             point = next(p.position for p in encounter.participants if p.actor_id == target_id)
             position = (point.q, point.r) if isinstance(point, Hex) else (point.x, point.y)
+        area = (
+            _retarget_surface(runtime, state, effect, encounter, target_id, choice.position)
+            if choice.effect == "retarget"
+            else None
+        )
+        if area is not None:
+            position = area.center
         duration = SPELLS[effect.spell_id].duration
         replacement = effect.model_copy(
             update={
                 "phase": "active",
                 "target_id": target_id,
                 "position": position,
+                "area": area if area is not None else effect.area,
                 "reversed": choice.effect == "reverse",
                 "expires_at": resources.game_time + duration if duration else None,
             }
