@@ -15,7 +15,12 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.events import visible
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.clock import CommandInstant
-from wayfarer.orchestration.task_records import ChooseTaskCheck, SetRealPlayClock, snapshot
+from wayfarer.orchestration.task_records import (
+    ChooseTaskCheck,
+    SetRealPlayClock,
+    has_task_records,
+    snapshot,
+)
 from wayfarer.orchestration.tasks import TaskService, real_play_clock
 from wayfarer.persistence.replay import verify_commands
 
@@ -328,3 +333,14 @@ async def test_paid_ordinary_fatigue_is_not_charged_again_at_choice(tmp_path: Pa
     await choose(play, cid, original.pending_id)
     state = play._load(await play.store.read(cid))
     assert next(pool.current for pool in state.resources.pools if pool.id == "fp:a") == 8
+
+
+def test_task_boundary_uses_actual_records_and_preserves_legacy_presence_markers() -> None:
+    assert not has_task_records("{}")
+    for invalid in ("[]", "true", "legacy", "null"):
+        with pytest.raises(ValueError):
+            has_task_records(invalid)
+    assert not has_task_records('{"description":"task-host: prose","resources":{}}')
+    assert not has_task_records('{"resources":{"events":[{"id":"unrelated"}]}}')
+    assert has_task_records('{"resources":{"events":[{"id":"task-host:actual"}]}}')
+    assert has_task_records(r'{"resources":{"events":[{"id":"task\u002dhost:escaped"}]}}')

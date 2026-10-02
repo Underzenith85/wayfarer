@@ -355,11 +355,21 @@ def test_object_armor_divisors(divisor: str, expected_dr: int, injury: int) -> N
     assert (result.effective_dr, result.injury) == (expected_dr, injury)
 
 
-async def test_resource_only_damage_refuses_live_play_state(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "marker",
+    [
+        "{}",
+        '{"description":"task-host: prose"}',
+        '{"resources":{}}',
+        '{"resources":{"events":[]}}',
+        '{"resources":{"events":[{"id":"unrelated"}]}}',
+    ],
+)
+async def test_resource_only_damage_refuses_live_play_state(tmp_path: Path, marker: str) -> None:
     reducer, state = fixture()
     service = ResourceService(AsyncSQLiteStore(tmp_path / "live.sqlite"), reducer)
     initial = campaign(reducer)
-    initial["play_json"] = "{}"
+    initial["play_json"] = marker
     await service.create(initial, state)
     with pytest.raises(ValidationError, match="combat transaction"):
         await service.execute_object(

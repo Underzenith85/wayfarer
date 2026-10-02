@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter
 
+from wayfarer import validation
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.simulation.actions import ActionResult, Inspect, PlayState, Social
 from wayfarer.engine.simulation.campaign.activities import ActivityOutcome, LongTaskRule
@@ -171,3 +172,26 @@ def require_task_boundary(
     pending = snapshot(state).pending
     if pending is not None and pending.id != pending_id and not clock_only:
         raise ConflictError("Accept the pending task roll or use Luck before continuing play")
+
+
+def has_task_records(raw: str) -> bool:
+    """Only enrolled checkpoints need this family's aggregate validation.
+
+    Resource-only commands retain their existing live-play refusal before trying
+    to interpret a legacy presence marker as a complete PlayState. Inspect decoded
+    event identities, including escaped JSON, rather than authored prose.
+    """
+    document = validation.mapping(validation.decode(raw))
+    resources = document.get("resources")
+    if not isinstance(resources, dict):
+        return False
+    events = validation.mapping(resources).get("events", [])
+    if not isinstance(events, list):
+        return False
+    for event in validation.sequence(events):
+        if not isinstance(event, dict):
+            continue
+        identifier = validation.mapping(event).get("id")
+        if isinstance(identifier, str) and identifier.startswith(STATE_PREFIX):
+            return True
+    return False

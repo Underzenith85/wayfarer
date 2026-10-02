@@ -23,7 +23,7 @@ from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.entropy import CommandBoundary, commit_command
 from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.symptom_generations import capture, symptom_generation
-from wayfarer.orchestration.task_records import require_task_boundary
+from wayfarer.orchestration.task_records import has_task_records, require_task_boundary
 from wayfarer.persistence.events import CommandOrigin
 
 # Each raises on refusal, so a plan states its rule instead of checking for itself.
@@ -186,7 +186,7 @@ async def submit[T](
         if authorize is not None:
             authorize(campaign)
         raw = campaign.get("play_json")
-        if raw is not None:
+        if raw is not None and has_task_records(raw):
             require_task_boundary(
                 PlayState.model_validate_json(raw),
                 plan.pending_task_id,
