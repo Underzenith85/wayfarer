@@ -136,6 +136,26 @@ def combat_intent(text: str) -> str:
     """Remove validated features only from the host's canonical combat envelope."""
     payload = object_input(text)
     key = "combat_protocol_features"
+    task_key = "task_combat_protocol_features"
+    if payload is not None and task_key in payload:
+        raw_task = payload[task_key]
+        command = payload.get("command")
+        response = command.get("response") if isinstance(command, dict) else None
+        if (
+            key in payload
+            or payload.get("operation") != "task-host"
+            or not isinstance(command, dict)
+            or command.get("kind") != "choose-opponent-attack"
+            or not isinstance(response, dict)
+            or response.get("kind") != "choose_defense"
+            or not isinstance(raw_task, list)
+            or any(not isinstance(item, str) for item in raw_task)
+            or len(set(raw_task)) != len(raw_task)
+            or not set(raw_task) <= {"grenade-fuse"}
+            or text != canonical(payload)
+        ):
+            raise ValidationError("Invalid recorded task combat feature generation")
+        return canonical({name: value for name, value in payload.items() if name != task_key})
     if payload is None or key not in payload:
         return text
     raw = payload[key]
