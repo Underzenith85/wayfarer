@@ -1,6 +1,7 @@
 """Source B375 ordinary weapon interposition through existing attack reducers."""
 
 from collections import deque
+from decimal import Decimal
 from math import ceil
 
 from wayfarer.engine.simulation.actions import PlayState
@@ -129,6 +130,21 @@ def _take_step(
     return encounter, protector
 
 
+def _tranquilizer_dart(weapon: RangedMode) -> bool:
+    """B279 note 2: one penetrating dart carries this exact resisted drug."""
+    payload = weapon.linked_follow_up
+    return bool(
+        payload is not None
+        and payload.kind == "drug"
+        and payload.requires_penetration
+        and payload.resistance_penalty == -3
+        and payload.condition == "unconsciousness"
+        and payload.duration_minutes_per_margin == 1
+        and weapon.damage.damage_type == "pi-"
+        and weapon.damage.armor_divisor == Decimal("0.2")
+    )
+
+
 def prepare_interposition(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> Encounter:
@@ -170,7 +186,8 @@ def prepare_interposition(
     if isinstance(weapon, RangedMode) and (
         (weapon.firearm is not None and weapon.firearm.action == "single-use")
         or weapon.sprayer
-        or weapon.linked_follow_up
+        or weapon.linked_follow_up is not None
+        and not _tranquilizer_dart(weapon)
         or weapon.multiple_projectiles
     ):
         raise ValidationError("This projectile requires a specialized interposition consumer")
