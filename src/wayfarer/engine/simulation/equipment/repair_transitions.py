@@ -13,6 +13,7 @@ from wayfarer.engine.rules.skills.technology_level import technology_level_penal
 from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
+from wayfarer.engine.simulation.equipment.armoury_context import repair_familiarity_modifier
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.repairs import RepairTask, record, tasks
 from wayfarer.engine.simulation.equipment.worksite import available_here
@@ -186,6 +187,9 @@ def repair(
         )
         skill += _repair_difficulty(entry, item.condition.hp) + _tool_modifier(
             tool_entry, profile.repair_skill_id
+        )
+        skill += repair_familiarity_modifier(
+            state, actor_id, item.definition_id, profile.repair_skill_id, procedure_id
         )
         _repair_modifiers(state, actor_id, skill)
         parts_die = None
