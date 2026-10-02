@@ -10,7 +10,14 @@ from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter, model_validator
 
-from wayfarer.engine.rules.checks import Modifier, Outcome, RandomSource, draw_dice
+from wayfarer.engine.rules.checks import (
+    CheckTrace,
+    Modifier,
+    ModifierKind,
+    Outcome,
+    RandomSource,
+    draw_dice,
+)
 from wayfarer.engine.rules.economics import (
     job_search_adjustment,
     loyalty_pay_bonus,
@@ -20,6 +27,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.social.gurps_social import (
     Reaction,
     ReactionModifier,
+    ReactionTrace,
     reaction_outcome,
     reaction_roll,
 )
@@ -132,6 +140,10 @@ class HirelingRule(Record):
     employment_kind: Literal["hireling"] = "hireling"
 
 
+# A rescue represents PCs risking their lives or mission for the hireling. Its
+# empty modifiers use the printed B519 +3; explicit modifiers author at least +3.
+# Generic additive loyalty deltas do not apply; further permanent bonuses need
+# separate GM adjudication. Keep the existing serialized record shape unchanged.
 class LoyaltyCircumstance(Record):
     id: Id
     hireling_rule_id: Id
@@ -1008,6 +1020,52 @@ def _settle_job(
     return state, EconomicsOutcome(status="paid", amount=income, consequence=consequence), deltas
 
 
+def hireling_reaction_rule(
+    state: EconomicsState, command: FindHireling, rules: EconomicsRules
+) -> HirelingRule:
+    """Validate the authored initial-loyalty role before its separate search."""
+    rule = _rule(rules.hirelings, command.hireling_rule_id, "hireling")
+    if command.actor_id != rule.employer_id:
+        raise ValidationError("Only the authored employer may recruit this hireling")
+    if any(value.rule_id == rule.id and value.active for value in state.hirelings):
+        raise ConflictError("Hireling already has an active contract")
+    return rule
+
+
+def search_for_hireling(
+    rule: HirelingRule,
+    rules: EconomicsRules,
+    build_values: Mapping[str, Decimal],
+    rng: RandomSource,
+) -> CheckTrace:
+    """Resolve only the prerequisite search, never the subsequent reaction."""
+    return success_roll(
+        rules.profile_id,
+        _target(build_values, rule.search_target_id),
+        rule.search_modifiers,
+        rng=rng,
+    )
+
+
+def _hireling_contract(state: EconomicsState, rule: HirelingRule, loyalty: int) -> EconomicsState:
+    return state.model_copy(
+        update={
+            "hirelings": state.hirelings
+            + (
+                HirelingContract(
+                    id=f"hireling:{rule.id}",
+                    rule_id=rule.id,
+                    employer_id=rule.employer_id,
+                    hireling_id=rule.hireling_id,
+                    competence=rule.competence,
+                    loyalty=loyalty,
+                    private_motive=rule.private_motive,
+                ),
+            )
+        }
+    )
+
+
 def _find_hireling(
     state: EconomicsState,
     command: FindHireling,
@@ -1015,35 +1073,11 @@ def _find_hireling(
     build_values: Mapping[str, Decimal],
     rng: RandomSource,
 ) -> tuple[EconomicsState, EconomicsOutcome]:
-    rule = _rule(rules.hirelings, command.hireling_rule_id, "hireling")
-    if command.actor_id != rule.employer_id:
-        raise ValidationError("Only the authored employer may recruit this hireling")
-    if any(value.rule_id == rule.id and value.active for value in state.hirelings):
-        raise ConflictError("Hireling already has an active contract")
-    trace = success_roll(
-        rules.profile_id,
-        _target(build_values, rule.search_target_id),
-        rule.search_modifiers,
-        rng=rng,
-    )
+    rule = hireling_reaction_rule(state, command, rules)
+    trace = search_for_hireling(rule, rules, build_values, rng)
     if trace.outcome.succeeded:
         loyalty = reaction_roll(rules.profile_id, rule.loyalty_modifiers, rng=rng).total
-        state = state.model_copy(
-            update={
-                "hirelings": state.hirelings
-                + (
-                    HirelingContract(
-                        id=f"hireling:{rule.id}",
-                        rule_id=rule.id,
-                        employer_id=rule.employer_id,
-                        hireling_id=rule.hireling_id,
-                        competence=rule.competence,
-                        loyalty=loyalty,
-                        private_motive=rule.private_motive,
-                    ),
-                )
-            }
-        )
+        state = _hireling_contract(state, rule, loyalty)
     return state, EconomicsOutcome(
         status="hireling-found" if trace.outcome.succeeded else "not-found"
     )
@@ -1054,6 +1088,7 @@ def _check_loyalty(
     command: CheckLoyalty,
     rules: EconomicsRules,
     rng: RandomSource,
+    world: World,
 ) -> tuple[EconomicsState, EconomicsOutcome]:
     contract = _rule(state.hirelings, command.contract_id, "hireling contract")
     circumstance = _rule(rules.loyalty, command.circumstance_id, "loyalty circumstance")
@@ -1062,17 +1097,37 @@ def _check_loyalty(
         raise ValidationError("Only the employer may make this loyalty check")
     if circumstance.hireling_rule_id != rule.id or not contract.active:
         raise ValidationError("Loyalty circumstance does not apply to this contract")
-    target = contract.loyalty + loyalty_pay_bonus(rule.offered_pay, rule.normal_pay)
-    trace = (
-        None
-        if target >= 20
-        else success_roll(rules.profile_id, target, circumstance.modifiers, rng=rng)
-    )
-    passed = trace is None or trace.outcome.succeeded
-    change = (
-        circumstance.loyalty_change_on_success if passed else circumstance.loyalty_change_on_failure
-    )
-    update = contract.model_copy(update={"loyalty": contract.loyalty + change})
+    if circumstance.kind == "rescue":
+        passed, loyalty = _rescue_loyalty(contract, circumstance, rule, rules, rng, world)
+    else:
+        target = contract.loyalty + loyalty_pay_bonus(rule.offered_pay, rule.normal_pay)
+        trace = (
+            None
+            if target >= 20
+            else success_roll(rules.profile_id, target, circumstance.modifiers, rng=rng)
+        )
+        passed = trace is None or trace.outcome.succeeded
+        change = (
+            circumstance.loyalty_change_on_success
+            if passed
+            else circumstance.loyalty_change_on_failure
+        )
+        loyalty = contract.loyalty + change
+    state = _record_loyalty(state, command, contract, circumstance, passed, loyalty)
+    if circumstance.kind == "rescue":
+        return state, EconomicsOutcome(status="grateful" if passed else "loyalty-unchanged")
+    return state, EconomicsOutcome(status="loyal" if passed else "self-interest")
+
+
+def _record_loyalty(
+    state: EconomicsState,
+    command: CheckLoyalty,
+    contract: HirelingContract,
+    circumstance: LoyaltyCircumstance,
+    passed: bool,
+    loyalty: int,
+) -> EconomicsState:
+    update = contract.model_copy(update={"loyalty": loyalty})
     state = state.model_copy(
         update={
             "hirelings": tuple(
@@ -1090,7 +1145,108 @@ def _check_loyalty(
             ),
         }
     )
-    return state, EconomicsOutcome(status="loyal" if passed else "self-interest")
+    return state
+
+
+def rescue_reaction_modifiers(
+    contract: HirelingContract,
+    circumstance: LoyaltyCircumstance,
+    rule: HirelingRule,
+    world: World,
+) -> tuple[ReactionModifier, ...]:
+    """Validate the named B519 role without drawing its secret reaction."""
+    actors = {entity.id for entity in world.entities if entity.kind.value == "actor"}
+    if (
+        contract.employer_id != rule.employer_id
+        or contract.hireling_id != rule.hireling_id
+        or contract.employer_id == contract.hireling_id
+        or not {contract.employer_id, contract.hireling_id} <= actors
+    ):
+        raise ValidationError("Rescue requires the authored employer and hireling actors")
+    if circumstance.loyalty_change_on_success or circumstance.loyalty_change_on_failure:
+        raise ValidationError("Rescue does not use additive success or failure loyalty changes")
+    if not circumstance.modifiers:
+        return (ReactionModifier("situation", 3, "B519:rescue"),)
+    if any(
+        type(value.value) is not int
+        or value.kind != ModifierKind.SITUATIONAL
+        or not value.reason.strip()
+        or not value.source_id.strip()
+        or not value.source_version.strip()
+        for value in circumstance.modifiers
+    ):
+        raise ValidationError("Rescue modifiers require authored integer situation provenance")
+    if sum(value.value for value in circumstance.modifiers) < 3:
+        raise ValidationError("Rescue requires an authored reaction adjustment of at least +3")
+    return tuple(
+        ReactionModifier("situation", value.value, value.source_id)
+        for value in circumstance.modifiers
+    )
+
+
+def _rescue_loyalty(
+    contract: HirelingContract,
+    circumstance: LoyaltyCircumstance,
+    rule: HirelingRule,
+    rules: EconomicsRules,
+    rng: RandomSource,
+    world: World,
+) -> tuple[bool, int]:
+    """B519: a qualifying rescue is a reaction, even for loyalty 20 or higher."""
+    modifiers = rescue_reaction_modifiers(contract, circumstance, rule, world)
+    # Pay affects an ordinary loyalty target, not this reaction or base rating.
+    reaction = reaction_roll(rules.profile_id, modifiers, rng=rng)
+    grateful = reaction.outcome in ("good", "very-good", "excellent")
+    return grateful, max(contract.loyalty, reaction.total) if grateful else contract.loyalty
+
+
+def cancel_economics_reaction(
+    resources: ResourceState, command: FindHireling | CheckLoyalty
+) -> tuple[ResourceState, EconomicsOutcome]:
+    """Consume a cancelled source identity without rerunning its prerequisites."""
+    outcome = EconomicsOutcome(status="cancelled")
+    return _finish(resources, command, outcome), outcome
+
+
+def resolve_economics_reaction(
+    state: EconomicsState,
+    resources: ResourceState,
+    command: FindHireling | CheckLoyalty,
+    rules: EconomicsRules,
+    reaction: ReactionTrace | None,
+    *,
+    permanent_bonus: int = 0,
+) -> tuple[EconomicsState, ResourceState, EconomicsOutcome]:
+    """Continue a validated private preparation through the existing state reducers.
+
+    ``None`` is the terminal failed-search path. The task host owns preparation,
+    selected-trace validation and atomic persistence; this is not a transaction.
+    """
+    prior = _prior(resources, command)
+    if prior is not None:
+        return state, resources, prior
+    if isinstance(command, FindHireling):
+        rule = hireling_reaction_rule(state, command, rules)
+        if reaction is not None:
+            state = _hireling_contract(state, rule, reaction.total)
+        outcome = EconomicsOutcome(status="hireling-found" if reaction else "not-found")
+    else:
+        if reaction is None:
+            raise ValidationError("Rescue requires a selected reaction")
+        contract = _rule(state.hirelings, command.contract_id, "hireling contract")
+        circumstance = _rule(rules.loyalty, command.circumstance_id, "loyalty circumstance")
+        passed = reaction.outcome in ("good", "very-good", "excellent")
+        loyalty = max(contract.loyalty, reaction.total) if passed else contract.loyalty
+        loyalty += permanent_bonus
+        state = _record_loyalty(state, command, contract, circumstance, passed, loyalty)
+        outcome = EconomicsOutcome(
+            status="grateful"
+            if passed
+            else "loyalty-adjusted"
+            if permanent_bonus
+            else "loyalty-unchanged"
+        )
+    return state, _finish(resources, command, outcome), outcome
 
 
 def _make_goods(
@@ -1381,7 +1537,7 @@ def apply_economics(
     elif isinstance(command, FindHireling):
         state, outcome = _find_hireling(state, command, rules, build_values, rng)
     elif isinstance(command, CheckLoyalty):
-        state, outcome = _check_loyalty(state, command, rules, rng)
+        state, outcome = _check_loyalty(state, command, rules, rng, world)
     else:
         state, resources, outcome, deltas, entry_kind = _residual_economics(
             state, resources, command, rules, build_values, rng, advance

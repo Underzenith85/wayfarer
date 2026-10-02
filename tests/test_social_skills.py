@@ -758,7 +758,8 @@ async def test_an_authored_trigger_dispatches_a_procedure_from_an_approved_level
     state = play._load(await play.store.read(cid))
     recorded = _json.loads(state.resources.events[-1].kind)
     assert _json.loads(recorded["public"])["kind"] == "skill"
-    assert _json.loads(recorded["public"])["outcome"] == "diplomacy-rebuffed"
+    assert _json.loads(recorded["public"])["outcome"] == "good"
+    assert recorded["private"]["effect"]["id"] == "diplomacy-rebuffed"
     assert recorded["private"]["procedure_id"] == "skill:diplomacy"
     assert recorded["private"]["base_skill"] == 4
 

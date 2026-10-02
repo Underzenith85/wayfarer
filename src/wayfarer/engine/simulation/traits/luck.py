@@ -138,37 +138,24 @@ def _check_limitations(build: ValidatedBuild, roll: LuckRoll) -> None:
             )
 
 
-def apply_luck(
+def validate_luck_use(
     state: LuckState,
     command: LuckCommand,
     build: ValidatedBuild,
     definitions: Mapping[str, RuleDefinition],
     *,
     real_time: int,
-    seed: str | None = None,
     authorized_actor_id: str,
     system: bool = False,
-    rng: RandomSource | None = None,
-) -> tuple[LuckState, LuckReceipt]:
-    """Resolve one immediate Luck choice and consume its elapsed-play cooldown.
-
-    Equal totals keep the earlier attempt. Persisted hosts inject their command
-    random source, sharing its stream with any later consequences. The seed-only
-    fallback retains historical helper behavior. Exact command replay returns
-    its original receipt without drawing dice or consuming another use.
-    """
+) -> LuckRoll:
+    """Check terminal admission without drawing target or prerequisite dice."""
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Luck requires trusted actor authority")
-    prior = next((use for use in state.receipts if use.command.id == command.id), None)
-    if prior is not None:
-        if prior.command != command:
-            raise ConflictError("Luck command ID was already used")
-        return state, prior
     if state.revision != command.expected_revision:
         raise ConflictError("Luck revision changed")
     if type(real_time) is not int or real_time < state.real_time:
         raise ValidationError("Elapsed real-play time cannot go backwards")
-    cooldown = luck_cooldown(build, definitions)
+    luck_cooldown(build, definitions)
     roll = next((value for value in state.rolls if value.id == command.roll_id), None)
     if roll is None or state.pending_roll_id != roll.id or roll.chosen_dice is not None:
         raise ValidationError("Luck must be declared immediately for a pending roll")
@@ -195,6 +182,45 @@ def apply_luck(
     previous_uses = [use for use in state.receipts if use.command.actor_id == command.actor_id]
     if previous_uses and real_time < max(use.available_at for use in previous_uses):
         raise ValidationError("Luck is cooling down in real play time")
+    return roll
+
+
+def apply_luck(
+    state: LuckState,
+    command: LuckCommand,
+    build: ValidatedBuild,
+    definitions: Mapping[str, RuleDefinition],
+    *,
+    real_time: int,
+    seed: str | None = None,
+    authorized_actor_id: str,
+    system: bool = False,
+    rng: RandomSource | None = None,
+) -> tuple[LuckState, LuckReceipt]:
+    """Resolve one immediate Luck choice and consume its elapsed-play cooldown.
+
+    Equal totals keep the earlier attempt. Persisted hosts inject their command
+    random source, sharing its stream with any later consequences. The seed-only
+    fallback retains historical helper behavior. Exact command replay returns
+    its original receipt without drawing dice or consuming another use.
+    """
+    if not system or authorized_actor_id != command.actor_id:
+        raise ValidationError("Luck requires trusted actor authority")
+    prior = next((use for use in state.receipts if use.command.id == command.id), None)
+    if prior is not None:
+        if prior.command != command:
+            raise ConflictError("Luck command ID was already used")
+        return state, prior
+    roll = validate_luck_use(
+        state,
+        command,
+        build,
+        definitions,
+        real_time=real_time,
+        authorized_actor_id=authorized_actor_id,
+        system=system,
+    )
+    cooldown = luck_cooldown(build, definitions)
     if rng is None:
         if seed is None:
             raise ValidationError("Luck requires an explicit random source or seed")

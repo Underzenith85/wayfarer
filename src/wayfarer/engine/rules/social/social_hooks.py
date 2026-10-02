@@ -57,6 +57,7 @@ RECOGNITION_TARGETS: Final = MappingProxyType({"always": None, "sometimes": 10, 
 
 REPUTATION_LEVELS: Final = (-4, 4)
 CAPABILITY: Final = "gurps.social.reaction"
+REPUTATION_CAP_SOURCE: Final = "reputation-cap:aggregate"
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,12 +160,16 @@ def standing_modifiers(
     *,
     rng: RandomSource,
     known_recognition: Mapping[str, RecognitionRoll] = EMPTY_RECOGNITION,
+    correct_reputation_cap: bool = False,
 ) -> StandingTrace:
     """Derive typed reaction modifiers, rolling only for uncertain recognition.
 
     Dice are consumed in declared reputation order and before the reaction or
     influence roll itself, so a recorded receipt replays exactly. An unrecognized
     reputation contributes no modifier and no hint of itself to the player.
+
+    Corrected-generation callers cap the aggregate recognized reputation sum
+    once (B28). The default retains historical per-row clipping and trace bytes.
     """
     profile(profile_id)
     capability(CAPABILITY)
@@ -211,7 +216,7 @@ def standing_modifiers(
                 continue
         previous = sum(modifier.value for modifier in modifiers if modifier.kind == "reputation")
         capped = max(-4, min(4, previous + reputation.level))
-        contribution = capped - previous
+        contribution = reputation.level if correct_reputation_cap else capped - previous
         if contribution:
             modifiers.append(
                 ReactionModifier(
@@ -221,7 +226,38 @@ def standing_modifiers(
                     reputation.hidden,
                 )
             )
+    if correct_reputation_cap:
+        modifiers = list(cap_reputation_modifiers(tuple(modifiers)))
     return StandingTrace(tuple(modifiers), tuple(recognition), consequences)
+
+
+def cap_reputation_modifiers(
+    modifiers: tuple[ReactionModifier, ...],
+) -> tuple[ReactionModifier, ...]:
+    """B28: cap all applicable Reputation contributions once, retaining provenance.
+
+    This is idempotent when separately derived standing is joined to authored
+    modifiers: remove the helper's generated correction and cap the raw sum anew.
+    Corrected callers reserve this generated source ID against authored input.
+    """
+    raw = tuple(
+        item
+        for item in modifiers
+        if not (item.kind == "reputation" and item.source_id == REPUTATION_CAP_SOURCE)
+    )
+    reputations = tuple(item for item in raw if item.kind == "reputation")
+    total = sum(item.value for item in reputations)
+    adjustment = max(-4, min(4, total)) - total
+    if not adjustment:
+        return raw
+    return raw + (
+        ReactionModifier(
+            "reputation",
+            adjustment,
+            REPUTATION_CAP_SOURCE,
+            any(item.hidden for item in reputations),
+        ),
+    )
 
 
 def reputation_cost(level: int, scope: ReputationScope, recognition: Recognition) -> int:

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, cast
 
 from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.rules.checks import RandomSource
+from wayfarer.engine.rules.social.gurps_social import ReactionTrace
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.administration import (
     AdministrationOutcome,
@@ -34,6 +35,16 @@ from wayfarer.engine.simulation.campaign.law import (
     LawRules,
     apply_law,
 )
+from wayfarer.engine.simulation.campaign.reactions import (
+    CampaignReactionOutcome,
+    CampaignReactionSource,
+    PreparedCampaignReaction,
+    cancel_prepared_campaign_reaction,
+    prepare_campaign_reaction,
+    recognize_campaign_reaction,
+    resolve_prepared_campaign_reaction,
+    validate_prepared_campaign_reaction,
+)
 from wayfarer.engine.simulation.campaign.world_context import (
     WORLD_COMMAND_KINDS,
     WorldCommand,
@@ -49,6 +60,8 @@ from wayfarer.engine.simulation.equipment.artifacts import (
     apply_artifact,
 )
 from wayfarer.engine.simulation.resources import Advance, Consume, ResourceState, Transfer
+from wayfarer.engine.simulation.social.reactions import ResolvedReactionContext
+from wayfarer.engine.simulation.social.social import SocialCommand
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -95,6 +108,70 @@ class CampaignProcedureEngine:
         self.development = development
         self.world_context = world_context
         self.artifacts = artifacts
+
+    def prepare_reaction(
+        self,
+        state: PlayState,
+        source: CampaignReactionSource,
+        *,
+        rng: RandomSource,
+        player_actor_ids: tuple[str, ...],
+        actor_id: str | None = None,
+        command_id: str | None = None,
+        recognition_sources: tuple[SocialCommand, ...] = (),
+    ) -> tuple[PlayState, PreparedCampaignReaction | None, CampaignReactionOutcome | None]:
+        """Private task-host dispatch; returns an unrolled role or terminal receipt."""
+        return prepare_campaign_reaction(
+            self,
+            state,
+            source,
+            actor_id,
+            command_id,
+            rng=rng,
+            player_actor_ids=player_actor_ids,
+            recognition_sources=recognition_sources,
+        )
+
+    def validate_reaction(
+        self,
+        state: PlayState,
+        prepared: PreparedCampaignReaction,
+        *,
+        player_actor_ids: tuple[str, ...],
+    ) -> None:
+        validate_prepared_campaign_reaction(
+            self, state, prepared, player_actor_ids=player_actor_ids
+        )
+
+    def recognize_reaction(
+        self, prepared: PreparedCampaignReaction, *, rng: RandomSource
+    ) -> ResolvedReactionContext:
+        return recognize_campaign_reaction(prepared, rng=rng)
+
+    def resolve_reaction(
+        self,
+        state: PlayState,
+        prepared: PreparedCampaignReaction,
+        selected: ReactionTrace,
+        *,
+        rng: RandomSource,
+        player_actor_ids: tuple[str, ...],
+        recognized: ResolvedReactionContext | None = None,
+    ) -> tuple[PlayState, CampaignReactionOutcome]:
+        return resolve_prepared_campaign_reaction(
+            self,
+            state,
+            prepared,
+            selected,
+            rng=rng,
+            player_actor_ids=player_actor_ids,
+            recognized=recognized,
+        )
+
+    def cancel_reaction(
+        self, state: PlayState, prepared: PreparedCampaignReaction
+    ) -> tuple[PlayState, CampaignReactionOutcome]:
+        return cancel_prepared_campaign_reaction(self, state, prepared)
 
     def _advance(
         self, actor_id: str, rng: RandomSource

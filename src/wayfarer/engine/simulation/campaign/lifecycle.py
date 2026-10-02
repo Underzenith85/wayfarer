@@ -54,7 +54,7 @@ def validate_lifecycle(state: PlayState, rules: ActionRules) -> None:
                         or a.reveal_fact_ids
                         or a.recipient_ids
                         or (
-                            trigger.kind not in ("reaction", "influence")
+                            trigger.kind not in ("reaction", "influence", "skill")
                             and trigger.disclosure_fact_ids
                         )
                         or (trigger.kind == "self-control" and trigger.trait_id is None)

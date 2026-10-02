@@ -22,6 +22,8 @@ from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.entropy import CommandBoundary, commit_command
 from wayfarer.orchestration.membership import member_for, require_control
+from wayfarer.orchestration.social_generations import capture as capture_social
+from wayfarer.orchestration.social_generations import social_generation
 from wayfarer.orchestration.symptom_generations import capture, symptom_generation
 from wayfarer.orchestration.task_records import has_task_records, require_task_boundary
 from wayfarer.persistence.events import CommandOrigin
@@ -169,14 +171,17 @@ async def submit[T](
         else None
     )
     authorized(plan, principal_id, state)
-    payload, correct_attributes = await capture(play.store, cid, plan.command_id, plan.payload)
+    social_payload, correct_reactions = await capture_social(
+        play.store, cid, plan.command_id, plan.payload
+    )
+    payload, correct_attributes = await capture(play.store, cid, plan.command_id, social_payload)
     plan = replace(plan, payload=payload)
     duplicate = await play.store.duplicate(cid, plan.command_id, plan.payload)
     if duplicate is not None:
         authorized(plan, principal_id, _control_state(await play.store.read(cid), plan))
         return await (plan.replayed or plan.outcome)(duplicate)
     if plan.assess is not None:
-        with symptom_generation(correct_attributes):
+        with symptom_generation(correct_attributes), social_generation(correct_reactions):
             settled = plan.assess()
         if settled is not None:
             return settled
@@ -192,7 +197,7 @@ async def submit[T](
                 plan.pending_task_id,
                 clock_only=plan.task_clock_only,
             )
-        with symptom_generation(correct_attributes):
+        with symptom_generation(correct_attributes), social_generation(correct_reactions):
             return plan.resolve(campaign)
 
     committed = await commit_command(

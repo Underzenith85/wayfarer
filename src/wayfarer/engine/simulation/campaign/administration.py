@@ -12,7 +12,12 @@ from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.social.gurps_social import ReactionModifier, ReactionTrace, reaction_roll
+from wayfarer.engine.rules.social.gurps_social import (
+    Reaction,
+    ReactionModifier,
+    ReactionTrace,
+    reaction_roll,
+)
 from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry
 from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState
 from wayfarer.engine.world import World
@@ -350,28 +355,9 @@ def apply_administration(
     elif isinstance(command, AcquireKnowledge):
         source = _rule(rules.knowledge, command.source_id, "knowledge source")
         assert isinstance(source, KnowledgeSource)
-        recipients = (
-            actor_ids
-            if source.audience == "campaign"
-            else (command.actor_id,)
-            if source.audience == "actor"
-            else ()
+        state, world = _acquire_knowledge(
+            state, world, source, command.actor_id, command.id, resources.game_time
         )
-        if not set(source.fact_ids) <= {fact.id for fact in world.facts}:
-            raise ValidationError("Authored knowledge source references an unknown world fact")
-        for recipient in recipients:
-            for fact_id in source.fact_ids:
-                world = world.learn(recipient, fact_id)
-        record = KnowledgeAcquisition(
-            id=command.id,
-            source_id=source.id,
-            fact_ids=source.fact_ids,
-            actor_ids=recipients,
-            audience=source.audience,
-            provenance=source.provenance,
-            at=resources.game_time,
-        )
-        state = state.model_copy(update={"knowledge": state.knowledge + (record,)})
         outcome = AdministrationOutcome(kind="knowledge", status="acquired")
     elif isinstance(command, AwardPoints):
         award = _rule(rules.awards, command.award_id, "award")
@@ -414,6 +400,75 @@ def apply_administration(
         state, outcome = _resolve_trap(state, command, rules, rng)
     resources = _finish(resources, command, outcome, revision=revision)
     return state, resources, world, advancement, outcome
+
+
+def _acquire_knowledge(
+    state: AdministrationState,
+    world: World,
+    source: KnowledgeSource,
+    actor_id: str,
+    record_id: str,
+    at: int,
+) -> tuple[AdministrationState, World]:
+    actor_ids = tuple(entity.id for entity in world.entities if entity.kind.value == "actor")
+    recipients = (
+        actor_ids
+        if source.audience == "campaign"
+        else (actor_id,)
+        if source.audience == "actor"
+        else ()
+    )
+    if not set(source.fact_ids) <= {fact.id for fact in world.facts}:
+        raise ValidationError("Authored knowledge source references an unknown world fact")
+    for recipient in recipients:
+        for fact_id in source.fact_ids:
+            world = world.learn(recipient, fact_id)
+    record = KnowledgeAcquisition(
+        id=record_id,
+        source_id=source.id,
+        fact_ids=source.fact_ids,
+        actor_ids=recipients,
+        audience=source.audience,
+        provenance=source.provenance,
+        at=at,
+    )
+    return state.model_copy(update={"knowledge": state.knowledge + (record,)}), world
+
+
+def cancel_administration_reaction(
+    resources: ResourceState, command: ResolveReaction
+) -> tuple[ResourceState, AdministrationOutcome]:
+    """Record cancellation without disclosing the bound information."""
+    outcome = AdministrationOutcome(kind="reaction", status="cancelled")
+    return _finish(resources, command, outcome, revision=resources.revision + 1), outcome
+
+
+def resolve_administration_reaction(
+    state: AdministrationState,
+    resources: ResourceState,
+    world: World,
+    command: ResolveReaction,
+    reaction: ReactionTrace,
+    source: KnowledgeSource,
+    outcomes: tuple[Reaction, ...],
+) -> tuple[AdministrationState, ResourceState, World, AdministrationOutcome]:
+    """Continue a private reaction with its explicitly authorized knowledge source.
+
+    Preparation validates the NPC's knowledge and authored audience. The same
+    knowledge reducer used by AcquireKnowledge applies only on the bound bands.
+    """
+    prior = _prior(resources, command)
+    if prior is not None:
+        return state, resources, world, prior
+    if reaction.outcome in outcomes:
+        state, world = _acquire_knowledge(
+            state, world, source, command.actor_id, command.id, resources.game_time
+        )
+    outcome = AdministrationOutcome(
+        kind="reaction", status=reaction.outcome, private=json.dumps(asdict(reaction), default=str)
+    )
+    resources = _finish(resources, command, outcome, revision=resources.revision + 1)
+    return state, resources, world, outcome
 
 
 def validate_administration(

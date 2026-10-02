@@ -1,5 +1,6 @@
 """Independent fold and deterministic re-execution checks for retained commands."""
 
+import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 
@@ -50,7 +51,17 @@ def unavailable_reason(record: CommandRecord) -> str | None:
     if record.recorded_at_us is None:
         return "legacy command has no recorded instant"
     if record.command_input is not None:
-        command_text(record)
+        text = command_text(record)
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            payload = None
+        if (
+            isinstance(payload, dict)
+            and payload.get("operation") == "gurps-social"
+            and "social_source" not in payload
+        ):
+            return "legacy social command has no captured resolver source"
         return None
     try:
         command_text(record)

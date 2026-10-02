@@ -15,6 +15,12 @@ from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.engine.simulation.traits.luck import LuckReceipt, LuckState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
+from wayfarer.orchestration.reaction_records import (
+    AttributeReactionRecognition,
+    ChooseReaction,
+    PrepareReaction,
+    SecretReactionPending,
+)
 
 STATE_PREFIX = "task-host:"
 BINDING_PREFIX = "task-binding:"
@@ -88,7 +94,10 @@ TaskCommand = Annotated[
     | ChooseTaskCheck
     | SetRealPlayClock
     | PrepareSecretTaskCheck
-    | ChooseSecretTaskCheck,
+    | ChooseSecretTaskCheck
+    | PrepareReaction
+    | ChooseReaction
+    | AttributeReactionRecognition,
     Field(discriminator="kind"),
 ]
 ADAPTER: TypeAdapter[TaskCommand] = TypeAdapter(TaskCommand)
@@ -125,7 +134,7 @@ class SecretTaskPending(Record):
 
 class TaskSnapshot(Record):
     campaign_id: Id
-    pending: TaskPending | SecretTaskPending | None = None
+    pending: TaskPending | SecretTaskPending | SecretReactionPending | None = None
     luck: LuckState = LuckState()
 
 
@@ -140,6 +149,7 @@ class TaskResult(Record):
     activity: ActivityOutcome | None = None
     secret: bool = False
     reason: str = ""
+    reaction_json: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 def snapshot(state: PlayState) -> TaskSnapshot:
@@ -161,11 +171,19 @@ def snapshot(state: PlayState) -> TaskSnapshot:
         roll = next((roll for roll in result.luck.rolls if roll.id == pending.id), None)
         if roll is None or (roll.actor_id, roll.original, roll.secret, roll.chosen_dice) != (
             pending.actor_id,
-            None if isinstance(pending, SecretTaskPending) else pending.original.dice,
-            True if isinstance(pending, SecretTaskPending) else pending.secret,
+            None
+            if isinstance(pending, (SecretTaskPending, SecretReactionPending))
+            else pending.original.dice,
+            True
+            if isinstance(pending, (SecretTaskPending, SecretReactionPending))
+            else pending.secret,
             None,
         ):
             raise ValidationError("Task original does not match its Luck record")
+        if isinstance(pending, SecretReactionPending) and (
+            roll.kind != "reaction" or roll.scope != "own" or roll.task_class != "social"
+        ):
+            raise ValidationError("Reaction pending does not match its Luck role")
     return result
 
 

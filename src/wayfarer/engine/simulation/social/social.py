@@ -282,22 +282,9 @@ def _apply_interrogation_coercion(
     )
 
 
-def apply_social(
-    state: ResourceState,
-    world: World,
-    command: SocialCommand,
-    context: SocialContext,
-    *,
-    rng: RandomSource,
-    system: bool = False,
-) -> tuple[ResourceState, SocialOutcome]:
-    if not system:
-        raise ValidationError("Social checks require authoritative trigger context")
-    if not command.trigger_id or not command.subject_id:
-        raise ValidationError("Social checks require stable subject and trigger IDs")
+def _social_identity(command: SocialCommand) -> tuple[str, str, str]:
+    """The existing receipt digest and collision-safe/legacy trigger identities."""
     digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
-    # Preserve legacy IDs for simple components; colon-bearing IDs must not alias
-    # another subject/trigger pair. The hash namespace cannot overlap legacy IDs.
     identity = (command.kind, command.subject_id, command.trigger_id)
     event_id = (
         "social-key:" + hashlib.sha256(json.dumps(identity).encode()).hexdigest()
@@ -306,11 +293,115 @@ def apply_social(
     )
     if command.kind == "fright-recovery":
         event_id = "social-recovery:" + hashlib.sha256(command.id.encode()).hexdigest()
+    return digest, event_id, "social:" + ":".join(identity)
+
+
+def _known_recognition(state: ResourceState, subject_id: str) -> dict[str, RecognitionRoll]:
+    known: dict[str, RecognitionRoll] = {}
+    for prior in state.events:
+        if not prior.id.startswith(("social:", "social-key:")) or prior.target_id != subject_id:
+            continue
+        try:
+            rows = json.loads(prior.kind)["private"].get("recognition", [])
+        except json.JSONDecodeError, KeyError, TypeError, AttributeError:
+            continue
+        for row in rows:
+            try:
+                roll = RecognitionRoll(
+                    str(row["reputation_id"]),
+                    tuple(row["dice"]),
+                    int(row["total"]),
+                    int(row["target"]),
+                    bool(row["recognized"]),
+                )
+            except KeyError, TypeError, ValueError:
+                continue
+            known[roll.reputation_id] = roll
+    return known
+
+
+def _commit_social(
+    state: ResourceState,
+    command: SocialCommand,
+    outcome: SocialOutcome,
+    details: object,
+) -> ResourceState:
+    digest, event_id, _ = _social_identity(command)
+    event = ResourceEvent(
+        id=event_id,
+        at=state.game_time,
+        target_id=command.subject_id,
+        kind=json.dumps({"public": outcome.model_dump_json(), "private": details}),
+    )
+    return state.model_copy(
+        update={
+            "revision": state.revision + 1,
+            "receipts": state.receipts + (Receipt(command_id=command.id, digest=digest),),
+            "events": state.events + (event,),
+        }
+    )
+
+
+def _correct_reaction_standing(
+    state: ResourceState,
+    world: World,
+    command: SocialCommand,
+    context: SocialContext,
+    *,
+    rng: RandomSource,
+    recognition_sources: tuple[SocialCommand, ...],
+) -> StandingTrace:
+    # deferred: prepared reactions reuse this module's canonical receipts and
+    # disclosure helpers; import after initialization to keep that dependency acyclic.
+    from wayfarer.engine.simulation.social.reactions import (
+        _prepare_reaction_source,
+        recognize_reaction,
+    )
+
+    prepared = _prepare_reaction_source(
+        state,
+        world,
+        command,
+        context,
+        SocialDisclosure(),
+        profile_id=context.profile_id,
+        player_actor_ids=(),
+        system=True,
+        recognition_sources=recognition_sources,
+    )
+    recognized = recognize_reaction(prepared, rng=rng)
+    return StandingTrace(recognized.modifiers, recognized.recognition)
+
+
+def _recognition_details(
+    standing: StandingTrace, command: SocialCommand, correct_reactions: bool
+) -> dict[str, object]:
+    details: dict[str, object] = {"recognition": [asdict(roll) for roll in standing.recognition]}
+    if correct_reactions:
+        details["recognition_actor_id"] = command.actor_id
+    return details
+
+
+def apply_social(
+    state: ResourceState,
+    world: World,
+    command: SocialCommand,
+    context: SocialContext,
+    *,
+    rng: RandomSource,
+    system: bool = False,
+    correct_reactions: bool = False,
+    recognition_sources: tuple[SocialCommand, ...] = (),
+) -> tuple[ResourceState, SocialOutcome]:
+    if not system:
+        raise ValidationError("Social checks require authoritative trigger context")
+    if not command.trigger_id or not command.subject_id:
+        raise ValidationError("Social checks require stable subject and trigger IDs")
+    digest, event_id, legacy_id = _social_identity(command)
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous:
         if previous.digest != digest:
             raise ConflictError("Social command ID reused")
-        legacy_id = "social:" + ":".join(identity)
         event = next(
             e
             for e in state.events
@@ -327,8 +418,7 @@ def apply_social(
     if state.revision != command.expected_revision:
         raise ConflictError("Resource revision changed")
     if any(
-        e.id in (event_id, "social:" + ":".join(identity)) and e.target_id == command.subject_id
-        for e in state.events
+        e.id in (event_id, legacy_id) and e.target_id == command.subject_id for e in state.events
     ):
         raise ConflictError("Social trigger already resolved")
 
@@ -359,30 +449,13 @@ def apply_social(
         procedure is not None and procedure.resolution is Resolution.INFLUENCE
     )
     modifiers = _interaction_modifiers(state, command, context, influenced=influenced)
-    if (command.kind == "reaction" or influenced) and context.standing is not None:
-        known_recognition: dict[str, RecognitionRoll] = {}
-        for prior in state.events:
-            if (
-                not prior.id.startswith(("social:", "social-key:"))
-                or prior.target_id != command.subject_id
-            ):
-                continue
-            try:
-                rows = json.loads(prior.kind)["private"].get("recognition", [])
-            except json.JSONDecodeError, KeyError, TypeError, AttributeError:
-                continue
-            for row in rows:
-                try:
-                    roll = RecognitionRoll(
-                        str(row["reputation_id"]),
-                        tuple(row["dice"]),
-                        int(row["total"]),
-                        int(row["target"]),
-                        bool(row["recognized"]),
-                    )
-                except KeyError, TypeError, ValueError:
-                    continue
-                known_recognition[roll.reputation_id] = roll
+    if correct_reactions and (command.kind == "reaction" or influenced):
+        standing = _correct_reaction_standing(
+            state, world, command, context, rng=rng, recognition_sources=recognition_sources
+        )
+        modifiers = standing.modifiers
+    elif (command.kind == "reaction" or influenced) and context.standing is not None:
+        known_recognition = _known_recognition(state, command.subject_id)
         standing = standing_modifiers(
             context.profile_id,
             context.standing,
@@ -391,7 +464,9 @@ def apply_social(
             known_recognition=known_recognition,
         )
         modifiers = standing.modifiers + context.modifiers
-    recognition = {"recognition": [asdict(roll) for roll in standing.recognition]}
+    recognition = _recognition_details(
+        standing, command, correct_reactions and (command.kind == "reaction" or influenced)
+    )
     details: object
     if command.kind == "fright-recovery":
         revision = state.revision
@@ -462,7 +537,9 @@ def apply_social(
         )
         outcome = SocialOutcome(
             kind=command.kind,
-            outcome=skill.effect.id,
+            outcome=(skill.reaction or skill.effect.id)
+            if correct_reactions and context.procedure_id == "skill:diplomacy"
+            else skill.effect.id,
             requires_adjudication=skill.effect.requires_adjudication,
             adjudication=(skill.effect.id,) if skill.effect.requires_adjudication else (),
             media=media,
@@ -534,19 +611,7 @@ def apply_social(
             kind=command.kind, outcome="resisted" if control.outcome.succeeded else "triggered"
         )
         details = asdict(control)
-    event = ResourceEvent(
-        id=event_id,
-        at=state.game_time,
-        target_id=command.subject_id,
-        kind=json.dumps({"public": outcome.model_dump_json(), "private": details}),
-    )
-    state = state.model_copy(
-        update={
-            "revision": state.revision + 1,
-            "receipts": state.receipts + (Receipt(command_id=command.id, digest=digest),),
-            "events": state.events + (event,),
-        }
-    )
+    state = _commit_social(state, command, outcome, details)
     return _apply_interrogation_coercion(state, command, context, rng=rng), outcome
 
 
@@ -558,6 +623,58 @@ class SocialDisclosure:
     outcomes: tuple[str, ...] = ("good", "very-good", "excellent")
 
 
+def _validate_disclosure(
+    world: World, command: SocialCommand, disclosure: SocialDisclosure
+) -> None:
+    if not disclosure.fact_ids:
+        return
+    if command.kind not in ("reaction", "influence", "skill"):
+        raise ValidationError("Only NPC interactions can disclose facts")
+    known = {f.id for f in world.perspective(command.subject_id).facts}
+    if not set(disclosure.fact_ids) <= known:
+        raise ValidationError("NPC cannot communicate unknown facts")
+    if len(set(disclosure.fact_ids)) != len(disclosure.fact_ids):
+        raise ValidationError("Duplicate social disclosure fact")
+    if not disclosure.outcomes or not set(disclosure.outcomes) <= REACTIONS | effect_ids():
+        raise ValidationError("Unsupported disclosure outcome")
+
+
+def _disclose(
+    world: World, actor_id: str, disclosure: SocialDisclosure, outcome: SocialOutcome
+) -> World:
+    if outcome.outcome in disclosure.outcomes:
+        for fact_id in disclosure.fact_ids:
+            world = world.learn(actor_id, fact_id)
+    return world
+
+
+def _disclosure_response(
+    state: ResourceState,
+    command: SocialCommand,
+    context: SocialContext,
+    disclosure: SocialDisclosure,
+    outcome: SocialOutcome,
+    *,
+    correct_reactions: bool,
+) -> SocialOutcome:
+    """Keep explicit preceding-skill policies distinct from the final NPC band."""
+    if (
+        not correct_reactions
+        or command.kind != "skill"
+        or context.procedure_id != "skill:diplomacy"
+        or outcome.outcome in disclosure.outcomes
+    ):
+        return outcome
+    _, event_id, _ = _social_identity(command)
+    event = next(value for value in state.events if value.id == event_id)
+    effect_id = json.loads(event.kind)["private"]["effect"]["id"]
+    return (
+        outcome.model_copy(update={"outcome": effect_id})
+        if effect_id in disclosure.outcomes
+        else outcome
+    )
+
+
 def apply_interaction(
     state: ResourceState,
     world: World,
@@ -567,6 +684,8 @@ def apply_interaction(
     *,
     rng: RandomSource,
     system: bool = False,
+    correct_reactions: bool = False,
+    recognition_sources: tuple[SocialCommand, ...] = (),
 ) -> tuple[ResourceState, World, SocialOutcome]:
     """Resolve once and disclose only a configured fact the subject knows.
 
@@ -576,18 +695,21 @@ def apply_interaction(
     if not system:
         raise ValidationError("Social interactions require authoritative trigger context")
     replay = any(r.command_id == command.id for r in state.receipts)
-    if not replay and disclosure.fact_ids:
-        if command.kind not in ("reaction", "influence", "skill"):
-            raise ValidationError("Only NPC interactions can disclose facts")
-        known = {f.id for f in world.perspective(command.subject_id).facts}
-        if not set(disclosure.fact_ids) <= known:
-            raise ValidationError("NPC cannot communicate unknown facts")
-        if len(set(disclosure.fact_ids)) != len(disclosure.fact_ids):
-            raise ValidationError("Duplicate social disclosure fact")
-        if not disclosure.outcomes or not set(disclosure.outcomes) <= REACTIONS | effect_ids():
-            raise ValidationError("Unsupported disclosure outcome")
-    updated, outcome = apply_social(state, world, command, context, rng=rng, system=True)
-    if not replay and outcome.outcome in disclosure.outcomes:
-        for fact_id in disclosure.fact_ids:
-            world = world.learn(command.actor_id, fact_id)
+    if not replay:
+        _validate_disclosure(world, command, disclosure)
+    updated, outcome = apply_social(
+        state,
+        world,
+        command,
+        context,
+        rng=rng,
+        system=True,
+        correct_reactions=correct_reactions,
+        recognition_sources=recognition_sources,
+    )
+    if not replay:
+        response = _disclosure_response(
+            updated, command, context, disclosure, outcome, correct_reactions=correct_reactions
+        )
+        world = _disclose(world, command.actor_id, disclosure, response)
     return updated, world, outcome

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import Final, Literal, Self
 
@@ -33,8 +33,13 @@ from wayfarer.engine.rules.social.gurps_social import (
     InfluenceTrace,
     Reaction,
     ReactionModifier,
+    ReactionTrace,
     influence_procedure,
     influence_roll,
+    prepare_influence,
+    resolve_diplomacy,
+    validate_influence,
+    validate_prepared_influence,
 )
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
@@ -286,7 +291,17 @@ def resolve(
         rng=rng,
         conditions=context.influence_conditions,
     )
-    verdict = _influence_verdict(influence, context.actor_id)
+    return _influence_skill_trace(entry, base, modifiers, influence, context.actor_id)
+
+
+def _influence_skill_trace(
+    entry: SocialProcedure,
+    base: int,
+    modifiers: tuple[Modifier, ...],
+    influence: InfluenceTrace,
+    actor_id: str,
+) -> SocialSkillTrace:
+    verdict = _influence_verdict(influence, actor_id)
     return SocialSkillTrace(
         entry.id,
         entry.reference,
@@ -297,3 +312,102 @@ def resolve(
         entry.effect(verdict),
         influence=influence,
     )
+
+
+def validate_diplomacy_skill_context(
+    profile_id: str,
+    context: SocialSkillContext,
+    *,
+    campaign_specialties: CampaignSocialSpecialties | None = None,
+) -> None:
+    """Validate all prerequisite configuration before recognition/contest dice."""
+    entry = require_procedure(profile_id, "skill:diplomacy", campaign_specialties)
+    _validate_context(entry, context)
+    validate_influence(profile_id, "diplomacy", context.influence_conditions)
+
+
+def prepare_diplomacy_skill(
+    profile_id: str,
+    context: SocialSkillContext,
+    *,
+    rng: RandomSource,
+    campaign_specialties: CampaignSocialSpecialties | None = None,
+) -> SocialSkillTrace:
+    """Resolve the B187/B359 prerequisite, leaving its fallback reaction unrolled."""
+    entry = require_procedure(profile_id, "skill:diplomacy", campaign_specialties)
+    _validate_context(entry, context)
+    modifiers = derived_modifiers(entry, context)
+    influence = prepare_influence(
+        profile_id,
+        "diplomacy",
+        context.actor_id,
+        context.subject_id,
+        context.skill + sum(modifier.value for modifier in modifiers),
+        context.resistance,
+        context.reaction_modifiers,
+        rng=rng,
+        conditions=context.influence_conditions,
+    )
+    return _influence_skill_trace(entry, context.skill, modifiers, influence, context.actor_id)
+
+
+def validate_prepared_diplomacy_skill(
+    profile_id: str,
+    context: SocialSkillContext,
+    prepared: SocialSkillTrace,
+    *,
+    campaign_specialties: CampaignSocialSpecialties | None = None,
+) -> None:
+    """Revalidate the frozen skill and contest; neither step draws new dice."""
+    entry = require_procedure(profile_id, "skill:diplomacy", campaign_specialties)
+    _validate_context(entry, context)
+    modifiers = derived_modifiers(entry, context)
+    influence = prepared.influence
+    if influence is None:
+        raise ValidationError("Prepared Diplomacy skill is missing its Influence contest")
+    validate_prepared_influence(
+        profile_id,
+        "diplomacy",
+        context.actor_id,
+        context.subject_id,
+        context.skill + sum(modifier.value for modifier in modifiers),
+        context.resistance,
+        context.reaction_modifiers,
+        influence,
+        conditions=context.influence_conditions,
+    )
+    if prepared != _influence_skill_trace(
+        entry, context.skill, modifiers, influence, context.actor_id
+    ):
+        raise ValidationError("Prepared Diplomacy skill source or preceding verdict changed")
+
+
+def resolve_diplomacy_skill(
+    profile_id: str,
+    context: SocialSkillContext,
+    prepared: SocialSkillTrace,
+    selected: ReactionTrace,
+    *,
+    campaign_specialties: CampaignSocialSpecialties | None = None,
+) -> SocialSkillTrace:
+    """Keep the skill verdict and substitute only its selected fallback reaction.
+
+    The skill effect describes the preceding contest, not the NPC's final
+    response. Consumers of reaction bands must read the combined ``reaction``.
+    """
+    validate_prepared_diplomacy_skill(
+        profile_id, context, prepared, campaign_specialties=campaign_specialties
+    )
+    assert prepared.influence is not None
+    influence = resolve_diplomacy(
+        profile_id,
+        context.actor_id,
+        context.subject_id,
+        prepared.effective_skill,
+        context.resistance,
+        context.reaction_modifiers,
+        prepared.influence,
+        selected,
+        conditions=context.influence_conditions,
+    )
+    return replace(prepared, influence=influence)

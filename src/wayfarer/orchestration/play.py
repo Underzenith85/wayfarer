@@ -441,7 +441,12 @@ class PlayService:
         record_play_state(campaign, state)
 
     def checkpoint(
-        self, state: PlayState, *, before: PlayState | None = None, run_npcs: bool = True
+        self,
+        state: PlayState,
+        *,
+        before: PlayState | None = None,
+        run_npcs: bool = True,
+        stop_before_npc: tuple[str, int] | None = None,
     ) -> PlayState:
         configured_magic = self.engine.rules.spells.magic_items if self.engine.rules.spells else ()
         resources = item_magic_checkpoint(
@@ -468,7 +473,7 @@ class PlayService:
         before_late_magic = state
         if run_npcs:
             before_npcs = state
-            state = npc_checkpoint(self, state)
+            state = npc_checkpoint(self, state, stop_before=stop_before_npc)
             state = shapeshifting_checkpoint(self, state, before=before_npcs)
             state = size_geometry_checkpoint(self.rules_context, state)
         state = state.model_copy(

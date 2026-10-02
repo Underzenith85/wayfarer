@@ -26,12 +26,25 @@ from wayfarer.engine.simulation.campaign.activities import PerformActivity
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.resources import Advance
+from wayfarer.engine.simulation.social.reactions import (
+    LegacyRecognitionAttribution,
+    attribute_legacy_recognition,
+)
 from wayfarer.engine.simulation.traits.luck import LuckCommand, LuckRoll, apply_luck, luck_cooldown
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.entropy import current_command_instant
 from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.reaction_context import player_actor_ids
+from wayfarer.orchestration.reaction_recognition import bind_recognition_sources
+from wayfarer.orchestration.reaction_records import (
+    AttributeReactionRecognition,
+    ChooseReaction,
+    PrepareReaction,
+    SecretReactionPending,
+)
+from wayfarer.orchestration.reaction_tasks import choose_reaction, open_reaction
 from wayfarer.orchestration.real_play_clock import (
     RealPlayClock,
     settle_real_play,
@@ -87,13 +100,20 @@ def _controls(
     play: PlayService, state: PlayState, command: TaskCommand, principal: str
 ) -> tuple[Control, ...]:
     member = member_for(state, principal)
-    if isinstance(command, ChooseSecretTaskCheck):
+    if isinstance(command, (ChooseSecretTaskCheck, ChooseReaction)):
         if command.choice == "use-luck":
             return (Controls(member, command.actor_id),)
         return Seats(state), Trusted(play.engine.reviewer.gm_ids)
-    director = isinstance(command, (BindLongTask, SetRealPlayClock, PrepareSecretTaskCheck)) or (
-        isinstance(command, BeginTaskCheck) and command.secret
-    )
+    director = isinstance(
+        command,
+        (
+            BindLongTask,
+            SetRealPlayClock,
+            PrepareSecretTaskCheck,
+            PrepareReaction,
+            AttributeReactionRecognition,
+        ),
+    ) or (isinstance(command, BeginTaskCheck) and command.secret)
     if member.role == "gm" or director:
         return Seats(state), Trusted(play.engine.reviewer.gm_ids)
     actor_ids: tuple[str, ...] = (command.actor_id,)
@@ -122,6 +142,7 @@ def _visible(
                 "luck": None,
                 "action": None,
                 "activity": None,
+                "reaction_json": None,
                 "pending_id": result.pending_id if unrolled else None,
             }
         )
@@ -618,6 +639,7 @@ class TaskService:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         initial = play._load(campaign)
+        command = await bind_recognition_sources(play, cid, command)
         payload = json.dumps(
             {
                 "operation": "task-host",
@@ -630,6 +652,9 @@ class TaskService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
+            # Reviewer trust can change after the outer plan captured its set.
+            for control in _controls(play, before, command, principal_id):
+                control(principal_id)
             if before.revision != command.expected_revision or before.lifecycle != "active":
                 raise ConflictError("Task operation requires the current active campaign revision")
             saved = snapshot(before)
@@ -649,6 +674,25 @@ class TaskService:
                 state, saved, result = _begin_check(play, state, command, saved, clock)
             elif isinstance(command, BeginTaskWork):
                 state, saved, result = _begin_work(play, state, command, saved, clock)
+            elif isinstance(command, AttributeReactionRecognition):
+                resources = attribute_legacy_recognition(
+                    state.resources,
+                    state.world,
+                    command.id,
+                    LegacyRecognitionAttribution(
+                        event_id=command.event_id, actor_id=command.actor_id, reason=command.reason
+                    ),
+                    player_actor_ids=player_actor_ids(state),
+                    system=True,
+                )
+                state = state.model_copy(update={"resources": resources})
+                result = TaskResult(
+                    command_id=command.id, actor_id=command.actor_id, status="bound", secret=True
+                )
+            elif isinstance(command, PrepareReaction):
+                state, saved, result = open_reaction(play, state, command, saved, clock)
+            elif isinstance(command, ChooseReaction):
+                state, saved, clock, result = choose_reaction(play, state, command, saved, clock)
             elif isinstance(command, ChooseSecretTaskCheck):
                 state, saved, clock, result = choose_secret(play, state, command, saved, clock)
             else:
@@ -703,7 +747,7 @@ class TaskService:
                 current,
                 result,
                 principal_id,
-                unrolled=isinstance(command, PrepareSecretTaskCheck),
+                unrolled=isinstance(command, (PrepareSecretTaskCheck, PrepareReaction)),
             )
 
         plan = CommandPlan(
@@ -716,7 +760,7 @@ class TaskService:
             control=_controls(play, initial, command, principal_id),
             rng=play.rng,
             pending_task_id=command.pending_id
-            if isinstance(command, (ChooseTaskCheck, ChooseSecretTaskCheck))
+            if isinstance(command, (ChooseTaskCheck, ChooseSecretTaskCheck, ChooseReaction))
             else None,
             task_clock_only=isinstance(command, SetRealPlayClock),
         )
@@ -738,9 +782,13 @@ class TaskService:
                 actor_id=pending.actor_id,
                 status="pending",
                 pending_id=pending.id,
-                check=None if isinstance(pending, SecretTaskPending) else pending.original,
-                secret=True if isinstance(pending, SecretTaskPending) else pending.secret,
+                check=None
+                if isinstance(pending, (SecretTaskPending, SecretReactionPending))
+                else pending.original,
+                secret=True
+                if isinstance(pending, (SecretTaskPending, SecretReactionPending))
+                else pending.secret,
             ),
             principal_id,
-            unrolled=isinstance(pending, SecretTaskPending),
+            unrolled=isinstance(pending, (SecretTaskPending, SecretReactionPending)),
         )

@@ -9,21 +9,12 @@ from dataclasses import dataclass
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.contracts import Campaign, CommandReceipt
-from wayfarer.engine.character.traits.social import (
-    bind_standing,
-    reaction_modifiers,
-    skill_conditions,
-)
 from wayfarer.engine.rules.fright import FrightEffect
-from wayfarer.engine.rules.skills.mundane.social.inventory import Resolution, require_procedure
-from wayfarer.engine.rules.traits.mundane.runtime import Check
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.development import bind_teaching_outcome
 from wayfarer.engine.simulation.campaign.economics import bind_social_material_outcome
-from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
 from wayfarer.engine.simulation.campaign.party import bind_leadership_outcome
-from wayfarer.engine.simulation.campaign.propaganda import bind_media
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.health.fright import apply_effect, validate_subject
 from wayfarer.engine.simulation.resources import Advance
@@ -40,6 +31,18 @@ from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.reaction_records import AuthoredSocialReaction, PrepareReaction
+from wayfarer.orchestration.replay_inputs import recorded_command
+from wayfarer.orchestration.social_binding import bind_skill_conditions, bind_trait_modifiers
+from wayfarer.orchestration.social_generations import correct_social_reactions
+from wayfarer.orchestration.social_replay import (
+    CapturedSocialContext,
+    CapturedSocialSource,
+    captured_source,
+)
+from wayfarer.orchestration.task_records import TaskResult
+from wayfarer.orchestration.tasks import TaskService
+from wayfarer.persistence.events import CommandInput
 
 
 @dataclass(frozen=True)
@@ -69,92 +72,6 @@ def _collapse(encounters: tuple[Encounter, ...], actor_id: str) -> tuple[Encount
         else encounter
         for encounter in encounters
     )
-
-
-def bind_trait_modifiers(
-    play: PlayService, state: PlayState, command: SocialCommand, context: SocialContext
-) -> None:
-    """Add the reaction/influence modifiers the initiator's approved build implies.
-
-    An approved build is the only source: a resolver cannot supply a trait
-    modifier, and an unbound or unpurchased trait contributes nothing. An
-    unapproved initiator (an NPC without a build) contributes nothing either.
-    """
-
-    check: Check = "influence" if command.kind in ("influence", "skill") else "reaction"
-    actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
-    if actor is None or actor.approval is None:
-        context.bind_trait_modifiers(())
-        return
-
-    approved = build(play.rules_context, state, command.actor_id)
-    definitions = play.engine.reviewer.compiler.definitions
-    context.standing = bind_standing(approved, definitions, context.standing, context.modifiers)
-    context.bind_trait_modifiers(
-        reaction_modifiers(
-            approved,
-            definitions,
-            check,
-            context.audience,
-        )
-    )
-
-
-def bind_skill_conditions(
-    play: PlayService, state: PlayState, command: SocialCommand, context: SocialContext
-) -> None:
-    """Derive the #345 procedure's build-supplied conditions and reaction modifiers.
-
-    The approved build decides only whether a named condition holds; the procedure
-    owns what each one is worth. An initiator without an approved build asserts
-    nothing extra, and a resolver still cannot supply a trait modifier itself.
-    """
-
-    if context.procedure_id is None:
-        raise ValidationError("Social skill dispatch requires a declared procedure")
-    procedure = require_procedure(
-        context.profile_id, context.procedure_id, context.campaign_specialties
-    )
-    if procedure.id == "skill:interrogation" and context.callous:
-        raise ValidationError("Callous coercion is derived from the approved build")
-    if procedure.id != "skill:propaganda" and context.medium_id is not None:
-        raise ValidationError("Only Propaganda can select an authored medium")
-    actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
-    if actor is None or actor.approval is None:
-        context.bind_trait_modifiers(())
-        return
-
-    approved = build(play.rules_context, state, command.actor_id)
-    if procedure.id == "skill:interrogation":
-        context.callous = any(
-            purchase.definition_id == "trait:disadvantage:callous"
-            for purchase in approved.trait_purchases
-        )
-    if procedure.id == "skill:propaganda":
-        npc_rules = play.engine.rules.npcs
-        context.media = bind_media(
-            npc_rules.propaganda if isinstance(npc_rules, NPCSocialRules) else None,
-            profile_id=context.profile_id,
-            campaign_technology_level=play.engine.reviewer.compiler.policy.technology_level,
-            medium_id=context.medium_id,
-            actor_id=command.actor_id,
-            build=approved,
-            resources=state.resources,
-        )
-    definitions = play.engine.reviewer.compiler.definitions
-    context.conditions = context.conditions | skill_conditions(
-        approved,
-        definitions,
-        procedure.id,
-        context.audience,
-        context.campaign_specialties,
-    )
-    if procedure.resolution is not Resolution.INFLUENCE:
-        # Reaction modifiers reach influence rolls only (B359); an unopposed
-        # procedure must not silently collect them.
-        context.bind_trait_modifiers(())
-        return
-    bind_trait_modifiers(play, state, command, context)
 
 
 def _require_voluntary_social(state: PlayState, command: SocialCommand) -> None:
@@ -202,6 +119,7 @@ def dispatch(
         interaction.disclosure,
         rng=play.rng,
         system=True,
+        correct_reactions=correct_social_reactions(),
     )
     if outcome.media is not None and not replay:
         before = play.advance_clock(
@@ -330,6 +248,36 @@ class SocialService:
     def __init__(self, play: PlayService, resolve: InteractionResolver) -> None:
         self.play, self.resolve = play, resolve
 
+    async def prepare_reaction(
+        self,
+        cid: str,
+        command: SocialCommand,
+        source: AuthoredSocialReaction,
+        *,
+        principal_id: str,
+    ) -> TaskResult:
+        """Record a reconstructible GM source before this reaction's secret dice.
+
+        The ordinary resolver remains the legacy immediate-roll route. A pending
+        source is explicit so seed reexecution never invokes an unrecorded callback.
+        """
+        if (command.kind, command.trigger_id, command.subject_id) != (
+            source.mode,
+            source.trigger_id,
+            source.subject_id,
+        ):
+            raise ValidationError("Prepared reaction source does not match its social command")
+        return await TaskService(self.play).execute(
+            cid,
+            PrepareReaction(
+                id=command.id,
+                actor_id=command.actor_id,
+                expected_revision=command.expected_revision,
+                source=source,
+            ),
+            principal_id=principal_id,
+        )
+
     def plan(
         self,
         play: PlayService,
@@ -337,6 +285,7 @@ class SocialService:
         command: SocialCommand,
         *,
         principal_id: str,
+        source: CapturedSocialSource | None = None,
     ) -> CommandPlan[SocialOutcome]:
         """What a social dispatch writes; the pipeline decides whether it runs."""
         profile_id = play.engine.reviewer.compiler.statistics_profile
@@ -347,13 +296,22 @@ class SocialService:
                 "operation": "gurps-social",
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
+                **({"social_source": source.model_dump(mode="json")} if source is not None else {}),
             },
             sort_keys=True,
         )
 
+        def require_current_trust(principal: str) -> None:
+            Trusted(play.engine.reviewer.gm_ids, refusal=DIRECTOR_REFUSAL)(principal)
+
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            updated, outcome = dispatch(play, before, command, self.resolve(play, before, command))
+            interaction = (
+                ResolvedInteraction(source.context.resolve(), source.disclosure)
+                if source is not None
+                else self.resolve(play, before, command)
+            )
+            updated, outcome = dispatch(play, before, command, interaction)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             # The event stream carries neither trusted modifiers nor fact IDs.
@@ -381,7 +339,7 @@ class SocialService:
             outcome=outcome,
             control=(
                 Seats(state, refusal=DIRECTOR_REFUSAL),
-                Trusted(play.engine.reviewer.gm_ids, refusal=DIRECTOR_REFUSAL),
+                require_current_trust,
             ),
             rng=play.rng,
         )
@@ -393,9 +351,26 @@ class SocialService:
             raise ValidationError("Invalid social command") from exc
         play = self.play.for_campaign(await self.play.store.read(cid))
         state = play._load(await play.store.read(cid))
+        # No resolver runs for an unauthorized caller or a committed retry. The
+        # pipeline repeats current authority under the transaction lock.
+        Seats(state, refusal=DIRECTOR_REFUSAL)(principal_id)
+        Trusted(play.engine.reviewer.gm_ids, refusal=DIRECTOR_REFUSAL)(principal_id)
+        prior = recorded_command.get()
+        saved = (
+            CommandInput(prior.payload_hash, prior.command_input)
+            if prior is not None
+            else await play.store.command_input(cid, command.id)
+        )
+        source = captured_source(saved) if saved is not None else None
+        if saved is None:
+            interaction = self.resolve(play, state, command)
+            source = CapturedSocialSource(
+                context=CapturedSocialContext.model_validate(vars(interaction.context)),
+                disclosure=interaction.disclosure,
+            )
         return await submit(
             play,
             cid,
-            self.plan(play, state, command, principal_id=principal_id),
+            self.plan(play, state, command, principal_id=principal_id, source=source),
             principal_id=principal_id,
         )

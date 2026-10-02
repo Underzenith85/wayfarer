@@ -17,6 +17,7 @@ from wayfarer.engine.rules.gurps_checks import (
     Contestant,
     QuickContestTrace,
     quick_contest,
+    resolve_quick_contest,
     success_roll,
 )
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules, cost
@@ -118,14 +119,31 @@ def reaction_outcome(total: int) -> Reaction:
     return "excellent"
 
 
+def evaluate_reaction(
+    profile_id: str,
+    modifiers: tuple[ReactionModifier, ...],
+    dice: tuple[int, int, int],
+) -> ReactionTrace:
+    """Score supplied 3d under B494/B560-561: higher totals are better.
+
+    This is also the narrow scorer for a separately staged Diplomacy fallback.
+    Its caller must retain the preceding Influence contest and combine its
+    result with this reaction; this function never repeats that contest.
+    """
+    profile(profile_id)
+    _validate_modifiers(modifiers)
+    if len(dice) != 3 or any(type(die) is not int or not 1 <= die <= 6 for die in dice):
+        raise ValidationError("Reaction dice require exactly three integer faces within 1-6")
+    total = sum(dice) + sum(m.value for m in modifiers)
+    return ReactionTrace(dice, modifiers, total, reaction_outcome(total))
+
+
 def reaction_roll(
     profile_id: str, modifiers: tuple[ReactionModifier, ...], *, rng: RandomSource
 ) -> ReactionTrace:
     profile(profile_id)
     _validate_modifiers(modifiers)
-    dice = draw_dice(rng)
-    total = sum(dice) + sum(m.value for m in modifiers)
-    return ReactionTrace(dice, modifiers, total, reaction_outcome(total))
+    return evaluate_reaction(profile_id, modifiers, draw_dice(rng))
 
 
 def _validate_modifiers(modifiers: tuple[ReactionModifier, ...]) -> None:
@@ -148,6 +166,80 @@ class InfluenceTrace:
     automatic: Literal["indomitable", "unfazeable", "slave-mentality"] | None = None
 
 
+def _automatic_influence(
+    skill: InfluenceSkill, conditions: InfluenceConditions
+) -> Literal["indomitable", "unfazeable", "slave-mentality"] | None:
+    automatic: Literal["indomitable", "unfazeable", "slave-mentality"] | None = None
+    if conditions.indomitable and not conditions.appropriate_empathy:
+        automatic = "indomitable"
+    elif skill == "intimidation" and conditions.unfazeable:
+        automatic = "unfazeable"
+    elif conditions.slave_mentality:
+        automatic = "slave-mentality"
+    return automatic
+
+
+def _influence_result(
+    skill: InfluenceSkill,
+    actor_id: str,
+    contest: QuickContestTrace | None,
+    automatic: Literal["indomitable", "unfazeable", "slave-mentality"] | None,
+    conditions: InfluenceConditions,
+) -> InfluenceTrace:
+    won = automatic == "slave-mentality" or (contest is not None and contest.winner == actor_id)
+    outcome: Reaction = (
+        ("very-good" if skill == "sex-appeal" else "good")
+        if won
+        else "very-bad"
+        if conditions.specious_intimidation
+        else "bad"
+    )
+    return InfluenceTrace(contest, outcome, automatic=automatic)
+
+
+def _with_diplomacy_reaction(prepared: InfluenceTrace, fallback: ReactionTrace) -> InfluenceTrace:
+    order = ("disastrous", "very-bad", "bad", "poor", "neutral", "good", "very-good", "excellent")
+    outcome = max((prepared.outcome, fallback.outcome), key=order.index)
+    return InfluenceTrace(prepared.contest, outcome, fallback, prepared.automatic)
+
+
+def prepare_influence(
+    profile_id: str,
+    skill: InfluenceSkill,
+    actor_id: str,
+    npc_id: str,
+    target: int,
+    will: int,
+    modifiers: tuple[ReactionModifier, ...],
+    *,
+    rng: RandomSource,
+    conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
+) -> InfluenceTrace:
+    """Resolve only the preceding Influence contest, without a Diplomacy reaction.
+
+    A staged host persists this immutable prerequisite before selecting fallback
+    dice. The original immediate caller continues through ``influence_roll``.
+    """
+    validate_influence(profile_id, skill, conditions)
+    _validate_modifiers(modifiers)
+    if not actor_id or not npc_id or actor_id == npc_id:
+        raise ValidationError("Influence requires distinct actor and subject IDs")
+    if type(target) is not int or type(will) is not int:
+        raise ValidationError("Influence targets must be integers")
+    automatic = _automatic_influence(skill, conditions)
+    contest = (
+        None
+        if automatic is not None
+        else quick_contest(
+            profile_id,
+            Contestant(actor_id, target + sum(m.value for m in modifiers)),
+            Contestant(npc_id, will),
+            rng=rng,
+        )
+    )
+    return _influence_result(skill, actor_id, contest, automatic, conditions)
+
+
 def influence_roll(
     profile_id: str,
     skill: InfluenceSkill,
@@ -160,48 +252,84 @@ def influence_roll(
     rng: RandomSource,
     conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
 ) -> InfluenceTrace:
-    """Use the approved effective skill; bonuses to reactions also affect influence.
+    """Keep the legacy contest-then-fallback order and serialized trace intact."""
+    prepared = prepare_influence(
+        profile_id, skill, actor_id, npc_id, target, will, modifiers, rng=rng, conditions=conditions
+    )
+    if skill != "diplomacy":
+        return prepared
+    return _with_diplomacy_reaction(prepared, reaction_roll(profile_id, modifiers, rng=rng))
 
-    Diplomacy retains an ordinary reaction if the influence result would be worse.
-    Sex Appeal yields Very Good on a win; ordinary failed influence yields Bad.
-    No outcome compels a player action or reveals an NPC's private motivations.
-    """
+
+def validate_prepared_influence(
+    profile_id: str,
+    skill: InfluenceSkill,
+    actor_id: str,
+    npc_id: str,
+    target: int,
+    will: int,
+    modifiers: tuple[ReactionModifier, ...],
+    prepared: InfluenceTrace,
+    *,
+    conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
+) -> None:
+    """Re-score a frozen prerequisite from its own dice, consuming no entropy."""
     validate_influence(profile_id, skill, conditions)
     _validate_modifiers(modifiers)
     if not actor_id or not npc_id or actor_id == npc_id:
         raise ValidationError("Influence requires distinct actor and subject IDs")
     if type(target) is not int or type(will) is not int:
         raise ValidationError("Influence targets must be integers")
-    automatic: Literal["indomitable", "unfazeable", "slave-mentality"] | None = None
-    if conditions.indomitable and not conditions.appropriate_empathy:
-        automatic = "indomitable"
-    elif skill == "intimidation" and conditions.unfazeable:
-        automatic = "unfazeable"
-    elif conditions.slave_mentality:
-        automatic = "slave-mentality"
-    contest = (
-        None
-        if automatic is not None
-        else quick_contest(
+    automatic = _automatic_influence(skill, conditions)
+    contest = prepared.contest
+    if automatic is None:
+        if contest is None:
+            raise ValidationError("Prepared Influence is missing its preceding contest")
+        for dice in (contest.first.dice, contest.second.dice):
+            if len(dice) != 3 or any(type(die) is not int or not 1 <= die <= 6 for die in dice):
+                raise ValidationError("Prepared Influence has invalid contest dice")
+        contest = resolve_quick_contest(
             profile_id,
-            Contestant(actor_id, target + sum(m.value for m in modifiers)),
+            Contestant(actor_id, target + sum(modifier.value for modifier in modifiers)),
             Contestant(npc_id, will),
-            rng=rng,
+            first_dice=contest.first.dice,
+            second_dice=contest.second.dice,
         )
+    else:
+        contest = None
+    if prepared != _influence_result(skill, actor_id, contest, automatic, conditions):
+        raise ValidationError("Prepared Influence does not match its preceding contest")
+
+
+def resolve_diplomacy(
+    profile_id: str,
+    actor_id: str,
+    npc_id: str,
+    target: int,
+    will: int,
+    modifiers: tuple[ReactionModifier, ...],
+    prepared: InfluenceTrace,
+    selected: ReactionTrace,
+    *,
+    conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
+) -> InfluenceTrace:
+    """Combine the selected B359 fallback with the unchanged Influence result."""
+    validate_prepared_influence(
+        profile_id,
+        "diplomacy",
+        actor_id,
+        npc_id,
+        target,
+        will,
+        modifiers,
+        prepared,
+        conditions=conditions,
     )
-    won = automatic == "slave-mentality" or (contest is not None and contest.winner == actor_id)
-    outcome: Reaction = (
-        ("very-good" if skill == "sex-appeal" else "good")
-        if won
-        else "very-bad"
-        if conditions.specious_intimidation
-        else "bad"
-    )
-    fallback = reaction_roll(profile_id, modifiers, rng=rng) if skill == "diplomacy" else None
-    order = ("disastrous", "very-bad", "bad", "poor", "neutral", "good", "very-good", "excellent")
-    if fallback and order.index(fallback.outcome) > order.index(outcome):
-        outcome = fallback.outcome
-    return InfluenceTrace(contest, outcome, fallback, automatic)
+    if type(selected.total) is not int or selected != evaluate_reaction(
+        profile_id, modifiers, selected.dice
+    ):
+        raise ValidationError("Selected Diplomacy reaction does not match supplied dice")
+    return _with_diplomacy_reaction(prepared, selected)
 
 
 def self_control_roll(
