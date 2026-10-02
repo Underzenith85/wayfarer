@@ -62,7 +62,6 @@ class PrerequisiteKind(StrEnum):
     TRAINED_SKILL = "trained-skill"
     PURCHASED_DEFINITION = "purchased-definition"
     CAPABILITY = "capability"
-    ATTRIBUTE_MINIMUM = "attribute-minimum"
 
 
 @dataclass(frozen=True, slots=True)
