@@ -35,6 +35,8 @@ def bind_unusual_background(
     background = definitions.get(UNUSUAL_BACKGROUND_ID)
     if background is None or background.trait_rules is None:
         raise ValidationError("Campaign package lacks the canonical Unusual Background row")
+    if any(UNUSUAL_BACKGROUND_ID in row.prerequisites for row in package.definitions):
+        raise ValidationError("A fresh baseline cannot contain unbound background prerequisites")
     if any(
         identity not in definitions
         or definitions[identity].kind is not DefinitionKind.TRAIT

@@ -221,6 +221,11 @@ class RulesCatalog:
         decision = UnusualBackgroundDecision.model_validate(decision)
         background = definitions.get(UNUSUAL_BACKGROUND_ID)
         paid = decision.allowed and decision.point_cost > 0
+        admitted = {
+            row.id for row in package.definitions if UNUSUAL_BACKGROUND_ID in row.prerequisites
+        }
+        if admitted != (set(decision.benefits) if paid else set()):
+            raise ValidationError("Background admission must name the exact GM-selected benefits")
         if (
             len(marked) != 1
             or background is None

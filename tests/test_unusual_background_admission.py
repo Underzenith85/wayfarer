@@ -390,3 +390,69 @@ def test_skill_admission_is_explicitly_unsupported_including_defaults(allowed: b
     )
     with pytest.raises(ValidationError, match="existing implemented trait rows"):
         bind_unusual_background(package, selected, package_id="skill-background", version="1")
+
+
+@pytest.mark.parametrize("price,allowed", [(10, True), (0, True), (50, False)])
+def test_campaign_cannot_extend_background_admission_beyond_the_gm_benefits(
+    price: int, allowed: bool
+) -> None:
+    package, _ = configured(decision(price, allowed=allowed))
+    # B96's permission names the tangible benefits. A package cannot reuse the
+    # surcharge to admit another ability the GM did not select.
+    foreign = "trait:combat-reflexes"
+    changed = replace(
+        package,
+        definitions=tuple(
+            replace(row, prerequisites=row.prerequisites + (UNUSUAL_BACKGROUND_ID,))
+            if row.id == foreign
+            else row
+            for row in package.definitions
+        ),
+    )
+    with pytest.raises(ValidationError, match="exact GM-selected benefits"):
+        RulesCatalog((changed,))
+
+
+def test_new_decision_cannot_inherit_an_unselected_background_requirement() -> None:
+    base = combined_package()
+    changed = replace(
+        base,
+        definitions=tuple(
+            replace(row, prerequisites=row.prerequisites + (UNUSUAL_BACKGROUND_ID,))
+            if row.id == "trait:combat-reflexes"
+            else row
+            for row in base.definitions
+        ),
+    )
+    with pytest.raises(ValidationError, match="unbound background prerequisites"):
+        bind_unusual_background(changed, decision(), package_id="new", version="1")
+
+
+def test_one_gm_surcharge_admits_two_real_benefits_without_charging_twice() -> None:
+    selected = decision(50).model_copy(update={"benefits": (BENEFIT, "trait:combat-reflexes")})
+    package, reviewer = configured(selected)
+    build = CharacterProposal(
+        draft=gurps_draft(
+            Purchase(definition_id=BENEFIT),
+            Purchase(definition_id="trait:combat-reflexes"),
+            Purchase(definition_id=UNUSUAL_BACKGROUND_ID),
+        )
+    )
+    approval = reviewer.approve(
+        build,
+        campaign_id="c",
+        actor_id="a",
+        revision=0,
+        approver_id="gm",
+        reason="One exceptional background admits both selected benefits",
+    )
+    actual, _ = reviewer.activate(build, approval, campaign_id="c", actor_id="a")
+    assert actual.spent == 30 + 15 + 50
+    assert sum(p.cost for p in actual.purchases if p.definition_id == UNUSUAL_BACKGROUND_ID) == 50
+    assert package.unusual_background == selected
+    assert (
+        reviewer.review(
+            CharacterProposal(draft=gurps_draft(Purchase(definition_id="trait:combat-reflexes")))
+        ).status
+        == "illegal"
+    )

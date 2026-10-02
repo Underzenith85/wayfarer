@@ -27,6 +27,11 @@ record. It is not a player draft option or an inferred physiological effect.
   any configured tangible benefit in the build is blocked and cannot be
   overridden. Client-selected prices, levels, modifiers, unknown benefits, and
   unbound generic backgrounds fail closed.
+- The background prerequisite applies to exactly the GM-selected benefits.
+  Package validation rejects added admission links to other abilities, including
+  zero-cost and forbidden decisions. Binding a new decision also rejects an
+  existing unbound background prerequisite rather than inheriting permission
+  that the decision's author never selected.
 - The decision's author must be one of the trusted campaign GMs. The normal
   approval pipeline records approver, reason, build/rules/policy digests, and
   revision. Acting approvers must also currently hold the campaign GM seat,
@@ -51,6 +56,9 @@ approval, pin/approval serialization, tamper rejection, and durable play.
 The physiology reconciliation test preserves every one of the 267 mundane
 identities exactly once. The frozen #822 denominator stays at 39: the historical
 row remains there, with an explicit current family and #906 admission owner.
+The admission tests also reject unselected prerequisite links and verify an
+actual two-benefit build: Trained by a Master (30) and Combat Reflexes (15) with
+one GM-selected 50-point background cost 95 points, with recorded GM approval.
 
 The unconfigured global catalog now reports this row unsupported. A bound
 campaign package provides the supported construction; a generic hook or family
