@@ -8,16 +8,17 @@ from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.great_haste_host import apply_host
 from wayfarer.engine.simulation.magic.great_haste_state import (
-    ADAPTER,
     RECEIPT,
     CastGreatHaste,
-    GreatHasteCommand,
     GreatHasteReceipt,
 )
+from wayfarer.engine.simulation.magic.great_haste_step_state import HOST_ADAPTER as ADAPTER
+from wayfarer.engine.simulation.magic.great_haste_step_state import HostCommand, StepCastGreatHaste
 from wayfarer.engine.simulation.magic.spells import PROFILE
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.great_haste_combat import cast_in_combat
 from wayfarer.orchestration.great_haste_generation import KEY, ORIGINAL, capture
+from wayfarer.orchestration.great_haste_steps import cast_with_step
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import (
     ActsAs,
@@ -38,7 +39,7 @@ class GreatHasteService:
     def plan(
         self,
         state: PlayState,
-        command: GreatHasteCommand,
+        command: HostCommand,
         principal_id: str,
         *,
         combat_casting: bool = False,
@@ -47,7 +48,7 @@ class GreatHasteService:
             raise ValidationError("GreatHaste requires the exact Basic Set profile")
         member = member_for(state, principal_id)
         controls: tuple[Control, ...]
-        if isinstance(command, CastGreatHaste):
+        if isinstance(command, (CastGreatHaste, StepCastGreatHaste)):
             controls = (
                 (Controls(member, command.actor_id, state=state),)
                 if member.role == "player"
@@ -62,7 +63,7 @@ class GreatHasteService:
         payload = json.dumps(
             {
                 "operation": "great-haste",
-                "generation": 1,
+                "generation": 2 if isinstance(command, StepCastGreatHaste) else 1,
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
             },
@@ -76,17 +77,22 @@ class GreatHasteService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = self.play._load(campaign)
-            updated, result = (
-                cast_in_combat(self.play, before, command)
-                if combat_casting
-                and isinstance(command, CastGreatHaste)
-                and command.operation != "cancel"
-                and any(
-                    e.status == "active" and command.actor_id in e.turn_order
-                    for e in before.encounters
+            if isinstance(command, StepCastGreatHaste):
+                if not combat_casting:
+                    raise ValidationError("Selected Step requires authenticated casting generation")
+                updated, result = cast_with_step(self.play, before, command)
+            else:
+                updated, result = (
+                    cast_in_combat(self.play, before, command)
+                    if combat_casting
+                    and isinstance(command, (CastGreatHaste, StepCastGreatHaste))
+                    and command.operation != "cancel"
+                    and any(
+                        e.status == "active" and command.actor_id in e.turn_order
+                        for e in before.encounters
+                    )
+                    else apply_host(self.play.rules_context, before, command)
                 )
-                else apply_host(self.play.rules_context, before, command)
-            )
             updated = self.play.checkpoint(updated, before=before)
             self.play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome="great_haste:" + result.outcome)

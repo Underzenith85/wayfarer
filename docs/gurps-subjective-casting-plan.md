@@ -61,8 +61,10 @@ Current combat admission requires a known, currently visible nonself subject,
 including the configured hex board line of sight. Daze, due explosions, pending
 responses and ordinary recovery guards reject before casting consumes an
 opportunity. Cast approval and current range are checked again at completion.
-Self activation during combat, unseen subjects, casting Steps, and general
-subjective timing for other spells remain unsupported. The external clock
+Self activation during combat, unseen subjects, and general
+subjective timing for other spells remain unsupported. Selected before-Step casting
+has a separate private generation and canonical staged Wait path; see
+`gurps-great-haste-step.md` for its exact bounded admission. The external clock
 negative uses the canonical domain clock under the store lock; it does not claim
 a public Wait sequence or seeded replay of a custom fixture command.
 

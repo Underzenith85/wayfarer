@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import exertion, injury_turn, movement
@@ -797,11 +799,22 @@ def _after_turn(
 
 
 def _take_turn(
-    state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
+    state: PlayState,
+    command: TypedCombatCommand,
+    encounter: Encounter,
+    context: CombatContext,
+    *,
+    preserve_concentration: bool = False,
+    concentrate_completion: Callable[
+        [PlayState, Encounter, ResourceState], tuple[PlayState, ResourceState]
+    ]
+    | None = None,
 ) -> CombatStep:
     engine = context.engine
     assert isinstance(command, TakeCombatTurn)
-    state, encounter = _validate_turn(state, command, encounter, context)
+    state, encounter = _validate_turn(
+        state, command, encounter, context, preserve_concentration=preserve_concentration
+    )
     if context.engine.rules.gurps_equipment is not None:
         state, encounter, command_for_turn = _begin_turn(state, command, encounter, context)
     else:
@@ -839,4 +852,20 @@ def _take_turn(
         shield_rush=command_for_turn.shield_rush,
         electrical_contact_seconds=command_for_turn.electrical_contact_seconds,
     )
+    state, resources = _complete_concentrate(
+        state, encounter, resources, result, concentrate_completion
+    )
     return _after_turn(state, command, encounter, context, command_for_turn, resources, result)
+
+
+def _complete_concentrate(
+    state: PlayState,
+    encounter: Encounter,
+    resources: ResourceState,
+    result: CombatResult,
+    completion: Callable[[PlayState, Encounter, ResourceState], tuple[PlayState, ResourceState]]
+    | None,
+) -> tuple[PlayState, ResourceState]:
+    if completion is not None and result.code == "combat.concentrate":
+        return completion(state, encounter, resources)
+    return state, resources

@@ -2,7 +2,10 @@
 
 import json
 
+from pydantic import ValidationError as SchemaError
+
 from wayfarer import validation
+from wayfarer.engine.simulation.magic.great_haste_step_state import StepCastGreatHaste
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.replay_inputs import recorded_command
 from wayfarer.orchestration.sessions import Store
@@ -33,4 +36,14 @@ def features(record: CommandInput) -> bool:
         raise ValidationError("Recorded Great Haste operation changed")
     # Validate both generation and its exact original request before admission.
     great_haste_intent(json.dumps(payload, sort_keys=True))
+    generation = payload.get("generation")
+    command = validation.mapping(payload.get("command"))
+    step = command.get("kind") == "step-great-haste"
+    if type(generation) is not int or generation not in (1, 2) or (generation == 2) != step:
+        raise ValidationError("Unsupported Great Haste casting generation")
+    if generation == 2:
+        try:
+            StepCastGreatHaste.model_validate_json(json.dumps(command, sort_keys=True))
+        except SchemaError as error:
+            raise ValidationError("Invalid selected-Step casting generation") from error
     return KEY in payload
