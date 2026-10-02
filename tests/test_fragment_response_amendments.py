@@ -13,6 +13,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.explosion import BlastResponse
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
+from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.orchestration.opponent_fragment_records import (
     AmendFragmentResponses,
     ChooseOpponentFragment,
@@ -147,14 +148,25 @@ async def test_amendment_and_selection_race_commits_only_one_revision(
         pending_id=pending.id,
         choice="accept",
     )
-    selector = build_play(tmp_path, play.engine, store=play.store, rng=RecordedDice((1, 5, 5, 6)))
+    # Both services represent concurrent commands at the same recorded instant.
+    # A restarted default fixture clock would run backwards after an amendment wins.
+    instant = real_play_clock(before).observed_at_us
+    assert instant is not None
+    play.instants = lambda: CommandInstant(instant + 1)
+    selector = build_play(
+        tmp_path,
+        play.engine,
+        store=play.store,
+        rng=RecordedDice((1, 5, 5, 6)),
+        instants=play.instants,
+    )
     play.rng = RecordedDice(())
     results = await asyncio.gather(
         TaskService(play).execute(cid, amend, principal_id="gm"),
         TaskService(selector).execute(cid, select, principal_id="b"),
         return_exceptions=True,
     )
-    assert sum(isinstance(result, ConflictError) for result in results) == 1
+    assert sum(isinstance(result, ConflictError) for result in results) == 1, results
     assert sum(not isinstance(result, BaseException) for result in results) == 1
     after = play._load(await play.store.read(cid))
     assert after.revision == before.revision + 1

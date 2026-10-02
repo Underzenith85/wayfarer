@@ -51,4 +51,4 @@ def test_magelock_is_protection_warning_despite_legacy_inventory_group() -> None
     assert spell_colleges(definitions["spell:magelock"]) == {"protection-warning"}
     assert spell_colleges(definitions["spell:lockmaster"]) == {"movement"}
     assert spell_colleges(definitions["spell:apportation"]) == {"movement"}
-    assert definitions["spell:haste"].skill is None
+    assert definitions["spell:great-haste"].skill is None
