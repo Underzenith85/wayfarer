@@ -13,3 +13,16 @@ B375 Sacrificial Dodge accepts an owned protecting actor within a step of the fr
 B375 airborne Acrobatic Dodge substitutes purchased Aerobatics for Acrobatics, with the same recorded success/failure and once-per-turn limit. B377 explosion diving tests exercise success applying declared destination cover before damage and failure applying movement after damage, persisted posture, exact retries and replay. Flying actors and actors in the explicitly authored water blast environment retain their original posture rather than becoming prone. The +3 Drop bonus remains for later defenses against the same foe until the defender’s next turn, with ordinary prone penalties still applied. Ranged aerial/swimming concealment steps still require dedicated authored geometry consumers.
 
 B377/B415 sacrificial contact explosion responses roll one server-owned Dodge with the Drop +3 bonus. Success applies maximum contact blast damage to the protector and torso DR plus HP as cover to others; failure leaves ordinary blast damage before completing the step. The GM declares the attempt and center before entropy. Ground actual injury, failed attempts, shared friend space, retries and replay are covered by test_area_attacks.py. Aerial contact intercepts reject until altitude geometry is authored.
+
+B368/B375 interposition steps now admit a reachable path on the current map.
+Hex steps use the existing movement reducer, including blocked terrain,
+occupancy, step budget and authored elevation transitions. Square steps cannot
+cross blocked cells or hostile intervening occupants. This retains ordinary
+successful interposition injury, the friend's failed-interposition defense and
+exact command retry behavior. Focused host regressions exercise blocked versus
+legal two-yard paths on both map types and both persistence stores.
+
+This bounded correction does not certify all of issue #878. Acrobatics preceding
+skill-roll condition exemptions remain to be reconciled with B375/B419/B428;
+concealing aerial/swimming drops and specialized interpositions retain the
+consumer boundaries above.

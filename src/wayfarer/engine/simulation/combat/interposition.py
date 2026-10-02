@@ -1,9 +1,10 @@
 """Source B375 ordinary weapon interposition through existing attack reducers."""
 
+from collections import deque
 from math import ceil
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
@@ -14,14 +15,81 @@ from wayfarer.engine.simulation.combat.encounter import (
 )
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.melee.modes import mode
-from wayfarer.engine.simulation.combat.tactical import sight
+from wayfarer.engine.simulation.combat.spatial import SquareSpatialContext
+from wayfarer.engine.simulation.combat.tactical import move_hex, sight
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
-from wayfarer.engine.simulation.hex_geometry import Hex, distance
+from wayfarer.engine.simulation.hex_geometry import Hex, distance, neighbor
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 
+def _hex_step(
+    runtime: RulesContext, encounter: Encounter, protector: Combatant, friend: Combatant
+) -> Combatant:
+    """Find an admitted step, rather than jumping through intervening terrain."""
+    assert isinstance(protector.position, Hex) and isinstance(friend.position, Hex)
+    board = runtime.require_hex(encounter)
+    queue: deque[tuple[Hex, tuple[Hex, ...]]] = deque(((protector.position, ()),))
+    seen = {protector.position}
+    while queue:
+        position, path = queue.popleft()
+        if position == friend.position:
+            return (
+                protector
+                if not path
+                else move_hex(encounter, protector, "attack", path, None, None, True, board=board)
+            )
+        for direction in range(6):
+            try:
+                target = neighbor(position, direction)
+                if target in seen:
+                    continue
+                following = path + (target,)
+                move_hex(encounter, protector, "attack", following, None, None, True, board=board)
+            except ValidationError, ValueError:
+                continue
+            seen.add(target)
+            queue.append((target, following))
+    raise ValidationError("No legal interposition step reaches the friend")
+
+
+def _square_step(
+    runtime: RulesContext, encounter: Encounter, protector: Combatant, friend: Combatant, step: int
+) -> Combatant:
+    assert isinstance(protector.position, GridPoint) and isinstance(friend.position, GridPoint)
+    assert runtime.rules.combat is not None
+    spatial = encounter.spatial
+    assert isinstance(spatial, SquareSpatialContext)
+    board = next(b for b in runtime.rules.combat.battlefields if b.id == spatial.battlefield_id)
+    assert isinstance(board, Battlefield)
+    blocked = set(board.blocked) | {
+        p.position
+        for p in encounter.participants
+        if p.actor_id not in (protector.actor_id, friend.actor_id)
+        and encounter.blocks_passage(protector.actor_id, p.actor_id)
+    }
+    queue: deque[tuple[GridPoint, int]] = deque(((protector.position, 0),))
+    seen = {protector.position}
+    while queue:
+        position, spent = queue.popleft()
+        if position == friend.position:
+            return protector.model_copy(update={"position": friend.position})
+        if spent == step:
+            continue
+        for dx, dy in ((1, 0), (0, 1), (-1, 0), (0, -1)):
+            x, y = position.x + dx, position.y + dy
+            if not 0 <= x < board.width or not 0 <= y < board.height:
+                continue
+            target = GridPoint(x=x, y=y)
+            if target in seen or target in blocked:
+                continue
+            seen.add(target)
+            queue.append((target, spent + 1))
+    raise ValidationError("No legal interposition step reaches the friend")
+
+
 def _take_step(
+    runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
     command: ChooseDefense,
@@ -47,7 +115,7 @@ def _take_step(
     elif isinstance(protector.position, Hex) and isinstance(friend.position, Hex):
         if distance(protector.position, friend.position) > step:
             raise ValidationError("Friend is beyond the protecting actor's step")
-        protector = protector.model_copy(update={"position": friend.position})
+        protector = _hex_step(runtime, encounter, protector, friend)
     elif isinstance(protector.position, GridPoint) and isinstance(friend.position, GridPoint):
         if (
             abs(protector.position.x - friend.position.x)
@@ -55,7 +123,7 @@ def _take_step(
             > step
         ):
             raise ValidationError("Friend is beyond the protecting actor's step")
-        protector = protector.model_copy(update={"position": friend.position})
+        protector = _square_step(runtime, encounter, protector, friend, step)
     else:
         raise ValidationError("Interposition requires matching spatial coordinates")
     return encounter, protector
@@ -127,7 +195,7 @@ def prepare_interposition(
         or protector.maneuver_state.defense_forbidden
     ):
         raise ValidationError("Protecting actor cannot take the interposition step")
-    encounter, protector = _take_step(state, encounter, command, protector, friend)
+    encounter, protector = _take_step(runtime, state, encounter, command, protector, friend)
     if encounter.spatial_kind != "basic":
         pair = tuple(sorted((protector.actor_id, friend.actor_id)))
         encounter = encounter.model_copy(
