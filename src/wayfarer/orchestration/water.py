@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.spell_state import SpellResult, event_id, parse_event
 from wayfarer.engine.simulation.magic.spell_transitions import SpellExecutionContext, reduce_spell
 from wayfarer.engine.simulation.magic.spells import PROFILE, RuntimeSpellCommand
+from wayfarer.engine.simulation.magic.water_discovery import WaterSpellResult, command_finding
 from wayfarer.engine.simulation.magic.water_host import (
     DeclareWater,
     DeclareWaterChannel,
@@ -79,13 +80,26 @@ class WaterService:
         async def outcome(campaign: Campaign) -> WaterReceipt | SpellResult:
             resources = play._load(campaign).resources
             if isinstance(command, RuntimeSpellCommand):
-                return parse_event(
+                result = parse_event(
                     next(
                         e
                         for e in resources.events
                         if e.id == event_id(command.id, command.spell_id)
                     )
                 ).result
+                discovered = command_finding(resources, command.id, command.actor_id)
+                return (
+                    WaterSpellResult.model_validate_json(
+                        json.dumps(
+                            {
+                                **result.model_dump(mode="json"),
+                                "finding": discovered.model_dump(mode="json"),
+                            }
+                        )
+                    )
+                    if discovered is not None
+                    else result
+                )
             return WaterReceipt.model_validate_json(
                 next(e.kind for e in resources.events if e.id == receipt_id(command.id))
             )

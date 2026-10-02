@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellContext
+from wayfarer.engine.simulation.magic.water_discovery import known_sources
 from wayfarer.engine.simulation.magic.water_effects import WaterPlan, validate_operation
 from wayfarer.engine.simulation.magic.water_state import latest, validate_body
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
@@ -56,7 +57,9 @@ def validate_channel(
     validate_operation(state.resources, channel.plan)
     bodies = latest(state.resources)
     if channel.plan.spell_id == "seek-water":
-        known = {e.id for e in state.world.perspective(channel.actor_id).entities}
+        known = {e.id for e in state.world.perspective(channel.actor_id).entities} | known_sources(
+            state.resources, channel.actor_id
+        )
         if check_exclusions and not set(channel.plan.excluded_source_ids) <= known:
             raise ValidationError("Only known sources may be excluded before seeking")
         for body in bodies.values():

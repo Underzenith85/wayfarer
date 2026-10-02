@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.engine import hex_template
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.fright_state import projection as fright_projection
+from wayfarer.engine.simulation.magic.water_discovery import projection as water_projection
 from wayfarer.engine.simulation.resources import wire_weight
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.player_medical import choices as medical_choices
@@ -42,6 +43,7 @@ def campaign_view(
             "world": asdict(state.world),
             "fright": fright_projection(state.resources, (), director=True),
         }
+    water_findings = water_projection(state.resources, member.actor_ids)
     perspectives: dict[str, object] = {}
     for actor_id in member.actor_ids:
         own = next(e for e in state.world.entities if e.id == actor_id)
@@ -132,6 +134,7 @@ def campaign_view(
         "role": member.role,
         "actors": member.actor_ids,
         "fright": fright_projection(state.resources, member.actor_ids),
+        **({"water_findings": water_findings} if water_findings else {}),
         "inventory": tuple(
             i.model_dump(mode="json")
             for i in state.resources.items
