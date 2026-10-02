@@ -44,6 +44,18 @@ from wayfarer.orchestration.opponent_attack_tasks import (
     choose_opponent_attack,
     open_opponent_attack,
 )
+from wayfarer.orchestration.opponent_fragment_records import (
+    AmendFragmentResponses,
+    ChooseOpponentFragment,
+    OpponentFragmentPending,
+    PrepareOpponentFragment,
+)
+from wayfarer.orchestration.opponent_fragment_sources import bind_fragment_source
+from wayfarer.orchestration.opponent_fragment_tasks import (
+    amend_fragment_responses_task,
+    choose_opponent_fragment,
+    open_opponent_fragment,
+)
 from wayfarer.orchestration.outside_event_records import (
     ChooseOutsideEvent,
     OutsideEventPending,
@@ -123,7 +135,10 @@ def _controls(
     play: PlayService, state: PlayState, command: TaskCommand, principal: str
 ) -> tuple[Control, ...]:
     member = member_for(state, principal)
-    if isinstance(command, (ChooseOwnerDamage, ChooseOpponentAttack, ChooseOutsideEvent)):
+    if isinstance(
+        command,
+        (ChooseOwnerDamage, ChooseOpponentAttack, ChooseOutsideEvent, ChooseOpponentFragment),
+    ):
         if command.choice == "use-luck":
             return (Controls(member, command.actor_id),)
         pending = snapshot(state).pending
@@ -163,6 +178,8 @@ def _controls(
             AttributeReactionRecognition,
             PrepareOutsideEvent,
             BeginOpponentAttack,
+            PrepareOpponentFragment,
+            AmendFragmentResponses,
         ),
     ) or (isinstance(command, (BeginTaskCheck, PrepareOwnerDamage)) and command.secret)
     if member.role == "gm" or director:
@@ -689,7 +706,9 @@ def _continued_roll(
     | PrepareOutsideEvent
     | ChooseOutsideEvent
     | BeginOpponentAttack
-    | ChooseOpponentAttack,
+    | ChooseOpponentAttack
+    | PrepareOpponentFragment
+    | ChooseOpponentFragment,
     saved: TaskSnapshot,
     clock: RealPlayClock,
 ) -> tuple[PlayState, TaskSnapshot, RealPlayClock, TaskResult]:
@@ -700,13 +719,25 @@ def _continued_roll(
         return choose_outside_event(play, state, command, saved, clock)
     if isinstance(command, ChooseOpponentAttack):
         return choose_opponent_attack(play, state, command, saved, clock)
+    if isinstance(command, ChooseOpponentFragment):
+        return choose_opponent_fragment(play, state, command, saved, clock)
     if isinstance(command, PrepareOwnerDamage):
         state, saved, result = open_owner_damage(play, state, command, saved, clock)
     elif isinstance(command, PrepareOutsideEvent):
         state, saved, result = open_outside_event(play, state, command, saved, clock)
+    elif isinstance(command, PrepareOpponentFragment):
+        state, saved, result = open_opponent_fragment(play, state, command, saved, clock)
     else:
         state, saved, result = open_opponent_attack(play, state, command, saved, clock)
     return state, saved, clock, result
+
+
+async def _bind_task_sources(play: PlayService, cid: str, command: TaskCommand) -> TaskCommand:
+    command = await bind_recognition_sources(play, cid, command)
+    command = await bind_outside_event_source(play, cid, command)
+    if isinstance(command, PrepareOpponentFragment):
+        command = await bind_fragment_source(play, cid, command)
+    return command
 
 
 class TaskService:
@@ -721,8 +752,7 @@ class TaskService:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         initial = play._load(campaign)
-        command = await bind_recognition_sources(play, cid, command)
-        command = await bind_outside_event_source(play, cid, command)
+        command = await _bind_task_sources(play, cid, command)
         payload = json.dumps(
             {
                 "operation": "task-host",
@@ -778,6 +808,8 @@ class TaskService:
                 state, saved, clock, result = choose_reaction(play, state, command, saved, clock)
             elif isinstance(command, ChooseSecretTaskCheck):
                 state, saved, clock, result = choose_secret(play, state, command, saved, clock)
+            elif isinstance(command, AmendFragmentResponses):
+                state, saved, result = amend_fragment_responses_task(play, state, command, saved)
             elif isinstance(
                 command,
                 (
@@ -787,6 +819,8 @@ class TaskService:
                     ChooseOutsideEvent,
                     BeginOpponentAttack,
                     ChooseOpponentAttack,
+                    PrepareOpponentFragment,
+                    ChooseOpponentFragment,
                 ),
             ):
                 state, saved, clock, result = _continued_roll(play, state, command, saved, clock)
@@ -853,7 +887,9 @@ class TaskService:
                 unrolled=isinstance(command, (PrepareSecretTaskCheck, PrepareReaction))
                 or isinstance(command, BeginOpponentAttack)
                 and command.visibility == "secret"
-                or isinstance(command, (PrepareOwnerDamage, PrepareOutsideEvent))
+                or isinstance(
+                    command, (PrepareOwnerDamage, PrepareOutsideEvent, PrepareOpponentFragment)
+                )
                 and command.secret,
             )
 
@@ -875,7 +911,9 @@ class TaskService:
                     ChooseReaction,
                     ChooseOwnerDamage,
                     ChooseOpponentAttack,
+                    ChooseOpponentFragment,
                     ChooseOutsideEvent,
+                    AmendFragmentResponses,
                 ),
             )
             else None,
@@ -900,7 +938,9 @@ class TaskService:
                 status="pending",
                 pending_id=pending.id,
                 check=pending.original
-                if isinstance(pending, (TaskPending, OpponentAttackPending))
+                if isinstance(
+                    pending, (TaskPending, OpponentAttackPending, OpponentFragmentPending)
+                )
                 else None,
                 secret=True
                 if isinstance(pending, (SecretTaskPending, SecretReactionPending))
@@ -914,7 +954,7 @@ class TaskService:
             ),
             principal_id,
             unrolled=isinstance(pending, (SecretTaskPending, SecretReactionPending))
-            or isinstance(pending, OpponentAttackPending)
+            or isinstance(pending, (OpponentAttackPending, OpponentFragmentPending))
             and pending.secret
             or isinstance(
                 pending, (OwnerDamagePending, InventoryDamagePending, OutsideEventPending)

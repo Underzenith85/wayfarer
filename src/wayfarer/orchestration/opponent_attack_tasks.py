@@ -1,6 +1,5 @@
 """B66 worst opponent attack through the existing task CAS and combat reducer."""
 
-from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.attack_visibility import (
     SecretAttackSource,
@@ -12,22 +11,18 @@ from wayfarer.engine.simulation.traits.composed_phases import ComposedAttackChoi
 from wayfarer.engine.simulation.traits.composed_records import ResistComposedAttack
 from wayfarer.engine.simulation.traits.composed_resolution import resolve as resolve_composed
 from wayfarer.engine.simulation.traits.luck import (
-    LuckCommand,
-    LuckReceipt,
     LuckRoll,
-    apply_luck,
-    luck_cooldown,
 )
 from wayfarer.engine.simulation.traits.opponent_attack import (
     captured_choice,
     prepare_opponent_attack,
-    rescore_opponent_attack,
     validate_opponent_attack,
 )
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
 from wayfarer.orchestration.combat.steps import reduce_combat
 from wayfarer.orchestration.damage_settlement import settle_damage_response
+from wayfarer.orchestration.opponent_attack_luck import select_opponent_roll
 from wayfarer.orchestration.opponent_attack_privacy import hide_secret_totals
 from wayfarer.orchestration.opponent_attack_records import (
     BeginOpponentAttack,
@@ -37,8 +32,7 @@ from wayfarer.orchestration.opponent_attack_records import (
 from wayfarer.orchestration.owner_damage_records import OwnerDamageOutcome, PrepareOwnerDamage
 from wayfarer.orchestration.owner_damage_tasks import open_owner_damage
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.real_play_clock import RealPlayClock, spend_real_play_cooldown
-from wayfarer.orchestration.task_context import approved
+from wayfarer.orchestration.real_play_clock import RealPlayClock
 from wayfarer.orchestration.task_records import TaskResult, TaskSnapshot, identity
 
 
@@ -129,80 +123,6 @@ def open_opponent_attack(
     )
 
 
-def _select_attack(
-    play: PlayService,
-    state: PlayState,
-    command: ChooseOpponentAttack,
-    saved: TaskSnapshot,
-    clock: RealPlayClock,
-    pending: OpponentAttackPending,
-) -> tuple[TaskSnapshot, RealPlayClock, CheckTrace, CheckTrace, LuckReceipt | None]:
-    luck = saved.luck.model_copy(
-        update={"revision": state.revision, "game_time": state.resources.game_time}
-    )
-    original = pending.original
-    receipt = None
-    if command.choice == "use-luck":
-        owner = approved(play, state, command.actor_id)
-        if any(
-            p.trait is not None and p.trait.modifiers
-            for p in owner.trait_purchases
-            if p.definition_id == "trait:advantage:luck"
-        ):
-            raise ValidationError("Variant Luck requires its separate source-bound consumer")
-        previous = next((c for c in clock.cooldowns if c.actor_id == command.actor_id), None)
-        if (
-            not pending.secret
-            and previous is not None
-            and pending.opened_elapsed_microseconds < previous.available_at_microseconds
-        ):
-            raise ValidationError("Luck was cooling down when this original was rolled")
-        definitions = play.engine.reviewer.compiler.definitions
-        clock = spend_real_play_cooldown(
-            clock, actor_id=command.actor_id, seconds=luck_cooldown(owner, definitions)
-        )
-        luck, receipt = apply_luck(
-            luck,
-            LuckCommand(
-                id=command.id,
-                actor_id=command.actor_id,
-                expected_revision=state.revision,
-                roll_id=pending.id,
-            ),
-            owner,
-            definitions,
-            real_time=clock.elapsed_seconds,
-            rng=play.rng,
-            authorized_actor_id=command.actor_id,
-            system=True,
-        )
-        selected = rescore_opponent_attack(
-            pending.preparation, receipt.attempts[receipt.chosen_index]
-        )
-        original = original or rescore_opponent_attack(pending.preparation, receipt.attempts[0])
-    else:
-        original = original or pending.preparation.spec.roll(play.rng)
-        selected = original
-    luck = luck.model_copy(
-        update={
-            "pending_roll_id": None,
-            "rolls": tuple(
-                r.model_copy(update={"chosen_dice": selected.dice, "chosen_total": selected.total})
-                if r.id == pending.id
-                else r
-                for r in luck.rolls
-            ),
-        }
-    )
-    return (
-        saved.model_copy(update={"pending": None, "luck": luck}),
-        clock,
-        original,
-        selected,
-        receipt,
-    )
-
-
 def choose_opponent_attack(
     play: PlayService,
     state: PlayState,
@@ -250,7 +170,7 @@ def choose_opponent_attack(
         raise ValidationError("Ordinary attacks require a defense response")
     encounter = encounter_for(state, pending.preparation.encounter_id)
     validate_opponent_attack(play.rules_context, state, encounter, pending.preparation)
-    saved, clock, original, selected, receipt = _select_attack(
+    saved, clock, original, selected, receipt = select_opponent_roll(
         play, state, command, saved, clock, pending
     )
     choice = captured_choice(pending.preparation, selected, original=original)
