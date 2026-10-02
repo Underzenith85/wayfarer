@@ -50,6 +50,8 @@ from wayfarer.orchestration.staff_casting import StaffCastingService
 from wayfarer.orchestration.task_records import ADAPTER as TASK_ADAPTER
 from wayfarer.orchestration.tasks import TaskService
 from wayfarer.orchestration.transformations import TransformationService
+from wayfarer.orchestration.water import ADAPTER as WATER_ADAPTER
+from wayfarer.orchestration.water import WaterService
 from wayfarer.persistence.events import CommandInput, CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
 
@@ -167,6 +169,14 @@ async def _composed_defense(play: PlayService, record: CommandRecord, encoded: s
     )
 
 
+async def _water(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await WaterService(play).execute(
+        record.campaign_id,
+        WATER_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 async def _apportation(play: PlayService, record: CommandRecord, encoded: str) -> None:
     await ApportationService(play).execute(
         record.campaign_id,
@@ -184,6 +194,7 @@ async def _haste(play: PlayService, record: CommandRecord, encoded: str) -> None
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "water": _water,
     "apportation": _apportation,
     "haste": _haste,
     "gurps-social": _social,

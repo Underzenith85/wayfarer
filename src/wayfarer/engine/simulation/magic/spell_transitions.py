@@ -183,6 +183,32 @@ def _cancellation_context(
     )
 
 
+def _private_spell_context(
+    runtime: RulesContext, state: PlayState, command: SpellCommand
+) -> SpellContext | None:
+    # deferred: private channels reuse the shared staff context where applicable.
+    from wayfarer.engine.simulation.magic.staff_casting import apply_targeting
+
+    if command.spell_id in {"seek-water", "purify-water", "create-water", "destroy-water"}:
+        # deferred: private material channels consume the shared casting types.
+        from wayfarer.engine.simulation.magic.water_bindings import (
+            approved_context as water_context,
+        )
+
+        bound = water_context(runtime, state, command)
+        return bound.context.model_copy(update={"water_plan": bound.plan})
+
+    if command.spell_id == "haste":
+        # deferred: private Haste channels reuse the canonical spell transition.
+        from wayfarer.engine.simulation.magic.haste_bindings import (
+            approved_context as haste_context,
+        )
+
+        return apply_targeting(runtime, state, command, haste_context(runtime, state, command))
+
+    return None
+
+
 def approved_context(
     runtime: RulesContext,
     state: PlayState,
@@ -211,13 +237,9 @@ def approved_context(
             runtime, state, command, lock_context(runtime, state, command)
         )
 
-    if command.spell_id == "haste":
-        # deferred: private Haste channels reuse the canonical spell transition.
-        from wayfarer.engine.simulation.magic.haste_bindings import (
-            approved_context as haste_context,
-        )
-
-        return apply_targeting(runtime, state, command, haste_context(runtime, state, command))
+    private = _private_spell_context(runtime, state, command)
+    if private is not None:
+        return private
 
     rules = runtime.rules.spells
     if rules is None:

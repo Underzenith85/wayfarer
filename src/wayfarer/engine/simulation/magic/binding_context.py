@@ -8,6 +8,7 @@ from wayfarer.engine.rules.magic.gurps_magic import definitions, magery_level
 from wayfarer.engine.rules.magic.healing import package as healing_package
 from wayfarer.engine.rules.magic.movement import package as movement_package
 from wayfarer.engine.rules.magic.protocols import MagicItemBinding, effective_item_power
+from wayfarer.engine.rules.magic.water import package as water_package
 from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.rituals import require_ordinary_ritual
@@ -49,7 +50,11 @@ def approved_context(
     if compiler.statistics_profile != PROFILE:
         raise ValidationError("Spellcasting requires the exact Basic Set profile")
     spell_key = "spell:" + command.spell_id
-    learned_definitions = (*healing_package().definitions, *movement_package().definitions)
+    learned_definitions = (
+        *healing_package().definitions,
+        *movement_package().definitions,
+        *water_package().definitions,
+    )
     expected = {d.id: d for d in (*definitions(2), *learned_definitions)}
     permitted = tuple(d for v in (1, 2) for d in definitions(v) if d.id == spell_key)
     permitted += tuple(d for d in learned_definitions if d.id == spell_key)
