@@ -34,6 +34,7 @@ class BlastProgress(Record):
     interception: tuple[tuple[str, CheckTrace], ...]
     evidence: tuple[str, ...] = ()
     stop_for: tuple[str, ...] = ()
+    incendiary_objects: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class FragmentTarget(Record):

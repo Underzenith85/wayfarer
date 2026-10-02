@@ -325,6 +325,7 @@ def _prepare_progress(
     contact_actor_id: str | None,
     internal_actor_id: str | None,
     stop_for: tuple[str, ...] = (),
+    incendiary_objects: bool = False,
 ) -> BlastProgress:
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
@@ -392,13 +393,18 @@ def _prepare_progress(
         responses=responses,
         actor_ids=tuple(actor.actor_id for actor in participants),
         objects=tuple(ExposedBlastObject(item_id=item.id, point=point) for item, point in objects),
-        object_cover=tuple(object_cover.items()),
-        object_sizes=tuple(object_sizes.items()),
+        object_cover=tuple(
+            sorted(object_cover.items()) if incendiary_objects else object_cover.items()
+        ),
+        object_sizes=tuple(
+            sorted(object_sizes.items()) if incendiary_objects else object_sizes.items()
+        ),
         environment=environment,
         contact_actor_id=contact_actor_id,
         internal_actor_id=internal_actor_id,
         interception=tuple(interception.items()),
         stop_for=stop_for,
+        incendiary_objects=incendiary_objects,
     )
 
 
@@ -667,6 +673,7 @@ def _finish_blast(
                         "item_id": item.id,
                         "basic_damage": max(0, amount - object_cover[item.id]),
                         "damage_type": damage_type,
+                        "explosive": progress.incendiary_objects and packet == "blast",
                     }
                 ),
                 system=True,
@@ -849,6 +856,7 @@ def prepare_blast_fragments(
     contact_actor_id: str | None,
     internal_actor_id: str | None,
     stop_for: tuple[str, ...],
+    incendiary_objects: bool = False,
 ) -> BlastPhaseResult:
 
     progress = _prepare_progress(
@@ -865,6 +873,7 @@ def prepare_blast_fragments(
         contact_actor_id=contact_actor_id,
         internal_actor_id=internal_actor_id,
         stop_for=stop_for,
+        incendiary_objects=incendiary_objects,
     )
     return _continue_blast(runtime, state, encounter, progress)
 

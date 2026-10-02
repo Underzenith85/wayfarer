@@ -166,6 +166,7 @@ def _source_for(pending: OpponentFragmentPending) -> PrepareOpponentFragment:
         launch_command_id=pending.launch.command.id,
         owner_ids=pending.preparation.progress.stop_for,
         secret=pending.secret,
+        incendiary_objects=pending.preparation.progress.incendiary_objects,
         launch=pending.launch,
     )
 
@@ -233,6 +234,7 @@ def open_opponent_fragment(
             contact_actor_id=resolution.contact_actor_id,
             internal_actor_id=resolution.internal_actor_id,
             stop_for=owner_ids,
+            incendiary_objects=command.incendiary_objects,
         )
     if result.pending is None:
         state, combat = _finish_phase(play, state, result, command, command.id)
