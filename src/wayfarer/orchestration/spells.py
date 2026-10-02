@@ -42,7 +42,7 @@ from wayfarer.engine.simulation.magic.spells import (
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.membership import member_for
-from wayfarer.orchestration.pipeline import CommandPlan, Controls, Trusted, submit
+from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spell_generations import recorded_generations
 
@@ -74,6 +74,8 @@ class SpellService:
         principal_id: str,
         capture_targeting: bool = True,
         check_symptoms: bool = True,
+        item_sight: bool = True,
+        state: PlayState | None = None,
     ) -> CommandPlan[SpellResult]:
         """What a spell lifecycle command writes; the pipeline decides whether it runs.
 
@@ -95,6 +97,7 @@ class SpellService:
                 "command": command.model_dump(mode="json"),
                 **({"targeting_generation": 1} if capture_targeting else {}),
                 **({"check_generation": 1} if check_symptoms else {}),
+                **({"item_sight_generation": 1} if item_sight else {}),
             },
             sort_keys=True,
         )
@@ -104,7 +107,20 @@ class SpellService:
             _runtime_resolver(self.resolve),
             capture_targeting=capture_targeting,
             check_symptoms=check_symptoms,
+            item_sight=item_sight,
         )
+        control: tuple[Control, ...] = (
+            Controls(member, command.actor_id, "Spell actor is not controlled by principal")
+            if player
+            else Trusted(
+                play.engine.reviewer.gm_ids,
+                refusal="Spell lifecycle requires trusted director authority",
+            ),
+        )
+        if not player and item_sight and command.kind == "cancel":
+            if state is None:
+                raise ValidationError("Spell cancellation requires current campaign membership")
+            control = (Seats(state), *control)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
@@ -133,14 +149,7 @@ class SpellService:
             resolve=resolve,
             actor_id=principal_id,
             outcome=outcome,
-            control=(
-                Controls(member, command.actor_id, "Spell actor is not controlled by principal")
-                if player
-                else Trusted(
-                    play.engine.reviewer.gm_ids,
-                    refusal="Spell lifecycle requires trusted director authority",
-                ),
-            ),
+            control=control,
             rng=play.rng,
         )
 
@@ -162,6 +171,8 @@ class SpellService:
                 principal_id=principal_id,
                 capture_targeting=generations.capture_targeting,
                 check_symptoms=generations.check_symptoms,
+                item_sight=generations.item_sight,
+                state=state,
             ),
             principal_id=principal_id,
         )
