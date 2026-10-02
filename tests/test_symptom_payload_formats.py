@@ -35,6 +35,11 @@ from wayfarer.orchestration.symptom_generations import (
     replay_payload,
     symptom_generation,
 )
+from wayfarer.persistence.command_inputs import (
+    ORIGINAL_INPUT,
+    REACTION_KEY,
+    REACTION_WRAPPED,
+)
 from wayfarer.persistence.events import payload_digest
 from wayfarer.persistence.replay import command_text
 
@@ -71,7 +76,13 @@ async def test_ability_opaque_inputs_retry_and_replay_without_losing_authority(
     raw = command_text(record)
     assert raw.startswith("a:") is legacy
     if not legacy:
-        assert json.loads(raw) == {KEY: 1, WRAPPED_INPUT: "a:" + value.model_dump_json()}
+        reaction = {REACTION_KEY: 1, REACTION_WRAPPED: "a:" + value.model_dump_json()}
+        assert json.loads(raw) == {
+            **reaction,
+            KEY: 1,
+            ORIGINAL_INPUT: json.dumps(reaction, sort_keys=True, separators=(",", ":")),
+        }
+        assert replay_payload(raw) == "a:" + value.model_dump_json()
     clone = build_play(tmp_path / "clone", original.engine, backend=backend)
     await seed_campaign(clone.store, initial)
     with replay_inputs(record):

@@ -9,6 +9,9 @@ from wayfarer.persistence.events import CommandInput, payload_digest
 KEY = "symptom_attribute_generation"
 WRAPPED_INPUT = "symptom_command_input"
 ORIGINAL_INPUT = "symptom_original_input"
+REACTION_KEY = "reaction_semantics_generation"
+REACTION_ORIGINAL = "reaction_original_input"
+REACTION_WRAPPED = "reaction_command_input"
 
 
 def object_input(text: str) -> dict[str, object] | None:
@@ -21,6 +24,39 @@ def object_input(text: str) -> dict[str, object] | None:
 
 def canonical(payload: dict[str, object]) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+
+def reaction_metadata(payload: dict[str, object] | None) -> bool:
+    if payload is None:
+        return False
+    if REACTION_KEY not in payload:
+        if REACTION_ORIGINAL in payload or REACTION_WRAPPED in payload:
+            raise ValidationError("Reaction generation metadata requires its version")
+        return False
+    if type(payload[REACTION_KEY]) is not int or payload[REACTION_KEY] != 1:
+        raise ValidationError("Unsupported recorded reaction generation")
+    if REACTION_WRAPPED in payload:
+        if set(payload) != {REACTION_KEY, REACTION_WRAPPED} or not isinstance(
+            payload[REACTION_WRAPPED], str
+        ):
+            raise ValidationError("Invalid recorded reaction input wrapper")
+        if object_input(validation.string(payload[REACTION_WRAPPED])) is not None:
+            raise ValidationError("Reaction wrapper cannot hide an object input")
+    else:
+        raw = payload.get(REACTION_ORIGINAL)
+        source = object_input(raw) if isinstance(raw, str) else None
+        intended = {
+            key: value
+            for key, value in payload.items()
+            if key not in {REACTION_KEY, REACTION_ORIGINAL}
+        }
+        if (
+            source is None
+            or {REACTION_KEY, REACTION_ORIGINAL, REACTION_WRAPPED}.intersection(source)
+            or canonical(source) != canonical(intended)
+        ):
+            raise ValidationError("Invalid recorded reaction original input")
+    return True
 
 
 def metadata(payload: dict[str, object] | None) -> bool:
@@ -81,16 +117,31 @@ def original_input(text: str) -> str:
 def same_input(record: CommandInput, requested: str) -> bool:
     """Verify stored bytes before removing only validated private metadata."""
     recorded_generation = generation(record)
-    metadata(object_input(requested))
+    requested_input = intent_input(requested)
+    recorded_input = intent_input(record.text) if record.text is not None else None
     if payload_digest({"input": requested}) == record.payload_hash:
         return True
-    if not recorded_generation or record.text is None:
+    if record.text is None or not (
+        recorded_generation or reaction_metadata(object_input(record.text))
+    ):
         return False
-    return original_input(record.text) == original_input(requested)
+    return recorded_input == requested_input
+
+
+def intent_input(text: str) -> str:
+    """Recover exact caller bytes through the validated, ordered private layers."""
+    raw = original_input(text)
+    payload = object_input(raw)
+    if not reaction_metadata(payload):
+        return raw
+    assert payload is not None
+    return validation.string(
+        payload[REACTION_WRAPPED] if REACTION_WRAPPED in payload else payload[REACTION_ORIGINAL]
+    )
 
 
 def replay_payload(text: str) -> object:
-    raw = original_input(text)
+    raw = intent_input(text)
     try:
         return validation.decode(raw)
     except json.JSONDecodeError:
