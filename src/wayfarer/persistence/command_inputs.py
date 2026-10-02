@@ -117,8 +117,8 @@ def original_input(text: str) -> str:
 def same_input(record: CommandInput, requested: str) -> bool:
     """Verify stored bytes before removing only validated private metadata."""
     recorded_generation = generation(record)
-    requested_input = intent_input(requested)
-    recorded_input = intent_input(record.text) if record.text is not None else None
+    requested_input = combat_intent(intent_input(requested))
+    recorded_input = combat_intent(intent_input(record.text)) if record.text is not None else None
     if payload_digest({"input": requested}) == record.payload_hash:
         return True
     if record.text is None or not (
@@ -126,6 +126,25 @@ def same_input(record: CommandInput, requested: str) -> bool:
     ):
         return False
     return recorded_input == requested_input
+
+
+def combat_intent(text: str) -> str:
+    """Remove validated features only from the host's canonical combat envelope."""
+    payload = object_input(text)
+    key = "combat_protocol_features"
+    if payload is None or key not in payload:
+        return text
+    raw = payload[key]
+    if (
+        payload.get("operation") not in {"combat", "combat-random-unarmed"}
+        or not isinstance(raw, list)
+        or any(not isinstance(item, str) for item in raw)
+        or len(set(raw)) != len(raw)
+        or not set(raw) <= {"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses"}
+        or text != canonical(payload)
+    ):
+        raise ValidationError("Invalid recorded combat feature generation")
+    return canonical({name: value for name, value in payload.items() if name != key})
 
 
 def intent_input(text: str) -> str:
