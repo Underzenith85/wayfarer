@@ -8,8 +8,8 @@ from wayfarer.persistence.command_inputs import replay_payload
 from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "combat_protocol_features"
-KNOWN = frozenset({"grenade-fuse", "maneuver-budget"})
-ACTIVE = frozenset({"grenade-fuse", "maneuver-budget"})
+KNOWN = frozenset({"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses"})
+ACTIVE = KNOWN
 
 
 def features(record: CommandInput) -> frozenset[str]:
