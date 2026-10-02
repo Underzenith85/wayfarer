@@ -47,6 +47,7 @@ from wayfarer.engine.simulation.magic.spells import (
     apply_spell,
     event_id,
     latest,
+    pending_cancellation,
 )
 from wayfarer.engine.simulation.magic.spells import (
     RuntimeSpellCommand as SpellCommand,
@@ -160,8 +161,30 @@ def _nighttime_cast(runtime: RulesContext, state: PlayState, command: SpellComma
     )
 
 
+def _cancellation_context(
+    state: PlayState, command: SpellCommand, *, item_sight: bool
+) -> SpellContext | None:
+    cancelling = pending_cancellation(state.resources, command) if item_sight else None
+    if cancelling is None:
+        return None
+    # Only the accepted cast is relevant to abandoning its unfinished work.
+    # No roll or energy payment consumes these unused default statistics.
+    return SpellContext(
+        profile_id=PROFILE,
+        build_revision=cancelling.build_revision,
+        skill=1,
+        target_id=cancelling.target_id,
+        execution_version=cancelling.execution_version,
+        execute_effects=cancelling.execute_effects,
+        location_id=cancelling.location_id,
+        encounter_id=cancelling.encounter_id,
+        position=cancelling.position,
+        geometry=cancelling.geometry,
+    )
+
+
 def approved_context(
-    runtime: RulesContext, state: PlayState, command: SpellCommand
+    runtime: RulesContext, state: PlayState, command: SpellCommand, *, item_sight: bool = True
 ) -> SpellContext:
     # deferred: Staff joins share the completed spell context without a public schema change.
     from wayfarer.engine.simulation.magic.staff_casting import apply_targeting, existing_context
@@ -172,7 +195,9 @@ def approved_context(
         enchanting_rest=_nighttime_cast(runtime, state, command),
         activity_started_at=_completion_start(state, command),
     )
-    existing = existing_context(runtime, state, command)
+    existing = _cancellation_context(state, command, item_sight=item_sight) or existing_context(
+        runtime, state, command
+    )
     if existing is not None or command.spell_id in ("lockmaster", "magelock"):
         # deferred: private lock bindings share the spell types used by this dispatcher.
         from wayfarer.engine.simulation.magic.lock_bindings import approved_context as lock_context
@@ -309,7 +334,7 @@ def approved_context(
         }
     )
 
-    return apply_targeting(runtime, state, command, context)
+    return apply_targeting(runtime, state, command, context, item_sight=item_sight)
 
 
 def _awaken_area_subjects(
@@ -418,6 +443,7 @@ def advance_cast_turn(
     *,
     turn_started: bool = False,
     check_symptoms: bool = True,
+    item_sight: bool = True,
 ) -> PlayState:
 
     if not turn_started:
@@ -463,7 +489,7 @@ def advance_cast_turn(
         )
         # B239 range and Staff custody/contact are current when the dice roll,
         # including physical consequences of the final injury-turn boundary.
-        completion_context = approved_context(runtime, state, completed)
+        completion_context = approved_context(runtime, state, completed, item_sight=item_sight)
         resources, result = apply_spell(
             state.resources,
             completed,
@@ -471,6 +497,7 @@ def advance_cast_turn(
             rng=runtime.rng,
             system=True,
             check_symptoms=check_symptoms,
+            item_sight=item_sight,
         )
         completed_effect = latest(resources)[command.cast_id]
         events = []
@@ -565,6 +592,7 @@ class SpellExecutionContext:
     resolver: RuntimeSpellResolver | None = None
     capture_targeting: bool = True
     check_symptoms: bool = True
+    item_sight: bool = True
 
 
 def _prepare_spell(
@@ -586,7 +614,7 @@ def _prepare_spell(
             SpellEnvironment.model_validate(execution.resolver(runtime, before, command)),
         )
         if execution.resolver
-        else approved_context(runtime, before, command)
+        else approved_context(runtime, before, command, item_sight=execution.item_sight)
     )
     if encounter is not None and context.execution_version == 2 and command.kind == "complete":
         raise ValidationError("Combat casting completes within its final Concentrate maneuver")
@@ -808,6 +836,7 @@ def reduce_spell(
             system=True,
             capture_targeting=execution.capture_targeting,
             check_symptoms=execution.check_symptoms,
+            item_sight=execution.item_sight,
         )
     if command.kind == "start" and not any(
         receipt.command_id == command.id for receipt in before.resources.receipts
@@ -853,6 +882,7 @@ def reduce_spell(
             context,
             turn_started=turn_started,
             check_symptoms=execution.check_symptoms,
+            item_sight=execution.item_sight,
         )
     if encounter is not None and command.kind == "release" and not unable_to_handle:
         updated = _release_missile(

@@ -201,7 +201,11 @@ def _blind(state: PlayState, actor_id: str) -> bool:
 def _current_sight(
     state: PlayState, command: RuntimeSpellCommand, context: SpellContext
 ) -> SpellContext:
-    if context.execution_version != 2 or context.target_id == command.actor_id:
+    if (
+        context.execution_version != 2
+        and not context.item_cast
+        or context.target_id == command.actor_id
+    ):
         return context
     known = {e.id for e in state.world.perspective(command.actor_id).entities}
     if command.kind == "start" and context.target_id not in known:
@@ -217,7 +221,12 @@ def _current_sight(
 
 
 def apply_targeting(
-    runtime: RulesContext, state: PlayState, command: RuntimeSpellCommand, context: SpellContext
+    runtime: RulesContext,
+    state: PlayState,
+    command: RuntimeSpellCommand,
+    context: SpellContext,
+    *,
+    item_sight: bool = True,
 ) -> SpellContext:
     intent = bound_intent(state, command)
     if command.kind not in ("start", "concentrate", "complete"):
@@ -225,6 +234,14 @@ def apply_targeting(
     if context.item_cast or _executable_spec(command.spell_id).kind not in ("regular", "resisted"):
         if intent is not None:
             raise ValidationError("Staff targeting belongs to personal Regular spells")
+        if (
+            context.item_cast
+            and item_sight
+            and _executable_spec(command.spell_id).kind in ("regular", "resisted")
+        ):
+            # B482 retains the contained spell's targeting rules. Power replaces
+            # personal skill, not the B239 penalty for an unseen subject.
+            return _current_sight(state, command, context)
         return context
     context = _current_sight(state, command, context)
     if intent is None:

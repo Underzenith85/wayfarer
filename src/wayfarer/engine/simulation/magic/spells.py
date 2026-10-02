@@ -340,27 +340,37 @@ def _casting_check(
     return replay_ceremonial_check(check) if effect.ceremonial is not None else check
 
 
-def _require_symptom_check_available(
+def _require_casting_check_available(
     state: ResourceState,
     effect: RuntimeSpellEffect,
     context: SpellContext,
     actor_id: str,
     *,
     check_symptoms: bool,
+    item_sight: bool,
 ) -> None:
-    if (
-        not check_symptoms
-        or context.item_cast
-        or effect.spell_id not in ("lockmaster", "magelock")
-        or not symptom_penalties(state, actor_id)["iq"]
-    ):
+    item_check = (
+        item_sight
+        and context.item_cast
+        and _executable_spec(effect.spell_id).kind in ("regular", "resisted")
+    )
+    personal_lock_check = (
+        check_symptoms
+        and not context.item_cast
+        and effect.spell_id in ("lockmaster", "magelock")
+        and symptom_penalties(state, actor_id)["iq"]
+    )
+    if not (item_check or personal_lock_check):
         return
-    # Reject an unavailable B345 lock roll before distraction dice or payment.
+    # B345: admit the current casting target before distraction dice or payment.
     # Historical commands retain their original order.
     target = completion_targeting(state, effect, context).skill
-    modifiers = _casting_modifiers(state, actor_id, check_symptoms=True)
+    modifiers = _casting_modifiers(
+        state, actor_id, check_symptoms=check_symptoms and not context.item_cast
+    )
     if target + sum(m.value for m in modifiers) < 3:
-        raise ValidationError("Effective lock spell skill must be at least 3")
+        kind = "item" if item_check else "lock"
+        raise ValidationError(f"Effective {kind} spell skill must be at least 3")
 
 
 def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None:
@@ -482,6 +492,20 @@ def _spell_recovery_tasks(
     return tuple(preserved.get(task.id, task) for task in interrupted)
 
 
+def pending_cancellation(
+    state: ResourceState, command: RuntimeSpellCommand
+) -> RuntimeSpellEffect | None:
+    """An unrolled Regular/Resisted cast can be abandoned without its source."""
+    if command.kind != "cancel":
+        return None
+    effect = latest(state).get(command.cast_id)
+    if effect is None or effect.phase != "casting":
+        return None
+    if (effect.actor_id, effect.spell_id) != (command.actor_id, command.spell_id):
+        raise ConflictError("Cast identity belongs to another actor or spell")
+    return effect if _executable_spec(effect.spell_id).kind in ("regular", "resisted") else None
+
+
 def apply_spell(
     state: ResourceState,
     command: RuntimeSpellCommand,
@@ -491,6 +515,7 @@ def apply_spell(
     system: bool = False,
     capture_targeting: bool = True,
     check_symptoms: bool = True,
+    item_sight: bool = True,
     validate_only: bool = False,
 ) -> tuple[ResourceState, SpellResult]:
     """Commit the returned checkpoint atomically using the existing store CAS.
@@ -513,12 +538,14 @@ def apply_spell(
     if state.revision != command.expected_revision:
         raise ConflictError("Spell revision changed")
     original_recovery = state.recovery_tasks
-    require_settled(
-        state.recovery_tasks, frozenset({command.actor_id, context.target_id}), state.game_time
+    cancelling = item_sight and pending_cancellation(state, command) is not None
+    affected = (
+        frozenset({command.actor_id})
+        if cancelling
+        else frozenset({command.actor_id, context.target_id})
     )
-    require_hazards_settled(
-        state.hazards, frozenset({command.actor_id, context.target_id}), state.game_time
-    )
+    require_settled(state.recovery_tasks, affected, state.game_time)
+    require_hazards_settled(state.hazards, affected, state.game_time)
     if command.hp_energy and command.kind in (
         "concentrate",
         "release",
@@ -714,7 +741,7 @@ def apply_spell(
         )
         require_enchanting_free(state, command.actor_id, through=effect.ready_at)
         state = remember_targeting(
-            state, effect, context, kind=spec.kind, enabled=capture_targeting
+            state, effect, context, kind=spec.kind, enabled=capture_targeting, item_sight=item_sight
         )
         outcome = "casting"
     else:
@@ -874,8 +901,13 @@ def apply_spell(
                     raise ConflictError("Caster no longer has casting energy")
                 if effect.ceremonial is not None:
                     _ceremonial_funds(state, effect)
-                _require_symptom_check_available(
-                    state, effect, context, command.actor_id, check_symptoms=check_symptoms
+                _require_casting_check_available(
+                    state,
+                    effect,
+                    context,
+                    command.actor_id,
+                    check_symptoms=check_symptoms,
+                    item_sight=item_sight,
                 )
                 interrupted = bool(retching_penalty(state, command.actor_id))
                 if not interrupted and (

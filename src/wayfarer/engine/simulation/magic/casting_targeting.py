@@ -27,10 +27,12 @@ def remember_targeting(
     *,
     kind: str,
     enabled: bool = True,
+    item_sight: bool = True,
 ) -> ResourceState:
     if (
         not enabled
         or context.execution_version != 2
+        and not (context.item_cast and item_sight)
         or kind not in ("regular", "resisted")
         or effect.spell_id in ("lockmaster", "magelock")
     ):
