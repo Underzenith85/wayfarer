@@ -22,3 +22,7 @@ def combat_generation(features: frozenset[str]) -> Iterator[None]:
         yield
     finally:
         _current.reset(token)
+
+
+def acrobatic_trait_bonuses_enabled() -> bool:
+    return "acrobatic-trait-bonuses" in _current.get()

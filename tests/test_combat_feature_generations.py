@@ -72,4 +72,4 @@ def test_player_cannot_inject_private_features_into_public_turn() -> None:
 
 
 def test_fresh_commands_capture_only_implemented_features() -> None:
-    assert ACTIVE == frozenset({"grenade-fuse", "maneuver-budget"})
+    assert ACTIVE == frozenset({"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses"})
