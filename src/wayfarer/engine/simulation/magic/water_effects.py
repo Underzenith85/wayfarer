@@ -11,6 +11,10 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.magic.protocols import long_distance_modifier
+from wayfarer.engine.simulation.magic.water_complete_source import (
+    emptied_source,
+    require_complete_source,
+)
 from wayfarer.engine.simulation.magic.water_purification import receiving_mixture
 from wayfarer.engine.simulation.magic.water_state import WaterBody, latest, save
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
@@ -41,6 +45,7 @@ class WaterPlan(Record):
     area_center: tuple[int, int] = (0, 0)
     # Explicit private operation intent; absent historical plans keep their bytes.
     allow_receiver_mixing: bool = Field(default=False, exclude_if=lambda value: not value)
+    purify_entire_source: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def unique_sources(self) -> WaterPlan:
@@ -50,6 +55,8 @@ class WaterPlan(Record):
             raise ValueError("Destroyed water portions must be unique")
         if self.allow_receiver_mixing and self.spell_id not in ("create-water", "purify-water"):
             raise ValueError("Receiver mixing is limited to incoming pure-water flows")
+        if self.purify_entire_source and self.spell_id != "purify-water":
+            raise ValueError("Complete-source intent is limited to Purify Water")
         return self
 
 
@@ -119,6 +126,8 @@ def validate_operation(state: ResourceState, plan: WaterPlan) -> None:
             raise ValidationError("Purify Water requires a separate current liquid source")
         if source.gallons < plan.gallons or not plan.flowing_through_ring:
             raise ValidationError("Purify Water requires sufficient water flowing through a ring")
+        if plan.purify_entire_source:
+            require_complete_source(source, plan.gallons)
     if plan.spell_id == "destroy-water":
         _validate_destroy(bodies, target, plan)
 
@@ -198,11 +207,13 @@ def apply(state: ResourceState, plan: WaterPlan, actor_id: str, command_id: str)
         source = bodies[plan.source_id or ""]
         # This boundary permits unmixed pure or impure sources; a mixed source
         # requires an authored flow composition rather than inventing an order.
-        if source.pure_gallons not in (0, source.gallons):
+        if source.pure_gallons not in (0, source.gallons) and not plan.purify_entire_source:
             raise ValidationError("Mixed source requires an authored flow composition")
         state = save(
             state,
-            source.model_copy(
+            emptied_source(source, plan.gallons)
+            if plan.purify_entire_source
+            else source.model_copy(
                 update={
                     "gallons": source.gallons - plan.gallons,
                     "pure_gallons": max(0, source.pure_gallons - plan.gallons),
