@@ -8,6 +8,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
+from wayfarer.engine.simulation.equipment.armoury_context import ADAPTER as ARMOURY_ADAPTER
 from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLIC_HOST_ADAPTER
 from wayfarer.engine.simulation.health.hazard_records import HazardCommand
 from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORTATION_ADAPTER
@@ -24,6 +25,7 @@ from wayfarer.engine.simulation.social.social import SocialCommand
 from wayfarer.engine.simulation.traits.composed_host import ADAPTER as COMPOSED_ADAPTER
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.apportation import ApportationService
+from wayfarer.orchestration.armoury import ArmouryService
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.combat.abandon import AbandonPendingAttackService
 from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, RandomUnarmedStrike
@@ -169,6 +171,14 @@ async def _composed_defense(play: PlayService, record: CommandRecord, encoded: s
     )
 
 
+async def _armoury(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await ArmouryService(play).execute(
+        record.campaign_id,
+        ARMOURY_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 async def _water(play: PlayService, record: CommandRecord, encoded: str) -> None:
     await WaterService(play).execute(
         record.campaign_id,
@@ -194,6 +204,7 @@ async def _haste(play: PlayService, record: CommandRecord, encoded: str) -> None
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "armoury": _armoury,
     "water": _water,
     "apportation": _apportation,
     "haste": _haste,
