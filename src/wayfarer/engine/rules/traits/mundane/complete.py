@@ -102,6 +102,7 @@ class CompleteTraitSpec:
     self_control: bool = False
     point_cost_choices: tuple[int, ...] = ()
     owner_issue: int = 680
+    completion_issues: tuple[int, ...] = ()
 
     @property
     def hook(self) -> str:
@@ -266,6 +267,7 @@ def _load_specs() -> tuple[CompleteTraitSpec, ...]:
                 self_control,
                 choices,
                 cast(int, row["owner_issue"]),
+                tuple(cast(list[int], row.get("completion_issues", []))),
             )
         )
     specs = tuple(result)

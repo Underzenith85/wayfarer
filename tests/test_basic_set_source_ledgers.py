@@ -50,6 +50,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
         UNUSUAL_BACKGROUND_ID,
         "trait:advantage:alternate-form",
         "trait:advantage:morph",
+        "trait:advantage:luck",
         "modifier:enhancement:symptoms",
         "trait:advantage:innate-attack",
         "modifier:enhancement:cyclic",
@@ -341,6 +342,7 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         (UNUSUAL_BACKGROUND_ID, 906),
         ("trait:advantage:alternate-form", 757),
         ("trait:advantage:morph", 757),
+        ("trait:advantage:luck", 854),
         ("modifier:enhancement:symptoms", 763),
         ("trait:advantage:innate-attack", 764),
         ("modifier:enhancement:cyclic", 764),
@@ -353,11 +355,12 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.required_source_ledger_rows == 1_044
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {
-        "none": 1_274,
+        "none": 1_273,
         "764": 2,
         "757": 2,
         "763": 1,
         "785": 5,
+        "854": 1,
         "906": 1,
     }
 

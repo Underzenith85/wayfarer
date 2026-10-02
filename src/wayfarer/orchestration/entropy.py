@@ -42,6 +42,15 @@ class CommandBoundary(Protocol):
 
 
 _active: ContextVar[RandomSource | None] = ContextVar("command_random", default=None)
+_instant: ContextVar[CommandInstant | None] = ContextVar("command_instant", default=None)
+
+
+def current_command_instant() -> CommandInstant:
+    """The durable instant captured for this reduction, including seeded replay."""
+    instant = _instant.get()
+    if instant is None:
+        raise ValidationError("Recorded time requires a command scope")
+    return instant
 
 
 def token_seed() -> str:
@@ -147,12 +156,14 @@ async def _commit_serialized(
 
     def run(state: Campaign) -> CommandResolution:
         token = _active.set(source)
+        instant_token = _instant.set(instant)
         try:
             before = deepcopy(state)
             event = resolve(state)
             family = event["action"]
             return CommandResolution(event, command_events(before, state, family, actor_id))
         finally:
+            _instant.reset(instant_token)
             _active.reset(token)
 
     return await play.store.commit_turn(

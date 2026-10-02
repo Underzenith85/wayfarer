@@ -64,6 +64,7 @@ from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.orchestration.symptom_generations import correct_symptom_attributes
+from wayfarer.orchestration.task_records import PRIVATE_PREFIXES as TASK_PRIVATE_PREFIXES
 from wayfarer.orchestration.transformations import shapeshifting_checkpoint
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -217,6 +218,7 @@ class PlayService:
         if any(
             event.id.startswith(
                 (
+                    *TASK_PRIVATE_PREFIXES,
                     "combat-abandoned-attack:",
                     "unarmed-random:",
                     "combat-sense:",

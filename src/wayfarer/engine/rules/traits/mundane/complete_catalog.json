@@ -440,7 +440,8 @@
       "printed_page": 66,
       "classification": "advantage|M|– Variable",
       "listed_value": "Variable",
-      "owner_issue": 680
+      "owner_issue": 854,
+      "completion_issues": [855, 867, 868, 869, 870, 871]
     },
     {
       "id": "trait:advantage:mathematical-ability",

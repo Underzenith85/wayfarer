@@ -57,7 +57,7 @@ def test_ordinary_luck_changes_task_progress_and_persists_once() -> None:
     with pytest.raises(ValidationError, match="authority"):
         invoke(before, luck, system=False)
     after, used, outcome = invoke(before, luck)
-    assert outcome.progress in (Decimal(8), Decimal(12))
+    assert outcome.progress == Decimal(8)
     assert outcome.completed and after.game_time == 28800
     assert outcome.checks[0].dice == used.receipts[0].attempts[used.receipts[0].chosen_index]
     assert used.receipts[0].available_at == 3700

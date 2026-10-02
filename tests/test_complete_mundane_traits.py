@@ -44,7 +44,12 @@ def options(identifier: str) -> TraitOptions:
 def test_selected_printing_mundane_denominator_is_exact() -> None:
     assert Counter(spec.kind for spec in SPECS) == {"advantage": 89, "disadvantage": 178}
     assert len({spec.id for spec in SPECS}) == 267
-    assert {spec.owner_issue for spec in SPECS if spec.kind == "advantage"} == {680}
+    assert {
+        spec.owner_issue
+        for spec in SPECS
+        if spec.kind == "advantage" and spec.id != "trait:advantage:luck"
+    } == {680}
+    assert next(spec.owner_issue for spec in SPECS if spec.id == "trait:advantage:luck") == 854
     assert {spec.owner_issue for spec in SPECS if spec.kind == "disadvantage"} == {681}
 
 
@@ -54,7 +59,7 @@ def test_completed_mundane_catalog_still_requires_executed_effect_evidence() -> 
     blockers = evaluate(root).blockers
     assert target_ids.intersection(
         blocker.identifier for blocker in blockers if blocker.kind == "inventory"
-    ) == {UNUSUAL_BACKGROUND_ID}
+    ) == {UNUSUAL_BACKGROUND_ID, "trait:advantage:luck"}
     assert target_ids.intersection(
         blocker.identifier for blocker in blockers if blocker.kind == "execution"
     )
