@@ -32,6 +32,7 @@ from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog
+from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.engine.simulation.magic.great_haste_state import (
     CastGreatHaste,
     DeclareGreatHasteChannel,
@@ -54,6 +55,7 @@ async def prepare(
     seeded: bool = False,
     native_atr: int = 0,
     subject_sm: int = 0,
+    battlefield: Battlefield | HexBattlefield | None = None,
 ) -> tuple[str, PlayService]:
     spells = package(great_haste=True)
     crate = RuleDefinition(
@@ -105,7 +107,9 @@ async def prepare(
             combat=CombatRules(
                 id="combat",
                 version=1,
-                battlefields=(Battlefield(id="dock", location_id="dock", width=10, height=10),),
+                battlefields=(
+                    battlefield or Battlefield(id="dock", location_id="dock", width=10, height=10),
+                ),
                 gurps_equipment=EquipmentCatalog(profile_id=PROFILE, entries=()),
             ),
         ),
@@ -763,7 +767,7 @@ async def test_cast_authority_stale_revision_and_active_combat_fail_atomically(
     await start_fight(cid, play)
     state = play._load(await play.store.read(cid))
     before = await play.store.read(cid)
-    with pytest.raises(ValidationError, match="subjective concentration"):
+    with pytest.raises(ConflictError, match="encounter turn"):
         await service.execute(
             cid,
             command.model_copy(update={"expected_revision": state.revision}),

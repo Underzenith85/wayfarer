@@ -20,9 +20,8 @@ Dodge roll is 9. Flying source oracles cover each bonus and their +3 sum.
 Ground 3D Spatial Sense and absent purchases grant no bonus.
 
 The trusted private combat feature `acrobatic-trait-bonuses` controls this
-change. It is recognized but remains inactive in the candidate's global fresh
-feature set until coordinator integration. Recorded commands with absent
-features or only the grenade feature keep their old checks and injury. Both
+change. The integrated fresh feature set enables it. Recorded commands with
+absent features or only the grenade feature keep their old checks and injury. Both
 stores verify event folding, seed-only reexecution and exact receipt retry
 after the fresh feature set changes. Public commands and schemas are unchanged.
 

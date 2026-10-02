@@ -257,6 +257,7 @@ class PlayService:
                     "great-haste-active:",
                     "great-haste-ended:",
                     "great-haste-host:",
+                    "great-haste-casting-origin:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",

@@ -1,13 +1,20 @@
-"""Private Great Haste casting outside combat; effects remain canonical in combat."""
+"""Private Great Haste casting with trusted actor-relative combat execution."""
+
+import math
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.combat.encounter import Encounter, basic_distance
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.special_melee import actor_size_modifier
+from wayfarer.engine.simulation.combat.visibility import combat_visibility, visible_actors
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment, approved_context
+from wayfarer.engine.simulation.magic.great_haste_casting import enabled as subjective_great_haste
 from wayfarer.engine.simulation.magic.great_haste_effects import checkpoint
 from wayfarer.engine.simulation.magic.great_haste_state import (
     ACTIVATION,
     CHANNEL,
     RECEIPT,
+    CastGreatHaste,
     DeclareGreatHasteChannel,
     GreatHasteActivation,
     GreatHasteChannel,
@@ -16,20 +23,25 @@ from wayfarer.engine.simulation.magic.great_haste_state import (
     channels,
     save,
 )
-from wayfarer.engine.simulation.magic.spell_state import latest
+from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellEffect, SpellResult, latest
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
     RuntimeSpellCommand,
     SpellContext,
     apply_spell,
 )
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
 
 
 def apply_host(
-    runtime: RulesContext, state: PlayState, command: GreatHasteCommand
+    runtime: RulesContext,
+    state: PlayState,
+    command: GreatHasteCommand,
+    *,
+    combat_encounter: Encounter | None = None,
 ) -> tuple[PlayState, GreatHasteReceipt]:
     state = checkpoint(runtime, state)
     channel: GreatHasteChannel | None
@@ -74,7 +86,7 @@ def apply_host(
                 for other in latest(state.resources).values()
             ):
                 raise ValidationError("Concurrent Great Haste casts on one subject are unsupported")
-            if any(
+            if combat_encounter is None and any(
                 e.status == "active"
                 and any(p.actor_id in (channel.actor_id, channel.target_id) for p in e.participants)
                 for e in state.encounters
@@ -121,6 +133,9 @@ def apply_host(
                 execute_effects=True,
             )
         else:
+            distance = _combat_distance(
+                runtime, state, channel, command, combat_encounter, effect, energy
+            )
             bound = approved_context(
                 runtime,
                 state,
@@ -128,15 +143,21 @@ def apply_host(
                 SpellEnvironment(
                     target_id=channel.target_id,
                     mana=channel.mana,
-                    distance=channel.distance_yards,
+                    distance=distance,
                     unseen=not channel.visible,
                     energy=energy,
                 ),
-            ).model_copy(update={"execution_version": 2, "execute_effects": True})
-        resources, result = apply_spell(state.resources, spell, bound, system=True, rng=runtime.rng)
+            ).model_copy(
+                update={
+                    "execution_version": 2,
+                    "execute_effects": True,
+                    "encounter_id": combat_encounter.id if combat_encounter else None,
+                }
+            )
+        resources, result = _apply_cast(runtime, state.resources, spell, bound, combat_encounter)
         updated = state.model_copy(update={"resources": resources})
         outcome, spent = result.outcome, result.energy_spent
-        if command.operation == "complete" and result.outcome == "active":
+        if result.outcome == "active" and command.operation != "cancel":
             target = runtime.approved_build(updated, channel.target_id)
             values = {v.target: int(v.value) for v in target.sheet.values}
             active = latest(resources)[command.cast_id]
@@ -169,3 +190,60 @@ def apply_host(
     return updated.model_copy(
         update={"revision": state.revision + 1, "resources": resources}
     ), receipt
+
+
+def _combat_distance(
+    runtime: RulesContext,
+    state: PlayState,
+    channel: GreatHasteChannel,
+    command: CastGreatHaste,
+    encounter: Encounter | None,
+    effect: RuntimeSpellEffect | None,
+    energy: int,
+) -> int:
+    if encounter is None:
+        return channel.distance_yards
+    if channel.target_id == command.actor_id:
+        raise ValidationError("Combat self Great Haste requires a mid-turn activation policy")
+    if effect is not None and effect.energy != energy:
+        raise ConflictError("Great Haste subject size changed during casting")
+    if channel.target_id not in encounter.turn_order:
+        raise ValidationError("Combat Great Haste requires an encounter subject")
+    if channel.target_id not in visible_actors(
+        state, encounter, command.actor_id, board=runtime.hex_map(encounter)
+    ):
+        raise ValidationError("Combat Great Haste requires a currently visible subject")
+    visibility = combat_visibility(encounter, command.actor_id, channel.target_id, state=state)
+    if visibility.attack_penalty:
+        raise ValidationError("Combat Great Haste requires a currently visible subject")
+    actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+    subject = next(p for p in encounter.participants if p.actor_id == channel.target_id)
+    return (
+        math.ceil(basic_distance(encounter, command.actor_id, channel.target_id))
+        if encounter.spatial_kind == "basic"
+        else CombatEngine.distance(actor.position, subject.position)
+    )
+
+
+def _apply_cast(
+    runtime: RulesContext,
+    resources: ResourceState,
+    spell: RuntimeSpellCommand,
+    bound: SpellContext,
+    encounter: Encounter | None,
+) -> tuple[ResourceState, SpellResult]:
+    revision = resources.revision + 1
+    resources, result = apply_spell(resources, spell, bound, system=True, rng=runtime.rng)
+    if encounter is not None and subjective_great_haste():
+        casting = latest(resources)[spell.cast_id]
+        if casting.phase == "casting" and casting.required_turns == casting.concentration_seconds:
+            final = spell.model_copy(
+                update={
+                    "id": spell.id + ":complete",
+                    "kind": "complete",
+                    "expected_revision": resources.revision,
+                }
+            )
+            resources, result = apply_spell(resources, final, bound, system=True, rng=runtime.rng)
+            resources = resources.model_copy(update={"revision": revision})
+    return resources, result

@@ -49,6 +49,7 @@ from wayfarer.engine.simulation.magic.casting_targeting import (
 )
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchanting_free
+from wayfarer.engine.simulation.magic.great_haste_casting import enabled as subjective_great_haste
 from wayfarer.engine.simulation.magic.healing_effects import (
     HEALING,
     heal,
@@ -1051,9 +1052,22 @@ def apply_spell(
             elif command.kind == "concentrate":
                 if (
                     effect.phase != "casting"
-                    or state.game_time != effect.started_at + effect.concentration_seconds
                     or (
-                        state.game_time > effect.ready_at
+                        not (
+                            subjective_great_haste()
+                            and effect.spell_id == "great-haste"
+                            and effect.encounter_id is not None
+                        )
+                        and state.game_time != effect.started_at + effect.concentration_seconds
+                    )
+                    or (
+                        (
+                            effect.concentration_seconds >= effect.required_turns
+                            if subjective_great_haste()
+                            and effect.spell_id == "great-haste"
+                            and effect.encounter_id is not None
+                            else state.game_time > effect.ready_at
+                        )
                         if effect.required_turns
                         else state.game_time >= effect.ready_at
                     )
@@ -1093,7 +1107,14 @@ def apply_spell(
                 )
                 outcome = "active"
             else:
-                if effect.phase != "casting" or state.game_time != effect.ready_at:
+                if effect.phase != "casting" or (
+                    not (
+                        subjective_great_haste()
+                        and effect.spell_id == "great-haste"
+                        and effect.encounter_id is not None
+                    )
+                    and state.game_time != effect.ready_at
+                ):
                     raise ConflictError("Complete concentration at its shared-clock deadline")
                 if effect.execute_effects and effect.concentration_seconds != (
                     effect.required_turns or effect.ready_at - effect.started_at

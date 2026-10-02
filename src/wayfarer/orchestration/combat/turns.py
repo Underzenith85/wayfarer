@@ -101,8 +101,21 @@ def _stuck_weapon_choice(resources: ResourceState, command: TakeCombatTurn) -> R
     )
 
 
+def _concentration_for_turn(
+    resources: ResourceState, command: TakeCombatTurn, preserve: bool
+) -> ResourceState:
+    if preserve and command.maneuver == "concentrate":
+        return resources
+    return interrupt_concentration(resources, command.actor_id, command.id)
+
+
 def _validate_turn(
-    state: PlayState, command: TakeCombatTurn, encounter: Encounter, context: CombatContext
+    state: PlayState,
+    command: TakeCombatTurn,
+    encounter: Encounter,
+    context: CombatContext,
+    *,
+    preserve_concentration: bool = False,
 ) -> tuple[PlayState, Encounter]:
     play = context.play
     engine = context.engine
@@ -123,7 +136,7 @@ def _validate_turn(
         require_not_dazed(resources, command.actor_id)
 
     validate_command(play.rules_context, state, encounter, command)
-    resources = interrupt_concentration(resources, command.actor_id, command.id)
+    resources = _concentration_for_turn(resources, command, preserve_concentration)
     resources = _stuck_weapon_choice(resources, command)
     state = state.model_copy(update={"resources": resources})
     if command.maneuver == "ready" and command.item_id:
