@@ -286,6 +286,12 @@ def repair(
                 "residual_roll": None if check.outcome.succeeded else item.condition.residual_roll,
                 "shock": 0,
                 "shock_until": None,
+                # B483 reduction applies only below one-third HP. A successful
+                # B484 repair can end that state; retaining its selected mode
+                # would make an otherwise legal repair fail validation.
+                "reduced_definition_id": None
+                if check.outcome.succeeded and (item.condition.hp + restored) * 3 >= profile.hp
+                else item.condition.reduced_definition_id,
             }
         )
         resources = resources.model_copy(
