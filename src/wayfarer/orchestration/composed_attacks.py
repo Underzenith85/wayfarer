@@ -7,6 +7,7 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack, abandon
+from wayfarer.engine.simulation.combat.attack_visibility import private_attack_result
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.resources import ResourceEvent
@@ -43,6 +44,11 @@ from wayfarer.orchestration.combat.context import CombatContext, CombatStep, enc
 from wayfarer.orchestration.combat.settlement import _finish_combat, _settle_combat
 from wayfarer.orchestration.combat.steps import reduce_combat
 from wayfarer.orchestration.membership import member_for
+from wayfarer.orchestration.opponent_attack_privacy import (
+    may_view_attack,
+    preserve_attack_visibility,
+    visible_combat_result,
+)
 from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.command_inputs import generation, replay_payload
@@ -208,6 +214,9 @@ class ComposedAttackService:
                 step, encounters = _settle_combat(step, command, encounters, context)
                 updated, combat = _finish_combat(step, command, encounters, context)
                 result = result.model_copy(update={"combat": combat})
+                updated = preserve_attack_visibility(
+                    before, updated, command.encounter_id, command.id
+                )
             event = ResourceEvent(
                 id=identity(PREFIX, command.id),
                 at=updated.resources.game_time,
@@ -259,12 +268,25 @@ class ComposedAttackService:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         state = play._load(campaign)
-        return await submit(
+        result = await submit(
             play,
             cid,
             self.plan(play, state, command, principal_id=principal_id),
             principal_id=principal_id,
         )
+        current = play._load(await play.store.read(cid))
+        if private_attack_result(current.resources, command.id) and not may_view_attack(
+            play, current, command.id, command.actor_id, principal_id
+        ):
+            result = result.model_copy(
+                update={
+                    "attack": None,
+                    "combat": result.combat.model_copy(update={"injury": None, "unarmed": None})
+                    if result.combat is not None
+                    else None,
+                }
+            )
+        return result
 
     async def defend(self, cid: str, command: ChooseDefense, *, principal_id: str) -> CombatResult:
         campaign = await self.play.store.read(cid)
@@ -287,6 +309,7 @@ class ComposedAttackService:
             if pending is None or pending.composed_attack_id is None:
                 raise ConflictError("No composed attack awaits this defense")
             updated, result = reduce_combat(before, command, CombatContext(play, before))
+            updated = preserve_attack_visibility(before, updated, command.encounter_id, command.id)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             return CommandReceipt(action="combat", outcome=result.model_dump_json())
@@ -310,4 +333,8 @@ class ComposedAttackService:
             control=_controls(play, state, command.actor_id, principal_id),
             rng=play.rng,
         )
-        return await submit(play, cid, plan, principal_id=principal_id)
+        result = await submit(play, cid, plan, principal_id=principal_id)
+        current = play._load(await play.store.read(cid))
+        return visible_combat_result(
+            play, current, result, command.id, command.actor_id, principal_id
+        )

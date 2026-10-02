@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
 from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLIC_HOST_ADAPTER
+from wayfarer.engine.simulation.health.hazard_records import HazardCommand
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
 )
@@ -28,6 +29,8 @@ from wayfarer.orchestration.composed_attacks import ComposedAttackService
 from wayfarer.orchestration.cyclic import CyclicService
 from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
+from wayfarer.orchestration.hazard_resume import recorded_resume
+from wayfarer.orchestration.hazards import HazardContext, HazardService
 from wayfarer.orchestration.locks import LockService, LockSpellService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
@@ -43,7 +46,7 @@ from wayfarer.orchestration.staff_casting import StaffCastingService
 from wayfarer.orchestration.task_records import ADAPTER as TASK_ADAPTER
 from wayfarer.orchestration.tasks import TaskService
 from wayfarer.orchestration.transformations import TransformationService
-from wayfarer.persistence.events import CommandRecord
+from wayfarer.persistence.events import CommandInput, CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
 
 
@@ -73,6 +76,24 @@ async def _task_host(play: PlayService, record: CommandRecord, encoded: str) -> 
         record.campaign_id,
         TASK_ADAPTER.validate_json(encoded),
         principal_id=record.actor_id,
+    )
+
+
+async def _natural_hazard_resume(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    command = HazardCommand.model_validate_json(encoded)
+    if (
+        command.kind != "resolve"
+        or recorded_resume(CommandInput(record.payload_hash, record.command_input)) is None
+    ):
+        raise ValidationError("Historical resolver-only hazards retain event-fold replay only")
+
+    def unavailable(
+        _play: PlayService, _state: PlayState, _actor: str, _hazard: str
+    ) -> HazardContext:
+        raise ValidationError("Hazard continuation cannot fetch a new environmental source")
+
+    await HazardService(play, unavailable).execute(
+        record.campaign_id, command, principal_id=record.actor_id
     )
 
 
@@ -145,6 +166,7 @@ async def _composed_defense(play: PlayService, record: CommandRecord, encoded: s
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
     "gurps-social": _social,
     "task-host": _task_host,
+    "gurps-hazard": _natural_hazard_resume,
     "composed-attack": _composed_attack,
     "composed-defense": _composed_defense,
     "enchantment": _enchantment,

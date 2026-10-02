@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from typing import TYPE_CHECKING, cast, get_args
+from typing import TYPE_CHECKING, Literal, cast, get_args, overload
 
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
@@ -12,7 +12,8 @@ from wayfarer.engine.rules.tables.combat import strong_damage_bonus
 from wayfarer.engine.rules.tables.special_melee import grapple_size_bonus
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, exertion
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
@@ -65,18 +66,13 @@ if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
 
 
-def defend(
-    runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
-) -> tuple[PlayState, Encounter, UnarmedTrace]:
-    pending = encounter.pending_unarmed
-    if (
-        pending is None
-        or command.defense == "block"
-        or command.second_defense == "block"
-        or command.actor_id != pending.target_id
-        or (pending.choke_hold and command.defense != "none")
-    ):
-        raise ValidationError("Defense is not authorized for this unarmed attack")
+def _defense_values(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    command: ChooseDefense,
+) -> tuple[Combatant, Combatant, list[tuple[int | None, str | None]]]:
     defense_target, hand = unarmed_defense(
         runtime,
         state,
@@ -116,10 +112,59 @@ def defend(
                 "Double defense requires different defenses or different parrying hands"
             )
         defenses.append((second_target, second_hand))
+    return actor, target, defenses
+
+
+@overload
+def defend(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+) -> tuple[PlayState, Encounter, UnarmedTrace]: ...
+
+
+@overload
+def defend(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[True],
+) -> AttackRollSpec: ...
+
+
+def defend(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: bool = False,
+) -> tuple[PlayState, Encounter, UnarmedTrace] | AttackRollSpec:
+    pending = encounter.pending_unarmed
+    if (
+        pending is None
+        or command.defense == "block"
+        or command.second_defense == "block"
+        or command.actor_id != pending.target_id
+        or (pending.choke_hold and command.defense != "none")
+    ):
+        raise ValidationError("Defense is not authorized for this unarmed attack")
+    actor, target, defenses = _defense_values(runtime, state, encounter, pending, command)
+    defense_target = defenses[0][0]
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
     value = skill_value(runtime, state, actor.actor_id, pending.skill) - hp.injury.shock
-    sensory_penalty, random = _attack_senses(state, encounter, pending, hp.injury)
+    sensory_penalty, random = _attack_senses(
+        state, encounter, pending, hp.injury, attack_captured=selected_attack is not None
+    )
     value += sensory_penalty
     if pending.skill in ("skill:judo", "skill:karate"):
         value -= encumbrance_level(runtime, state, actor.actor_id)
@@ -181,9 +226,14 @@ def defend(
             m.value for m in check_modifiers(state.resources, actor.actor_id, "dx")
         ),
     )
-    attack = success_roll(
-        BASIC, value, check_modifiers(state.resources, actor.actor_id, "dx"), rng=runtime.rng
+    spec = AttackRollSpec(
+        profile_id=BASIC,
+        target=value,
+        modifiers=check_modifiers(state.resources, actor.actor_id, "dx"),
     )
+    if prepare_only:
+        return spec
+    attack = selected_attack or spec.roll(runtime.rng)
 
     near_miss = (
         random is None
@@ -451,8 +501,14 @@ def _attack_senses(
     encounter: Encounter,
     pending: PendingUnarmed,
     injury: InjuryStatus,
+    *,
+    attack_captured: bool = False,
 ) -> tuple[int, RandomStrike | None]:
     """Require current blind targeting and score visual impairment exactly once."""
+    if attack_captured:
+        return 0, random_strike(
+            state, encounter.id, pending.id, pending.actor_id, pending.target_id
+        )
     sensory = visibility(
         state, sensory_encounter(state, encounter), pending.actor_id, pending.target_id
     )

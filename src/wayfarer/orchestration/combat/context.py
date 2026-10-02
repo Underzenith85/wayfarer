@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollChoice
 from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.battlefield_templates import prepare
 from wayfarer.orchestration.play import PlayService
@@ -32,6 +34,17 @@ class CombatContext:
     resuming: bool = False
     reaction: bool = False
     movement_checkpoint: bool = False
+    selected_attack: AttackRollChoice | None = None
+
+    @property
+    def attack_runtime(self) -> RulesContext:
+        selected = self.selected_attack
+        if selected is None or selected.attacker_id is None or selected.captured_attacker is None:
+            return self.play.rules_context
+        return replace(
+            self.play.rules_context,
+            attack_source=(selected.attacker_id, selected.captured_attacker),
+        )
 
     @property
     def engine(self) -> CombatEngine:

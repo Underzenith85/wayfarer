@@ -33,7 +33,30 @@ from wayfarer.engine.simulation.social.reactions import (
 from wayfarer.engine.simulation.traits.luck import LuckCommand, LuckRoll, apply_luck, luck_cooldown
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.entropy import current_command_instant
+from wayfarer.orchestration.inventory_damage_records import InventoryDamagePending
 from wayfarer.orchestration.membership import member_for, require_control
+from wayfarer.orchestration.opponent_attack_records import (
+    BeginOpponentAttack,
+    ChooseOpponentAttack,
+    OpponentAttackPending,
+)
+from wayfarer.orchestration.opponent_attack_tasks import (
+    choose_opponent_attack,
+    open_opponent_attack,
+)
+from wayfarer.orchestration.outside_event_records import (
+    ChooseOutsideEvent,
+    OutsideEventPending,
+    PrepareOutsideEvent,
+)
+from wayfarer.orchestration.outside_event_sources import bind_outside_event_source
+from wayfarer.orchestration.outside_event_tasks import choose_outside_event, open_outside_event
+from wayfarer.orchestration.owner_damage_records import (
+    ChooseOwnerDamage,
+    OwnerDamagePending,
+    PrepareOwnerDamage,
+)
+from wayfarer.orchestration.owner_damage_tasks import choose_owner_damage, open_owner_damage
 from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.reaction_context import player_actor_ids
@@ -100,6 +123,32 @@ def _controls(
     play: PlayService, state: PlayState, command: TaskCommand, principal: str
 ) -> tuple[Control, ...]:
     member = member_for(state, principal)
+    if isinstance(command, (ChooseOwnerDamage, ChooseOpponentAttack, ChooseOutsideEvent)):
+        if command.choice == "use-luck":
+            return (Controls(member, command.actor_id),)
+        pending = snapshot(state).pending
+        prior = next(
+            (
+                TaskResult.model_validate_json(event.kind)
+                for event in state.resources.events
+                if event.id == identity(RESULT_PREFIX, command.id)
+            ),
+            None,
+        )
+        secret = (
+            prior.secret
+            if prior is not None
+            else bool(
+                pending
+                and pending.id == command.pending_id
+                and (
+                    isinstance(pending, (SecretTaskPending, SecretReactionPending))
+                    or pending.secret
+                )
+            )
+        )
+        if secret or isinstance(command, ChooseOutsideEvent) and command.choice == "cancel":
+            return Seats(state), Trusted(play.engine.reviewer.gm_ids)
     if isinstance(command, (ChooseSecretTaskCheck, ChooseReaction)):
         if command.choice == "use-luck":
             return (Controls(member, command.actor_id),)
@@ -112,8 +161,10 @@ def _controls(
             PrepareSecretTaskCheck,
             PrepareReaction,
             AttributeReactionRecognition,
+            PrepareOutsideEvent,
+            BeginOpponentAttack,
         ),
-    ) or (isinstance(command, BeginTaskCheck) and command.secret)
+    ) or (isinstance(command, (BeginTaskCheck, PrepareOwnerDamage)) and command.secret)
     if member.role == "gm" or director:
         return Seats(state), Trusted(play.engine.reviewer.gm_ids)
     actor_ids: tuple[str, ...] = (command.actor_id,)
@@ -143,6 +194,9 @@ def _visible(
                 "action": None,
                 "activity": None,
                 "reaction_json": None,
+                "damage_json": None,
+                "combat_json": None,
+                "outside_event_json": None,
                 "pending_id": result.pending_id if unrolled else None,
             }
         )
@@ -627,6 +681,34 @@ def _choose(
     return state, saved, clock, result
 
 
+def _continued_roll(
+    play: PlayService,
+    state: PlayState,
+    command: PrepareOwnerDamage
+    | ChooseOwnerDamage
+    | PrepareOutsideEvent
+    | ChooseOutsideEvent
+    | BeginOpponentAttack
+    | ChooseOpponentAttack,
+    saved: TaskSnapshot,
+    clock: RealPlayClock,
+) -> tuple[PlayState, TaskSnapshot, RealPlayClock, TaskResult]:
+    """Dispatch the typed damage/attack continuations on the shared pending host."""
+    if isinstance(command, ChooseOwnerDamage):
+        return choose_owner_damage(play, state, command, saved, clock)
+    if isinstance(command, ChooseOutsideEvent):
+        return choose_outside_event(play, state, command, saved, clock)
+    if isinstance(command, ChooseOpponentAttack):
+        return choose_opponent_attack(play, state, command, saved, clock)
+    if isinstance(command, PrepareOwnerDamage):
+        state, saved, result = open_owner_damage(play, state, command, saved, clock)
+    elif isinstance(command, PrepareOutsideEvent):
+        state, saved, result = open_outside_event(play, state, command, saved, clock)
+    else:
+        state, saved, result = open_opponent_attack(play, state, command, saved, clock)
+    return state, saved, clock, result
+
+
 class TaskService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
@@ -640,6 +722,7 @@ class TaskService:
         play = self.play.for_campaign(campaign)
         initial = play._load(campaign)
         command = await bind_recognition_sources(play, cid, command)
+        command = await bind_outside_event_source(play, cid, command)
         payload = json.dumps(
             {
                 "operation": "task-host",
@@ -695,6 +778,18 @@ class TaskService:
                 state, saved, clock, result = choose_reaction(play, state, command, saved, clock)
             elif isinstance(command, ChooseSecretTaskCheck):
                 state, saved, clock, result = choose_secret(play, state, command, saved, clock)
+            elif isinstance(
+                command,
+                (
+                    PrepareOwnerDamage,
+                    ChooseOwnerDamage,
+                    PrepareOutsideEvent,
+                    ChooseOutsideEvent,
+                    BeginOpponentAttack,
+                    ChooseOpponentAttack,
+                ),
+            ):
+                state, saved, clock, result = _continued_roll(play, state, command, saved, clock)
             else:
                 state, saved, clock, result = _choose(
                     play, state, command, saved, clock, principal_id
@@ -741,13 +836,25 @@ class TaskService:
                 result.actor_id != command.actor_id
                 and member_for(current, principal_id).role != "gm"
             ):
-                return result.model_copy(update={"check": None, "luck": None})
+                return result.model_copy(
+                    update={
+                        "check": None,
+                        "luck": None,
+                        "damage_json": None,
+                        "combat_json": None,
+                        "outside_event_json": None,
+                    }
+                )
             return _visible(
                 play,
                 current,
                 result,
                 principal_id,
-                unrolled=isinstance(command, (PrepareSecretTaskCheck, PrepareReaction)),
+                unrolled=isinstance(command, (PrepareSecretTaskCheck, PrepareReaction))
+                or isinstance(command, BeginOpponentAttack)
+                and command.visibility == "secret"
+                or isinstance(command, (PrepareOwnerDamage, PrepareOutsideEvent))
+                and command.secret,
             )
 
         plan = CommandPlan(
@@ -760,7 +867,17 @@ class TaskService:
             control=_controls(play, initial, command, principal_id),
             rng=play.rng,
             pending_task_id=command.pending_id
-            if isinstance(command, (ChooseTaskCheck, ChooseSecretTaskCheck, ChooseReaction))
+            if isinstance(
+                command,
+                (
+                    ChooseTaskCheck,
+                    ChooseSecretTaskCheck,
+                    ChooseReaction,
+                    ChooseOwnerDamage,
+                    ChooseOpponentAttack,
+                    ChooseOutsideEvent,
+                ),
+            )
             else None,
             task_clock_only=isinstance(command, SetRealPlayClock),
         )
@@ -782,13 +899,25 @@ class TaskService:
                 actor_id=pending.actor_id,
                 status="pending",
                 pending_id=pending.id,
-                check=None
-                if isinstance(pending, (SecretTaskPending, SecretReactionPending))
-                else pending.original,
+                check=pending.original
+                if isinstance(pending, (TaskPending, OpponentAttackPending))
+                else None,
                 secret=True
                 if isinstance(pending, (SecretTaskPending, SecretReactionPending))
                 else pending.secret,
+                damage_json=pending.original_json
+                if isinstance(pending, (OwnerDamagePending, InventoryDamagePending))
+                else None,
+                outside_event_json=pending.original_json
+                if isinstance(pending, OutsideEventPending)
+                else None,
             ),
             principal_id,
-            unrolled=isinstance(pending, (SecretTaskPending, SecretReactionPending)),
+            unrolled=isinstance(pending, (SecretTaskPending, SecretReactionPending))
+            or isinstance(pending, OpponentAttackPending)
+            and pending.secret
+            or isinstance(
+                pending, (OwnerDamagePending, InventoryDamagePending, OutsideEventPending)
+            )
+            and pending.secret,
         )

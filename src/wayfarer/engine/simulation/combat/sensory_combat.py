@@ -52,7 +52,12 @@ def _current_pending_aim(
 
 
 def refresh_armed_senses(
-    runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+    *,
+    attack_captured: bool = False,
 ) -> Encounter:
     """Admit against current senses before any retreat, exertion or defense dice.
 
@@ -76,15 +81,22 @@ def refresh_armed_senses(
             raise ValidationError("Malediction requires the target's private resistance response")
         if command.sacrificial_for or command.catch_thrown:
             raise ValidationError("Composed delivery does not support interposition or catching")
-        preflight_pending(runtime, state, encounter)
+        if not attack_captured:
+            preflight_pending(runtime, state, encounter)
     sensory = combat_visibility(
         encounter,
         pending.attacker_id,
         pending.defender_id,
         state=state,
-        validate_attack=pending.attack_roll is None and pending.suppression_zone_id is None,
+        validate_attack=not attack_captured
+        and pending.attack_roll is None
+        and pending.suppression_zone_id is None,
     )
-    location, armor_chink = _current_pending_aim(state, pending)
+    location, armor_chink = (
+        (pending.hit_location, pending.armor_chink)
+        if attack_captured
+        else _current_pending_aim(state, pending)
+    )
     if command.sacrificial_for is not None:
         if acute_blindness(state.resources, command.actor_id):
             raise ValidationError(
@@ -130,7 +142,9 @@ def refresh_armed_senses(
                     "hit_location": location,
                     "armor_chink": armor_chink,
                     "visibility_attack_penalty": pending.visibility_attack_penalty
-                    if pending.attack_roll is not None or pending.suppression_zone_id is not None
+                    if attack_captured
+                    or pending.attack_roll is not None
+                    or pending.suppression_zone_id is not None
                     else sensory.attack_penalty,
                     "visibility_defense_penalty": sensory.defense_penalty,
                 }

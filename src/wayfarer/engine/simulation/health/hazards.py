@@ -13,28 +13,24 @@ from wayfarer.engine.rules.types.hazard import CombatHazardTurn, HazardSchedule,
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.fright import apply_effect
+from wayfarer.engine.simulation.health.hazard_damage import (
+    HazardDamageSelection,
+    PreparedHazardDamage,
+    finish_hazard_resolution,
+    resume_saved_hazard_damage,
+    saved_prerequisite,
+    validate_hazard_selection,
+)
+from wayfarer.engine.simulation.health.hazard_records import (
+    HazardCommand as HazardCommand,
+)
+from wayfarer.engine.simulation.health.hazard_records import (
+    HazardResult as HazardResult,
+)
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
-from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.resources import Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Record
-
-
-class HazardCommand(Command):
-    kind: Literal["enter", "resolve", "leave"]
-    hazard_id: str
-
-
-class HazardResult(Record):
-    schedule_id: str
-    active: bool
-    due: int
-    hp_lost: int = 0
-    fp_lost: int = 0
-    check: CheckTrace | None = None
-    consciousness: CheckTrace | None = None
-    conditions: tuple[str, ...] = ()
-    radiation_dose: int = 0
 
 
 def _protected(schedule: HazardSchedule, physiology: PhysiologyTraits) -> bool:
@@ -162,7 +158,10 @@ def _hazard_damage(
     *,
     checking: bool,
     protected: bool,
+    selected_damage: HazardDamageSelection | None = None,
 ) -> int:
+    if selected_damage is not None:
+        return selected_damage.basic_damage
     spec = schedule.spec
     damage = 0
     if checking and not protected and (check is None or not check.outcome.succeeded):
@@ -259,6 +258,68 @@ def _extended_conditions(
     return state, schedule, conditions
 
 
+def hazard_resistance_check(
+    state: ResourceState,
+    schedule: HazardSchedule,
+    *,
+    checking: bool,
+    protected: bool,
+    rng: RandomSource,
+    physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS,
+) -> CheckTrace | None:
+    """The canonical personal resistance roll, separate from outside damage."""
+    spec = schedule.spec
+    fp = next(pool for pool in state.pools if pool.id == "fp:" + schedule.actor_id)
+    assert fp.fatigue is not None
+    check = None
+    if (
+        checking
+        and spec.resistible
+        and not protected
+        and schedule.stage != "rescued"
+        and not (spec.kind == "drowning" and fp.fatigue.unconscious)
+    ):
+        check = (
+            success_roll(
+                spec.profile_id,
+                schedule.swimming
+                if spec.kind == "drowning"
+                else schedule.ht + physical_traits(state, schedule.actor_id).fitness,
+                modifiers=check_modifiers(state, schedule.actor_id, "ht"),
+                rng=rng,
+            )
+            if spec.kind == "drowning"
+            else success_roll(
+                spec.profile_id,
+                max(
+                    1,
+                    max(
+                        schedule.ht
+                        + physical_traits(state, schedule.actor_id).fitness
+                        + (
+                            _radiation_modifier(
+                                schedule.radiation_dose + _effective_radiation(schedule, physiology)
+                            )
+                            if spec.kind == "radiation"
+                            else 0
+                        ),
+                        schedule.survival or 0,
+                    )
+                    + spec.resistance_modifier
+                    + schedule.treatment_bonus
+                    + (
+                        schedule.resistance_bonus
+                        if schedule.stage == "exposure" or spec.kind in ("heat", "cold")
+                        else 0
+                    ),
+                ),
+                check_modifiers(state, schedule.actor_id, "ht"),
+                rng=rng,
+            )
+        )
+    return check
+
+
 def _validate_deadline(
     state: ResourceState,
     schedule: HazardSchedule,
@@ -272,6 +333,31 @@ def _validate_deadline(
         raise ConflictError("Resolve hazards at their shared-clock deadline")
 
 
+def roll_hazard_prerequisite(
+    state: ResourceState,
+    preparation: PreparedHazardDamage,
+    *,
+    rng: RandomSource,
+    physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS,
+) -> PreparedHazardDamage:
+    """Freeze the actual personal resistance before considering outside damage."""
+    if not preparation.schedule.spec.resistible:
+        return preparation
+    if preparation.resistance is not None:
+        raise ConflictError("An already captured hazard prerequisite cannot be rerolled")
+    check = hazard_resistance_check(
+        state,
+        preparation.schedule,
+        checking=True,
+        protected=_protected(preparation.schedule, physiology),
+        rng=rng,
+        physiology=physiology,
+    )
+    if check is None:
+        raise ValidationError("This exposure has no resistance prerequisite to prepare")
+    return preparation.model_copy(update={"resistance": check})
+
+
 def apply_hazard(
     state: ResourceState,
     command: HazardCommand,
@@ -281,6 +367,7 @@ def apply_hazard(
     system: bool = False,
     combat_turn: CombatHazardTurn | None = None,
     physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS,
+    selected_damage: HazardDamageSelection | None = None,
 ) -> tuple[ResourceState, HazardResult]:
     if not system:
         raise ValidationError("Hazards require authoritative scenario context")
@@ -295,6 +382,17 @@ def apply_hazard(
         raise ConflictError("Resource revision changed")
     if schedule.actor_id != command.actor_id or schedule.spec.id != command.hazard_id:
         raise ValidationError("Hazard command does not match the bound exposure")
+    prerequisite = saved_prerequisite(state, schedule)
+    selected_damage = resume_saved_hazard_damage(
+        state, schedule, selected_damage, operation=command.kind, rng=rng
+    )
+    validate_hazard_selection(
+        state,
+        selected_damage,
+        actor_id=command.actor_id,
+        schedule_id=schedule.id,
+        operation=command.kind,
+    )
     hp = next(p for p in state.pools if p.id == "hp:" + command.actor_id)
     fp = next(p for p in state.pools if p.id == "fp:" + command.actor_id)
     if (
@@ -350,53 +448,26 @@ def apply_hazard(
                 or schedule.radiation_checked_at is None
                 or state.game_time >= schedule.radiation_checked_at + 86400
             )
-            if (
-                checking
-                and spec.resistible
-                and not protected
-                and schedule.stage != "rescued"
-                and not (spec.kind == "drowning" and fp.fatigue.unconscious)
-            ):
-                check = (
-                    success_roll(
-                        spec.profile_id,
-                        schedule.swimming
-                        if spec.kind == "drowning"
-                        else schedule.ht + physical_traits(state, schedule.actor_id).fitness,
-                        modifiers=check_modifiers(state, schedule.actor_id, "ht"),
-                        rng=rng,
-                    )
-                    if spec.kind == "drowning"
-                    else success_roll(
-                        spec.profile_id,
-                        max(
-                            1,
-                            max(
-                                schedule.ht
-                                + physical_traits(state, schedule.actor_id).fitness
-                                + (
-                                    _radiation_modifier(
-                                        schedule.radiation_dose
-                                        + _effective_radiation(schedule, physiology)
-                                    )
-                                    if spec.kind == "radiation"
-                                    else 0
-                                ),
-                                schedule.survival or 0,
-                            )
-                            + spec.resistance_modifier
-                            + schedule.treatment_bonus
-                            + (
-                                schedule.resistance_bonus
-                                if schedule.stage == "exposure" or spec.kind in ("heat", "cold")
-                                else 0
-                            ),
-                        ),
-                        check_modifiers(state, schedule.actor_id, "ht"),
-                        rng=rng,
-                    )
+            check = (
+                hazard_resistance_check(
+                    state,
+                    schedule,
+                    checking=checking,
+                    protected=protected,
+                    rng=rng,
+                    physiology=physiology,
                 )
-            damage = _hazard_damage(schedule, check, rng, checking=checking, protected=protected)
+                if selected_damage is None
+                else selected_damage.preparation.resistance
+            )
+            damage = _hazard_damage(
+                schedule,
+                check,
+                rng,
+                checking=checking,
+                protected=protected,
+                selected_damage=selected_damage,
+            )
             initial_disease = spec.kind == "disease" and schedule.stage == "exposure"
             if initial_disease or schedule.stage == "rescued":
                 damage = 0
@@ -644,4 +715,5 @@ def apply_hazard(
             ),
         }
     )
+    state = finish_hazard_resolution(state, command, schedule.id, hp_lost, prerequisite)
     return ResourceState.model_validate(state), result

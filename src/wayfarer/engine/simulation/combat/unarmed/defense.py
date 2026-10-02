@@ -247,7 +247,12 @@ def allowed_defenses(
 
 
 def refresh_unarmed_senses(
-    runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+    *,
+    attack_captured: bool = False,
 ) -> Encounter:
     """Validate both live choices before defensive movement, exertion or dice."""
     pending = encounter.pending_unarmed
@@ -255,9 +260,12 @@ def refresh_unarmed_senses(
         return encounter
     if command.actor_id != pending.target_id:
         raise ValidationError("Defense is not authorized for this unarmed attack")
-    visibility(state, encounter, pending.actor_id, pending.target_id)
+    visibility(
+        state, encounter, pending.actor_id, pending.target_id, validate_attack=not attack_captured
+    )
     if (
-        acute_blindness(state.resources, pending.actor_id)
+        not attack_captured
+        and acute_blindness(state.resources, pending.actor_id)
         and random_strike(state, encounter.id, pending.id, pending.actor_id, pending.target_id)
         is None
     ):

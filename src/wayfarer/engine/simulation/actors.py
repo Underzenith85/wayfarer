@@ -102,8 +102,21 @@ def injury_turn(
     *,
     start: bool,
     do_nothing: bool,
+    captured_end_build: ValidatedBuild | None = None,
 ) -> PlayState:
-    compiled = build(runtime, state, actor_id)
+    if captured_end_build is not None and start:
+        raise ValidationError("A captured build may only finish its already spent turn")
+    compiled = (
+        build(runtime, state, actor_id)
+        if captured_end_build is None
+        else projected_build(
+            state.resources,
+            actor_id,
+            captured_end_build,
+            runtime.reviewer.compiler.definitions,
+            correct_attributes=runtime.correct_symptom_attributes,
+        )
+    )
     assert compiled.statistics is not None
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     if hp.injury is None or hp.injury.profile_id != compiled.statistics.profile_id:
@@ -145,10 +158,13 @@ def catalog(runtime: RulesContext) -> EquipmentCatalog:
 def build(
     runtime: RulesContext, state: PlayState, actor_id: str, *, defensive: bool = False
 ) -> ValidatedBuild:
-    actor = next(a for a in state.actors if a.actor_id == actor_id)
-    compiled, _ = runtime.reviewer.activate(
-        actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor_id
-    )
+    if runtime.attack_source is not None and runtime.attack_source[0] == actor_id:
+        compiled = runtime.attack_source[1]
+    else:
+        actor = next(a for a in state.actors if a.actor_id == actor_id)
+        compiled, _ = runtime.reviewer.activate(
+            actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor_id
+        )
     if (
         compiled.statistics is None
         or compiled.statistics.profile_id != runtime.reviewer.compiler.statistics_profile

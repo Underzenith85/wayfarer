@@ -320,8 +320,20 @@ def _prepare_encounter(
 
     if isinstance(command, ChooseDefense):
         if engine.rules.gurps_equipment is not None:
-            encounter = refresh_armed_senses(play.rules_context, state, encounter, command)
-            encounter = refresh_unarmed_senses(play.rules_context, state, encounter, command)
+            encounter = refresh_armed_senses(
+                context.attack_runtime,
+                state,
+                encounter,
+                command,
+                attack_captured=context.selected_attack is not None,
+            )
+            encounter = refresh_unarmed_senses(
+                context.attack_runtime,
+                state,
+                encounter,
+                command,
+                attack_captured=context.selected_attack is not None,
+            )
         if encounter.pending_unarmed is None and (
             command.parry_mode_id is not None or command.second_parry_mode_id is not None
         ):
@@ -336,7 +348,7 @@ def _prepare_encounter(
                     "Explicit parry damage modes require a weapon or unarmed attack"
                 )
             incoming = mode(
-                play.rules_context,
+                context.attack_runtime,
                 state,
                 pending.attacker_id,
                 pending.weapon_id,
@@ -347,6 +359,6 @@ def _prepare_encounter(
             ):
                 raise ValidationError("Explicit parry damage modes require a parryable attack")
         encounter = prepare_defense(
-            play.rules_context, state, encounter, command, resolve_options=True
+            context.attack_runtime, state, encounter, command, resolve_options=True
         )
     return encounter

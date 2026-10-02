@@ -30,6 +30,8 @@ class RulesContext:
     combat: CombatEngine | None
     correct_symptom_attributes: bool = True
     clock: PlayClock | None = None
+    # Scoped to calculations for one already-launched attack, never approval/control.
+    attack_source: tuple[str, ValidatedBuild] | None = None
 
     def advance(
         self, state: PlayState, command: Advance, *, rng: RandomSource | None = None

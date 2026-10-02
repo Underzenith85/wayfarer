@@ -15,6 +15,22 @@ from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.engine.simulation.traits.luck import LuckReceipt, LuckState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
+from wayfarer.orchestration.inventory_damage_records import InventoryDamagePending
+from wayfarer.orchestration.opponent_attack_records import (
+    BeginOpponentAttack,
+    ChooseOpponentAttack,
+    OpponentAttackPending,
+)
+from wayfarer.orchestration.outside_event_records import (
+    ChooseOutsideEvent,
+    OutsideEventPending,
+    PrepareOutsideEvent,
+)
+from wayfarer.orchestration.owner_damage_records import (
+    ChooseOwnerDamage,
+    OwnerDamagePending,
+    PrepareOwnerDamage,
+)
 from wayfarer.orchestration.reaction_records import (
     AttributeReactionRecognition,
     ChooseReaction,
@@ -34,6 +50,10 @@ PRIVATE_PREFIXES = (
     "campaign-long-task-v2:",
     "campaign-long-task-rest-v2:",
     "campaign-activity:",
+    "outside-prerequisite:",
+    "outside-secret-hazard:",
+    "opponent-secret-source:",
+    "opponent-secret-result:",
 )
 
 
@@ -97,7 +117,13 @@ TaskCommand = Annotated[
     | ChooseSecretTaskCheck
     | PrepareReaction
     | ChooseReaction
-    | AttributeReactionRecognition,
+    | AttributeReactionRecognition
+    | PrepareOwnerDamage
+    | ChooseOwnerDamage
+    | BeginOpponentAttack
+    | ChooseOpponentAttack
+    | PrepareOutsideEvent
+    | ChooseOutsideEvent,
     Field(discriminator="kind"),
 ]
 ADAPTER: TypeAdapter[TaskCommand] = TypeAdapter(TaskCommand)
@@ -134,7 +160,16 @@ class SecretTaskPending(Record):
 
 class TaskSnapshot(Record):
     campaign_id: Id
-    pending: TaskPending | SecretTaskPending | SecretReactionPending | None = None
+    pending: (
+        TaskPending
+        | SecretTaskPending
+        | SecretReactionPending
+        | OwnerDamagePending
+        | InventoryDamagePending
+        | OpponentAttackPending
+        | OutsideEventPending
+        | None
+    ) = None
     luck: LuckState = LuckState()
 
 
@@ -150,6 +185,9 @@ class TaskResult(Record):
     secret: bool = False
     reason: str = ""
     reaction_json: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    damage_json: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    combat_json: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    outside_event_json: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 def snapshot(state: PlayState) -> TaskSnapshot:
@@ -169,11 +207,17 @@ def snapshot(state: PlayState) -> TaskSnapshot:
         raise ValidationError("Task and Luck pending identities disagree")
     if pending is not None:
         roll = next((roll for roll in result.luck.rolls if roll.id == pending.id), None)
+        original: tuple[int, ...] | None
+        if isinstance(pending, (SecretTaskPending, SecretReactionPending)):
+            original = None
+        elif isinstance(pending, (OwnerDamagePending, InventoryDamagePending, OutsideEventPending)):
+            original = pending.original
+        else:
+            captured = pending.original
+            original = None if captured is None else captured.dice
         if roll is None or (roll.actor_id, roll.original, roll.secret, roll.chosen_dice) != (
-            pending.actor_id,
-            None
-            if isinstance(pending, (SecretTaskPending, SecretReactionPending))
-            else pending.original.dice,
+            pending.attacker_id if isinstance(pending, OpponentAttackPending) else pending.actor_id,
+            original,
             True
             if isinstance(pending, (SecretTaskPending, SecretReactionPending))
             else pending.secret,
@@ -184,6 +228,34 @@ def snapshot(state: PlayState) -> TaskSnapshot:
             roll.kind != "reaction" or roll.scope != "own" or roll.task_class != "social"
         ):
             raise ValidationError("Reaction pending does not match its Luck role")
+        if isinstance(pending, OwnerDamagePending) and (
+            roll.kind != "damage"
+            or roll.scope != "own"
+            or roll.dice_count != pending.preparation.dice_count
+            or roll.modifier != 0
+        ):
+            raise ValidationError("Owner damage pending does not match its Luck role")
+        if isinstance(pending, InventoryDamagePending) and (
+            roll.kind != "damage"
+            or roll.scope != "own"
+            or roll.dice_count != pending.preparation.dice_count
+            or roll.modifier != pending.modifier
+        ):
+            raise ValidationError("Inventory damage pending does not match its Luck role")
+        if isinstance(pending, OpponentAttackPending) and (
+            roll.kind != "success"
+            or roll.scope != "attack"
+            or roll.affected_actor_ids != (pending.actor_id,)
+        ):
+            raise ValidationError("Opponent attack pending does not match its Luck role")
+        if isinstance(pending, OutsideEventPending) and (
+            roll.kind != "hazard-damage"
+            or roll.scope != "party-event"
+            or roll.affected_actor_ids != (pending.actor_id,)
+            or roll.dice_count != pending.preparation.dice_count
+            or roll.modifier != pending.preparation.modifier
+        ):
+            raise ValidationError("Outside event pending does not match its Luck role")
     return result
 
 
