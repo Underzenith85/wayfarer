@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.mastery import trained_by_master
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.simulation.actions import PlayState
@@ -173,12 +174,34 @@ def execute_unarmed(
                 encounter = feint(runtime, state, encounter, command)
             return state, *declare_pending(runtime, state, encounter, command)
         state, encounter, trace = control(runtime, state, encounter, command)
+    captured = attack_runtime.attack_source if attack_runtime is not None else None
+    return finish_unarmed_response(
+        runtime,
+        state,
+        encounter,
+        command,
+        trace,
+        reacting=reacting,
+        captured_attacker=captured[1] if captured and captured[0] == trace.actor_id else None,
+    )
+
+
+def finish_unarmed_response(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: TakeUnarmedTurn | ChooseDefense,
+    trace: UnarmedTrace,
+    *,
+    reacting: bool,
+    captured_attacker: ValidatedBuild | None = None,
+) -> tuple[PlayState, Encounter, CombatResult]:
+    """Settle one already-resolved response once, including any declared second attack."""
     encounter = settle_control(state, encounter)
     encounter, pending_result = continue_sequence(runtime, state, encounter, command, trace)
     if pending_result is not None:
         return state, encounter, pending_result
     if not reacting:
-        captured = attack_runtime.attack_source if attack_runtime is not None else None
         state = injury_turn(
             runtime,
             state,
@@ -186,10 +209,8 @@ def execute_unarmed(
             command.id,
             start=False,
             do_nothing=False,
-            captured_end_build=captured[1]
-            if captured is not None
-            and captured[0] == trace.actor_id
-            and next(a for a in state.actors if a.actor_id == trace.actor_id).approval is None
+            captured_end_build=captured_attacker
+            if next(a for a in state.actors if a.actor_id == trace.actor_id).approval is None
             else None,
         )
     encounter = settle_control(state, encounter)

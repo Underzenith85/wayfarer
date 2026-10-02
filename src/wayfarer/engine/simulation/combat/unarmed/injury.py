@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
+from wayfarer.engine.simulation.combat.unarmed.damage_records import ArmedParryDamageInputs
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, skill_value
 from wayfarer.engine.simulation.combat.unarmed.records import BASIC, PendingUnarmed
 from wayfarer.engine.simulation.equipment.catalog import DamageType, MeleeMode
@@ -28,6 +29,7 @@ from wayfarer.engine.simulation.health.injury import (
     apply_injury,
     apply_location_effect,
 )
+from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
@@ -357,16 +359,15 @@ def critical_miss(
     return state, CombatEngine._replace(encounter, actor), checks, dice, True
 
 
-def armed_parry_injury(
+def _prepare_armed_parry_damage(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
     pending: PendingUnarmed,
     item_id: str,
     mode_id: str | None,
-) -> tuple[PlayState, Encounter, tuple[CheckTrace, ...], tuple[int, ...]]:
-    """B376: a separate weapon-skill check, never a second defended attack."""
-
+) -> tuple[CheckTrace, ArmedParryDamageInputs | None]:
+    """Close the separate weapon-skill check without rolling damage or injury."""
     weapon = mode(runtime, state, pending.target_id, item_id, mode_id)
     assert isinstance(weapon, MeleeMode)
     score = skill_value(runtime, state, pending.target_id, weapon.skill_id)
@@ -378,34 +379,107 @@ def armed_parry_injury(
         rng=runtime.rng,
     )
     if not check.outcome.succeeded:
-        return state, encounter, (check,), ()
+        return check, None
     compiled = build(runtime, state, pending.target_id)
     assert compiled.statistics is not None
     expression = (
         compiled.statistics.swing if weapon.damage.basis == "swing" else compiled.statistics.thrust
-    )
-    dice = draw_dice(runtime.rng, weapon.damage.dice or expression.dice)
-    damage = max(
-        0 if weapon.damage.damage_type == "cr" else 1,
-        sum(dice) + weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add),
     )
     limb: HumanLocation = (
         ("left-leg" if pending.foot == "left-foot" else "right-leg")
         if pending.action == "kick"
         else ("left-arm" if pending.hands[0] == "left-hand" else "right-arm")
     )
+    return check, ArmedParryDamageInputs(
+        pending=pending,
+        check=check,
+        damage=weapon.damage,
+        dice_count=weapon.damage.dice or expression.dice,
+        adds=weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add),
+        location=limb,
+    )
+
+
+def _finish_armed_parry_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    inputs: ArmedParryDamageInputs,
+    *,
+    selected_damage: tuple[int, ...] | None = None,
+) -> tuple[PlayState, Encounter, tuple[int, ...]]:
+    """Apply captured counterdamage against current limb armor and injury state."""
+    if selected_damage is not None and (
+        len(selected_damage) != inputs.dice_count
+        or any(type(die) is not int or not 1 <= die <= 6 for die in selected_damage)
+    ):
+        raise ValidationError("Selected armed parry damage differs from its captured expression")
+    dice = (
+        selected_damage
+        if selected_damage is not None
+        else draw_dice(runtime.rng, inputs.dice_count)
+    )
+    damage = max(0 if inputs.damage.damage_type == "cr" else 1, sum(dice) + inputs.adds)
     state, encounter, _ = hurt(
         runtime,
         state,
         encounter,
-        pending.actor_id,
-        pending.id + ":armed-parry",
+        inputs.target_id,
+        inputs.pending.id + ":armed-parry",
         damage,
-        location=limb,
-        damage_type=weapon.damage.damage_type,
-        armor_divisor=weapon.damage.armor_divisor,
-        tight_beam=weapon.damage.tight_beam,
+        location=inputs.location,
+        damage_type=inputs.damage.damage_type,
+        armor_divisor=inputs.damage.armor_divisor,
+        tight_beam=inputs.damage.tight_beam,
     )
+    return state, encounter, dice
+
+
+def prepare_armed_parry_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    item_id: str,
+    mode_id: str | None,
+) -> tuple[CheckTrace, ArmedParryDamageInputs | None]:
+    """Require the canonical unarmed delivery before opening a staged owner phase."""
+    if encounter.pending_unarmed != pending:
+        raise ValidationError("Armed parry lost its unarmed delivery identity")
+    return _prepare_armed_parry_damage(runtime, state, encounter, pending, item_id, mode_id)
+
+
+def finish_armed_parry_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    inputs: ArmedParryDamageInputs,
+    *,
+    selected_damage: tuple[int, ...] | None = None,
+) -> tuple[PlayState, Encounter, tuple[int, ...]]:
+    """Require the unchanged staged delivery before accepting selected counterdamage."""
+    if encounter.pending_unarmed != inputs.pending:
+        raise ValidationError("Armed parry lost its unarmed delivery identity")
+    return _finish_armed_parry_damage(
+        runtime, state, encounter, inputs, selected_damage=selected_damage
+    )
+
+
+def armed_parry_injury(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    item_id: str,
+    mode_id: str | None,
+) -> tuple[PlayState, Encounter, tuple[CheckTrace, ...], tuple[int, ...]]:
+    """B376 immediate path also serves Push, whose caller validates its own commitment."""
+    check, inputs = _prepare_armed_parry_damage(
+        runtime, state, encounter, pending, item_id, mode_id
+    )
+    if inputs is None:
+        return state, encounter, (check,), ()
+    state, encounter, dice = _finish_armed_parry_damage(runtime, state, encounter, inputs)
     return state, encounter, (check,), dice
 
 

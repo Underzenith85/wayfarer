@@ -171,3 +171,26 @@ exact receipt replay across pending defenses and Wait interruptions.
 
 Mixed armed/unarmed Double declarations and mixed-action Wait reactions remain
 unsupported; a Wait's unarmed Double repeats its fixed declaration.
+
+### Private unarmed damage choices (B66/B376)
+
+The private `PrepareOwnerDamage` host closes an actual punch/kick delivery before
+its damage choice. A successful regular armed parry instead closes the separate
+weapon-skill check and opens counterdamage for the parrying actor. The pending
+record preserves attack, defense, weapon check, damage expression and striking
+limb. Selected counterdamage uses the victim's current armor and injury state,
+then finishes the original response and any available second attack once.
+
+Both paths use the shared ordinary Luck cooldown and current owner control and
+approval for new rerolls. Accepting already recorded damage preserves accepted
+weapon facts after later owner approval or weapon loss. Secret originals remain
+private; retry, concurrent submission and seeded command replay preserve one
+committed consequence. Ordinary combat commands retain their existing resolution
+and historical trace format. The new pending records are private and add no
+public command schema.
+
+`tests/test_owner_damage_armed_parry.py` exercises actual SQLite/PostgreSQL host
+continuations, current limb armor, authority, rollback, shared cooldown, races,
+second-attack cancellation and secret/public seeded replay. Collision,
+shield-rush, other spell and source-specific object-follow-up Luck contracts
+remain separate work; this slice does not complete #867.

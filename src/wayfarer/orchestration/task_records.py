@@ -43,6 +43,10 @@ from wayfarer.orchestration.reaction_records import (
     PrepareReaction,
     SecretReactionPending,
 )
+from wayfarer.orchestration.unarmed_damage_records import (
+    ArmedParryDamagePending,
+    UnarmedDamagePending,
+)
 
 STATE_PREFIX = "task-host:"
 BINDING_PREFIX = "task-binding:"
@@ -176,6 +180,8 @@ class TaskSnapshot(Record):
         | SecretReactionPending
         | OwnerDamagePending
         | InventoryDamagePending
+        | UnarmedDamagePending
+        | ArmedParryDamagePending
         | OpponentAttackPending
         | OpponentFragmentPending
         | OutsideEventPending
@@ -221,7 +227,16 @@ def snapshot(state: PlayState) -> TaskSnapshot:
         original: tuple[int, ...] | None
         if isinstance(pending, (SecretTaskPending, SecretReactionPending)):
             original = None
-        elif isinstance(pending, (OwnerDamagePending, InventoryDamagePending, OutsideEventPending)):
+        elif isinstance(
+            pending,
+            (
+                OwnerDamagePending,
+                InventoryDamagePending,
+                UnarmedDamagePending,
+                ArmedParryDamagePending,
+                OutsideEventPending,
+            ),
+        ):
             original = pending.original
         else:
             captured = pending.original
@@ -248,7 +263,9 @@ def snapshot(state: PlayState) -> TaskSnapshot:
             or roll.modifier != 0
         ):
             raise ValidationError("Owner damage pending does not match its Luck role")
-        if isinstance(pending, InventoryDamagePending) and (
+        if isinstance(
+            pending, (InventoryDamagePending, UnarmedDamagePending, ArmedParryDamagePending)
+        ) and (
             roll.kind != "damage"
             or roll.scope != "own"
             or roll.dice_count != pending.preparation.dice_count

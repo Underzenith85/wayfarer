@@ -15,6 +15,10 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.real_play_clock import RealPlayClock, spend_real_play_cooldown
 from wayfarer.orchestration.task_context import approved
 from wayfarer.orchestration.task_records import TaskSnapshot
+from wayfarer.orchestration.unarmed_damage_records import (
+    ArmedParryDamagePending,
+    UnarmedDamagePending,
+)
 
 
 def _ordinary_luck(play: PlayService, state: PlayState, actor_id: str) -> int:
@@ -34,7 +38,10 @@ def select_owner_damage(
     command: ChooseOwnerDamage,
     saved: TaskSnapshot,
     clock: RealPlayClock,
-    pending: OwnerDamagePending | InventoryDamagePending,
+    pending: OwnerDamagePending
+    | InventoryDamagePending
+    | UnarmedDamagePending
+    | ArmedParryDamagePending,
 ) -> tuple[TaskSnapshot, RealPlayClock, LuckReceipt | None, tuple[int, ...]]:
     luck = saved.luck.model_copy(
         update={"revision": state.revision, "game_time": state.resources.game_time}
