@@ -250,6 +250,8 @@ class PlayService:
                     "water-host:",
                     "water-discovery:",
                     "water-cast-plan:",
+                    "water-scene:",
+                    "water-mist:",
                     "apportation-channel:",
                     "apportation-route:",
                     "apportation-host:",

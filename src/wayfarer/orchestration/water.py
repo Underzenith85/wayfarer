@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.spell_state import SpellResult, event_id, parse_event
 from wayfarer.engine.simulation.magic.spell_transitions import SpellExecutionContext, reduce_spell
 from wayfarer.engine.simulation.magic.spells import PROFILE, RuntimeSpellCommand
+from wayfarer.engine.simulation.magic.water_bindings import channels
 from wayfarer.engine.simulation.magic.water_discovery import WaterSpellResult, command_finding
 from wayfarer.engine.simulation.magic.water_host import (
     DeclareWater,
@@ -19,13 +20,16 @@ from wayfarer.engine.simulation.magic.water_host import (
     apply_host,
     receipt_id,
 )
+from wayfarer.engine.simulation.magic.water_mist import DeclareWaterScene, extinguish, require_scene
+from wayfarer.engine.simulation.magic.water_state import latest as water_bodies
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 WaterCommand = Annotated[
-    DeclareWater | DeclareWaterChannel | RuntimeSpellCommand, Field(discriminator="kind")
+    DeclareWater | DeclareWaterChannel | DeclareWaterScene | RuntimeSpellCommand,
+    Field(discriminator="kind"),
 ]
 ADAPTER: TypeAdapter[WaterCommand] = TypeAdapter(WaterCommand)
 
@@ -71,6 +75,20 @@ class WaterService:
                 updated, result = reduce_spell(
                     before, command, SpellExecutionContext(play.rules_context)
                 )
+                if command.kind == "complete" and result.outcome == "active":
+                    channel = next(
+                        c for c in channels(before.resources) if c.id == command.channel_id
+                    )
+                    if channel.plan.mist_scene_id is not None:
+                        admission = require_scene(
+                            before, channel.plan.mist_scene_id, channel.location_id
+                        )
+                        updated = extinguish(
+                            updated,
+                            admission,
+                            water_bodies(before.resources)[channel.plan.target_id].position,
+                            command.id,
+                        )
             else:
                 updated, result = apply_host(play.rules_context, before, command)
             updated = play.checkpoint(updated, before=before)

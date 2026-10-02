@@ -15,6 +15,8 @@ from wayfarer.engine.simulation.magic.water_complete_source import (
     emptied_source,
     require_complete_source,
 )
+from wayfarer.engine.simulation.magic.water_mist_state import MistMaterial
+from wayfarer.engine.simulation.magic.water_mist_state import record as record_mist
 from wayfarer.engine.simulation.magic.water_purification import receiving_mixture
 from wayfarer.engine.simulation.magic.water_state import WaterBody, latest, save
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
@@ -46,6 +48,7 @@ class WaterPlan(Record):
     # Explicit private operation intent; absent historical plans keep their bytes.
     allow_receiver_mixing: bool = Field(default=False, exclude_if=lambda value: not value)
     purify_entire_source: bool = Field(default=False, exclude_if=lambda value: not value)
+    mist_scene_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def unique_sources(self) -> WaterPlan:
@@ -57,6 +60,10 @@ class WaterPlan(Record):
             raise ValueError("Receiver mixing is limited to incoming pure-water flows")
         if self.purify_entire_source and self.spell_id != "purify-water":
             raise ValueError("Complete-source intent is limited to Purify Water")
+        if self.mist_scene_id is not None and (
+            self.spell_id != "create-water" or self.gallons != 1 or self.allow_receiver_mixing
+        ):
+            raise ValueError("Mist supports exactly one gallon of Create Water")
         return self
 
 
@@ -112,6 +119,10 @@ def validate_operation(state: ResourceState, plan: WaterPlan) -> None:
     target = bodies.get(plan.target_id)
     if target is None:
         raise ValidationError("Water operation requires its current authored target")
+    if plan.mist_scene_id is not None:
+        if target.form != "liquid" or target.gallons or target.capacity_gallons is not None:
+            raise ValidationError("Mist requires an empty authored uncontained droplet receiver")
+        return
     if plan.spell_id in ("purify-water", "create-water"):
         if target.capacity_gallons is None or target.form != "liquid":
             raise ValidationError("Supported water transfer requires a liquid receiving container")
@@ -170,6 +181,17 @@ def apply(state: ResourceState, plan: WaterPlan, actor_id: str, command_id: str)
     """Apply exactly once through the host's atomic receipt/revision transaction."""
     validate_operation(state, plan)
     bodies = latest(state)
+    if plan.mist_scene_id is not None:
+        return record_mist(
+            state,
+            MistMaterial(
+                command_id=command_id,
+                actor_id=actor_id,
+                scene_id=plan.mist_scene_id,
+                carrier_id=plan.target_id,
+                position=bodies[plan.target_id].position,
+            ),
+        )
     if plan.spell_id == "seek-water":
         body = nearest(state, plan)
         vector = (

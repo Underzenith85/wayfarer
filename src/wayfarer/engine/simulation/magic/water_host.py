@@ -8,6 +8,8 @@ from pydantic import Field, TypeAdapter
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.water_bindings import WaterChannel
 from wayfarer.engine.simulation.magic.water_bindings import declare as declare_channel
+from wayfarer.engine.simulation.magic.water_mist import DeclareWaterScene
+from wayfarer.engine.simulation.magic.water_mist import declare as declare_scene
 from wayfarer.engine.simulation.magic.water_state import WaterBody, declare
 from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -26,7 +28,9 @@ class DeclareWaterChannel(Command):
     channel: WaterChannel
 
 
-WaterHostCommand = Annotated[DeclareWater | DeclareWaterChannel, Field(discriminator="kind")]
+WaterHostCommand = Annotated[
+    DeclareWater | DeclareWaterChannel | DeclareWaterScene, Field(discriminator="kind")
+]
 ADAPTER: TypeAdapter[WaterHostCommand] = TypeAdapter(WaterHostCommand)
 
 
@@ -44,6 +48,8 @@ def apply_host(
 ) -> tuple[PlayState, WaterReceipt]:
     if isinstance(command, DeclareWater):
         resources = declare(state.world, state.resources, command.body, command.id)
+    elif isinstance(command, DeclareWaterScene):
+        resources = declare_scene(state, command)
     else:
         runtime.approved_build(state, command.channel.actor_id)
         resources = declare_channel(state, command.channel, command.id)
