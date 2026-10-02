@@ -175,6 +175,16 @@ for _key, _cost, _magery, _prerequisite in (
 
 
 def _executable_spec(spell_id: RuntimeSpellId) -> RuntimeSpellSpec:
+    if spell_id == "haste":
+        return RuntimeSpellSpec(
+            id=spell_id,
+            kind="regular",
+            cost=2,
+            maintenance=1,
+            seconds=2,
+            duration=60,
+            reference="B251",
+        )
     if spell_id == "lockmaster":
         return RuntimeSpellSpec(
             id=spell_id,
@@ -229,6 +239,7 @@ class SpellContext(Record):
     unseen: bool = False
     radius: int = Field(default=1, ge=1, le=100)
     energy: int = Field(default=1, ge=1, le=100)
+    haste_size_scale: int = Field(default=1, ge=1, exclude_if=lambda value: value == 1)
     distracted: bool = False
     unavailable: bool = False
     execute_effects: bool = False
@@ -388,10 +399,12 @@ def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None
         spec.kind != "area"
         and context.radius != 1
         or spec.kind != "missile"
-        and spec.id not in HEALING | SUPPORT
+        and spec.id not in HEALING | SUPPORT | {"haste"}
         and context.energy != 1
     ):
         raise ValidationError("Spell does not accept this area or energy")
+    if spec.id == "haste" and context.energy > 3:
+        raise ValidationError("Haste above three levels requires unsupported high-Magery rules")
     if context.area is not None:
         if spec.kind != "area" or context.position != context.area.center:
             raise ValidationError("Area selection must match an Area spell destination")
@@ -666,12 +679,16 @@ def apply_spell(
             else context.energy
             if spec.kind == "missile"
             else context.energy
-            if spec.id in HEALING | SUPPORT and spec.id != "great-healing"
+            if spec.id in HEALING | SUPPORT | {"haste"} and spec.id != "great-healing"
             else lock_scale(state, spec.id, context.target_id)
         )
         cost = max(
             0,
-            item_energy_cost(spec.cost * scale, context.item_power_reduction, context.mana)
+            item_energy_cost(
+                spec.cost * scale * (context.haste_size_scale if spec.id == "haste" else 1),
+                context.item_power_reduction,
+                context.mana,
+            )
             - reduction,
         )
         _require_supported_item_cast(context, cost)
@@ -720,6 +737,8 @@ def apply_spell(
                     * (
                         context.radius
                         if spec.kind == "area"
+                        else context.energy * context.haste_size_scale
+                        if spec.id == "haste"
                         else lock_scale(state, spec.id, context.target_id)
                     ),
                     context.item_power_reduction,
@@ -882,6 +901,8 @@ def apply_spell(
                         * (
                             effect.radius
                             if spec.kind == "area"
+                            else effect.energy
+                            if spec.id == "haste"
                             else lock_scale(state, spec.id, effect.target_id)
                         ),
                         context.item_power_reduction,

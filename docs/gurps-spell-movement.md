@@ -6,6 +6,14 @@ executable effect. Unreviewed construction and effect families remain explicit
 manual boundaries. Magelock's learned college is Protection and Warning,
 although the historical package groups it with movement spells.
 
+## Haste (#797)
+
+Bounded private Haste casting and source-valid Power wearer activation now change
+actual walking Move and Dodge, with shared energy and lifecycle behavior. See
+[Haste and Power wearer effects](gurps-haste-power-wearer.md) for evidence,
+compatibility and explicit remaining limits. Apportation and Great Haste remain
+unimplemented; #797 stays open.
+
 ## Lockmaster and Magelock (#799)
 
 Reviewed against the supplied Basic Set: Characters, third printing (February

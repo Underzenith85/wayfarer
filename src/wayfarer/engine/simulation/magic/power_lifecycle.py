@@ -16,6 +16,8 @@ from wayfarer.engine.simulation.combat.special_damage import active_afflictions
 from wayfarer.engine.simulation.health.drug_state import drug_unconscious
 from wayfarer.engine.simulation.health.injury import InjuryResult
 from wayfarer.engine.simulation.health.sleep_state import asleep
+from wayfarer.engine.simulation.magic.haste_state import channels as haste_channels
+from wayfarer.engine.simulation.magic.haste_state import environments
 from wayfarer.engine.simulation.magic.item_state import (
     _surviving_bindings,
     item_power_reduction,
@@ -37,6 +39,7 @@ from wayfarer.models import Id, Record
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.magic.bindings import SpellChannel
+    from wayfarer.engine.simulation.magic.haste_state import HasteChannel
     from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand
 
 PREFIX = "power-cast-origin:"
@@ -85,8 +88,10 @@ def _sources(
 def remember(
     resources: ResourceState,
     command: RuntimeSpellCommand,
-    channel: SpellChannel,
+    channel: SpellChannel | HasteChannel,
     configured: tuple[MagicItemBinding, ...],
+    *,
+    haste_size_scale: int = 1,
 ) -> ResourceState:
     """Called once by the canonical cast transition, before combat completion."""
     # deferred: keep spell execution's state vocabulary independent of its host.
@@ -114,7 +119,14 @@ def remember(
         binding_digest=_digest(binding),
         source_digest=_sources(resources, binding, configured),
         duration=spec.duration,
-        maintenance=spec.maintenance * (effect.radius if spec.kind == "area" else 1),
+        maintenance=spec.maintenance
+        * (
+            effect.radius
+            if spec.kind == "area"
+            else effect.energy * haste_size_scale
+            if spec.id == "haste"
+            else 1
+        ),
     )
     return resources.model_copy(
         update={
@@ -172,12 +184,21 @@ def _supported(
 ) -> bool:
     rules = runtime.rules.spells
     if (
-        rules is None
+        (rules is None and effect.spell_id != "haste")
         or (effect.actor_id, effect.target_id) != (origin.actor_id, origin.target_id)
         or effect.reversed
     ):
         return False
-    channel = next((c for c in rules.channels if c.id == origin.channel_id), None)
+
+    available = (
+        haste_channels(state.resources)
+        if effect.spell_id == "haste"
+        else rules.channels
+        if rules
+        else ()
+    )
+    channel = next((c for c in available if c.id == origin.channel_id), None)
+    configured = rules.magic_items if rules else ()
     if channel is None or (
         channel.actor_id,
         channel.target_id,
@@ -194,13 +215,22 @@ def _supported(
         or not is_carried(state.resources, item)
     ):
         return False
-    bindings = _surviving_bindings(state.resources, item.id, rules.magic_items)
+    mana = channel.mana
+    if effect.spell_id == "haste":
+        location = next(
+            (e.location_id for e in state.world.entities if e.id == origin.actor_id), None
+        )
+        observed = environments(state.resources).get(location or "")
+        if observed is None or not item.equipped:
+            return False
+        mana = observed
+    bindings = _surviving_bindings(state.resources, item.id, configured)
     binding = next((b for b in bindings if b.id == origin.binding_id), None)
     if (
         binding is None
         or _digest(binding) != origin.binding_digest
-        or _sources(state.resources, binding, rules.magic_items) != origin.source_digest
-        or not usable_item_enchantment(state.resources, binding, channel.mana)
+        or _sources(state.resources, binding, configured) != origin.source_digest
+        or not usable_item_enchantment(state.resources, binding, mana)
     ):
         return False
     try:
@@ -208,16 +238,14 @@ def _supported(
         if compiled.revision != effect.build_revision:
             return False
         if (
-            item_requires_magery(state.resources, item.id, rules.magic_items)
+            item_requires_magery(state.resources, item.id, configured)
             and magery_level({p.definition_id: p.amount for p in compiled.purchases}) < 0
         ):
             return False
-        reduction = item_power_reduction(
-            state.resources, item.id, binding, rules.magic_items, channel.mana
-        )
+        reduction = item_power_reduction(state.resources, item.id, binding, configured, mana)
     except ValidationError, ConflictError:
         return False
-    return reduction > 0 and item_energy_cost(origin.maintenance, reduction, channel.mana) == 0
+    return reduction > 0 and item_energy_cost(origin.maintenance, reduction, mana) == 0
 
 
 def _broken_subject(state: PlayState, before: PlayState | None, effect: RuntimeSpellEffect) -> bool:

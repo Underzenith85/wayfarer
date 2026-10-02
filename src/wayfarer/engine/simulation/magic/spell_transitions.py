@@ -211,6 +211,14 @@ def approved_context(
             runtime, state, command, lock_context(runtime, state, command)
         )
 
+    if command.spell_id == "haste":
+        # deferred: private Haste channels reuse the canonical spell transition.
+        from wayfarer.engine.simulation.magic.haste_bindings import (
+            approved_context as haste_context,
+        )
+
+        return apply_targeting(runtime, state, command, haste_context(runtime, state, command))
+
     rules = runtime.rules.spells
     if rules is None:
         raise ValidationError("Campaign has no executable spell bindings")
@@ -895,6 +903,11 @@ def reduce_spell(
     if command.kind == "start" and not any(
         receipt.command_id == command.id for receipt in before.resources.receipts
     ):
+        if command.spell_id == "haste":
+            # deferred: new private items use the same paid activation ledger.
+            from wayfarer.engine.simulation.magic.haste_bindings import remember_item
+
+            resources = remember_item(runtime, before, resources, command)
         rules = runtime.rules.spells
         channel = (
             next(
