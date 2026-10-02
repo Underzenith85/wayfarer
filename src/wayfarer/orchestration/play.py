@@ -261,6 +261,7 @@ class PlayService:
                     "great-haste-host:",
                     "great-haste-casting-origin:",
                     "great-haste-step-lease:",
+                    "great-haste-named-origin:",
                     "great-haste-step-resolved:",
                     "haste-channel:",
                     "haste-item:",

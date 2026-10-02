@@ -10,6 +10,9 @@ from wayfarer.engine.simulation.combat.visibility import combat_visibility, visi
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment, approved_context
 from wayfarer.engine.simulation.magic.great_haste_casting import enabled as subjective_great_haste
 from wayfarer.engine.simulation.magic.great_haste_effects import checkpoint
+from wayfarer.engine.simulation.magic.great_haste_named import PREFIX as NAMED_PREFIX
+from wayfarer.engine.simulation.magic.great_haste_named import binding as named_binding
+from wayfarer.engine.simulation.magic.great_haste_named import current as named_current
 from wayfarer.engine.simulation.magic.great_haste_state import (
     ACTIVATION,
     CHANNEL,
@@ -67,7 +70,12 @@ def apply_host(
         )
     else:
         channel, spell, bound = bound_cast(runtime, state, command, combat_encounter)
+        accepted_name = named_binding(state, channel.target_id, command)
         resources, result = _apply_cast(runtime, state.resources, spell, bound, combat_encounter)
+        if accepted_name is not None and command.operation == "start":
+            resources = save(
+                resources, NAMED_PREFIX, command.cast_id, command.actor_id, accepted_name
+            )
         updated = state.model_copy(update={"resources": resources})
         outcome, spent = result.outcome, result.energy_spent
         if result.outcome == "active" and command.operation != "cancel":
@@ -122,13 +130,14 @@ def _combat_distance(
         raise ConflictError("Great Haste subject size changed during casting")
     if channel.target_id not in encounter.turn_order:
         raise ValidationError("Combat Great Haste requires an encounter subject")
-    if channel.target_id not in visible_actors(
+    if named_current() is None and channel.target_id not in visible_actors(
         state, encounter, command.actor_id, board=runtime.hex_map(encounter)
     ):
         raise ValidationError("Combat Great Haste requires a currently visible subject")
-    visibility = combat_visibility(encounter, command.actor_id, channel.target_id, state=state)
-    if visibility.attack_penalty:
-        raise ValidationError("Combat Great Haste requires a currently visible subject")
+    if named_current() is None:
+        visibility = combat_visibility(encounter, command.actor_id, channel.target_id, state=state)
+        if visibility.attack_penalty:
+            raise ValidationError("Combat Great Haste requires a currently visible subject")
     actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     subject = next(p for p in encounter.participants if p.actor_id == channel.target_id)
     return (
@@ -235,6 +244,7 @@ def bound_cast(
             execute_effects=True,
         )
     else:
+        named_binding(state, channel.target_id, command)
         distance = _combat_distance(
             runtime, state, channel, command, combat_encounter, effect, energy
         )
@@ -246,7 +256,17 @@ def bound_cast(
                 target_id=channel.target_id,
                 mana=channel.mana,
                 distance=distance,
-                unseen=not channel.visible,
+                unseen=(
+                    channel.target_id
+                    not in visible_actors(
+                        state,
+                        combat_encounter,
+                        command.actor_id,
+                        board=runtime.hex_map(combat_encounter),
+                    )
+                    if named_current() is not None and combat_encounter is not None
+                    else not channel.visible
+                ),
                 energy=energy,
             ),
         ).model_copy(
