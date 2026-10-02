@@ -678,6 +678,7 @@ def _self_hit_effects(
                     "hp_debt": result.injury,
                     "fp_debt": result.fp_lost,
                     "symptom_spec": profile.symptom_spec,
+                    "additional_symptoms": profile.additional_symptoms,
                     "symptom_source_id": symptom_source_id,
                     "contagious": profile.contagious,
                     "contagion_vector": source.contagion_vector,
@@ -695,6 +696,7 @@ def _self_hit_effects(
             amount=amount,
             pool_id=("fp:" if source.damage_type == "fat" else "hp:") + context.attacker_id,
             spec=profile.symptom_spec,
+            additional_specs=profile.additional_symptoms,
             restriction_id=cyclic_id,
         )
     return resources, result.model_copy(update={"cyclic_attack_id": cyclic_id})

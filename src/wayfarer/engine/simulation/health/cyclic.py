@@ -160,6 +160,7 @@ def settle(
             amount=fp_lost if attack.damage_type == "fat" else hp_lost,
             pool_id=("fp:" if attack.damage_type == "fat" else "hp:") + attack.actor_id,
             spec=attack.symptom_spec,
+            additional_specs=attack.additional_symptoms,
             restriction_id=attack.id,
         )
     remaining = attack.remaining - 1

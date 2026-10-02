@@ -48,6 +48,7 @@ def register(
     amount: int,
     pool_id: str,
     spec: SymptomSpec,
+    additional_specs: tuple[SymptomSpec, ...] = (),
     restriction_id: str | None = None,
 ) -> ResourceState:
     pool = next((p for p in state.pools if p.id == pool_id), None)
@@ -64,14 +65,27 @@ def register(
                 ),
             )
     identifier = "symptoms:" + hashlib.sha256(f"{pool_id}:{source_id}".encode()).hexdigest()
-    existing = next((e for e in effects if e.id == identifier), None)
-    if existing and existing.spec != spec:
+    specs = (spec,) + additional_specs
+    if len(set(specs)) != len(specs):
+        raise ValidationError("Duplicate Symptoms effect and threshold")
+    existing = tuple(e for e in effects if e.pool_id == pool_id and e.source_id == source_id)
+    # Reapproval may reorder the same effects while retaining the attack source.
+    if existing and {e.spec for e in existing} != set(specs):
         raise ValidationError("Symptoms source changed its approved effect")
-    if existing is None:
-        effects += (
+    if not existing:
+        effects += tuple(
             SymptomEffect(
-                id=identifier, pool_id=pool_id, source_id=source_id, actor_id=actor_id, spec=spec
-            ),
+                id=identifier
+                if index == 0
+                else identifier
+                + ":"
+                + hashlib.sha256(selected.model_dump_json().encode()).hexdigest(),
+                pool_id=pool_id,
+                source_id=source_id,
+                actor_id=actor_id,
+                spec=selected,
+            )
+            for index, selected in enumerate(specs)
         )
     if amount:
         debts = tuple(d for d in debts if d.id != injury_id) + (

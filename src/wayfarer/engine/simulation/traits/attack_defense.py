@@ -479,6 +479,7 @@ def _schedule_cyclic(
                     "basic_damage": channel.basic_damage,
                     "damage_dice": damage_dice,
                     "symptom_spec": cyclic.symptom_spec,
+                    "additional_symptoms": cyclic.additional_symptoms,
                     "symptom_source_id": channel.attacker_id + ":" + channel.id,
                     "contagious": cyclic.contagious,
                     "contagion_vector": channel.contagion_vector,
@@ -535,6 +536,7 @@ def _register_symptoms(
         amount=amount,
         pool_id=("fp:" if fatigue else "hp:") + channel.target_id,
         spec=profile.symptom_spec,
+        additional_specs=profile.additional_symptoms,
         restriction_id=_id(command.id, "cyclic")
         if profile.cyclic_interval_seconds is not None
         else None,

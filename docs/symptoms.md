@@ -55,3 +55,73 @@ The private random-unarmed adapter supports ordinary punches and kicks. Its full
 Blindness can begin after an attack was declared but before it was rolled. Body aim then resolves randomly once nonvisual location is established. An explicitly selected object is not silently changed into a person target. A private, attacker-authorized `AbandonPendingAttack` command binds the exact pending ID and lets the player forgo the unresolved remainder of that maneuver. It preserves spent FP, ammunition, movement, previous strikes and the maneuver's defensive restrictions. Canonical end-of-turn injury and clock settlement run once; the command does not start a new Do Nothing turn or refund costs. The original intent and spent maneuver remain in private history.
 
 A committed attack roll cannot be abandoned. A failed protector's interposition therefore returns to the original target's ordinary defense continuation, retaining the recorded attack. Suppression rounds are paid at zone creation; their later automatic attacks remain live after the shooter loses sight and must resolve through the pending defender, without another ammunition debit. New blind suppression declarations remain unsupported. Abandoning a waiter's unrolled reaction restores the existing interrupted-movement continuation, preserving any mandatory high-speed distance. These cases distinguish a voluntary unrolled action from consequences already incurred; none permits rollback or silent retargeting.
+
+## Multiple Symptoms on one purchased attack
+
+Characters third printing B109 explicitly permits several Symptoms on one Innate
+Attack. The approved construction now accepts distinct effect/threshold pairs,
+including pairs that reuse the same author-facing modifier option. Each pair has
+its own B35–36 cost and threshold multiplier. For example, one die of burning
+with coughing above one-third HP (+60%) and blindness above two-thirds HP (+50%)
+costs 11 points after rounding. Exact duplicates, including equivalent numeric
+attribute levels spelled differently, remain invalid; unrelated duplicate
+modifiers remain invalid. Each generated cost approval binds the complete authored
+parameters so one effect cannot borrow another effect's price.
+
+The first typed effect retains its original `symptom_spec` field and legacy
+source-derived ID. Further typed effects are retained in `additional_symptoms`,
+which is omitted when empty. Each additional effect has a distinct stable ID,
+but all effects from the same attack source read the same causal injury debt.
+One hit or Cyclic occurrence records damage once, regardless of its number of
+Symptoms. Reapproving the same semantic effect set in a different authored order
+retains the existing effects, IDs and injury debts when its source is rebound;
+changing an effect, level or threshold remains invalid for that ongoing source.
+Direct composed delivery, purchased combat declarations, Cyclic ticks,
+contagion snapshots and critical self-hit scheduling retain the complete effect
+set. Different channels, attackers and target pools remain independent. Recovery
+refreshes each effect separately and projects against the actor's current build;
+it never restores an old actor or purchase snapshot.
+
+`tests/test_multiple_symptoms.py` independently checks the printed thresholds on
+12 HP/FP: injury 4 does not start one-third Symptoms, 5 does; injury 8 does not
+start two-thirds Symptoms, 9 does. Healing back to 8 or 4 retains a corresponding
+active effect, while healing to 7 or 3 removes it. The tests inspect actual DX/IQ
+modifiers, sight and Stealth eligibility, the strongest concurrent attribute
+penalty, current-build Will, resource balances and distinct causal sources. FP
+recovery uses actual ten-minute rest accrual (Campaigns fourth B427); stopping a
+Cyclic attack alone does not remove unhealed Symptoms.
+
+`tests/test_multiple_symptoms_host.py` starts with a real approved purchase and
+GM-bound combat source, resolves the attack and a Cyclic tick, stops that source,
+and performs five daily natural-recovery checks (B424). It verifies current
+consequences, unchanged approved actors, exact retries after restart, authority,
+changed-intent conflicts, stale revisions, event folding and seed-only command
+reexecution. Existing single-Symptom records and histories keep their prior
+serialized form and roll chronology; no command generation or version increment
+is needed because multiple Symptoms previously failed approved construction.
+
+### #763 acceptance and remaining ownership
+
+- Thresholds, source-specific recovery, repeated hits, independent attack sources
+  and actual supported consequences have executable coverage for the named
+  blindness, coughing and ST/DX/IQ/HT variants, including multiple effects
+- Independent source expectations and real purchased-host state are tested;
+  passing these tests does not establish untested gameplay consumers
+- The existing transaction authority, exact retries, stale rejection and seeded
+  replay remain in force; the new persisted cases exercise those boundaries
+- Source/evidence status remains partial. Open #763 remains the completion and
+  consequence owner; prior closed implementation issues do not own its residuals
+
+Advantage grants, Disadvantages other than blindness, and Negated Advantage
+suppression still lack a general source-bound temporary-trait consumer. Their
+bounded dependency is an overlay that adds or suppresses the specified trait and
+level on the *current* approved build, supplies the actual trait consumers, and
+removes only the ended source without undoing later purchases or other effects.
+Instantaneous Advantages also need their own once-only activation semantics.
+The remaining B36 Irritants (Tipsy, Drunk, Drowsy, Moderate/Severe/Terrible Pain,
+Euphoria and Nauseated) need source-derived timing, checks and eligibility wired
+to this cumulative lifetime; accepting their names alone would not satisfy the
+first two issue criteria. All remain explicitly rejected in approved construction
+and owned by #763. The previously documented blind-combat and Area-spell residuals
+also remain; Area-spell consumer work is shared with open #785. This change does
+not justify closing #763 or promoting its family to fully supported/certified.
