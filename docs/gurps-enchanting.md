@@ -93,7 +93,10 @@ For those personal casts, current Symptoms blindness and bilateral eye injury ap
 unseen penalty even for a remembered target; separately verified current touch
 retains its source exception. Catalog-only Blindness purchases and magical sight
 still lack executable sight consumers and remain unverified.
-Item-cast current-sight consumers remain a separate open part of #763/#785.
+Regular/Resisted item casts now consume current physical sight in both execution
+generations. Source-correct mapped Area targeting and Staff contact use the
+fixed affected surface; see [Area item casting](gurps-area-item-casting.md).
+Unimplemented magical sight remains open under #763/#785.
 New spell command records carry a private targeting-generation marker. Commands
 recorded before that marker reexecute their original path, and exact live retries
 retain the original payload generation. Historical unresolved casts without a

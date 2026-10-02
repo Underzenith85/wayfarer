@@ -654,7 +654,7 @@ async def test_current_physical_eligibility_is_required(
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
-async def test_staff_cannot_be_declared_for_area_or_missile_casting(
+async def test_staff_requires_explicit_area_and_rejects_missile_casting(
     tmp_path: Path, backend: str
 ) -> None:
     cid, play, _ = await prepare(tmp_path, backend)

@@ -11,11 +11,28 @@ from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.magic.casting_targeting import targeting
+from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellEffect
 from wayfarer.engine.simulation.magic.spells import active_spells
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 PREFIX = "spell-fire:"
+
+
+def _contains(resources: ResourceState, effect: RuntimeSpellEffect, point: GridPoint | Hex) -> bool:
+    assert effect.position is not None
+    original = targeting(resources, effect.cast_id)
+    if original is not None and original.area and effect.area is not None and effect.area.cells:
+        coordinates = (point.q, point.r) if isinstance(point, Hex) else (point.x, point.y)
+        return coordinates in effect.area.cells
+    center = (
+        Hex(q=effect.position[0], r=effect.position[1])
+        if effect.geometry == "hex"
+        else GridPoint(x=effect.position[0], y=effect.position[1])
+    )
+    return CombatEngine.distance(center, point) < effect.radius
 
 
 def armor(
@@ -106,16 +123,10 @@ def checkpoint(runtime: RulesContext, state: PlayState) -> PlayState:
         encounter = next((e for e in state.encounters if e.id == effect.encounter_id), None)
         if encounter is None or effect.expires_at is None:
             continue
-        center = (
-            Hex(q=effect.position[0], r=effect.position[1])
-            if effect.geometry == "hex"
-            else GridPoint(x=effect.position[0], y=effect.position[1])
-        )
         entities = {e.id: e for e in state.world.entities}
         for participant in encounter.participants:
-            if (
-                entities[participant.actor_id].location_id != effect.location_id
-                or CombatEngine.distance(center, participant.position) >= effect.radius
+            if entities[participant.actor_id].location_id != effect.location_id or not _contains(
+                resources, effect, participant.position
             ):
                 continue
             actor_id = participant.actor_id
@@ -265,12 +276,7 @@ def crossings(
             or effect.position is None
         ):
             continue
-        center = (
-            Hex(q=effect.position[0], r=effect.position[1])
-            if effect.geometry == "hex"
-            else GridPoint(x=effect.position[0], y=effect.position[1])
-        )
-        if not any(CombatEngine.distance(center, point) < effect.radius for point in points):
+        if not any(_contains(resources, effect, point) for point in points):
             continue
         sid = (
             "spell-crossing:"

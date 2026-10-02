@@ -16,6 +16,7 @@ class SpellGenerations:
     capture_targeting: bool = True
     check_symptoms: bool = True
     item_sight: bool = True
+    area_targeting: bool = True
 
 
 async def recorded_generations(
@@ -30,15 +31,18 @@ async def recorded_generations(
     if prior is None:
         return SpellGenerations()
     if prior.command_input is None:
-        return SpellGenerations(False, False, False)
+        return SpellGenerations(False, False, False, False)
     payload = validation.mapping(validation.decode(command_text(prior)))
     targeting = payload.get("targeting_generation")
     checks = payload.get("check_generation")
     sight = payload.get("item_sight_generation")
+    area = payload.get("area_targeting_generation")
     if targeting not in (None, 1):
         raise ValidationError("Unsupported recorded spell targeting generation")
     if checks not in (None, 1):
         raise ValidationError("Unsupported recorded spell check generation")
     if sight not in (None, 1):
         raise ValidationError("Unsupported recorded item sight generation")
-    return SpellGenerations(targeting == 1, checks == 1, sight == 1)
+    if area not in (None, 1):
+        raise ValidationError("Unsupported recorded Area targeting generation")
+    return SpellGenerations(targeting == 1, checks == 1, sight == 1, area == 1)

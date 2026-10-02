@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import Field, TypeAdapter
 
+from wayfarer.engine.rules.magic.protocols import AreaSelection
 from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellId
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.models import Id, Record
@@ -27,6 +28,7 @@ class DeclareStaffIntent(Command):
     channel_id: Id
     item_id: Id
     pointing: bool = False
+    radius: int | None = Field(default=None, ge=1, le=100, exclude_if=lambda value: value is None)
 
 
 class ObserveStaffTouch(Command):
@@ -48,6 +50,8 @@ class StaffIntent(Record):
     target_id: Id
     item_id: Id
     pointing: bool
+    area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
+    radius: int | None = Field(default=None, ge=1, le=100, exclude_if=lambda value: value is None)
 
 
 class StaffTouch(Record):
@@ -125,6 +129,9 @@ def scope_digest(state: PlayState, intent: StaffIntent) -> str:
     entities = {e.id: e for e in state.world.entities}
     item = next((i for i in state.resources.items if i.id == intent.item_id), None)
     actor = next(a for a in state.actors if a.actor_id == intent.actor_id)
+    scoped_actors = (
+        (intent.actor_id,) if intent.area is not None else (intent.actor_id, intent.target_id)
+    )
     participants = tuple(
         (
             e.id,
@@ -139,14 +146,13 @@ def scope_digest(state: PlayState, intent: StaffIntent) -> str:
         for e in state.encounters
         if e.status == "active"
         for p in e.participants
-        if p.actor_id in (intent.actor_id, intent.target_id)
+        if p.actor_id in scoped_actors
     )
     data = {
         "campaign": state.campaign_id,
         "binding": intent.model_dump(mode="json"),
         "locations": [
-            (key, entities[key].location_id if key in entities else None)
-            for key in (intent.actor_id, intent.target_id)
+            (key, entities[key].location_id if key in entities else None) for key in scoped_actors
         ],
         "placements": participants,
         "item": (
@@ -202,8 +208,15 @@ def invalidate_movement(
     revision: int,
 ) -> ResourceState:
     """Use only executed movement, including loops and a Wait's executed prefix."""
+    bound = {i.cast_id: i for i in intents(resources)}
     for entry in observations(resources):
-        if entry.encounter_id == encounter_id and actor_ids & {entry.actor_id, entry.target_id}:
+        intent = bound.get(entry.cast_id)
+        affected = (
+            {entry.actor_id}
+            if intent and intent.area is not None
+            else {entry.actor_id, entry.target_id}
+        )
+        if entry.encounter_id == encounter_id and actor_ids & affected:
             resources = _invalidate(resources, entry, revision)
     return resources
 

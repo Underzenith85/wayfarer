@@ -3,7 +3,7 @@
 from math import ceil
 
 from wayfarer.engine.rules.magic.gurps_magic import magery_level
-from wayfarer.engine.rules.magic.protocols import ManaLevel, staff_casting_benefit
+from wayfarer.engine.rules.magic.protocols import AreaSelection, ManaLevel, staff_casting_benefit
 from wayfarer.engine.rules.types.location import disabled_locations
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
@@ -50,6 +50,7 @@ class _Channel(Record):
     encounter_id: str | None = None
     position: tuple[int, int] | None = None
     geometry: str = "square"
+    area: AreaSelection | None = None
 
 
 def _channel(
@@ -79,6 +80,7 @@ def _channel(
         location_id=selected.location_id,
         mana=selected.mana,
         distance=selected.distance_yards,
+        area=selected.area,
     )
 
 
@@ -231,7 +233,8 @@ def apply_targeting(
     intent = bound_intent(state, command)
     if command.kind not in ("start", "concentrate", "complete"):
         return context
-    if context.item_cast or _executable_spec(command.spell_id).kind not in ("regular", "resisted"):
+    regular = _executable_spec(command.spell_id).kind in ("regular", "resisted")
+    if context.item_cast or not (regular or context.area_targeting):
         if intent is not None:
             raise ValidationError("Staff targeting belongs to personal Regular spells")
         if (
@@ -243,13 +246,17 @@ def apply_targeting(
             # personal skill, not the B239 penalty for an unseen subject.
             return _current_sight(state, command, context)
         return context
-    context = _current_sight(state, command, context)
+    if regular:
+        context = _current_sight(state, command, context)
     if intent is None:
         return context
-    if intent.target_id != context.target_id:
+    if intent.target_id != context.target_id or (
+        context.area_targeting and (intent.area != context.area or intent.radius != context.radius)
+    ):
         raise ConflictError("Staff casting target changed")
     if (
-        command.kind != "start"
+        regular
+        and command.kind != "start"
         and command.cast_id in latest(state.resources)
         and command.spell_id not in ("lockmaster", "magelock")
         and context.target_id
@@ -315,9 +322,16 @@ def declare_intent(
         raise ConflictError("Staff intent cannot be replaced or switched")
     if command.cast_id in latest(state.resources):
         raise ConflictError("Declare Staff pointing before the accepted casting start")
-    if _executable_spec(command.spell_id).kind not in ("regular", "resisted"):
-        raise ValidationError("Staff targeting belongs to personal Regular spells")
+    kind = _executable_spec(command.spell_id).kind
+    if kind not in ("regular", "resisted", "area"):
+        raise ValidationError("Staff targeting belongs to personal Regular or Area spells")
     channel = _channel(runtime, state, command.actor_id, command.spell_id, command.channel_id)
+    if kind == "area" and (channel.area is None or command.radius is None):
+        raise ValidationError(
+            "Staff targeting requires a Regular spell or an explicit Area and radius"
+        )
+    if kind != "area" and command.radius is not None:
+        raise ValidationError("A Staff Area radius requires an Area spell")
     build(runtime, state, command.actor_id)
     item = next((i for i in state.resources.items if i.id == command.item_id), None)
     if item is None or item.owner_id != command.actor_id:
@@ -331,6 +345,8 @@ def declare_intent(
         target_id=channel.target_id,
         item_id=command.item_id,
         pointing=command.pointing,
+        area=channel.area if kind == "area" else None,
+        radius=command.radius,
     )
 
 
@@ -344,7 +360,7 @@ def observe_touch(
     if effect is not None and effect.phase != "casting":
         raise ConflictError("Staff touch observation requires an upcoming or concentrating cast")
     channel = _channel(runtime, state, intent.actor_id, intent.spell_id, intent.channel_id)
-    if channel.target_id != intent.target_id:
+    if channel.target_id != intent.target_id or channel.area != intent.area:
         raise ConflictError("Staff casting target changed")
     compiled = build(runtime, state, command.actor_id)
     magery = magery_level({p.definition_id: p.amount for p in compiled.purchases})
@@ -354,7 +370,9 @@ def observe_touch(
     entities = {e.id: e for e in state.world.entities}
     if command.touching and any(
         entities[a].location_id != channel.location_id
-        for a in (intent.actor_id, intent.target_id)
+        for a in (
+            (intent.actor_id,) if intent.area is not None else (intent.actor_id, intent.target_id)
+        )
         if a in entities
     ):
         raise ValidationError("Staff contact requires the same current location")
@@ -365,7 +383,20 @@ def observe_touch(
     distance = channel.distance
     if encounter is not None:
         participants = {p.actor_id: p for p in encounter.participants}
-        if intent.target_id in participants:
+        if intent.area is not None:
+            # deferred: fixed Area geometry shares the canonical casting types.
+            from wayfarer.engine.simulation.magic.area_targeting import cells
+
+            assert intent.radius is not None
+            points = cells(intent.area, intent.radius, encounter.spatial_kind)
+            distance = min(
+                CombatEngine.distance(
+                    participants[intent.actor_id].position,
+                    Hex(q=x, r=y) if encounter.spatial_kind == "hex" else GridPoint(x=x, y=y),
+                )
+                for x, y in points
+            )
+        elif intent.target_id in participants:
             distance = CombatEngine.distance(
                 participants[intent.actor_id].position, participants[intent.target_id].position
             )
@@ -378,6 +409,8 @@ def observe_touch(
             distance = CombatEngine.distance(participants[intent.actor_id].position, point)
         else:
             raise ValidationError("Staff contact requires the current encounter target")
+    if intent.area is not None and encounter is None:
+        raise ValidationError("Staff Area contact requires its current mapped encounter")
     if command.touching and staff is not None and distance > ceil(staff.length_yards):
         raise ValidationError("Observed Staff contact exceeds its physical extent")
     return StaffTouch(

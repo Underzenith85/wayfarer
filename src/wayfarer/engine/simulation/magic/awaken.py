@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.health.sleep_state import asleep, wake_sleep
 from wayfarer.engine.simulation.magic.awaken_state import PREFIX, Alert
 from wayfarer.engine.simulation.magic.awaken_state import alerts as alerts
 from wayfarer.engine.simulation.magic.backfires import clear_stun
+from wayfarer.engine.simulation.magic.casting_targeting import record_awaken_checks
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -88,8 +89,10 @@ def settle_alerts(state: ResourceState, *, rng: RandomSource | None) -> Resource
     return state
 
 
-def validate_subjects(state: ResourceState, subjects: tuple[AwakenSubject, ...]) -> None:
-    if not subjects:
+def validate_subjects(
+    state: ResourceState, subjects: tuple[AwakenSubject, ...], *, allow_empty: bool = False
+) -> None:
+    if not subjects and not allow_empty:
         raise ValidationError("Awaken requires approved subjects inside the authored area")
     if len({subject.actor_id for subject in subjects}) != len(subjects):
         raise ValidationError("Awaken area subjects must be unique")
@@ -179,9 +182,11 @@ def awaken(
     margin: int,
     command_id: str,
     rng: RandomSource,
+    area_cast: tuple[str, str] | None = None,
 ) -> tuple[ResourceState, tuple[CheckTrace, ...]]:
-    validate_subjects(state, subjects)
+    validate_subjects(state, subjects, allow_empty=area_cast is not None)
     traces: list[CheckTrace] = []
+    checked_actors: list[str] = []
     for subject in subjects:
         hp = next(p for p in state.pools if p.id == "hp:" + subject.actor_id)
         fp = next(p for p in state.pools if p.id == "fp:" + subject.actor_id)
@@ -214,6 +219,7 @@ def awaken(
                 rng=rng,
             )
             traces.append(check)
+            checked_actors.append(subject.actor_id)
             wakes = check.outcome in (Outcome.SUCCESS, Outcome.CRITICAL_SUCCESS)
         # Stunning is countered immediately, independent of an awakening roll.
         status = hp.injury.model_copy(
@@ -274,4 +280,6 @@ def awaken(
                     due=state.game_time + 3600,
                 ),
             )
+    if area_cast is not None:
+        state = record_awaken_checks(state, area_cast[0], area_cast[1], tuple(checked_actors))
     return state, tuple(traces)
