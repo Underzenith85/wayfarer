@@ -31,6 +31,7 @@ from wayfarer.engine.simulation.social.social import SocialCommand, SocialContex
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
 from wayfarer.orchestration.provider_contracts import ProviderRequest
+from wayfarer.orchestration.reaction_records import NPCReactionSource, PrepareReaction
 from wayfarer.persistence.events import CommandOrigin
 
 if TYPE_CHECKING:
@@ -85,7 +86,9 @@ def due_times(play: PlayService, state: PlayState, frontier: int) -> set[int]:
     return times
 
 
-def checkpoint(play: PlayService, state: PlayState) -> PlayState:
+def checkpoint(
+    play: PlayService, state: PlayState, *, stop_before: tuple[str, int] | None = None
+) -> PlayState:
     rules = play.engine.rules.npcs
     if rules is None:
         return state
@@ -105,6 +108,8 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
         if not eligible:
             break
         progress = eligible[0]
+        if stop_before == (progress.plan_id, progress.spent_actions):
+            break
         plan = plans[progress.plan_id]
         known = frozenset(f.id for f in state.world.perspective(plan.actor_id).facts)
         options = tuple(a for a in plan.actions if set(a.required_fact_ids) <= known)
@@ -417,6 +422,34 @@ DIRECTOR_REFUSAL = "NPC proposals require trusted director authority"
 class NPCService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
+
+    def prepare_reaction_command(
+        self,
+        state: PlayState,
+        *,
+        command_id: str,
+        actor_id: str,
+        plan_id: str,
+        action_id: str,
+        active_interaction: bool,
+        sapient: bool,
+    ) -> PrepareReaction:
+        """Enroll the next authored occurrence in the private task-host lifecycle.
+
+        Submission uses TaskService so its source survives deterministic replay;
+        current plan, actor, cost and timing are checked again under the lock.
+        """
+        return PrepareReaction(
+            id=command_id,
+            actor_id=actor_id,
+            expected_revision=state.revision,
+            source=NPCReactionSource(
+                plan_id=plan_id,
+                action_id=action_id,
+                active_interaction=active_interaction,
+                sapient=sapient,
+            ),
+        )
 
     async def propose_generated(
         self,

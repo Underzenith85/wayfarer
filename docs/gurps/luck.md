@@ -1,7 +1,8 @@
-# Luck: ordinary and secret task consequences (B66, #866, #871)
+# Luck: persisted task and reaction consequences (B66)
 
 Sources checked: supplied *Characters*, fourth edition, third printing B66;
-*Campaigns*, fourth edition, fourth printing B346–347 and B426. Source files
+*Campaigns*, fourth edition, fourth printing B346–347, B426, B494–495,
+B508, B518–519 and B560–561. Source files
 remain private. These references support the numeric rules and timing below.
 
 ## The persisted consumer
@@ -117,6 +118,51 @@ spends no Luck, and retains paid time and fatigue. Both close the global pending
 gate. The same gate remains a host serialization policy, not an additional B66
 rule. Secret long-task phases are outside this bounded Inspect/Social consumer.
 
+## Secret reaction continuations
+
+`PrepareReaction` binds an unrolled reaction to its actual source and the actor
+receiving it. A trusted seated GM supplies that source; the controlling owner
+can declare their own Luck without seeing the secret reaction. Preparation may
+settle a preceding hireling search or Diplomacy contest, but never the reaction's
+target dice. The immutable prerequisite remains fixed when the later reaction
+is selected. An already committed immediate reaction cannot be reopened.
+
+The reaction uses B494's high-is-good 3d total with its source modifiers. A Luck
+declaration draws three complete reactions and chooses the highest total, with
+the earliest attempt winning a tie. Uncertain Reputation recognition is resolved
+once and reused by all three; Diplomacy retains recognition captured with its
+preceding contest. The declaration revalidates authority, current source context
+and cooldown before any remaining recognition or target entropy. The same task
+clock and actor cooldown cover ordinary checks, secret checks and reactions.
+
+The private continuation names the actual effect it resumes:
+
+- Canonical social and authored NPC interactions use the existing disclosure
+  policy and `World.learn`; NPC occurrences also settle their decision and budget
+- Both Diplomacy entry routes preserve their preceding skill/Will contest and
+  combine its fixed result with the selected fallback reaction
+- Initial hireling loyalty becomes the selected reaction total in its persisted
+  contract, after the separate search succeeds
+- A qualifying rescue uses B519's +3-or-more reaction and, on Good or better,
+  retains the greater of prior loyalty and that total; an explicit GM permanent
+  injury/death bonus is a separate source decision
+- A reaction-mode law procedure changes its bound case state and consumes its
+  authored time once; Administration changes its explicitly bound knowledge
+
+The [campaign continuation rules](campaign-reaction-continuations.md) specify
+recipient identity, standing, recognition, rescue and law adjudication limits.
+A reaction band alone does not imply surrender, payment, aid or an unimplemented
+relationship state. Information disclosure uses an authored outcome policy: a
+simple answer can include Neutral, while a complete complex answer can require
+Good. It is not a universal Good threshold for every information request.
+
+The selected reaction, actual consequence, recognition memory, Luck receipt and
+cooldown commit in one transaction. A trusted GM can instead resolve one ordinary
+reaction or cancel before target dice. Cancellation preserves committed
+prerequisites and closes the original source identity so another entry point
+cannot reroll that search or contest. Current authority is checked on retries;
+secret projections reveal neither candidate dice nor private source facts.
+
 ## Evidence and remaining source scope
 
 `test_task_host`, `test_task_host_boundaries` and `test_task_host_work` exercise
@@ -137,12 +183,27 @@ continuations. `test_prepared_task_checks` preserves old ordinary histories and
 rejects forged selected traces. `test_long_task_phases`, `test_real_play_clock`, and
 `test_real_play_command_time` cover their lower-level source boundaries.
 
+Reaction evidence is bound to `test_reaction_task_host`,
+`test_reaction_task_boundaries`, `test_reaction_task_routes`,
+`test_reaction_recognition_host` and `test_reaction_campaign_host`, with independent
+source oracles in the prepared-reaction, prepared-Diplomacy and campaign
+continuation suites. These assert actual knowledge, loyalty, case and occurrence
+state alongside timing, authority, cancellation, rollback and replay.
+`test_reaction_campaign_traits` covers current approved standing and once-only
+recognition; `test_social_captured_replay` covers immutable immediate-source
+capture, seed reexecution and live GM trust changes during commit and retries.
+The [reaction host contract](reaction-luck-host.md) maps the complete bounded
+consumer and its source limits. Historical immediate-social inputs without a
+captured resolver source retain exact retries and event folding, with their
+seed-only replay limitation stated explicitly.
+
 The earlier `apply_lucky_task` and cinematic helper are reusable reducers, not
 independent proof of a persistent host. Their historical call behavior is retained.
 The whole Luck family remains partial under #854. Existing owners remain #855
-for Active/Aspected/Defensive consumers and #867–870 for damage, reaction,
-attacker and outside-event integrations. Only the bounded #871 secret consumer
-joins the completed ordinary #866 consumer; this does not promote those residuals.
+for Active/Aspected/Defensive consumers, #867 for damage, #869 for attacker rolls
+and #870 for outside-event integrations. The bounded #868 reaction consumer joins
+the ordinary #866 and secret #871 task consumers; this does not promote those
+remaining source contracts.
 Supported purchase availability is separate from certification completeness.
 
 This consumer also explicitly refuses NPC overtime without a source-bound prior

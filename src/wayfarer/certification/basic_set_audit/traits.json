@@ -4005,7 +4005,21 @@
         "tests/test_task_host_boundaries.py",
         "tests/test_task_host_work.py",
         "tests/test_secret_task_host.py",
-        "tests/test_secret_task_boundaries.py"
+        "tests/test_secret_task_boundaries.py",
+        "docs/gurps/campaign-reaction-continuations.md",
+        "tests/test_prepared_reactions.py",
+        "tests/test_prepared_diplomacy.py",
+        "tests/test_reaction_task_host.py",
+        "tests/test_reaction_task_boundaries.py",
+        "tests/test_reaction_task_routes.py",
+        "tests/test_reaction_recognition_host.py",
+        "tests/test_reaction_campaign_host.py",
+        "tests/test_campaign_reaction_continuations.py",
+        "docs/gurps/reaction-luck-host.md",
+        "tests/test_reaction_campaign_traits.py",
+        "tests/test_reaction_recognition_provenance.py",
+        "tests/test_social_captured_replay.py",
+        "tests/test_reputation_aggregate_cap.py"
       ],
       "historical_owners": [
         113,

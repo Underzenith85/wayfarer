@@ -275,13 +275,36 @@ def _procedure(
     rng: RandomSource,
     advance: Callable[[ResourceState, int, str], ResourceState] | None,
 ) -> tuple[LawState, ResourceState, LawOutcome]:
+    case, procedure = law_reaction_context(state, command, rules)
+    succeeded, private = _procedure_check(command, case, procedure, rules, rng)
+    return _finish_procedure(
+        state, resources, command, case, procedure, succeeded, private, advance
+    )
+
+
+def law_reaction_context(
+    state: LawState, command: ResolveLawCase, rules: LawRules
+) -> tuple[LawCase, EnforcementProcedure]:
+    """Bind the current case and exact authored procedure before any dice."""
     case = next((item for item in state.cases if item.id == command.case_id), None)
     procedure = next((item for item in rules.procedures if item.id == command.procedure_id), None)
     if case is None or procedure is None or procedure.jurisdiction_id != case.jurisdiction_id:
         raise ValidationError("Law case procedure is not authored for this jurisdiction")
     if case.status != procedure.from_status or procedure.id in case.procedures:
         raise ConflictError("Law procedure is not available in the case's current state")
-    succeeded, private = _procedure_check(command, case, procedure, rules, rng)
+    return case, procedure
+
+
+def _finish_procedure(
+    state: LawState,
+    resources: ResourceState,
+    command: ResolveLawCase,
+    case: LawCase,
+    procedure: EnforcementProcedure,
+    succeeded: bool,
+    private: str,
+    advance: Callable[[ResourceState, int, str], ResourceState] | None,
+) -> tuple[LawState, ResourceState, LawOutcome]:
     if procedure.duration:
         if advance is None:
             raise ValidationError("Timed law procedure requires the shared clock reducer")
@@ -302,6 +325,35 @@ def _procedure(
         resources,
         LawOutcome(status=status, private=private, consequence=case.consequence),
     )
+
+
+def cancel_law_reaction(
+    resources: ResourceState, command: ResolveLawCase
+) -> tuple[ResourceState, LawOutcome]:
+    """Record cancellation without applying the case procedure or its elapsed time."""
+    outcome = LawOutcome(status="cancelled")
+    return _finish(resources, command, outcome, resources.revision + 1), outcome
+
+
+def resolve_law_reaction(
+    state: LawState,
+    resources: ResourceState,
+    command: ResolveLawCase,
+    rules: LawRules,
+    *,
+    succeeded: bool,
+    private: str,
+    advance: Callable[[ResourceState, int, str], ResourceState],
+) -> tuple[LawState, ResourceState, LawOutcome]:
+    """Apply a validated selected verdict through the ordinary case/time reducer."""
+    case, procedure = law_reaction_context(state, command, rules)
+    if procedure.resolution != "reaction":
+        raise ValidationError("Law continuation requires a reaction procedure")
+    revision = resources.revision + 1
+    state, resources, outcome = _finish_procedure(
+        state, resources, command, case, procedure, succeeded, private, advance
+    )
+    return state, _finish(resources, command, outcome, revision), outcome
 
 
 def apply_law(

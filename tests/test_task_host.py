@@ -20,6 +20,11 @@ from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
 from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec
 from wayfarer.engine.simulation.actions import ActionRules, CheckRule
 from wayfarer.engine.simulation.campaign.activities import LongTaskRule
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
+from wayfarer.engine.simulation.campaign.party import PartyRules
+from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
+from wayfarer.engine.simulation.campaign.social_policy import SocialActionRules
+from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.task_records import (
@@ -42,6 +47,9 @@ async def fixture(
     fatigue_cost: int = 0,
     action: Literal["inspect", "social"] = "inspect",
     modifiers: tuple[str, ...] = (),
+    npc_rules: NPCSocialRules | None = None,
+    world_override: World | None = None,
+    social_traits: tuple[Purchase, ...] = (),
 ) -> tuple[str, PlayService]:
     luck = next(
         definition
@@ -74,7 +82,13 @@ async def fixture(
         trained=False,
         start_encounter=False,
         allow_supernatural=True,
-        extra_definitions=(luck,) + skills,
+        extra_definitions=(luck,)
+        + skills
+        + tuple(
+            replace(definition, source_id=luck.source_id, exclusions=())
+            for definition in candidate_package().definitions
+            if definition.id in {purchase.definition_id for purchase in social_traits}
+        ),
         trait_runtime_hooks=SUPPORTED_HOOKS,
         extra_purchases=(
             Purchase(
@@ -82,13 +96,23 @@ async def fixture(
                 trait=TraitOptions(parameters=(("point-cost", points),), modifiers=modifiers),
             ),
         )
+        + social_traits
         + tuple(
             Purchase(definition_id=skill.id, amount=12 if skill.id == "skill:diplomacy" else 8)
             for skill in skills
         ),
-        runtime_world=world(),
+        runtime_world=world_override or world(),
         aware_of=("chest", "b"),
-        runtime_rules=ActionRules(
+        runtime_rules=(SocialActionRules if npc_rules else ActionRules)(
+            npcs=npc_rules,
+            party=PartyRules(id="party", version=1) if npc_rules else None,
+            scenes=SceneRules(
+                id="scenes",
+                version=1,
+                scenes=(Scene(id="dock-scene", version=1, location_id="dock", title="Dock"),),
+            )
+            if npc_rules
+            else None,
             id="tasks",
             version=1,
             fatigue_cost=fatigue_cost,

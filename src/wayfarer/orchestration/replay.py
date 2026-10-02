@@ -4,6 +4,7 @@ import json
 from collections.abc import Awaitable, Callable, Mapping
 
 from wayfarer import validation
+from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
@@ -16,6 +17,7 @@ from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapabilit
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
 from wayfarer.engine.simulation.magic.staff_casting_state import ADAPTER as STAFF_CASTING_ADAPTER
 from wayfarer.engine.simulation.magic.staff_state import DeclareStaffConstruction
+from wayfarer.engine.simulation.social.social import SocialCommand
 from wayfarer.engine.simulation.traits.composed_host import ADAPTER as COMPOSED_ADAPTER
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
@@ -32,11 +34,12 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 from wayfarer.orchestration.replay_inputs import replay_inputs
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.orchestration.social import ResolvedInteraction, SocialService
+from wayfarer.orchestration.social_generations import replay_payload
 from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
 from wayfarer.orchestration.spell_rituals import SpellRitualService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.orchestration.staff_casting import StaffCastingService
-from wayfarer.orchestration.symptom_generations import replay_payload
 from wayfarer.orchestration.task_records import ADAPTER as TASK_ADAPTER
 from wayfarer.orchestration.tasks import TaskService
 from wayfarer.orchestration.transformations import TransformationService
@@ -48,6 +51,19 @@ async def _enchantment(play: PlayService, record: CommandRecord, encoded: str) -
     await EnchantmentService(play).execute(
         record.campaign_id,
         ENCHANTMENT_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _social(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    def unavailable(
+        current: PlayService, state: PlayState, command: SocialCommand
+    ) -> ResolvedInteraction:
+        raise ValidationError("Replay cannot invoke an unrecorded social resolver")
+
+    await SocialService(play, unavailable).execute(
+        record.campaign_id,
+        SocialCommand.model_validate_json(encoded),
         principal_id=record.actor_id,
     )
 
@@ -127,6 +143,7 @@ async def _composed_defense(play: PlayService, record: CommandRecord, encoded: s
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "gurps-social": _social,
     "task-host": _task_host,
     "composed-attack": _composed_attack,
     "composed-defense": _composed_defense,

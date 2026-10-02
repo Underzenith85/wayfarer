@@ -35,9 +35,9 @@ def test_luck_family_has_matching_partial_inventory_and_live_source_ownership() 
     assert runtime.source_review == source.source_review == "reviewed"
     assert source.completion_owner == source.consequence_owner == 854
     assert next(issue.state for issue in bundle.owners.issues if issue.issue == 854) == "open"
-    # Ordinary and secret task evidence do not certify the remaining named consumers.
-    assert entry.completion_issues == (855, 867, 868, 869, 870)
-    assert runtime.blockers == entry.followup_issues == (113, 854, 855, 867, 868, 869, 870)
+    # Task and reaction evidence do not certify the remaining named consumers.
+    assert entry.completion_issues == (855, 867, 869, 870)
+    assert runtime.blockers == entry.followup_issues == (113, 854, 855, 867, 869, 870)
     assert 680 in source.historical_owners and 680 not in runtime.blockers
     assert 821 not in runtime.blockers  # Audit partition, not an implementation dependency.
     reported_entries = cast(list[dict[str, object]], audit_report()["entries"])
@@ -79,21 +79,27 @@ def test_partial_luck_family_preserves_supported_purchase_availability(
     assert result.spent == points * percent // 100
 
 
-def test_task_completion_alone_cannot_promote_the_whole_luck_family() -> None:
+def test_completed_consumers_cannot_promote_the_whole_luck_family() -> None:
     entry = next(entry for entry in inventory() if entry.id == LUCK_ID)
     runtime = next(row for row in source_audit.inventory(ROOT) if row.id == LUCK_ID)
     source = next(row for row in load_source_ledgers(ROOT).rows if row.id == LUCK_ID)
-    assert not {866, 871} & set(entry.completion_issues)
+    assert not {866, 868, 871} & set(entry.completion_issues)
     assert {
         "tests/test_task_host.py",
         "tests/test_task_host_boundaries.py",
         "tests/test_task_host_work.py",
         "tests/test_secret_task_host.py",
         "tests/test_secret_task_boundaries.py",
+        "tests/test_reaction_task_host.py",
+        "tests/test_reaction_task_boundaries.py",
+        "tests/test_reaction_task_routes.py",
+        "tests/test_reaction_campaign_host.py",
+        "tests/test_reaction_campaign_traits.py",
+        "tests/test_social_captured_replay.py",
     } <= set(source.evidence_paths)
     assert runtime.implementation == source.implementation == "partial"
     assert source.completion_owner == source.consequence_owner == 854
-    assert runtime.blockers == (113, 854, 855, 867, 868, 869, 870)
+    assert runtime.blockers == (113, 854, 855, 867, 869, 870)
 
 
 def test_luck_source_cannot_claim_completion_over_the_canonical_partial_inventory() -> None:
