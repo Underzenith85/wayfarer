@@ -37,6 +37,7 @@ from wayfarer.orchestration.real_play_clock import (
     settle_real_play,
     spend_real_play_cooldown,
 )
+from wayfarer.orchestration.secret_tasks import choose_secret, open_secret
 from wayfarer.orchestration.task_context import (
     activity_actor,
     approved,
@@ -57,7 +58,10 @@ from wayfarer.orchestration.task_records import (
     BeginTaskCheck,
     BeginTaskWork,
     BindLongTask,
+    ChooseSecretTaskCheck,
     ChooseTaskCheck,
+    PrepareSecretTaskCheck,
+    SecretTaskPending,
     SetRealPlayClock,
     TaskCommand,
     TaskPending,
@@ -83,7 +87,11 @@ def _controls(
     play: PlayService, state: PlayState, command: TaskCommand, principal: str
 ) -> tuple[Control, ...]:
     member = member_for(state, principal)
-    director = isinstance(command, (BindLongTask, SetRealPlayClock)) or (
+    if isinstance(command, ChooseSecretTaskCheck):
+        if command.choice == "use-luck":
+            return (Controls(member, command.actor_id),)
+        return Seats(state), Trusted(play.engine.reviewer.gm_ids)
+    director = isinstance(command, (BindLongTask, SetRealPlayClock, PrepareSecretTaskCheck)) or (
         isinstance(command, BeginTaskCheck) and command.secret
     )
     if member.role == "gm" or director:
@@ -94,7 +102,14 @@ def _controls(
     return tuple(Controls(member, actor_id) for actor_id in actor_ids)
 
 
-def _visible(play: PlayService, state: PlayState, result: TaskResult, principal: str) -> TaskResult:
+def _visible(
+    play: PlayService,
+    state: PlayState,
+    result: TaskResult,
+    principal: str,
+    *,
+    unrolled: bool = False,
+) -> TaskResult:
     member = member_for(state, principal)
     if member.role == "gm":
         Trusted(play.engine.reviewer.gm_ids)(principal)
@@ -107,7 +122,7 @@ def _visible(play: PlayService, state: PlayState, result: TaskResult, principal:
                 "luck": None,
                 "action": None,
                 "activity": None,
-                "pending_id": None,
+                "pending_id": result.pending_id if unrolled else None,
             }
         )
     return result
@@ -200,7 +215,7 @@ def _advance(
 def _begin_check(
     play: PlayService,
     state: PlayState,
-    command: BeginTaskCheck,
+    command: BeginTaskCheck | PrepareSecretTaskCheck,
     saved: TaskSnapshot,
     clock: RealPlayClock,
 ) -> tuple[PlayState, TaskSnapshot, TaskResult]:
@@ -274,6 +289,9 @@ def _begin_check(
                 secret=command.secret,
             ),
         )
+    if isinstance(command, PrepareSecretTaskCheck):
+        saved, result = open_secret(state, command, saved, clock, ordinary, prepared)
+        return state, saved, result
     original = prepared.check(rng=play.rng)
     pending = TaskPending(
         id=identity("task-check:", command.id),
@@ -471,7 +489,11 @@ def _choose(
     principal: str,
 ) -> tuple[PlayState, TaskSnapshot, RealPlayClock, TaskResult]:
     pending = saved.pending
-    if pending is None or pending.id != command.pending_id or pending.actor_id != command.actor_id:
+    if (
+        not isinstance(pending, TaskPending)
+        or pending.id != command.pending_id
+        or pending.actor_id != command.actor_id
+    ):
         raise ConflictError("Task roll is no longer the immediate pending choice")
     if pending.secret and member_for(state, principal).role != "gm":
         raise AuthorizationError("Secret task decisions require trusted director authority")
@@ -623,10 +645,12 @@ class TaskService:
                 result = TaskResult(
                     command_id=command.id, actor_id=command.actor_id, status="bound"
                 )
-            elif isinstance(command, BeginTaskCheck):
+            elif isinstance(command, (BeginTaskCheck, PrepareSecretTaskCheck)):
                 state, saved, result = _begin_check(play, state, command, saved, clock)
             elif isinstance(command, BeginTaskWork):
                 state, saved, result = _begin_work(play, state, command, saved, clock)
+            elif isinstance(command, ChooseSecretTaskCheck):
+                state, saved, clock, result = choose_secret(play, state, command, saved, clock)
             else:
                 state, saved, clock, result = _choose(
                     play, state, command, saved, clock, principal_id
@@ -665,11 +689,22 @@ class TaskService:
             if event is None:
                 raise ValidationError("Missing committed task result")
             result = TaskResult.model_validate_json(event.kind)
+            # A retry reads its historical result, but never historical GM privileges.
+            current = play._load(await play.store.read(cid))
             # This result belongs to the submitted command. A supervisor's next
             # original remains private until that supervisor or GM reads it.
-            if result.actor_id != command.actor_id and member_for(state, principal_id).role != "gm":
+            if (
+                result.actor_id != command.actor_id
+                and member_for(current, principal_id).role != "gm"
+            ):
                 return result.model_copy(update={"check": None, "luck": None})
-            return _visible(play, state, result, principal_id)
+            return _visible(
+                play,
+                current,
+                result,
+                principal_id,
+                unrolled=isinstance(command, PrepareSecretTaskCheck),
+            )
 
         plan = CommandPlan(
             command_id=command.id,
@@ -680,7 +715,9 @@ class TaskService:
             outcome=outcome,
             control=_controls(play, initial, command, principal_id),
             rng=play.rng,
-            pending_task_id=command.pending_id if isinstance(command, ChooseTaskCheck) else None,
+            pending_task_id=command.pending_id
+            if isinstance(command, (ChooseTaskCheck, ChooseSecretTaskCheck))
+            else None,
             task_clock_only=isinstance(command, SetRealPlayClock),
         )
         return await submit(play, cid, plan, principal_id=principal_id)
@@ -701,8 +738,9 @@ class TaskService:
                 actor_id=pending.actor_id,
                 status="pending",
                 pending_id=pending.id,
-                check=pending.original,
-                secret=pending.secret,
+                check=None if isinstance(pending, SecretTaskPending) else pending.original,
+                secret=True if isinstance(pending, SecretTaskPending) else pending.secret,
             ),
             principal_id,
+            unrolled=isinstance(pending, SecretTaskPending),
         )

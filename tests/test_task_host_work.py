@@ -14,7 +14,13 @@ from wayfarer.engine.rules.types.symptoms import SymptomEffect, SymptomSpec
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.activities import LongTaskRule
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.task_records import BeginTaskWork, BindLongTask, TaskResult, snapshot
+from wayfarer.orchestration.task_records import (
+    BeginTaskWork,
+    BindLongTask,
+    TaskPending,
+    TaskResult,
+    snapshot,
+)
 from wayfarer.orchestration.tasks import TaskService
 from wayfarer.persistence.replay import verify_commands
 
@@ -80,23 +86,39 @@ async def test_supervised_overtime_commits_separate_fp_and_selected_targets(
     play.rng = RecordedDice((5, 5, 5))
     await begin_work(play, cid, hours=10, supervised=True)
     pending = snapshot(play._load(await play.store.read(cid))).pending
-    assert pending and pending.actor_id == "b" and pending.original.effective_target == 10
+    assert (
+        isinstance(pending, TaskPending)
+        and pending.actor_id == "b"
+        and pending.original.effective_target == 10
+    )
     play.rng = RecordedDice((2, 2, 2))
     await accept_current(play, cid, "supervisor-ht")
     state = play._load(await play.store.read(cid))
     assert next(pool.current for pool in state.resources.pools if pool.id == "fp:b") == 5
     pending = snapshot(state).pending
-    assert pending and pending.actor_id == "b" and pending.original.effective_target == 7
+    assert (
+        isinstance(pending, TaskPending)
+        and pending.actor_id == "b"
+        and pending.original.effective_target == 7
+    )
     play.rng = RecordedDice((4, 4, 5))
     await accept_current(play, cid, "supervisor-skill")
     pending = snapshot(play._load(await play.store.read(cid))).pending
-    assert pending and pending.actor_id == "a" and pending.original.effective_target == 10
+    assert (
+        isinstance(pending, TaskPending)
+        and pending.actor_id == "a"
+        and pending.original.effective_target == 10
+    )
     play.rng = RecordedDice((3, 3, 4))
     await accept_current(play, cid, "worker-ht")
     state = play._load(await play.store.read(cid))
     assert next(pool.current for pool in state.resources.pools if pool.id == "fp:a") == 7
     pending = snapshot(state).pending
-    assert pending and pending.actor_id == "a" and pending.original.effective_target == 10
+    assert (
+        isinstance(pending, TaskPending)
+        and pending.actor_id == "a"
+        and pending.original.effective_target == 10
+    )
     play.rng = RecordedDice(())
     result = await accept_current(play, cid, "worker-skill")
     assert result.activity and result.activity.progress == Decimal(10)
@@ -159,7 +181,7 @@ async def test_next_worker_original_uses_current_symptoms_without_rescoring_prio
     play.rng = RecordedDice((4, 4, 5))
     await begin_work(play, cid, hours=10)
     before = snapshot(play._load(await play.store.read(cid))).pending
-    assert before and before.original.effective_target == 10
+    assert isinstance(before, TaskPending) and before.original.effective_target == 10
 
     def symptoms(state: PlayState) -> PlayState:
         return state.model_copy(
@@ -195,7 +217,7 @@ async def test_next_worker_original_uses_current_symptoms_without_rescoring_prio
     assert selected.check == before.original
     state = play._load(await play.store.read(cid))
     worker = snapshot(state).pending
-    assert worker and worker.original.base_target == 10
+    assert isinstance(worker, TaskPending) and worker.original.base_target == 10
     assert worker.original.effective_target == 6  # IQ -2, coughing -1, prior HT failure -3.
     assert any(modifier.reason == "Symptoms coughing" for modifier in worker.original.modifiers)
     play.rng = RecordedDice(())

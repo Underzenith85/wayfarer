@@ -49,6 +49,21 @@ class BeginTaskCheck(Command):
     secret: bool = False
 
 
+class PrepareSecretTaskCheck(Command):
+    kind: Literal["prepare-secret-check"] = "prepare-secret-check"
+    check_id: Id
+
+    @property
+    def secret(self) -> bool:
+        return True
+
+
+class ChooseSecretTaskCheck(Command):
+    kind: Literal["choose-secret-check"] = "choose-secret-check"
+    pending_id: Id
+    choice: Literal["use-luck", "resolve", "cancel"]
+
+
 class BeginTaskWork(Command):
     kind: Literal["begin-work"] = "begin-work"
     task_id: Id
@@ -67,7 +82,13 @@ class SetRealPlayClock(Command):
 
 
 TaskCommand = Annotated[
-    BindLongTask | BeginTaskCheck | BeginTaskWork | ChooseTaskCheck | SetRealPlayClock,
+    BindLongTask
+    | BeginTaskCheck
+    | BeginTaskWork
+    | ChooseTaskCheck
+    | SetRealPlayClock
+    | PrepareSecretTaskCheck
+    | ChooseSecretTaskCheck,
     Field(discriminator="kind"),
 ]
 ADAPTER: TypeAdapter[TaskCommand] = TypeAdapter(TaskCommand)
@@ -93,16 +114,25 @@ class TaskPending(Record):
     preparation_json: str
 
 
+class SecretTaskPending(Record):
+    kind: Literal["secret-unrolled"] = "secret-unrolled"
+    id: Id
+    actor_id: Id
+    prepared_elapsed_microseconds: int = Field(ge=0)
+    ordinary: Inspect | Social
+    preparation_json: str
+
+
 class TaskSnapshot(Record):
     campaign_id: Id
-    pending: TaskPending | None = None
+    pending: TaskPending | SecretTaskPending | None = None
     luck: LuckState = LuckState()
 
 
 class TaskResult(Record):
     command_id: Id
     actor_id: Id
-    status: Literal["bound", "clock", "pending", "completed", "interrupted"]
+    status: Literal["bound", "clock", "pending", "completed", "interrupted", "cancelled"]
     pending_id: Id | None = None
     check: CheckTrace | None = None
     luck: LuckReceipt | None = None
@@ -131,8 +161,8 @@ def snapshot(state: PlayState) -> TaskSnapshot:
         roll = next((roll for roll in result.luck.rolls if roll.id == pending.id), None)
         if roll is None or (roll.actor_id, roll.original, roll.secret, roll.chosen_dice) != (
             pending.actor_id,
-            pending.original.dice,
-            pending.secret,
+            None if isinstance(pending, SecretTaskPending) else pending.original.dice,
+            True if isinstance(pending, SecretTaskPending) else pending.secret,
             None,
         ):
             raise ValidationError("Task original does not match its Luck record")
@@ -165,6 +195,7 @@ def require_task_boundary(
 ) -> None:
     """A table must accept or replace its last roll before anyone rolls again.
 
+    Unrolled secret choices also admit ordinary GM resolution or cancellation.
     The persisted choice is itself a continuation; the trusted director can accept
     the recorded original when the player is absent. Clock pause/resume does not
     draw dice or reopen a choice which was unavailable when the original was rolled.

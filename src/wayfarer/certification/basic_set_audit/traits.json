@@ -4003,7 +4003,9 @@
         "tests/test_luck_certification.py",
         "tests/test_task_host.py",
         "tests/test_task_host_boundaries.py",
-        "tests/test_task_host_work.py"
+        "tests/test_task_host_work.py",
+        "tests/test_secret_task_host.py",
+        "tests/test_secret_task_boundaries.py"
       ],
       "historical_owners": [
         113,
