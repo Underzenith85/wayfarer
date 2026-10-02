@@ -233,7 +233,9 @@ class CombatService:
                     cid, command, principal_id=principal_id
                 )
         result = await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)
-        current = self.play._load(await self.play.store.read(cid))
+        campaign = await self.play.store.read(cid)
+        committed_play = self.play.for_campaign(campaign)
+        current = committed_play._load(campaign)
         return visible_combat_result(
-            self.play, current, result, command.id, command.actor_id, principal_id
+            committed_play, current, result, command.id, command.actor_id, principal_id
         )
