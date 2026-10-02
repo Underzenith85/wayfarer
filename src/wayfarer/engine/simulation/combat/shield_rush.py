@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, overload
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
@@ -12,6 +12,7 @@ from wayfarer.engine.rules.tables.combat import strong_damage_bonus
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
 from wayfarer.engine.simulation.combat.critical import IncomingWound
 from wayfarer.engine.simulation.combat.criticals.context import capture_critical
@@ -193,6 +194,32 @@ class _AttackOutcome:
     blocked: str | None
 
 
+def _attack_spec(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    attacker: Combatant,
+    defender: Combatant,
+    attack_value: DerivedValue,
+    shock: int,
+) -> AttackRollSpec:
+    pending = encounter.pending_defense
+    assert pending is not None
+    commitment = attacker.maneuver_state
+    if attacker.last_maneuver == "move_and_attack":
+        commitment = commitment.model_copy(update={"attack_bonus": 0, "attack_cap": None})
+    target = attack_modifier(
+        commitment,
+        defender.actor_id,
+        int(attack_value.value) + pending.visibility_attack_penalty - shock,
+    )
+    return AttackRollSpec(
+        profile_id=catalog(runtime).profile_id,
+        target=target,
+        modifiers=check_modifiers(state.resources, attacker.actor_id, "dx"),
+    )
+
+
 def _attack_outcome(
     runtime: RulesContext,
     state: PlayState,
@@ -203,25 +230,15 @@ def _attack_outcome(
     shock: int,
     selected: Defense,
     item_id: str | None,
+    selected_attack: CheckTrace | None,
 ) -> _AttackOutcome:
     """Resolve the attack/active-defense table family before collision damage."""
 
     pending = encounter.pending_defense
     assert pending is not None and pending.mode_id is not None
-    commitment = attacker.maneuver_state
-    if attacker.last_maneuver == "move_and_attack":
-        commitment = commitment.model_copy(update={"attack_bonus": 0, "attack_cap": None})
-    target = attack_modifier(
-        commitment,
-        defender.actor_id,
-        int(attack_value.value) + pending.visibility_attack_penalty - shock,
-    )
-    attack = success_roll(
-        catalog(runtime).profile_id,
-        target,
-        check_modifiers(state.resources, attacker.actor_id, "dx"),
-        rng=runtime.rng,
-    )
+    attack = selected_attack or _attack_spec(
+        runtime, state, encounter, attacker, defender, attack_value, shock
+    ).roll(runtime.rng)
     derived, defense_item = defense_value(
         runtime,
         state,
@@ -287,13 +304,42 @@ def _attack_outcome(
     )
 
 
+@overload
 def resolve(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
     selected: Defense,
     item_id: str | None,
-) -> tuple[PlayState, Encounter, InjuryTrace]:
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+) -> tuple[PlayState, Encounter, InjuryTrace]: ...
+
+
+@overload
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[True],
+) -> AttackRollSpec: ...
+
+
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace] | AttackRollSpec:
     """Resolve one shield rush; each collision body is rolled and damaged once."""
 
     pending = encounter.pending_defense
@@ -310,6 +356,10 @@ def resolve(
         raise ValidationError("Shield rush requires authoritative GURPS injury pools")
 
     attack_value = level(attacking, shield.skill_id)
+    if prepare_only:
+        return _attack_spec(
+            runtime, state, encounter, attacker, defender, attack_value, attacker_hp.injury.shock
+        )
     outcome = _attack_outcome(
         runtime,
         state,
@@ -320,6 +370,7 @@ def resolve(
         attacker_hp.injury.shock,
         selected,
         item_id,
+        selected_attack,
     )
     state, defender = outcome.state, outcome.defender
     attack, defense = outcome.attack, outcome.defense

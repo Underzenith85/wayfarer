@@ -1,13 +1,14 @@
 """Held Fireball release through the existing defense pause and injury service."""
 
-from dataclasses import replace
+from typing import Literal, overload
 
-from wayfarer.engine.rules.checks import Outcome, draw_dice
+from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.ranged import range_penalty
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, level
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
@@ -26,6 +27,11 @@ from wayfarer.engine.simulation.equipment.catalog import Damage
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.area_fire import armor
+from wayfarer.engine.simulation.magic.missile_damage_records import (
+    MissileDamageInputs,
+    MissileDamageStage,
+    PreparedMissileDamage,
+)
 from wayfarer.engine.simulation.magic.spell_state import (
     RuntimeSpellEvent as SpellEvent,
 )
@@ -40,6 +46,7 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 
+@overload
 def resolve(
     runtime: RulesContext,
     state: PlayState,
@@ -48,7 +55,62 @@ def resolve(
     item_id: str | None,
     second_defense: Defense | None,
     second_item_id: str | None,
-) -> tuple[PlayState, Encounter, InjuryTrace]:
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace]: ...
+
+
+@overload
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    second_defense: Defense | None,
+    second_item_id: str | None,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[True],
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
+) -> AttackRollSpec: ...
+
+
+@overload
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    second_defense: Defense | None,
+    second_item_id: str | None,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+    prepare_damage: Literal[True],
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace] | MissileDamageStage: ...
+
+
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    second_defense: Defense | None,
+    second_item_id: str | None,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: bool = False,
+    prepare_damage: bool = False,
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace] | AttackRollSpec | MissileDamageStage:
     pending = encounter.pending_defense
     assert pending is not None and pending.spell_cast_id is not None
     effect = latest(state.resources).get(pending.spell_cast_id)
@@ -85,27 +147,30 @@ def resolve(
         if pending.target_item_id
         else 0
     )
-    attack = success_roll(
-        PROFILE,
-        int(value.value)
-        + pending.visibility_attack_penalty
-        + pending.spell_aim_bonus
-        + range_penalty(distance)
-        + object_penalty
-        - (actor_hp.injury.shock if actor_hp.injury else 0)
-        + targeted_attack_penalty(
-            pending.hit_location,
-            armor_chink=False,
-            damage_type="burn",
-            tight_beam=False,
-            shield_side=None,
+    spec = AttackRollSpec(
+        profile_id=PROFILE,
+        target=(
+            int(value.value)
+            + pending.visibility_attack_penalty
+            + pending.spell_aim_bonus
+            + range_penalty(distance)
+            + object_penalty
+            - (actor_hp.injury.shock if actor_hp.injury else 0)
+            + targeted_attack_penalty(
+                pending.hit_location,
+                armor_chink=False,
+                damage_type="burn",
+                tight_beam=False,
+                shield_side=None,
+            )
         ),
-        check_modifiers(state.resources, attacker.actor_id, "dx"),
-        rng=runtime.rng,
+        modifiers=check_modifiers(state.resources, attacker.actor_id, "dx"),
+        ranged=True,
+        rule_id="gurps.combat.ranged_attack",
     )
-    attack = replace(attack, rule_id="gurps.combat.ranged_attack")
-    if attack.outcome is Outcome.CRITICAL_FAILURE and attack.total < 17:
-        attack = replace(attack, outcome=Outcome.FAILURE)
+    if prepare_only:
+        return spec
+    attack = selected_attack or spec.roll(runtime.rng)
     defended = None
     second_roll = None
     hit = attack.outcome.succeeded
@@ -129,7 +194,6 @@ def resolve(
                 defender = defender.model_copy(update={"posture": "prone"})
             elif choice == "block" and equipment_id:
                 dropped.add(equipment_id)
-    resources = state.resources
     # B556 body criticals use the same injury options as physical missiles.
     critical = (
         draw_dice(runtime.rng, 3)
@@ -145,15 +209,106 @@ def resolve(
 
     shield_hit = intercepting_shield(runtime, state, encounter, second_roll or defended)
     maximum = row in (6, 15)
+
+    inputs = MissileDamageInputs(
+        pending=pending,
+        effect=effect,
+        attacker_id=attacker.actor_id,
+        defender=defender,
+        target_ht=defend_build.statistics.ht,
+        hp_before=hp.current,
+        attack=attack,
+        defended=defended,
+        second_roll=second_roll,
+        value=value,
+        defense=defense,
+        critical=critical,
+        row=row,
+        blocked=blocked,
+        shield_hit=shield_hit,
+        maximum=maximum,
+        hit=hit,
+        distance=distance,
+        # This explicit engine route uses B378 at 1/2D; ordinary histories keep their generation.
+        generation="pending-damage" if prepare_damage else "legacy",
+        resistance=armor(runtime, state, defender.actor_id),
+        dropped=tuple(sorted(dropped)),
+    )
+    if prepare_damage and inputs.rollable:
+        original = None if secret_damage else draw_dice(runtime.rng, effect.energy)
+        encounter = CombatEngine._replace(encounter, defender)
+        return MissileDamageStage(
+            state,
+            encounter,
+            PreparedMissileDamage(inputs=inputs, original=original, secret=secret_damage),
+        )
+    return finish_missile_damage(runtime, state, encounter, inputs)
+
+
+def validate_missile_damage(
+    state: PlayState, encounter: Encounter, inputs: MissileDamageInputs
+) -> None:
+    current = latest(state.resources).get(inputs.effect.cast_id)
+    if (
+        encounter.pending_defense != inputs.pending
+        or current is None
+        or current.model_dump() != inputs.effect.model_dump()
+    ):
+        raise ValidationError("Captured missile delivery or held spell changed")
+
+
+def refresh_missile_damage_target(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, inputs: MissileDamageInputs
+) -> MissileDamageInputs:
+    validate_missile_damage(state, encounter, inputs)
+    target = build(runtime, state, inputs.pending.defender_id)
+    assert target.statistics is not None
+    return inputs.model_copy(
+        update={
+            "defender": next(
+                p for p in encounter.participants if p.actor_id == inputs.pending.defender_id
+            ),
+            "target_ht": target.statistics.ht,
+            "hp_before": next(
+                p.current
+                for p in state.resources.pools
+                if p.id == "hp:" + inputs.pending.defender_id
+            ),
+            "resistance": armor(runtime, state, inputs.pending.defender_id),
+        }
+    )
+
+
+def finish_missile_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    inputs: MissileDamageInputs,
+    *,
+    selected_damage: tuple[int, ...] | None = None,
+) -> tuple[PlayState, Encounter, InjuryTrace]:
+    pending, effect = inputs.pending, inputs.effect
+    validate_missile_damage(state, encounter, inputs)
+    if selected_damage is not None and (
+        not inputs.rollable
+        or len(selected_damage) != effect.energy
+        or any(type(die) is not int or not 1 <= die <= 6 for die in selected_damage)
+    ):
+        raise ValidationError("Selected missile damage differs from its captured energy")
+    defender = inputs.defender
+    row, maximum, hit, blocked = inputs.row, inputs.maximum, inputs.hit, inputs.blocked
+    shield_hit = inputs.shield_hit
+    dropped = set(inputs.dropped)
+    resources = state.resources
     dice = (
-        draw_dice(runtime.rng, effect.energy)
-        if (hit or shield_hit) and not blocked and not maximum
+        (selected_damage if selected_damage is not None else draw_dice(runtime.rng, effect.energy))
+        if inputs.rollable
         else ()
     )
     damage = 6 * effect.energy if maximum else sum(dice)
     damage *= 3 if row in (3, 18) else 2 if row in (5, 16) else 1
-    damage //= 2 if distance > 25 else 1
-    dr = armor(runtime, state, defender.actor_id)
+    damage //= 2 if inputs.half_damage else 1
+    dr = inputs.resistance
     lost = 0
     if damage and (shield_hit or pending.target_item_id):
         missile = Damage(basis="fixed", dice=effect.energy, damage_type="burn")
@@ -195,7 +350,7 @@ def resolve(
                 damage_type="burn",
                 location=pending.hit_location,
             ),
-            ht=defend_build.statistics.ht,
+            ht=inputs.target_ht,
             rng=runtime.rng,
             system=True,
             held_item_ids=held,
@@ -218,7 +373,7 @@ def resolve(
                 ResourceEvent(
                     id=event_id(pending.id) + ":released",
                     at=resources.game_time,
-                    target_id=attacker.actor_id,
+                    target_id=inputs.attacker_id,
                     kind=SpellEvent(
                         effect=effect.model_copy(update={"phase": "ended"}),
                         result=SpellResult(outcome="released"),
@@ -231,6 +386,10 @@ def resolve(
     defender = defender.model_copy(
         update={"ready_item_ids": tuple(i for i in defender.ready_item_ids if i in ready)}
     )
+    if inputs.generation == "pending-damage":
+        current_hp = next(p for p in resources.pools if p.id == "hp:" + defender.actor_id)
+        if current_hp.injury and current_hp.injury.prone:
+            defender = defender.model_copy(update={"posture": "prone"})
     encounter = CombatEngine._replace(encounter, defender)
 
     encounter = distracted(
@@ -238,31 +397,31 @@ def resolve(
         state.model_copy(update={"resources": resources}),
         encounter,
         defender.actor_id,
-        defended=defended is not None,
+        defended=inputs.defended is not None,
         injured=lost > 0,
     )
     if blocked:
         encounter = encounter.model_copy(update={"blocked_reason": "ranged-critical-table"})
-    updated_hp = next(p for p in resources.pools if p.id == hp.id)
+    updated_hp = next(p for p in resources.pools if p.id == "hp:" + defender.actor_id)
     return (
         state.model_copy(update={"resources": resources}),
         encounter,
         InjuryTrace(
-            attack=attack,
-            defense=defended,
-            second_defense=second_roll,
-            attack_value=value,
-            defense_value=defense,
+            attack=inputs.attack,
+            defense=inputs.defended,
+            second_defense=inputs.second_roll,
+            attack_value=inputs.value,
+            defense_value=inputs.defense,
             damage_dice=dice,
             basic_damage=damage,
             resistance=dr,
             injury=lost,
-            hp_before=hp.current,
+            hp_before=inputs.hp_before,
             hp_after=updated_hp.current,
             incapacitated=bool(updated_hp.injury and updated_hp.injury.incapacitated),
             profile_id=PROFILE,
             rules_version=BASELINE_ID,
-            critical_table=critical,
+            critical_table=inputs.critical,
             adjudication_required="ranged-critical-table" if blocked else None,
             shots_fired=1,
             hits=int(hit and not blocked),

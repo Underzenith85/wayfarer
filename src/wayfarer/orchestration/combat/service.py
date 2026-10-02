@@ -45,6 +45,10 @@ from wayfarer.orchestration.composed_attacks import (
     ComposedAttackService,
     recorded_operation,
 )
+from wayfarer.orchestration.opponent_attack_privacy import (
+    preserve_attack_visibility,
+    visible_combat_result,
+)
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -184,6 +188,7 @@ class CombatService:
         def resolve(campaign: Campaign) -> CommandReceipt:
             play, before, effective_command = _bind_combat_command(campaign, command, self.play)
             updated, result = reduce_combat(before, effective_command, CombatContext(play, before))
+            updated = preserve_attack_visibility(before, updated, command.encounter_id, command.id)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             return CommandReceipt(action="combat", outcome=result.model_dump_json())
@@ -227,4 +232,10 @@ class CombatService:
                 return await ComposedAttackService(self.play).defend(
                     cid, command, principal_id=principal_id
                 )
-        return await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)
+        result = await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)
+        campaign = await self.play.store.read(cid)
+        committed_play = self.play.for_campaign(campaign)
+        current = committed_play._load(campaign)
+        return visible_combat_result(
+            committed_play, current, result, command.id, command.actor_id, principal_id
+        )

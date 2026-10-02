@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import injury_turn
@@ -17,6 +18,7 @@ from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.shield_rush import resolve as resolve_shield_rush
 from wayfarer.engine.simulation.combat.thrown.items import validate_catch
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
+from wayfarer.engine.simulation.traits.composed_phases import ComposedAttackChoice
 from wayfarer.engine.simulation.traits.composed_resolution import resolve
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
@@ -93,7 +95,17 @@ def _non_inventory_defense(
         encounter.pending_defense is not None
         and encounter.pending_defense.composed_attack_id is not None
     ):
-        resolved = resolve(context.play.rules_context, state, encounter, command)
+        if context.selected_attack is not None and not isinstance(
+            context.selected_attack, ComposedAttackChoice
+        ):
+            raise ValidationError("Captured attack source does not match this composed response")
+        resolved = resolve(
+            context.play.rules_context,
+            state,
+            encounter,
+            command,
+            selected_attack=context.selected_attack,
+        )
         return CombatStep(
             resolved.state,
             resolved.encounter,
@@ -117,7 +129,7 @@ def _defend(
     if non_inventory is not None:
         return non_inventory
     if command.catch_thrown:
-        validate_catch(play.rules_context, state, encounter, command)
+        validate_catch(context.attack_runtime, state, encounter, command)
 
     if command.defense != "none":
         require_not_dazed(resources, command.actor_id)
@@ -137,7 +149,7 @@ def _defend(
             raise ValidationError("Defense is not available to this actor")
 
         validate_defense_choices(
-            play.rules_context,
+            context.attack_runtime,
             state,
             encounter,
             selected_defense,
@@ -150,7 +162,7 @@ def _defend(
             incoming_mode_id=pending.mode_id,
         )
         state, encounter, selected_defense = exert_defense(
-            play.rules_context,
+            context.attack_runtime,
             state,
             encounter,
             command.actor_id,
@@ -167,11 +179,18 @@ def _defend(
             if command.second_defense is not None or command.catch_thrown:
                 raise ValidationError("Shield rush accepts one ordinary active defense")
             state, encounter, injury = resolve_shield_rush(
-                play.rules_context, state, encounter, selected_defense, command.item_id
+                context.attack_runtime,
+                state,
+                encounter,
+                selected_defense,
+                command.item_id,
+                selected_attack=context.selected_attack.selected
+                if context.selected_attack
+                else None,
             )
         else:
             state, encounter, injury = resolve_melee(
-                play.rules_context,
+                context.attack_runtime,
                 state,
                 encounter,
                 selected_defense,
@@ -183,50 +202,24 @@ def _defend(
                 if selected_defense != "none"
                 else None,
                 catch_thrown=command.catch_thrown,
+                selected_attack=context.selected_attack.selected
+                if context.selected_attack
+                else None,
             )
 
-        encounter = _drop_friend(encounter, pending, injury)
-
-        if (
-            pending.protected_defender_id
-            and injury.attack.outcome.succeeded
-            and injury.defense is not None
-            and not injury.defense.outcome.succeeded
-        ):
-            return _failed_interposition(state, encounter, pending, previous, context, injury)
-
-        attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
-        if (
-            not attacker.maneuver_state.attacks_remaining
-            and (encounter.wait_interrupt is None or not encounter.wait_interrupt.reacting)
-            and not (encounter.pending_defense and encounter.pending_defense.spray_targets)
-            and pending.suppression_zone_id is None
-        ):
-            state = injury_turn(
-                play.rules_context,
-                state,
-                pending.attacker_id,
-                pending.id,
-                start=False,
-                do_nothing=False,
-            )
-        if pending.suppression_zone_id is not None and not any(
-            any(
-                zone.id == queued.zone_id and zone.remaining_hits > 0
-                for zone in encounter.suppression_zones
-            )
-            for queued in pending.suppression_attacks
-        ):
-            assert pending.interrupted_actor_id is not None
-            state = injury_turn(
-                play.rules_context,
-                state,
-                pending.interrupted_actor_id,
-                pending.id,
-                start=False,
-                do_nothing=False,
-            )
-        resources = state.resources
+        return finish_inventory_defense(
+            state,
+            command,
+            encounter,
+            context,
+            selected_defense=selected_defense,
+            pending=pending,
+            previous=previous,
+            injury=injury,
+            captured_end_build=(
+                context.selected_attack.captured_attacker if context.selected_attack else None
+            ),
+        )
     elif (
         command.item_id is not None
         or command.second_defense is not None
@@ -237,7 +230,87 @@ def _defend(
     encounter, result = engine.choose_defense(
         encounter, actor_id=selected_actor, selected=selected_defense
     )
-    if encounter.pending_defense is not None and engine.rules.gurps_equipment is not None:
+    if engine.rules.attacks:
+        state, injury = resolve_injury(play.rules_context, state, previous, command.defense)
+        resources = state.resources
+        encounter = encounter.model_copy(update={"wounds": encounter.wounds + (injury,)})
+        result = result.model_copy(
+            update={
+                "code": "combat.resolved",
+                "injury": injury,
+                "round": encounter.round,
+                "current_actor_id": encounter.current_actor_id,
+                "available": engine.available(encounter, encounter.current_actor_id),
+            }
+        )
+    return CombatStep(state, encounter, resources, result, defense_before=previous)
+
+
+def finish_inventory_defense(
+    state: PlayState,
+    command: ChooseDefense,
+    encounter: Encounter,
+    context: CombatContext,
+    *,
+    selected_defense: Literal["dodge", "parry", "block", "none"],
+    pending: PendingDefense,
+    previous: Encounter,
+    injury: InjuryTrace,
+    captured_end_build: ValidatedBuild | None = None,
+) -> CombatStep:
+    """Finish a weapon response after its one canonical injury resolution."""
+    play, engine = context.play, context.engine
+    current_attacker = next(a for a in state.actors if a.actor_id == pending.attacker_id)
+    if current_attacker.approval is not None:
+        captured_end_build = None
+    encounter = _drop_friend(encounter, pending, injury)
+
+    if (
+        pending.protected_defender_id
+        and injury.attack.outcome.succeeded
+        and injury.defense is not None
+        and not injury.defense.outcome.succeeded
+    ):
+        return _failed_interposition(state, encounter, pending, previous, context, injury)
+
+    attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+    if (
+        not attacker.maneuver_state.attacks_remaining
+        and (encounter.wait_interrupt is None or not encounter.wait_interrupt.reacting)
+        and not (encounter.pending_defense and encounter.pending_defense.spray_targets)
+        and pending.suppression_zone_id is None
+    ):
+        state = injury_turn(
+            play.rules_context,
+            state,
+            pending.attacker_id,
+            pending.id,
+            start=False,
+            do_nothing=False,
+            captured_end_build=captured_end_build,
+        )
+    if pending.suppression_zone_id is not None and not any(
+        any(
+            zone.id == queued.zone_id and zone.remaining_hits > 0
+            for zone in encounter.suppression_zones
+        )
+        for queued in pending.suppression_attacks
+    ):
+        assert pending.interrupted_actor_id is not None
+        state = injury_turn(
+            play.rules_context,
+            state,
+            pending.interrupted_actor_id,
+            pending.id,
+            start=False,
+            do_nothing=False,
+        )
+    resources = state.resources
+    selected_actor, selected_defense = _settled_choice(command, encounter, selected_defense)
+    encounter, result = engine.choose_defense(
+        encounter, actor_id=selected_actor, selected=selected_defense
+    )
+    if encounter.pending_defense is not None:
         queued = encounter.pending_defense
         encounter = prepare_attack(
             play.rules_context,
@@ -251,18 +324,14 @@ def _defend(
             target_item_id=queued.target_item_id,
             shots=queued.shots,
         )
-    if engine.rules.attacks or engine.rules.gurps_equipment is not None:
-        if engine.rules.gurps_equipment is None:
-            state, injury = resolve_injury(play.rules_context, state, previous, command.defense)
-        resources = state.resources
-        encounter = encounter.model_copy(update={"wounds": encounter.wounds + (injury,)})
-        result = result.model_copy(
-            update={
-                "code": "combat.resolved",
-                "injury": injury,
-                "round": encounter.round,
-                "current_actor_id": encounter.current_actor_id,
-                "available": engine.available(encounter, encounter.current_actor_id),
-            }
-        )
+    encounter = encounter.model_copy(update={"wounds": encounter.wounds + (injury,)})
+    result = result.model_copy(
+        update={
+            "code": "combat.resolved",
+            "injury": injury,
+            "round": encounter.round,
+            "current_actor_id": encounter.current_actor_id,
+            "available": engine.available(encounter, encounter.current_actor_id),
+        }
+    )
     return CombatStep(state, encounter, resources, result, defense_before=previous)

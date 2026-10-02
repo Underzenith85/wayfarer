@@ -31,7 +31,7 @@ class LuckRoll(Record):
 
     id: str
     actor_id: str
-    kind: Literal["success", "damage", "reaction"] = "success"
+    kind: Literal["success", "damage", "reaction", "hazard-damage"] = "success"
     dice_count: int = Field(default=3, ge=1, le=100)
     modifier: int = 0
     original: tuple[Die, ...] | None = None
@@ -56,6 +56,10 @@ class LuckRoll(Record):
 
     @model_validator(mode="after")
     def valid_dice(self) -> LuckRoll:
+        if self.kind == "hazard-damage" and (
+            self.scope != "party-event" or not self.affected_actor_ids
+        ):
+            raise ValueError("Hazard damage requires an actual affected outside-event owner")
         if self.kind in {"success", "reaction"} and self.dice_count != 3:
             raise ValueError("Success and reaction rolls require 3d6")
         if self.original is not None and len(self.original) != self.dice_count:
@@ -232,12 +236,15 @@ def apply_luck(
     )
     # Own success wants low, own damage/reaction want high. Against an attacker
     # choose their worst: high success-roll total, low damage total.
-    lower_is_better = roll.kind == "success"
+    lower_is_better = roll.kind in {"success", "hazard-damage"}
     if roll.scope == "attack":
         if roll.kind == "reaction":
             raise ValidationError("An attack cannot be a reaction roll")
         lower_is_better = not lower_is_better
     totals = tuple(sum(attempt) + roll.modifier for attempt in attempts)
+    if roll.kind == "hazard-damage":
+        # This source-bound role is non-crushing environmental damage (B378).
+        totals = tuple(max(1, total) for total in totals)
     choose = min if lower_is_better else max
     chosen_index = choose(range(3), key=lambda index: totals[index])
     updated = roll.model_copy(

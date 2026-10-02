@@ -19,7 +19,9 @@ from wayfarer.engine.character.compiler import CharacterCompiler
 from wayfarer.engine.character.power import CharacterProposal, PowerReview
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
+from wayfarer.engine.simulation.combat.attack_visibility import private_attack_result
 from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.health.hazard_visibility import private_hazard_command
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
@@ -41,6 +43,21 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.catalog import CatalogStore
 from wayfarer.persistence.events import CommandOrigin, CommandRecord
 from wayfarer.persistence.processes import ProcessStore
+
+
+def _receipt_outcome(
+    event: CommandRecord, state: PlayState, member: CampaignMember, *, trusted_gm: bool
+) -> str:
+    if (
+        private_hazard_command(state.resources, event.command_id)
+        or private_attack_result(state.resources, event.command_id)
+    ) and not (member.role == "gm" and trusted_gm):
+        return ""
+    if member.role == "gm" or (
+        event.actor_id in member.actor_ids and event.event["action"] != "objectives"
+    ):
+        return event.event["outcome"]
+    return ""
 
 
 @dataclass(frozen=True)
@@ -288,14 +305,8 @@ class CampaignRuntime:
                     action=event.event["action"]
                     if member.role == "gm" or event.actor_id in member.actor_ids
                     else "private",
-                    outcome=(
-                        event.event["outcome"]
-                        if member.role == "gm"
-                        or (
-                            event.actor_id in member.actor_ids
-                            and event.event["action"] != "objectives"
-                        )
-                        else ""
+                    outcome=_receipt_outcome(
+                        event, state, member, trusted_gm=self.directs(principal_id)
                     ),
                     projection=project(
                         "stream", ViewRequest(runtime=self, state=state, member=member)

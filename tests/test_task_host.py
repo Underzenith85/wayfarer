@@ -45,6 +45,7 @@ async def fixture(
     *,
     points: int = 15,
     fatigue_cost: int = 0,
+    maximum_wait: int = 100,
     action: Literal["inspect", "social"] = "inspect",
     modifiers: tuple[str, ...] = (),
     npc_rules: NPCSocialRules | None = None,
@@ -116,6 +117,7 @@ async def fixture(
             id="tasks",
             version=1,
             fatigue_cost=fatigue_cost,
+            maximum_wait=maximum_wait,
             checks=(
                 CheckRule(
                     id="carpentry-inspect",

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.attack_defense import (
@@ -131,6 +131,44 @@ class TraitAttackEvent(Record):
     command_digest: str | None = Field(default=None, exclude_if=lambda value: value is None)
     channel_id: str
     outcome: TraitAttackOutcome
+
+
+class PreparedOwnerDamage(Record):
+    """Captured B66 damage boundary, after immutable delivery and resistance.
+
+    This is private continuation data, not an authored channel or a command.
+    ``None`` means an unrolled secret opportunity; an empty tuple means the
+    delivery has no random damage to select (including maximum damage).
+    """
+
+    command_id: str
+    actor_id: str
+    definition_id: str
+    attacker_revision: str
+    target_revision: str
+    channel: AttackChannel
+    profile: AttackProfile | None
+    target_ht: int
+    consequences: TraitAttackConsequences | None
+    check: CheckTrace | None
+    dice_count: int = Field(ge=1)
+    rollable: bool
+    original: tuple[int, ...] | None
+    secret: bool = False
+
+    @model_validator(mode="after")
+    def valid_original(self) -> PreparedOwnerDamage:
+        if self.rollable:
+            if self.original is None:
+                if not self.secret:
+                    raise ValueError("An ordinary damage opportunity requires its original")
+            elif self.secret or len(self.original) != self.dice_count:
+                raise ValueError("Damage original disagrees with its expression or secrecy")
+            elif any(type(die) is not int or not 1 <= die <= 6 for die in self.original):
+                raise ValueError("Damage dice must be six-sided faces")
+        elif self.original != ():
+            raise ValueError("A delivery without random damage has no original")
+        return self
 
 
 def _id(command_id: str, purpose: str = "event") -> str:
@@ -593,6 +631,7 @@ def _roll_composed_damage(
     levels: int,
     rng: RandomSource,
     consequences: TraitAttackConsequences | None = None,
+    selected_damage: tuple[int, ...] | None = None,
 ) -> tuple[AttackChannel, tuple[int, ...]]:
     if (
         not channel.composed
@@ -602,7 +641,13 @@ def _roll_composed_damage(
     ):
         return channel, ()
     maximum = consequences is not None and consequences.maximum_damage
-    dice = () if maximum else draw_dice(rng, levels)
+    dice = (
+        ()
+        if maximum
+        else selected_damage
+        if selected_damage is not None
+        else draw_dice(rng, levels)
+    )
     basic = (6 * levels if maximum else sum(dice)) * (
         consequences.basic_multiplier if consequences is not None else 1
     )
@@ -611,6 +656,187 @@ def _roll_composed_damage(
     if profile.malediction_range == "none" and channel.distance_yards >= profile.half_damage_range:
         basic //= 2
     return channel.model_copy(update={"basic_damage": basic}), dice
+
+
+def prepare_owner_damage(
+    resources: ResourceState,
+    world: World,
+    command: TraitAttackCommand,
+    attacker_build: ValidatedBuild,
+    target_build: ValidatedBuild,
+    definitions: Mapping[str, RuleDefinition],
+    channels: tuple[AttackChannel, ...],
+    *,
+    target_ht: int,
+    rng: RandomSource,
+    authorized_actor_id: str,
+    system: bool = False,
+    consequences: TraitAttackConsequences | None = None,
+    secret: bool = False,
+) -> PreparedOwnerDamage:
+    """Stop after the owner's damage original, before injury or secondary dice.
+
+    The host must persist the prior delivery state and this record atomically.
+    It must hold later rolls until selection. Source purchases and consequences
+    are supplied by the same canonical composed consumer used by resolution.
+    """
+    if not system or authorized_actor_id != command.actor_id:
+        raise ValidationError("Damage preparation requires attacker authority")
+    if resources.revision != command.expected_revision:
+        raise ConflictError("Trait attack revision changed")
+    if any(event.command_id == command.id for event in history(resources)):
+        raise ConflictError("Committed damage cannot be reopened")
+    require_cyclic_settled(resources.cyclic_attacks, resources.game_time + 1)
+    channel = _channel(world, command, channels)
+    if not channel.composed or channel.kind != "damage":
+        raise ValidationError("Owner damage preparation requires a composed damage delivery")
+    if consequences is not None and consequences.resistance < 0:
+        raise ValidationError("Private consequences require nonnegative resistance")
+    attacker = attack_defense_traits(attacker_build, definitions)
+    if attacker.purchase(command.definition_id) is None:
+        raise ValidationError("Attack trait is not in the approved build")
+    purchased = next(
+        p for p in attacker_build.trait_purchases if p.definition_id == command.definition_id
+    )
+    if attacker.natural_damage_type(command.definition_id) != channel.damage_type:
+        raise ValidationError("Damage type differs from the approved natural attack")
+    selections = () if purchased.trait is None else purchased.trait.attack_modifiers
+    profile = cyclic_profile(selections, channel.damage_type) if selections else None
+    channel = _modified_channel(profile, channel)
+    hit = _roll_succeeds(channel.attack_roll, channel.attack_score)
+    immune = bool(consequences and consequences.immune_to_damage)
+    check = (
+        _cyclic_check(profile, channel, target_ht, rng, consequences)
+        if hit and not channel.defense_succeeded and not immune
+        else None
+    )
+    rollable = (
+        hit
+        and not channel.defense_succeeded
+        and not immune
+        and not (check is not None and check.outcome.succeeded)
+        and not (consequences is not None and consequences.maximum_damage)
+    )
+    return PreparedOwnerDamage(
+        command_id=command.id,
+        actor_id=command.actor_id,
+        definition_id=command.definition_id,
+        attacker_revision=attacker_build.revision,
+        target_revision=target_build.revision,
+        channel=channel,
+        profile=profile,
+        target_ht=target_ht,
+        consequences=consequences,
+        check=check,
+        dice_count=purchased.amount,
+        rollable=rollable,
+        original=(None if secret else draw_dice(rng, purchased.amount)) if rollable else (),
+        secret=secret,
+    )
+
+
+def _selected_owner_damage(
+    prepared: PreparedOwnerDamage,
+    selected: tuple[int, ...] | None,
+    *,
+    command: TraitAttackCommand,
+    attacker: ValidatedBuild,
+    target: ValidatedBuild,
+    channel: AttackChannel,
+    profile: AttackProfile | None,
+    target_ht: int,
+    consequences: TraitAttackConsequences | None,
+    levels: int,
+) -> tuple[int, ...]:
+    captured = (
+        prepared.command_id,
+        prepared.actor_id,
+        prepared.definition_id,
+        prepared.attacker_revision,
+        prepared.target_revision,
+        prepared.channel,
+        prepared.profile,
+        prepared.target_ht,
+        prepared.consequences,
+        prepared.dice_count,
+    )
+    current = (
+        command.id,
+        command.actor_id,
+        command.definition_id,
+        attacker.revision,
+        target.revision,
+        channel,
+        profile,
+        target_ht,
+        consequences,
+        levels,
+    )
+    if captured != current:
+        raise ConflictError("Captured owner damage context changed")
+    dice = prepared.original if selected is None else selected
+    if prepared.rollable:
+        if (
+            dice is None
+            or len(dice) != levels
+            or any(type(die) is not int or not 1 <= die <= 6 for die in dice)
+        ):
+            raise ValidationError("Selected damage must match its captured dice expression")
+    elif dice != () or selected is not None:
+        raise ValidationError("This delivery has no random damage choice")
+    assert dice is not None
+    return dice
+
+
+def _damage_phase(
+    command: TraitAttackCommand,
+    attacker_build: ValidatedBuild,
+    target_build: ValidatedBuild,
+    channel: AttackChannel,
+    cyclic: AttackProfile | None,
+    target_ht: int,
+    consequences: TraitAttackConsequences | None,
+    levels: int,
+    hit: bool,
+    immune: bool,
+    rng: RandomSource,
+    prepared_damage: PreparedOwnerDamage | None,
+    selected_damage: tuple[int, ...] | None,
+) -> tuple[AttackChannel, tuple[int, ...], CheckTrace | None]:
+    """Resolve only resistance and damage, or resume their captured boundary."""
+    if prepared_damage is None:
+        if selected_damage is not None:
+            raise ValidationError("Selected damage requires its captured preparation")
+        check = (
+            _cyclic_check(cyclic, channel, target_ht, rng, consequences)
+            if hit and not channel.defense_succeeded and not immune
+            else None
+        )
+    else:
+        selected_damage = _selected_owner_damage(
+            prepared_damage,
+            selected_damage,
+            command=command,
+            attacker=attacker_build,
+            target=target_build,
+            channel=channel,
+            profile=cyclic,
+            target_ht=target_ht,
+            consequences=consequences,
+            levels=levels,
+        )
+        check = prepared_damage.check
+    channel, damage_dice = _roll_composed_damage(
+        cyclic,
+        channel,
+        hit and not immune,
+        check,
+        levels,
+        rng,
+        consequences,
+        selected_damage,
+    )
+    return channel, damage_dice, check
 
 
 def apply_trait_attack(
@@ -627,6 +853,8 @@ def apply_trait_attack(
     authorized_actor_id: str,
     system: bool = False,
     consequences: TraitAttackConsequences | None = None,
+    prepared_damage: PreparedOwnerDamage | None = None,
+    selected_damage: tuple[int, ...] | None = None,
 ) -> tuple[ResourceState, TraitAttackOutcome]:
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Trait attack requires attacker authority")
@@ -659,13 +887,20 @@ def apply_trait_attack(
     channel = _modified_channel(cyclic, channel)
     hit = _roll_succeeds(channel.attack_roll, channel.attack_score)
     immune = bool(consequences and consequences.immune_to_damage)
-    check = (
-        _cyclic_check(cyclic, channel, target_ht, rng, consequences)
-        if hit and not channel.defense_succeeded and not immune
-        else None
-    )
-    channel, damage_dice = _roll_composed_damage(
-        cyclic, channel, hit and not immune, check, purchased.amount, rng, consequences
+    channel, damage_dice, check = _damage_phase(
+        command,
+        attacker_build,
+        target_build,
+        channel,
+        cyclic,
+        target_ht,
+        consequences,
+        purchased.amount,
+        hit,
+        immune,
+        rng,
+        prepared_damage,
+        selected_damage,
     )
     if (cyclic is not None or channel.composed) and (not hit or channel.defense_succeeded):
         state = resources.model_copy(update={"revision": resources.revision + 1})

@@ -6,6 +6,7 @@ import hashlib
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.character.traits.mastery import trained_by_master
+from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, exertion, injury_turn
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeUnarmedTurn
@@ -41,13 +42,18 @@ def execute_unarmed(
     state: PlayState,
     encounter: Encounter,
     command: TakeUnarmedTurn | ChooseDefense,
+    *,
+    selected_attack: CheckTrace | None = None,
+    attack_runtime: RulesContext | None = None,
 ) -> tuple[PlayState, Encounter, CombatResult]:
 
     require_basic(catalog(runtime).profile_id)
     # A declared Wait reaction borrows the interrupted turn; it is not a second turn.
     reacting = encounter.wait_interrupt is not None
     if isinstance(command, ChooseDefense):
-        state, encounter, trace = defend(runtime, state, encounter, command)
+        state, encounter, trace = defend(
+            attack_runtime or runtime, state, encounter, command, selected_attack=selected_attack
+        )
     else:
         if reacting:
             assert encounter.wait_interrupt is not None
@@ -172,8 +178,19 @@ def execute_unarmed(
     if pending_result is not None:
         return state, encounter, pending_result
     if not reacting:
+        captured = attack_runtime.attack_source if attack_runtime is not None else None
         state = injury_turn(
-            runtime, state, trace.actor_id, command.id, start=False, do_nothing=False
+            runtime,
+            state,
+            trace.actor_id,
+            command.id,
+            start=False,
+            do_nothing=False,
+            captured_end_build=captured[1]
+            if captured is not None
+            and captured[0] == trace.actor_id
+            and next(a for a in state.actors if a.actor_id == trace.actor_id).approval is None
+            else None,
         )
     encounter = settle_control(state, encounter)
     encounter = encounter.model_copy(

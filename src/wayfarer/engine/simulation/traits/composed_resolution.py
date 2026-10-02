@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import Decimal
 from typing import Literal
 
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, draw_dice
@@ -15,6 +16,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.abilities import damage_resistance, interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, injury_turn
+from wayfarer.engine.simulation.combat.attack_roll import score_attack
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -29,10 +31,12 @@ from wayfarer.engine.simulation.combat.visibility import external_defense_penalt
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.cyclic_host_state import bind_occurrence
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
+from wayfarer.engine.simulation.magic.area_fire import armor
 from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.attack_defense import (
     AttackChannel,
+    PreparedOwnerDamage,
     TraitAttackCommand,
     TraitAttackConsequences,
     TraitAttackOutcome,
@@ -46,12 +50,18 @@ from wayfarer.engine.simulation.traits.composed_host import (
     attack_target,
     preflight_pending,
 )
+from wayfarer.engine.simulation.traits.composed_phases import (
+    ComposedAttackChoice,
+    ComposedDelivery,
+    OwnerDamageArguments,
+)
 from wayfarer.engine.simulation.traits.composed_sources import (
     PROFILE,
     ComposedPending,
     finish_binding,
     identity,
     pending_binding,
+    raw_build,
 )
 from wayfarer.engine.simulation.traits.innate_criticals import (
     InnateCriticalContext,
@@ -64,6 +74,10 @@ from wayfarer.engine.simulation.traits.innate_criticals import (
     drop_all_held,
     drop_held_items,
     resolve_innate_miss,
+)
+from wayfarer.engine.simulation.traits.malediction_checks import (
+    prepare_resister,
+    resolve_malediction,
 )
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
@@ -184,13 +198,23 @@ def finish(
     selected: Literal["none", "dodge"],
     command_id: str,
     trace: InjuryTrace,
+    *,
+    captured_attacker: ValidatedBuild | None = None,
 ) -> tuple[PlayState, Encounter, CombatResult]:
     engine = runtime.combat
     assert engine is not None
     pending = encounter.pending_defense
     assert pending is not None
     state = injury_turn(
-        runtime, state, binding.attacker_id, binding.command_id, start=False, do_nothing=False
+        runtime,
+        state,
+        binding.attacker_id,
+        binding.command_id,
+        start=False,
+        do_nothing=False,
+        captured_end_build=captured_attacker
+        if next(a for a in state.actors if a.actor_id == binding.attacker_id).approval is None
+        else None,
     )
     # Validated source and target choice already determine this existing vocabulary.
     if selected not in ("none", "dodge"):
@@ -241,6 +265,58 @@ class Delivery:
     critical_id: str | None
 
 
+def _resisted_delivery(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    binding: ComposedPending,
+    current: CurrentAttack,
+    command: ResistComposedAttack,
+    selected_attack: ComposedAttackChoice | None,
+) -> tuple[bool, tuple[CheckTrace, ...]]:
+    pending = encounter.pending_defense
+    assert pending is not None
+    source = current.source
+    if binding.stage != "resistance" or command.pending_id != pending.id:
+        raise ConflictError("This pending use is not the selected Malediction resistance")
+    actor = next(p for p in encounter.participants if p.actor_id == binding.attacker_id)
+    if selected_attack is None and not actor.maneuver_state.concentrating:
+        raise ConflictError("Malediction concentration was interrupted; abandon the spent use")
+    if selected_attack is not None:
+        prepared = selected_attack.malediction
+        if prepared is None or prepared.resist != command.resist:
+            raise ConflictError("Malediction resistance differs from its captured declaration")
+        if prepared.resist and selected_attack.selected.outcome.succeeded:
+            prepared = prepared.model_copy(
+                update={
+                    "resister": prepare_resister(
+                        state.resources,
+                        build(runtime, state, binding.target_id, defensive=True),
+                        source.profile,
+                        current.context,
+                        runtime.reviewer.compiler.definitions,
+                        current_conditions=True,
+                    )
+                }
+            )
+        hit, checks = resolve_malediction(
+            prepared, rng=runtime.rng, selected_attack=selected_attack.selected
+        )
+    else:
+        hit, checks = _malediction_checks(
+            state.resources,
+            binding.attacker_id,
+            build(runtime, state, binding.attacker_id),
+            build(runtime, state, binding.target_id, defensive=True),
+            source.profile,
+            current.context.model_copy(update={"resist": command.resist}),
+            runtime.reviewer.compiler.definitions,
+            runtime.rng,
+            current_conditions=True,
+        )
+    return hit, checks
+
+
 def _delivery(
     runtime: RulesContext,
     state: PlayState,
@@ -248,6 +324,8 @@ def _delivery(
     binding: ComposedPending,
     current: CurrentAttack,
     command: ChooseDefense | ResistComposedAttack,
+    *,
+    selected_attack: ComposedAttackChoice | None = None,
 ) -> Delivery:
     pending = encounter.pending_defense
     assert pending is not None
@@ -259,21 +337,8 @@ def _delivery(
     value = None
     selected: Literal["none", "dodge"] = "none"
     if isinstance(command, ResistComposedAttack):
-        if binding.stage != "resistance" or command.pending_id != pending.id:
-            raise ConflictError("This pending use is not the selected Malediction resistance")
-        actor = next(p for p in encounter.participants if p.actor_id == binding.attacker_id)
-        if not actor.maneuver_state.concentrating:
-            raise ConflictError("Malediction concentration was interrupted; abandon the spent use")
-        hit, checks = _malediction_checks(
-            state.resources,
-            binding.attacker_id,
-            build(runtime, state, binding.attacker_id),
-            build(runtime, state, binding.target_id, defensive=True),
-            source.profile,
-            current.context.model_copy(update={"resist": command.resist}),
-            runtime.reviewer.compiler.definitions,
-            runtime.rng,
-            current_conditions=True,
+        hit, checks = _resisted_delivery(
+            runtime, state, encounter, binding, current, command, selected_attack
         )
         attack = checks[0]
         defended = False
@@ -307,7 +372,11 @@ def _delivery(
             raise ValidationError("Composed source permits only Dodge")
         selected = "none" if exerted == "none" else "dodge"
         # Gear stress can change current armor; resolve it at impact, not declaration.
-        current = preflight_pending(runtime, state, encounter)
+        current = (
+            _current_impact(runtime, state, binding, current)
+            if selected_attack is not None
+            else preflight_pending(runtime, state, encounter)
+        )
         target = next(p for p in encounter.participants if p.actor_id == binding.target_id)
         value, _ = defense_value(runtime, state, target, selected, command.item_id)
         if value is not None:
@@ -319,7 +388,11 @@ def _delivery(
                 ),
                 value.explanations,
             )
-        attack = _roll(runtime, state, encounter, current)
+        attack = (
+            selected_attack.selected
+            if selected_attack is not None
+            else _roll(runtime, state, encounter, current)
+        )
         hit = attack.outcome.succeeded
         if hit and attack.outcome is not Outcome.CRITICAL_SUCCESS and value is not None:
             defense = success_roll(PROFILE, int(value.value), rng=runtime.rng)
@@ -375,7 +448,36 @@ def resolve(
     state: PlayState,
     encounter: Encounter,
     command: ChooseDefense | ResistComposedAttack,
+    *,
+    selected_attack: ComposedAttackChoice | None = None,
 ) -> ResolvedAttack:
+    state, encounter, delivery = prepare_delivery(
+        runtime, state, encounter, command, selected_attack=selected_attack
+    )
+    return finish_delivery(runtime, state, encounter, delivery)
+
+
+def _current_impact(
+    runtime: RulesContext, state: PlayState, binding: ComposedPending, current: CurrentAttack
+) -> CurrentAttack:
+    """Refresh the victim's protection, never a launched attack's source or target."""
+    target = raw_build(runtime, state, binding.target_id)
+    natural = attack_defense_traits(
+        target, runtime.reviewer.compiler.definitions
+    ).damage_resistance()
+    return replace(
+        current, target=target, resistance=natural + armor(runtime, state, binding.target_id)
+    )
+
+
+def prepare_delivery(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense | ResistComposedAttack,
+    *,
+    selected_attack: ComposedAttackChoice | None = None,
+) -> tuple[PlayState, Encounter, ComposedDelivery]:
     pending = encounter.pending_defense
     if pending is None or pending.composed_attack_id is None:
         raise ValidationError("No approved composed attack awaits this response")
@@ -384,15 +486,58 @@ def resolve(
         raise ValidationError("Only the target may choose its response")
     if encounter.blocked_reason or pending.attack_roll is not None:
         raise ConflictError("The recorded critical requires its typed continuation")
-    current = preflight_pending(runtime, state, encounter)
-    source = current.source
+    if selected_attack is None:
+        current = preflight_pending(runtime, state, encounter)
+    else:
+        if isinstance(command, ResistComposedAttack) != (selected_attack.malediction is not None):
+            raise ValidationError(
+                "Captured attack requires its matching ordinary or resistance response"
+            )
+        if selected_attack.current.source != binding.source:
+            raise ConflictError("Selected attack no longer matches its captured source")
+        original = selected_attack.original
+        expected = score_attack(
+            original, selected_attack.selected.dice, ranged=selected_attack.ranged
+        )
+        if selected_attack.selected != expected:
+            raise ValidationError("Selected attack differs from its captured original context")
+        current = _current_impact(runtime, state, binding, selected_attack.current)
     hp_before = next(p.current for p in state.resources.pools if p.id == "hp:" + binding.target_id)
-    delivery = _delivery(runtime, state, encounter, binding, current, command)
-    state, encounter, current = delivery.state, delivery.encounter, delivery.current
+    delivery = _delivery(
+        runtime, state, encounter, binding, current, command, selected_attack=selected_attack
+    )
+    prepared = ComposedDelivery(
+        command=command,
+        binding=binding,
+        current=delivery.current,
+        hp_before=hp_before,
+        attack_captured=selected_attack is not None,
+        hit=delivery.hit,
+        defended=delivery.defended,
+        checks=delivery.checks,
+        selected=delivery.selected,
+        defense=delivery.defense,
+        value=delivery.value,
+        effects=delivery.effects,
+        critical_table=delivery.critical_table,
+        critical_id=delivery.critical_id,
+    )
+    return delivery.state, delivery.encounter, prepared
+
+
+def owner_damage_arguments(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    delivery: ComposedDelivery,
+) -> OwnerDamageArguments:
+    """The exact approved damage inputs shared by immediate and paused delivery."""
+    pending = encounter.pending_defense
+    if pending is None or pending.id != delivery.binding.pending_id:
+        raise ConflictError("Composed damage continuation lost its attack identity")
+    binding, current, command = delivery.binding, delivery.current, delivery.command
+    source, effects = current.source, delivery.effects
     hit, defended, checks = delivery.hit, delivery.defended, delivery.checks
-    attack, defense, value = checks[0], delivery.defense, delivery.value
-    effects, selected = delivery.effects, delivery.selected
-    critical_table, critical_id = delivery.critical_table, delivery.critical_id
     target_build = build(runtime, state, binding.target_id)
     assert target_build.statistics is not None
     channel = AttackChannel(
@@ -423,24 +568,18 @@ def resolve(
     cyclic_modifiers = check_modifiers(state.resources, binding.target_id, "ht", defensive=True)
     if fitness:
         cyclic_modifiers += (Modifier(fitness, "Fitness resistance", "B55", "characters-third"),)
-    resources, outcome = apply_trait_attack(
-        state.resources,
-        state.world,
-        TraitAttackCommand(
+    return OwnerDamageArguments(
+        command=TraitAttackCommand(
             id=pending.id,
             actor_id=binding.attacker_id,
             expected_revision=state.resources.revision,
             definition_id=source.purchase_id,
             channel_id=source.id,
         ),
-        current.attacker,
-        current.target,
-        runtime.reviewer.compiler.definitions,
-        (channel,),
+        attacker_build=current.attacker,
+        target_build=current.target,
+        channels=(channel,),
         target_ht=target_build.statistics.ht,
-        rng=runtime.rng,
-        authorized_actor_id=binding.attacker_id,
-        system=True,
         consequences=TraitAttackConsequences(
             resistance=current.resistance,
             immune_to_damage=source.damage_type in ("tox", "fat")
@@ -461,6 +600,46 @@ def resolve(
             cyclic_resistance_ht=defending_build.statistics.ht,
             cyclic_resistance_modifiers=cyclic_modifiers,
         ),
+    )
+
+
+def finish_delivery(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    delivery: ComposedDelivery,
+    *,
+    prepared_damage: PreparedOwnerDamage | None = None,
+    selected_damage: tuple[int, ...] | None = None,
+) -> ResolvedAttack:
+    """Apply one captured delivery's consequences without repeating attack or defense."""
+    pending = encounter.pending_defense
+    if pending is None or pending.id != delivery.binding.pending_id:
+        raise ConflictError("Composed delivery is no longer pending")
+    binding, current, command = delivery.binding, delivery.current, delivery.command
+    source = current.source
+    hp_before = delivery.hp_before
+    attack, defense, value = delivery.checks[0], delivery.defense, delivery.value
+    effects, selected = delivery.effects, delivery.selected
+    critical_table, critical_id = delivery.critical_table, delivery.critical_id
+    target_build = build(runtime, state, binding.target_id)
+    assert target_build.statistics is not None
+    arguments = owner_damage_arguments(runtime, state, encounter, delivery)
+    resources, outcome = apply_trait_attack(
+        state.resources,
+        state.world,
+        arguments.command,
+        arguments.attacker_build,
+        arguments.target_build,
+        runtime.reviewer.compiler.definitions,
+        arguments.channels,
+        target_ht=arguments.target_ht,
+        rng=runtime.rng,
+        authorized_actor_id=binding.attacker_id,
+        system=True,
+        consequences=arguments.consequences,
+        prepared_damage=prepared_damage,
+        selected_damage=selected_damage,
     )
     if outcome.injury and outcome.injury.dropped_ready_items:
         resources, encounter, _ = drop_held_items(
@@ -598,6 +777,15 @@ def resolve(
         )
     else:
         state, encounter, result = finish(
-            runtime, state, encounter, binding, selected, command.id, trace
+            runtime,
+            state,
+            encounter,
+            binding,
+            selected,
+            command.id,
+            trace,
+            captured_attacker=current.attacker
+            if prepared_damage is not None or delivery.attack_captured
+            else None,
         )
     return ResolvedAttack(state, encounter, result, outcome)

@@ -21,11 +21,20 @@ from wayfarer.engine.rules.types.hazard import (
     HazardSpec,
 )
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.health.hazard_damage import PREREQUISITE_PREFIX
+from wayfarer.engine.simulation.health.hazard_visibility import PREFIX as SECRET_HAZARD_PREFIX
+from wayfarer.engine.simulation.health.hazard_visibility import private_hazard_result
 from wayfarer.engine.simulation.health.hazards import HazardCommand, HazardResult, apply_hazard
 from wayfarer.engine.simulation.resources import decimal_weight
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.hazard_resume import (
+    NaturalHazardResume,
+    capture_hazard_resume,
+    require_hazard_resume,
+)
 from wayfarer.orchestration.medical import _build, _value
-from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
+from wayfarer.orchestration.membership import member_for
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Control, Controls, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
 
@@ -47,6 +56,53 @@ class HazardContext:
 HazardResolver = Callable[[PlayService, PlayState, str, str], HazardContext]
 
 
+def _outside_controls(
+    state: PlayState,
+    actor_id: str,
+    principal_id: str,
+    gm_ids: frozenset[str],
+) -> tuple[Control, ...]:
+    if not any(
+        event.target_id == actor_id
+        and event.id.startswith((PREREQUISITE_PREFIX, SECRET_HAZARD_PREFIX))
+        for event in state.resources.events
+    ):
+        return ()
+    member = member_for(state, principal_id)
+    result: tuple[Control, ...] = (Controls(member, actor_id, state=state),)
+    return result + (Trusted(gm_ids),) if member.role == "gm" else result
+
+
+def _hazard_payload(command: HazardCommand, resume: NaturalHazardResume | None) -> str:
+    content: dict[str, object] = {
+        "operation": "gurps-hazard",
+        "command": command.model_dump(mode="json"),
+    }
+    if resume is not None:
+        content["outside_resume"] = resume.model_dump(mode="json")
+    return json.dumps(content, sort_keys=True)
+
+
+async def _hazard_result(
+    play: PlayService, command: HazardCommand, principal_id: str, campaign: Campaign
+) -> HazardResult:
+    state = play._load(campaign)
+    current = play._load(await play.store.read(campaign["id"]))
+    for control in _outside_controls(
+        current, command.actor_id, principal_id, play.engine.reviewer.gm_ids
+    ):
+        control(principal_id)
+    event = next(e for e in state.resources.events if e.id == "hazard:" + command.id)
+    result = HazardResult.model_validate_json(event.kind)
+    if private_hazard_result(state.resources, event):
+        member = member_for(current, principal_id)
+        if member.role == "gm":
+            Trusted(play.engine.reviewer.gm_ids)(principal_id)
+        else:
+            result = result.model_copy(update={"check": None, "consciousness": None})
+    return result
+
+
 class HazardService:
     """Internal service; only the trusted resolver supplies exposure and protection.
 
@@ -58,18 +114,25 @@ class HazardService:
         self.play, self.resolver = play, resolver
 
     def plan(
-        self, play: PlayService, command: HazardCommand, *, principal_id: str
+        self,
+        play: PlayService,
+        command: HazardCommand,
+        *,
+        principal_id: str,
+        resume: NaturalHazardResume | None = None,
     ) -> CommandPlan[HazardResult]:
         """What a hazard exposure writes; the pipeline decides whether it runs."""
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Hazards require exact Basic Set profile")
-        payload = json.dumps(
-            {"operation": "gurps-hazard", "command": command.model_dump(mode="json")},
-            sort_keys=True,
-        )
+        payload = _hazard_payload(command, resume)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
+            require_hazard_resume(before, command, resume)
+            for control in _outside_controls(
+                before, command.actor_id, principal_id, play.engine.reviewer.gm_ids
+            ):
+                control(principal_id)
             schedule_id = (
                 "exposure:"
                 + hashlib.sha256(
@@ -255,9 +318,7 @@ class HazardService:
             return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
         async def outcome(campaign: Campaign) -> HazardResult:
-            state = play._load(campaign)
-            event = next(e for e in state.resources.events if e.id == "hazard:" + command.id)
-            return HazardResult.model_validate_json(event.kind)
+            return await _hazard_result(play, command, principal_id, campaign)
 
         return CommandPlan(
             command_id=command.id,
@@ -272,10 +333,19 @@ class HazardService:
 
     async def execute(self, cid: str, command: HazardCommand, *, principal_id: str) -> HazardResult:
         command = HazardCommand.model_validate(command)
-        play = self.play.for_campaign(await self.play.store.read(cid))
+        campaign = await self.play.store.read(cid)
+        play = self.play.for_campaign(campaign)
+        state = play._load(campaign)
+        resume = await capture_hazard_resume(play, cid, command, state)
+        plan = self.plan(play, command, principal_id=principal_id, resume=resume)
+        plan = replace(
+            plan,
+            control=plan.control
+            + _outside_controls(state, command.actor_id, principal_id, play.engine.reviewer.gm_ids),
+        )
         return await submit(
             play,
             cid,
-            self.plan(play, command, principal_id=principal_id),
+            plan,
             principal_id=principal_id,
         )

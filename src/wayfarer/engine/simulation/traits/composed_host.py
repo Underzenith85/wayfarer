@@ -6,11 +6,6 @@ turn, exertion, injury, encounter, defense and settlement records as combat.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Annotated, Literal
-
-from pydantic import Field, TypeAdapter
-
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.rules.tables.ranged import range_penalty
@@ -48,12 +43,32 @@ from wayfarer.engine.simulation.hex_geometry import ranged_distance
 from wayfarer.engine.simulation.magic.area_fire import armor
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
-from wayfarer.engine.simulation.resources import Command, ResourceEvent
+from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.composed_attacks import AttackCompositionContext
+from wayfarer.engine.simulation.traits.composed_records import (
+    ADAPTER as ADAPTER,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    AbandonComposedAttack as AbandonComposedAttack,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    ComposedCommand as ComposedCommand,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    ContinueComposedCritical as ContinueComposedCritical,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    CurrentAttack as CurrentAttack,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    ResistComposedAttack as ResistComposedAttack,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    UseComposedAttack as UseComposedAttack,
+)
 from wayfarer.engine.simulation.traits.composed_sources import (
     PENDING_PREFIX,
-    BindComposedSource,
     ComposedPending,
     ComposedSource,
     current_source,
@@ -64,63 +79,6 @@ from wayfarer.engine.simulation.traits.composed_sources import (
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_action
 from wayfarer.engine.simulation.traits.size_forms import size_delta
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Id
-
-
-class UseComposedAttack(Command):
-    kind: Literal["declare", "aim"]
-    encounter_id: Id
-    source_id: Id
-    target_id: Id
-
-
-class ResistComposedAttack(Command):
-    kind: Literal["resist"] = "resist"
-    encounter_id: Id
-    pending_id: Id
-    resist: bool
-
-
-class AbandonComposedAttack(Command):
-    kind: Literal["abandon"] = "abandon"
-    encounter_id: Id
-    pending_id: Id
-
-
-class ContinueComposedCritical(Command):
-    kind: Literal["continue-critical"] = "continue-critical"
-    encounter_id: Id
-    pending_id: Id
-    critical_id: Id
-    context_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
-    policy_id: Id
-    reason: str = Field(min_length=1, max_length=2000, pattern=r"\S")
-    effect: Literal["lose-balance", "disable-source"]
-    duration_seconds: int | None = Field(default=None, ge=1, le=31536000)
-
-
-ComposedCommand = (
-    BindComposedSource
-    | UseComposedAttack
-    | ResistComposedAttack
-    | AbandonComposedAttack
-    | ContinueComposedCritical
-)
-ADAPTER: TypeAdapter[ComposedCommand] = TypeAdapter(
-    Annotated[ComposedCommand, Field(discriminator="kind")]
-)
-
-
-@dataclass(frozen=True)
-class CurrentAttack:
-    source: ComposedSource
-    attacker: ValidatedBuild
-    target: ValidatedBuild
-    context: AttackCompositionContext
-    resistance: int
-    speed: float
-    size: int
-    visibility_penalty: int
 
 
 def attack_target(

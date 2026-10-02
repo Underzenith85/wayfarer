@@ -18,7 +18,7 @@ from test_statistics import gurps_draft, profile_compiler, profile_package
 
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.catalog import RuleDefinition, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.magic.gurps_magic import definitions
 from wayfarer.engine.rules.magic.protocols import MagicItemBinding
@@ -47,14 +47,19 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
-def compiler() -> CharacterCompiler:
-    package = profile_package(PROFILE, *definitions(), projectile_definition())
+def compiler(
+    *,
+    extra_definitions: tuple[RuleDefinition, ...] = (),
+    trait_runtime_hooks: frozenset[str] = frozenset(),
+) -> CharacterCompiler:
+    package = profile_package(PROFILE, *definitions(), projectile_definition(), *extra_definitions)
     base = profile_compiler(PROFILE, package=package)
     return CharacterCompiler(
         RulesCatalog((package,)),
         base.rules,
         replace(base.policy, allow_supernatural=True),
         statistics_profile=PROFILE,
+        trait_runtime_hooks=trait_runtime_hooks,
     )
 
 
@@ -100,6 +105,9 @@ async def setup(
     reserve_draft: CharacterDraft | None = None,
     human_targets: bool = False,
     equipment: tuple[EquipmentProfile, ...] = (),
+    extra_definitions: tuple[RuleDefinition, ...] = (),
+    extra_purchases: tuple[Purchase, ...] = (),
+    trait_runtime_hooks: frozenset[str] = frozenset(),
 ) -> tuple[str, PlayService]:
     fixture_world, fixture_resources = world(), resources()
     if reserve:
@@ -117,7 +125,9 @@ async def setup(
                 + (fixture_resources.pools[0].model_copy(update={"id": "hp:c"}),),
             }
         )
-    compiled = compiler()
+    compiled = compiler(
+        extra_definitions=extra_definitions, trait_runtime_hooks=trait_runtime_hooks
+    )
     from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
     from wayfarer.engine.rules.types.object import ObjectCondition
     from wayfarer.engine.simulation.resources import Item
@@ -126,6 +136,7 @@ async def setup(
         PROFILE,
         *definitions(),
         projectile_definition(),
+        *extra_definitions,
         *(
             RuleDefinition(
                 e.definition_id,
@@ -149,6 +160,7 @@ async def setup(
                 allowed_equipment=frozenset(e.definition_id for e in equipment),
             ),
             statistics_profile=PROFILE,
+            trait_runtime_hooks=trait_runtime_hooks,
         )
     fixture_resources = fixture_resources.model_copy(
         update={
@@ -220,10 +232,17 @@ async def setup(
         fixture_world,
         fixture_resources,
         (
-            ActorSetup(actor_id="a", proposal=CharacterProposal(draft=draft())),
+            ActorSetup(
+                actor_id="a",
+                proposal=CharacterProposal(
+                    draft=draft().model_copy(
+                        update={"purchases": draft().purchases + extra_purchases}
+                    )
+                ),
+            ),
             ActorSetup(
                 actor_id="b",
-                proposal=CharacterProposal(draft=gurps_draft()),
+                proposal=CharacterProposal(draft=gurps_draft(*extra_purchases)),
                 body=HumanBody(anatomy="human") if human_targets else None,
             ),
         )

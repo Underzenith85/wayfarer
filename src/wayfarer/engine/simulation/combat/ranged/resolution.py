@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from dataclasses import replace
 from decimal import ROUND_CEILING, Decimal
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Literal, cast, overload
 
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.character.traits.mastery import damage_bonus
-from wayfarer.engine.rules.checks import Outcome, draw_dice
+from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty
@@ -28,6 +28,7 @@ from wayfarer.engine.rules.types.spray import Stream
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
@@ -56,6 +57,12 @@ from wayfarer.engine.simulation.combat.objects.locations import from_behind, ite
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.ranged.ammunition import expend
 from wayfarer.engine.simulation.combat.ranged.critical import RangedCritical, save_ranged_critical
+from wayfarer.engine.simulation.combat.ranged.damage_records import (
+    PreparedRangedDamage,
+    RangedDamageContext,
+    RangedDamageProgress,
+    RangedDamageStage,
+)
 from wayfarer.engine.simulation.combat.ranged.equipment import (
     ammunition_profile,
     effective_mode,
@@ -103,6 +110,15 @@ def _visibility_adjustment(value: DerivedValue | None, penalty: int) -> DerivedV
     if value is None:
         return None
     return DerivedValue(value.target, value.value + penalty, value.explanations)
+
+
+def _laser_defense(
+    value: DerivedValue | None, selected: Defense | None, visible: bool
+) -> DerivedValue | None:
+    """B412: seeing a laser gives Dodge its source-specific warning bonus."""
+    if visible and selected == "dodge" and value is not None:
+        return DerivedValue(value.target, value.value + 1, ())
+    return value
 
 
 def _apply_one_handed_readiness(
@@ -323,6 +339,7 @@ def _maneuver_bonus(actor: Combatant, weapon: RangedMode, bonus: int) -> int:
     return bonus
 
 
+@overload
 def resolve(
     runtime: RulesContext,
     state: PlayState,
@@ -336,12 +353,78 @@ def resolve(
     parry_mode_id: str | None = None,
     second_parry_mode_id: str | None = None,
     catch_thrown: bool = False,
-) -> tuple[PlayState, Encounter, InjuryTrace]:
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace]: ...
 
+
+@overload
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    weapon: RangedMode,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    second_defense: Defense | None,
+    second_item_id: str | None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[True],
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
+) -> AttackRollSpec: ...
+
+
+@overload
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    weapon: RangedMode,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    second_defense: Defense | None,
+    second_item_id: str | None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+    prepare_damage: Literal[True],
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace] | RangedDamageStage: ...
+
+
+def resolve(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    weapon: RangedMode,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    second_defense: Defense | None,
+    second_item_id: str | None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: bool = False,
+    prepare_damage: bool = False,
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace] | AttackRollSpec | RangedDamageStage:
     original_resources = state.resources
     pending = encounter.pending_defense
     assert pending is not None
     equipment = catalog(runtime)
+    entries = {entry.definition_id: entry for entry in equipment.entries}
     loaded_ammunition = ammunition_profile(equipment, state.resources, pending.weapon_id, weapon)
     weapon = effective_mode(weapon, loaded_ammunition)
     follow_up = weapon.linked_follow_up or (
@@ -482,7 +565,6 @@ def resolve(
         attack_target -= (
             6 if len(eyes) == 2 else 1 if aimed and actor.last_maneuver != "move_and_attack" else 3
         )
-    entries = {e.definition_id: e for e in equipment.entries}
     shield_side = next(
         (
             hand.split("-")[0]
@@ -524,15 +606,13 @@ def resolve(
         external_defense_penalty(state, target.actor_id, pending.visibility_defense_penalty)
         + pending.attention_defense_penalty,
     )
-    if (
+    laser_visible = (
         pending.laser_sight
         and scene.laser_visible_to_target
         and not acute_blindness(state.resources, target.actor_id)
-    ):
-        if selected == "dodge" and defense_value_ is not None:
-            defense_value_ = DerivedValue(defense_value_.target, defense_value_.value + 1, ())
-        if second_defense == "dodge" and second_value is not None:
-            second_value = DerivedValue(second_value.target, second_value.value + 1, ())
+    )
+    defense_value_ = _laser_defense(defense_value_, selected, laser_visible)
+    second_value = _laser_defense(second_value, second_defense, laser_visible)
     if weapon.thrown:
         thrown_item = next(i for i in state.resources.items if i.id == pending.weapon_id)
         entry = next(e for e in equipment.entries if e.definition_id == thrown_item.definition_id)
@@ -542,15 +622,28 @@ def resolve(
         if second_defense == "parry" and second_value is not None:
             second_value = DerivedValue(second_value.target, second_value.value - penalty, ())
 
+    spec = AttackRollSpec(
+        profile_id=equipment.profile_id,
+        target=attack_target,
+        modifiers=check_modifiers(state.resources, actor.actor_id, "dx"),
+        ranged=True,
+        rule_id="gurps.combat.ranged_attack",
+    )
+    if prepare_only:
+        return spec
     state = state.model_copy(
         update={"resources": before_attack(state.resources, pending.weapon_id, weapon)}
     )
     state = _apply_one_handed_readiness(state, actor.actor_id, pending.weapon_id, weapon, st)
-    attack = pending.attack_roll or success_roll(
-        equipment.profile_id,
-        attack_target,
-        check_modifiers(state.resources, actor.actor_id, "dx"),
-        rng=runtime.rng,
+    attack = (
+        pending.attack_roll
+        or selected_attack
+        or success_roll(
+            equipment.profile_id,
+            attack_target,
+            check_modifiers(state.resources, actor.actor_id, "dx"),
+            rng=runtime.rng,
+        )
     )
     original_attack = attack
     attack, shots_fired, malfunction_table, failure = roll_malfunction(
@@ -891,28 +984,6 @@ def resolve(
                 critical_eye = True
         if critical == 8:
             target = target.model_copy(update={"forced_do_nothing": True})
-    damages: list[int] = []
-    injuries: list[int] = []
-    damage_dice: list[int] = []
-    entries = {e.definition_id: e for e in equipment.entries}
-
-    def armor_dr() -> int:
-        return max(
-            (
-                armor.dr
-                for i in state.resources.items
-                if i.owner_id == target.actor_id
-                and i.equipped
-                and (i.condition is None or not i.condition.disabled)
-                for armor in (entries[i.definition_id].armor,)
-                if armor is not None
-                and (
-                    (location or "torso") in armor.locations
-                    or (part(location) + "s" if location else "torso") in armor.locations
-                )
-            ),
-            default=0,
-        )
 
     dr_bonus = 0
 
@@ -922,23 +993,14 @@ def resolve(
         )
     environmental_dr = scene.beam_environment_dr if weapon.beam_environment_dr else 0
 
-    vehicle_cover = max(
-        (
-            transport.occupant_cover_dr
-            for transport in state.resources.transports
-            if target.actor_id in transport.occupants
-            and encounter.spatial_kind == "hex"
-            and isinstance(target.position, Hex)
-            and target.position == Hex(q=transport.q, r=transport.r)
-            and target.hex_facing == transport.facing
-        ),
-        default=0,
-    )
-    dr = (armor_dr() + dr_bonus + environmental_dr + vehicle_cover) * close_projectile_multiplier
+    vehicle_cover = _target_vehicle_cover(state, encounter, target)
+    dr = (
+        _damage_armor_dr(runtime, state, target.actor_id, location)
+        + dr_bonus
+        + environmental_dr
+        + vehicle_cover
+    ) * close_projectile_multiplier
     first_location, first_location_dice, first_dr = location, location_dice, dr
-    hit_resistances: list[int] = []
-    hit_locations: list[HumanLocation | None] = []
-    hit_location_dice: list[tuple[int, ...]] = []
     expression = stats.swing if weapon.damage.basis == "swing" else stats.thrust
     range_st = st
     if weapon.rated_strength is not None:
@@ -981,221 +1043,622 @@ def resolve(
         if close_projectile_multiplier == 1
         else weapon.model_copy(update={"damage": resistance_damage})
     )
-    for index in range(impacts if blocked is None else 0):
-        if index and pending.hit_location == "random":
-            location, location_dice = select_location(
-                "random",
-                rng=runtime.rng,
-                from_behind=from_behind(actor, target),
+    context = RangedDamageContext(
+        pending=pending,
+        weapon=weapon,
+        construction=construction,
+        actor=actor,
+        target=target,
+        original_target=original_target,
+        compiled=compiled,
+        defender_build=defender_build,
+        hp=hp,
+        hp_before=hp.current,
+        attack=attack,
+        original_attack=original_attack,
+        defense=defense,
+        second_trace=second_trace,
+        value=value,
+        defense_value=defense_value_,
+        scene=scene,
+        critical=critical,
+        critical_eye=critical_eye,
+        critical_table=critical_table,
+        critical_rolls=critical_rolls,
+        critical_parry_mode=critical_parry_mode,
+        parry_item=parry_item,
+        head=head,
+        blocked=blocked,
+        close_projectile_multiplier=close_projectile_multiplier,
+        shield_hit=shield_hit,
+        shield_impacts=shield_impacts,
+        hits=hits,
+        impacts=impacts,
+        shots_fired=shots_fired,
+        effective_shots=effective_shots,
+        malfunction_table=malfunction_table,
+        failure=failure,
+        follow_up=follow_up,
+        vulnerability_multiplier=vulnerability_multiplier,
+        count=count,
+        adds=adds,
+        half=half,
+        resistance_damage=resistance_damage,
+        resistance_weapon=resistance_weapon,
+        dr_bonus=dr_bonus,
+        environmental_dr=environmental_dr,
+        vehicle_cover=vehicle_cover,
+        base_location=base_location,
+        base_location_dice=base_location_dice,
+        first_location=first_location,
+        first_location_dice=first_location_dice,
+        first_dr=first_dr,
+        original_ammunition=next(
+            (
+                load
+                for load in original_resources.ammunition_loads
+                if load.weapon_id == pending.weapon_id
+            ),
+            None,
+        ),
+        original_items=tuple(
+            item
+            for item in original_resources.items
+            if item.owner_id in (actor.actor_id, target.actor_id)
+        ),
+        original_pools=tuple(
+            pool
+            for pool in original_resources.pools
+            if pool.id
+            in (
+                "hp:" + actor.actor_id,
+                "fp:" + actor.actor_id,
+                "hp:" + target.actor_id,
+                "fp:" + target.actor_id,
             )
-            current_hp = next(p for p in state.resources.pools if p.id == hp.id)
-            if current_hp.injury and missing_location(current_hp.injury, location):
-                location = "torso"
-            dr = (armor_dr() + dr_bonus + vehicle_cover) * close_projectile_multiplier
-        elif index and location != base_location:
-            location, location_dice = base_location, base_location_dice
-            dr = (armor_dr() + dr_bonus + vehicle_cover) * close_projectile_multiplier
-        hit_resistances.append(dr)
-        hit_locations.append(location)
-        hit_location_dice.append(location_dice)
-        hit_critical = critical if index == 0 else 0
-        maximum = hit_critical in ((3, 15) if head else (6, 15)) or (
-            equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
+        ),
+    )
+    progress = RangedDamageProgress(
+        location=location,
+        location_dice=location_dice,
+        dr=dr,
+        effect_dice=effect_dice,
+        lasting_ids=lasting_ids,
+    )
+    return advance_ranged_damage(
+        runtime, state, encounter, context, progress, pause=prepare_damage, secret=secret_damage
+    )
+
+
+def refresh_ranged_damage_target(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, prepared: PreparedRangedDamage
+) -> PreparedRangedDamage:
+    """Keep this projectile's delivery and location while refreshing unresolved injury."""
+    context, progress = prepared.context, prepared.progress
+    target = next(p for p in encounter.participants if p.actor_id == context.target.actor_id)
+    compiled = build(runtime, state, target.actor_id)
+    hp = next(p for p in state.resources.pools if p.id == context.hp.id)
+    traits = attack_defense_traits(compiled, runtime.reviewer.compiler.definitions)
+    bonus = (
+        damage_resistance(state.resources, target.actor_id, build_revision=compiled.revision)
+        if runtime.rules.abilities is not None
+        else 0
+    )
+    cover = _target_vehicle_cover(state, encounter, target)
+    dr = (
+        _damage_armor_dr(runtime, state, target.actor_id, progress.location)
+        + bonus
+        + context.environmental_dr
+        + cover
+    ) * context.close_projectile_multiplier
+    return prepared.model_copy(
+        update={
+            "context": context.model_copy(
+                update={
+                    "target": target,
+                    "defender_build": compiled,
+                    "hp": hp,
+                    "hp_before": hp.current if progress.index == 0 else context.hp_before,
+                    "dr_bonus": bonus,
+                    "vehicle_cover": cover,
+                    "first_dr": dr if progress.index == 0 else context.first_dr,
+                    "vulnerability_multiplier": silver_wounding_multiplier(
+                        traits.injury_multiplier("silver"), context.construction
+                    ),
+                }
+            ),
+            "progress": progress.model_copy(
+                update={
+                    "dr": dr,
+                    "hit_resistances": progress.hit_resistances[:-1] + (dr,),
+                }
+            ),
+        }
+    )
+
+
+def advance_ranged_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    context: RangedDamageContext,
+    progress: RangedDamageProgress,
+    *,
+    pause: bool = True,
+    secret: bool = False,
+    selected_damage: tuple[int, ...] | None = None,
+) -> tuple[PlayState, Encounter, InjuryTrace] | RangedDamageStage:
+    if selected_damage is not None:
+        if (
+            progress.index >= context.impacts
+            or len(selected_damage) != context.count
+            or any(type(die) is not int or not 1 <= die <= 6 for die in selected_damage)
+        ):
+            raise ValidationError("Selected ranged damage disagrees with its captured expression")
+        state, encounter, progress = _apply_ranged_impact(
+            runtime, state, encounter, context, progress, selected_damage, False
         )
-        dice = () if maximum else draw_dice(runtime.rng, count)
-        damage_dice.extend(dice)
-        damage = (
-            max(
-                0 if weapon.damage.damage_type == "cr" else 1,
-                (6 * count if maximum else sum(dice)) + adds,
+    while progress.index < (context.impacts if context.blocked is None else 0):
+        progress, maximum = _prepare_ranged_impact(runtime, state, context, progress)
+        if pause and not maximum:
+            original = None if secret else draw_dice(runtime.rng, context.count)
+            state, encounter = _sync_ranged_pending(state, encounter, context)
+            return RangedDamageStage(
+                state,
+                encounter,
+                PreparedRangedDamage(
+                    context=context, progress=progress, original=original, secret=secret
+                ),
             )
-            * weapon.damage.multiplier
+        dice = () if maximum else draw_dice(runtime.rng, context.count)
+        state, encounter, progress = _apply_ranged_impact(
+            runtime, state, encounter, context, progress, dice, maximum
         )
-        damage *= (
-            3
-            if hit_critical in ((18,) if head else (3, 18))
-            else 2
-            if hit_critical in ((16,) if head else (5, 16))
+    return _finish_ranged_damage(runtime, state, encounter, context, progress)
+
+
+def _sync_ranged_pending(
+    state: PlayState, encounter: Encounter, context: RangedDamageContext
+) -> tuple[PlayState, Encounter]:
+    hp = next(pool for pool in state.resources.pools if pool.id == context.hp.id)
+    assert hp.injury is not None
+    target = next(
+        actor for actor in encounter.participants if actor.actor_id == context.target.actor_id
+    )
+    target = target.model_copy(
+        update={
+            "posture": "prone" if hp.injury.prone else target.posture,
+            "forced_do_nothing": target.forced_do_nothing or context.target.forced_do_nothing,
+            "ready_item_ids": tuple(
+                sorted(
+                    item.id
+                    for item in state.resources.items
+                    if item.owner_id == target.actor_id and item.ready and item.equipped
+                )
+            ),
+        }
+    )
+    encounter = CombatEngine._replace(encounter, target)
+    if hp.injury.incapacitated:
+        state = state.model_copy(
+            update={
+                "actors": tuple(
+                    actor.model_copy(
+                        update={
+                            "conditions": tuple(dict.fromkeys((*actor.conditions, "unconscious")))
+                        }
+                    )
+                    if actor.actor_id == target.actor_id
+                    else actor
+                    for actor in state.actors
+                )
+            }
+        )
+    return state, encounter
+
+
+def _prepare_ranged_impact(
+    runtime: RulesContext,
+    state: PlayState,
+    context: RangedDamageContext,
+    progress: RangedDamageProgress,
+) -> tuple[RangedDamageProgress, bool]:
+    pending = context.pending
+    actor = context.actor
+    target = context.target
+    hp = context.hp
+    attack = context.attack
+    critical = context.critical
+    head = context.head
+    close_projectile_multiplier = context.close_projectile_multiplier
+    dr_bonus = context.dr_bonus
+    vehicle_cover = context.vehicle_cover
+    base_location = context.base_location
+    base_location_dice = context.base_location_dice
+    index = progress.index
+    location = progress.location
+    location_dice = progress.location_dice
+    dr = progress.dr
+    hit_resistances = list(progress.hit_resistances)
+    hit_locations = list(progress.hit_locations)
+    hit_location_dice = list(progress.hit_location_dice)
+    equipment = catalog(runtime)
+    if index and pending.hit_location == "random":
+        location, location_dice = select_location(
+            "random",
+            rng=runtime.rng,
+            from_behind=from_behind(actor, target),
+        )
+        current_hp = next(p for p in state.resources.pools if p.id == hp.id)
+        if current_hp.injury and missing_location(current_hp.injury, location):
+            location = "torso"
+        dr = (
+            _damage_armor_dr(runtime, state, target.actor_id, location) + dr_bonus + vehicle_cover
+        ) * close_projectile_multiplier
+    elif index and location != base_location:
+        location, location_dice = base_location, base_location_dice
+        dr = (
+            _damage_armor_dr(runtime, state, target.actor_id, location) + dr_bonus + vehicle_cover
+        ) * close_projectile_multiplier
+    hit_resistances.append(dr)
+    hit_locations.append(location)
+    hit_location_dice.append(location_dice)
+    hit_critical = critical if index == 0 else 0
+    maximum = hit_critical in ((3, 15) if head else (6, 15)) or (
+        equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
+    )
+    return progress.model_copy(
+        update={
+            "location": location,
+            "location_dice": location_dice,
+            "dr": dr,
+            "hit_resistances": tuple(hit_resistances),
+            "hit_locations": tuple(hit_locations),
+            "hit_location_dice": tuple(hit_location_dice),
+        }
+    ), maximum
+
+
+def _apply_ranged_impact(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    context: RangedDamageContext,
+    progress: RangedDamageProgress,
+    dice: tuple[int, ...],
+    maximum: bool,
+) -> tuple[PlayState, Encounter, RangedDamageProgress]:
+    pending = context.pending
+    weapon = context.weapon
+    target = context.target
+    hp = context.hp
+    scene = context.scene
+    critical_eye = context.critical_eye
+    head = context.head
+    close_projectile_multiplier = context.close_projectile_multiplier
+    shield_hit = context.shield_hit
+    shield_impacts = context.shield_impacts
+    follow_up = context.follow_up
+    vulnerability_multiplier = context.vulnerability_multiplier
+    count = context.count
+    adds = context.adds
+    half = context.half
+    resistance_damage = context.resistance_damage
+    resistance_weapon = context.resistance_weapon
+    dr_bonus = context.dr_bonus
+    vehicle_cover = context.vehicle_cover
+    index = progress.index
+    location = progress.location
+    location_dice = progress.location_dice
+    dr = progress.dr
+    damages = list(progress.damages)
+    injuries = list(progress.injuries)
+    damage_dice = list(progress.damage_dice)
+    hit_resistances = list(progress.hit_resistances)
+    hit_locations = list(progress.hit_locations)
+    hit_location_dice = list(progress.hit_location_dice)
+    effect_dice = progress.effect_dice
+    lasting_ids = progress.lasting_ids
+    entries = {entry.definition_id: entry for entry in catalog(runtime).entries}
+    defender_stats = context.defender_build.statistics
+    assert defender_stats is not None
+    hit_critical = context.critical if progress.index == 0 else 0
+    damage_dice.extend(dice)
+    damage = (
+        max(
+            0 if weapon.damage.damage_type == "cr" else 1,
+            (6 * count if maximum else sum(dice)) + adds,
+        )
+        * weapon.damage.multiplier
+    )
+    damage *= (
+        3
+        if hit_critical in ((18,) if head else (3, 18))
+        else 2
+        if hit_critical in ((16,) if head else (5, 16))
+        else 1
+    )
+    if half:
+        damage //= 2
+    acceleration = weapon.rocket_acceleration
+    if acceleration is not None:
+        damage //= (
+            acceleration.close_damage_divisor
+            if scene.distance <= acceleration.close_max_yards
+            else acceleration.medium_damage_divisor
+            if scene.distance <= acceleration.medium_max_yards
             else 1
         )
-        if half:
-            damage //= 2
-        acceleration = weapon.rocket_acceleration
-        if acceleration is not None:
-            damage //= (
-                acceleration.close_damage_divisor
-                if scene.distance <= acceleration.close_max_yards
-                else acceleration.medium_damage_divisor
-                if scene.distance <= acceleration.medium_max_yards
-                else 1
-            )
 
-        rolled_damage = damage
-        intervening_dr = 0
+    rolled_damage = damage
+    intervening_dr = 0
 
-        if pending.target_item_id:
-            state, encounter, object_result = damage_target(
-                runtime,
-                state,
-                encounter,
-                pending.target_item_id,
-                damage,
-                resistance_damage.model_copy(
-                    update={
-                        "armor_divisor": resistance_damage.armor_divisor
-                        * (2 if pending.armor_chink else 1)
-                    }
-                ),
-                impact=index,
-            )
-            damages.append(damage)
-            injuries.append(0)
-            hit_resistances[-1] = object_result.effective_dr if object_result else 0
-            if object_result:
-                effect_dice += tuple(d for roll in object_result.checks for d in roll)
-            target_item = next(i for i in state.resources.items if i.id == pending.target_item_id)
-            target_profile = entries[target_item.definition_id]
-            state = state.model_copy(
+    if pending.target_item_id:
+        state, encounter, object_result = damage_target(
+            runtime,
+            state,
+            encounter,
+            pending.target_item_id,
+            damage,
+            resistance_damage.model_copy(
                 update={
-                    "resources": persist_surge(
-                        state.resources,
-                        event_id=f"{pending.id}:surge:{index}",
-                        target_item_id=target_item.id,
-                        penetrating_damage=object_result.injury if object_result else 0,
-                        target_is_electrical=bool(
-                            target_profile.electronics
-                            or any(
-                                isinstance(mode, RangedMode) and mode.smartgun is not None
-                                for mode in target_profile.modes
-                            )
-                        ),
-                    )
-                    if weapon.damage.surge
-                    else state.resources
+                    "armor_divisor": resistance_damage.armor_divisor
+                    * (2 if pending.armor_chink else 1)
                 }
-            )
-            continue
-        state, encounter, intervening_dr = _resolve_cover_impact(
-            runtime,
-            state,
-            encounter,
-            resistance_damage,
-            cover_item_id=pending.cover_item_id,
-            projectile_id=f"{pending.id}:hit:{index}",
-            target_id=target.actor_id,
-            basic_damage=damage,
+            ),
+            impact=index,
         )
-        dr += intervening_dr
-        hit_resistances[-1] = dr
-        if shield_hit and index < shield_impacts:
-            state, encounter, damage = shield_damage(
-                runtime,
-                state,
-                encounter,
-                shield_hit,
-                damage,
-                resistance_weapon,
-                impact=index,
-            )
-            if damage == 0:
-                damages.append(0)
-                injuries.append(0)
-                continue
-            effect_dice = _shield_side_effect(
-                runtime,
-                state,
-                encounter,
-                target.actor_id,
-                shield_hit,
-                (armor_dr() + dr_bonus + vehicle_cover) * close_projectile_multiplier,
-                effect_dice,
-                hit_locations,
-                hit_resistances,
-            )
-        resources, result = apply_injury(
-            state.resources,
-            Wound(
-                id=f"{pending.id}:hit:{index}",
-                actor_id=target.actor_id,
-                expected_revision=state.resources.revision,
-                basic_damage=damage,
-                resistance=dr,
-                damage_type=weapon.damage.damage_type,
-                location=location,
-                critical_eye=critical_eye and index == 0,
-                armor_divisor=(
-                    Decimal(1)
-                    if half and weapon.loses_armor_divisor_at_half_range
-                    else weapon.damage.armor_divisor
-                )
-                * (2 if pending.armor_chink else 1),
-                tight_beam=weapon.damage.tight_beam,
-                vulnerability_multiplier=vulnerability_multiplier,
-            ),
-            ht=defender_stats.ht,
-            rng=runtime.rng,
-            system=True,
-            dx=defender_stats.dx,
-            force_major_wound=hit_critical in ((4, 5) if head else (7, 13, 14)),
-            double_shock=hit_critical == 8 and not head,
-            funny_bone=hit_critical == 8 and not head,
-            halve_dr=("up" if head else "down")
-            if hit_critical in ((4, 5, 17) if head else (4, 17))
-            else None,
-            ignore_dr=head and hit_critical == 3,
-            held_item_locations=target.hand_bindings,
-            shield_item_ids=tuple(
-                i.id
-                for i in state.resources.items
-                if i.owner_id == target.actor_id
-                and i.ready
-                and i.equipped
-                and entries[i.definition_id].shield
-            ),
-            held_item_ids=tuple(
-                i.id
-                for i in state.resources.items
-                if i.owner_id == target.actor_id and i.ready and i.equipped
-            ),
-            head_trauma=(
-                "deafened"
-                if head and hit_critical in (12, 13) and weapon.damage.damage_type == "cr"
-                else "scarred"
-                if head and hit_critical in (12, 13)
-                else None
-            ),
-            scar_levels=2 if weapon.damage.damage_type in ("burn", "cor") else 1,
-        )
-        state = state.model_copy(update={"resources": resources})
         damages.append(damage)
-        injuries.append(result.injury)
-        lasting_ids += result.lasting_injury_ids
-        effect_dice += result.location_dice
-        state, follow_up_dice = _resolve_follow_up_hit(
-            runtime,
-            state,
-            event_id=f"{pending.id}:follow-up:{index}",
-            target_actor_id=target.actor_id,
-            target_ht=defender_stats.ht,
-            resistance_dr=armor_dr() + dr_bonus,
-            injury=result.injury,
-            spec=follow_up,
+        injuries.append(0)
+        hit_resistances[-1] = object_result.effective_dr if object_result else 0
+        if object_result:
+            effect_dice += tuple(d for roll in object_result.checks for d in roll)
+        target_item = next(i for i in state.resources.items if i.id == pending.target_item_id)
+        target_profile = entries[target_item.definition_id]
+        state = state.model_copy(
+            update={
+                "resources": persist_surge(
+                    state.resources,
+                    event_id=f"{pending.id}:surge:{index}",
+                    target_item_id=target_item.id,
+                    penetrating_damage=object_result.injury if object_result else 0,
+                    target_is_electrical=bool(
+                        target_profile.electronics
+                        or any(
+                            isinstance(mode, RangedMode) and mode.smartgun is not None
+                            for mode in target_profile.modes
+                        )
+                    ),
+                )
+                if weapon.damage.surge
+                else state.resources
+            }
         )
-        effect_dice += follow_up_dice
-        state, encounter = _resolve_overpenetration(
+        return (
+            state,
+            encounter,
+            RangedDamageProgress(
+                index=index + 1,
+                location=location,
+                location_dice=location_dice,
+                dr=dr,
+                damages=tuple(damages),
+                injuries=tuple(injuries),
+                damage_dice=tuple(damage_dice),
+                hit_resistances=tuple(hit_resistances),
+                hit_locations=tuple(hit_locations),
+                hit_location_dice=tuple(hit_location_dice),
+                effect_dice=effect_dice,
+                lasting_ids=lasting_ids,
+            ),
+        )
+    state, encounter, intervening_dr = _resolve_cover_impact(
+        runtime,
+        state,
+        encounter,
+        resistance_damage,
+        cover_item_id=pending.cover_item_id,
+        projectile_id=f"{pending.id}:hit:{index}",
+        target_id=target.actor_id,
+        basic_damage=damage,
+    )
+    dr += intervening_dr
+    hit_resistances[-1] = dr
+    if shield_hit and index < shield_impacts:
+        state, encounter, damage = shield_damage(
             runtime,
             state,
             encounter,
-            weapon,
-            secondary_id=pending.overpenetration_target_id,
-            projectile_id=f"{pending.id}:hit:{index}",
-            rolled_damage=rolled_damage,
-            intervening_dr=intervening_dr,
-            primary_hp=hp.maximum,
-            primary_armor_dr=armor_dr() + dr_bonus,
-            blocked_by_shield=shield_hit is not None,
-            location=location,
+            shield_hit,
+            damage,
+            resistance_weapon,
+            impact=index,
         )
+        if damage == 0:
+            damages.append(0)
+            injuries.append(0)
+            return (
+                state,
+                encounter,
+                RangedDamageProgress(
+                    index=index + 1,
+                    location=location,
+                    location_dice=location_dice,
+                    dr=dr,
+                    damages=tuple(damages),
+                    injuries=tuple(injuries),
+                    damage_dice=tuple(damage_dice),
+                    hit_resistances=tuple(hit_resistances),
+                    hit_locations=tuple(hit_locations),
+                    hit_location_dice=tuple(hit_location_dice),
+                    effect_dice=effect_dice,
+                    lasting_ids=lasting_ids,
+                ),
+            )
+        effect_dice = _shield_side_effect(
+            runtime,
+            state,
+            encounter,
+            target.actor_id,
+            shield_hit,
+            (_damage_armor_dr(runtime, state, target.actor_id, location) + dr_bonus + vehicle_cover)
+            * close_projectile_multiplier,
+            effect_dice,
+            hit_locations,
+            hit_resistances,
+        )
+    resources, result = apply_injury(
+        state.resources,
+        Wound(
+            id=f"{pending.id}:hit:{index}",
+            actor_id=target.actor_id,
+            expected_revision=state.resources.revision,
+            basic_damage=damage,
+            resistance=dr,
+            damage_type=weapon.damage.damage_type,
+            location=location,
+            critical_eye=critical_eye and index == 0,
+            armor_divisor=(
+                Decimal(1)
+                if half and weapon.loses_armor_divisor_at_half_range
+                else weapon.damage.armor_divisor
+            )
+            * (2 if pending.armor_chink else 1),
+            tight_beam=weapon.damage.tight_beam,
+            vulnerability_multiplier=vulnerability_multiplier,
+        ),
+        ht=defender_stats.ht,
+        rng=runtime.rng,
+        system=True,
+        dx=defender_stats.dx,
+        force_major_wound=hit_critical in ((4, 5) if head else (7, 13, 14)),
+        double_shock=hit_critical == 8 and not head,
+        funny_bone=hit_critical == 8 and not head,
+        halve_dr=("up" if head else "down")
+        if hit_critical in ((4, 5, 17) if head else (4, 17))
+        else None,
+        ignore_dr=head and hit_critical == 3,
+        held_item_locations=target.hand_bindings,
+        shield_item_ids=tuple(
+            i.id
+            for i in state.resources.items
+            if i.owner_id == target.actor_id
+            and i.ready
+            and i.equipped
+            and entries[i.definition_id].shield
+        ),
+        held_item_ids=tuple(
+            i.id
+            for i in state.resources.items
+            if i.owner_id == target.actor_id and i.ready and i.equipped
+        ),
+        head_trauma=(
+            "deafened"
+            if head and hit_critical in (12, 13) and weapon.damage.damage_type == "cr"
+            else "scarred"
+            if head and hit_critical in (12, 13)
+            else None
+        ),
+        scar_levels=2 if weapon.damage.damage_type in ("burn", "cor") else 1,
+    )
+    state = state.model_copy(update={"resources": resources})
+    damages.append(damage)
+    injuries.append(result.injury)
+    lasting_ids += result.lasting_injury_ids
+    effect_dice += result.location_dice
+    state, follow_up_dice = _resolve_follow_up_hit(
+        runtime,
+        state,
+        event_id=f"{pending.id}:follow-up:{index}",
+        target_actor_id=target.actor_id,
+        target_ht=defender_stats.ht,
+        resistance_dr=_damage_armor_dr(runtime, state, target.actor_id, location) + dr_bonus,
+        injury=result.injury,
+        spec=follow_up,
+    )
+    effect_dice += follow_up_dice
+    state, encounter = _resolve_overpenetration(
+        runtime,
+        state,
+        encounter,
+        weapon,
+        secondary_id=pending.overpenetration_target_id,
+        projectile_id=f"{pending.id}:hit:{index}",
+        rolled_damage=rolled_damage,
+        intervening_dr=intervening_dr,
+        primary_hp=hp.maximum,
+        primary_armor_dr=_damage_armor_dr(runtime, state, target.actor_id, location) + dr_bonus,
+        blocked_by_shield=shield_hit is not None,
+        location=location,
+    )
+    return (
+        state,
+        encounter,
+        RangedDamageProgress(
+            index=index + 1,
+            location=location,
+            location_dice=location_dice,
+            dr=dr,
+            damages=tuple(damages),
+            injuries=tuple(injuries),
+            damage_dice=tuple(damage_dice),
+            hit_resistances=tuple(hit_resistances),
+            hit_locations=tuple(hit_locations),
+            hit_location_dice=tuple(hit_location_dice),
+            effect_dice=effect_dice,
+            lasting_ids=lasting_ids,
+        ),
+    )
+
+
+def _finish_ranged_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    context: RangedDamageContext,
+    progress: RangedDamageProgress,
+) -> tuple[PlayState, Encounter, InjuryTrace]:
+    pending = context.pending
+    weapon = context.weapon
+    actor = context.actor
+    target = context.target
+    original_target = context.original_target
+    compiled = context.compiled
+    defender_build = context.defender_build
+    hp = context.hp
+    attack = context.attack
+    original_attack = context.original_attack
+    defense = context.defense
+    second_trace = context.second_trace
+    value = context.value
+    defense_value_ = context.defense_value
+    scene = context.scene
+    critical = context.critical
+    critical_table = context.critical_table
+    critical_rolls = context.critical_rolls
+    critical_parry_mode = context.critical_parry_mode
+    parry_item = context.parry_item
+    head = context.head
+    blocked = context.blocked
+    hits = context.hits
+    impacts = context.impacts
+    shots_fired = context.shots_fired
+    effective_shots = context.effective_shots
+    malfunction_table = context.malfunction_table
+    failure = context.failure
+    first_location = context.first_location
+    first_location_dice = context.first_location_dice
+    first_dr = context.first_dr
+    damages = list(progress.damages)
+    injuries = list(progress.injuries)
+    damage_dice = list(progress.damage_dice)
+    hit_resistances = list(progress.hit_resistances)
+    hit_locations = list(progress.hit_locations)
+    hit_location_dice = list(progress.hit_location_dice)
+    effect_dice = progress.effect_dice
+    lasting_ids = progress.lasting_ids
+    equipment = catalog(runtime)
+    entries = {entry.definition_id: entry for entry in catalog(runtime).entries}
     if critical == 12 and not head and blocked is None and not pending.target_item_id:
         state = state.model_copy(
             update={
@@ -1342,7 +1805,7 @@ def resolve(
         basic_damage=sum(damages),
         resistance=first_dr,
         injury=sum(injuries),
-        hp_before=hp.current,
+        hp_before=context.hp_before,
         hp_after=updated.current,
         incapacitated=updated.injury.incapacitated,
         profile_id=equipment.profile_id,
@@ -1379,30 +1842,9 @@ def resolve(
                         weapon=weapon,
                         scene=scene,
                         original_attack=original_attack,
-                        ammunition_load=next(
-                            (
-                                v
-                                for v in original_resources.ammunition_loads
-                                if v.weapon_id == pending.weapon_id
-                            ),
-                            None,
-                        ),
-                        items=tuple(
-                            i
-                            for i in original_resources.items
-                            if i.owner_id in (actor.actor_id, target.actor_id)
-                        ),
-                        pools=tuple(
-                            p
-                            for p in original_resources.pools
-                            if p.id
-                            in (
-                                f"hp:{actor.actor_id}",
-                                f"fp:{actor.actor_id}",
-                                f"hp:{target.actor_id}",
-                                f"fp:{target.actor_id}",
-                            )
-                        ),
+                        ammunition_load=context.original_ammunition,
+                        items=context.original_items,
+                        pools=context.original_pools,
                         failure=failure,
                         trace=trace,
                     ),
@@ -1460,30 +1902,9 @@ def resolve(
                         catalog=equipment,
                         weapon=weapon,
                         scene=scene,
-                        ammunition_load=next(
-                            (
-                                load
-                                for load in original_resources.ammunition_loads
-                                if load.weapon_id == pending.weapon_id
-                            ),
-                            None,
-                        ),
-                        items=tuple(
-                            i
-                            for i in original_resources.items
-                            if i.owner_id in (actor.actor_id, target.actor_id)
-                        ),
-                        pools=tuple(
-                            p
-                            for p in original_resources.pools
-                            if p.id
-                            in (
-                                f"hp:{actor.actor_id}",
-                                f"fp:{actor.actor_id}",
-                                f"hp:{target.actor_id}",
-                                f"fp:{target.actor_id}",
-                            )
-                        ),
+                        ammunition_load=context.original_ammunition,
+                        items=context.original_items,
+                        pools=context.original_pools,
                         trace=trace,
                         table_rolls=critical_rolls,
                         subject_id=target.actor_id if parry_item else actor.actor_id,
@@ -1494,3 +1915,40 @@ def resolve(
             }
         )
     return state, encounter, trace
+
+
+def _target_vehicle_cover(state: PlayState, encounter: Encounter, target: Combatant) -> int:
+    return max(
+        (
+            transport.occupant_cover_dr
+            for transport in state.resources.transports
+            if target.actor_id in transport.occupants
+            and encounter.spatial_kind == "hex"
+            and isinstance(target.position, Hex)
+            and target.position == Hex(q=transport.q, r=transport.r)
+            and target.hex_facing == transport.facing
+        ),
+        default=0,
+    )
+
+
+def _damage_armor_dr(
+    runtime: RulesContext, state: PlayState, target_id: str, location: HumanLocation | None
+) -> int:
+    entries = {entry.definition_id: entry for entry in catalog(runtime).entries}
+    return max(
+        (
+            armor.dr
+            for i in state.resources.items
+            if i.owner_id == target_id
+            and i.equipped
+            and (i.condition is None or not i.condition.disabled)
+            for armor in (entries[i.definition_id].armor,)
+            if armor is not None
+            and (
+                (location or "torso") in armor.locations
+                or (part(location) + "s" if location else "torso") in armor.locations
+            )
+        ),
+        default=0,
+    )

@@ -1,17 +1,15 @@
 """Approved Innate Attack composition over existing modifier, roll and injury reducers."""
 
 from collections.abc import Mapping
-from math import ceil
 from typing import Literal
 
 from pydantic import Field
 
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
-from wayfarer.engine.character.traits.sensory import sensory_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
-from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, RandomSource
-from wayfarer.engine.rules.gurps_checks import Contestant, resistance_roll, success_roll
+from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
+from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.ranged import range_penalty
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
@@ -26,6 +24,10 @@ from wayfarer.engine.simulation.traits.attack_defense import (
     _channel,
     apply_trait_attack,
     history,
+)
+from wayfarer.engine.simulation.traits.malediction_checks import (
+    prepare_malediction,
+    resolve_malediction,
 )
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
@@ -93,52 +95,17 @@ def _malediction_checks(
     *,
     current_conditions: bool = False,
 ) -> tuple[bool, tuple[CheckTrace, ...]]:
-    assert build.statistics is not None and target.statistics is not None
-    if context.maneuver != "concentrate":
-        raise ValidationError("Malediction requires Concentrate")
-    if not context.target_perceived:
-        raise ValidationError("Malediction requires a clearly perceived target")
-    if profile.penetration_sense == "vision" and (
-        not context.vision_contact
-        or any(
-            e.spec.kind == "blindness"
-            for actor in (actor_id, context.target_id)
-            for e in active(state, actor)
-        )
-    ):
-        raise ValidationError("Vision-Based Malediction requires the victim's available vision")
-    penalties: tuple[Modifier, ...] = (
-        Modifier(
-            -ceil(context.distance_yards), "Malediction 1 range", "B9/B106", "characters-third"
-        ),
+    prepared = prepare_malediction(
+        state,
+        actor_id,
+        build,
+        target,
+        profile,
+        context,
+        definitions,
+        current_conditions=current_conditions,
     )
-    if current_conditions:
-        penalties += check_modifiers(state, actor_id, "will")
-    if not context.resist:
-        check = success_roll(PROFILE, build.statistics.will, modifiers=penalties, rng=rng)
-        return check.outcome.succeeded, (check,)
-    resistance = resistance_roll(
-        PROFILE,
-        Contestant(actor_id, build.statistics.will, penalties),
-        Contestant(
-            context.target_id,
-            target.statistics.will,
-            (
-                (Modifier(5, "Protected vision", "B78/B109", "characters-third"),)
-                if profile.penetration_sense == "vision"
-                and sensory_traits(target, definitions).protected("vision")
-                else ()
-            )
-            + (
-                check_modifiers(state, context.target_id, "will", defensive=True)
-                if current_conditions
-                else ()
-            ),
-        ),
-        rule_of_16=True,
-        rng=rng,
-    )
-    return resistance.affected, (resistance.attacker, resistance.resister)
+    return resolve_malediction(prepared, rng=rng)
 
 
 def _resolve_delivery(

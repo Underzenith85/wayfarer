@@ -26,6 +26,7 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.scenes import SceneEvent
 from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.health.fright_state import TimedFright
+from wayfarer.engine.simulation.health.hazard_visibility import private_hazard_result
 from wayfarer.engine.simulation.health.hazards import HazardResult
 from wayfarer.engine.simulation.health.injury import InjuryResult
 from wayfarer.engine.simulation.magic.spell_state import SpellEvent
@@ -302,7 +303,9 @@ def play_facts(before: PlayState, after: PlayState, actor_id: str) -> list[Engin
         elif event.id.startswith("hazard:"):
             result.append(
                 HazardResolved(
-                    audience=ActorAudience(actor_ids=(event.target_id,)),
+                    audience=GMAudience()
+                    if private_hazard_result(after.resources, event)
+                    else ActorAudience(actor_ids=(event.target_id,)),
                     result=HazardResult.model_validate_json(event.kind),
                 )
             )

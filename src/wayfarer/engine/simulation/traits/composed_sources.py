@@ -7,22 +7,26 @@ contains caller-selected skill, defense, damage, protection, range or resistance
 from __future__ import annotations
 
 import hashlib
-from typing import Literal, cast
-
-from pydantic import Field
+from typing import cast
 
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
-from wayfarer.engine.rules.traits.modifiers import AttackProfile
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
 from wayfarer.engine.simulation.equipment.catalog import DamageType
-from wayfarer.engine.simulation.health.cyclic_host_state import CyclicPolicy
-from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
+from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.traits.composed_records import (
+    BindComposedSource as BindComposedSource,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    ComposedPending as ComposedPending,
+)
+from wayfarer.engine.simulation.traits.composed_records import (
+    ComposedSource as ComposedSource,
+)
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Id, Record
 
 PROFILE = "gurps-basic-set-4e-2004"
 SOURCE_PREFIX = "composed-source:"
@@ -37,50 +41,6 @@ def identity(prefix: str, value: str) -> str:
 def source_id(actor_id: str, purchase_id: str = "advantage:innate-attack") -> str:
     # A new command, target, description or build revision is not a new Symptoms cause.
     return identity(SOURCE_PREFIX, actor_id + ":" + purchase_id)
-
-
-class BindComposedSource(Command):
-    kind: Literal["bind"] = "bind"
-    purchase_id: Literal["advantage:innate-attack"] = "advantage:innate-attack"
-    description: str = Field(min_length=1, max_length=2000, pattern=r"\S")
-    specialty: Literal["beam", "breath", "gaze", "projectile"]
-    emitter_limb: Literal["left-arm", "right-arm"] | None = None
-    contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
-    incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
-    cyclic_policy: CyclicPolicy | None = None
-
-
-class ComposedSource(Record):
-    id: Id
-    campaign_id: Id
-    actor_id: Id
-    purchase_id: Literal["advantage:innate-attack"] = "advantage:innate-attack"
-    build_revision: str
-    source_revision: str
-    declared_by: Id
-    description: str
-    specialty: Literal["beam", "breath", "gaze", "projectile"]
-    emitter_limb: Literal["left-arm", "right-arm"] | None = None
-    damage_type: DamageType
-    damage_dice: int = Field(ge=1)
-    profile: AttackProfile
-    contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
-    incubation_seconds: int = Field(ge=1)
-    cyclic_policy: CyclicPolicy | None = None
-
-
-class ComposedPending(Record):
-    id: Id
-    command_id: Id
-    campaign_id: Id
-    encounter_id: Id
-    pending_id: Id
-    attacker_id: Id
-    target_id: Id
-    source: ComposedSource
-    stage: Literal["defense", "resistance"]
-    opened_round: int
-    opened_turn: int
 
 
 def raw_build(runtime: RulesContext, state: PlayState, actor_id: str) -> ValidatedBuild:

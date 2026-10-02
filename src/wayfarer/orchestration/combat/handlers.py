@@ -202,6 +202,13 @@ def _unarmed(
     resources = state.resources
     assert isinstance(command, (TakeUnarmedTurn, ChooseDefense))
 
-    state, encounter, result = execute_unarmed(play.rules_context, state, encounter, command)
+    state, encounter, result = execute_unarmed(
+        play.rules_context,
+        state,
+        encounter,
+        command,
+        selected_attack=context.selected_attack.selected if context.selected_attack else None,
+        attack_runtime=context.attack_runtime if context.selected_attack else None,
+    )
     resources = state.resources
     return CombatStep(state, encounter, resources, result)

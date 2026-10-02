@@ -7,11 +7,13 @@ persisted table result rather than silently substituting ordinary damage.
 
 from __future__ import annotations
 
+from typing import Literal, overload
+
 import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.character.traits.mastery import damage_bonus
-from wayfarer.engine.rules.checks import Outcome, RandomSource, draw_dice
+from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty, strong_damage_bonus
@@ -19,13 +21,19 @@ from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.critical import IncomingWound
 from wayfarer.engine.simulation.combat.criticals.context import capture_critical
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, PendingDefense
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.engine.simulation.combat.equipment_effects import defense_stress
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
+from wayfarer.engine.simulation.combat.melee.damage_records import (
+    MeleeDamageInputs,
+    MeleeDamageStage,
+    PreparedMeleeDamage,
+)
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee.electrical import (
     electrical_armor,
@@ -126,12 +134,20 @@ def _route_weapon(
     parry_mode_id: str | None,
     second_parry_mode_id: str | None,
     catch_thrown: bool,
+    selected_attack: CheckTrace | None,
 ) -> MeleeMode | tuple[PlayState, Encounter, InjuryTrace]:
     pending = encounter.pending_defense
     assert pending is not None
     if pending.spell_cast_id is not None:
         return resolve_spell(
-            runtime, state, encounter, selected, item_id, second_defense, second_item_id
+            runtime,
+            state,
+            encounter,
+            selected,
+            item_id,
+            second_defense,
+            second_item_id,
+            selected_attack=selected_attack,
         )
     weapon = mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
     if isinstance(weapon, RangedMode):
@@ -147,8 +163,69 @@ def _route_weapon(
             parry_mode_id=parry_mode_id,
             second_parry_mode_id=second_parry_mode_id,
             catch_thrown=catch_thrown,
+            selected_attack=selected_attack,
         )
     return weapon
+
+
+@overload
+def resolve_melee(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    second_defense: Defense | None = None,
+    second_item_id: str | None = None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace]: ...
+
+
+@overload
+def resolve_melee(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    second_defense: Defense | None = None,
+    second_item_id: str | None = None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[True],
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
+) -> AttackRollSpec: ...
+
+
+@overload
+def resolve_melee(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    second_defense: Defense | None = None,
+    second_item_id: str | None = None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+    prepare_damage: Literal[True],
+    secret_damage: bool = False,
+) -> MeleeDamageStage: ...
 
 
 def resolve_melee(
@@ -163,9 +240,21 @@ def resolve_melee(
     parry_mode_id: str | None = None,
     second_parry_mode_id: str | None = None,
     catch_thrown: bool = False,
-) -> tuple[PlayState, Encounter, InjuryTrace]:
+    selected_attack: CheckTrace | None = None,
+    prepare_only: bool = False,
+    prepare_damage: bool = False,
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, InjuryTrace] | AttackRollSpec | MeleeDamageStage:
     pending = encounter.pending_defense
     assert pending is not None
+    if (prepare_only or prepare_damage) and (
+        pending.spell_cast_id is not None
+        or isinstance(
+            mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id),
+            RangedMode,
+        )
+    ):
+        raise ValidationError("Prepare ranged and missile attacks through their dedicated route")
     routed = _route_weapon(
         runtime,
         state,
@@ -177,6 +266,7 @@ def resolve_melee(
         parry_mode_id,
         second_parry_mode_id,
         catch_thrown,
+        selected_attack,
     )
     if isinstance(routed, tuple):
         return routed
@@ -330,12 +420,14 @@ def resolve_melee(
         external_defense_penalty(state, pending.defender_id, pending.visibility_defense_penalty)
         + pending.attention_defense_penalty,
     )
-    attack = pending.attack_roll or success_roll(
-        equipment.profile_id,
-        attack_target,
-        check_modifiers(state.resources, attacker.actor_id, "dx"),
-        rng=runtime.rng,
+    spec = AttackRollSpec(
+        profile_id=equipment.profile_id,
+        target=attack_target,
+        modifiers=check_modifiers(state.resources, attacker.actor_id, "dx"),
     )
+    if prepare_only:
+        return spec
+    attack = pending.attack_roll or selected_attack or spec.roll(runtime.rng)
     if pending.protected_defender_id and attack.outcome is Outcome.CRITICAL_SUCCESS:
         # B375 uses ordinary Dodge rules: critical attacks cannot be intercepted.
         unintercepted = pending.model_copy(
@@ -677,7 +769,131 @@ def resolve_melee(
     maximum = critical in ((3, 15) if head else (6, 15)) or (
         equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
     )
-    dice = draw_dice(runtime.rng, dice_count) if (hit or shield_hit) and not maximum else ()
+    inputs = MeleeDamageInputs(
+        pending=pending,
+        weapon=weapon,
+        construction=construction,
+        attack_build=attack_build,
+        defend_build=defend_build,
+        attacker=attacker,
+        defender=defender,
+        hp=hp,
+        attack=attack,
+        defense=defense,
+        second_trace=second_trace,
+        attack_value=attack_value,
+        defense_derived=defense_derived,
+        defense_item=defense_item,
+        critical=critical,
+        critical_dice=critical_dice,
+        critical_tables=critical_tables,
+        critical_parry_mode=critical_parry_mode,
+        critical_eye=critical_eye,
+        blocked=blocked,
+        cattle_prod=cattle_prod,
+        damage_type=damage_type,
+        head=head,
+        hit=hit,
+        shield_hit=shield_hit,
+        maximum=maximum,
+        dice_count=dice_count,
+        adds=adds,
+        effect_dice=effect_dice,
+        lasting_ids=lasting_ids,
+        location=location,
+        location_dice=location_dice,
+        vulnerability_multiplier=vulnerability_multiplier,
+    )
+    if prepare_damage:
+        original = (
+            (None if secret_damage else draw_dice(runtime.rng, dice_count))
+            if inputs.rollable
+            else ()
+        )
+        return MeleeDamageStage(
+            state,
+            encounter,
+            PreparedMeleeDamage(inputs=inputs, original=original, secret=secret_damage),
+        )
+    return finish_melee_damage(runtime, state, encounter, inputs)
+
+
+def refresh_melee_damage_target(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, inputs: MeleeDamageInputs
+) -> MeleeDamageInputs:
+    """Refresh only injury facts; delivery, location and the damage expression stay fixed."""
+    target = build(runtime, state, inputs.pending.defender_id)
+    traits = attack_defense_traits(target, runtime.reviewer.compiler.definitions)
+    return inputs.model_copy(
+        update={
+            "defend_build": target,
+            "defender": next(
+                p for p in encounter.participants if p.actor_id == inputs.pending.defender_id
+            ),
+            "hp": next(p for p in state.resources.pools if p.id == inputs.hp.id),
+            "vulnerability_multiplier": silver_wounding_multiplier(
+                traits.injury_multiplier("silver"), inputs.construction
+            ),
+        }
+    )
+
+
+def finish_melee_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    inputs: MeleeDamageInputs,
+    *,
+    selected_damage: tuple[int, ...] | None = None,
+) -> tuple[PlayState, Encounter, InjuryTrace]:
+    """Apply one fixed melee delivery's selected damage through its actual tail."""
+    pending = inputs.pending
+    weapon = inputs.weapon
+    attack_build = inputs.attack_build
+    defend_build = inputs.defend_build
+    attacker = inputs.attacker
+    defender = inputs.defender
+    hp = inputs.hp
+    attack = inputs.attack
+    defense = inputs.defense
+    second_trace = inputs.second_trace
+    attack_value = inputs.attack_value
+    defense_derived = inputs.defense_derived
+    defense_item = inputs.defense_item
+    critical = inputs.critical
+    critical_dice = inputs.critical_dice
+    critical_tables = inputs.critical_tables
+    critical_parry_mode = inputs.critical_parry_mode
+    critical_eye = inputs.critical_eye
+    blocked = inputs.blocked
+    cattle_prod = inputs.cattle_prod
+    damage_type = inputs.damage_type
+    head = inputs.head
+    hit = inputs.hit
+    shield_hit = inputs.shield_hit
+    maximum = inputs.maximum
+    dice_count = inputs.dice_count
+    adds = inputs.adds
+    effect_dice = inputs.effect_dice
+    lasting_ids = inputs.lasting_ids
+    location = inputs.location
+    location_dice = inputs.location_dice
+    vulnerability_multiplier = inputs.vulnerability_multiplier
+    equipment = catalog(runtime)
+    assert attack_build.statistics is not None and defend_build.statistics is not None
+    if selected_damage is not None and (
+        not inputs.rollable
+        or len(selected_damage) != dice_count
+        or any(type(die) is not int or not 1 <= die <= 6 for die in selected_damage)
+    ):
+        raise ValidationError("Selected melee damage disagrees with its captured expression")
+    dice = (
+        selected_damage
+        if selected_damage is not None
+        else draw_dice(runtime.rng, dice_count)
+        if (hit or shield_hit) and not maximum
+        else ()
+    )
     basic = (
         max(
             0 if damage_type == "cr" else 1,
@@ -829,34 +1045,10 @@ def resolve_melee(
     updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
     status = updated_hp.injury
     assert status is not None
-    drops = held if critical == 12 and not head and not pending.target_item_id else ()
-    weapons = tuple(
-        i
-        for i in held
-        if entries[next(item.definition_id for item in state.resources.items if item.id == i)].modes
+    state, drop_dice = _critical_drop_items(
+        runtime, state, defender, pending, held, head=head, critical=critical
     )
-    if head and critical == 14 and weapons:
-        if len(weapons) > 1:
-            drop_die = draw_dice(runtime.rng, 1)[0]
-            effect_dice += (drop_die,)
-            drops = (weapons[0 if drop_die <= 3 else 1],)
-        else:
-            drops = weapons
-    if drops:
-        state = state.model_copy(
-            update={
-                "resources": state.resources.model_copy(
-                    update={
-                        "items": tuple(
-                            i.model_copy(update={"ready": False, "equipped": False})
-                            if i.id in drops
-                            else i
-                            for i in state.resources.items
-                        )
-                    }
-                )
-            }
-        )
+    effect_dice += drop_dice
     defender = defender.model_copy(
         update={
             "posture": "prone" if status.prone else defender.posture,
@@ -1090,3 +1282,46 @@ def resolve_melee(
             }
         )
     return state, encounter, trace
+
+
+def _critical_drop_items(
+    runtime: RulesContext,
+    state: PlayState,
+    defender: Combatant,
+    pending: PendingDefense,
+    held: tuple[str, ...],
+    *,
+    head: bool,
+    critical: int | None,
+) -> tuple[PlayState, tuple[int, ...]]:
+    entries = {entry.definition_id: entry for entry in catalog(runtime).entries}
+    effect_dice: tuple[int, ...] = ()
+    drops = held if critical == 12 and not head and not pending.target_item_id else ()
+    weapons = tuple(
+        i
+        for i in held
+        if entries[next(item.definition_id for item in state.resources.items if item.id == i)].modes
+    )
+    if head and critical == 14 and weapons:
+        if len(weapons) > 1:
+            drop_die = draw_dice(runtime.rng, 1)[0]
+            effect_dice = (drop_die,)
+            drops = (weapons[0 if drop_die <= 3 else 1],)
+        else:
+            drops = weapons
+    if drops:
+        state = state.model_copy(
+            update={
+                "resources": state.resources.model_copy(
+                    update={
+                        "items": tuple(
+                            i.model_copy(update={"ready": False, "equipped": False})
+                            if i.id in drops
+                            else i
+                            for i in state.resources.items
+                        )
+                    }
+                )
+            }
+        )
+    return state, effect_dice
