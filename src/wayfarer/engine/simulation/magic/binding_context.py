@@ -53,6 +53,7 @@ def approved_context(
     learned_definitions = (
         *healing_package().definitions,
         *movement_package().definitions,
+        *movement_package(great_haste=True).definitions,
         *water_package().definitions,
     )
     expected = {d.id: d for d in (*definitions(2), *learned_definitions)}

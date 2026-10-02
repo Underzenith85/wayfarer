@@ -684,6 +684,19 @@ class CombatEngine:
                     ),
                 }
             )
+        budget = encounter.maneuver_budget
+        if budget is not None and (
+            budget.actor_id != encounter.current_actor_id
+            or budget.round != encounter.round
+            or budget.turn_index != encounter.turn_index
+        ):
+            raise ValidationError("Maneuver opportunities belong to another real turn")
+        if budget is not None and budget.remaining > 1:
+            return encounter.model_copy(
+                update={
+                    "maneuver_budget": budget.model_copy(update={"remaining": budget.remaining - 1})
+                }
+            )
         index = encounter.turn_index + 1
         round_number = encounter.round
         if index == len(encounter.turn_order):
@@ -693,6 +706,7 @@ class CombatEngine:
             update={
                 "turn_index": index,
                 "round": round_number,
+                "maneuver_budget": None,
                 "suppression_zones": tuple(
                     zone
                     for zone in encounter.suppression_zones

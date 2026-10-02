@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.entangle_transitions import escape_binding
 from wayfarer.engine.simulation.combat.equipment_effects import stress, worn_stress
 from wayfarer.engine.simulation.combat.firearm_transitions import service
+from wayfarer.engine.simulation.combat.maneuver_budget import first_opportunity, last_opportunity
 from wayfarer.engine.simulation.combat.maneuver_transitions import observe
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack, waive_off_hand_penalty
@@ -365,7 +366,7 @@ def _begin_turn(
     )
     forced = participant.forced_do_nothing
     _preview_turn(state, command, encounter, context, hp, forced)
-    if not resuming and not reaction:
+    if not resuming and not reaction and first_opportunity(encounter):
         state = injury_turn(
             play.rules_context,
             state,
@@ -538,14 +539,15 @@ def _prepare_attack_turn(
             command_for_turn,
             context.engine.hex_map(encounter),
         )
-        state = injury_turn(
-            context.play.rules_context,
-            state,
-            command.actor_id,
-            command.id,
-            start=False,
-            do_nothing=False,
-        )
+        if last_opportunity(encounter):
+            state = injury_turn(
+                context.play.rules_context,
+                state,
+                command.actor_id,
+                command.id,
+                start=False,
+                do_nothing=False,
+            )
         return CombatStep(state, encounter, state.resources, result)
 
     if command.laser_sight:
@@ -748,6 +750,7 @@ def _after_turn(
         engine.rules.gurps_equipment is not None
         and not reaction
         and result.code != "combat.wait_triggered"
+        and encounter.maneuver_budget is None
     ):
         state = injury_turn(
             play.rules_context,

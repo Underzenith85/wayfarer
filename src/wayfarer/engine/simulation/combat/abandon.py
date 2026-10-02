@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import injury_turn
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, PendingDefense
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.maneuver_budget import last_opportunity
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.health.recovery_guard import guard
@@ -121,7 +122,11 @@ def abandon(
             )
         }
     )
-    if engine.rules.gurps_equipment is not None and interrupt is None:
+    if (
+        engine.rules.gurps_equipment is not None
+        and interrupt is None
+        and last_opportunity(encounter)
+    ):
         state = injury_turn(runtime, state, attacker_id, command.id, start=False, do_nothing=False)
     spent = actor.maneuver_state.model_copy(
         update={

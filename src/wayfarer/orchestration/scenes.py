@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 from dataclasses import replace
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
@@ -23,7 +23,9 @@ from wayfarer.engine.simulation.traits.innate_criticals import require_innate_ac
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class ObserveScene(ActionCommand):

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, replace
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import pool_limits
@@ -29,7 +29,9 @@ from wayfarer.orchestration.builds import banked_points as _balance
 from wayfarer.orchestration.builds import canonical_build as _build
 from wayfarer.orchestration.party import PartyService
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class RecoveryCommand(ActionCommand):

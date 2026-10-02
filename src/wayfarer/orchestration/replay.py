@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORT
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
 )
+from wayfarer.engine.simulation.magic.great_haste_state import ADAPTER as GREAT_HASTE_ADAPTER
 from wayfarer.engine.simulation.magic.haste_host import ADAPTER as HASTE_ADAPTER
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
@@ -33,6 +34,7 @@ from wayfarer.orchestration.combat_senses import CombatSensesService
 from wayfarer.orchestration.composed_attacks import ComposedAttackService
 from wayfarer.orchestration.cyclic import CyclicService
 from wayfarer.orchestration.enchantments import EnchantmentService
+from wayfarer.orchestration.great_haste import GreatHasteService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.haste import HasteService
 from wayfarer.orchestration.hazard_resume import recorded_resume
@@ -179,6 +181,14 @@ async def _armoury(play: PlayService, record: CommandRecord, encoded: str) -> No
     )
 
 
+async def _great_haste(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await GreatHasteService(play).execute(
+        record.campaign_id,
+        GREAT_HASTE_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 async def _water(play: PlayService, record: CommandRecord, encoded: str) -> None:
     await WaterService(play).execute(
         record.campaign_id,
@@ -205,6 +215,7 @@ async def _haste(play: PlayService, record: CommandRecord, encoded: str) -> None
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
     "armoury": _armoury,
+    "great-haste": _great_haste,
     "water": _water,
     "apportation": _apportation,
     "haste": _haste,

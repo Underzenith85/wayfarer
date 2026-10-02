@@ -1,6 +1,9 @@
 """Private approved attacks on the canonical campaign CAS, turn and replay path."""
 
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 from pydantic import ValidationError as SchemaError
 
@@ -50,10 +53,13 @@ from wayfarer.orchestration.opponent_attack_privacy import (
     visible_combat_result,
 )
 from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
-from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.command_inputs import generation, replay_payload
 
 PREFIX = "composed-result:"
+
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class ComposedResult(Record):

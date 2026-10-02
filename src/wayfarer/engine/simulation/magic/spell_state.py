@@ -26,6 +26,7 @@ PRIVATE_SPELLS = frozenset(
         "purify-water",
         "create-water",
         "destroy-water",
+        "great-haste",
     }
 )
 SpellId = Literal[
@@ -52,6 +53,7 @@ RuntimeSpellId = Literal[
     "purify-water",
     "create-water",
     "destroy-water",
+    "great-haste",
 ]
 
 

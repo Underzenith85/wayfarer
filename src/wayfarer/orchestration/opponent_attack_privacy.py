@@ -1,5 +1,9 @@
 """Keep private combat checks out of the actor's numeric tactical summary."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.attack_visibility import (
     conceal_attack_result,
@@ -9,7 +13,9 @@ from wayfarer.engine.simulation.combat.attack_visibility import (
 from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.pipeline import Trusted
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 def hide_secret_totals(state: PlayState, encounter_id: str, command_id: str) -> PlayState:

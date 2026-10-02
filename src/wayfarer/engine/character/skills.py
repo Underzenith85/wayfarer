@@ -91,6 +91,34 @@ class DefaultContext:
         return cls({}, frozenset())
 
 
+def _satisfied_prerequisite(
+    requirement: SkillPrerequisite,
+    context: DefaultContext,
+    attributes: Mapping[str, int],
+    points: Mapping[str, int],
+    levels: Mapping[str, SkillLevel],
+) -> bool:
+    threshold = requirement.minimum_technology_level
+    if threshold is not None:
+        if context.campaign_technology_level is None:
+            return False
+        if context.campaign_technology_level < threshold:
+            return True
+    target = requirement.target
+    if requirement.kind is PrerequisiteKind.TRAINED_SKILL:
+        return target in points and target in levels and levels[target].level >= requirement.minimum
+    if requirement.kind is PrerequisiteKind.PURCHASED_DEFINITION:
+        return (
+            target in context.purchased_definition_ids
+            and context.purchased_definition_levels.get(target, 1) >= requirement.minimum
+        )
+    if requirement.kind is PrerequisiteKind.ATTRIBUTE_MINIMUM:
+        return attributes[requirement.target] >= requirement.minimum
+    if requirement.kind is PrerequisiteKind.CAPABILITY:
+        return target in context.capabilities
+    raise SkillError("skill.definition", "Unsupported acquisition prerequisite")
+
+
 def _validate_purchased_levels(context: DefaultContext) -> None:
     if any(
         identifier not in context.purchased_definition_ids or type(level) is not int or level < 1
@@ -263,6 +291,10 @@ class SkillCompiler:
                 type(p.minimum) is not int
                 or p.minimum < 1
                 or not isinstance(p.kind, PrerequisiteKind)
+                or (
+                    p.kind is PrerequisiteKind.ATTRIBUTE_MINIMUM
+                    and p.target not in {value.value for value in ControllingAttribute}
+                )
                 or (
                     p.minimum_technology_level is not None
                     and (
@@ -623,27 +655,7 @@ class SkillCompiler:
             return None
 
         def satisfied(requirement: SkillPrerequisite) -> bool:
-            threshold = requirement.minimum_technology_level
-            if threshold is not None:
-                if context.campaign_technology_level is None:
-                    return False
-                if context.campaign_technology_level < threshold:
-                    return True
-            target = requirement.target
-            if requirement.kind is PrerequisiteKind.TRAINED_SKILL:
-                return (
-                    target in points
-                    and target in levels
-                    and levels[target].level >= requirement.minimum
-                )
-            if requirement.kind is PrerequisiteKind.PURCHASED_DEFINITION:
-                return (
-                    target in context.purchased_definition_ids
-                    and context.purchased_definition_levels.get(target, 1) >= requirement.minimum
-                )
-            if requirement.kind is PrerequisiteKind.CAPABILITY:
-                return target in context.capabilities
-            raise SkillError("skill.definition", "Unsupported acquisition prerequisite")
+            return _satisfied_prerequisite(requirement, context, attributes, points, levels)
 
         # Reciprocal defaults are legitimate source data. Start with native and
         # attribute-default anchors, then propagate purchased-skill defaults to

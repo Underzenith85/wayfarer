@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
@@ -36,8 +36,10 @@ from wayfarer.models import Id
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.npcs import due_times
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
-from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class PartyCommand(ActionCommand):

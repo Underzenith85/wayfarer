@@ -13,7 +13,9 @@ from pydantic import (
     model_serializer,
     model_validator,
 )
+from pydantic.json_schema import SkipJsonSchema
 
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.types.entangle import Entanglement
 from wayfarer.engine.rules.types.location import HitLocation
@@ -54,6 +56,23 @@ from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuv
 from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing, Pose
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
+
+
+class ManeuverBudget(Record):
+    actor_id: Id
+    round: int = Field(ge=1)
+    turn_index: int = Field(ge=0)
+    native_total: int = Field(default=1, ge=1)
+    spell_bonus: int = Field(default=0, ge=0, le=1)
+    accepted_build: ValidatedBuild | None = None
+    total: int = Field(ge=2)
+    remaining: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def within_total(self) -> ManeuverBudget:
+        if self.remaining > self.total:
+            raise ValueError("Remaining maneuver opportunities exceed the captured total")
+        return self
 
 
 class Combatant(Record):
@@ -294,6 +313,9 @@ class Encounter(Record):
     turn_order: tuple[str, ...] = Field(min_length=1)
     round: int = Field(default=1, ge=1)
     turn_index: int = Field(default=0, ge=0)
+    maneuver_budget: SkipJsonSchema[ManeuverBudget | None] = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     pending_defense: PendingDefense | None = None
     defense_history: tuple[DefenseChoice, ...] = ()
     completion_reason: str | None = None

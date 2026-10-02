@@ -1,7 +1,9 @@
 """Private ordinary random unarmed strikes; no public tactical schema changes."""
 
+from __future__ import annotations
+
 import json
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import ValidationError as SchemaError
 
@@ -9,16 +11,20 @@ from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.types.location import Hand
 from wayfarer.engine.simulation.combat.commands import TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import CombatResult
+from wayfarer.engine.simulation.combat.generations import combat_generation
 from wayfarer.engine.simulation.combat.unarmed.random_strike import RandomStrike, pending_id, save
 from wayfarer.engine.simulation.combat.unarmed.records import UnarmedSkill
 from wayfarer.engine.simulation.resources import Command
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id
 from wayfarer.orchestration.combat.context import CombatContext, encounter_for
+from wayfarer.orchestration.combat.generations import KEY, capture
 from wayfarer.orchestration.combat.service import CombatService
 from wayfarer.orchestration.combat.steps import reduce_combat
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class RandomUnarmedStrike(Command):
@@ -39,10 +45,16 @@ class RandomUnarmedService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    def plan(self, cid: str, command: RandomUnarmedStrike) -> CommandPlan[CombatResult]:
+    def plan(
+        self, cid: str, command: RandomUnarmedStrike, *, features: frozenset[str] = frozenset()
+    ) -> CommandPlan[CombatResult]:
         turn = command.turn()
         payload = json.dumps(
-            {"operation": "combat-random-unarmed", "command": command.model_dump(mode="json")},
+            {
+                "operation": "combat-random-unarmed",
+                "command": command.model_dump(mode="json"),
+                **({KEY: sorted(features)} if features else {}),
+            },
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -65,7 +77,8 @@ class RandomUnarmedService:
                     pending_id=pending_id(command.id),
                 ),
             )
-            updated, result = reduce_combat(prepared, turn, CombatContext(self.play, before))
+            with combat_generation(features):
+                updated, result = reduce_combat(prepared, turn, CombatContext(self.play, before))
             updated = self.play.checkpoint(updated, before=before)
             self.play.commit(campaign, updated)
             return CommandReceipt(action="combat", outcome=result.model_dump_json())
@@ -99,4 +112,7 @@ class RandomUnarmedService:
         bound = self.play.for_campaign(await self.play.store.read(cid))
         if bound is not self.play:
             return await RandomUnarmedService(bound).execute(cid, value, principal_id=principal_id)
-        return await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)
+        features = await capture(self.play.store, cid, command.id)
+        return await submit(
+            self.play, cid, self.plan(cid, command, features=features), principal_id=principal_id
+        )

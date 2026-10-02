@@ -1,6 +1,9 @@
 """Private, attacker-authorized completion of an unresolved pending attack."""
 
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 from pydantic import ValidationError as SchemaError
 
@@ -17,7 +20,9 @@ from wayfarer.orchestration.composed_attacks import (
     recorded_operation,
 )
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class AbandonPendingAttackService:

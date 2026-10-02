@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
 from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
@@ -14,7 +15,9 @@ from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.battlefield_templates import prepare
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 def encounter_for(state: PlayState, encounter_id: str) -> Encounter:

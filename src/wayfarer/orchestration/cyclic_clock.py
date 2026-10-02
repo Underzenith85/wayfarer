@@ -24,6 +24,7 @@ from wayfarer.engine.simulation.health.fright import effects as fright_effects
 from wayfarer.engine.simulation.health.injury import InjuryResult
 from wayfarer.engine.simulation.magic.backfires import chronological_refund_deadlines
 from wayfarer.engine.simulation.magic.enchanting_lifecycle import needs_clock_checkpoints
+from wayfarer.engine.simulation.magic.great_haste_effects import deadlines as great_haste_deadlines
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.harmful_physiology_play import settle_actor
@@ -42,6 +43,7 @@ def _needs_checkpoints(state: PlayState, to: int) -> bool:
     return (
         needs_clock_checkpoints(resources)
         or any(t <= to for t in chronological_refund_deadlines(resources))
+        or any(t <= to for t in great_haste_deadlines(resources))
         or any(
             a.active and a.due <= to and binding(resources, a.id) is not None
             for a in resources.cyclic_attacks
@@ -76,6 +78,7 @@ def _next_deadline(play: PlayService, state: PlayState, to: int, run_npcs: bool)
         i.deadline for i in conditions(resources) if not i.retired and i.deadline is not None
     ]
     deadlines += list(chronological_refund_deadlines(resources))
+    deadlines += list(great_haste_deadlines(resources))
     if needs_clock_checkpoints(resources):
         living = {
             p.id.removeprefix("hp:")

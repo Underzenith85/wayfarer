@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.actors import build, catalog, exertion, injury_t
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.maneuver_budget import first_opportunity, last_opportunity
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.unarmed.control import control
@@ -89,7 +90,7 @@ def execute_unarmed(
                 ),
             )
         actor = fighter(encounter, command.actor_id)
-        if not reacting:
+        if not reacting and first_opportunity(encounter):
             state = injury_turn(
                 runtime,
                 state,
@@ -104,7 +105,7 @@ def execute_unarmed(
         if allowed:
             state, allowed = exertion(runtime, state, actor.actor_id, command.id)
         if not allowed:
-            if not reacting:
+            if not reacting and last_opportunity(encounter):
                 state = injury_turn(
                     runtime, state, actor.actor_id, command.id, start=False, do_nothing=True
                 )
@@ -201,7 +202,7 @@ def finish_unarmed_response(
     encounter, pending_result = continue_sequence(runtime, state, encounter, command, trace)
     if pending_result is not None:
         return state, encounter, pending_result
-    if not reacting:
+    if not reacting and last_opportunity(encounter):
         state = injury_turn(
             runtime,
             state,
