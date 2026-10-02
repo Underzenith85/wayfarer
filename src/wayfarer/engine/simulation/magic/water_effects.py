@@ -11,6 +11,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.magic.protocols import long_distance_modifier
+from wayfarer.engine.simulation.magic.water_purification import receiving_mixture
 from wayfarer.engine.simulation.magic.water_state import WaterBody, latest, save
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.errors import ValidationError
@@ -38,6 +39,8 @@ class WaterPlan(Record):
     radius: int = Field(default=1, ge=1)
     depth_yards: int = Field(default=2, ge=1, le=2)
     area_center: tuple[int, int] = (0, 0)
+    # Explicit private operation intent; absent historical plans keep their bytes.
+    allow_receiver_mixing: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def unique_sources(self) -> WaterPlan:
@@ -45,6 +48,8 @@ class WaterPlan(Record):
             raise ValueError("Excluded water sources must be unique")
         if len(set(self.destroyed_ids)) != len(self.destroyed_ids):
             raise ValueError("Destroyed water portions must be unique")
+        if self.allow_receiver_mixing and self.spell_id not in ("create-water", "purify-water"):
+            raise ValueError("Receiver mixing is limited to incoming pure-water flows")
         return self
 
 
@@ -106,7 +111,7 @@ def validate_operation(state: ResourceState, plan: WaterPlan) -> None:
         if target.gallons + plan.gallons > target.capacity_gallons:
             raise ValidationError("Receiving container lacks capacity")
         # Do not claim a mixed vessel is pure after adding pure water to dirty water.
-        if target.pure_gallons != target.gallons:
+        if target.pure_gallons != target.gallons and not plan.allow_receiver_mixing:
             raise ValidationError("Receiving container contains impure water")
     if plan.spell_id == "purify-water":
         source = bodies.get(plan.source_id or "")
@@ -205,6 +210,8 @@ def apply(state: ResourceState, plan: WaterPlan, actor_id: str, command_id: str)
             ),
             command_id,
         )
+    if plan.allow_receiver_mixing:
+        return save(state, receiving_mixture(target, plan.gallons), command_id)
     return save(
         state,
         target.model_copy(
