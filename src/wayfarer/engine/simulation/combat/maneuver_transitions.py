@@ -8,6 +8,12 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
+from wayfarer.engine.simulation.combat.concentrate_steps import (
+    observing,
+)
+from wayfarer.engine.simulation.combat.concentrate_steps import (
+    resolved as record_concentration_resolution,
+)
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
@@ -224,12 +230,16 @@ def distracted(
             update={"aim_seconds": 0, "aim_item_id": None, "aim_target_id": None}
         )
     if commitment.concentrating and (defended or injured):
-        if not success_roll(
+        check = success_roll(
             catalog(runtime).profile_id,
             compiled.statistics.will - 3,
             check_modifiers(state.resources, actor_id, "will"),
             rng=runtime.rng,
-        ).outcome.succeeded:
+        )
+        if observing():
+            hp = next(p.current for p in state.resources.pools if p.id == "hp:" + actor_id)
+            record_concentration_resolution(actor_id, hp, check)
+        if not check.outcome.succeeded:
             commitment = commitment.model_copy(
                 update={"concentrating": False, "concentration_seconds": 0}
             )

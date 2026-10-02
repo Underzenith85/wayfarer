@@ -66,94 +66,7 @@ def apply_host(
             }
         )
     else:
-        channel = next((c for c in channels(state.resources) if c.id == command.channel_id), None)
-        if channel is None or channel.actor_id != command.actor_id:
-            raise ValidationError("Great Haste requires its current caster channel")
-        effect = latest(state.resources).get(command.cast_id)
-        if effect is not None and (effect.actor_id, effect.target_id, effect.spell_id) != (
-            command.actor_id,
-            channel.target_id,
-            "great-haste",
-        ):
-            raise ConflictError("Great Haste cast identity changed")
-        cancelling = command.operation == "cancel" and effect is not None
-        if not cancelling:
-            if any(
-                other.cast_id != command.cast_id
-                and other.spell_id == "great-haste"
-                and other.target_id == channel.target_id
-                and other.phase in ("casting", "active")
-                for other in latest(state.resources).values()
-            ):
-                raise ValidationError("Concurrent Great Haste casts on one subject are unsupported")
-            if combat_encounter is None and any(
-                e.status == "active"
-                and any(p.actor_id in (channel.actor_id, channel.target_id) for p in e.participants)
-                for e in state.encounters
-            ):
-                raise ValidationError(
-                    "Combat Great Haste casting requires the subjective concentration adapter"
-                )
-            entities = {e.id: e for e in state.world.entities}
-            if any(
-                entities[a].location_id != channel.location_id
-                for a in (channel.actor_id, channel.target_id)
-            ):
-                raise ConflictError("Great Haste channel location changed")
-            target = runtime.approved_build(state, channel.target_id)
-            hp = next(p for p in state.resources.pools if p.id == "hp:" + channel.target_id)
-            if hp.injury is None or hp.injury.dead:
-                raise ValidationError("Great Haste requires a living subject")
-            energy = 5 * (1 + max(0, actor_size_modifier(runtime, state, channel.target_id)))
-        else:
-            assert effect is not None
-            energy = effect.energy
-        spell = RuntimeSpellCommand.model_validate(
-            dict(
-                id=command.id,
-                actor_id=command.actor_id,
-                expected_revision=state.resources.revision,
-                kind=command.operation,
-                spell_id="great-haste",
-                channel_id=channel.id,
-                cast_id=command.cast_id,
-                energy=energy,
-            )
-        )
-        if cancelling:
-            assert effect is not None
-            bound = SpellContext(
-                profile_id=PROFILE,
-                build_revision=effect.build_revision,
-                skill=max(1, effect.skill),
-                target_id=effect.target_id,
-                mana=channel.mana,
-                energy=effect.energy,
-                execution_version=2,
-                execute_effects=True,
-            )
-        else:
-            distance = _combat_distance(
-                runtime, state, channel, command, combat_encounter, effect, energy
-            )
-            bound = approved_context(
-                runtime,
-                state,
-                spell,
-                SpellEnvironment(
-                    target_id=channel.target_id,
-                    mana=channel.mana,
-                    distance=distance,
-                    unseen=not channel.visible,
-                    energy=energy,
-                ),
-            ).model_copy(
-                update={
-                    "execution_version": 2,
-                    "execute_effects": True,
-                    "encounter_id": combat_encounter.id if combat_encounter else None,
-                }
-            )
+        channel, spell, bound = bound_cast(runtime, state, command, combat_encounter)
         resources, result = _apply_cast(runtime, state.resources, spell, bound, combat_encounter)
         updated = state.model_copy(update={"resources": resources})
         outcome, spent = result.outcome, result.energy_spent
@@ -247,3 +160,100 @@ def _apply_cast(
             resources, result = apply_spell(resources, final, bound, system=True, rng=runtime.rng)
             resources = resources.model_copy(update={"revision": revision})
     return resources, result
+
+
+def bound_cast(
+    runtime: RulesContext,
+    state: PlayState,
+    command: CastGreatHaste,
+    combat_encounter: Encounter | None,
+) -> tuple[GreatHasteChannel, RuntimeSpellCommand, SpellContext]:
+    channel = next((c for c in channels(state.resources) if c.id == command.channel_id), None)
+    if channel is None or channel.actor_id != command.actor_id:
+        raise ValidationError("Great Haste requires its current caster channel")
+    effect = latest(state.resources).get(command.cast_id)
+    if effect is not None and (effect.actor_id, effect.target_id, effect.spell_id) != (
+        command.actor_id,
+        channel.target_id,
+        "great-haste",
+    ):
+        raise ConflictError("Great Haste cast identity changed")
+    cancelling = command.operation == "cancel" and effect is not None
+    if not cancelling:
+        if any(
+            other.cast_id != command.cast_id
+            and other.spell_id == "great-haste"
+            and other.target_id == channel.target_id
+            and other.phase in ("casting", "active")
+            for other in latest(state.resources).values()
+        ):
+            raise ValidationError("Concurrent Great Haste casts on one subject are unsupported")
+        if combat_encounter is None and any(
+            e.status == "active"
+            and any(p.actor_id in (channel.actor_id, channel.target_id) for p in e.participants)
+            for e in state.encounters
+        ):
+            raise ValidationError(
+                "Combat Great Haste casting requires the subjective concentration adapter"
+            )
+        entities = {e.id: e for e in state.world.entities}
+        if any(
+            entities[a].location_id != channel.location_id
+            for a in (channel.actor_id, channel.target_id)
+        ):
+            raise ConflictError("Great Haste channel location changed")
+        runtime.approved_build(state, channel.target_id)
+        hp = next(p for p in state.resources.pools if p.id == "hp:" + channel.target_id)
+        if hp.injury is None or hp.injury.dead:
+            raise ValidationError("Great Haste requires a living subject")
+        energy = 5 * (1 + max(0, actor_size_modifier(runtime, state, channel.target_id)))
+    else:
+        assert effect is not None
+        energy = effect.energy
+    spell = RuntimeSpellCommand.model_validate(
+        dict(
+            id=command.id,
+            actor_id=command.actor_id,
+            expected_revision=state.resources.revision,
+            kind=command.operation,
+            spell_id="great-haste",
+            channel_id=channel.id,
+            cast_id=command.cast_id,
+            energy=energy,
+        )
+    )
+    if cancelling:
+        assert effect is not None
+        bound = SpellContext(
+            profile_id=PROFILE,
+            build_revision=effect.build_revision,
+            skill=max(1, effect.skill),
+            target_id=effect.target_id,
+            mana=channel.mana,
+            energy=effect.energy,
+            execution_version=2,
+            execute_effects=True,
+        )
+    else:
+        distance = _combat_distance(
+            runtime, state, channel, command, combat_encounter, effect, energy
+        )
+        bound = approved_context(
+            runtime,
+            state,
+            spell,
+            SpellEnvironment(
+                target_id=channel.target_id,
+                mana=channel.mana,
+                distance=distance,
+                unseen=not channel.visible,
+                energy=energy,
+            ),
+        ).model_copy(
+            update={
+                "execution_version": 2,
+                "execute_effects": True,
+                "encounter_id": combat_encounter.id if combat_encounter else None,
+            }
+        )
+    return channel, spell, bound

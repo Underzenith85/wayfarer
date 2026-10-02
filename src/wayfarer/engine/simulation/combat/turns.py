@@ -21,6 +21,9 @@ from wayfarer.engine.simulation.combat.close_combat import (
 from wayfarer.engine.simulation.combat.close_combat import (
     remove_departed_pairs,
 )
+from wayfarer.engine.simulation.combat.concentrate_steps import (
+    selected as selected_concentrate_step,
+)
 from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
     CombatResult,
@@ -270,7 +273,7 @@ def _wait_interruption(
     spatial_revision: int,
 ) -> tuple[Encounter, ResourceState, CombatResult] | None:
     """Pause a completed declaration when a recorded Wait trigger matches it."""
-    action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
+    action = _wait_action(original, result[0], actor_id, maneuver)
     waiters = {p.actor_id: p for p in original.participants if p.actor_id != actor_id}
     completed_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
     for waiter_id in _wait_order(engine, original, actor_id, completed_actor, hex_path, maneuver):
@@ -1084,3 +1087,12 @@ def apply_turn(
             available=engine.available(encounter, encounter.current_actor_id),
         ),
     )
+
+
+def _wait_action(before: Encounter, after: Encounter, actor_id: str, maneuver: Maneuver) -> str:
+    if selected_concentrate_step() and maneuver == "concentrate":
+        own_before = next(p for p in before.participants if p.actor_id == actor_id)
+        own_after = next(p for p in after.participants if p.actor_id == actor_id)
+        if own_before.position != own_after.position:
+            return "move"
+    return "attack" if maneuver in ATTACK_MANEUVERS else maneuver

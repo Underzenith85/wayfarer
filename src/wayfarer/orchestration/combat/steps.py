@@ -14,6 +14,7 @@ from wayfarer.engine.simulation.combat.commands import (
     TakeUnarmedTurn,
     TypedCombatCommand,
 )
+from wayfarer.engine.simulation.combat.concentrate_steps import capture_resolutions, resolutions
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.maneuver_budget import begin
 from wayfarer.engine.simulation.combat.sensory_state import invalidate_movement
@@ -43,6 +44,12 @@ from wayfarer.orchestration.combat.preflight import _prepare_command
 from wayfarer.orchestration.combat.roster import _end, _join, _set_opposition, _withdraw
 from wayfarer.orchestration.combat.settlement import _finish_combat, _settle_combat
 from wayfarer.orchestration.combat.turns import _take_turn
+from wayfarer.orchestration.great_haste_steps import (
+    execute_step,
+    has_pending_step,
+    pending_resume,
+    record_distractions,
+)
 
 _COMBAT_STEPS: dict[
     str, Callable[[PlayState, TypedCombatCommand, Encounter, CombatContext], CombatStep]
@@ -70,6 +77,8 @@ _COMBAT_STEPS: dict[
 def reduce_combat(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> tuple[PlayState, CombatResult]:
+    lease = pending_resume(state, command)
+    cancel = bool(getattr(command, "cancel", False))
     state, command, context = _prepare_command(state, command, context)
     if isinstance(command, (StartEncounter, StartBasicEncounter)):
         step = (
@@ -82,7 +91,13 @@ def reduce_combat(
         encounter = _prepare_encounter(state, command, context)
         if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
             encounter = begin(context.play.rules_context, state, encounter)
-        step = _COMBAT_STEPS[command.kind](state, command, encounter, context)
+        if lease is not None:
+            assert isinstance(command, TakeCombatTurn)
+            step = execute_step(state, command, encounter, context, lease, cancel=cancel)
+        else:
+            with capture_resolutions(enabled=has_pending_step(state, encounter.id)):
+                step = _COMBAT_STEPS[command.kind](state, command, encounter, context)
+                step = record_distractions(state, step, command.id, resolutions())
         if isinstance(command, ChooseDefense):
             finished, moved = finish_defense_with_movement(
                 context.play.rules_context, step.state, step.encounter, command

@@ -258,6 +258,8 @@ class PlayService:
                     "great-haste-ended:",
                     "great-haste-host:",
                     "great-haste-casting-origin:",
+                    "great-haste-step-lease:",
+                    "great-haste-step-resolved:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",
