@@ -57,12 +57,16 @@ def test_all_87_source_rows_have_distinct_modifier_definitions() -> None:
     symptoms = next(row for row in source if row.id == "modifier:enhancement:symptoms")
     assert symptoms.implementation == "partial"
     assert symptoms.completion_owner == symptoms.consequence_owner == 763
+    cyclic = next(row for row in source if row.id == "modifier:enhancement:cyclic")
+    assert cyclic.implementation == "partial"
+    assert cyclic.completion_owner == cyclic.consequence_owner == 764
     assert all(
         row.cost_owner and row.consequence_owner in {513, 682, 683}
         for row in source
-        if row.id != symptoms.id
+        if row.id not in {symptoms.id, cyclic.id}
     )
     assert symptoms.cost_owner == "modifier-catalog:modifier:enhancement:symptoms"
+    assert cyclic.cost_owner == "modifier-catalog:modifier:enhancement:cyclic"
 
 
 def test_positive_negative_level_cost_and_final_rounding() -> None:

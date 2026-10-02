@@ -133,7 +133,12 @@ def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evide
         else:
             assert entry.status is CoverageStatus.VERIFIED
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert coverage_blockers(PROFILE) == (757, *tuple(range(774, 790)), *tuple(range(791, 806)))
+    assert coverage_blockers(PROFILE) == (
+        757,
+        764,
+        *tuple(range(774, 790)),
+        *tuple(range(791, 806)),
+    )
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 
@@ -258,6 +263,15 @@ def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() 
     assert Counter(e.source_review for e in owned) == {"reviewed": 334}
     assert all(e.owner == 119 for e in owned)
     assert {n for e in owned for n in e.blockers} == set(coverage_blockers(PROFILE))
+
+
+def test_persisted_innate_subset_does_not_certify_the_whole_source_entry() -> None:
+    attack = lookup("advantage:innate-attack")
+    assert attack.status is CoverageStatus.PARTIAL
+    assert attack.blockers == (764,)
+    assert "tests/test_composed_attack_host.py" in attack.evidence
+    with pytest.raises(ValidationError, match=r"not certified: advantage:innate-attack; #764"):
+        require_entries(PROFILE, (attack.id,))
 
 
 def test_spell_family_is_not_certified_by_construction_or_command_seams() -> None:

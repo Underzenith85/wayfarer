@@ -389,13 +389,11 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             "supernatural/" + e.id,
             f"B{e.page}",
             119,
-            "partial" if e.id == "advantage:innate-attack" else e.status.value,
+            e.status.value,
             "supernatural-skills" if e.kind == "skill" else "supernatural-catalog",
             () if e.optional else ("gurps-basic-set-4e-2004",),
             "reviewed" if e.source in reconciled_sources else "pending",
-            blockers=tuple(sorted(set(e.blockers) | {764}))
-            if e.id == "advantage:innate-attack"
-            else e.blockers,
+            blockers=e.blockers,
         )
         for e in supernatural.entries
     )

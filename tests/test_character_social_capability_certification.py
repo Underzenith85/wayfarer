@@ -142,6 +142,7 @@ def test_complete_trait_and_self_control_ledgers_retain_the_unbound_admission_ga
         "trait:advantage:unusual-background",
         "trait:advantage:alternate-form",
         "trait:advantage:morph",
+        "trait:advantage:innate-attack",
     }
     # Real return-state coverage does not certify the remaining form paths.
     for identifier in ("trait:advantage:alternate-form", "trait:advantage:morph"):
@@ -152,6 +153,10 @@ def test_complete_trait_and_self_control_ledgers_retain_the_unbound_admission_ga
     background = unready["trait:advantage:unusual-background"]
     assert background.implementation == "unsupported"
     assert background.completion_owner == background.consequence_owner == 906
+    attack = unready["trait:advantage:innate-attack"]
+    assert attack.implementation == "partial"
+    assert attack.completion_owner == attack.consequence_owner == 764
+    assert "tests/test_composed_attack_host.py" in attack.evidence_paths
     assert all(
         row.implementation == "not-applicable" for row in traits if row.disposition != "required"
     )
