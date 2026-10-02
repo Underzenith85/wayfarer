@@ -10,6 +10,7 @@ from test_composed_attack_host import declare, defense, fixture, idle
 from test_multiple_symptoms import EFFECTS, cyclic_selection
 
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.types.cyclic_runtime import additional_symptoms
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, EndEncounter
 from wayfarer.engine.simulation.health.condition_checks import (
@@ -221,7 +222,7 @@ async def test_purchased_multi_symptoms_critical_self_hit_binds_actual_source_an
     assert (
         occurrence.actor_id == "a"
         and occurrence.hp_debt == 4
-        and len(occurrence.additional_symptoms) == 1
+        and len(additional_symptoms(occurrence)) == 1
     )
     assert next(p.current for p in state.resources.pools if p.id == "hp:a") == 6
     assert next(p.current for p in state.resources.pools if p.id == "hp:b") == 10

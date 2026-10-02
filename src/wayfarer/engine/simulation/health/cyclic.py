@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.rules.checks import Modifier, RandomSource, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.cyclic import CyclicAttack, CyclicOccurrence
+from wayfarer.engine.rules.types.cyclic_runtime import additional_symptoms
 from wayfarer.engine.rules.types.hazard import RecoveryRestriction
 from wayfarer.engine.simulation.health.cyclic_host_state import binding
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
@@ -160,7 +161,7 @@ def settle(
             amount=fp_lost if attack.damage_type == "fat" else hp_lost,
             pool_id=("fp:" if attack.damage_type == "fat" else "hp:") + attack.actor_id,
             spec=attack.symptom_spec,
-            additional_specs=attack.additional_symptoms,
+            additional_specs=additional_symptoms(attack),
             restriction_id=attack.id,
         )
     remaining = attack.remaining - 1

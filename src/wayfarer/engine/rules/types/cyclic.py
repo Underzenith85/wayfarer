@@ -36,7 +36,6 @@ class CyclicAttack(Record):
     contagious: Literal["none", "mild", "high"] = "none"
     contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
     symptom_spec: SymptomSpec | None = None
-    additional_symptoms: tuple[SymptomSpec, ...] = Field(default=(), exclude_if=lambda v: not v)
     symptom_source_id: str | None = None
     incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
 

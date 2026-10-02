@@ -27,7 +27,7 @@ from wayfarer.engine.rules.checks import (
 )
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
-from wayfarer.engine.rules.types.cyclic import CyclicAttack, ZeroDamageCyclicAttack
+from wayfarer.engine.rules.types.cyclic_runtime import create_attack as create_cyclic_attack
 from wayfarer.engine.rules.types.location import Hand, HumanLocation
 from wayfarer.engine.simulation.combat.critical import Digest, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
@@ -650,10 +650,9 @@ def _self_hit_effects(
     if profile.cyclic_interval_seconds is not None:
         assert profile.cyclic_stop_condition is not None and result.location is not None
         cyclic_id = "innate-self-cyclic:" + hashlib.sha256(context.id.encode()).hexdigest()
-        attack_type = CyclicAttack if result.basic_damage else ZeroDamageCyclicAttack
         resources = save_cyclic(
             resources,
-            attack_type.model_validate(
+            create_cyclic_attack(
                 {
                     "id": cyclic_id,
                     "attacker_id": context.attacker_id,

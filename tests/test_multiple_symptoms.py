@@ -15,6 +15,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import EnhancementParameters, ModifierSelection
 from wayfarer.engine.rules.types.cyclic import CyclicAttack
+from wayfarer.engine.rules.types.cyclic_runtime import additional_symptoms
 from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.health.condition_checks import (
     check_modifiers,
@@ -197,7 +198,7 @@ def cyclic_selection() -> ModifierSelection:
 def test_cyclic_ticks_share_one_debt_per_injury_across_all_symptoms() -> None:
     state = deliver(twelve_hp(), 3, identifier="cyclic", selections=(cyclic_selection(),) + EFFECTS)
     original = state.cyclic_attacks[0]
-    assert len(original.additional_symptoms) == 1
+    assert len(additional_symptoms(original)) == 1
     rng = RecordedDice([3, 3])
     state = engine().apply(
         state,
@@ -240,7 +241,7 @@ def test_real_compiled_modifiers_reach_critical_self_hit_and_preserve_roll_chron
         False,
     ]
     assert len(state.symptom_debts) == 1 and state.symptom_debts[0].remaining == 4
-    assert state.cyclic_attacks[0].additional_symptoms == profile.additional_symptoms
+    assert additional_symptoms(state.cyclic_attacks[0]) == profile.additional_symptoms
     assert sum(m.value for m in check_modifiers(state, "a", "dx")) == -3
     assert resolve_innate_miss(
         state, encounter, captured, miss(), rng=RecordedDice([]), system=True

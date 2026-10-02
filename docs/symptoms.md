@@ -70,8 +70,14 @@ parameters so one effect cannot borrow another effect's price.
 
 The first typed effect retains its original `symptom_spec` field and legacy
 source-derived ID. Further typed effects are retained in `additional_symptoms`,
-which is omitted when empty. Each additional effect has a distinct stable ID,
-but all effects from the same attack source read the same causal injury debt.
+which is omitted when empty. Cyclic occurrences and contagious source snapshots
+with multiple effects use explicit private runtime subclasses, including the
+zero-initial-damage variants. Their complete fields are validated and serialized
+through the runtime resource unions. The public `CyclicAttack`/`CyclicExposure`
+authoring models and all frozen schema snapshots remain unchanged; portable
+scenario input rejects the private extension. Each additional effect has a distinct
+stable ID, but all effects from the same attack source read the same causal injury
+debt.
 One hit or Cyclic occurrence records damage once, regardless of its number of
 Symptoms. Reapproving the same semantic effect set in a different authored order
 retains the existing effects, IDs and injury debts when its source is rebound;
@@ -125,3 +131,11 @@ first two issue criteria. All remain explicitly rejected in approved constructio
 and owned by #763. The previously documented blind-combat and Area-spell residuals
 also remain; Area-spell consumer work is shared with open #785. This change does
 not justify closing #763 or promoting its family to fully supported/certified.
+
+`tests/test_multiple_symptoms_cyclic_runtime.py` verifies zero initial damage and
+DR-absorbed delivery through actual repeat injury, positive and zero-damage
+contagious source snapshots through secondary infection, current consequences,
+restart/retry/replay, and byte-stable single-effect attack/exposure records. The
+catalog, live-social and scenario-document test families and the authoring,
+scenario and social contract scripts must all pass against their frozen snapshots;
+this runtime extension does not authorize regenerating those contracts.
