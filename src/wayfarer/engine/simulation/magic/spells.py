@@ -84,6 +84,12 @@ from wayfarer.engine.simulation.magic.spell_state import SpellResult as SpellRes
 from wayfarer.engine.simulation.magic.spell_state import active_spells as active_spells
 from wayfarer.engine.simulation.magic.spell_state import event_id as event_id
 from wayfarer.engine.simulation.magic.spell_state import latest as latest
+from wayfarer.engine.simulation.magic.water_cast_state import WaterCastPlan, require_plan
+from wayfarer.engine.simulation.magic.water_cast_state import remember as remember_water
+from wayfarer.engine.simulation.magic.water_effects import WaterPlan
+from wayfarer.engine.simulation.magic.water_effects import apply as apply_water
+from wayfarer.engine.simulation.magic.water_effects import parameters as water_parameters
+from wayfarer.engine.simulation.magic.water_effects import validate_operation as validate_water
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -93,7 +99,7 @@ PROFILE: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
 
 class RuntimeSpellSpec(Record):
     id: RuntimeSpellId
-    kind: Literal["regular", "resisted", "missile", "area"]
+    kind: Literal["regular", "resisted", "missile", "area", "special", "information"]
     cost: int
     maintenance: int
     seconds: int
@@ -105,6 +111,7 @@ class RuntimeSpellSpec(Record):
 
 class SpellSpec(RuntimeSpellSpec):
     id: SpellId
+    kind: Literal["regular", "resisted", "missile", "area"]
 
 
 SPELLS: dict[str, SpellSpec] = {
@@ -175,6 +182,31 @@ for _key, _cost, _magery, _prerequisite in (
 
 
 def _executable_spec(spell_id: RuntimeSpellId) -> RuntimeSpellSpec:
+    if spell_id in {"seek-water", "purify-water", "create-water", "destroy-water"}:
+        kinds: dict[str, Literal["information", "special", "regular", "area"]] = {
+            "seek-water": "information",
+            "purify-water": "special",
+            "create-water": "regular",
+            "destroy-water": "area",
+        }
+        prerequisites = {
+            "seek-water": (),
+            "purify-water": ("seek-water",),
+            "create-water": ("purify-water",),
+            "destroy-water": ("create-water",),
+        }
+        return RuntimeSpellSpec(
+            id=spell_id,
+            kind=kinds[spell_id],
+            cost={"seek-water": 2, "purify-water": 1, "create-water": 2, "destroy-water": 3}[
+                spell_id
+            ],
+            maintenance=0,
+            seconds=5 if spell_id == "purify-water" else 1,
+            duration=None,
+            prerequisites=prerequisites[spell_id],
+            reference="B253",
+        )
     if spell_id == "apportation":
         return RuntimeSpellSpec(
             id=spell_id,
@@ -250,6 +282,7 @@ class SpellContext(Record):
     unseen: bool = False
     radius: int = Field(default=1, ge=1, le=100)
     energy: int = Field(default=1, ge=1, le=100)
+    water_plan: WaterPlan | None = Field(default=None, exclude_if=lambda value: value is None)
     haste_size_scale: int = Field(default=1, ge=1, exclude_if=lambda value: value == 1)
     distracted: bool = False
     unavailable: bool = False
@@ -313,6 +346,13 @@ def casting_seconds(seconds: int, skill: int, *, missile: bool = False) -> int:
 
 
 def _casting_time(spec: RuntimeSpellSpec, context: SpellContext, skill: int) -> int:
+    if context.water_plan is not None:
+        seconds = (
+            context.water_plan.gallons * context.water_plan.seconds_per_gallon
+            if spec.id == "purify-water"
+            else 1
+        )
+        return casting_seconds(seconds, skill)
     if context.item_cast:
         return spec.seconds
     if context.ceremonial is not None:
@@ -363,6 +403,94 @@ def _casting_check(
     return replay_ceremonial_check(check) if effect.ceremonial is not None else check
 
 
+def _require_water_protocol(command: RuntimeSpellCommand, context: SpellContext) -> None:
+    water = command.spell_id in {"seek-water", "purify-water", "create-water", "destroy-water"}
+    if not water:
+        if context.water_plan is not None:
+            raise ValidationError("Water commitment cannot execute another spell")
+        return
+    if command.kind == "cancel":
+        return
+    if context.water_plan is None or context.water_plan.spell_id != command.spell_id:
+        raise ValidationError("Water magic requires its exact private material commitment")
+    if context.execution_version != 2 or not context.execute_effects:
+        raise ValidationError("Water magic requires source-derived material execution")
+    if context.item_cast or context.ceremonial is not None:
+        raise ValidationError("Water item and ceremonial variants require their material adapters")
+    if command.kind not in ("start", "concentrate", "complete", "remember"):
+        raise ValidationError("Water material spells do not support this lifecycle operation")
+
+
+def _prepare_water_commitment(
+    state: ResourceState, command: RuntimeSpellCommand, context: SpellContext
+) -> None:
+    if context.water_plan is None:
+        return
+    require_plan(
+        state,
+        WaterCastPlan(
+            cast_id=command.cast_id,
+            actor_id=command.actor_id,
+            channel_id=command.channel_id or "missing",
+            plan=context.water_plan,
+        ),
+        starting=command.kind == "start",
+    )
+    if command.kind in ("start", "complete"):
+        validate_water(state, context.water_plan)
+
+
+def _water_skill_modifier(state: ResourceState, context: SpellContext) -> int:
+    return water_parameters(state, context.water_plan)[2] if context.water_plan is not None else 0
+
+
+def _water_consequence(
+    state: ResourceState,
+    effect: RuntimeSpellEffect,
+    command: RuntimeSpellCommand,
+    context: SpellContext,
+    outcome: str,
+) -> tuple[ResourceState, RuntimeSpellEffect]:
+    if context.water_plan is None:
+        return state, effect
+    if command.kind == "start":
+        state = remember_water(
+            state,
+            WaterCastPlan(
+                cast_id=command.cast_id,
+                actor_id=command.actor_id,
+                channel_id=command.channel_id or "missing",
+                plan=context.water_plan,
+            ),
+        )
+    elif command.kind == "complete" and outcome == "active":
+        state = apply_water(state, context.water_plan, command.actor_id, command.id)
+        effect = effect.model_copy(update={"phase": "ended"})
+    return state, effect
+
+
+def _water_roll_effect(
+    state: ResourceState, effect: RuntimeSpellEffect, context: SpellContext
+) -> RuntimeSpellEffect:
+    assert context.water_plan is not None
+    hp = next(p for p in state.pools if p.id == "hp:" + effect.actor_id)
+    assert hp.injury is not None
+    spells_on = sum(
+        3 if e.concentrating else 1 for e in active_spells(state) if e.actor_id == effect.actor_id
+    )
+    skill = (
+        context.skill
+        - 5 * int(context.mana == "low")
+        - hp.injury.shock
+        - spells_on
+        - effect.hp_energy
+        - context.distance
+        - 5 * int(context.unseen)
+        + water_parameters(state, context.water_plan)[2]
+    )
+    return effect.model_copy(update={"skill": skill})
+
+
 def _require_casting_check_available(
     state: ResourceState,
     effect: RuntimeSpellEffect,
@@ -383,11 +511,20 @@ def _require_casting_check_available(
         and effect.spell_id in ("lockmaster", "magelock")
         and symptom_penalties(state, actor_id)["iq"]
     )
-    if not (item_check or personal_lock_check or context.area_targeting):
+    if not (
+        item_check
+        or personal_lock_check
+        or context.area_targeting
+        or context.water_plan is not None
+    ):
         return
     # B345: admit the current casting target before distraction dice or payment.
     # Historical commands retain their original order.
-    target = completion_targeting(state, effect, context).skill
+    target = (
+        _water_roll_effect(state, effect, context)
+        if context.water_plan is not None
+        else completion_targeting(state, effect, context)
+    ).skill
     modifiers = _casting_modifiers(
         state, actor_id, check_symptoms=check_symptoms and not context.item_cast
     )
@@ -534,7 +671,14 @@ def pending_cancellation(
         return None
     if (effect.actor_id, effect.spell_id) != (command.actor_id, command.spell_id):
         raise ConflictError("Cast identity belongs to another actor or spell")
-    return effect if _executable_spec(effect.spell_id).kind in ("regular", "resisted") else None
+    return (
+        effect
+        if (
+            _executable_spec(effect.spell_id).kind in ("regular", "resisted")
+            or effect.spell_id in {"seek-water", "purify-water", "create-water", "destroy-water"}
+        )
+        else None
+    )
 
 
 def apply_spell(
@@ -568,6 +712,7 @@ def apply_spell(
         return state, parse_event(previous_event).result
     if state.revision != command.expected_revision:
         raise ConflictError("Spell revision changed")
+    _require_water_protocol(command, context)
     original_recovery = state.recovery_tasks
     cancelling = item_sight and pending_cancellation(state, command) is not None
     affected = (
@@ -599,6 +744,7 @@ def apply_spell(
         execution_version=context.execution_version,
         execute_effects=context.execute_effects,
     )
+    _prepare_water_commitment(state, command, context)
     effect = latest(state).get(command.cast_id)
     fp = next((p for p in state.pools if p.id == "fp:" + command.actor_id), None)
     hp = next((p for p in state.pools if p.id == "hp:" + command.actor_id), None)
@@ -697,7 +843,9 @@ def apply_spell(
         cost = max(
             0,
             item_energy_cost(
-                spec.cost * scale * (context.haste_size_scale if spec.id == "haste" else 1),
+                water_parameters(state, context.water_plan)[0]
+                if context.water_plan is not None
+                else spec.cost * scale * (context.haste_size_scale if spec.id == "haste" else 1),
                 context.item_power_reduction,
                 context.mana,
             )
@@ -727,6 +875,7 @@ def apply_spell(
         skill += lock_difficulty(state, command.spell_id, context.target_id) - 5 * int(
             context.unseen
         )
+        skill += _water_skill_modifier(state, context)
         if skill < 1:
             raise ValidationError("Effective spell skill is below one")
         effect = RuntimeSpellEffect(
@@ -964,7 +1113,11 @@ def apply_spell(
                 if interrupted:
                     outcome = "interrupted"
                 else:
-                    effect = completion_targeting(state, effect, context)
+                    effect = (
+                        _water_roll_effect(state, effect, context)
+                        if context.water_plan is not None
+                        else completion_targeting(state, effect, context)
+                    )
                     check = _casting_check(
                         state,
                         effect,
@@ -1128,6 +1281,7 @@ def apply_spell(
     )
     checks.extend(awakening_checks)
     state, effect = complete_lock_effect(state, effect, command.id, command.kind, outcome)
+    state, effect = _water_consequence(state, effect, command, context, outcome)
     result = SpellResult(
         hp_restored=hp_restored,
         fp_restored=fp_restored,

@@ -16,7 +16,18 @@ from wayfarer.models import Id, Record
 
 PREFIX = "spell:"
 RUNTIME_PREFIX = "runtime-spell:"
-PRIVATE_SPELLS = frozenset({"lockmaster", "magelock", "haste", "apportation"})
+PRIVATE_SPELLS = frozenset(
+    {
+        "lockmaster",
+        "magelock",
+        "haste",
+        "apportation",
+        "seek-water",
+        "purify-water",
+        "create-water",
+        "destroy-water",
+    }
+)
 SpellId = Literal[
     "awaken",
     "light",
@@ -31,7 +42,17 @@ SpellId = Literal[
 ]
 
 
-RuntimeSpellId = Literal[SpellId, "lockmaster", "magelock", "haste", "apportation"]
+RuntimeSpellId = Literal[
+    SpellId,
+    "lockmaster",
+    "magelock",
+    "haste",
+    "apportation",
+    "seek-water",
+    "purify-water",
+    "create-water",
+    "destroy-water",
+]
 
 
 class RuntimeSpellEffect(Record):
