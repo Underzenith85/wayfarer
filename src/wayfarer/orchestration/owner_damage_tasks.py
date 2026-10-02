@@ -43,6 +43,11 @@ from wayfarer.orchestration.owner_damage_records import (
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.real_play_clock import RealPlayClock
 from wayfarer.orchestration.task_records import TaskResult, TaskSnapshot, identity
+from wayfarer.orchestration.unarmed_damage_records import (
+    ArmedParryDamagePending,
+    UnarmedDamagePending,
+)
+from wayfarer.orchestration.unarmed_damage_tasks import choose_unarmed_damage, open_unarmed_damage
 
 
 def _finish(
@@ -94,6 +99,10 @@ def open_owner_damage(
     encounter = encounter_for(state, response.encounter_id)
     if pending_secret_source(state.resources, encounter) is not None:
         command = command.model_copy(update={"secret": True})
+    if encounter.pending_unarmed is not None:
+        return open_unarmed_damage(
+            play, state, command, saved, clock, selected_attack=selected_attack
+        )
     if (
         encounter.pending_defense is not None
         and encounter.pending_defense.composed_attack_id is None
@@ -206,6 +215,8 @@ def choose_owner_damage(
     clock: RealPlayClock,
 ) -> tuple[PlayState, TaskSnapshot, RealPlayClock, TaskResult]:
     pending = saved.pending
+    if isinstance(pending, (UnarmedDamagePending, ArmedParryDamagePending)):
+        return choose_unarmed_damage(play, state, command, saved, clock)
     if isinstance(pending, InventoryDamagePending):
         return choose_inventory_damage(play, state, command, saved, clock)
     if not isinstance(pending, OwnerDamagePending) or (

@@ -119,6 +119,10 @@ from wayfarer.orchestration.task_records import (
     identity,
     snapshot,
 )
+from wayfarer.orchestration.unarmed_damage_records import (
+    ArmedParryDamagePending,
+    UnarmedDamagePending,
+)
 
 PREPARATION: TypeAdapter[TaskCheckPreparation] = TypeAdapter(TaskCheckPreparation)
 
@@ -946,7 +950,15 @@ class TaskService:
                 if isinstance(pending, (SecretTaskPending, SecretReactionPending))
                 else pending.secret,
                 damage_json=pending.original_json
-                if isinstance(pending, (OwnerDamagePending, InventoryDamagePending))
+                if isinstance(
+                    pending,
+                    (
+                        OwnerDamagePending,
+                        InventoryDamagePending,
+                        UnarmedDamagePending,
+                        ArmedParryDamagePending,
+                    ),
+                )
                 else None,
                 outside_event_json=pending.original_json
                 if isinstance(pending, OutsideEventPending)
@@ -957,7 +969,14 @@ class TaskService:
             or isinstance(pending, (OpponentAttackPending, OpponentFragmentPending))
             and pending.secret
             or isinstance(
-                pending, (OwnerDamagePending, InventoryDamagePending, OutsideEventPending)
+                pending,
+                (
+                    OwnerDamagePending,
+                    InventoryDamagePending,
+                    UnarmedDamagePending,
+                    ArmedParryDamagePending,
+                    OutsideEventPending,
+                ),
             )
             and pending.secret,
         )

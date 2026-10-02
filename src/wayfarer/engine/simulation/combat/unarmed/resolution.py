@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import hashlib
+from dataclasses import replace
+from fractions import Fraction
 from typing import TYPE_CHECKING, Literal, cast, get_args, overload
 
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import strong_damage_bonus
+from wayfarer.engine.rules.tables.size_forms import height_ratio, reduced_result
 from wayfarer.engine.rules.tables.special_melee import grapple_size_bonus
+from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, exertion
 from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
@@ -21,6 +25,14 @@ from wayfarer.engine.simulation.combat.objects.locations import from_behind
 from wayfarer.engine.simulation.combat.special_melee import actor_size_modifier
 from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.unarmed.choke import start_choke_hold
+from wayfarer.engine.simulation.combat.unarmed.damage_records import (
+    ArmedParryDamageInputs,
+    ArmedParryDamageStage,
+    PreparedArmedParryDamage,
+    PreparedUnarmedDamage,
+    UnarmedDamageInputs,
+    UnarmedDamageStage,
+)
 from wayfarer.engine.simulation.combat.unarmed.defense import (
     parry_candidates,
     sensory_encounter,
@@ -38,6 +50,7 @@ from wayfarer.engine.simulation.combat.unarmed.injury import (
     critical_miss,
     drop_held,
     hurt,
+    prepare_armed_parry_damage,
 )
 from wayfarer.engine.simulation.combat.unarmed.random_strike import (
     RandomStrike,
@@ -57,7 +70,7 @@ from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.hit_locations import select_location, torso_near_miss
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.skills.power_blow import power_blow_strength
-from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
+from wayfarer.engine.simulation.traits.size_forms import effect_for as size_effect_for
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -124,6 +137,8 @@ def defend(
     *,
     selected_attack: CheckTrace | None = None,
     prepare_only: Literal[False] = False,
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
 ) -> tuple[PlayState, Encounter, UnarmedTrace]: ...
 
 
@@ -136,7 +151,23 @@ def defend(
     *,
     selected_attack: CheckTrace | None = None,
     prepare_only: Literal[True],
+    prepare_damage: Literal[False] = False,
+    secret_damage: bool = False,
 ) -> AttackRollSpec: ...
+
+
+@overload
+def defend(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
+    *,
+    selected_attack: CheckTrace | None = None,
+    prepare_only: Literal[False] = False,
+    prepare_damage: Literal[True],
+    secret_damage: bool = False,
+) -> tuple[PlayState, Encounter, UnarmedTrace] | UnarmedDamageStage | ArmedParryDamageStage: ...
 
 
 def defend(
@@ -147,7 +178,14 @@ def defend(
     *,
     selected_attack: CheckTrace | None = None,
     prepare_only: bool = False,
-) -> tuple[PlayState, Encounter, UnarmedTrace] | AttackRollSpec:
+    prepare_damage: bool = False,
+    secret_damage: bool = False,
+) -> (
+    tuple[PlayState, Encounter, UnarmedTrace]
+    | AttackRollSpec
+    | UnarmedDamageStage
+    | ArmedParryDamageStage
+):
     pending = encounter.pending_unarmed
     if (
         pending is None
@@ -262,6 +300,7 @@ def defend(
     effect_dice: tuple[int, ...] = ()
     effect_checks: tuple[CheckTrace, ...] = ()
     critical = 0
+    counterdamage: ArmedParryDamageInputs | None = None
     if attack.outcome is Outcome.CRITICAL_SUCCESS:
         table = draw_dice(runtime.rng, 3)
         critical = sum(table)
@@ -340,15 +379,17 @@ def defend(
                     "right-hand",
                 ):
                     assert parrying_hand is not None
-                    state, encounter, effect_checks, effect_dice = armed_parry_injury(
-                        runtime,
-                        state,
-                        encounter,
-                        pending,
-                        parrying_hand,
-                        command.parry_mode_id if index == 0 else command.second_parry_mode_id,
-                    )
-                    actor = fighter(encounter, actor.actor_id)
+                    mode_id = command.parry_mode_id if index == 0 else command.second_parry_mode_id
+                    if prepare_damage:
+                        check, counterdamage = prepare_armed_parry_damage(
+                            runtime, state, encounter, pending, parrying_hand, mode_id
+                        )
+                        effect_checks = (check,)
+                    else:
+                        state, encounter, effect_checks, effect_dice = armed_parry_injury(
+                            runtime, state, encounter, pending, parrying_hand, mode_id
+                        )
+                        actor = fighter(encounter, actor.actor_id)
                 if not hit or defense.outcome is Outcome.CRITICAL_FAILURE:
                     break
             target = target.model_copy(
@@ -377,9 +418,32 @@ def defend(
         if not balance.outcome.succeeded:
             actor = actor.model_copy(update={"posture": "prone"})
     encounter = CombatEngine._replace(encounter, actor)
-    grip_id = None
-    basic = injury = 0
-    dice: tuple[int, ...] = ()
+    trace = UnarmedTrace(
+        action=pending.action,
+        intent=pending,
+        actor_id=actor.actor_id,
+        target_id=target.actor_id,
+        checks=checks,
+        won=hit,
+        grip_id=None,
+        basic_damage=0,
+        damage_dice=(),
+        injury=0,
+        blocked_reason=blocked,
+        table_dice=table,
+        effect_dice=effect_dice,
+        effect_checks=effect_checks,
+        resolved_location=cast(GrappleLocation, resolved_location)
+        if pending.action in ("punch", "kick") and resolved_location in get_args(GrappleLocation)
+        else None,
+        defenses=tuple(
+            (choice, selected_hand)
+            for choice, (_, selected_hand) in zip(
+                (command.defense, command.second_defense), defenses, strict=False
+            )
+            if choice is not None
+        ),
+    )
     if hit and pending.action in ("grapple", "arm_lock"):
         grip_id = pending.id
         grip = Grip(
@@ -397,102 +461,186 @@ def defend(
         encounter = encounter.model_copy(
             update={"grips": tuple(g for g in encounter.grips if g.id != pending.grip_id) + (grip,)}
         )
+        trace = trace.model_copy(update={"grip_id": grip_id})
     elif hit:
-        compiled = build(runtime, state, actor.actor_id)
-        assert compiled.statistics is not None
-        expression, _ = strength_damage(
-            BASIC,
-            power_blow_strength(
-                state.resources,
-                actor.actor_id,
-                compiled.revision,
-                pending.id,
-                encounter.id,
-                encounter.round,
-                encounter.turn_index,
-                compiled.statistics.st,
-            ),
+        inputs = _strike_inputs(
+            runtime, state, encounter, pending, trace, critical, resolved_location
         )
-        maximum = critical in (6, 15)
-        dice = () if maximum else draw_dice(runtime.rng, expression.dice)
-        bonus = striking_bonus(
-            pending.skill,
-            compiled.statistics.dx,
-            skill_value(runtime, state, actor.actor_id, pending.skill),
-        )
-        basic = max(
-            0,
-            (6 * expression.dice if maximum else sum(dice))
-            + expression.add
-            + (-1 if pending.action == "punch" else 0)
-            + bonus * expression.dice,
-            # B365: Strong adds two damage or one per die, whichever is better.
-        )
-        if actor.maneuver_state.strong:
-            basic = max(
-                0,
-                (6 * expression.dice if maximum else sum(dice))
-                + expression.add
-                + (-1 if pending.action == "punch" else 0)
-                + bonus * expression.dice
-                + strong_damage_bonus(expression.dice),
-            )
-        basic *= 3 if critical in (3, 18) else 2 if critical in (5, 16) else 1
-        basic = reduced_body_result(state.resources, actor.actor_id, basic)
-        resistance = armor_dr(runtime, state, target.actor_id, resolved_location)
-        state, encounter, injury = hurt(
-            runtime,
-            state,
-            encounter,
-            target.actor_id,
-            pending.id,
-            basic,
-            location=resolved_location,
-            critical=critical,
-        )
-        if resistance >= 3 and basic >= 5:
-            striking_part = pending.hands[0] if pending.action == "punch" else pending.foot
-            state, encounter, _ = hurt(
-                runtime,
+        if prepare_damage and not inputs.maximum:
+            original = None if secret_damage else draw_dice(runtime.rng, inputs.dice_count)
+            return UnarmedDamageStage(
                 state,
                 encounter,
-                actor.actor_id,
-                "unarmed-self:" + hashlib.sha256(pending.id.encode()).hexdigest(),
-                min(resistance, basic // 5),
-                location=striking_part,
+                PreparedUnarmedDamage(
+                    inputs=inputs,
+                    original=original,
+                    secret=secret_damage,
+                ),
             )
+        return finish_unarmed_damage(runtime, state, encounter, inputs)
+    if counterdamage is not None:
+        selected = runtime.attack_source
+        if selected is not None and selected[0] == pending.actor_id:
+            captured = selected[1]
+        else:
+            source = next(a for a in state.actors if a.actor_id == pending.actor_id)
+            captured, _ = runtime.reviewer.activate(
+                source.proposal,
+                source.approval,
+                campaign_id=state.campaign_id,
+                actor_id=pending.actor_id,
+            )
+        original = None if secret_damage else draw_dice(runtime.rng, counterdamage.dice_count)
+        return ArmedParryDamageStage(
+            state,
+            encounter,
+            PreparedArmedParryDamage(
+                inputs=counterdamage,
+                trace=trace,
+                captured_attacker=captured,
+                original=original,
+                secret=secret_damage,
+            ),
+        )
+    return _finish_delivery(state, encounter, trace, critical)
+
+
+def _strike_inputs(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    trace: UnarmedTrace,
+    critical: int,
+    location: HumanLocation,
+) -> UnarmedDamageInputs:
+    actor = fighter(encounter, pending.actor_id)
+    compiled = build(runtime, state, actor.actor_id)
+    assert compiled.statistics is not None
+    expression, _ = strength_damage(
+        BASIC,
+        power_blow_strength(
+            state.resources,
+            actor.actor_id,
+            compiled.revision,
+            pending.id,
+            encounter.id,
+            encounter.round,
+            encounter.turn_index,
+            compiled.statistics.st,
+        ),
+    )
+    bonus = striking_bonus(
+        pending.skill,
+        compiled.statistics.dx,
+        skill_value(runtime, state, actor.actor_id, pending.skill),
+    )
+    adds = expression.add + (-1 if pending.action == "punch" else 0) + bonus * expression.dice
+    if actor.maneuver_state.strong:
+        adds += strong_damage_bonus(expression.dice)
+    selected = runtime.attack_source
+    if selected is not None and selected[0] == actor.actor_id:
+        raw = selected[1]
+    else:
+        source = next(a for a in state.actors if a.actor_id == actor.actor_id)
+        raw, _ = runtime.reviewer.activate(
+            source.proposal, source.approval, campaign_id=state.campaign_id, actor_id=actor.actor_id
+        )
+    size = size_effect_for(state.resources, actor.actor_id)
+    ratio = (
+        height_ratio(size.native_sm, size.current_delta)
+        if size and size.current_delta < 0
+        else Fraction(1)
+    )
+    return UnarmedDamageInputs(
+        pending=pending,
+        trace=trace,
+        critical=critical,
+        location=location,
+        dice_count=expression.dice,
+        adds=adds,
+        maximum=critical in (6, 15),
+        size_ratio=(ratio.numerator, ratio.denominator),
+        captured_attacker=raw,
+    )
+
+
+def _finish_delivery(
+    state: PlayState, encounter: Encounter, trace: UnarmedTrace, critical: int
+) -> tuple[PlayState, Encounter, UnarmedTrace]:
     if critical == 12:
-        state, encounter = drop_held(state, encounter, target.actor_id)
-    return (
+        state, encounter = drop_held(state, encounter, trace.target_id)
+    return state, encounter, trace
+
+
+def finish_unarmed_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    inputs: UnarmedDamageInputs,
+    *,
+    selected_damage: tuple[int, ...] | None = None,
+) -> tuple[PlayState, Encounter, UnarmedTrace]:
+    """Resume one delivered strike using current target injury facts, without prior rolls."""
+    pending = inputs.pending
+    if encounter.pending_unarmed != pending:
+        raise ValidationError("Captured unarmed damage lost its delivery identity")
+    if selected_damage is not None and (
+        inputs.maximum
+        or len(selected_damage) != inputs.dice_count
+        or any(type(die) is not int or not 1 <= die <= 6 for die in selected_damage)
+    ):
+        raise ValidationError("Selected unarmed damage differs from its captured expression")
+    dice = (
+        selected_damage
+        if selected_damage is not None
+        else ()
+        if inputs.maximum
+        else draw_dice(runtime.rng, inputs.dice_count)
+    )
+    basic = max(0, (6 * inputs.dice_count if inputs.maximum else sum(dice)) + inputs.adds)
+    basic *= 3 if inputs.critical in (3, 18) else 2 if inputs.critical in (5, 16) else 1
+    basic = reduced_result(basic, Fraction(*inputs.size_ratio))
+    injury_runtime = replace(runtime, attack_source=None)
+    resistance = armor_dr(injury_runtime, state, pending.target_id, inputs.location)
+    state, encounter, injury = hurt(
+        injury_runtime,
         state,
         encounter,
-        UnarmedTrace(
-            action=pending.action,
-            intent=pending,
-            actor_id=actor.actor_id,
-            target_id=target.actor_id,
-            checks=checks,
-            won=hit,
-            grip_id=grip_id,
-            basic_damage=basic,
-            damage_dice=dice,
-            injury=injury,
-            blocked_reason=blocked,
-            table_dice=table,
-            effect_dice=effect_dice,
-            effect_checks=effect_checks,
-            resolved_location=cast(GrappleLocation, resolved_location)
-            if pending.action in ("punch", "kick")
-            and resolved_location in get_args(GrappleLocation)
-            else None,
-            defenses=tuple(
-                (choice, selected_hand)
-                for choice, (_, selected_hand) in zip(
-                    (command.defense, command.second_defense), defenses, strict=False
-                )
-                if choice is not None
-            ),
+        pending.target_id,
+        pending.id,
+        basic,
+        location=inputs.location,
+        critical=inputs.critical,
+    )
+    if resistance >= 3 and basic >= 5:
+        source = next(a for a in state.actors if a.actor_id == pending.actor_id)
+        injury_runtime = (
+            injury_runtime
+            if source.approval is not None
+            else replace(injury_runtime, attack_source=(pending.actor_id, inputs.captured_attacker))
+        )
+        striking_part = pending.hands[0] if pending.action == "punch" else pending.foot
+        state, encounter, _ = hurt(
+            injury_runtime,
+            state,
+            encounter,
+            pending.actor_id,
+            "unarmed-self:" + hashlib.sha256(pending.id.encode()).hexdigest(),
+            min(resistance, basic // 5),
+            location=striking_part,
+        )
+    return _finish_delivery(
+        state,
+        encounter,
+        inputs.trace.model_copy(
+            update={
+                "basic_damage": basic,
+                "damage_dice": dice,
+                "injury": injury,
+            }
         ),
+        inputs.critical,
     )
 
 
