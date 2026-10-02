@@ -76,6 +76,7 @@ class RecordedFragmentLaunch(Record):
     source_item_id: Id
     producer_command_id: Id
     producer_payload_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    origin_attack_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class FragmentContinuation(Record):

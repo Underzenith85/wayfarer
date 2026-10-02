@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.combat.commands import (
 from wayfarer.engine.simulation.combat.encounter import PendingDefense
 from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.opponent_fragment_delivery import latest_delivery
 from wayfarer.orchestration.opponent_fragment_records import (
     PrepareOpponentFragment,
     RecordedFragmentLaunch,
@@ -105,7 +106,7 @@ def validate_fragment_launch(
     if (
         not separator
         or not packet.isdecimal()
-        or root != launch.attack_id
+        or root != (launch.origin_attack_id or launch.attack_id)
         or command.encounter_id != blast.encounter_id
         or launch.source_item_id != blast.source_item_id
         or blast.source_item_id not in (command.item_id, command.second_item_id)
@@ -157,11 +158,12 @@ async def _accepted_producer(
     play: PlayService, cid: str, source: TakeCombatTurn, source_hash: str, blast_id: str
 ) -> RecordedFragmentLaunch:
     history = await play.store.history(cid)
+    delivery = latest_delivery(history, blast_id)
     start = next((index for index, row in enumerate(history) if row.command_id == source.id), None)
     if start is None:
         raise ValidationError("Fragment launch has no accepted campaign history")
     state = PlayState.model_validate_json(history[start].state_after["play_json"])
-    if any(blast.id == blast_id for blast in blasts(state.resources)):
+    if delivery is None and any(blast.id == blast_id for blast in blasts(state.resources)):
         raise ValidationError("The selected blast predates its claimed launch")
     encounter = next((e for e in state.encounters if e.id == source.encounter_id), None)
     if encounter is None:
@@ -190,15 +192,25 @@ async def _accepted_producer(
             known.add(pending.id)
         after = PlayState.model_validate_json(row.state_after["play_json"])
         produced = next((blast for blast in blasts(after.resources) if blast.id == blast_id), None)
-        if produced is not None:
+        if produced is not None and (
+            delivery is None or row.command_id == delivery.producer_command_id
+        ):
             if (
                 pending is None
                 or pending.id not in known
                 or not _source_pending(pending, source)
                 or produced.source_item_id != pending.weapon_id
-                or not produced.id.startswith(pending.id + ":blast:")
+                or (
+                    not produced.id.startswith(pending.id + ":blast:")
+                    if delivery is None
+                    else pending.id != delivery.attack_id
+                )
             ):
-                raise ValidationError("Blast producer does not continue that accepted launch")
+                raise ValidationError(
+                    "Fragment source is not the latest accepted grenade delivery"
+                    if delivery is not None
+                    else "Blast producer does not continue that accepted launch"
+                )
             producer = _payload(CommandInput(payload_hash=row.payload_hash, text=row.command_input))
             producer_command = producer.get("command")
             if not isinstance(producer_command, dict) or not (
@@ -218,6 +230,7 @@ async def _accepted_producer(
                 source_item_id=pending.weapon_id,
                 producer_command_id=row.command_id,
                 producer_payload_hash=row.payload_hash,
+                origin_attack_id=delivery.origin_attack_id if delivery is not None else None,
             )
         following = _pending(after, source.encounter_id)
         if _accepted_resume(state, row, source, command_ids):
@@ -242,4 +255,6 @@ async def _accepted_producer(
         ):
             known.add(following.id)
         state = after
+    if delivery is not None:
+        raise ValidationError("Fragment source is not the latest accepted grenade delivery")
     raise ValidationError("Fragment blast has no reconstructible accepted launch producer")
