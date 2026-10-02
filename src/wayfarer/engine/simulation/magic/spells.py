@@ -175,6 +175,17 @@ for _key, _cost, _magery, _prerequisite in (
 
 
 def _executable_spec(spell_id: RuntimeSpellId) -> RuntimeSpellSpec:
+    if spell_id == "apportation":
+        return RuntimeSpellSpec(
+            id=spell_id,
+            kind="regular",
+            cost=1,
+            maintenance=1,
+            seconds=1,
+            duration=60,
+            magery=1,
+            reference="B251",
+        )
     if spell_id == "haste":
         return RuntimeSpellSpec(
             id=spell_id,
@@ -399,7 +410,7 @@ def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None
         spec.kind != "area"
         and context.radius != 1
         or spec.kind != "missile"
-        and spec.id not in HEALING | SUPPORT | {"haste"}
+        and spec.id not in HEALING | SUPPORT | {"haste", "apportation"}
         and context.energy != 1
     ):
         raise ValidationError("Spell does not accept this area or energy")
@@ -679,7 +690,8 @@ def apply_spell(
             else context.energy
             if spec.kind == "missile"
             else context.energy
-            if spec.id in HEALING | SUPPORT | {"haste"} and spec.id != "great-healing"
+            if spec.id in HEALING | SUPPORT | {"haste", "apportation"}
+            and spec.id != "great-healing"
             else lock_scale(state, spec.id, context.target_id)
         )
         cost = max(
@@ -738,7 +750,7 @@ def apply_spell(
                         context.radius
                         if spec.kind == "area"
                         else context.energy * context.haste_size_scale
-                        if spec.id == "haste"
+                        if spec.id in {"haste", "apportation"}
                         else lock_scale(state, spec.id, context.target_id)
                     ),
                     context.item_power_reduction,
@@ -902,7 +914,7 @@ def apply_spell(
                             effect.radius
                             if spec.kind == "area"
                             else effect.energy
-                            if spec.id == "haste"
+                            if spec.id in {"haste", "apportation"}
                             else lock_scale(state, spec.id, effect.target_id)
                         ),
                         context.item_power_reduction,

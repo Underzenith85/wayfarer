@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
 from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLIC_HOST_ADAPTER
 from wayfarer.engine.simulation.health.hazard_records import HazardCommand
+from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORTATION_ADAPTER
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
 )
@@ -22,6 +23,7 @@ from wayfarer.engine.simulation.magic.staff_state import DeclareStaffConstructio
 from wayfarer.engine.simulation.social.social import SocialCommand
 from wayfarer.engine.simulation.traits.composed_host import ADAPTER as COMPOSED_ADAPTER
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.apportation import ApportationService
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.combat.abandon import AbandonPendingAttackService
 from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, RandomUnarmedStrike
@@ -165,6 +167,14 @@ async def _composed_defense(play: PlayService, record: CommandRecord, encoded: s
     )
 
 
+async def _apportation(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await ApportationService(play).execute(
+        record.campaign_id,
+        APPORTATION_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 async def _haste(play: PlayService, record: CommandRecord, encoded: str) -> None:
     await HasteService(play).execute(
         record.campaign_id,
@@ -174,6 +184,7 @@ async def _haste(play: PlayService, record: CommandRecord, encoded: str) -> None
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "apportation": _apportation,
     "haste": _haste,
     "gurps-social": _social,
     "task-host": _task_host,
