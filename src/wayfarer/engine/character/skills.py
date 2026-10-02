@@ -112,8 +112,6 @@ def _satisfied_prerequisite(
             target in context.purchased_definition_ids
             and context.purchased_definition_levels.get(target, 1) >= requirement.minimum
         )
-    if requirement.kind is PrerequisiteKind.ATTRIBUTE_MINIMUM:
-        return attributes[requirement.target] >= requirement.minimum
     if requirement.kind is PrerequisiteKind.CAPABILITY:
         return target in context.capabilities
     raise SkillError("skill.definition", "Unsupported acquisition prerequisite")
@@ -291,10 +289,6 @@ class SkillCompiler:
                 type(p.minimum) is not int
                 or p.minimum < 1
                 or not isinstance(p.kind, PrerequisiteKind)
-                or (
-                    p.kind is PrerequisiteKind.ATTRIBUTE_MINIMUM
-                    and p.target not in {value.value for value in ControllingAttribute}
-                )
                 or (
                     p.minimum_technology_level is not None
                     and (

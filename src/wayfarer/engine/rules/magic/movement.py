@@ -43,10 +43,12 @@ def package(*, great_haste: bool = False) -> RulesPackage:
     if not great_haste:
         return college_package(ISSUE, COLLEGE, BINDINGS)
     learned = learning_spec(251, difficulty=Difficulty.VERY_HARD, magery=1, spells=("haste",))
+    # Attribute purchases store their absolute score; this existing metadata kind
+    # checks raw IQ before Magery adds to spell learning, without public enum growth.
     learned = replace(
         learned,
         prerequisites=learned.prerequisites
-        + (SkillPrerequisite("attribute:iq", 12, PrerequisiteKind.ATTRIBUTE_MINIMUM),),
+        + (SkillPrerequisite("attribute:iq", 12, PrerequisiteKind.PURCHASED_DEFINITION),),
     )
     bindings = tuple(
         replace(binding, learning=learned) if binding.key == "great-haste" else binding

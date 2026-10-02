@@ -12,6 +12,12 @@ non-caster subject loses 5 FP; a caster who targeted themselves is exempt from
 this additional loss. End fatigue is an involuntary consequence, not a new
 voluntary expenditure that can be declined because the subject has too few FP.
 
+The opted-in movement learning catalog checks IQ 12 with the existing purchased-
+definition metadata: attribute purchases record their absolute score. This reads
+raw purchased IQ before Magery adds to spell learning. It does not expand the
+public prerequisite enum or the Workshop contract; the default movement package
+and its historical pin remain unchanged.
+
 B38 gives an additional maneuver during the same actor's existing combat turn.
 Multiple Move maneuvers can move twice, and multiple Concentrate maneuvers can
 accumulate subjective casting seconds. Initiative does not become faster. A
