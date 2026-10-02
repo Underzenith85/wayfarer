@@ -8,7 +8,9 @@ from wayfarer.persistence.command_inputs import replay_payload
 from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "combat_protocol_features"
-KNOWN = frozenset({"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses"})
+KNOWN = frozenset(
+    {"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses", "ground-dive-step"}
+)
 ACTIVE = KNOWN
 
 

@@ -40,6 +40,7 @@ from wayfarer.engine.simulation.combat.fragment_state import (
 from wayfarer.engine.simulation.combat.generations import preserve_grenade_fuse
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.thrown.flight import position
+from wayfarer.engine.simulation.combat.thrown.ground_dive import validate_ground_step
 from wayfarer.engine.simulation.combat.thrown.interposition import contact_space, intercept
 from wayfarer.engine.simulation.combat.thrown.live_grenades import armed_cause
 from wayfarer.engine.simulation.combat.unarmed.injury import armor_dr, hurt
@@ -309,7 +310,11 @@ def _special_blast_adjustment(
 
 
 def _validate_actor_response(
-    runtime: RulesContext, state: PlayState, encounter: Encounter, response: BlastResponse
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    response: BlastResponse,
+    environment: str,
 ) -> None:
     actor = next(p for p in encounter.participants if p.actor_id == response.actor_id)
     if (
@@ -327,6 +332,7 @@ def _validate_actor_response(
             raise ValidationError("Diving for cover is limited to one step")
         if actor.posture in ("kneeling", "sitting") or actor.grappled or actor.pinned:
             raise ValidationError("Actor cannot take the declared diving step")
+        validate_ground_step(runtime, state, encounter, response, environment)
         defense_value(runtime, state, actor, "dodge")
     elif response.dive_cover_dr:
         raise ValidationError("Destination cover requires a declared dive")
@@ -384,7 +390,7 @@ def _prepare_progress(
         )
     # Validate all declarations before the first roll, then refresh each still-unrolled actor.
     for response in responses:
-        _validate_actor_response(runtime, state, encounter, response)
+        _validate_actor_response(runtime, state, encounter, response, environment)
     entries = {e.definition_id: e for e in catalog(runtime).entries}
     objects = []
     for item in (*state.resources.items, *state.resources.expended_items):
@@ -473,7 +479,7 @@ def _actor_blast(
     evidence: list[dict[str, object]] = []
     actor = next(p for p in encounter.participants if p.actor_id == actor_id)
     response = by_actor[actor.actor_id]
-    _validate_actor_response(runtime, state, encounter, response)
+    _validate_actor_response(runtime, state, encounter, response, progress.environment)
     point = position(encounter, actor)
     cover = response.cover_dr
     covered = response.covered_locations
@@ -1015,7 +1021,7 @@ def amend_future_fragment_responses(
     if not responses or len(by_actor) != len(responses) or set(by_actor) - set(remaining):
         raise ValidationError("Only still-unresolved later blast responses may be amended")
     for response in responses:
-        _validate_actor_response(runtime, state, encounter, response)
+        _validate_actor_response(runtime, state, encounter, response, prepared.progress.environment)
     updated = tuple(
         by_actor.get(response.actor_id, response) for response in prepared.progress.responses
     )
@@ -1030,7 +1036,9 @@ def validate_later_fragment_responses(
     remaining = set(prepared.progress.actor_ids[prepared.progress.actor_index + 1 :])
     for response in prepared.progress.responses:
         if response.actor_id in remaining:
-            _validate_actor_response(runtime, state, encounter, response)
+            _validate_actor_response(
+                runtime, state, encounter, response, prepared.progress.environment
+            )
 
 
 def continuing_fragment_responses(

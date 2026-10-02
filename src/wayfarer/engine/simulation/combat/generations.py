@@ -26,3 +26,7 @@ def combat_generation(features: frozenset[str]) -> Iterator[None]:
 
 def acrobatic_trait_bonuses_enabled() -> bool:
     return "acrobatic-trait-bonuses" in _current.get()
+
+
+def ground_dive_step_enabled() -> bool:
+    return "ground-dive-step" in _current.get()
