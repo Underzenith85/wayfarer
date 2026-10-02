@@ -359,7 +359,7 @@ def critical_miss(
     return state, CombatEngine._replace(encounter, actor), checks, dice, True
 
 
-def prepare_armed_parry_damage(
+def _prepare_armed_parry_damage(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
@@ -368,8 +368,6 @@ def prepare_armed_parry_damage(
     mode_id: str | None,
 ) -> tuple[CheckTrace, ArmedParryDamageInputs | None]:
     """Close the separate weapon-skill check without rolling damage or injury."""
-    if encounter.pending_unarmed != pending:
-        raise ValidationError("Armed parry lost its unarmed delivery identity")
     weapon = mode(runtime, state, pending.target_id, item_id, mode_id)
     assert isinstance(weapon, MeleeMode)
     score = skill_value(runtime, state, pending.target_id, weapon.skill_id)
@@ -402,7 +400,7 @@ def prepare_armed_parry_damage(
     )
 
 
-def finish_armed_parry_damage(
+def _finish_armed_parry_damage(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
@@ -411,8 +409,6 @@ def finish_armed_parry_damage(
     selected_damage: tuple[int, ...] | None = None,
 ) -> tuple[PlayState, Encounter, tuple[int, ...]]:
     """Apply captured counterdamage against current limb armor and injury state."""
-    if encounter.pending_unarmed != inputs.pending:
-        raise ValidationError("Armed parry lost its unarmed delivery identity")
     if selected_damage is not None and (
         len(selected_damage) != inputs.dice_count
         or any(type(die) is not int or not 1 <= die <= 6 for die in selected_damage)
@@ -439,6 +435,36 @@ def finish_armed_parry_damage(
     return state, encounter, dice
 
 
+def prepare_armed_parry_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    item_id: str,
+    mode_id: str | None,
+) -> tuple[CheckTrace, ArmedParryDamageInputs | None]:
+    """Require the canonical unarmed delivery before opening a staged owner phase."""
+    if encounter.pending_unarmed != pending:
+        raise ValidationError("Armed parry lost its unarmed delivery identity")
+    return _prepare_armed_parry_damage(runtime, state, encounter, pending, item_id, mode_id)
+
+
+def finish_armed_parry_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    inputs: ArmedParryDamageInputs,
+    *,
+    selected_damage: tuple[int, ...] | None = None,
+) -> tuple[PlayState, Encounter, tuple[int, ...]]:
+    """Require the unchanged staged delivery before accepting selected counterdamage."""
+    if encounter.pending_unarmed != inputs.pending:
+        raise ValidationError("Armed parry lost its unarmed delivery identity")
+    return _finish_armed_parry_damage(
+        runtime, state, encounter, inputs, selected_damage=selected_damage
+    )
+
+
 def armed_parry_injury(
     runtime: RulesContext,
     state: PlayState,
@@ -447,11 +473,13 @@ def armed_parry_injury(
     item_id: str,
     mode_id: str | None,
 ) -> tuple[PlayState, Encounter, tuple[CheckTrace, ...], tuple[int, ...]]:
-    """B376 ordinary path retains the separate check, dice order and history."""
-    check, inputs = prepare_armed_parry_damage(runtime, state, encounter, pending, item_id, mode_id)
+    """B376 immediate path also serves Push, whose caller validates its own commitment."""
+    check, inputs = _prepare_armed_parry_damage(
+        runtime, state, encounter, pending, item_id, mode_id
+    )
     if inputs is None:
         return state, encounter, (check,), ()
-    state, encounter, dice = finish_armed_parry_damage(runtime, state, encounter, inputs)
+    state, encounter, dice = _finish_armed_parry_damage(runtime, state, encounter, inputs)
     return state, encounter, (check,), dice
 
 
