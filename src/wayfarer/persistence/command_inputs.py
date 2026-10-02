@@ -145,7 +145,7 @@ def combat_intent(text: str) -> str:
             key in payload
             or payload.get("operation") != "task-host"
             or not isinstance(command, dict)
-            or command.get("kind") != "choose-opponent-attack"
+            or command.get("kind") not in ("choose-opponent-attack", "prepare-owner-damage")
             or not isinstance(response, dict)
             or response.get("kind") != "choose_defense"
             or not isinstance(raw_task, list)
