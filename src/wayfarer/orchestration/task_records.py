@@ -21,6 +21,12 @@ from wayfarer.orchestration.opponent_attack_records import (
     ChooseOpponentAttack,
     OpponentAttackPending,
 )
+from wayfarer.orchestration.opponent_fragment_records import (
+    AmendFragmentResponses,
+    ChooseOpponentFragment,
+    OpponentFragmentPending,
+    PrepareOpponentFragment,
+)
 from wayfarer.orchestration.outside_event_records import (
     ChooseOutsideEvent,
     OutsideEventPending,
@@ -54,6 +60,7 @@ PRIVATE_PREFIXES = (
     "outside-secret-hazard:",
     "opponent-secret-source:",
     "opponent-secret-result:",
+    "opponent-fragment:",
 )
 
 
@@ -122,6 +129,9 @@ TaskCommand = Annotated[
     | ChooseOwnerDamage
     | BeginOpponentAttack
     | ChooseOpponentAttack
+    | PrepareOpponentFragment
+    | ChooseOpponentFragment
+    | AmendFragmentResponses
     | PrepareOutsideEvent
     | ChooseOutsideEvent,
     Field(discriminator="kind"),
@@ -167,6 +177,7 @@ class TaskSnapshot(Record):
         | OwnerDamagePending
         | InventoryDamagePending
         | OpponentAttackPending
+        | OpponentFragmentPending
         | OutsideEventPending
         | None
     ) = None
@@ -216,7 +227,9 @@ def snapshot(state: PlayState) -> TaskSnapshot:
             captured = pending.original
             original = None if captured is None else captured.dice
         if roll is None or (roll.actor_id, roll.original, roll.secret, roll.chosen_dice) != (
-            pending.attacker_id if isinstance(pending, OpponentAttackPending) else pending.actor_id,
+            pending.attacker_id
+            if isinstance(pending, (OpponentAttackPending, OpponentFragmentPending))
+            else pending.actor_id,
             original,
             True
             if isinstance(pending, (SecretTaskPending, SecretReactionPending))
@@ -242,7 +255,7 @@ def snapshot(state: PlayState) -> TaskSnapshot:
             or roll.modifier != pending.modifier
         ):
             raise ValidationError("Inventory damage pending does not match its Luck role")
-        if isinstance(pending, OpponentAttackPending) and (
+        if isinstance(pending, (OpponentAttackPending, OpponentFragmentPending)) and (
             roll.kind != "success"
             or roll.scope != "attack"
             or roll.affected_actor_ids != (pending.actor_id,)
