@@ -77,7 +77,10 @@ def test_registry_and_inventory_account_for_all_18_entries() -> None:
     assert {binding.id: binding.point_cost for binding in BINDINGS} == EXPECTED
     rows = {row.id: row for row in inventory().entries if row.id in EXPECTED}
     assert set(rows) == set(EXPECTED)
-    assert all(row.blockers == () for row in rows.values())
+    attack = rows["advantage:innate-attack"]
+    assert attack.status == "partial" and attack.blockers == (764,)
+    assert "tests/test_composed_attack_host.py" in attack.evidence
+    assert all(row.blockers == () for row in rows.values() if row.id != attack.id)
     assert "tests/test_attack_defense_traits.py" in rows["advantage:injury-tolerance"].evidence
 
 
