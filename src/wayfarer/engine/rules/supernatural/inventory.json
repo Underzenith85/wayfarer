@@ -1237,12 +1237,16 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [],
+      "blockers": [764],
       "source": "characters-third",
-      "status": "verified",
-      "supported_subset": "Pinned construction, approved-build attack/defense projection, and shared injury/effect reducer integration.",
+      "status": "partial",
+      "supported_subset": "Approved persisted torso ranged and Malediction 1 attacks, current defenses and injury, source-bound Cyclic/Symptoms, exact retry and replay. Corrosion DR destruction, crushing/cutting knockback, fractional dice and broader delivery/modifier/clock integrations remain unverified under #764; natural critical substitutions require recorded GM adjudication.",
       "evidence": [
-        "tests/test_attack_defense_traits.py"
+        "tests/test_attack_defense_traits.py",
+        "tests/test_composed_attack_host.py",
+        "tests/test_composed_attack_host_authority.py",
+        "tests/test_composed_cyclic_host_integration.py",
+        "docs/composed-attack-host.md"
       ],
       "members": [],
       "talent_cost": null,

@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.commands import (
     COMBAT_ADAPTER,
+    ChooseDefense,
     ContinueCriticalMiss,
     DeclareBasicSpatialFacts,
     DeclareThrownLanding,
@@ -40,6 +41,10 @@ from wayfarer.orchestration.combat.context import (
     encounter_for,
 )
 from wayfarer.orchestration.combat.steps import reduce_combat
+from wayfarer.orchestration.composed_attacks import (
+    ComposedAttackService,
+    recorded_operation,
+)
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -210,4 +215,16 @@ class CombatService:
         bound = self.play.for_campaign(await self.play.store.read(cid))
         if bound is not self.play:
             return await CombatService(bound).execute(cid, value, principal_id=principal_id)
+        if isinstance(command, ChooseDefense):
+            state = self.play._load(await self.play.store.read(cid))
+            encounter = next((e for e in state.encounters if e.id == command.encounter_id), None)
+            composed = bool(
+                encounter
+                and encounter.pending_defense
+                and encounter.pending_defense.composed_attack_id
+            )
+            if composed or await recorded_operation(self.play, cid, command.id, "composed-defense"):
+                return await ComposedAttackService(self.play).defend(
+                    cid, command, principal_id=principal_id
+                )
         return await submit(self.play, cid, self.plan(cid, command), principal_id=principal_id)

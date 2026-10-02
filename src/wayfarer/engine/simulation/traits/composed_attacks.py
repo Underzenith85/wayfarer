@@ -1,6 +1,7 @@
 """Approved Innate Attack composition over existing modifier, roll and injury reducers."""
 
 from collections.abc import Mapping
+from math import ceil
 from typing import Literal
 
 from pydantic import Field
@@ -39,7 +40,7 @@ class AttackCompositionContext(Record):
     channel_id: str = "attack"
     target_id: str
     location_id: str
-    distance_yards: int = Field(ge=0)
+    distance_yards: float = Field(ge=0, allow_inf_nan=False)
     maneuver: Literal["attack", "concentrate"] = "attack"
     contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
     incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
@@ -89,6 +90,8 @@ def _malediction_checks(
     context: AttackCompositionContext,
     definitions: Mapping[str, RuleDefinition],
     rng: RandomSource,
+    *,
+    current_conditions: bool = False,
 ) -> tuple[bool, tuple[CheckTrace, ...]]:
     assert build.statistics is not None and target.statistics is not None
     if context.maneuver != "concentrate":
@@ -104,9 +107,13 @@ def _malediction_checks(
         )
     ):
         raise ValidationError("Vision-Based Malediction requires the victim's available vision")
-    penalties = (
-        Modifier(-context.distance_yards, "Malediction 1 range", "B106", "characters-third"),
+    penalties: tuple[Modifier, ...] = (
+        Modifier(
+            -ceil(context.distance_yards), "Malediction 1 range", "B9/B106", "characters-third"
+        ),
     )
+    if current_conditions:
+        penalties += check_modifiers(state, actor_id, "will")
     if not context.resist:
         check = success_roll(PROFILE, build.statistics.will, modifiers=penalties, rng=rng)
         return check.outcome.succeeded, (check,)
@@ -120,6 +127,11 @@ def _malediction_checks(
                 (Modifier(5, "Protected vision", "B78/B109", "characters-third"),)
                 if profile.penetration_sense == "vision"
                 and sensory_traits(target, definitions).protected("vision")
+                else ()
+            )
+            + (
+                check_modifiers(state, context.target_id, "will", defensive=True)
+                if current_conditions
                 else ()
             ),
         ),

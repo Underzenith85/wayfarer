@@ -108,3 +108,42 @@ def settle_encounter(runtime: RulesContext, state: PlayState, encounter: Encount
     while encounter.current_actor_id not in ready:
         encounter = engine._advance(encounter)
     return encounter
+
+
+def reconcile_equipment(state: PlayState, encounter: Encounter) -> tuple[PlayState, Encounter]:
+    """Remove dropped equipment from every canonical ready/hand projection."""
+    held = {i.id for i in state.resources.items if i.ready and i.equipped}
+    hands = {
+        p.actor_id: tuple((i, h) for i, h in p.hand_bindings if i in held)
+        for p in encounter.participants
+    }
+    encounter = encounter.model_copy(
+        update={
+            "participants": tuple(
+                p.model_copy(
+                    update={
+                        "hand_bindings": hands[p.actor_id],
+                        "ready_item_ids": tuple(
+                            sorted(
+                                i.id
+                                for i in state.resources.items
+                                if i.owner_id == p.actor_id and i.ready and i.equipped
+                            )
+                        ),
+                    }
+                )
+                for p in encounter.participants
+            )
+        }
+    )
+    state = state.model_copy(
+        update={
+            "actors": tuple(
+                a.model_copy(update={"held_item_hands": hands[a.actor_id]})
+                if a.actor_id in hands
+                else a
+                for a in state.actors
+            )
+        }
+    )
+    return state, encounter

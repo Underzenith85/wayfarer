@@ -11,7 +11,7 @@ from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
-from wayfarer.engine.simulation.combat.melee.modes import mode as weapon_mode
+from wayfarer.engine.simulation.combat.incoming import incoming_mode
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import pose
 from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
@@ -19,6 +19,7 @@ from wayfarer.engine.simulation.combat.vocabulary import Maneuver
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.hex_geometry import Hex, neighbor
 from wayfarer.engine.simulation.resources import Item
+from wayfarer.engine.simulation.traits.composed_sources import pending_binding
 from wayfarer.errors import WayfarerError
 from wayfarer.orchestration.combat import (
     COMBAT_ADAPTER,
@@ -132,21 +133,11 @@ def choices(
             )
     elif pending or unarmed:
         defender_id = pending.defender_id if pending else unarmed.target_id if unarmed else None
-        if defender_id != actor_id:
+        if defender_id != actor_id or pending and not _ordinary_response(state, encounter):
             return ()
         allowed = pending.allowed if pending else unarmed.allowed if unarmed else ()
         if pending:
-            incoming = (
-                weapon_mode(
-                    play.rules_context,
-                    state,
-                    pending.attacker_id,
-                    pending.weapon_id,
-                    pending.mode_id,
-                )
-                if pending.spell_cast_id is None
-                else None
-            )
+            incoming = incoming_mode(play.rules_context, state, encounter, pending)
             if isinstance(incoming, RangedMode) and incoming.catchable:
                 for hand in free_hands(state, encounter, actor_id):
                     for catch in (False, True):
@@ -551,3 +542,11 @@ def adjacent(position: Hex) -> tuple[tuple[int, Hex], ...]:
         except ValueError:
             continue
     return tuple(result)
+
+
+def _ordinary_response(state: PlayState, encounter: Encounter) -> bool:
+    pending = encounter.pending_defense
+    assert pending is not None
+    if pending.composed_attack_id is None:
+        return True
+    return pending_binding(state.resources, encounter, pending).stage == "defense"

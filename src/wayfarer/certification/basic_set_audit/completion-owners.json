@@ -617,6 +617,11 @@
       "issue": 763,
       "state": "open",
       "title": "[GURPS audit] Apply and remove Symptoms at cumulative injury thresholds"
+    },
+    {
+      "issue": 764,
+      "state": "open",
+      "title": "[GURPS audit] Connect composed purchased attacks to modifier-aware resolution"
     }
   ]
 }

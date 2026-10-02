@@ -785,18 +785,16 @@ def _advance_work(
         raise ValidationError("Grouped campaigns must use their shared party timeline")
     if any(encounter.status == "active" for encounter in state.encounters):
         raise ValidationError("Active combat must settle before advancing enchanting work")
-    resources = runtime.resources.apply(
-        state.resources,
+    state = runtime.advance(
+        state,
         Advance(
             id="enchantment-advance:" + command.id,
             actor_id=command.actor_id,
             expected_revision=state.resources.revision,
             to=command.to,
         ),
-        system=True,
-        rng=runtime.rng,
     )
-    return state.model_copy(update={"resources": resources}), EnchantmentOutcome(
+    return state, EnchantmentOutcome(
         command_id=command.id,
         project_id=project.id,
         status="advanced",

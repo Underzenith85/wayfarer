@@ -326,6 +326,7 @@ class CombatEngine:
             suppression_ids.add(zone.id)
         pending = encounter.pending_defense
         if pending is not None:
+            composed_source = _composed_incoming(resources, encounter, pending)
             suppression_pause = pending.suppression_zone_id is not None
             spell_weapon = False
             if pending.spell_cast_id is not None:
@@ -357,6 +358,7 @@ class CombatEngine:
                 or pending.opened_turn != encounter.turn_index
                 or (
                     not spell_weapon
+                    and not composed_source
                     and pending.weapon_id not in participants[pending.attacker_id].ready_item_ids
                 )
                 or len(set(pending.allowed)) != len(pending.allowed)
@@ -755,6 +757,45 @@ class CombatEngine:
         movement_checkpoint: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
 
+        # deferred: critical reducers also use CombatEngine for encounter updates.
+        # B556 forbids free actions; plain Do Nothing and defenses remain legal.
+        from wayfarer.engine.simulation.traits.innate_criticals import require_innate_action
+
+        if (
+            maneuver != "do_nothing"
+            or any(
+                value is not None
+                for value in (
+                    destination,
+                    facing,
+                    posture,
+                    crouch,
+                    item_id,
+                    target_id,
+                    attack_option,
+                    defense_option,
+                    wait_trigger,
+                    second_item_id,
+                    second_target_id,
+                    second_mode_id,
+                    hex_facing,
+                    basic_move,
+                )
+            )
+            or any(
+                (
+                    hex_path,
+                    pop_up,
+                    enter_high_speed,
+                    suppression_fire,
+                    enter_close_combat,
+                    shield_rush,
+                    electrical_contact_seconds,
+                )
+            )
+        ):
+            require_innate_action(resources, encounter, actor_id, item_id)
+
         return take_turn(
             self,
             encounter,
@@ -889,3 +930,15 @@ def hex_template(encounter: Encounter, rules: CombatRules | None) -> HexBattlefi
     if (encounter.spatial_kind == "hex") != isinstance(template, HexBattlefield):
         raise ValidationError("Encounter geometry disagrees with its template")
     return template if isinstance(template, HexBattlefield) else None
+
+
+def _composed_incoming(
+    resources: ResourceState, encounter: Encounter, pending: PendingDefense
+) -> bool:
+    if pending.composed_attack_id is None:
+        return False
+    # deferred: composed authority depends on RulesContext, which constructs CombatEngine.
+    from wayfarer.engine.simulation.traits.composed_sources import pending_binding
+
+    pending_binding(resources, encounter, pending)
+    return True

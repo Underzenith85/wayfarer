@@ -87,9 +87,11 @@ from wayfarer.engine.simulation.magic.bindings import validate_channels as valid
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
 from wayfarer.engine.simulation.magic.enchanting import validate_projects as validate_enchantments
 from wayfarer.engine.simulation.magic.lock_state import passage_blocked
+from wayfarer.engine.simulation.play_clock import PlayClock, advance_play
 from wayfarer.engine.simulation.projects.inventions import validate_projects
 from wayfarer.engine.simulation.resources import Advance, Consume
 from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.simulation.traits.size_forms import effect_for as size_effect_for
 from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
 from wayfarer.engine.world import Entity, EntityKind
@@ -108,6 +110,15 @@ def _guard_transformation_recovery(state: PlayState, command: TypedAction) -> No
         for record in state.transformations.records
     ):
         raise ValidationError("Character is still recovering from a transformation")
+
+
+def _require_ready_action(state: PlayState, command: TypedAction) -> None:
+    if not isinstance(command, (Wait, Question)):
+        require_innate_actor_action(state, command.actor_id)
+    if not isinstance(command, (Wait, Question)) and any(
+        t.status == "pending" and t.actor_id == command.actor_id for t in tasks(state.resources)
+    ):
+        raise ConflictError("Finish or cancel the repair attempt before acting")
 
 
 class ActionEngine:
@@ -144,12 +155,16 @@ class ActionEngine:
 
     def validate(self, state: PlayState) -> None:
         """Check every aggregate invariant of a checkpoint against this configuration."""
+        # deferred: source binding transitions depend on RulesContext and CombatEngine.
+        from wayfarer.engine.simulation.traits.composed_sources import validate_composed_state
+
         rules = self.rules
         if state.configuration_digest != self.digest:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
 
+        validate_composed_state(state)
         validate_failures(state.resources, rules.combat.gurps_equipment if rules.combat else None)
         if rules.spells:
             validate_spell_channels(rules.spells, state)
@@ -684,6 +699,7 @@ class ActionEngine:
         ruling_id: str | None = None,
         advance_time: bool = True,
         correct_symptom_attributes: bool = True,
+        clock: PlayClock | None = None,
     ) -> tuple[PlayState, list[EngineEvent]]:
         updated, result = self._resolve_action(
             state,
@@ -692,6 +708,7 @@ class ActionEngine:
             ruling_id=ruling_id,
             advance_time=advance_time,
             correct_symptom_attributes=correct_symptom_attributes,
+            clock=clock,
         )
         events = play_events(state, updated, command.actor_id)
         # Rejected/question resolutions still produce a typed result, but are not committed.
@@ -710,12 +727,10 @@ class ActionEngine:
         ruling_id: str | None = None,
         advance_time: bool = True,
         correct_symptom_attributes: bool = True,
+        clock: PlayClock | None = None,
     ) -> tuple[PlayState, ActionResult]:
 
-        if not isinstance(command, (Wait, Question)) and any(
-            t.status == "pending" and t.actor_id == command.actor_id for t in tasks(state.resources)
-        ):
-            raise ConflictError("Finish or cancel the repair attempt before acting")
+        _require_ready_action(state, command)
         ruling = None
         extra_modifiers: tuple[Modifier, ...] = ()
         if ruling_id is not None:
@@ -864,17 +879,19 @@ class ActionEngine:
         else:
             raise ValidationError("No implemented resolver")
         if advance_time:
-            resources = self.resources.apply(
-                resources,
+            state = advance_play(
+                self.resources,
+                state.model_copy(update={"world": world, "resources": resources}),
                 Advance(
                     id=f"{command.id}:time",
                     actor_id=command.actor_id,
                     expected_revision=resources.revision,
                     to=resources.game_time + duration,
                 ),
-                system=True,
-                rng=rng,
+                rng,
+                clock,
             )
+            resources, world = state.resources, state.world
         # Subcommands execute atomically within one campaign command/revision.
         resources = resources.model_copy(update={"revision": state.revision + 1})
         result = ActionResult(

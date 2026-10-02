@@ -35,6 +35,7 @@ from wayfarer.engine.simulation.social.social import (
     apply_interaction,
     apply_social,
 )
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
@@ -156,6 +157,11 @@ def bind_skill_conditions(
     bind_trait_modifiers(play, state, command, context)
 
 
+def _require_voluntary_social(state: PlayState, command: SocialCommand) -> None:
+    if command.kind in ("influence", "skill"):
+        require_innate_actor_action(state, command.actor_id)
+
+
 def dispatch(
     play: PlayService,
     before: PlayState,
@@ -179,6 +185,7 @@ def dispatch(
             raise ValidationError("Fright context must match approved HT and Will")
     # A player subject may resist fear or a disadvantage, but reaction, influence
     # and skill procedures never select behavior or disclose facts on their behalf.
+    _require_voluntary_social(before, command)
     if command.kind in ("reaction", "influence", "skill"):
         if any(m.role == "player" and command.subject_id in m.actor_ids for m in before.members):
             raise ValidationError("NPC social outcomes cannot control a player character")
@@ -197,17 +204,16 @@ def dispatch(
         system=True,
     )
     if outcome.media is not None and not replay:
-        resources = play.engine.resources.apply(
-            resources,
+        before = play.advance_clock(
+            before.model_copy(update={"world": world, "resources": resources}),
             Advance(
                 id=f"{command.id}:propaganda-time",
                 actor_id=command.actor_id,
                 expected_revision=resources.revision,
                 to=resources.game_time + outcome.media.attempt_seconds,
             ),
-            system=True,
-            rng=play.rng,
         )
+        resources, world = before.resources, before.world
     encounters = before.encounters
     development = before.development
     economics = before.economics

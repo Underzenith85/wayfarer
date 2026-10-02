@@ -35,6 +35,7 @@ from wayfarer.engine.simulation.resources import Advance, ResourceEvent, Resourc
 from wayfarer.errors import ConflictError, ValidationError
 
 if TYPE_CHECKING:
+    from wayfarer.engine.simulation.health.cyclic_types import CyclicContextResolver
     from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 __all__ = (
@@ -269,6 +270,8 @@ def advance(
     command: Advance,
     *,
     rng: RandomSource,
+    cyclic_context: CyclicContextResolver | None = None,
+    single_occurrence: bool = False,
 ) -> ResourceState:
     """Stop at every fright deadline inside the caller's existing transaction.
 
@@ -306,8 +309,11 @@ def advance(
                 ),
                 system=True,
                 _clock_rng=rng,
+                cyclic_context=cyclic_context,
             )
-            state = settle_exposure(state, exposure, rng)
+            state = settle_exposure(state, exposure, rng, context=cyclic_context)
+            if single_occurrence:
+                break
             continue
         if cycles and (not due or cycles[0].due <= (due[0].due or 0)):
             attack = cycles[0]
@@ -322,8 +328,11 @@ def advance(
                 ),
                 system=True,
                 _clock_rng=rng,
+                cyclic_context=cyclic_context,
             )
-            state = settle_cyclic(state, attack, rng)
+            state = settle_cyclic(state, attack, rng, context=cyclic_context)
+            if single_occurrence:
+                break
             continue
         if not due:
             break
@@ -345,6 +354,7 @@ def advance(
             ),
             system=True,
             _clock_rng=rng,
+            cyclic_context=cyclic_context,
         )
         state, _ = recover(
             state,
@@ -353,10 +363,12 @@ def advance(
             command_id="fright-recover:" + step_id,
             rng=rng,
         )
+        if single_occurrence:
+            break
     else:
         raise ValidationError("Fright recovery budget exceeded; advance a shorter interval")
     state = state.model_copy(update={"revision": revision})
-    return engine.apply(state, command, system=True, _clock_rng=rng)
+    return engine.apply(state, command, system=True, _clock_rng=rng, cyclic_context=cyclic_context)
 
 
 def maneuver_allowed(state: ResourceState, actor_id: str, maneuver: str) -> bool:

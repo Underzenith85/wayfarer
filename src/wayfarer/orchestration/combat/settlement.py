@@ -17,7 +17,7 @@ from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.explosions import defer_round
 from wayfarer.engine.simulation.combat.objects.locations import settle_crippling
 from wayfarer.engine.simulation.combat.ranged.readiness import interrupted_draws
-from wayfarer.engine.simulation.combat.settlement import settle_encounter
+from wayfarer.engine.simulation.combat.settlement import reconcile_equipment, settle_encounter
 from wayfarer.engine.simulation.combat.tactical import TacticalTrace
 from wayfarer.engine.simulation.combat.unarmed.choke import finish_choke_turns, retire_chokes
 from wayfarer.engine.simulation.combat.unarmed.fighters import settle_control
@@ -76,41 +76,10 @@ def _settle_combat(
         )
         resources = state.resources
     if engine.rules.gurps_equipment is not None:
-        held = {i.id for i in resources.items if i.ready and i.equipped}
-        hands = {
-            p.actor_id: tuple((i, h) for i, h in p.hand_bindings if i in held)
-            for p in encounter.participants
-        }
-        encounter = encounter.model_copy(
-            update={
-                "participants": tuple(
-                    p.model_copy(
-                        update={
-                            "hand_bindings": hands[p.actor_id],
-                            "ready_item_ids": tuple(
-                                sorted(
-                                    i.id
-                                    for i in resources.items
-                                    if i.owner_id == p.actor_id and i.ready and i.equipped
-                                )
-                            ),
-                        }
-                    )
-                    for p in encounter.participants
-                )
-            }
+        state, encounter = reconcile_equipment(
+            state.model_copy(update={"resources": resources}), encounter
         )
         encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
-        state = state.model_copy(
-            update={
-                "actors": tuple(
-                    a.model_copy(update={"held_item_hands": hands[a.actor_id]})
-                    if a.actor_id in hands
-                    else a
-                    for a in state.actors
-                )
-            }
-        )
     return replace(
         step, state=state, encounter=encounter, resources=resources, result=result
     ), encounters
@@ -165,8 +134,8 @@ def _finish_combat(
 
         resources, ticks = defer_round(resources, encounter.id, ticks, command.id)
         if ticks:
-            resources = play.engine.resources.apply(
-                resources,
+            state = play.advance_clock(
+                state.model_copy(update={"resources": resources, "encounters": encounters}),
                 Advance(
                     id="combat-time:" + hashlib.sha256(command.id.encode()).hexdigest()
                     if engine.rules.gurps_equipment
@@ -175,8 +144,15 @@ def _finish_combat(
                     expected_revision=resources.revision,
                     to=resources.game_time + ticks,
                 ),
-                system=True,
-                rng=play.rng,
+            )
+            resources, encounters, party = state.resources, state.encounters, state.party
+            encounter = next(e for e in encounters if e.id == encounter.id)
+            result = result.model_copy(
+                update={
+                    "round": encounter.round,
+                    "current_actor_id": encounter.current_actor_id,
+                    "available": engine.available(encounter, encounter.current_actor_id),
+                }
             )
 
     resources = interrupted_draws(

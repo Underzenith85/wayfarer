@@ -48,6 +48,14 @@ class FatigueResult(Record):
     injury: InjuryResult | None = None
 
 
+def _fatigue_digest(command: FatigueCost | ContinueExertion, double_shock: bool) -> str:
+    """Keep the optional attack-only consequence in the exact retry identity."""
+    if double_shock and (not isinstance(command, FatigueCost) or not command.attack_damage):
+        raise ValidationError("Critical shock requires actual fatigue attack damage")
+    encoded = command.model_dump_json() + (":critical-double-shock" if double_shock else "")
+    return hashlib.sha256(encoded.encode()).hexdigest()
+
+
 def apply_fatigue(
     state: ResourceState,
     command: FatigueCost | ContinueExertion,
@@ -55,6 +63,7 @@ def apply_fatigue(
     ht: int,
     rng: RandomSource,
     will: int | None = None,
+    double_shock: bool = False,
     system: bool = False,
 ) -> tuple[ResourceState, FatigueResult]:
     """Costs are forced effects; voluntary actions use ContinueExertion first.
@@ -65,7 +74,7 @@ def apply_fatigue(
     if not system:
         raise ValidationError("Fatigue requires authoritative action context")
     ResourceState.model_validate(state)
-    digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
+    digest = _fatigue_digest(command, double_shock)
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous:
         if previous.digest != digest:
@@ -187,6 +196,7 @@ def apply_fatigue(
                 ht=ht,
                 rng=rng,
                 system=True,
+                double_shock=double_shock,
             )
     updated_pool = pool.model_copy(update={"current": current, "fatigue": status})
     result = FatigueResult(

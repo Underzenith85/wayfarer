@@ -355,10 +355,16 @@ def inventory(root: Path | None = None) -> tuple[InventoryItem, ...]:
             identifier,
             f"B{definition.page}",
             682,
-            "partial" if identifier == "modifier:enhancement:symptoms" else "verified",
+            "partial"
+            if identifier in {"modifier:enhancement:symptoms", "modifier:enhancement:cyclic"}
+            else "verified",
             "ability-modifier-ledger",
             source_review="reviewed",
-            blockers=(763,) if identifier == "modifier:enhancement:symptoms" else (),
+            blockers=(763,)
+            if identifier == "modifier:enhancement:symptoms"
+            else (764,)
+            if identifier == "modifier:enhancement:cyclic"
+            else (),
             evidence=("tests/test_advantage_enhancements.py",),
         )
         for identifier, definition in sorted(MODIFIER_INDEX.items())

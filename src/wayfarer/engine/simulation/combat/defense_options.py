@@ -6,8 +6,7 @@ from wayfarer.engine.simulation.actors import build, level
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
-from wayfarer.engine.simulation.combat.melee.modes import mode
-from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.combat.incoming import incoming_ranged
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -58,14 +57,7 @@ def prepare_options(
             raise ValidationError("Aerial Dodge and Drop requires an authored concealment step")
         if command.retreat is not None or command.basic_retreat or target.posture == "prone":
             raise ValidationError("Dodge and Drop requires a standing or kneeling ranged defender")
-        if (
-            pending is None
-            or pending.mode_id is None
-            or not isinstance(
-                mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id),
-                RangedMode,
-            )
-        ):
+        if pending is None or not incoming_ranged(runtime, state, encounter, pending):
             raise ValidationError("Dodge and Drop is only effective against ranged attacks")
     compiled = build(runtime, state, target.actor_id)
     if command.acrobatic_dodge:

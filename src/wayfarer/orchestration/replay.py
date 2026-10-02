@@ -5,7 +5,9 @@ from collections.abc import Awaitable, Callable, Mapping
 
 from wayfarer import validation
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
+from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
+from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLIC_HOST_ADAPTER
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
 )
@@ -14,11 +16,14 @@ from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapabilit
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
 from wayfarer.engine.simulation.magic.staff_casting_state import ADAPTER as STAFF_CASTING_ADAPTER
 from wayfarer.engine.simulation.magic.staff_state import DeclareStaffConstruction
+from wayfarer.engine.simulation.traits.composed_host import ADAPTER as COMPOSED_ADAPTER
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.combat.abandon import AbandonPendingAttackService
 from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, RandomUnarmedStrike
 from wayfarer.orchestration.combat_senses import CombatSensesService
+from wayfarer.orchestration.composed_attacks import ComposedAttackService
+from wayfarer.orchestration.cyclic import CyclicService
 from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.locks import LockService, LockSpellService
@@ -91,7 +96,29 @@ async def _harmful_physiology(play: PlayService, record: CommandRecord, encoded:
     )
 
 
+async def _cyclic_host(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await CyclicService(play).execute(
+        record.campaign_id,
+        CYCLIC_HOST_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _composed_attack(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await ComposedAttackService(play).execute(
+        record.campaign_id, COMPOSED_ADAPTER.validate_json(encoded), principal_id=record.actor_id
+    )
+
+
+async def _composed_defense(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await ComposedAttackService(play).defend(
+        record.campaign_id, ChooseDefense.model_validate_json(encoded), principal_id=record.actor_id
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "composed-attack": _composed_attack,
+    "composed-defense": _composed_defense,
     "enchantment": _enchantment,
     "staff-construction": _staff_construction,
     "staff-casting": _staff_casting,
@@ -99,6 +126,7 @@ _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], A
     "combat-random-unarmed": _random_unarmed,
     "combat-senses": _combat_senses,
     "harmful-physiology": _harmful_physiology,
+    "cyclic-host": _cyclic_host,
 }
 
 

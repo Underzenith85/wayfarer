@@ -13,6 +13,8 @@ from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine, hex_template
 from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
+from wayfarer.engine.simulation.play_clock import PlayClock, advance_play
+from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -27,6 +29,12 @@ class RulesContext:
     rules: ActionRules
     combat: CombatEngine | None
     correct_symptom_attributes: bool = True
+    clock: PlayClock | None = None
+
+    def advance(
+        self, state: PlayState, command: Advance, *, rng: RandomSource | None = None
+    ) -> PlayState:
+        return advance_play(self.resources, state, command, rng or self.rng, self.clock)
 
     def require_hex(self, encounter: Encounter) -> HexBattlefield:
         board = self.hex_map(encounter)

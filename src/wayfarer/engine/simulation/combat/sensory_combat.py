@@ -4,7 +4,7 @@ from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
-from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.incoming import incoming_mode
 from wayfarer.engine.simulation.combat.physical_defenses import physical_defenses
 from wayfarer.engine.simulation.combat.visibility import combat_visibility
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
@@ -62,6 +62,21 @@ def refresh_armed_senses(
     pending = encounter.pending_defense
     if pending is None:
         return encounter
+    if pending.composed_attack_id is not None:
+        # deferred: composed authority depends on RulesContext, which constructs CombatEngine.
+        from wayfarer.engine.simulation.traits.composed_host import preflight_pending
+
+        # deferred: composed authority depends on RulesContext, which constructs CombatEngine.
+        from wayfarer.engine.simulation.traits.composed_sources import pending_binding
+
+        binding = pending_binding(state.resources, encounter, pending)
+        if pending.attack_roll is not None or encounter.blocked_reason:
+            raise ValidationError("Recorded composed critical requires its typed continuation")
+        if binding.stage != "defense":
+            raise ValidationError("Malediction requires the target's private resistance response")
+        if command.sacrificial_for or command.catch_thrown:
+            raise ValidationError("Composed delivery does not support interposition or catching")
+        preflight_pending(runtime, state, encounter)
     sensory = combat_visibility(
         encounter,
         pending.attacker_id,
@@ -93,11 +108,7 @@ def refresh_armed_senses(
                 )
             }
         )
-    incoming = (
-        None
-        if pending.spell_cast_id is not None
-        else mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
-    )
+    incoming = incoming_mode(runtime, state, encounter, pending)
     physical = physical_defenses(runtime, state, encounter, pending, incoming)
     allowed = tuple(d for d in physical if d == "none" or d in sensory.defenses)
     for selected in (command.defense, command.second_defense):

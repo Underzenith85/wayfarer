@@ -210,6 +210,7 @@ class AdjudicationService:
             rng=self.play.rng,
             ruling_id=ruling.id,
             correct_symptom_attributes=self.play.rules_context.correct_symptom_attributes,
+            clock=self.play.advance_clock,
         )
         result = action_result(resolved_events)
         if result.status != "committed":

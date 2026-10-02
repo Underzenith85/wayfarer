@@ -19,6 +19,7 @@ from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.lock_state import passage_blocked
 from wayfarer.engine.simulation.resources import Advance
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
@@ -110,6 +111,7 @@ class SceneService:
         commit_revision: int | None = None,
     ) -> PlayState:
 
+        require_innate_actor_action(state, command.actor_id)
         guard(state, command.actor_id, command.kind)
         rules = self.play.engine.rules.scenes
         if rules is None:
@@ -169,17 +171,17 @@ class SceneService:
                 ),
             )
             if advance_time:
-                resources = self.play.engine.resources.apply(
-                    resources,
+                state = self.play.advance_clock(
+                    state.model_copy(update={"world": world, "resources": resources}),
                     Advance(
                         id=f"{command.id}:time",
                         actor_id=command.actor_id,
                         expected_revision=resources.revision,
                         to=resources.game_time + selected.ticks,
                     ),
-                    system=True,
-                    rng=self.play.rng,
                 )
+                resources, world = state.resources, state.world
+                journal = list(state.journal) + [j for j in journal if j not in state.journal]
             events.append(
                 SceneEvent(
                     id=f"{command.id}:exit",

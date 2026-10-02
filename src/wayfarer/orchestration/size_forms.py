@@ -10,6 +10,7 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.combat.settlement import reconcile_equipment
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.equipment.world_ground import (
     WorldGroundCommand,
@@ -17,6 +18,7 @@ from wayfarer.engine.simulation.equipment.world_ground import (
     require_movable_gear,
 )
 from wayfarer.engine.simulation.resources import is_carried
+from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.simulation.traits.size_forms import (
     SizeFormCommand,
     SizeFormEffect,
@@ -216,6 +218,7 @@ class SizeFormService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
+            require_innate_actor_action(state, command.actor_id)
             if command.kind == "retrieve" and size_delta(state.resources, command.actor_id) < 0:
                 raise ValidationError("Core Shrinking cannot carry equipment")
             resources, result = apply_world_ground(
@@ -227,15 +230,35 @@ class SizeFormService:
                 system=True,
             )
             revision = state.revision + 1
-            play.commit(
-                campaign,
-                state.model_copy(
-                    update={
-                        "revision": revision,
-                        "resources": resources.model_copy(update={"revision": revision}),
-                    }
-                ),
+            updated = state.model_copy(
+                update={
+                    "revision": revision,
+                    "resources": resources.model_copy(update={"revision": revision}),
+                    "actors": tuple(
+                        a.model_copy(
+                            update={
+                                "held_item_hands": tuple(
+                                    (i, h) for i, h in a.held_item_hands if i not in result.item_ids
+                                )
+                            }
+                        )
+                        if a.actor_id == command.actor_id
+                        else a
+                        for a in state.actors
+                    ),
+                }
             )
+            for encounter in updated.encounters:
+                if encounter.status == "active" and command.actor_id in encounter.turn_order:
+                    updated, encounter = reconcile_equipment(updated, encounter)
+                    updated = updated.model_copy(
+                        update={
+                            "encounters": tuple(
+                                encounter if e.id == encounter.id else e for e in updated.encounters
+                            )
+                        }
+                    )
+            play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome=result.model_dump_json())
 
         async def outcome(campaign: Campaign) -> None:

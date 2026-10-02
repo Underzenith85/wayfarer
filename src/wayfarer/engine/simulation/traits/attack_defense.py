@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Mapping
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Literal
 
@@ -16,7 +17,7 @@ from wayfarer.engine.character.traits.attack_defense import (
 )
 from wayfarer.engine.character.traits.physiology import PhysiologyTraits, physiology_traits
 from wayfarer.engine.rules.catalog import RuleDefinition
-from wayfarer.engine.rules.checks import CheckTrace, RandomSource, draw_dice
+from wayfarer.engine.rules.checks import CheckTrace, Modifier, RandomSource, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
@@ -26,6 +27,7 @@ from wayfarer.engine.rules.types.cyclic import (
     ZeroDamageCyclicAttack,
     require_cyclic_settled,
 )
+from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.combat.special_damage import (
     PenetrationContext,
     resolve_affliction_penetration,
@@ -59,6 +61,23 @@ KINDS: Mapping[str, AttackKind] = {
 }
 
 
+@dataclass(frozen=True)
+class TraitAttackConsequences:
+    """Private host facts; never accepted as a player command or authored channel."""
+
+    resistance: int
+    immune_to_damage: bool = False
+    maximum_damage: bool = False
+    basic_multiplier: int = 1
+    halve_dr: Literal["up", "down"] | None = None
+    force_major_wound: bool = False
+    double_shock: bool = False
+    held_item_ids: tuple[str, ...] = ()
+    held_item_locations: tuple[tuple[str, HumanLocation], ...] = ()
+    cyclic_resistance_ht: int | None = None
+    cyclic_resistance_modifiers: tuple[Modifier, ...] = ()
+
+
 class AttackChannel(Record):
     id: str
     definition_id: str
@@ -79,7 +98,7 @@ class AttackChannel(Record):
     contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
     incubation_seconds: int = Field(default=86400, ge=1, le=31536000)
     composed: bool = False
-    distance_yards: int = Field(default=0, ge=0)
+    distance_yards: float = Field(default=0, ge=0, allow_inf_nan=False)
     defense_succeeded: bool = False
     malediction_resolved: bool = False
     malediction_resisted: bool = False
@@ -329,6 +348,7 @@ def _apply_fatigue_attack(
     rng: RandomSource,
     *,
     modifier_profile: AttackProfile | None,
+    consequences: TraitAttackConsequences | None = None,
 ) -> tuple[ResourceState, TraitAttackOutcome]:
     """B61 fatigue damage uses DR, then the B426 canonical signed FP ledger."""
     if (
@@ -362,11 +382,17 @@ def _apply_fatigue_attack(
         result_kind = "missed"
     elif not hp.injury.machine:
         resistance = effective_dr(
-            0 if channel.malediction_resolved else target.damage_resistance(),
+            0
+            if channel.malediction_resolved
+            else consequences.resistance
+            if consequences is not None
+            else target.damage_resistance(),
             channel.armor_divisor,
             location="torso",
             damage_type="fat",
         )
+        if consequences is not None and consequences.halve_dr:
+            resistance = (resistance + int(consequences.halve_dr == "up")) // 2
         amount = max(0, channel.basic_damage - resistance) * target.injury_multiplier(
             "natural-attacks"
         )
@@ -382,6 +408,7 @@ def _apply_fatigue_attack(
             ht=target_ht,
             rng=rng,
             system=True,
+            double_shock=bool(consequences and consequences.double_shock),
         )
         if fatigue.hp_lost:
             state = _apply_survival_traits(state, channel.target_id, target)
@@ -430,24 +457,17 @@ def _schedule_cyclic(
     target_ht: int,
     at: int,
     damage_dice: int,
+    consequences: TraitAttackConsequences | None = None,
+    *,
+    delivered: bool,
 ) -> ResourceState:
-    # B103 repeats a delivered exposure, even when B378 rounds its initial
-    # damage to zero. A canonical result excludes immune fatigue targets.
-    zero_exposure = (
-        channel.composed
-        and channel.basic_damage == 0
-        and outcome.outcome == "unaffected"
-        and (outcome.injury is not None or outcome.fatigue is not None)
-    )
-    if (
-        cyclic is not None
-        and cyclic.cyclic_interval_seconds is not None
-        and (outcome.outcome == "injured" or zero_exposure)
-    ):
+    # B103 repeats a delivered nonimmune exposure even if DR absorbs all
+    # initial damage or B378 rounds it to zero. Delivery is separate from debt.
+    if cyclic is not None and cyclic.cyclic_interval_seconds is not None and delivered:
         assert (
             cyclic.cyclic_interval_seconds is not None and cyclic.cyclic_stop_condition is not None
         )
-        attack_type = ZeroDamageCyclicAttack if zero_exposure else CyclicAttack
+        attack_type = ZeroDamageCyclicAttack if channel.basic_damage == 0 else CyclicAttack
         state = save_cyclic(
             state,
             attack_type.model_validate(
@@ -466,6 +486,8 @@ def _schedule_cyclic(
                     "damage_type": channel.damage_type,
                     "resistance": 0
                     if cyclic.malediction_range != "none"
+                    else consequences.resistance
+                    if consequences is not None
                     else target.damage_resistance(),
                     "armor_divisor": channel.armor_divisor,
                     "vulnerability_multiplier": target.injury_multiplier("natural-attacks"),
@@ -520,7 +542,11 @@ def _register_symptoms(
 
 
 def _cyclic_check(
-    cyclic: AttackProfile | None, channel: AttackChannel, target_ht: int, rng: RandomSource
+    cyclic: AttackProfile | None,
+    channel: AttackChannel,
+    target_ht: int,
+    rng: RandomSource,
+    consequences: TraitAttackConsequences | None = None,
 ) -> CheckTrace | None:
     if (
         cyclic is None
@@ -528,7 +554,17 @@ def _cyclic_check(
         or not _roll_succeeds(channel.attack_roll, channel.attack_score)
     ):
         return None
-    return success_roll("gurps-basic-set-4e-2004", target_ht + cyclic.resistance_modifier, rng=rng)
+    ht = (
+        consequences.cyclic_resistance_ht
+        if consequences and consequences.cyclic_resistance_ht is not None
+        else target_ht
+    )
+    return success_roll(
+        "gurps-basic-set-4e-2004",
+        ht + cyclic.resistance_modifier,
+        modifiers=consequences.cyclic_resistance_modifiers if consequences else (),
+        rng=rng,
+    )
 
 
 def _modified_channel(profile: AttackProfile | None, channel: AttackChannel) -> AttackChannel:
@@ -558,6 +594,7 @@ def _roll_composed_damage(
     check: CheckTrace | None,
     levels: int,
     rng: RandomSource,
+    consequences: TraitAttackConsequences | None = None,
 ) -> tuple[AttackChannel, tuple[int, ...]]:
     if (
         not channel.composed
@@ -566,8 +603,11 @@ def _roll_composed_damage(
         or (check and check.outcome.succeeded)
     ):
         return channel, ()
-    dice = draw_dice(rng, levels)
-    basic = sum(dice)
+    maximum = consequences is not None and consequences.maximum_damage
+    dice = () if maximum else draw_dice(rng, levels)
+    basic = (6 * levels if maximum else sum(dice)) * (
+        consequences.basic_multiplier if consequences is not None else 1
+    )
     profile = profile or AttackProfile(accuracy=3)
     # B378 includes the boundary itself and rounds down, even to zero.
     if profile.malediction_range == "none" and channel.distance_yards >= profile.half_damage_range:
@@ -588,6 +628,7 @@ def apply_trait_attack(
     rng: RandomSource,
     authorized_actor_id: str,
     system: bool = False,
+    consequences: TraitAttackConsequences | None = None,
 ) -> tuple[ResourceState, TraitAttackOutcome]:
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Trait attack requires attacker authority")
@@ -606,6 +647,8 @@ def apply_trait_attack(
         raise ConflictError("Trait attack revision changed")
     require_cyclic_settled(resources.cyclic_attacks, resources.game_time + 1)
     channel = _channel(world, command, channels)
+    if consequences is not None and (not channel.composed or consequences.resistance < 0):
+        raise ValidationError("Private consequences require a composed delivery")
     attacker = attack_defense_traits(attacker_build, definitions)
     target = attack_defense_traits(target_build, definitions)
     if attacker.purchase(command.definition_id) is None:
@@ -617,12 +660,15 @@ def apply_trait_attack(
     cyclic = cyclic_profile(selections, channel.damage_type) if selections else None
     channel = _modified_channel(cyclic, channel)
     hit = _roll_succeeds(channel.attack_roll, channel.attack_score)
+    immune = bool(consequences and consequences.immune_to_damage)
     check = (
-        _cyclic_check(cyclic, channel, target_ht, rng)
-        if hit and not channel.defense_succeeded
+        _cyclic_check(cyclic, channel, target_ht, rng, consequences)
+        if hit and not channel.defense_succeeded and not immune
         else None
     )
-    channel, damage_dice = _roll_composed_damage(cyclic, channel, hit, check, purchased.amount, rng)
+    channel, damage_dice = _roll_composed_damage(
+        cyclic, channel, hit and not immune, check, purchased.amount, rng, consequences
+    )
     if (cyclic is not None or channel.composed) and (not hit or channel.defense_succeeded):
         state = resources.model_copy(update={"revision": resources.revision + 1})
         outcome = TraitAttackOutcome(
@@ -635,17 +681,25 @@ def apply_trait_attack(
             target_id=channel.target_id,
             definition_id=command.definition_id,
         )
-    elif check is not None and check.outcome.succeeded:
+    elif immune or check is not None and check.outcome.succeeded:
         state = resources.model_copy(update={"revision": resources.revision + 1})
         outcome = TraitAttackOutcome(
-            outcome="resisted",
+            outcome="unaffected" if immune else "resisted",
             attacker_id=channel.attacker_id,
             target_id=channel.target_id,
             definition_id=command.definition_id,
         )
     elif channel.kind == "damage" and channel.damage_type == "fat":
         state, outcome = _apply_fatigue_attack(
-            resources, command, channel, attacker, target, target_ht, rng, modifier_profile=cyclic
+            resources,
+            command,
+            channel,
+            attacker,
+            target,
+            target_ht,
+            rng,
+            modifier_profile=cyclic,
+            consequences=consequences,
         )
     elif channel.kind == "damage":
         if (
@@ -668,6 +722,8 @@ def apply_trait_attack(
                 basic_damage=channel.basic_damage,
                 resistance=0
                 if cyclic and cyclic.malediction_range != "none"
+                else consequences.resistance
+                if consequences is not None
                 else target.damage_resistance(),
                 damage_type=channel.damage_type,
                 armor_divisor=channel.armor_divisor,
@@ -676,6 +732,11 @@ def apply_trait_attack(
             ht=target_ht,
             rng=rng,
             system=True,
+            held_item_ids=consequences.held_item_ids if consequences else (),
+            held_item_locations=consequences.held_item_locations if consequences else (),
+            force_major_wound=bool(consequences and consequences.force_major_wound),
+            double_shock=bool(consequences and consequences.double_shock),
+            halve_dr=consequences.halve_dr if consequences else None,
         )
         state, healed = _heal_attacker(
             state,
@@ -740,6 +801,10 @@ def apply_trait_attack(
         target_ht,
         resources.game_time,
         purchased.amount,
+        consequences,
+        # Canonical consequences exist for delivered damage including zero
+        # penetration, and exclude misses, defenses, resistance and immunity.
+        delivered=outcome.injury is not None or outcome.fatigue is not None,
     )
 
     state = _register_symptoms(state, command, channel, cyclic, outcome)
