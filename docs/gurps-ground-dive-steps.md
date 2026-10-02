@@ -33,11 +33,11 @@ across changing active features. Existing explosion tests cover the ordinary
 resolution and water/flying behavior. No injury reducer or damage ordering was
 changed.
 
-The proven captured consumer here is direct ResolveWeaponExplosion. Task-host
-fragment response amendments/open/choice currently execute outside the existing
-task combat-generation scope; they retain legacy admission until a separately
-captured task consumer joins this feature. Passing authoritative environment at
-all four validators alone does not establish that task continuation acceptance.
+Direct ResolveWeaponExplosion and Task fragment response amendments, opening,
+and choice use their captured private ground generation. The Task consumer and
+its current-state, retry, and replay proofs are documented in
+gurps-task-fragment-ground-dive.md. Recorded feature absence retains legacy
+admission in both hosts.
 
 Mapped ground admission also requires release/escape before translating a
 retained grip, matching the canonical hex reducer. B371 describes automatic
