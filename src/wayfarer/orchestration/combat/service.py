@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from pydantic import ValidationError as SchemaError
 
@@ -52,7 +53,9 @@ from wayfarer.orchestration.opponent_attack_privacy import (
     visible_combat_result,
 )
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 class CombatService:

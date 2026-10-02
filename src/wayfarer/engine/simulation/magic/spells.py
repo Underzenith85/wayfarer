@@ -182,6 +182,18 @@ for _key, _cost, _magery, _prerequisite in (
 
 
 def _executable_spec(spell_id: RuntimeSpellId) -> RuntimeSpellSpec:
+    if spell_id == "great-haste":
+        return RuntimeSpellSpec(
+            id=spell_id,
+            kind="regular",
+            cost=5,
+            maintenance=0,
+            seconds=3,
+            duration=10,
+            magery=1,
+            prerequisites=("haste",),
+            reference="B251",
+        )
     if spell_id in {"seek-water", "purify-water", "create-water", "destroy-water"}:
         kinds: dict[str, Literal["information", "special", "regular", "area"]] = {
             "seek-water": "information",
@@ -547,10 +559,12 @@ def _validate_spell_scale(spec: RuntimeSpellSpec, context: SpellContext) -> None
         spec.kind != "area"
         and context.radius != 1
         or spec.kind != "missile"
-        and spec.id not in HEALING | SUPPORT | {"haste", "apportation"}
+        and spec.id not in HEALING | SUPPORT | {"haste", "apportation", "great-haste"}
         and context.energy != 1
     ):
         raise ValidationError("Spell does not accept this area or energy")
+    if spec.id == "great-haste" and (context.energy < 5 or context.energy % 5):
+        raise ValidationError("Great Haste requires its whole subject-size cost")
     if spec.id == "haste" and context.energy > 3:
         raise ValidationError("Haste above three levels requires unsupported high-Magery rules")
     if context.area is not None:
@@ -845,6 +859,8 @@ def apply_spell(
             item_energy_cost(
                 water_parameters(state, context.water_plan)[0]
                 if context.water_plan is not None
+                else context.energy
+                if spec.id == "great-haste"
                 else spec.cost * scale * (context.haste_size_scale if spec.id == "haste" else 1),
                 context.item_power_reduction,
                 context.mana,

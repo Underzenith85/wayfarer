@@ -44,6 +44,9 @@ from wayfarer.engine.simulation.magic.backfires import refund_due
 from wayfarer.engine.simulation.magic.enchanting_lifecycle import (
     checkpoint as enchanting_checkpoint,
 )
+from wayfarer.engine.simulation.magic.great_haste_effects import (
+    checkpoint as great_haste_checkpoint,
+)
 from wayfarer.engine.simulation.magic.haste_effects import checkpoint as haste_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
@@ -60,6 +63,7 @@ from wayfarer.models import Record
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.cyclic_clock import advance as advance_cyclic_clock
 from wayfarer.orchestration.entropy import CommandRandom, SeedSource, token_seed
+from wayfarer.orchestration.great_haste_budget import checkpoint as settle_haste_budget
 from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
 from wayfarer.orchestration.npcs import initialize
 from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
@@ -249,6 +253,10 @@ class PlayService:
                     "apportation-channel:",
                     "apportation-route:",
                     "apportation-host:",
+                    "great-haste-channel:",
+                    "great-haste-active:",
+                    "great-haste-ended:",
+                    "great-haste-host:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",
@@ -482,6 +490,8 @@ class PlayService:
         state = power_checkpoint(self.rules_context, state, before=before)
         before_fire = state
         state = spell_checkpoint(self.rules_context, state)
+        state = great_haste_checkpoint(self.rules_context, state)
+        state = settle_haste_budget(self, state)
         state = perceive(state)
         state = recover_stuns(self.rules_context, state)
         state = concentration_checkpoint(self.rules_context, state, before_fire)

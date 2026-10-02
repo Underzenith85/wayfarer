@@ -9,7 +9,7 @@ from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "combat_protocol_features"
 KNOWN = frozenset({"grenade-fuse", "maneuver-budget"})
-ACTIVE = frozenset({"grenade-fuse"})
+ACTIVE = frozenset({"grenade-fuse", "maneuver-budget"})
 
 
 def features(record: CommandInput) -> frozenset[str]:
@@ -18,7 +18,7 @@ def features(record: CommandInput) -> frozenset[str]:
     if payload_digest({"input": record.text}) != record.payload_hash:
         raise ValidationError("Recorded combat input does not match its digest")
     payload = validation.mapping(replay_payload(record.text))
-    if payload.get("operation") != "combat":
+    if payload.get("operation") not in ("combat", "combat-random-unarmed"):
         return frozenset()
     raw = payload.get(KEY, [])
     if not isinstance(raw, list) or any(not isinstance(item, str) for item in raw):

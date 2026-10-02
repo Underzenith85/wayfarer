@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.simulation.actions import PlayState
@@ -39,7 +40,9 @@ from wayfarer.engine.simulation.combat.withdrawal import (
 )
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
-from wayfarer.orchestration.play import PlayService
+
+if TYPE_CHECKING:
+    from wayfarer.orchestration.play import PlayService
 
 
 def _reinforcement_allegiance(

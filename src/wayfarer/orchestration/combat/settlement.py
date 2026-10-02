@@ -90,6 +90,8 @@ def _finish_combat(
     command: Command | TypedCombatCommand,
     encounters: tuple[Encounter, ...],
     context: CombatContext,
+    *,
+    advance_revision: bool = True,
 ) -> tuple[PlayState, CombatResult]:
     play = context.play
     engine = context.engine
@@ -158,7 +160,7 @@ def _finish_combat(
     resources = interrupted_draws(
         play.rules_context, initial_state, resources, encounter.id, encounter
     )
-    revision = state.revision + 1
+    revision = state.revision + int(advance_revision)
     if encounter.spatial_kind == "hex":
         checks: tuple[CheckTrace, ...] = (result.injury.attack,) if result.injury else ()
         if result.injury and result.injury.defense:

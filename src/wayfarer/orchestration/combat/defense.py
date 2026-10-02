@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.actors import injury_turn
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, PendingDefense
 from wayfarer.engine.simulation.combat.lite_resolution import resolve_injury
+from wayfarer.engine.simulation.combat.maneuver_budget import last_opportunity
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
 from wayfarer.engine.simulation.combat.melee.defense import exert_defense, validate_defense_choices
 from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
@@ -279,6 +280,7 @@ def finish_inventory_defense(
         and (encounter.wait_interrupt is None or not encounter.wait_interrupt.reacting)
         and not (encounter.pending_defense and encounter.pending_defense.spray_targets)
         and pending.suppression_zone_id is None
+        and last_opportunity(encounter)
     ):
         state = injury_turn(
             play.rules_context,
@@ -289,12 +291,16 @@ def finish_inventory_defense(
             do_nothing=False,
             captured_end_build=captured_end_build,
         )
-    if pending.suppression_zone_id is not None and not any(
-        any(
-            zone.id == queued.zone_id and zone.remaining_hits > 0
-            for zone in encounter.suppression_zones
+    if (
+        last_opportunity(encounter)
+        and pending.suppression_zone_id is not None
+        and not any(
+            any(
+                zone.id == queued.zone_id and zone.remaining_hits > 0
+                for zone in encounter.suppression_zones
+            )
+            for queued in pending.suppression_attacks
         )
-        for queued in pending.suppression_attacks
     ):
         assert pending.interrupted_actor_id is not None
         state = injury_turn(

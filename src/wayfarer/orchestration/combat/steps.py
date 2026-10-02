@@ -10,9 +10,12 @@ from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
     StartBasicEncounter,
     StartEncounter,
+    TakeCombatTurn,
+    TakeUnarmedTurn,
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
+from wayfarer.engine.simulation.combat.maneuver_budget import begin
 from wayfarer.engine.simulation.combat.sensory_state import invalidate_movement
 from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense_with_movement
 from wayfarer.engine.simulation.magic.staff_casting_state import (
@@ -77,6 +80,8 @@ def reduce_combat(
         encounters = step.state.encounters + (step.encounter,)
     else:
         encounter = _prepare_encounter(state, command, context)
+        if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
+            encounter = begin(context.play.rules_context, state, encounter)
         step = _COMBAT_STEPS[command.kind](state, command, encounter, context)
         if isinstance(command, ChooseDefense):
             finished, moved = finish_defense_with_movement(
