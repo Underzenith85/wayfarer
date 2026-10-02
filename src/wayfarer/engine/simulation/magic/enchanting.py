@@ -142,6 +142,8 @@ class EnchantmentProject(Record):
     target_item_id: Id
     enchanter_ids: tuple[Id, ...] = Field(min_length=1)
     status: Literal["active", "interrupted", "abandoned", "completed", "failed"] = "active"
+    # Base recipe progress. Extra ceremonial work remains due until active_work.due;
+    # interruption credits retain every earned mage-day, including extra energy.
     energy_completed: int = Field(default=0, ge=0)
     delay_seconds: int = Field(default=0, ge=0)
     materials_spent: tuple[EnchantmentMaterial, ...] = ()

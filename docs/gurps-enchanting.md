@@ -14,8 +14,39 @@ and nightly rest. Completion, interruption and abandonment preserve each mage's
 next permitted shift across new projects and items. Missed workdays require their
 source-derived replacement shifts. The lead's lower approved Enchant/effect skill
 sets the roll and Power; assistants must know both at 15+, or 20+ in low mana.
-Quick and Dirty assistant penalties and extra ceremonial energy affect the
-result, while low mana is temporary. Natural 16 fails; 17-18 critically fail.
+Quick and Dirty assistant and nearby-nonparticipant penalties, and extra
+ceremonial energy for either method, affect the result and permanent Power,
+while low mana is temporary. Natural 16 fails; 17-18 critically fail.
+
+For new Slow and Sure work, the first BeginEnchanting command can commit extra
+energy. It costs additional mage-days on the same daily calendar, not FP or HP.
+The B238 thresholds are applied to the extra proportion of the recipe's original
+cost: 20/40/60/100 percent grant +1/+2/+3/+4, then each additional full 100 percent
+grants another +1. For example, a 30-energy Staff with 6 extra energy and two
+mages takes 18 working days, ending at 17 calendar days plus eight hours. A
+lead skill of 17 then yields a normal roll target and permanent Power of 18.
+The choice is fixed before the first work begins; interrupted work retains it,
+and changing the commitment after work starts is explicitly refused.
+
+The frozen project field energy_completed represents base recipe progress and
+continues to stop at the recipe cost. It does not decide completion: active_work's
+deadline includes all promised extra energy and required makeup days. The
+committed Begin receipt owns the extra goal; interruption credits retain every
+earned mage-day, including energy beyond the base requirement. Resuming subtracts
+these same credits from the goal. There is no separate progress ledger or second
+shift. Reaching the base cost cannot roll early, create an item, or discard
+remaining extra work. Abandonment still preserves daily rest and creates no item.
+
+New Quick and Dirty settlement applies a single additional -1 if any
+nonparticipant is within ten yards of the lead at resolution. Multiple people
+still cause only one penalty. Current active square/hex placements and valid
+Basic distance facts establish distance when available. For every remaining
+same-location nonparticipant, including hidden actors, the trusted GM must supply
+a current distance in the settlement command. Missing, duplicate, participant,
+wrong-location, and map-contradicting observations are refused before the roll or
+energy spend. Completed encounter maps and invalidated Basic facts cannot stand
+in for current evidence. Revision, current GM seating, approved participants,
+workspace and target custody are checked on the transaction's current state.
 
 Creation validates the approved character catalog, concrete equipment specs,
 target ownership and suitability, co-location, workspace, and the entire
@@ -67,6 +98,8 @@ current limit and never restore HP. The extra setting-specific spectacular
 disaster for a natural critical failure still needs an Enchant continuation; this
 adapter does not invent another effect. Private command generations preserve old
 recorded settlement behavior and exact retries without altering public schemas.
+A separate energy/proximity generation preserves preexisting nearby behavior;
+new default command fields are omitted from historical input and receipt bytes.
 New enchanting refunds carry an internal clock generation so their deadline is
 processed even after Quick and Dirty work has completed. Returning 9 FP at 3601
 before a 2-FP Cyclic hit at 3610 leaves 8 FP and all 10 HP, instead of transiently
@@ -105,7 +138,7 @@ the source-correct roll-time targeting inputs without changing public commands.
 
 Issue #785 remains the live owner of incomplete named-spell/item acceptance.
 Staff's held Melee-spell carrier remains here; the earlier #747 runtime does not
-yet supply that path. The B481 nearby-nonparticipant penalty remains missing.
+yet supply that path. Mapless proximity needs explicit trusted distances; no area is silently assumed empty.
 Created Power above 100 still exceeds the completed-item schema's existing bound;
 that is not a printed source cap, and such settlement remains unverified.
 Grouped project-time progression and concurrent spellcasting during active
@@ -124,6 +157,12 @@ Buying and availability are campaign data (`MagicItemOffer`). The engine has no
 global price-per-energy constant and does not promote the Basic Set's setting
 examples into a universal market.
 
+`tests/test_enchanting_energy_rules.py` verifies the extra-energy thresholds,
+real mage-days, work continuing past full base progress, interruption/makeup,
+current square/hex/Basic proximity, and actual Power, FP and HP consequences.
+`tests/test_enchanting_energy_persistence.py` covers named Staff construction,
+nearby settlement, current custody/approval/GM authority, exact concurrent retries,
+restart, historical input bytes and full seeded reexecution on both stores.
 `tests/test_enchanting_nighttime.py` verifies actual Staff work, nighttime Light,
 the exact next-shift boundary, cancellation, both stores and seed reexecution.
 `tests/test_enchanting_settlement.py` verifies named Staff loss at its actual
@@ -134,6 +173,6 @@ stores, exact retries and full seeded reexecution.
 completed-project clock activation and the explicit historical generation.
 
 The selected sources are Campaigns, Fourth Edition, fourth printing, B480-482,
-and Characters, Fourth Edition, third printing, B235.
+and Characters, Fourth Edition, third printing, B235 and B238.
 Per the prerelease versioning policy, this change does not increment an engine
 version.

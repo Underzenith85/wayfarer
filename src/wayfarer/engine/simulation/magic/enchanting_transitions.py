@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import replace
+from fractions import Fraction
 from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter
@@ -15,6 +16,11 @@ from wayfarer.engine.rules.magic.protocols import MagicItemInstance, ceremonial_
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.party import synchronous
+from wayfarer.engine.simulation.combat.spatial import (
+    BasicSpatialContext,
+    DistanceSpatialFact,
+    point_distance,
+)
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.backfires import refund_later
@@ -65,6 +71,7 @@ from wayfarer.engine.simulation.resources import (
     ResourceState,
 )
 from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 
@@ -110,10 +117,35 @@ class CreateEnchantment(EnchantmentCommand):
     enchanter_ids: tuple[Id, ...] = Field(min_length=1)
 
 
+def _extra_energy(resources: ResourceState, project: EnchantmentProject) -> int:
+    # The committed Begin receipt owns the goal. This is already a protected
+    # execution namespace and does not introduce an independently editable total.
+    for event in reversed(resources.events):
+        if event.target_id == project.id and event.id.startswith("enchantment:"):
+            outcome = EnchantmentOutcome.model_validate_json(event.kind)
+            if outcome.extra_energy:
+                return outcome.extra_energy
+    return 0
+
+
+def _completed_energy(project: EnchantmentProject, extra_energy: int) -> int:
+    return (
+        sum(i.credited_energy for i in project.interruptions)
+        if extra_energy
+        else project.energy_completed
+    )
+
+
+class EnchantingNonparticipant(Record):
+    actor_id: Id
+    distance_yards: Fraction = Field(ge=0)
+
+
 class BeginEnchanting(EnchantmentCommand):
     kind: Literal["begin"] = "begin"
     project_id: Id
     contributions: tuple[EnergyContribution, ...] = ()
+    extra_energy: int | None = Field(default=None, ge=0)
 
 
 class InterruptEnchanting(EnchantmentCommand):
@@ -125,6 +157,7 @@ class SettleEnchanting(EnchantmentCommand):
     kind: Literal["settle"] = "settle"
     project_id: Id
     work_id: Id
+    nonparticipant_distances: tuple[EnchantingNonparticipant, ...] = ()
 
 
 class AdvanceEnchanting(EnchantmentCommand):
@@ -158,10 +191,25 @@ class EnchantmentOutcome(Record):
     energy_completed: int = Field(ge=0)
     check: CheckTrace | None = None
     binding_id: Id | None = None
+    extra_energy: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+
+
+def command_payload(command: EnchantmentCommand) -> dict[str, object]:
+    """Omit only newly introduced defaults, preserving historical command bytes."""
+    return command.model_dump(mode="json", exclude=_default_energy_fields(command))
+
+
+def _default_energy_fields(command: EnchantmentCommand) -> set[str]:
+    if isinstance(command, BeginEnchanting) and command.extra_energy is None:
+        return {"extra_energy"}
+    if isinstance(command, SettleEnchanting) and not command.nonparticipant_distances:
+        return {"nonparticipant_distances"}
+    return set()
 
 
 def _digest(command: EnchantmentCommand) -> str:
-    return hashlib.sha256(command.model_dump_json().encode()).hexdigest()
+    encoded = command.model_dump_json(exclude=_default_energy_fields(command))
+    return hashlib.sha256(encoded.encode()).hexdigest()
 
 
 def _prior(resources: ResourceState, command: EnchantmentCommand) -> EnchantmentOutcome | None:
@@ -419,6 +467,8 @@ def _begin(
     command: BeginEnchanting,
     project: EnchantmentProject,
     recipe: EnchantmentRecipe,
+    *,
+    correct_energy: bool,
 ) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     if project.status not in ("active", "interrupted") or project.active_work is not None:
         raise ConflictError("Enchantment project is not available for work")
@@ -436,7 +486,15 @@ def _begin(
         raise ConflictError("An enchanter already has active project work")
     _validate_bindings(runtime, state, recipe, project.target_item_id, project.enchanter_ids)
     _energy_preflight(state.resources, recipe, project, command.contributions)
-    remaining = recipe.energy_required - project.energy_completed
+    extra = _extra_energy(state.resources, project)
+    if command.extra_energy is not None:
+        if not correct_energy or recipe.method != "slow-and-sure":
+            raise ValidationError("Extra mage-day energy requires Slow and Sure enchanting")
+        if extra != command.extra_energy:
+            if extra or project.interruptions or project.energy_completed:
+                raise ConflictError("The project's committed extra energy cannot change")
+            extra = command.extra_energy
+    remaining = recipe.energy_required + extra - _completed_energy(project, extra)
     if recipe.method == "quick-and-dirty":
         duration = ((recipe.energy_required + 99) // 100) * 3600
     else:
@@ -495,6 +553,7 @@ def _begin(
             project_id=project.id,
             status="work-started",
             energy_completed=project.energy_completed,
+            extra_energy=extra,
         ),
     )
 
@@ -520,8 +579,9 @@ def _interrupt(
             elapsed // CALENDAR_DAY + int(elapsed % CALENDAR_DAY >= MAGE_DAY) if elapsed >= 0 else 0
         )
         active = enchanting_work_active(state.resources, project)
+        extra = _extra_energy(state.resources, project)
         credited = min(
-            recipe.energy_required - project.energy_completed,
+            recipe.energy_required + extra - _completed_energy(project, extra),
             max(0, full_days - schedule.makeup_shifts) * len(project.enchanter_ids),
         )
         makeup = max(0, schedule.makeup_shifts - full_days) + int(active)
@@ -572,7 +632,7 @@ def _interrupt(
     project = project.model_copy(
         update={
             "status": "interrupted",
-            "energy_completed": project.energy_completed + credited,
+            "energy_completed": min(recipe.energy_required, project.energy_completed + credited),
             "delay_seconds": delay,
             "active_work": None,
             "interruptions": project.interruptions + (interruption,),
@@ -625,6 +685,62 @@ def _settlement_energy(
     return resources
 
 
+def _nearby_penalty(
+    state: PlayState, project: EnchantmentProject, command: SettleEnchanting
+) -> int:
+    """B481: current mapped facts win; otherwise the GM supplies current distances."""
+    entities = {e.id: e for e in state.world.entities}
+    location = entities[project.enchanter_ids[0]].location_id
+    if location is None:
+        raise ValidationError("Quick and Dirty requires a current enchanting workspace location")
+    others = {
+        e.id
+        for e in state.world.entities
+        if e.kind is EntityKind.ACTOR
+        and e.location_id == location
+        and e.id not in project.enchanter_ids
+    }
+    observed = {d.actor_id: d.distance_yards for d in command.nonparticipant_distances}
+    if len(observed) != len(command.nonparticipant_distances) or set(observed) - others:
+        raise ValidationError("Distances require distinct current nonparticipants at the workspace")
+    mapped: dict[str, Fraction] = {}
+    for encounter in state.encounters:
+        if encounter.status != "active":
+            continue
+        lead = next(
+            (p for p in encounter.participants if p.actor_id == project.enchanter_ids[0]), None
+        )
+        if lead is None:
+            continue
+        for participant in encounter.participants:
+            if participant.actor_id in others:
+                spatial = encounter.spatial
+                if isinstance(spatial, BasicSpatialContext):
+                    fact = spatial.active("distance", lead.actor_id, participant.actor_id)
+                    if not isinstance(fact, DistanceSpatialFact):
+                        continue
+                    distance = Fraction(str(fact.yards))
+                else:
+                    distance = Fraction(
+                        point_distance(
+                            encounter.placement(lead.actor_id).position,
+                            encounter.placement(participant.actor_id).position,
+                        )
+                    )
+                if participant.actor_id in mapped and mapped[participant.actor_id] != distance:
+                    raise ValidationError(
+                        "Conflicting current enchanting nonparticipant placements"
+                    )
+                mapped[participant.actor_id] = distance
+    if set(observed) | set(mapped) != others:
+        raise ValidationError(
+            "Quick and Dirty requires current GM distances for unmapped nonparticipants"
+        )
+    if any(actor in mapped and mapped[actor] != distance for actor, distance in observed.items()):
+        raise ValidationError("GM distance conflicts with current enchanting map placement")
+    return -int(any(distance <= 10 for distance in (observed | mapped).values()))
+
+
 def _settle_project(
     runtime: RulesContext,
     state: PlayState,
@@ -633,6 +749,7 @@ def _settle_project(
     recipe: EnchantmentRecipe,
     *,
     correct_settlement: bool,
+    correct_energy: bool,
 ) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     work = project.active_work
     if work is None or work.id != command.work_id:
@@ -659,7 +776,14 @@ def _settle_project(
         runtime, state, recipe, project.target_item_id, project.enchanter_ids
     )
     return _settle(
-        runtime, state, command, project, recipe, power, correct_settlement=correct_settlement
+        runtime,
+        state,
+        command,
+        project,
+        recipe,
+        power,
+        correct_settlement=correct_settlement,
+        correct_energy=correct_energy,
     )
 
 
@@ -672,6 +796,7 @@ def _settle(
     power: int,
     *,
     correct_settlement: bool,
+    correct_energy: bool,
 ) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     work = project.active_work
     if work is None or work.id != command.work_id:
@@ -696,6 +821,21 @@ def _settle(
         modifiers += (
             Modifier(-5, "Low mana", "campaigns:b481:enchanting", "gurps-basic-set-4e-2004"),
         )
+    nearby = 0
+    if correct_energy and recipe.method == "quick-and-dirty":
+        nearby = _nearby_penalty(state, project, command)
+        if nearby:
+            modifiers += (
+                Modifier(
+                    nearby,
+                    "Nearby Quick and Dirty nonparticipants",
+                    "campaigns:b481:quick-and-dirty",
+                    "gurps-basic-set-4e-2004",
+                    ModifierKind.SITUATIONAL,
+                ),
+            )
+    elif command.nonparticipant_distances:
+        raise ValidationError("Nonparticipant distances require current Quick and Dirty settlement")
     lead_hp = next((c.hp for c in work.contributions if c.actor_id == project.enchanter_ids[0]), 0)
     if lead_hp:
         modifiers += (
@@ -709,6 +849,10 @@ def _settle(
     bonus = (
         ceremonial_skill_bonus(recipe.energy_required, sum(c.energy for c in work.contributions))
         if recipe.method == "quick-and-dirty"
+        else ceremonial_skill_bonus(
+            recipe.energy_required, recipe.energy_required + _extra_energy(state.resources, project)
+        )
+        if correct_energy
         else 0
     )
     if bonus:
@@ -740,6 +884,7 @@ def _settle(
         item_power = (
             power
             - (len(project.enchanter_ids) - 1 if recipe.method == "quick-and-dirty" else 0)
+            + nearby
             + bonus
             + sum(critical_bonus)
         )
@@ -893,6 +1038,7 @@ def apply_enchantment(
     *,
     system: bool = False,
     correct_settlement: bool = True,
+    correct_energy: bool = True,
 ) -> tuple[PlayState, EnchantmentOutcome]:
     """Apply one project command; persisted receipts suppress repeated costs and rolls."""
     if not system:
@@ -938,7 +1084,9 @@ def apply_enchantment(
         project = _project(state.resources, command.project_id, command.actor_id)
         recipe = _recipe(rules, project.recipe_id)
         if isinstance(command, BeginEnchanting):
-            state, project, outcome = _begin(runtime, state, command, project, recipe)
+            state, project, outcome = _begin(
+                runtime, state, command, project, recipe, correct_energy=correct_energy
+            )
         elif isinstance(command, InterruptEnchanting):
             state, project, outcome = _interrupt(runtime, state, command, project, recipe)
         elif isinstance(command, AdvanceEnchanting):
@@ -959,7 +1107,13 @@ def apply_enchantment(
         else:
             assert isinstance(command, SettleEnchanting)
             state, project, outcome = _settle_project(
-                runtime, state, command, project, recipe, correct_settlement=correct_settlement
+                runtime,
+                state,
+                command,
+                project,
+                recipe,
+                correct_settlement=correct_settlement,
+                correct_energy=correct_energy,
             )
     state = _record(state, command, project, outcome)
     if correct_settlement and isinstance(command, (CreateEnchantment, BeginEnchanting)):

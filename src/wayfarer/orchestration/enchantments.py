@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.magic.enchanting_transitions import (
     EnchantmentOutcome,
     TypedEnchantmentCommand,
     apply_enchantment,
+    command_payload,
 )
 from wayfarer.engine.simulation.magic.staff_state import (
     DeclareStaffConstruction,
@@ -17,7 +18,7 @@ from wayfarer.engine.simulation.magic.staff_state import (
     identifier,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.enchantment_generations import current_settlement
+from wayfarer.orchestration.enchantment_generations import current_energy, current_settlement
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -34,6 +35,7 @@ class EnchantmentService:
         *,
         principal_id: str,
         correct_settlement: bool = True,
+        correct_energy: bool = True,
     ) -> CommandPlan[EnchantmentOutcome | StaffConstruction]:
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Enchanting requires the exact Basic Set profile")
@@ -43,8 +45,11 @@ class EnchantmentService:
                 if isinstance(command, DeclareStaffConstruction)
                 else "enchantment",
                 "principal_id": principal_id,
-                "command": command.model_dump(mode="json"),
+                "command": command.model_dump(mode="json")
+                if isinstance(command, DeclareStaffConstruction)
+                else command_payload(command),
                 **({"enchantment_settlement_generation": 1} if correct_settlement else {}),
+                **({"enchantment_energy_generation": 1} if correct_energy else {}),
             },
             sort_keys=True,
         )
@@ -66,6 +71,7 @@ class EnchantmentService:
                     command,
                     system=True,
                     correct_settlement=correct_settlement,
+                    correct_energy=correct_energy,
                 )
                 result = receipt.status
             play.commit(campaign, play.checkpoint(updated, before=before))
@@ -109,6 +115,7 @@ class EnchantmentService:
                 command,
                 principal_id=principal_id,
                 correct_settlement=await current_settlement(play, cid, command.id),
+                correct_energy=await current_energy(play, cid, command.id),
             ),
             principal_id=principal_id,
         )
