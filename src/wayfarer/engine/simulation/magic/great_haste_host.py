@@ -26,6 +26,9 @@ from wayfarer.engine.simulation.magic.great_haste_state import (
     channels,
     save,
 )
+from wayfarer.engine.simulation.magic.initial_step_binding import (
+    preparing as preparing_initial_step,
+)
 from wayfarer.engine.simulation.magic.spell_state import RuntimeSpellEffect, SpellResult, latest
 from wayfarer.engine.simulation.magic.spells import (
     PROFILE,
@@ -130,11 +133,14 @@ def _combat_distance(
         raise ConflictError("Great Haste subject size changed during casting")
     if channel.target_id not in encounter.turn_order:
         raise ValidationError("Combat Great Haste requires an encounter subject")
-    if named_current() is None and channel.target_id not in visible_actors(
-        state, encounter, command.actor_id, board=runtime.hex_map(encounter)
+    if (
+        named_current() is None
+        and not preparing_initial_step()
+        and channel.target_id
+        not in visible_actors(state, encounter, command.actor_id, board=runtime.hex_map(encounter))
     ):
         raise ValidationError("Combat Great Haste requires a currently visible subject")
-    if named_current() is None:
+    if named_current() is None and not preparing_initial_step():
         visibility = combat_visibility(encounter, command.actor_id, channel.target_id, state=state)
         if visibility.attack_penalty:
             raise ValidationError("Combat Great Haste requires a currently visible subject")

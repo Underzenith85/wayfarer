@@ -21,6 +21,8 @@ from wayfarer.engine.simulation.magic.great_haste_state import (
     GreatHasteReceipt,
 )
 from wayfarer.engine.simulation.magic.great_haste_step_state import (
+    InitialStepCastGreatHaste,
+    NamedInitialStepCastGreatHaste,
     NamedStepCastGreatHaste,
     StepCastGreatHaste,
 )
@@ -61,7 +63,14 @@ class GreatHasteService:
         controls: tuple[Control, ...]
         if isinstance(
             command,
-            (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste, NamedStepCastGreatHaste),
+            (
+                CastGreatHaste,
+                StepCastGreatHaste,
+                NamedCastGreatHaste,
+                NamedStepCastGreatHaste,
+                InitialStepCastGreatHaste,
+                NamedInitialStepCastGreatHaste,
+            ),
         ):
             controls = (
                 (Controls(member, command.actor_id, state=state),)
@@ -78,7 +87,11 @@ class GreatHasteService:
             {
                 "operation": "great-haste",
                 "generation": (
-                    4
+                    7
+                    if isinstance(command, NamedInitialStepCastGreatHaste)
+                    else 6
+                    if isinstance(command, InitialStepCastGreatHaste)
+                    else 4
                     if isinstance(command, NamedStepCastGreatHaste)
                     else 3
                     if isinstance(command, NamedCastGreatHaste)
@@ -114,7 +127,15 @@ class GreatHasteService:
                         if command.operation == "cancel"
                         else cast_in_combat(self.play, before, converted)
                     )
-            elif isinstance(command, (StepCastGreatHaste, NamedStepCastGreatHaste)):
+            elif isinstance(
+                command,
+                (
+                    StepCastGreatHaste,
+                    NamedStepCastGreatHaste,
+                    InitialStepCastGreatHaste,
+                    NamedInitialStepCastGreatHaste,
+                ),
+            ):
                 if not combat_casting:
                     raise ValidationError("Selected Step requires authenticated casting generation")
                 with named_step(command):
@@ -132,6 +153,8 @@ class GreatHasteService:
                             StepCastGreatHaste,
                             NamedCastGreatHaste,
                             NamedStepCastGreatHaste,
+                            InitialStepCastGreatHaste,
+                            NamedInitialStepCastGreatHaste,
                         ),
                     )
                     and command.operation != "cancel"
