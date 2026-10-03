@@ -7,6 +7,7 @@ from pydantic import Field
 
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.types.object import ObjectCondition
+from wayfarer.engine.simulation.equipment.repair_time import RepairTimeSelection
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.models import Id, Record
 
@@ -31,6 +32,9 @@ class RepairTask(Record):
     skill_technology_level: int | None = Field(default=None, ge=0, le=12)
     equipment_technology_level: int | None = Field(default=None, ge=0, le=12)
     technology_level_penalty: int = Field(default=0, le=0)
+    time_plan: RepairTimeSelection | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 def tasks(state: ResourceState) -> tuple[RepairTask, ...]:
