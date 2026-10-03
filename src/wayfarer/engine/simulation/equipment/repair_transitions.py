@@ -1,12 +1,9 @@
 """B484-485 repairs in the campaign CAS, using approved skills and owned supplies."""
 
-import hashlib
-from fractions import Fraction
-from math import ceil
 from typing import Literal
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.rules.checks import Modifier, draw_dice
+from wayfarer.engine.rules.checks import Modifier
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.skills.mundane.arts import OBJECT_REPAIR_SKILLS, PROCEDURES
 from wayfarer.engine.rules.skills.technology_level import technology_level_penalty
@@ -15,10 +12,13 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
 from wayfarer.engine.simulation.equipment.armoury_context import repair_familiarity_modifier
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
+from wayfarer.engine.simulation.equipment.repair_parts_supply import (
+    major_parts,
+    revalidate_assessed_parts,
+)
 from wayfarer.engine.simulation.equipment.repairs import RepairTask, record, tasks
 from wayfarer.engine.simulation.equipment.worksite import available_here
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
-from wayfarer.engine.simulation.resources import Consume
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -113,7 +113,10 @@ def repair(
     stage: Literal["start", "finish", "cancel"],
     task_id: str | None,
     preview: bool = False,
+    assessment_only: bool = False,
 ) -> tuple[PlayState, RepairTask]:
+    if assessment_only and (stage != "start" or not preview):
+        raise ValidationError("Parts assessment requires a pure start eligibility check")
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Repairs require the exact Basic Set profile")
     resources = state.resources
@@ -195,49 +198,16 @@ def repair(
         parts_die = None
         quantity = 0
         if item.condition.hp <= 0:
-            part_entry = next(
-                (
-                    e
-                    for e in catalog(runtime).entries
-                    if e.definition_id == profile.repair_parts_definition
-                ),
-                None,
+            resources, parts_die, quantity = major_parts(
+                runtime,
+                state,
+                actor_id=actor_id,
+                item=item,
+                entry=entry,
+                command_id=command_id,
+                preview=preview,
+                assessment_only=assessment_only,
             )
-            supplies = next(
-                (
-                    i
-                    for i in resources.items
-                    if i.owner_id == actor_id
-                    and not i.ground
-                    and available_here(state, actor_id, i)
-                    and not i.equipped
-                    and i.definition_id == profile.repair_parts_definition
-                ),
-                None,
-            )
-            if part_entry is None or part_entry.price <= 0 or supplies is None:
-                raise ValidationError("Major repair requires priced, owned spare parts")
-            # Preflight the maximum cost before RNG; insufficient supplies cannot fish for a cheaper roll.
-            entry_price = Fraction(entry.price)
-            part_price = Fraction(part_entry.price)
-            maximum = ceil(entry_price * 6 / (part_price * 10))
-            if supplies.quantity < maximum:
-                raise ValidationError(
-                    "Major repair requires supplies covering the maximum parts cost"
-                )
-            parts_die = 6 if preview else draw_dice(runtime.rng, 1)[0]
-            quantity = ceil(entry_price * parts_die / (part_price * 10))
-            if quantity:
-                resources = runtime.resources.apply(
-                    resources,
-                    Consume(
-                        id="repair-parts:" + hashlib.sha256(command_id.encode()).hexdigest(),
-                        actor_id=actor_id,
-                        expected_revision=resources.revision,
-                        item_id=supplies.id,
-                        quantity=quantity,
-                    ),
-                )
         task = RepairTask(
             id=command_id,
             actor_id=actor_id,
@@ -269,6 +239,9 @@ def repair(
             for i in resources.items
         ):
             raise ConflictError("Repair equipment changed; cancel this attempt")
+        revalidate_assessed_parts(
+            runtime, state, actor_id=actor_id, item=item, entry=entry, parts_die=task.parts_die
+        )
         modifiers = _repair_modifiers(state, actor_id, task.skill)
         if preview:
             return state, task
@@ -309,5 +282,7 @@ def repair(
         task = task.model_copy(
             update={"status": "completed", "check": check, "restored_hp": restored}
         )
+    if assessment_only:
+        return state, task
     resources = record(resources, task, command_id)
     return state.model_copy(update={"resources": resources}), task
