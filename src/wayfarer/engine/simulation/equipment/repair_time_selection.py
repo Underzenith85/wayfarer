@@ -2,6 +2,7 @@
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import catalog
+from wayfarer.engine.simulation.equipment.repair_defaults import RepairDefaultSelection
 from wayfarer.engine.simulation.equipment.repair_parts import digest
 from wayfarer.engine.simulation.equipment.repair_time import (
     METHODS,
@@ -17,7 +18,11 @@ from wayfarer.errors import ConflictError, ValidationError
 
 
 def select(
-    runtime: RulesContext, state: PlayState, command: SelectRepairTime
+    runtime: RulesContext,
+    state: PlayState,
+    command: SelectRepairTime,
+    *,
+    default_override: RepairDefaultSelection | None = None,
 ) -> tuple[PlayState, RepairTimeSelection]:
     seconds, adjustment = METHODS[command.method]
     _, eligibility = repair(
@@ -31,6 +36,7 @@ def select(
         preview=True,
         assessment_only=True,
         selection_modifier=adjustment,
+        default_override=default_override,
     )
     if eligibility.procedure_id is None:
         raise ValidationError("Selected repair time requires a supported Armoury consumer")

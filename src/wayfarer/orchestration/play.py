@@ -247,6 +247,8 @@ class PlayService:
                     "armoury-familiarity:",
                     "armoury-parts:",
                     "armoury-time:",
+                    "armoury-training:",
+                    "armoury-default:",
                     "water-state:",
                     "water-channel:",
                     "water-host:",

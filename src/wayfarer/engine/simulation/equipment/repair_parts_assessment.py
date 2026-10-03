@@ -34,6 +34,7 @@ def assess(
         task_id=None,
         preview=True,
         assessment_only=True,
+        preview_context_id=command.repair_start_command_id,
     )
     item = next(i for i in state.resources.items if i.id == command.item_id)
     assert item.condition is not None
