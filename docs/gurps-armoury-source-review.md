@@ -62,20 +62,21 @@ The checklist above covers #818's bounded connection of the two named effects
 to actual repair transactions. Unsupported source-valid variants remain
 visible and unverified; they do not receive source or certification promotion.
 
-- [#976](https://github.com/Underzenith85/wayfarer/issues/976): B346 extra-time
-  and haste choices are not represented by `RepairEquipment`;
-  the current transaction fixes work at 1,800 seconds. Longer waits do not
-  select or earn an extra-time modifier.
+- [#976](https://github.com/Underzenith85/wayfarer/issues/976): the private
+  [selected-time path](gurps-armoury-selected-time.md) now binds B346 extra-time
+  and haste choices to actual deadlines and checks. Unselected tasks retain
+  1,800 seconds; a longer wait alone does not earn a bonus.
 - [#977](https://github.com/Underzenith85/wayfarer/issues/977): B345 tooling
   modifiers can be pinned through existing skill-specific tool
   features, but choosing among alternative or absent toolkits, deriving a new
   modifier from runtime damage/missing components, and consuming powered or
   expendable tooling are not implemented. A toolkit with explicit unsupported
   operating requirements is rejected rather than treated as free supplies.
-- [#978](https://github.com/Underzenith85/wayfarer/issues/978): source-default
-  Armoury use still requires an approved TL purchase here; this
-  consumer does not yet bind the IQ/Engineer/cross-specialty defaults to a
-  verified training TL.
+- [#978](https://github.com/Underzenith85/wayfarer/issues/978): the private
+  [verified-default path](gurps-armoury-defaults.md) binds current approved
+  IQ/available matching-Engineer/cross-Armoury sources to a verified training TL
+  and actual Body Armor/firearm repair outcomes. Wrong or unavailable specialties
+  refuse; no Engineer (Body Armor) or substitute family is invented.
 
 - [#975](https://github.com/Underzenith85/wayfarer/issues/975): the new private
   [recorded assessment](gurps-armoury-parts.md) admits stock sufficient for the

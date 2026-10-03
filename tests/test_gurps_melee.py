@@ -105,6 +105,7 @@ async def setup(
     repair_skill_technology_level: int | None = None,
     repair_tool_features: tuple[GeneralEquipmentFeature, ...] = (),
     extra_equipment: tuple[EquipmentProfile, ...] = (),
+    preserve_extra_equipment: bool = False,
     warhead: ExplosionSpec | None = None,
     power_cell_capacity: int | None = None,
     extra_items: tuple[Item, ...] = (),
@@ -331,6 +332,15 @@ async def setup(
                         }
                     )
                     for e in equipment.entries
+                )
+            }
+        )
+    if preserve_extra_equipment:
+        supplied = {entry.definition_id: entry for entry in extra_equipment}
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    supplied.get(entry.definition_id, entry) for entry in equipment.entries
                 )
             }
         )

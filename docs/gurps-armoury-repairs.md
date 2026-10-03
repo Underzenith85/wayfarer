@@ -25,8 +25,9 @@ Trusted-GM performer/model/specialty familiarity observations also affect the
 actual repair skill and restored HP. The written #818 baseline checklist is
 covered by resulting-state, eligibility, conservation and replay evidence.
 The explicit [recorded parts assessment](gurps-armoury-parts.md) admits
-source-sufficient rolled stock for major repairs. Source-valid time, toolkit and
-defaulted-skill variants remain unverified in issues #976–978 linked from the
-source review.
+source-sufficient rolled stock for major repairs. The private [selected-time](gurps-armoury-selected-time.md) and
+[verified-default](gurps-armoury-defaults.md) paths now bind their source-defined
+choices to real repairs. Alternative/operating toolkit variants remain unverified
+in #977, as recorded in the source review.
 Familiarity acquisition remains separate unimplemented work.
 No source/certification status or frozen request contract is promoted.

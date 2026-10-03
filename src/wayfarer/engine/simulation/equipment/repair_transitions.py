@@ -13,6 +13,9 @@ from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, lev
 from wayfarer.engine.simulation.equipment import repair_time
 from wayfarer.engine.simulation.equipment.armoury_context import repair_familiarity_modifier
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
+from wayfarer.engine.simulation.equipment.repair_default_resolver import current as default_current
+from wayfarer.engine.simulation.equipment.repair_default_resolver import finish_current
+from wayfarer.engine.simulation.equipment.repair_defaults import RepairDefaultSelection
 from wayfarer.engine.simulation.equipment.repair_parts_supply import (
     major_parts,
     revalidate_assessed_parts,
@@ -24,8 +27,14 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 
 
-def _repair_binding(entry: EquipmentProfile, skill_id: str) -> tuple[str | None, str | None]:
+def _repair_binding(
+    entry: EquipmentProfile, skill_id: str, default_selected: bool = False
+) -> tuple[str | None, str | None]:
     """Bind supported Armoury tasks only to matching equipment specialties."""
+    if default_selected and skill_id == "skill:armoury-small-arms":
+        task = PROCEDURES[skill_id].task
+        assert task is not None
+        return PROCEDURES[skill_id].id, task.effect
     if skill_id not in OBJECT_REPAIR_SKILLS:
         return None, None
     procedure = PROCEDURES[skill_id]
@@ -53,8 +62,19 @@ def _armoury_tl_penalty(skill_tl: int, equipment_tl: int) -> int:
 
 
 def _repair_skill(
-    compiled: ValidatedBuild, skill_id: str, entry: EquipmentProfile, source_bound: bool
+    compiled: ValidatedBuild,
+    skill_id: str,
+    entry: EquipmentProfile,
+    source_bound: bool,
+    default_plan: RepairDefaultSelection | None = None,
 ) -> tuple[int, int | None, int | None, int]:
+    if default_plan is not None:
+        return (
+            default_plan.skill_level + default_plan.tl_penalty,
+            default_plan.training_tl,
+            default_plan.equipment_tl,
+            default_plan.tl_penalty,
+        )
     skill = int(level(compiled, skill_id).value)
     if not source_bound:
         return skill, None, None, 0
@@ -116,8 +136,12 @@ def repair(
     preview: bool = False,
     assessment_only: bool = False,
     selection_modifier: int = 0,
+    default_override: RepairDefaultSelection | None = None,
+    preview_context_id: str | None = None,
 ) -> tuple[PlayState, RepairTask]:
-    if (assessment_only or selection_modifier) and (stage != "start" or not preview):
+    if (assessment_only or selection_modifier or preview_context_id is not None) and (
+        stage != "start" or not preview
+    ):
         raise ValidationError("Parts assessment requires a pure start eligibility check")
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Repairs require the exact Basic Set profile")
@@ -166,7 +190,18 @@ def repair(
             raise ValidationError("Equipment does not need repair")
         if not profile.repair_skill_id or not profile.repair_tools_definition:
             raise ValidationError("Repairs require pinned skill and equipment bindings")
-        procedure_id, effect = _repair_binding(entry, profile.repair_skill_id)
+        default_plan = default_override or default_current(
+            runtime,
+            state,
+            actor_id=actor_id,
+            item=item,
+            entry=entry,
+            start_command_id=preview_context_id or command_id,
+            required=preview_context_id is not None,
+        )
+        procedure_id, effect = _repair_binding(
+            entry, profile.repair_skill_id, default_plan is not None
+        )
         tool = next(
             (
                 i
@@ -186,6 +221,7 @@ def repair(
             profile.repair_skill_id,
             entry,
             procedure_id is not None,
+            default_plan,
         )
         tool_entry = next(
             e for e in catalog(runtime).entries if e.definition_id == tool.definition_id
@@ -197,7 +233,13 @@ def repair(
             state, actor_id, item.definition_id, profile.repair_skill_id, procedure_id
         )
         time_plan = repair_time.start_plan(
-            resources, actor_id, item, entry, command_id, procedure_id, assessment_only
+            resources,
+            actor_id,
+            item,
+            entry,
+            preview_context_id or command_id,
+            procedure_id,
+            assessment_only and preview_context_id is None,
         )
         skill += repair_time.modifier(time_plan)
         _repair_modifiers(state, actor_id, skill + selection_modifier)
@@ -246,6 +288,9 @@ def repair(
             for i in resources.items
         ):
             raise ConflictError("Repair equipment changed; cancel this attempt")
+        finish_current(
+            resources, actor_id=actor_id, item=item, entry=entry, start_command_id=task.id
+        )
         revalidate_assessed_parts(
             runtime, state, actor_id=actor_id, item=item, entry=entry, parts_die=task.parts_die
         )
