@@ -31,6 +31,7 @@ from wayfarer.engine.simulation.magic.great_haste_step_state import (
     PREFIX,
     RESOLVED,
     CastingStepLease,
+    NamedStepCastGreatHaste,
     ResolvedStepDistraction,
     StepCommand,
     cast_command,
@@ -241,7 +242,7 @@ def execute_step(
 
 
 def cast_with_step(
-    play: PlayService, before: PlayState, command: StepCommand
+    play: PlayService, before: PlayState, command: StepCommand, *, ritual_step: bool = False
 ) -> tuple[PlayState, GreatHasteReceipt]:
     encounter = next(
         (e for e in before.encounters if e.status == "active" and command.actor_id in e.turn_order),
@@ -271,9 +272,24 @@ def cast_with_step(
     explosion_guard(state.resources)
     _origin_guard(state, encounter, command)
     _, spell, bound = bound_cast(play.rules_context, state, cast_command(command), encounter)
+    if ritual_step or isinstance(command, NamedStepCastGreatHaste):
+        ritual_skill = bound.skill - 5 * int(bound.mana == "low")
+        actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+        distance = (
+            len(command.step.hex_path)
+            if command.step.hex_path
+            else context.engine.distance(actor.position, command.step.destination)
+            if command.step.destination is not None
+            else 0
+        )
+        if distance > 1:
+            raise ValidationError("Selected casting Step supports at most one yard")
+        if command.operation == "concentrate" and ritual_skill < 15:
+            raise ValidationError("Ongoing casting Step requires ritual base skill 15+")
     selected_name = named_binding(state, bound.target_id, cast_command(command))
     lease = CastingStepLease(
         command=command,
+        ritual_step=ritual_step,
         named_origin_json=selected_name.model_dump_json() if selected_name else None,
         encounter_id=encounter.id,
         build_revision=bound.build_revision,

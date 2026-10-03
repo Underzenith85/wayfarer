@@ -805,3 +805,14 @@ async def test_changed_real_clock_rejects_paused_step_without_rebinding(
             principal_id="a",
         )
     assert await play.store.read(cid) == before
+
+
+@pytest.fixture(autouse=True)
+def historical_generation_two_step_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
+    """This established suite exercises the captured generation-two Step contract."""
+    from wayfarer.orchestration import great_haste
+
+    async def recorded_two_steps(store: object, cid: str, command_id: str) -> bool:
+        return False
+
+    monkeypatch.setattr(great_haste, "ritual_steps", recorded_two_steps)

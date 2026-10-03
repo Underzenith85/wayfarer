@@ -5,9 +5,8 @@ import secrets
 from pathlib import Path
 
 import pytest
-from test_great_haste_named_step import command, other_turns
+from test_great_haste_named_step import command, other_turns, prepare_named
 from test_great_haste_named_step_wait import paused_named_step
-from test_great_haste_named_subject import prepare_named
 
 from scripts.replay_fixtures import FixtureExecutor
 from wayfarer.engine.rules.checks import RecordedDice

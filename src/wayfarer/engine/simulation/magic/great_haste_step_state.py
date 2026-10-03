@@ -62,6 +62,7 @@ StepCommand = Annotated[StepCastGreatHaste | NamedStepCastGreatHaste, Field(disc
 
 class CastingStepLease(Record):
     command: StepCommand
+    ritual_step: bool = Field(default=False, exclude_if=lambda value: not value)
     named_origin_json: str | None = Field(default=None, exclude_if=lambda value: value is None)
     encounter_id: Id
     build_revision: str = Field(min_length=1)

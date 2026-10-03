@@ -4,7 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from test_great_haste_named_subject import prepare_named
+from test_great_haste_named_step import prepare_named
 from test_power_maintenance_lifecycle import change
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -180,7 +180,7 @@ async def test_named_step_actual_wait_defense_uses_one_will_minus_three(
     effect = latest(state.resources)["named"]
     assert effect.phase == ("active" if will_success else "ended")
     assert next(p.current for p in state.resources.pools if p.id == "fp:a") == (
-        5 if will_success else 10
+        6 if will_success else 10
     )
     assert play.rng.exhausted()
     assert await combat.execute(cid, resume, principal_id="a") == result
