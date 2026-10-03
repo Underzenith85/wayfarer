@@ -13,13 +13,17 @@ from wayfarer.engine.simulation.magic.great_haste_named import (
     NamedHostCommand,
     cast_command,
     named_cast,
+    named_step,
 )
 from wayfarer.engine.simulation.magic.great_haste_state import (
     RECEIPT,
     CastGreatHaste,
     GreatHasteReceipt,
 )
-from wayfarer.engine.simulation.magic.great_haste_step_state import StepCastGreatHaste
+from wayfarer.engine.simulation.magic.great_haste_step_state import (
+    NamedStepCastGreatHaste,
+    StepCastGreatHaste,
+)
 from wayfarer.engine.simulation.magic.spells import PROFILE
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.great_haste_combat import cast_in_combat
@@ -54,7 +58,10 @@ class GreatHasteService:
             raise ValidationError("GreatHaste requires the exact Basic Set profile")
         member = member_for(state, principal_id)
         controls: tuple[Control, ...]
-        if isinstance(command, (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste)):
+        if isinstance(
+            command,
+            (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste, NamedStepCastGreatHaste),
+        ):
             controls = (
                 (Controls(member, command.actor_id, state=state),)
                 if member.role == "player"
@@ -70,7 +77,9 @@ class GreatHasteService:
             {
                 "operation": "great-haste",
                 "generation": (
-                    3
+                    4
+                    if isinstance(command, NamedStepCastGreatHaste)
+                    else 3
                     if isinstance(command, NamedCastGreatHaste)
                     else 2
                     if isinstance(command, StepCastGreatHaste)
@@ -104,16 +113,23 @@ class GreatHasteService:
                         if command.operation == "cancel"
                         else cast_in_combat(self.play, before, converted)
                     )
-            elif isinstance(command, StepCastGreatHaste):
+            elif isinstance(command, (StepCastGreatHaste, NamedStepCastGreatHaste)):
                 if not combat_casting:
                     raise ValidationError("Selected Step requires authenticated casting generation")
-                updated, result = cast_with_step(self.play, before, command)
+                with named_step(command):
+                    updated, result = cast_with_step(self.play, before, command)
             else:
                 updated, result = (
                     cast_in_combat(self.play, before, command)
                     if combat_casting
                     and isinstance(
-                        command, (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste)
+                        command,
+                        (
+                            CastGreatHaste,
+                            StepCastGreatHaste,
+                            NamedCastGreatHaste,
+                            NamedStepCastGreatHaste,
+                        ),
                     )
                     and command.operation != "cancel"
                     and any(

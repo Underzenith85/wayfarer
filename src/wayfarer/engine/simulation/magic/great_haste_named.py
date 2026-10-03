@@ -9,7 +9,11 @@ from pydantic import Field, TypeAdapter
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.great_haste_state import CastGreatHaste
-from wayfarer.engine.simulation.magic.great_haste_step_state import HostCommand
+from wayfarer.engine.simulation.magic.great_haste_step_state import (
+    HostCommand,
+    NamedStepCastGreatHaste,
+    StepCommand,
+)
 from wayfarer.engine.simulation.resources import Command
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -114,3 +118,21 @@ def binding(state: PlayState, target_id: str, command: CastGreatHaste) -> NamedO
     if command.operation == "concentrate" and previous != accepted:
         raise ConflictError("Named Great Haste requires its immutable accepted subject knowledge")
     return accepted
+
+
+@contextmanager
+def named_step(command: StepCommand) -> Iterator[None]:
+    if isinstance(command, NamedStepCastGreatHaste):
+        selected = NamedCastGreatHaste(
+            id=command.id,
+            actor_id=command.actor_id,
+            expected_revision=command.expected_revision,
+            operation=command.operation,
+            channel_id=command.channel_id,
+            cast_id=command.cast_id,
+            known_fact_id=command.known_fact_id,
+        )
+        with named_cast(selected):
+            yield
+    else:
+        yield

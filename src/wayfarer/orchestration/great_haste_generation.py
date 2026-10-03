@@ -6,7 +6,10 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer import validation
 from wayfarer.engine.simulation.magic.great_haste_named import NamedCastGreatHaste
-from wayfarer.engine.simulation.magic.great_haste_step_state import StepCastGreatHaste
+from wayfarer.engine.simulation.magic.great_haste_step_state import (
+    NamedStepCastGreatHaste,
+    StepCastGreatHaste,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.replay_inputs import recorded_command
 from wayfarer.orchestration.sessions import Store
@@ -42,9 +45,10 @@ def features(record: CommandInput) -> bool:
     step = command.get("kind") == "step-great-haste"
     if (
         type(generation) is not int
-        or generation not in (1, 2, 3)
+        or generation not in (1, 2, 3, 4)
         or (generation == 2) != step
         or (generation == 3) != (command.get("kind") == "named-great-haste")
+        or (generation == 4) != (command.get("kind") == "named-step-great-haste")
     ):
         raise ValidationError("Unsupported Great Haste casting generation")
     if generation == 2:
@@ -57,4 +61,9 @@ def features(record: CommandInput) -> bool:
             NamedCastGreatHaste.model_validate_json(json.dumps(command, sort_keys=True))
         except SchemaError as error:
             raise ValidationError("Invalid named casting generation") from error
+    if generation == 4:
+        try:
+            NamedStepCastGreatHaste.model_validate_json(json.dumps(command, sort_keys=True))
+        except SchemaError as error:
+            raise ValidationError("Invalid named selected-Step casting generation") from error
     return KEY in payload
