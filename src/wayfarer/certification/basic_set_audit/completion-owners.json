@@ -627,6 +627,11 @@
       "issue": 854,
       "state": "open",
       "title": "[GURPS audit] Wire B66 Luck into remaining task/combat consumers"
+    },
+    {
+      "issue": 878,
+      "state": "open",
+      "title": "Implement Acrobatic Dodge, Sacrificial Dodge and Dodge and Drop consumers"
     }
   ]
 }

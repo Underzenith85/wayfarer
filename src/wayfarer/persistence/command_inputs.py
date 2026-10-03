@@ -152,16 +152,23 @@ def combat_intent(text: str) -> str:
             and isinstance(response, dict)
             and response.get("kind") == "choose_defense"
         )
+        begin = isinstance(command, dict) and command.get("kind") == "begin-opponent-attack"
         if (
             key in payload
             or payload.get("operation") != "task-host"
             or not isinstance(command, dict)
-            or not (fragment or defense)
+            or not (fragment or defense or begin)
             or not isinstance(raw_task, list)
             or any(not isinstance(item, str) for item in raw_task)
             or len(set(raw_task)) != len(raw_task)
             or not set(raw_task)
-            <= ({"ground-dive-step", "secondary-object-blasts"} if fragment else {"grenade-fuse"})
+            <= (
+                {"ground-dive-step", "secondary-object-blasts"}
+                if fragment
+                else {"missile-interposition"}
+                if begin
+                else {"grenade-fuse", "missile-interposition"}
+            )
             or text != canonical(payload)
         ):
             raise ValidationError("Invalid recorded task combat feature generation")
@@ -181,6 +188,7 @@ def combat_intent(text: str) -> str:
             "acrobatic-trait-bonuses",
             "ground-dive-step",
             "secondary-object-blasts",
+            "missile-interposition",
         }
         or text != canonical(payload)
     ):

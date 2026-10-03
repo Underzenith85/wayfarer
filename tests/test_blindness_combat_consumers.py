@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Final, Literal
 
 import pytest
+from support.missile_timing import missile_spell_service
 from support.runtime import build_play, seed_campaign
 from test_basic_combat import start_basic
 from test_combat_sensory_authority import change, declaration, symptoms
@@ -727,19 +728,18 @@ async def test_competing_blind_defenses_commit_one_command_under_cas(
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+@pytest.mark.parametrize("missile_attack", [False, True])
 async def test_fireball_release_needs_nonvisual_location_and_uses_blind_attack_penalty(
-    tmp_path: Path, backend: str
+    tmp_path: Path, backend: str, missile_attack: bool
 ) -> None:
     from test_spell_bindings import command, idle, start_fight
     from test_spell_bindings import setup as spell_setup
-
-    from wayfarer.orchestration.spells import SpellService
 
     cid, play = await spell_setup(
         tmp_path, combat=True, execution_version=2, human_targets=True, backend=backend
     )
     await start_fight(cid, play)
-    service = SpellService(play)
+    service = missile_spell_service(play, missile_attack=missile_attack)
     start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
     play.rng = RecordedDice((3, 3, 3))
     await service.execute(cid, start, principal_id="a")
@@ -761,12 +761,15 @@ async def test_fireball_release_needs_nonvisual_location_and_uses_blind_attack_p
         await service.execute(
             cid, release.model_copy(update={"hit_location": "neck"}), principal_id="a"
         )
+    play.rng = RecordedDice((2, 2, 2) if missile_attack else ())
     await service.execute(cid, release, principal_id="a")
+    assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
     state = play._load(await play.store.read(cid))
     pending = state.encounters[0].pending_defense
     assert pending is not None and pending.hit_location == "random"
     assert pending.visibility_attack_penalty == -4
-    play.rng = RecordedDice((2, 2, 2))
+    assert (pending.attack_roll is not None) is missile_attack
+    play.rng = RecordedDice(() if missile_attack else (2, 2, 2))
     result = await defend(cid, play, "b")
     # Innate Attack projectile DX default is 6; B394 certainty costs four.
     assert result.injury is not None and result.injury.attack.effective_target == 2

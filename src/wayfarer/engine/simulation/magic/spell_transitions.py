@@ -851,7 +851,17 @@ def _release_missile(
             )
         }
     )
-    return updated
+    # deferred: the combat missile reducer depends on spell transition source helpers.
+    from wayfarer.engine.simulation.combat.missile_interposition import capture_attack
+
+    encounter = capture_attack(runtime, updated, encounter)
+    return updated.model_copy(
+        update={
+            "encounters": tuple(
+                encounter if e.id == encounter.id else e for e in updated.encounters
+            )
+        }
+    )
 
 
 def reduce_spell(

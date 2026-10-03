@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.checks import CheckTrace, RandomSource
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.attack_roll import (
@@ -14,6 +14,7 @@ from wayfarer.engine.simulation.combat.attack_roll import (
 )
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
+from wayfarer.engine.simulation.combat.generations import missile_interposition_enabled
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
 from wayfarer.engine.simulation.combat.ranged.resolution import resolve as resolve_ranged
@@ -37,6 +38,21 @@ from wayfarer.engine.simulation.traits.malediction_checks import (
 )
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
+
+
+class CapturedOriginalDice:
+    """Consume the already recorded original once, then only real reroll entropy."""
+
+    def __init__(self, original: CheckTrace, rng: RandomSource) -> None:
+        self.remaining = list(original.dice)
+        self.rng = rng
+
+    def randbelow(self, upper: int) -> int:
+        if self.remaining:
+            if upper != 6:
+                raise ValidationError("Captured original is only a three-die success check")
+            return self.remaining.pop(0) - 1
+        return self.rng.randbelow(upper)
 
 
 class OpponentAttackPreparation(Record):
@@ -95,6 +111,15 @@ def _context(
     return preflight_pending(runtime, state, encounter)
 
 
+def _captured_missile(pending: PendingDefense) -> bool:
+    return bool(
+        missile_interposition_enabled()
+        and pending.spell_cast_id
+        and pending.attack_roll is not None
+        and pending.protected_defender_id is None
+    )
+
+
 def prepare_opponent_attack(
     runtime: RulesContext,
     state: PlayState,
@@ -118,7 +143,12 @@ def prepare_opponent_attack(
         raise ValidationError("Opponent Luck requires an attack against its owner")
     if pending.id != attack_id:
         raise ConflictError("Opponent attack identity changed")
-    if pending.attack_roll is not None or encounter.blocked_reason is not None:
+    captured_missile = _captured_missile(pending)
+    if (
+        pending.attack_roll is not None
+        and not captured_missile
+        or encounter.blocked_reason is not None
+    ):
         raise ConflictError("A committed attack roll cannot be reopened for Luck")
     if pending.composed_attack_id is not None:
         current = _context(runtime, state, encounter, owner_id, resist)
@@ -167,6 +197,15 @@ def prepare_opponent_attack(
     if resist is not None:
         raise ValidationError("Resistance selection requires an approved Malediction source")
     route, spec = _inventory_spec(runtime, state, encounter)
+    original = pending.attack_roll if captured_missile else None
+    if original is not None:
+        spec = AttackRollSpec(
+            profile_id=PROFILE,
+            target=original.base_target,
+            modifiers=original.modifiers,
+            ranged=True,
+            rule_id=original.rule_id,
+        )
     return OpponentAttackPreparation(
         campaign_id=state.campaign_id,
         encounter_id=encounter.id,
@@ -177,7 +216,7 @@ def prepare_opponent_attack(
         ranged=spec.ranged,
         inventory_pending=pending,
         captured_attacker=raw_build(runtime, state, pending.attacker_id),
-        original=None if secret else spec.roll(runtime.rng),
+        original=None if secret else original or spec.roll(runtime.rng),
         spec=spec,
         secret=secret,
     )
@@ -290,8 +329,15 @@ def validate_opponent_attack(
             raise ValidationError("Unarmed original is not a canonical attack check")
         return
     pending = encounter.pending_defense
-    if pending is None or pending.attack_roll is not None or encounter.blocked_reason is not None:
+    if (
+        pending is None
+        or pending.attack_roll is not None
+        and not _captured_missile(pending)
+        or encounter.blocked_reason is not None
+    ):
         raise ConflictError("Opponent attack is already committed or no longer pending")
+    if pending.attack_roll is not None and pending.attack_roll != prepared.original:
+        raise ConflictError("Captured missile original changed")
     if pending.id != prepared.attack_id or pending.attacker_id != prepared.attacker_id:
         raise ConflictError("Opponent attack identity changed")
     if pending.defender_id != prepared.owner_id:

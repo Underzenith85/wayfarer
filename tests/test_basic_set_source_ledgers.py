@@ -55,6 +55,7 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
         "trait:advantage:innate-attack",
         "modifier:enhancement:cyclic",
         *ENCHANTING_RESIDUAL_IDS,
+        "section:campaigns:b377:active-defense-options",
     }
 
     optional = tuple(row for row in bundle.rows if row.disposition == "optional-disabled")
@@ -347,6 +348,7 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         ("trait:advantage:innate-attack", 764),
         ("modifier:enhancement:cyclic", 764),
         *((identifier, 785) for identifier in ENCHANTING_RESIDUAL_IDS),
+        ("section:campaigns:b377:active-defense-options", 878),
     }
     assert all(
         blocker.identifier.startswith(("section:", "trait:", "modifier:")) for blocker in ledger
@@ -355,13 +357,14 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
     assert report.required_source_ledger_rows == 1_044
     assert report.source_ledger_rollups["source_review"] == {"reviewed": 1_285}
     assert report.source_ledger_rollups["completion_owner"] == {
-        "none": 1_273,
+        "none": 1_272,
         "764": 2,
         "757": 2,
         "763": 1,
         "785": 5,
         "854": 1,
         "906": 1,
+        "878": 1,
     }
 
 
@@ -408,3 +411,18 @@ def test_characters_section_obligation_drift_is_rejected() -> None:
     rows[index] = rows[index].model_copy(update={"completion_owner": 94})
     with pytest.raises(ValidationError, match="falls back to roadmap"):
         _validate(replace(bundle, rows=tuple(rows)))
+
+
+def test_named_defense_row_keeps_unsupported_consumers_blocking_certification() -> None:
+    bundle = load_source_ledgers(ROOT)
+    row = next(r for r in bundle.rows if r.id == "section:campaigns:b377:active-defense-options")
+    assert row.implementation == "partial"
+    assert row.completion_owner == 878
+    assert {
+        "docs/gurps-dodge-options.md",
+        "tests/test_dodge_options.py",
+        "tests/test_sacrificial_dodge.py",
+        "tests/test_acrobatic_trait_replay.py",
+        "tests/test_task_fragment_ground_dive.py",
+    } <= set(row.evidence_paths)
+    assert row in ledger_blockers(bundle.rows)

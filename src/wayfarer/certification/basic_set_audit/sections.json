@@ -10503,7 +10503,7 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "verified",
+      "implementation": "partial",
       "source_review": "reviewed",
       "evidence_paths": [
         "docs/gurps-basic-combat.md",
@@ -10515,13 +10515,30 @@
         "tests/test_gurps_ranged.py",
         "tests/test_geometry_injury_followups.py",
         "tests/test_critical_miss_completion.py",
-        "tests/test_choke_hold.py"
+        "tests/test_choke_hold.py",
+        "docs/gurps-dodge-options.md",
+        "tests/test_dodge_options.py",
+        "tests/test_sacrificial_dodge.py",
+        "tests/test_acrobatic_trait_bonuses.py",
+        "tests/test_acrobatic_trait_replay.py",
+        "tests/test_sacrificial_dart.py",
+        "tests/test_sacrificial_dart_atomicity.py",
+        "tests/test_sacrificial_dart_replay.py",
+        "tests/test_ground_dive_step.py",
+        "tests/test_task_fragment_ground_dive.py",
+        "tests/test_area_attacks.py",
+        "docs/gurps-sacrificial-fireball.md",
+        "tests/test_sacrificial_fireball.py",
+        "tests/test_sacrificial_fireball_atomicity.py",
+        "tests/test_sacrificial_fireball_replay.py",
+        "tests/test_sacrificial_fireball_secret.py",
+        "tests/test_sacrificial_fireball_tasks.py"
       ],
       "historical_owners": [
         191,
         506
       ],
-      "completion_owner": null,
+      "completion_owner": 878,
       "capability_id": "gurps.combat.melee_attack",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b374:defending",

@@ -34,3 +34,7 @@ def ground_dive_step_enabled() -> bool:
 
 def secondary_object_blasts_enabled() -> bool:
     return "secondary-object-blasts" in _current.get()
+
+
+def missile_interposition_enabled() -> bool:
+    return "missile-interposition" in _current.get()

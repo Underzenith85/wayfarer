@@ -251,6 +251,7 @@ async def test_held_missile_keeps_casting_energy_and_selected_hit_ends_one_fireb
     start = spell_command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
     await SpellService(original).execute(cid, start, principal_id="a")
     await idle(cid, original, "b")
+    original.rng = RecordedDice((1, 1, 1))
     await SpellService(original).execute(
         cid,
         start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 3}),
@@ -259,7 +260,7 @@ async def test_held_missile_keeps_casting_energy_and_selected_hit_ends_one_fireb
     play = await enroll(tmp_path, backend, cid, original)
     declared = play._load(await play.store.read(cid))
     assert next(p.current for p in declared.resources.pools if p.id == "fp:a") == 9
-    play.rng = RecordedDice((1, 1, 1))
+    play.rng = RecordedDice(())
     prepared = await begin_current(play, cid)
     assert prepared.check and prepared.check.effective_target == 6
     assert latest(play._load(await play.store.read(cid)).resources)["cast"].phase == "active"
