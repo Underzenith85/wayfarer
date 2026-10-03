@@ -9,7 +9,9 @@ from wayfarer.engine.simulation.magic.great_haste_named import NamedCastGreatHas
 from wayfarer.engine.simulation.magic.great_haste_step_state import (
     InitialStepCastGreatHaste,
     NamedInitialStepCastGreatHaste,
+    NamedOngoingStepCastGreatHaste,
     NamedStepCastGreatHaste,
+    OngoingStepCastGreatHaste,
     StepCastGreatHaste,
 )
 from wayfarer.errors import ValidationError
@@ -47,12 +49,14 @@ def features(record: CommandInput) -> bool:
     step = command.get("kind") == "step-great-haste"
     if (
         type(generation) is not int
-        or generation not in (1, 2, 3, 4, 5, 6, 7)
+        or generation not in (1, 2, 3, 4, 5, 6, 7, 8, 9)
         or (generation in (2, 5)) != step
         or (generation == 3) != (command.get("kind") == "named-great-haste")
         or (generation == 4) != (command.get("kind") == "named-step-great-haste")
         or (generation == 6) != (command.get("kind") == "initial-step-great-haste")
         or (generation == 7) != (command.get("kind") == "named-initial-step-great-haste")
+        or (generation == 8) != (command.get("kind") == "ongoing-step-great-haste")
+        or (generation == 9) != (command.get("kind") == "named-ongoing-step-great-haste")
     ):
         raise ValidationError("Unsupported Great Haste casting generation")
     if generation in (2, 5):
@@ -78,6 +82,16 @@ def features(record: CommandInput) -> bool:
             model.model_validate_json(json.dumps(command, sort_keys=True))
         except SchemaError as error:
             raise ValidationError("Invalid initial selected-Step casting generation") from error
+    if generation in (8, 9):
+        if KEY not in payload:
+            raise ValidationError("Ongoing selected-Step requires authenticated casting generation")
+        try:
+            ongoing_model = (
+                OngoingStepCastGreatHaste if generation == 8 else NamedOngoingStepCastGreatHaste
+            )
+            ongoing_model.model_validate_json(json.dumps(command, sort_keys=True))
+        except SchemaError as error:
+            raise ValidationError("Invalid ongoing selected-Step casting generation") from error
     return KEY in payload
 
 
@@ -93,4 +107,4 @@ async def ritual_steps(store: Store, cid: str, command_id: str) -> bool:
     if record.text is None:
         return False
     features(record)
-    return validation.mapping(replay_payload(record.text)).get("generation") in (4, 5, 6, 7)
+    return validation.mapping(replay_payload(record.text)).get("generation") in (4, 5, 6, 7, 8, 9)

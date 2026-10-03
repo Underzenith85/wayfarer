@@ -12,6 +12,7 @@ from wayfarer.engine.simulation.magic.great_haste_state import CastGreatHaste
 from wayfarer.engine.simulation.magic.great_haste_step_state import (
     HostCommand,
     NamedInitialStepCastGreatHaste,
+    NamedOngoingStepCastGreatHaste,
     NamedStepCastGreatHaste,
     StepCommand,
 )
@@ -123,7 +124,10 @@ def binding(state: PlayState, target_id: str, command: CastGreatHaste) -> NamedO
 
 @contextmanager
 def named_step(command: StepCommand) -> Iterator[None]:
-    if isinstance(command, (NamedStepCastGreatHaste, NamedInitialStepCastGreatHaste)):
+    if isinstance(
+        command,
+        (NamedStepCastGreatHaste, NamedInitialStepCastGreatHaste, NamedOngoingStepCastGreatHaste),
+    ):
         selected = NamedCastGreatHaste(
             id=command.id,
             actor_id=command.actor_id,

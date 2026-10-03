@@ -23,7 +23,9 @@ from wayfarer.engine.simulation.magic.great_haste_state import (
 from wayfarer.engine.simulation.magic.great_haste_step_state import (
     InitialStepCastGreatHaste,
     NamedInitialStepCastGreatHaste,
+    NamedOngoingStepCastGreatHaste,
     NamedStepCastGreatHaste,
+    OngoingStepCastGreatHaste,
     StepCastGreatHaste,
 )
 from wayfarer.engine.simulation.magic.spells import PROFILE
@@ -42,6 +44,20 @@ from wayfarer.orchestration.pipeline import (
     submit,
 )
 from wayfarer.orchestration.play import PlayService
+
+
+def _casting_generation(command: NamedHostCommand, *, ritual_step: bool) -> int:
+    if isinstance(command, StepCastGreatHaste):
+        return 5 if ritual_step else 2
+    generations: dict[type[object], int] = {
+        NamedCastGreatHaste: 3,
+        NamedStepCastGreatHaste: 4,
+        InitialStepCastGreatHaste: 6,
+        NamedInitialStepCastGreatHaste: 7,
+        OngoingStepCastGreatHaste: 8,
+        NamedOngoingStepCastGreatHaste: 9,
+    }
+    return generations.get(type(command), 1)
 
 
 class GreatHasteService:
@@ -70,6 +86,8 @@ class GreatHasteService:
                 NamedStepCastGreatHaste,
                 InitialStepCastGreatHaste,
                 NamedInitialStepCastGreatHaste,
+                OngoingStepCastGreatHaste,
+                NamedOngoingStepCastGreatHaste,
             ),
         ):
             controls = (
@@ -86,19 +104,7 @@ class GreatHasteService:
         payload = json.dumps(
             {
                 "operation": "great-haste",
-                "generation": (
-                    7
-                    if isinstance(command, NamedInitialStepCastGreatHaste)
-                    else 6
-                    if isinstance(command, InitialStepCastGreatHaste)
-                    else 4
-                    if isinstance(command, NamedStepCastGreatHaste)
-                    else 3
-                    if isinstance(command, NamedCastGreatHaste)
-                    else (5 if ritual_step else 2)
-                    if isinstance(command, StepCastGreatHaste)
-                    else 1
-                ),
+                "generation": _casting_generation(command, ritual_step=ritual_step),
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
             },
@@ -134,6 +140,8 @@ class GreatHasteService:
                     NamedStepCastGreatHaste,
                     InitialStepCastGreatHaste,
                     NamedInitialStepCastGreatHaste,
+                    OngoingStepCastGreatHaste,
+                    NamedOngoingStepCastGreatHaste,
                 ),
             ):
                 if not combat_casting:
@@ -155,6 +163,8 @@ class GreatHasteService:
                             NamedStepCastGreatHaste,
                             InitialStepCastGreatHaste,
                             NamedInitialStepCastGreatHaste,
+                            OngoingStepCastGreatHaste,
+                            NamedOngoingStepCastGreatHaste,
                         ),
                     )
                     and command.operation != "cancel"
