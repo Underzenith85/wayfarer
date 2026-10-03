@@ -9,8 +9,8 @@ from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
 from wayfarer.engine.simulation.combat.generations import (
     combat_generation,
     maneuver_budget_enabled,
-    secondary_object_blasts_enabled,
     preserve_grenade_fuse,
+    secondary_object_blasts_enabled,
 )
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.generations import ACTIVE, KEY, features
