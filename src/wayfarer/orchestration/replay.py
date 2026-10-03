@@ -15,7 +15,7 @@ from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORT
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
 )
-from wayfarer.engine.simulation.magic.great_haste_step_state import (
+from wayfarer.engine.simulation.magic.great_haste_named import (
     HOST_ADAPTER as GREAT_HASTE_ADAPTER,
 )
 from wayfarer.engine.simulation.magic.haste_host import ADAPTER as HASTE_ADAPTER

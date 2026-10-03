@@ -7,13 +7,19 @@ from wayfarer import validation
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.great_haste_host import apply_host
+from wayfarer.engine.simulation.magic.great_haste_named import HOST_ADAPTER as ADAPTER
+from wayfarer.engine.simulation.magic.great_haste_named import (
+    NamedCastGreatHaste,
+    NamedHostCommand,
+    cast_command,
+    named_cast,
+)
 from wayfarer.engine.simulation.magic.great_haste_state import (
     RECEIPT,
     CastGreatHaste,
     GreatHasteReceipt,
 )
-from wayfarer.engine.simulation.magic.great_haste_step_state import HOST_ADAPTER as ADAPTER
-from wayfarer.engine.simulation.magic.great_haste_step_state import HostCommand, StepCastGreatHaste
+from wayfarer.engine.simulation.magic.great_haste_step_state import StepCastGreatHaste
 from wayfarer.engine.simulation.magic.spells import PROFILE
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.great_haste_combat import cast_in_combat
@@ -39,7 +45,7 @@ class GreatHasteService:
     def plan(
         self,
         state: PlayState,
-        command: HostCommand,
+        command: NamedHostCommand,
         principal_id: str,
         *,
         combat_casting: bool = False,
@@ -48,7 +54,7 @@ class GreatHasteService:
             raise ValidationError("GreatHaste requires the exact Basic Set profile")
         member = member_for(state, principal_id)
         controls: tuple[Control, ...]
-        if isinstance(command, (CastGreatHaste, StepCastGreatHaste)):
+        if isinstance(command, (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste)):
             controls = (
                 (Controls(member, command.actor_id, state=state),)
                 if member.role == "player"
@@ -63,7 +69,13 @@ class GreatHasteService:
         payload = json.dumps(
             {
                 "operation": "great-haste",
-                "generation": 2 if isinstance(command, StepCastGreatHaste) else 1,
+                "generation": (
+                    3
+                    if isinstance(command, NamedCastGreatHaste)
+                    else 2
+                    if isinstance(command, StepCastGreatHaste)
+                    else 1
+                ),
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
             },
@@ -77,7 +89,22 @@ class GreatHasteService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = self.play._load(campaign)
-            if isinstance(command, StepCastGreatHaste):
+            if isinstance(command, NamedCastGreatHaste):
+                if not combat_casting:
+                    raise ValidationError("Named casting requires authenticated generation")
+                if not any(
+                    e.status == "active" and command.actor_id in e.turn_order
+                    for e in before.encounters
+                ):
+                    raise ValidationError("Named casting requires its active canonical encounter")
+                with named_cast(command):
+                    converted = cast_command(command)
+                    updated, result = (
+                        apply_host(self.play.rules_context, before, converted)
+                        if command.operation == "cancel"
+                        else cast_in_combat(self.play, before, converted)
+                    )
+            elif isinstance(command, StepCastGreatHaste):
                 if not combat_casting:
                     raise ValidationError("Selected Step requires authenticated casting generation")
                 updated, result = cast_with_step(self.play, before, command)
@@ -85,7 +112,9 @@ class GreatHasteService:
                 updated, result = (
                     cast_in_combat(self.play, before, command)
                     if combat_casting
-                    and isinstance(command, (CastGreatHaste, StepCastGreatHaste))
+                    and isinstance(
+                        command, (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste)
+                    )
                     and command.operation != "cancel"
                     and any(
                         e.status == "active" and command.actor_id in e.turn_order
