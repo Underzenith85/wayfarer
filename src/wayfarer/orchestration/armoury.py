@@ -41,6 +41,18 @@ from wayfarer.engine.simulation.equipment.repair_time import (
     SelectRepairTime,
 )
 from wayfarer.engine.simulation.equipment.repair_time_selection import select
+from wayfarer.engine.simulation.equipment.tool_context import (
+    OBSERVATION_PREFIX,
+    SELECTION_PREFIX,
+    DeclareRepairTools,
+    RepairToolObservation,
+    RepairToolSelection,
+    SelectRepairTools,
+)
+from wayfarer.engine.simulation.equipment.tool_context import (
+    declare as declare_tools,
+)
+from wayfarer.engine.simulation.equipment.tool_selection import select as select_tools
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
@@ -51,6 +63,8 @@ ArmouryCommand = (
     | SelectRepairTime
     | DeclareArmouryTraining
     | SelectRepairDefault
+    | DeclareRepairTools
+    | SelectRepairTools
 )
 ADAPTER: TypeAdapter[ArmouryCommand] = TypeAdapter(ArmouryCommand)
 ArmouryOutcome = (
@@ -59,6 +73,8 @@ ArmouryOutcome = (
     | RepairTimeSelection
     | ArmouryTraining
     | RepairDefaultSelection
+    | RepairToolObservation
+    | RepairToolSelection
 )
 
 
@@ -92,6 +108,16 @@ class ArmouryService:
     ) -> RepairDefaultSelection: ...
 
     @overload
+    async def execute(
+        self, cid: str, value: DeclareRepairTools, *, principal_id: str
+    ) -> RepairToolObservation: ...
+
+    @overload
+    async def execute(
+        self, cid: str, value: SelectRepairTools, *, principal_id: str
+    ) -> RepairToolSelection: ...
+
+    @overload
     async def execute(self, cid: str, value: object, *, principal_id: str) -> ArmouryOutcome: ...
 
     async def execute(self, cid: str, value: object, *, principal_id: str) -> ArmouryOutcome:
@@ -102,7 +128,11 @@ class ArmouryService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            if isinstance(command, DeclareArmouryTraining):
+            if isinstance(command, DeclareRepairTools):
+                updated, _ = declare_tools(play.rules_context, before, command)
+            elif isinstance(command, SelectRepairTools):
+                updated, _ = select_tools(play.rules_context, before, command)
+            elif isinstance(command, DeclareArmouryTraining):
                 updated, _ = declare_training(play.rules_context, before, command)
             elif isinstance(command, SelectRepairDefault):
                 updated, _ = select_default(play.rules_context, before, command)
@@ -123,7 +153,11 @@ class ArmouryService:
 
         async def outcome(campaign: Campaign) -> ArmouryOutcome:
             model = (
-                ArmouryTraining
+                RepairToolObservation
+                if isinstance(command, DeclareRepairTools)
+                else RepairToolSelection
+                if isinstance(command, SelectRepairTools)
+                else ArmouryTraining
                 if isinstance(command, DeclareArmouryTraining)
                 else RepairDefaultSelection
                 if isinstance(command, SelectRepairDefault)
@@ -134,7 +168,11 @@ class ArmouryService:
                 else ArmouryFamiliarity
             )
             prefix = (
-                TRAINING_PREFIX
+                OBSERVATION_PREFIX
+                if isinstance(command, DeclareRepairTools)
+                else SELECTION_PREFIX
+                if isinstance(command, SelectRepairTools)
+                else TRAINING_PREFIX
                 if isinstance(command, DeclareArmouryTraining)
                 else DEFAULT_PREFIX
                 if isinstance(command, SelectRepairDefault)
@@ -169,7 +207,10 @@ class ArmouryService:
             actor_id=principal_id,
             outcome=outcome,
             control=(Controls(member_for(initial, principal_id), command.actor_id, state=initial),)
-            if isinstance(command, (AssessRepairParts, SelectRepairTime, SelectRepairDefault))
+            if isinstance(
+                command,
+                (AssessRepairParts, SelectRepairTime, SelectRepairDefault, SelectRepairTools),
+            )
             else (Seats(initial), Trusted(play.engine.reviewer.gm_ids), ActsAs(command.actor_id)),
             rng=play.rng,
         )
