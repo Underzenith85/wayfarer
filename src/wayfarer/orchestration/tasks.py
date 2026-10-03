@@ -840,6 +840,7 @@ class TaskService:
                 if isinstance(
                     command,
                     (
+                        BeginOpponentAttack,
                         ChooseOpponentAttack,
                         PrepareOwnerDamage,
                         PrepareOpponentFragment,

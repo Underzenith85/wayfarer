@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.actors import build, level
 from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.generations import missile_interposition_enabled
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import (
@@ -129,7 +130,12 @@ def resolve(
     if attack_build.revision != effect.build_revision:
         raise ValidationError("Missile build changed")
     value = level(attack_build, "skill:innate-attack-projectile")
-    distance = CombatEngine.distance(attacker.position, defender.position)
+    aim_target = next(
+        p
+        for p in encounter.participants
+        if p.actor_id == (pending.protected_defender_id or pending.defender_id)
+    )
+    distance = CombatEngine.distance(attacker.position, aim_target.position)
     if distance > 50:
         raise ValidationError("Fireball exceeds its maximum range")
     hp = next(p for p in state.resources.pools if p.id == "hp:" + defender.actor_id)
@@ -170,13 +176,47 @@ def resolve(
     )
     if prepare_only:
         return spec
-    attack = selected_attack or spec.roll(runtime.rng)
+    attack = (
+        selected_attack
+        or (pending.attack_roll if missile_interposition_enabled() else None)
+        or spec.roll(runtime.rng)
+    )
+    if pending.protected_defender_id and attack.outcome is Outcome.CRITICAL_SUCCESS:
+        encounter = encounter.model_copy(
+            update={
+                "pending_defense": pending.model_copy(
+                    update={
+                        "defender_id": pending.protected_defender_id,
+                        "protected_defender_id": None,
+                        "attack_roll": attack,
+                    }
+                )
+            }
+        )
+        if prepare_damage:
+            return resolve(
+                runtime,
+                state,
+                encounter,
+                "none",
+                None,
+                None,
+                None,
+                selected_attack=attack,
+                prepare_damage=True,
+                secret_damage=secret_damage,
+            )
+        return resolve(runtime, state, encounter, "none", None, None, None, selected_attack=attack)
     defended = None
     second_roll = None
     hit = attack.outcome.succeeded
     if hit and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense is not None:
         defended = success_roll(PROFILE, int(defense.value), rng=runtime.rng)
-        hit = not defended.outcome.succeeded
+        hit = (
+            (defended.outcome.succeeded and not (pending.sacrificial_drop and defended.margin >= 3))
+            if pending.protected_defender_id
+            else not defended.outcome.succeeded
+        )
         if selected == "block":
             defender = defender.model_copy(update={"block_used": True})
         if hit and second is not None:
@@ -370,15 +410,21 @@ def finish_missile_damage(
             ),
             "events": resources.events
             + (
-                ResourceEvent(
-                    id=event_id(pending.id) + ":released",
-                    at=resources.game_time,
-                    target_id=inputs.attacker_id,
-                    kind=SpellEvent(
-                        effect=effect.model_copy(update={"phase": "ended"}),
-                        result=SpellResult(outcome="released"),
-                    ).model_dump_json(),
-                ),
+                ()
+                if pending.protected_defender_id
+                and inputs.defended is not None
+                and not inputs.defended.outcome.succeeded
+                else (
+                    ResourceEvent(
+                        id=event_id(pending.id) + ":released",
+                        at=resources.game_time,
+                        target_id=inputs.attacker_id,
+                        kind=SpellEvent(
+                            effect=effect.model_copy(update={"phase": "ended"}),
+                            result=SpellResult(outcome="released"),
+                        ).model_dump_json(),
+                    ),
+                )
             ),
         }
     )

@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
 from wayfarer.engine.simulation.combat.generations import (
     combat_generation,
     maneuver_budget_enabled,
+    missile_interposition_enabled,
     preserve_grenade_fuse,
     secondary_object_blasts_enabled,
 )
@@ -80,6 +81,7 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "acrobatic-trait-bonuses",
             "ground-dive-step",
             "secondary-object-blasts",
+            "missile-interposition",
         }
     )
 
@@ -93,3 +95,14 @@ def test_recorded_secondary_blast_generation_retains_isolated_replay_scope() -> 
             assert not secondary_object_blasts_enabled()
         assert secondary_object_blasts_enabled()
     assert not secondary_object_blasts_enabled()
+
+
+def test_recorded_missile_interposition_does_not_enable_other_features() -> None:
+    selected = features(recorded({"operation": "combat", KEY: ["missile-interposition"]}))
+    assert not missile_interposition_enabled()
+    with combat_generation(selected):
+        assert missile_interposition_enabled() and not secondary_object_blasts_enabled()
+        with combat_generation(frozenset()):
+            assert not missile_interposition_enabled()
+        assert missile_interposition_enabled()
+    assert not missile_interposition_enabled()

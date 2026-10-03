@@ -1,0 +1,9 @@
+# Sacrificial Dodge against a single Fireball
+
+Campaigns B375 permits a protector within a Step to interpose after the enemy's attack roll and before the friend's defense roll. B377 permits Sacrificial Dodge and Drop: both become prone; a successful margin of at least three avoids the attack entirely. Characters B249 supplies the existing single Fireball damage carrier.
+
+The private missile-interposition generation captures the actual missile attack at Release in the existing pending attack trace. Interposition then requires a successful noncritical attack. The protector rolls ordinary Dodge without retreat. Success redirects the existing missile injury to the protector using current DR and HP; failure preserves the same attack for the friend's normal defense. The held Fireball ends only when that attack settles, including after a failed protector's subsequent friend defense. Typed owner-damage preparation retains the caster as damage/Luck owner and refreshes the actual victim at settlement.
+
+Historical absent-generation releases retain the previous late attack roll and exact recorded command/dice behavior. No public schema changes are introduced. The existing requirement that the held source's caster build still matches its recorded build revision remains; this slice does not introduce a broader source snapshot. Aerial and swimming Dodge and Drop still lack authored destination/altitude carriers. Linked, electric, burst, area, other spell and object-target interpositions remain outside this single Fireball consumer; issue #878 remains open.
+
+Executable evidence is in test_sacrificial_fireball.py, test_sacrificial_fireball_atomicity.py, test_sacrificial_fireball_tasks.py and test_sacrificial_fireball_replay.py. The fixtures deliberately distinguish protector and friend HP, HT and armor, including changes after Release. Private rule PDFs and migration handoffs are not part of this deliverable.

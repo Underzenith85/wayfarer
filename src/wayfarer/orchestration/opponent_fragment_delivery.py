@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.combat.commands import COMBAT_ADAPTER, ChooseDef
 from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.generations import features
+from wayfarer.orchestration.opponent_attack_records import BeginOpponentAttack
 from wayfarer.orchestration.task_combat_generations import features as task_features
 from wayfarer.orchestration.task_combat_generations import producer as task_producer
 from wayfarer.persistence.command_inputs import replay_payload
@@ -104,6 +105,8 @@ def latest_delivery(history: list[CommandRecord], blast_id: str) -> FragmentDeli
                     "Grenade delivery lacks its trusted canonical task generation"
                 )
             task = task_producer(record)
+            if isinstance(task, BeginOpponentAttack):
+                raise ValidationError("Grenade task delivery requires its actual defense producer")
             if task.id != row.command_id or payload.get("principal_id") != row.actor_id:
                 raise ValidationError(
                     "Grenade task delivery differs from its accepted receipt identity"

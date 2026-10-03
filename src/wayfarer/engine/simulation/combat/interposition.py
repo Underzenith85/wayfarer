@@ -15,7 +15,9 @@ from wayfarer.engine.simulation.combat.encounter import (
     move_basic,
 )
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.generations import missile_interposition_enabled
 from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.missile_interposition import validate_fireball
 from wayfarer.engine.simulation.combat.spatial import SquareSpatialContext
 from wayfarer.engine.simulation.combat.tactical import move_hex, sight
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
@@ -174,6 +176,7 @@ def prepare_interposition(
         pending.target_item_id
         or pending.armor_chink
         or pending.spell_cast_id
+        and not missile_interposition_enabled()
         or pending.shield_rush
         or pending.spray_targets
         or pending.suppression_zone_id
@@ -182,7 +185,11 @@ def prepare_interposition(
         or pending.shots != 1
     ):
         raise ValidationError("This attack requires a specialized interposition consumer")
-    weapon = mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
+    if pending.spell_cast_id is not None:
+        validate_fireball(state, pending)
+        weapon = None
+    else:
+        weapon = mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
     if isinstance(weapon, RangedMode) and (
         (weapon.firearm is not None and weapon.firearm.action == "single-use")
         or weapon.sprayer

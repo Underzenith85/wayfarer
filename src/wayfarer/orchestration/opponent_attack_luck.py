@@ -8,6 +8,7 @@ from wayfarer.engine.simulation.traits.luck import (
     apply_luck,
     luck_cooldown,
 )
+from wayfarer.engine.simulation.traits.opponent_attack import CapturedOriginalDice
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.opponent_attack_records import (
     ChooseOpponentAttack,
@@ -43,6 +44,15 @@ def select_opponent_roll(
         update={"revision": state.revision, "game_time": state.resources.game_time}
     )
     original = pending.original
+    captured = (
+        pending.preparation.inventory_pending.attack_roll
+        if isinstance(pending, OpponentAttackPending)
+        and pending.preparation.route == "missile"
+        and pending.preparation.inventory_pending is not None
+        else None
+    )
+    if pending.secret:
+        original = original or captured
     receipt = None
     if command.choice == "use-luck":
         owner = approved(play, state, command.actor_id)
@@ -74,7 +84,9 @@ def select_opponent_roll(
             owner,
             definitions,
             real_time=clock.elapsed_seconds,
-            rng=play.rng,
+            rng=CapturedOriginalDice(captured, play.rng)
+            if pending.secret and captured is not None
+            else play.rng,
             authorized_actor_id=command.actor_id,
             system=True,
         )

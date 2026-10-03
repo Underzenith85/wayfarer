@@ -136,12 +136,13 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
         principal_id="b",
     )
     assert result.code == "combat.wait_triggered"
+    play.rng = RecordedDice([1, 2, 2])
     await service.execute(
         cid,
         start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 5}),
         principal_id="a",
     )
-    play.rng = RecordedDice([1, 2, 2, 4])
+    play.rng = RecordedDice([4])
     await combat.execute(
         cid,
         ChooseDefense(
@@ -330,12 +331,13 @@ async def test_fireball_body_criticals_execute_damage(
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
+    play.rng = RecordedDice([1, 1, 1])
     await service.execute(
         cid,
         start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 3}),
         principal_id="a",
     )
-    play.rng = RecordedDice([1, 1, 1] + table + ([] if sum(table) == 6 else [2]) + [3, 3, 3])
+    play.rng = RecordedDice(table + ([] if sum(table) == 6 else [2]) + [3, 3, 3])
     result = await combat.execute(
         cid,
         ChooseDefense(
@@ -372,6 +374,7 @@ async def test_fireball_aim_and_hit_location_use_persisted_ranged_state(
         principal_id="a",
     )
     await idle(cid, play, "b")
+    play.rng = RecordedDice([1, 1, 1])
     await service.execute(
         cid,
         start.model_copy(
@@ -387,7 +390,7 @@ async def test_fireball_aim_and_hit_location_use_persisted_ranged_state(
     saved = play._load(await play.store.read(cid))
     pending = saved.encounters[0].pending_defense
     assert pending and pending.spell_aim_bonus == 1 and pending.hit_location == "face"
-    play.rng = RecordedDice([1, 1, 1, 3, 3, 2, 4, 3, 3, 3])
+    play.rng = RecordedDice([3, 3, 2, 4, 3, 3, 3])
     result = await combat.execute(
         cid,
         ChooseDefense(

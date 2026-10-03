@@ -22,15 +22,24 @@ from wayfarer.engine.simulation.magic.spells import latest
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.inventory_damage_records import InventoryDamagePending
+from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.opponent_attack_records import ChooseOpponentAttack
 from wayfarer.orchestration.owner_damage_records import ChooseOwnerDamage, OwnerDamageOutcome
+from wayfarer.orchestration.pipeline import submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.orchestration.task_records import snapshot
 from wayfarer.orchestration.tasks import TaskService
 
 
-async def fixture(path: Path, backend: str, *, distance: int = 1) -> tuple[str, PlayService]:
+async def fixture(
+    path: Path,
+    backend: str,
+    *,
+    distance: int = 1,
+    attack: tuple[int, ...] = (1, 2, 2),
+    legacy_release: bool = False,
+) -> tuple[str, PlayService]:
     definition, purchase = luck_source()
     cid, original = await spell_setup(
         path / "source",
@@ -70,11 +79,25 @@ async def fixture(path: Path, backend: str, *, distance: int = 1) -> tuple[str, 
     start = spell_command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
     await SpellService(original).execute(cid, start, principal_id="a")
     await idle(cid, original, "b")
-    await SpellService(original).execute(
-        cid,
-        start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 3}),
-        principal_id="a",
-    )
+    release = start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 3})
+    original.rng = RecordedDice(() if legacy_release else attack)
+    if legacy_release:
+        state = original._load(await original.store.read(cid))
+        await submit(
+            original,
+            cid,
+            SpellService(original).plan(
+                original,
+                member_for(state, "a"),
+                release,
+                principal_id="a",
+                missile_attack=False,
+                state=state,
+            ),
+            principal_id="a",
+        )
+    else:
+        await SpellService(original).execute(cid, release, principal_id="a")
     return cid, await enroll(path, backend, cid, original)
 
 
@@ -84,7 +107,7 @@ async def test_selected_fireball_damage_changes_real_hp_and_ends_paid_spell_once
     tmp_path: Path, backend: str, secret: bool
 ) -> None:
     cid, play = await fixture(tmp_path, backend)
-    play.rng = RecordedDice((1, 2, 2) + (() if secret else (1,)))
+    play.rng = RecordedDice(() if secret else (1,))
     opening, shown = await begin(play, cid, secret=secret, principal="gm" if secret else "b")
     state = play._load(await play.store.read(cid))
     pending = snapshot(state).pending
@@ -149,7 +172,7 @@ async def test_captured_spell_source_survives_revoked_approval_through_both_phas
     tmp_path: Path, backend: str
 ) -> None:
     cid, play = await fixture(tmp_path, backend)
-    play.rng = RecordedDice((1, 2, 2))
+    play.rng = RecordedDice(())
     _, original = await begin_attack(play, cid, prepare_owner_damage=True)
     assert original.pending_id
     await revoke_attacker(play, cid)
@@ -205,7 +228,7 @@ async def test_missile_candidate_rollback_keeps_held_source_and_selected_injury_
     from test_gadgeteer_gizmos_persistence import FailingCommitPlay
 
     cid, play = await fixture(tmp_path, backend)
-    play.rng = RecordedDice((1, 2, 2, 1))
+    play.rng = RecordedDice((1,))
     await begin(play, cid, principal="b")
     before = await play.store.read(cid)
     state = play._load(before)
@@ -286,7 +309,7 @@ async def test_changed_held_spell_refuses_before_luck_entropy_or_spending(
     from wayfarer.engine.simulation.resources import ResourceEvent
 
     cid, play = await fixture(tmp_path, backend)
-    play.rng = RecordedDice((1, 2, 2, 1))
+    play.rng = RecordedDice((1,))
     await begin(play, cid, principal="b")
 
     def changed_energy(state: PlayState) -> PlayState:
@@ -337,7 +360,7 @@ async def test_competing_missile_choices_end_and_injure_once(
     import asyncio
 
     cid, play = await fixture(tmp_path, backend)
-    play.rng = RecordedDice((1, 2, 2, 1))
+    play.rng = RecordedDice((1,))
     await begin(play, cid, principal="b")
     state = play._load(await play.store.read(cid))
     pending = snapshot(state).pending
@@ -389,8 +412,8 @@ async def test_competing_missile_choices_end_and_injure_once(
 async def test_b247_range_and_b378_floor_are_independent_selected_damage_oracles(
     tmp_path: Path, distance: int, selected: int, expected: int
 ) -> None:
-    cid, play = await fixture(tmp_path, "sqlite", distance=distance)
-    play.rng = RecordedDice((2, 2, 2, 1))
+    cid, play = await fixture(tmp_path, "sqlite", distance=distance, attack=(2, 2, 2))
+    play.rng = RecordedDice((1,))
     await begin(play, cid, principal="b")
     state = play._load(await play.store.read(cid))
     pending = snapshot(state).pending
@@ -420,8 +443,10 @@ async def test_b247_range_and_b378_floor_are_independent_selected_damage_oracles
 
 
 async def test_ordinary_fireball_retains_historical_half_range_generation(tmp_path: Path) -> None:
-    cid, play = await fixture(tmp_path, "sqlite", distance=25)
+    cid, play = await fixture(tmp_path, "sqlite", distance=25, legacy_release=True)
     state = play._load(await play.store.read(cid))
+    pending = state.encounters[0].pending_defense
+    assert pending is not None and pending.attack_roll is None
     play.rng = RecordedDice((2, 2, 2, 5))
     result = await CombatService(play).execute(
         cid,

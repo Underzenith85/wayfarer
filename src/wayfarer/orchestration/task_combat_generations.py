@@ -7,7 +7,7 @@ from pydantic import ValidationError as SchemaError
 from wayfarer import validation
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.opponent_attack_records import ChooseOpponentAttack
+from wayfarer.orchestration.opponent_attack_records import BeginOpponentAttack, ChooseOpponentAttack
 from wayfarer.orchestration.opponent_fragment_records import (
     AmendFragmentResponses,
     ChooseOpponentFragment,
@@ -20,7 +20,8 @@ from wayfarer.persistence.command_inputs import combat_intent, intent_input, rep
 from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "task_combat_protocol_features"
-ACTIVE = frozenset({"grenade-fuse"})
+ACTIVE = frozenset({"grenade-fuse", "missile-interposition"})
+BEGIN_ACTIVE = frozenset({"missile-interposition"})
 FRAGMENT_ACTIVE = frozenset({"ground-dive-step", "secondary-object-blasts"})
 FRAGMENT_MODELS = (PrepareOpponentFragment, ChooseOpponentFragment, AmendFragmentResponses)
 
@@ -48,12 +49,15 @@ def fragment_producer(payload: dict[str, object]) -> None:
 
 
 def applicable(command: object) -> bool:
-    return isinstance(command, (ChooseOpponentAttack, PrepareOwnerDamage)) and isinstance(
-        command.response, ChooseDefense
+    return isinstance(command, BeginOpponentAttack) or (
+        isinstance(command, (ChooseOpponentAttack, PrepareOwnerDamage))
+        and isinstance(command.response, ChooseDefense)
     )
 
 
-def producer(record: CommandInput) -> ChooseOpponentAttack | PrepareOwnerDamage:
+def producer(
+    record: CommandInput,
+) -> BeginOpponentAttack | ChooseOpponentAttack | PrepareOwnerDamage:
     if record.text is None or payload_digest({"input": record.text}) != record.payload_hash:
         raise ValidationError("Recorded task combat input does not match its digest")
     payload = validation.mapping(replay_payload(record.text))
@@ -62,7 +66,9 @@ def producer(record: CommandInput) -> ChooseOpponentAttack | PrepareOwnerDamage:
     try:
         raw = validation.mapping(payload.get("command"))
         model = (
-            PrepareOwnerDamage
+            BeginOpponentAttack
+            if raw.get("kind") == "begin-opponent-attack"
+            else PrepareOwnerDamage
             if raw.get("kind") == "prepare-owner-damage"
             else ChooseOpponentAttack
         )
@@ -106,7 +112,13 @@ async def capture(store: Store, cid: str, command: object, command_id: str) -> f
         else await store.command_input(cid, command_id)
     )
     selected = (
-        (FRAGMENT_ACTIVE if fragment_applicable(command) else ACTIVE)
+        (
+            FRAGMENT_ACTIVE
+            if fragment_applicable(command)
+            else BEGIN_ACTIVE
+            if isinstance(command, BeginOpponentAttack)
+            else ACTIVE
+        )
         if record is None and (applicable(command) or fragment_applicable(command))
         else features(record)
         if record

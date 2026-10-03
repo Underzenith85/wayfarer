@@ -15,6 +15,7 @@ KNOWN = frozenset(
         "acrobatic-trait-bonuses",
         "ground-dive-step",
         "secondary-object-blasts",
+        "missile-interposition",
     }
 )
 ACTIVE = KNOWN

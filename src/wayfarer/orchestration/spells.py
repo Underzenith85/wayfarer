@@ -5,6 +5,7 @@ import json
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.combat.generations import combat_generation
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.casting_targeting import awaken_checks
 from wayfarer.engine.simulation.magic.spell_transitions import RuntimeSpellResolver
@@ -103,6 +104,7 @@ class SpellService:
         check_symptoms: bool = True,
         item_sight: bool = True,
         area_targeting: bool = True,
+        missile_attack: bool = True,
         state: PlayState | None = None,
     ) -> CommandPlan[SpellResult]:
         """What a spell lifecycle command writes; the pipeline decides whether it runs.
@@ -127,6 +129,7 @@ class SpellService:
                 **({"check_generation": 1} if check_symptoms else {}),
                 **({"item_sight_generation": 1} if item_sight else {}),
                 **({"area_targeting_generation": 1} if area_targeting else {}),
+                **({"missile_attack_generation": 1} if missile_attack else {}),
             },
             sort_keys=True,
         )
@@ -156,7 +159,10 @@ class SpellService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            updated, result = reduce_spell(before, command, execution)
+            with combat_generation(
+                frozenset({"missile-interposition"}) if missile_attack else frozenset()
+            ):
+                updated, result = reduce_spell(before, command, execution)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             result = _recorded_spell_result(updated, command)
@@ -205,6 +211,7 @@ class SpellService:
                 check_symptoms=generations.check_symptoms,
                 item_sight=generations.item_sight,
                 area_targeting=generations.area_targeting,
+                missile_attack=generations.missile_attack,
                 state=state,
             ),
             principal_id=principal_id,
