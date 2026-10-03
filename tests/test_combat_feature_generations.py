@@ -79,6 +79,7 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "grenade-fuse",
             "maneuver-budget",
             "acrobatic-trait-bonuses",
+            "acrobatic-reaction-attributes",
             "ground-dive-step",
             "secondary-object-blasts",
             "missile-interposition",

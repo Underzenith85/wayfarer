@@ -7,6 +7,7 @@ from wayfarer.engine.simulation.combat.acrobatic_bonuses import modifiers
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.generations import acrobatic_reaction_attributes_enabled
 from wayfarer.engine.simulation.combat.incoming import incoming_ranged
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
@@ -60,7 +61,12 @@ def prepare_options(
             raise ValidationError("Dodge and Drop requires a standing or kneeling ranged defender")
         if pending is None or not incoming_ranged(runtime, state, encounter, pending):
             raise ValidationError("Dodge and Drop is only effective against ranged attacks")
-    compiled = build(runtime, state, target.actor_id)
+    compiled = build(
+        runtime,
+        state,
+        target.actor_id,
+        defensive=command.acrobatic_dodge and acrobatic_reaction_attributes_enabled(),
+    )
     if command.acrobatic_dodge:
         if target.acrobatic_dodge_trace is not None:
             raise ValidationError("Acrobatic Dodge was already attempted this turn")

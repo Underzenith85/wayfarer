@@ -10532,7 +10532,10 @@
         "tests/test_sacrificial_fireball_atomicity.py",
         "tests/test_sacrificial_fireball_replay.py",
         "tests/test_sacrificial_fireball_secret.py",
-        "tests/test_sacrificial_fireball_tasks.py"
+        "tests/test_sacrificial_fireball_tasks.py",
+        "docs/gurps-acrobatic-reaction-attributes.md",
+        "tests/test_acrobatic_reaction_attributes.py",
+        "tests/test_acrobatic_reaction_replay.py"
       ],
       "historical_owners": [
         191,
