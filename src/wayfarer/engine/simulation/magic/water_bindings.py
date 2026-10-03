@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.magic.binding_context import approved_context as
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellContext
 from wayfarer.engine.simulation.magic.water_discovery import known_sources
 from wayfarer.engine.simulation.magic.water_effects import WaterPlan, validate_operation
+from wayfarer.engine.simulation.magic.water_mist import require_scene
 from wayfarer.engine.simulation.magic.water_state import latest, validate_body
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -56,6 +57,13 @@ def validate_channel(
         raise ValidationError("Water combat placement requires its concrete spatial adapter")
     validate_operation(state.resources, channel.plan)
     bodies = latest(state.resources)
+    if channel.plan.mist_scene_id is not None:
+        admission = require_scene(state, channel.plan.mist_scene_id, channel.location_id)
+        position = next(
+            p.point for p in admission.scene.positions if p.entity_id == channel.plan.target_id
+        )
+        if position != bodies[channel.plan.target_id].position:
+            raise ValidationError("Mist receiver does not occupy its admitted scene position")
     if channel.plan.spell_id == "seek-water":
         known = {e.id for e in state.world.perspective(channel.actor_id).entities} | known_sources(
             state.resources, channel.actor_id
