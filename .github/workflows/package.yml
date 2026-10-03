@@ -39,7 +39,153 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.11.33'
+          python-version: '3.14'
+      - run: uv lock --check
+      - run: uv sync --frozen
+      - name: Collect complete suite and balance module shards
+        run: uv run --frozen python -m scripts.plan_ci_shards --output manifest.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: shard-manifest
+          path: manifest.json
+          if-no-files-found: error
+  tests:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: wayfarer
+          POSTGRES_PASSWORD: wayfarer
+          POSTGRES_DB: wayfarer_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wayfarer -d wayfarer_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      WAYFARER_TEST_DATABASE_URL: postgresql://wayfarer:wayfarer@127.0.0.1:5432/wayfarer_test
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.11.33'
+          python-version: '3.14'
+      - run: uv lock --check
+      - run: uv sync --frozen
+      - uses: actions/download-artifact@v8
+        with:
+          name: shard-manifest
+      - name: Run assigned full-suite partition and record execution
+        run: uv run --frozen python -m scripts.run_ci_shard manifest.json ${{ matrix.shard }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: shard-${{ matrix.shard }}
+          path: artifacts/
+          include-hidden-files: true
+          if-no-files-found: error
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: wayfarer
+          POSTGRES_PASSWORD: wayfarer
+          POSTGRES_DB: wayfarer_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wayfarer -d wayfarer_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      WAYFARER_TEST_DATABASE_URL: postgresql://wayfarer:wayfarer@127.0.0.1:5432/wayfarer_test
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.11.33'
+          python-version: '3.14'
+      - run: uv lock --check
+      - run: uv sync --frozen
+      - run: uv run --frozen ruff check .
+      - run: uv run --frozen ruff format --check .
+      - run: uv run --frozen mypy
+      - run: uv run --frozen python scripts/check_no_any.py
+      - run: uv run --frozen python scripts/check_quality_gates.py
+      - run: uv run --frozen python scripts/audit_gurps_sources.py > /tmp/gurps-source-audit.json
+      - run: uv run --frozen python scripts/audit_gurps_equipment.py > /tmp/gurps-equipment-audit.json
+      - run: uv run --frozen python scripts/validate_contracts.py
+      - run: uv run --frozen python -m scripts.validate_live_contracts
+  feedback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: wayfarer
+          POSTGRES_PASSWORD: wayfarer
+          POSTGRES_DB: wayfarer_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wayfarer -d wayfarer_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      WAYFARER_TEST_DATABASE_URL: postgresql://wayfarer:wayfarer@127.0.0.1:5432/wayfarer_test
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.11.33'
+          python-version: '3.14'
+      - run: uv lock --check
+      - run: uv sync --frozen
+      - name: Additive early feedback or await full suite
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: uv run --frozen python -m scripts.run_ci_feedback --base "$BASE_SHA"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: selected-test-feedback
+          path: feedback-artifacts/
+          if-no-files-found: error
   package:
+    needs: [plan, tests, quality, feedback]
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 90
     services:
@@ -62,23 +208,33 @@ jobs:
       matrix:
         python: ["3.14"]
     steps:
+      - name: Require every full-suite shard
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          TEST_RESULT: ${{ needs.tests.result }}
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          FEEDBACK_RESULT: ${{ needs.feedback.result }}
+        run: test "$PLAN_RESULT" = success && test "$TEST_RESULT" = success && test "$QUALITY_RESULT" = success && test "$FEEDBACK_RESULT" = success
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: astral-sh/setup-uv@v7
         with:
           version: '0.11.33'
           python-version: ${{ matrix.python }}
       - run: uv lock --check
       - run: uv sync --frozen
-      - run: uv run --frozen ruff check .
-      - run: uv run --frozen ruff format --check .
-      - run: uv run --frozen mypy
-      - run: uv run --frozen python scripts/check_no_any.py
-      - run: uv run --frozen python scripts/check_quality_gates.py
-      - run: uv run --frozen python scripts/audit_gurps_sources.py > /tmp/gurps-source-audit.json
-      - run: uv run --frozen python scripts/audit_gurps_equipment.py > /tmp/gurps-equipment-audit.json
-      - run: uv run --frozen python scripts/validate_contracts.py
-      - run: uv run --frozen python -m scripts.validate_live_contracts
-      - run: uv run --frozen pytest --junitxml=artifacts/pytest.xml --cov-report=xml:artifacts/coverage.xml --cov-report=term-missing
+      - uses: actions/download-artifact@v8
+        with:
+          name: shard-manifest
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: shard-[0-3]
+          path: shard-inputs/
+          merge-multiple: false
+      - name: Verify complete evidence and aggregate original branch coverage
+        run: |
+          uv run --frozen python -m scripts.aggregate_ci_shards manifest.json shard-inputs artifacts
       - name: Publish Basic Set execution accounting
         if: always()
         run: uv run --frozen python scripts/certify_gurps_basic_set.py --execution-report artifacts/pytest.xml --output artifacts/release/gurps-basic-set.json ${{ inputs.require-basic-set-certification && '--require-certified' || '--report-only' }}
@@ -90,6 +246,7 @@ jobs:
         with:
           name: engine-release-evidence
           path: artifacts/
+          include-hidden-files: true
           if-no-files-found: error
       - run: uv build
       - name: Install wheel into a separate environment
