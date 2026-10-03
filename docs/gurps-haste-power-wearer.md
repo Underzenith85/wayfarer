@@ -87,6 +87,8 @@ Open boundaries remain explicit: optional high-Magery levels above three; charge
 into locations without authored mana evidence; spell-specific backfire reversal,
 Counterspell/Dispel Magic; manufacture through a private Haste recipe; and other
 movement modes beyond the existing walking consumer. Apportation and Great Haste
-remain under #797. Other wearer spell families, outward zero-cost interpretations,
+have merged baseline consumers; see `gurps-haste-construction-acceptance.md` for
+the written #797 case map and [the remaining Movement host carriers (#980)](https://github.com/Underzenith85/wayfarer/issues/980) for additional Movement carriers.
+Other wearer spell families, outward zero-cost interpretations,
 duplicate Power composition and the remaining enchanting contracts remain under
 #785. This is not whole-college or whole-issue certification.

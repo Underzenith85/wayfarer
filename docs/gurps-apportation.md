@@ -1,9 +1,10 @@
 # Apportation: private world movement
 
 This bounded #797 implementation is reviewed against the supplied Basic Set
-Characters third printing B236, B239 and B251. It does not complete #797; Great
-Haste and additional Apportation routes remain open. Private PDFs and source prose
-are excluded.
+Characters third printing B236, B239 and B251. The admitted Apportation, Haste
+and Great Haste baseline evidence is mapped in
+`gurps-haste-construction-acceptance.md`; additional Apportation host carriers
+remain unverified under [the remaining Movement host carriers (#980)](https://github.com/Underzenith85/wayfarer/issues/980). Private PDFs and source prose are excluded.
 
 Apportation is IQ/Hard, requires Magery 1 and lasts one minute. Listed casting
 time defaults to one second. It levitates its subject at Move 1 and cannot damage

@@ -1,7 +1,7 @@
 # Actor-relative Great Haste combat casting
 
-This isolated lane starts at `8f31e5c91b99507148795c95819c42330eb4bc1f`.
-It does not change the published Great Haste candidate or close issue #797.
+This document describes the merged private Great Haste combat-casting consumer.
+See `gurps-haste-construction-acceptance.md` for the written #797 baseline case map.
 
 ## Source contract
 
@@ -57,16 +57,20 @@ outside-combat execution without the new private generation.
   completion, using real completion time for the ten-second expiry. Reject
   unsupported overlap and mid-turn activation rather than minting opportunities.
 
-Current combat admission requires a known, currently visible nonself subject,
-including the configured hex board line of sight. Daze, due explosions, pending
+Stationary generation 1 and selected before-Step generation 2 require a known,
+currently visible nonself subject, including the configured hex board line of sight. Daze, due explosions, pending
 responses and ordinary recovery guards reject before casting consumes an
 opportunity. Cast approval and current range are checked again at completion.
-Self activation during combat, unseen subjects, and general
-subjective timing for other spells remain unsupported. Selected before-Step casting
+Generation 3 additionally supports an explicitly known canonical named subject,
+including unseen subjects with the Regular-spell penalty and current range; see
+`gurps-great-haste-named-subject.md`. Self activation during combat remains
+unverified. General subjective timing for other spells remains separate.
+Selected before-Step casting
 has a separate private generation and canonical staged Wait path; see
 `gurps-great-haste-step.md` for its exact bounded admission. The external clock
 negative uses the canonical domain clock under the store lock; it does not claim
 a public Wait sequence or seeded replay of a custom fixture command.
 
-The isolated implementation does not close the whole issue #797 contract.
-Public spell IDs, public command schemas and historical spell events stay closed.
+The remaining Great Haste carrier combinations and unresolved self timing are
+tracked in [the remaining Movement host carriers (#980)](https://github.com/Underzenith85/wayfarer/issues/980). Public spell IDs, public command schemas and historical
+spell events stay closed.
