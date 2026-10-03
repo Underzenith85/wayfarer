@@ -167,7 +167,7 @@ def combat_intent(text: str) -> str:
                 if fragment
                 else {"missile-interposition"}
                 if begin
-                else {"grenade-fuse", "missile-interposition"}
+                else {"grenade-fuse", "missile-interposition", "acrobatic-reaction-attributes"}
             )
             or text != canonical(payload)
         ):
@@ -186,6 +186,7 @@ def combat_intent(text: str) -> str:
             "grenade-fuse",
             "maneuver-budget",
             "acrobatic-trait-bonuses",
+            "acrobatic-reaction-attributes",
             "ground-dive-step",
             "secondary-object-blasts",
             "missile-interposition",

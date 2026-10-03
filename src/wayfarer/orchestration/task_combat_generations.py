@@ -20,7 +20,7 @@ from wayfarer.persistence.command_inputs import combat_intent, intent_input, rep
 from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "task_combat_protocol_features"
-ACTIVE = frozenset({"grenade-fuse", "missile-interposition"})
+ACTIVE = frozenset({"grenade-fuse", "missile-interposition", "acrobatic-reaction-attributes"})
 BEGIN_ACTIVE = frozenset({"missile-interposition"})
 FRAGMENT_ACTIVE = frozenset({"ground-dive-step", "secondary-object-blasts"})
 FRAGMENT_MODELS = (PrepareOpponentFragment, ChooseOpponentFragment, AmendFragmentResponses)
