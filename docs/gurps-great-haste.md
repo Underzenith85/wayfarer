@@ -1,8 +1,9 @@
 # Great Haste and actor-relative maneuver opportunities
 
 The private implementation is reviewed against Basic Set Characters B251 and B38.
-Private rules files and printed source prose are excluded. Issue #797 includes
-other movement spells and is not closed by a bounded Great Haste slice.
+Private rules files and printed source prose are excluded. The written #797
+baseline evidence is mapped in `gurps-haste-construction-acceptance.md`; unverified
+Movement carrier extensions are tracked in [the remaining Movement host carriers (#980)](https://github.com/Underzenith85/wayfarer/issues/980).
 
 Great Haste is Regular and IQ/Very Hard. It requires Magery 1, IQ 12 and Haste;
 listed casting energy is 5, casting time three seconds and duration ten seconds.
@@ -43,10 +44,14 @@ turn-end processing runs at the first and last opportunities respectively.
 
 ## Spell-host boundary
 
-The initial private spell host casts outside an active encounter containing
-caster or subject. Its paid effect can then provide real extra maneuvers after
-StartEncounter. The host derives skill, prerequisites and payment from approved
-pinned builds, and uses trusted immutable actor/location/range/mana channels.
+The original private spell host casts outside an active encounter containing
+caster or subject, and its paid effect provides extra maneuvers after
+StartEncounter. Authenticated later generations also cast during an active
+encounter through real Concentrate opportunities, selected before-Step/Wait
+settlement, or explicitly known named-subject targeting. Their exact boundaries
+are described in `gurps-subjective-casting-plan.md`, `gurps-great-haste-step.md`
+and `gurps-great-haste-named-subject.md`. The host derives skill, prerequisites
+and payment from approved pinned builds, and uses trusted immutable actor/location/range/mana channels.
 Cancellation of an accepted cast remains available without reauthoring target
 facts. End fatigue uses an immutable activation witness and an idempotent end
 record, so ordinary expiry, cancellation, restart and exact retries can settle
@@ -63,9 +68,11 @@ remains, the canonical combat settlement ends the real turn once. The outer
 command retains one state/resource revision even when end fatigue also settles.
 Clock checkpoints visit the exact ten-second expiry before advancing further.
 
-Casting Great Haste during an active encounter needs a further shared spell
-concentration adapter. Existing spell completion requires real-clock casting
-seconds; merely allowing a second Concentrate maneuver does not implement its
-spell timing. Mid-turn activation and external clock advancement during pending
-attack settlement also need an explicit opportunity policy before widening the
-host. These boundaries remain open acceptance work rather than inferred rules.
+The combat casting adapter fulfills consecutive subjective Concentrate maneuvers
+without changing canonical game time; the final maneuver checks current approval,
+range and eligibility before dice and payment. Historical inputs retain their
+captured outside-only or earlier admission. Great Haste self mid-turn activation,
+combined named/Step casting, split/after casting Steps and cross-encounter targets
+remain unverified under [the remaining Movement host carriers (#980)](https://github.com/Underzenith85/wayfarer/issues/980). External clock advancement cannot skip
+unresolved pending-response deadlines. General subjective casting for other
+spells is a separate contract; the implemented Great Haste adapter does not widen it.

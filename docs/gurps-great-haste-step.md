@@ -48,5 +48,6 @@ pause and resume reexecution, terrain rollback, generation pairing and private
 ledger admission. Adversarial witness cases use deliberately changed store
 fixtures to verify refusal to acknowledge mismatched state; they do not claim a
 public way to author those private records. Existing casting and ordinary
-unarmed Wait/concentration tests protect historical behavior. Issue #797 remains
-open for its full remaining contract.
+unarmed Wait/concentration tests protect historical behavior. Split/after Steps
+and named-plus-Step combinations remain unverified under [the remaining Movement host carriers (#980)](https://github.com/Underzenith85/wayfarer/issues/980). See
+`gurps-haste-construction-acceptance.md` for the written #797 baseline case map.
