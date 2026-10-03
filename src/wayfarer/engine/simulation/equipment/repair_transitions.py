@@ -10,7 +10,7 @@ from wayfarer.engine.rules.skills.technology_level import technology_level_penal
 from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
-from wayfarer.engine.simulation.equipment import repair_time
+from wayfarer.engine.simulation.equipment import repair_time, tool_context
 from wayfarer.engine.simulation.equipment.armoury_context import repair_familiarity_modifier
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.repair_default_resolver import current as default_current
@@ -197,16 +197,34 @@ def repair(
             item=item,
             entry=entry,
             start_command_id=preview_context_id or command_id,
-            required=preview_context_id is not None,
+            required=preview_context_id is not None
+            and tool_context.selected(resources, preview_context_id) is None,
         )
         procedure_id, effect = _repair_binding(
             entry, profile.repair_skill_id, default_plan is not None
+        )
+        skill, skill_tl, equipment_tl, tl_penalty = _repair_skill(
+            build(runtime, state, actor_id),
+            profile.repair_skill_id,
+            entry,
+            procedure_id is not None,
+            default_plan,
+        )
+        tool_plan = tool_context.current(
+            runtime,
+            state,
+            actor_id,
+            item,
+            entry,
+            preview_context_id or command_id,
+            repair_training_tl=skill_tl,
         )
         tool = next(
             (
                 i
                 for i in resources.items
-                if i.owner_id == actor_id
+                if (tool_plan is None or i.id == tool_plan.observation.tool_id)
+                and i.owner_id == actor_id
                 and not i.ground
                 and available_here(state, actor_id, i)
                 and i.definition_id == profile.repair_tools_definition
@@ -216,18 +234,13 @@ def repair(
         )
         if tool is None:
             raise ValidationError("The required repair equipment is unavailable")
-        skill, skill_tl, equipment_tl, tl_penalty = _repair_skill(
-            build(runtime, state, actor_id),
-            profile.repair_skill_id,
-            entry,
-            procedure_id is not None,
-            default_plan,
-        )
         tool_entry = next(
             e for e in catalog(runtime).entries if e.definition_id == tool.definition_id
         )
-        skill += _repair_difficulty(entry, item.condition.hp) + _tool_modifier(
-            tool_entry, profile.repair_skill_id
+        skill += _repair_difficulty(entry, item.condition.hp) + (
+            tool_plan.observation.modifier
+            if tool_plan
+            else _tool_modifier(tool_entry, profile.repair_skill_id)
         )
         skill += repair_familiarity_modifier(
             state, actor_id, item.definition_id, profile.repair_skill_id, procedure_id
@@ -291,6 +304,7 @@ def repair(
         finish_current(
             resources, actor_id=actor_id, item=item, entry=entry, start_command_id=task.id
         )
+        tool_context.current(runtime, state, actor_id, item, entry, task.id, starting=False)
         revalidate_assessed_parts(
             runtime, state, actor_id=actor_id, item=item, entry=entry, parts_die=task.parts_die
         )
