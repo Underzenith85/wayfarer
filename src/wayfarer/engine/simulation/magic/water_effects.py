@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.magic.water_complete_source import (
 )
 from wayfarer.engine.simulation.magic.water_mist_state import MistMaterial
 from wayfarer.engine.simulation.magic.water_mist_state import record as record_mist
+from wayfarer.engine.simulation.magic.water_parcels import drain, protect_material, selected
 from wayfarer.engine.simulation.magic.water_purification import receiving_mixture
 from wayfarer.engine.simulation.magic.water_state import WaterBody, latest, save
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
@@ -50,6 +51,8 @@ class WaterPlan(Record):
     purify_entire_source: bool = Field(default=False, exclude_if=lambda value: not value)
     mist_scene_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
+    parcel_flow_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+
     @model_validator(mode="after")
     def unique_sources(self) -> WaterPlan:
         if len(set(self.excluded_source_ids)) != len(self.excluded_source_ids):
@@ -64,6 +67,10 @@ class WaterPlan(Record):
             self.spell_id != "create-water" or self.gallons != 1 or self.allow_receiver_mixing
         ):
             raise ValueError("Mist supports exactly one gallon of Create Water")
+        if self.parcel_flow_id is not None and (
+            self.spell_id != "purify-water" or self.purify_entire_source
+        ):
+            raise ValueError("Separate-container flow is limited to partial Purify Water")
         return self
 
 
@@ -111,6 +118,21 @@ def parameters(state: ResourceState, plan: WaterPlan) -> tuple[int, int, int]:
 
 
 def validate_operation(state: ResourceState, plan: WaterPlan) -> None:
+    protect_material(
+        state,
+        plan.parcel_flow_id,
+        ()
+        if plan.spell_id == "seek-water"
+        else (plan.source_id, plan.target_id, *plan.destroyed_ids),
+    )
+    selected(
+        state,
+        plan.parcel_flow_id,
+        plan.source_id,
+        plan.target_id,
+        plan.gallons,
+        plan.seconds_per_gallon,
+    )
     bodies = latest(state)
     if plan.spell_id == "seek-water":
         if any(source not in bodies for source in plan.excluded_source_ids):
@@ -229,11 +251,26 @@ def apply(state: ResourceState, plan: WaterPlan, actor_id: str, command_id: str)
         source = bodies[plan.source_id or ""]
         # This boundary permits unmixed pure or impure sources; a mixed source
         # requires an authored flow composition rather than inventing an order.
-        if source.pure_gallons not in (0, source.gallons) and not plan.purify_entire_source:
+        if (
+            source.pure_gallons not in (0, source.gallons)
+            and not plan.purify_entire_source
+            and plan.parcel_flow_id is None
+        ):
             raise ValidationError("Mixed source requires an authored flow composition")
+        state, measured = drain(
+            state,
+            plan.parcel_flow_id,
+            source,
+            plan.target_id,
+            plan.gallons,
+            plan.seconds_per_gallon,
+            command_id,
+        )
         state = save(
             state,
-            emptied_source(source, plan.gallons)
+            measured
+            if measured is not None
+            else emptied_source(source, plan.gallons)
             if plan.purify_entire_source
             else source.model_copy(
                 update={

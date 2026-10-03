@@ -12,6 +12,7 @@ from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCo
 from wayfarer.engine.simulation.magic.water_discovery import known_sources
 from wayfarer.engine.simulation.magic.water_effects import WaterPlan, validate_operation
 from wayfarer.engine.simulation.magic.water_mist import require_scene
+from wayfarer.engine.simulation.magic.water_parcels import require_current
 from wayfarer.engine.simulation.magic.water_state import latest, validate_body
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -55,6 +56,7 @@ def validate_channel(
         raise ValidationError("Water channel distance cannot be negative")
     if any(e.status == "active" and channel.actor_id in e.turn_order for e in state.encounters):
         raise ValidationError("Water combat placement requires its concrete spatial adapter")
+    require_current(state.world, state.resources, channel.plan.parcel_flow_id, channel.actor_id)
     validate_operation(state.resources, channel.plan)
     bodies = latest(state.resources)
     if channel.plan.mist_scene_id is not None:
