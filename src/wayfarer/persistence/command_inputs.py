@@ -141,17 +141,26 @@ def combat_intent(text: str) -> str:
         raw_task = payload[task_key]
         command = payload.get("command")
         response = command.get("response") if isinstance(command, dict) else None
+        fragment = isinstance(command, dict) and command.get("kind") in (
+            "prepare-opponent-fragment",
+            "choose-opponent-fragment",
+            "amend-fragment-responses",
+        )
+        defense = (
+            isinstance(command, dict)
+            and command.get("kind") in ("choose-opponent-attack", "prepare-owner-damage")
+            and isinstance(response, dict)
+            and response.get("kind") == "choose_defense"
+        )
         if (
             key in payload
             or payload.get("operation") != "task-host"
             or not isinstance(command, dict)
-            or command.get("kind") not in ("choose-opponent-attack", "prepare-owner-damage")
-            or not isinstance(response, dict)
-            or response.get("kind") != "choose_defense"
+            or not (fragment or defense)
             or not isinstance(raw_task, list)
             or any(not isinstance(item, str) for item in raw_task)
             or len(set(raw_task)) != len(raw_task)
-            or not set(raw_task) <= {"grenade-fuse"}
+            or not set(raw_task) <= ({"ground-dive-step"} if fragment else {"grenade-fuse"})
             or text != canonical(payload)
         ):
             raise ValidationError("Invalid recorded task combat feature generation")
@@ -164,7 +173,8 @@ def combat_intent(text: str) -> str:
         or not isinstance(raw, list)
         or any(not isinstance(item, str) for item in raw)
         or len(set(raw)) != len(raw)
-        or not set(raw) <= {"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses"}
+        or not set(raw)
+        <= {"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses", "ground-dive-step"}
         or text != canonical(payload)
     ):
         raise ValidationError("Invalid recorded combat feature generation")

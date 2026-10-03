@@ -820,7 +820,10 @@ class TaskService:
             elif isinstance(command, ChooseSecretTaskCheck):
                 state, saved, clock, result = choose_secret(play, state, command, saved, clock)
             elif isinstance(command, AmendFragmentResponses):
-                state, saved, result = amend_fragment_responses_task(play, state, command, saved)
+                with combat_generation(task_features):
+                    state, saved, result = amend_fragment_responses_task(
+                        play, state, command, saved
+                    )
             elif isinstance(
                 command,
                 (
@@ -834,7 +837,15 @@ class TaskService:
                     ChooseOpponentFragment,
                 ),
             ):
-                if isinstance(command, (ChooseOpponentAttack, PrepareOwnerDamage)):
+                if isinstance(
+                    command,
+                    (
+                        ChooseOpponentAttack,
+                        PrepareOwnerDamage,
+                        PrepareOpponentFragment,
+                        ChooseOpponentFragment,
+                    ),
+                ):
                     with combat_generation(task_features):
                         state, saved, clock, result = _continued_roll(
                             play, state, command, saved, clock
