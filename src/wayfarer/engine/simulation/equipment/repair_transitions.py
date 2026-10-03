@@ -10,6 +10,7 @@ from wayfarer.engine.rules.skills.technology_level import technology_level_penal
 from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
+from wayfarer.engine.simulation.equipment import repair_time
 from wayfarer.engine.simulation.equipment.armoury_context import repair_familiarity_modifier
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.repair_parts_supply import (
@@ -114,8 +115,9 @@ def repair(
     task_id: str | None,
     preview: bool = False,
     assessment_only: bool = False,
+    selection_modifier: int = 0,
 ) -> tuple[PlayState, RepairTask]:
-    if assessment_only and (stage != "start" or not preview):
+    if (assessment_only or selection_modifier) and (stage != "start" or not preview):
         raise ValidationError("Parts assessment requires a pure start eligibility check")
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Repairs require the exact Basic Set profile")
@@ -194,7 +196,11 @@ def repair(
         skill += repair_familiarity_modifier(
             state, actor_id, item.definition_id, profile.repair_skill_id, procedure_id
         )
-        _repair_modifiers(state, actor_id, skill)
+        time_plan = repair_time.start_plan(
+            resources, actor_id, item, entry, command_id, procedure_id, assessment_only
+        )
+        skill += repair_time.modifier(time_plan)
+        _repair_modifiers(state, actor_id, skill + selection_modifier)
         parts_die = None
         quantity = 0
         if item.condition.hp <= 0:
@@ -214,7 +220,8 @@ def repair(
             item_id=item_id,
             tool_id=tool.id,
             start=resources.game_time,
-            due=resources.game_time + 1800,
+            due=resources.game_time + repair_time.duration(time_plan),
+            time_plan=time_plan,
             skill=skill,
             condition=item.condition,
             parts_die=parts_die,
@@ -242,6 +249,7 @@ def repair(
         revalidate_assessed_parts(
             runtime, state, actor_id=actor_id, item=item, entry=entry, parts_die=task.parts_die
         )
+        repair_time.finish_plan(task.time_plan, actor_id, item, entry)
         modifiers = _repair_modifiers(state, actor_id, task.skill)
         if preview:
             return state, task

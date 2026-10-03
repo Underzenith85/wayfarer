@@ -1,4 +1,4 @@
-"""Trusted Armoury familiarity observations through the campaign CAS pipeline."""
+"""Private Armoury observations, parts assessments and selected repair work."""
 
 import hashlib
 import json
@@ -21,14 +21,22 @@ from wayfarer.engine.simulation.equipment.repair_parts import (
     RepairPartsAssessment,
 )
 from wayfarer.engine.simulation.equipment.repair_parts_assessment import assess
+from wayfarer.engine.simulation.equipment.repair_time import (
+    PREFIX as TIME_PREFIX,
+)
+from wayfarer.engine.simulation.equipment.repair_time import (
+    RepairTimeSelection,
+    SelectRepairTime,
+)
+from wayfarer.engine.simulation.equipment.repair_time_selection import select
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
-ADAPTER: TypeAdapter[DeclareArmouryFamiliarity | AssessRepairParts] = TypeAdapter(
-    DeclareArmouryFamiliarity | AssessRepairParts
+ADAPTER: TypeAdapter[DeclareArmouryFamiliarity | AssessRepairParts | SelectRepairTime] = (
+    TypeAdapter(DeclareArmouryFamiliarity | AssessRepairParts | SelectRepairTime)
 )
-ArmouryOutcome = ArmouryFamiliarity | RepairPartsAssessment
+ArmouryOutcome = ArmouryFamiliarity | RepairPartsAssessment | RepairTimeSelection
 
 
 class ArmouryService:
@@ -46,6 +54,11 @@ class ArmouryService:
     ) -> RepairPartsAssessment: ...
 
     @overload
+    async def execute(
+        self, cid: str, value: SelectRepairTime, *, principal_id: str
+    ) -> RepairTimeSelection: ...
+
+    @overload
     async def execute(self, cid: str, value: object, *, principal_id: str) -> ArmouryOutcome: ...
 
     async def execute(self, cid: str, value: object, *, principal_id: str) -> ArmouryOutcome:
@@ -56,21 +69,36 @@ class ArmouryService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            if isinstance(command, AssessRepairParts):
+            if isinstance(command, SelectRepairTime):
+                updated, _ = select(play.rules_context, before, command)
+            elif isinstance(command, AssessRepairParts):
                 updated, _ = assess(play.rules_context, before, command)
             else:
                 updated, _ = declare(play.rules_context, before, command)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
-            return CommandReceipt(action="resource", outcome="armoury:familiarity")
+            return CommandReceipt(
+                action="resource",
+                outcome="armoury:time"
+                if isinstance(command, SelectRepairTime)
+                else "armoury:familiarity",
+            )
 
         async def outcome(campaign: Campaign) -> ArmouryOutcome:
             model = (
-                RepairPartsAssessment
+                RepairTimeSelection
+                if isinstance(command, SelectRepairTime)
+                else RepairPartsAssessment
                 if isinstance(command, AssessRepairParts)
                 else ArmouryFamiliarity
             )
-            prefix = PARTS_PREFIX if isinstance(command, AssessRepairParts) else PREFIX
+            prefix = (
+                TIME_PREFIX
+                if isinstance(command, SelectRepairTime)
+                else PARTS_PREFIX
+                if isinstance(command, AssessRepairParts)
+                else PREFIX
+            )
             return model.model_validate_json(
                 next(
                     event.kind
@@ -96,7 +124,7 @@ class ArmouryService:
             actor_id=principal_id,
             outcome=outcome,
             control=(Controls(member_for(initial, principal_id), command.actor_id, state=initial),)
-            if isinstance(command, AssessRepairParts)
+            if isinstance(command, (AssessRepairParts, SelectRepairTime))
             else (Seats(initial), Trusted(play.engine.reviewer.gm_ids), ActsAs(command.actor_id)),
             rng=play.rng,
         )
