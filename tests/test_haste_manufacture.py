@@ -62,7 +62,7 @@ from wayfarer.persistence.replay import verify_commands
 
 
 async def prepare(
-    path: Path, backend: str, levels: int, problem: str | None = None
+    path: Path, backend: str, levels: int, problem: str | None = None, *, jewelry: bool = False
 ) -> tuple[str, PlayService]:
     # Reuse the lawful found-Haste equipment blueprint, never its Power or ledger.
     cid, original = await wearer_blueprint(path / "blueprint", levels=1)
@@ -79,6 +79,11 @@ async def prepare(
         0,
         ImplementationStatus.IMPLEMENTED,
     )
+    target_definition = "equipment:pendant" if jewelry else "equipment:cloak"
+    if jewelry:
+        definitions[target_definition] = replace(
+            definitions["equipment:cloak"], id=target_definition, name="Plain pendant"
+        )
     definitions[workshop.id] = workshop
     package = profile_package("gurps-basic-set-4e-2004", *definitions.values())
     package = replace(package, definitions=tuple({d.id: d for d in package.definitions}.values()))
@@ -91,7 +96,7 @@ async def prepare(
         base.policy,
         point_budget=1000,
         permitted_sources=frozenset(s.id for s in package.sources),
-        allowed_equipment=frozenset({"equipment:cloak", workshop.id}),
+        allowed_equipment=frozenset({"equipment:cloak", target_definition, workshop.id}),
     )
     compiler = CharacterCompiler(
         catalog, rebuilt.rules, policy, statistics_profile=base.statistics_profile
@@ -111,7 +116,11 @@ async def prepare(
         update={
             "entries": (
                 equipment.entries[0].model_copy(
-                    update={"armor": Armor(locations=("torso",), dr=1)}
+                    update={
+                        "armor": Armor(locations=("torso",), dr=1),
+                        "definition_id": target_definition,
+                        "slot": "neck" if jewelry else equipment.entries[0].slot,
+                    }
                 ),
                 workspace,
             )
@@ -130,7 +139,7 @@ async def prepare(
         effect_id="effect:haste",
         method="slow-and-sure",
         energy_required=250 * levels,
-        target_definition_ids=("equipment:cloak",),
+        target_definition_ids=(target_definition,),
         workspace_definition_id=workshop.id,
     )
     rules = original.engine.rules.model_copy(
@@ -195,7 +204,7 @@ async def prepare(
     compilation = compiler.compile(draft)
     assert compilation.build is not None, compilation.diagnostics
     cloak = foundation.resources.items[0]
-    cloak = cloak.model_copy(update={"enchantments": ()})
+    cloak = cloak.model_copy(update={"enchantments": (), "definition_id": target_definition})
     state = play.initial_state(
         initial,
         foundation.world,

@@ -41,3 +41,21 @@ async def current_haste_manufacture(
     return await _current_generation(
         play, cid, command_id, "haste_manufacture_generation", fresh=eligible
     )
+
+
+async def current_haste_generation(
+    play: PlayService, cid: str, command_id: str, *, fresh: int
+) -> int:
+    replay = recorded_command.get()
+    prior = None if replay is not None else await play.store.command_input(cid, command_id)
+    if replay is None and prior is None:
+        return fresh
+    text = replay.command_input if replay is not None else prior.text if prior is not None else None
+    if text is None:
+        return 0
+    generation = validation.mapping(replay_payload(text)).get("haste_manufacture_generation")
+    if generation is None:
+        return 0
+    if type(generation) is not int or generation not in (1, 2):
+        raise ValidationError("Unsupported recorded Haste manufacture generation")
+    return generation
