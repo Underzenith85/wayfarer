@@ -47,8 +47,10 @@ Once observed, the source assembly continues to require its physical material
 adapter even after that observation ends. Generic whole-body Create, Destroy or
 Purify mutations are refused before randomness, because they would diverge the
 aggregate from its child-container facts. Receiver-only legacy operations remain
-supported. Refill and destruction of such assemblies require their own concrete
-container adapters and remain unresolved under #981. A valid parcel flow also
+supported. The [measured finite collection adapter](gurps-water-measured-collection.md)
+can refill one empty clean child from an entire authenticated homogeneous
+vessel, updating child facts and the aggregate together. Other refill and
+destruction paths still require concrete container adapters under #981. A valid parcel flow also
 cannot refill a receiver that is itself another observed source assembly. This
 is rechecked at completion when such an observation arrives during casting.
 

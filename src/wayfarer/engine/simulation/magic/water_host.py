@@ -8,6 +8,15 @@ from pydantic import Field, TypeAdapter
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.water_bindings import WaterChannel
 from wayfarer.engine.simulation.magic.water_bindings import declare as declare_channel
+from wayfarer.engine.simulation.magic.water_collection import (
+    CollectionReceipt,
+    CollectWater,
+    DeclareWaterCollection,
+    collect,
+)
+from wayfarer.engine.simulation.magic.water_collection import (
+    declare as declare_collection,
+)
 from wayfarer.engine.simulation.magic.water_mist import DeclareWaterScene
 from wayfarer.engine.simulation.magic.water_mist import declare as declare_scene
 from wayfarer.engine.simulation.magic.water_parcels import (
@@ -34,7 +43,12 @@ class DeclareWaterChannel(Command):
 
 
 WaterHostCommand = Annotated[
-    DeclareWater | DeclareWaterChannel | DeclareWaterScene | DeclareWaterParcels,
+    DeclareWater
+    | DeclareWaterChannel
+    | DeclareWaterScene
+    | DeclareWaterParcels
+    | DeclareWaterCollection
+    | CollectWater,
     Field(discriminator="kind"),
 ]
 ADAPTER: TypeAdapter[WaterHostCommand] = TypeAdapter(WaterHostCommand)
@@ -51,8 +65,12 @@ def receipt_id(command_id: str) -> str:
 
 def apply_host(
     runtime: RulesContext, state: PlayState, command: WaterHostCommand
-) -> tuple[PlayState, WaterReceipt]:
-    if isinstance(command, DeclareWater):
+) -> tuple[PlayState, WaterReceipt | CollectionReceipt]:
+    if isinstance(command, CollectWater):
+        return collect(runtime, state, command)
+    if isinstance(command, DeclareWaterCollection):
+        resources = declare_collection(state, command)
+    elif isinstance(command, DeclareWater):
         reject_aggregate_alias(state.resources, command.body.object_id)
         resources = declare(state.world, state.resources, command.body, command.id)
     elif isinstance(command, DeclareWaterParcels):
