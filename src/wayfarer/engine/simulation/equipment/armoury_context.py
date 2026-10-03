@@ -3,10 +3,12 @@
 import hashlib
 from typing import Literal
 
-from pydantic import TypeAdapter
+from pydantic import Field, TypeAdapter
 
 from wayfarer.engine.rules.skills.mundane.arts import OBJECT_REPAIR_SKILLS
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import catalog
+from wayfarer.engine.simulation.equipment.repair_default_resolver import current as default_current
 from wayfarer.engine.simulation.equipment.worksite import available_here
 from wayfarer.engine.simulation.resources import Command, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -22,6 +24,7 @@ class DeclareArmouryFamiliarity(Command):
     performer_id: Id
     item_id: Id
     basis: Basis
+    repair_start_command_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 ADAPTER: TypeAdapter[DeclareArmouryFamiliarity] = TypeAdapter(DeclareArmouryFamiliarity)
@@ -79,7 +82,23 @@ def declare(
         raise ValidationError("Armoury familiarity requires the performer's current equipment")
     spec = runtime.resources.specs[item.definition_id]
     profile = spec.durability
-    if profile is None or profile.repair_skill_id not in OBJECT_REPAIR_SKILLS:
+    default_plan = None
+    if command.repair_start_command_id is not None:
+        entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
+        default_plan = default_current(
+            runtime,
+            state,
+            actor_id=command.performer_id,
+            item=item,
+            entry=entry,
+            start_command_id=command.repair_start_command_id,
+            required=True,
+        )
+    if (
+        profile is None
+        or profile.repair_skill_id is None
+        or (profile.repair_skill_id not in OBJECT_REPAIR_SKILLS and default_plan is None)
+    ):
         raise ValidationError("Armoury familiarity requires a supported restoration specialty")
     compiled = runtime.approved_build(state, command.performer_id)
     purchase = next(
@@ -90,7 +109,7 @@ def declare(
         ),
         None,
     )
-    if purchase is None or purchase.technology_level is None:
+    if default_plan is None and (purchase is None or purchase.technology_level is None):
         raise ValidationError("Armoury familiarity requires an approved specialty and TL")
     observation = ArmouryFamiliarity(
         command_id=command.id,

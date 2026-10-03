@@ -17,6 +17,7 @@ PREFIX = "armoury-parts:"
 class AssessRepairParts(Command):
     kind: Literal["assess-repair-parts"] = "assess-repair-parts"
     item_id: Id
+    repair_start_command_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class RepairPartsAssessment(Record):
