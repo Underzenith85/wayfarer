@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
 from wayfarer.engine.simulation.combat.generations import (
     combat_generation,
     maneuver_budget_enabled,
+    secondary_object_blasts_enabled,
     preserve_grenade_fuse,
 )
 from wayfarer.errors import ValidationError
@@ -73,5 +74,22 @@ def test_player_cannot_inject_private_features_into_public_turn() -> None:
 
 def test_fresh_commands_capture_only_implemented_features() -> None:
     assert ACTIVE == frozenset(
-        {"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses", "ground-dive-step"}
+        {
+            "grenade-fuse",
+            "maneuver-budget",
+            "acrobatic-trait-bonuses",
+            "ground-dive-step",
+            "secondary-object-blasts",
+        }
     )
+
+
+def test_recorded_secondary_blast_generation_retains_isolated_replay_scope() -> None:
+    selected = features(recorded({"operation": "combat", KEY: ["secondary-object-blasts"]}))
+    assert not secondary_object_blasts_enabled()
+    with combat_generation(selected):
+        assert secondary_object_blasts_enabled() and not preserve_grenade_fuse()
+        with combat_generation(frozenset()):
+            assert not secondary_object_blasts_enabled()
+        assert secondary_object_blasts_enabled()
+    assert not secondary_object_blasts_enabled()

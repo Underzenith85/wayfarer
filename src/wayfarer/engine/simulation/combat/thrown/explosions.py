@@ -37,12 +37,18 @@ from wayfarer.engine.simulation.combat.fragment_state import (
     fragment_attack_id,
     save_fragment,
 )
-from wayfarer.engine.simulation.combat.generations import preserve_grenade_fuse
+from wayfarer.engine.simulation.combat.generations import (
+    preserve_grenade_fuse,
+    secondary_object_blasts_enabled,
+)
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.thrown.ground_dive import validate_ground_step
 from wayfarer.engine.simulation.combat.thrown.interposition import contact_space, intercept
 from wayfarer.engine.simulation.combat.thrown.live_grenades import armed_cause
+from wayfarer.engine.simulation.combat.thrown.secondary_explosions import (
+    schedule_secondary_object_blast,
+)
 from wayfarer.engine.simulation.combat.unarmed.injury import armor_dr, hurt
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
@@ -707,6 +713,8 @@ def _finish_blast(
                 system=True,
                 rng=runtime.rng,
             )
+            if secondary_object_blasts_enabled() and result.exploded:
+                resources = schedule_secondary_object_blast(resources, encounter, blast, result)
             evidence.append(
                 {
                     "item": item.id,
@@ -715,6 +723,8 @@ def _finish_blast(
                     "result": result.model_dump(mode="json"),
                 }
             )
+            if secondary_object_blasts_enabled() and result.exploded:
+                break
         if expended:
             damaged = next(i for i in resources.items if i.id == item.id)
             resources = resources.model_copy(

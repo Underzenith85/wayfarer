@@ -30,3 +30,7 @@ def acrobatic_trait_bonuses_enabled() -> bool:
 
 def ground_dive_step_enabled() -> bool:
     return "ground-dive-step" in _current.get()
+
+
+def secondary_object_blasts_enabled() -> bool:
+    return "secondary-object-blasts" in _current.get()

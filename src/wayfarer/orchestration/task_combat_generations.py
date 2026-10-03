@@ -21,7 +21,7 @@ from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "task_combat_protocol_features"
 ACTIVE = frozenset({"grenade-fuse"})
-FRAGMENT_ACTIVE = frozenset({"ground-dive-step"})
+FRAGMENT_ACTIVE = frozenset({"ground-dive-step", "secondary-object-blasts"})
 FRAGMENT_MODELS = (PrepareOpponentFragment, ChooseOpponentFragment, AmendFragmentResponses)
 
 
