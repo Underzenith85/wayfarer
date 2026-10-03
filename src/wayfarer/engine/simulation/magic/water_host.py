@@ -17,6 +17,8 @@ from wayfarer.engine.simulation.magic.water_collection import (
 from wayfarer.engine.simulation.magic.water_collection import (
     declare as declare_collection,
 )
+from wayfarer.engine.simulation.magic.water_inventory import DeclareInventoryWaterReceiver
+from wayfarer.engine.simulation.magic.water_inventory import declare as declare_inventory
 from wayfarer.engine.simulation.magic.water_mist import DeclareWaterScene
 from wayfarer.engine.simulation.magic.water_mist import declare as declare_scene
 from wayfarer.engine.simulation.magic.water_parcels import (
@@ -48,7 +50,8 @@ WaterHostCommand = Annotated[
     | DeclareWaterScene
     | DeclareWaterParcels
     | DeclareWaterCollection
-    | CollectWater,
+    | CollectWater
+    | DeclareInventoryWaterReceiver,
     Field(discriminator="kind"),
 ]
 ADAPTER: TypeAdapter[WaterHostCommand] = TypeAdapter(WaterHostCommand)
@@ -68,7 +71,9 @@ def apply_host(
 ) -> tuple[PlayState, WaterReceipt | CollectionReceipt]:
     if isinstance(command, CollectWater):
         return collect(runtime, state, command)
-    if isinstance(command, DeclareWaterCollection):
+    if isinstance(command, DeclareInventoryWaterReceiver):
+        resources = declare_inventory(runtime, state, command)
+    elif isinstance(command, DeclareWaterCollection):
         resources = declare_collection(state, command)
     elif isinstance(command, DeclareWater):
         reject_aggregate_alias(state.resources, command.body.object_id)

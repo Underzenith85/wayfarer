@@ -255,6 +255,7 @@ class PlayService:
                     "armoury-tool-selection:",
                     "water-parcels:",
                     "water-collection:",
+                    "water-inventory:",
                     "water-state:",
                     "water-channel:",
                     "water-host:",

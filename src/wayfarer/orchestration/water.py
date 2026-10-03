@@ -28,6 +28,7 @@ from wayfarer.engine.simulation.magic.water_host import (
     apply_host,
     receipt_id,
 )
+from wayfarer.engine.simulation.magic.water_inventory import DeclareInventoryWaterReceiver
 from wayfarer.engine.simulation.magic.water_mist import DeclareWaterScene, extinguish, require_scene
 from wayfarer.engine.simulation.magic.water_parcels import DeclareWaterParcels, settle
 from wayfarer.engine.simulation.magic.water_state import latest as water_bodies
@@ -51,6 +52,7 @@ WaterCommand = Annotated[
     | DeclareWaterParcels
     | DeclareWaterCollection
     | CollectWater
+    | DeclareInventoryWaterReceiver
     | RuntimeSpellCommand,
     Field(discriminator="kind"),
 ]
@@ -83,7 +85,9 @@ class WaterService:
             controls = (Controls(member, command.actor_id),)
         else:
             controls = (Seats(state), Trusted(play.engine.reviewer.gm_ids))
-        if isinstance(command, (DeclareWaterParcels, DeclareWaterCollection)):
+        if isinstance(
+            command, (DeclareWaterParcels, DeclareWaterCollection, DeclareInventoryWaterReceiver)
+        ):
             controls += (ActsAs(command.actor_id),)
         payload = json.dumps(
             {

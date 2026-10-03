@@ -11,6 +11,8 @@ from wayfarer.engine.simulation.magic.binding_context import approved_context as
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellContext
 from wayfarer.engine.simulation.magic.water_discovery import known_sources
 from wayfarer.engine.simulation.magic.water_effects import WaterPlan, validate_operation
+from wayfarer.engine.simulation.magic.water_inventory import require_receiver
+from wayfarer.engine.simulation.magic.water_inventory_state import current as current_inventory
 from wayfarer.engine.simulation.magic.water_mist import require_scene
 from wayfarer.engine.simulation.magic.water_parcels import require_current
 from wayfarer.engine.simulation.magic.water_state import latest, validate_body
@@ -58,6 +60,25 @@ def validate_channel(
         raise ValidationError("Water combat placement requires its concrete spatial adapter")
     require_current(state.world, state.resources, channel.plan.parcel_flow_id, channel.actor_id)
     validate_operation(state.resources, channel.plan)
+    if channel.plan.inventory_receiver_id is not None:
+        value = current_inventory(
+            state.resources,
+            channel.plan.inventory_receiver_id,
+            channel.plan.target_id,
+            channel.plan.gallons,
+        )
+        if (
+            value.receiver.actor_id != channel.actor_id
+            or not channel.touching
+            or not channel.visible
+            or channel.distance_yards != 0
+        ):
+            raise ValidationError(
+                "Inventory Water requires its caster current carried touching receiver"
+            )
+        if any(e.id == channel.plan.target_id for e in state.world.entities):
+            raise ValidationError("Inventory Water cannot alias a placed World object")
+        return
     bodies = latest(state.resources)
     if channel.plan.mist_scene_id is not None:
         admission = require_scene(state, channel.plan.mist_scene_id, channel.location_id)
@@ -124,6 +145,18 @@ def approved_context(
         raise ValidationError("Water uses its authored material channel")
     if command.kind not in ("cancel", "remember"):
         validate_channel(state, channel, check_exclusions=command.kind == "start")
+    if channel.plan.inventory_receiver_id is not None and command.kind not in (
+        "cancel",
+        "remember",
+    ):
+        require_receiver(
+            runtime,
+            state,
+            channel.plan.inventory_receiver_id,
+            command.actor_id,
+            channel.plan.target_id,
+            channel.plan.gallons,
+        )
     context = build_context(
         runtime,
         state,
