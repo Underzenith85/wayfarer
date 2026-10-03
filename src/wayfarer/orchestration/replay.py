@@ -8,6 +8,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
+from wayfarer.engine.simulation.equipment.world_ground import WorldGroundCommand
 from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLIC_HOST_ADAPTER
 from wayfarer.engine.simulation.health.hazard_records import HazardCommand
 from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORTATION_ADAPTER
@@ -51,6 +52,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 from wayfarer.orchestration.replay_inputs import replay_inputs
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.orchestration.size_forms import SizeFormService
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 from wayfarer.orchestration.social_generations import replay_payload
 from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
@@ -238,10 +240,19 @@ async def _haste(play: PlayService, record: CommandRecord, encoded: str) -> None
     )
 
 
+async def _world_equipment(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await SizeFormService(play).retrieve(
+        record.campaign_id,
+        WorldGroundCommand.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
     "armoury": _armoury,
     "great-haste": _great_haste,
     "water": _water,
+    "world-equipment": _world_equipment,
     "apportation": _apportation,
     "haste": _haste,
     "gurps-social": _social,

@@ -15,6 +15,8 @@ from wayfarer.engine.simulation.magic.water_complete_source import (
     emptied_source,
     require_complete_source,
 )
+from wayfarer.engine.simulation.magic.water_inventory_state import current as current_inventory
+from wayfarer.engine.simulation.magic.water_inventory_state import fill as fill_inventory
 from wayfarer.engine.simulation.magic.water_mist_state import MistMaterial
 from wayfarer.engine.simulation.magic.water_mist_state import record as record_mist
 from wayfarer.engine.simulation.magic.water_parcels import drain, protect_material, selected
@@ -52,6 +54,7 @@ class WaterPlan(Record):
     mist_scene_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
     parcel_flow_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    inventory_receiver_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def unique_sources(self) -> WaterPlan:
@@ -71,6 +74,24 @@ class WaterPlan(Record):
             self.spell_id != "purify-water" or self.purify_entire_source
         ):
             raise ValueError("Separate-container flow is limited to partial Purify Water")
+        if self.inventory_receiver_id is not None and (
+            self.spell_id != "create-water"
+            or self.gallons != 1
+            or self.allow_receiver_mixing
+            or self.mist_scene_id is not None
+            or self.parcel_flow_id is not None
+            or self.source_id is not None
+            or self.flowing_through_ring
+            or self.seconds_per_gallon != 5
+            or self.origin != (0, 0)
+            or self.excluded_source_ids
+            or not self.forked_stick
+            or self.destroyed_ids
+            or self.radius != 1
+            or self.depth_yards != 2
+            or self.area_center != (0, 0)
+        ):
+            raise ValueError("Inventory Water only supports one-gallon ordinary Create Water")
         return self
 
 
@@ -133,6 +154,9 @@ def validate_operation(state: ResourceState, plan: WaterPlan) -> None:
         plan.gallons,
         plan.seconds_per_gallon,
     )
+    if plan.inventory_receiver_id is not None:
+        current_inventory(state, plan.inventory_receiver_id, plan.target_id, plan.gallons)
+        return
     bodies = latest(state)
     if plan.spell_id == "seek-water":
         if any(source not in bodies for source in plan.excluded_source_ids):
@@ -202,6 +226,10 @@ def _validate_destroy(bodies: dict[str, WaterBody], target: WaterBody, plan: Wat
 def apply(state: ResourceState, plan: WaterPlan, actor_id: str, command_id: str) -> ResourceState:
     """Apply exactly once through the host's atomic receipt/revision transaction."""
     validate_operation(state, plan)
+    if plan.inventory_receiver_id is not None:
+        return fill_inventory(
+            state, plan.inventory_receiver_id, plan.target_id, actor_id, command_id
+        )
     bodies = latest(state)
     if plan.mist_scene_id is not None:
         return record_mist(

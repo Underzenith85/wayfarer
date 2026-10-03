@@ -49,6 +49,10 @@ from wayfarer.engine.simulation.health.medical.rest import accrue_rest
 from wayfarer.engine.simulation.magic.awaken import require_alert_deadline, settle_alerts
 from wayfarer.engine.simulation.magic.backfires import backfires
 from wayfarer.engine.simulation.magic.healing_support import expire_vitality
+from wayfarer.engine.simulation.magic.water_inventory_state import (
+    contents_mass,
+    validate_inventory_material,
+)
 from wayfarer.engine.simulation.resources import (
     Advance,
     Consume,
@@ -255,6 +259,7 @@ class ResourceEngine:
 
         validate_size_forms(state, self.actors)
         unique(tuple(i.id for i in state.items + state.expended_items))
+        validate_inventory_material(state, self.specs)
         unique(tuple(o.actor_id for o in state.owners))
         unique(tuple(p.id for p in state.pools))
         unique(tuple(s.id for s in state.scheduled))
@@ -383,9 +388,13 @@ class ResourceEngine:
                     raise ValidationError("Equipment slot is occupied")
                 occupied[slot] = count
 
-        contents: dict[str, int | Fraction] = dict.fromkeys(items, 0)
+        contents: dict[str, int | Fraction] = {
+            item_id: contents_mass(state, item_id) for item_id in items
+        }
         for item in state.items:
-            weight = self.specs[item.definition_id].unit_weight * item.quantity
+            weight = self.specs[item.definition_id].unit_weight * item.quantity + contents_mass(
+                state, item.id
+            )
             parent_id = item.container_id
             while parent_id is not None:
                 contents[parent_id] += weight
@@ -442,7 +451,7 @@ class ResourceEngine:
     def carried_weight(self, state: ResourceState, actor_id: str) -> int | Fraction:
         """Exact weight units; fractional units remain rational through conservation."""
         return sum(
-            self.specs[i.definition_id].unit_weight * i.quantity
+            self.specs[i.definition_id].unit_weight * i.quantity + contents_mass(state, i.id)
             for i in state.items
             if i.owner_id == actor_id and is_carried(state, i)
         )

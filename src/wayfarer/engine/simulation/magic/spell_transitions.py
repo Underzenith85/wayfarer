@@ -719,6 +719,26 @@ def _prepare_spell(
     # deferred: Staff contact is a separately trusted physical observation.
     from wayfarer.engine.simulation.magic.staff_casting import staff_touching
 
+    # deferred: the private B253 inventory receiver is a current physical Item,
+    # not a synthetic visible World object or a general target exception.
+    from wayfarer.engine.simulation.magic.water_inventory import touching as inventory_touching
+
+    inventory_perceived = (
+        context.water_plan is not None
+        and context.water_plan.inventory_receiver_id is not None
+        and command.spell_id == "create-water"
+        and context.water_plan.gallons == 1
+        and context.target_id == context.water_plan.target_id
+        and command.kind not in ("cancel", "maintain", "remember")
+        and inventory_touching(
+            runtime,
+            before,
+            context.water_plan.inventory_receiver_id,
+            command.actor_id,
+            context.target_id,
+            context.water_plan.gallons,
+        )
+    )
     perceived = {e.id for e in before.world.perspective(command.actor_id).entities}
     if (
         command.kind not in ("cancel", "maintain", "remember")
@@ -727,6 +747,7 @@ def _prepare_spell(
         and context.target_id not in perceived
         and not context.unseen
         and not staff_touching(runtime, before, command, context)
+        and not inventory_perceived
     ):
         raise ValidationError("Spell target is not perceived")
     if command.kind == "start" and not any(
