@@ -25,3 +25,5 @@ uv run --frozen python -m scripts.aggregate_ci_shards manifest.json shard-inputs
 ```
 
 The manifest can also consume `--junit previous-pytest.xml`. `--inventory inventory.json` is for trusted bounded testing; the aggregator's independent complete recollection prevents an incomplete externally supplied inventory from becoming accepted execution evidence. A private workflow review copy remains in `runtime/CI-SHARDED-WORKFLOW-PROPOSAL.yml`; publication is coordinator-owned.
+
+Release report commands explicitly scope their legacy `GITHUB_SHA` process environment to the tested published head. A final provenance gate binds both Basic Set and mechanics report revisions (including nested certification), the manifest HEAD/tree and clean checkout before upload/build. This prevents ambient PR synthetic merge SHAs from labeling otherwise correctly executed head evidence. The first benchmark demonstrated runtime only; its mismatched reports were rejected during independent artifact audit and cannot authorize merge.

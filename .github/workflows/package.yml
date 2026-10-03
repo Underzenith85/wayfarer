@@ -203,6 +203,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
+      WAYFARER_CI_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       WAYFARER_TEST_DATABASE_URL: postgresql://wayfarer:wayfarer@127.0.0.1:5432/wayfarer_test
     strategy:
       matrix:
@@ -237,10 +238,12 @@ jobs:
           uv run --frozen python -m scripts.aggregate_ci_shards manifest.json shard-inputs artifacts
       - name: Publish Basic Set execution accounting
         if: always()
-        run: uv run --frozen python scripts/certify_gurps_basic_set.py --execution-report artifacts/pytest.xml --output artifacts/release/gurps-basic-set.json ${{ inputs.require-basic-set-certification && '--require-certified' || '--report-only' }}
+        run: env GITHUB_SHA="$WAYFARER_CI_HEAD_SHA" uv run --frozen python scripts/certify_gurps_basic_set.py --execution-report artifacts/pytest.xml --output artifacts/release/gurps-basic-set.json ${{ inputs.require-basic-set-certification && '--require-certified' || '--report-only' }}
       - name: Verify and publish mechanics evidence
         if: always()
-        run: uv run --frozen python -m scripts.release_gates artifacts/pytest.xml ${{ inputs.require-basic-set-certification && '--gurps-basic-set' || '--basic-set-report-only' }}
+        run: env GITHUB_SHA="$WAYFARER_CI_HEAD_SHA" uv run --frozen python -m scripts.release_gates artifacts/pytest.xml ${{ inputs.require-basic-set-certification && '--gurps-basic-set' || '--basic-set-report-only' }}
+      - name: Verify release report provenance against tested checkout
+        run: uv run --frozen python -m scripts.check_ci_release_provenance manifest.json artifacts/release
       - uses: actions/upload-artifact@v7
         if: always()
         with:
