@@ -56,28 +56,39 @@ skill bonuses. The ordinary unannotated pinned toolkit retains the basic +0.
   receipts and item quantity/ownership. Every major completion is also checked
   against event replay, including failure.
 
-## Remaining same-consumer acceptance
+## Verified scope and unverified variants
 
-The whole #818 acceptance remains incomplete. These are real source-valid
-variants of the same two repair consumers, not certification of a broader
-skill family:
+The checklist above covers #818's bounded connection of the two named effects
+to actual repair transactions. Unsupported source-valid variants remain
+visible and unverified; they do not receive source or certification promotion.
 
-- B346 extra-time and haste choices are not represented by `RepairEquipment`;
+- [#976](https://github.com/Underzenith85/wayfarer/issues/976): B346 extra-time
+  and haste choices are not represented by `RepairEquipment`;
   the current transaction fixes work at 1,800 seconds. Longer waits do not
   select or earn an extra-time modifier.
-- B178 unfamiliar-item penalties have no authoritative actor/item familiarity
-  state in this transaction. Familiarity must not be inferred from an item name
-  or accepted as an unverified caller bonus.
-- B345 tooling modifiers can be pinned through existing skill-specific tool
+- [#977](https://github.com/Underzenith85/wayfarer/issues/977): B345 tooling
+  modifiers can be pinned through existing skill-specific tool
   features, but choosing among alternative or absent toolkits, deriving a new
   modifier from runtime damage/missing components, and consuming powered or
   expendable tooling are not implemented. A toolkit with explicit unsupported
   operating requirements is rejected rather than treated as free supplies.
-- Source-default Armoury use still requires an approved TL purchase here; this
+- [#978](https://github.com/Underzenith85/wayfarer/issues/978): source-default
+  Armoury use still requires an approved TL purchase here; this
   consumer does not yet bind the IQ/Engineer/cross-specialty defaults to a
   verified training TL.
 
-These require a reviewed authoritative input/state design. No frozen request
+- [#975](https://github.com/Underzenith85/wayfarer/issues/975): major repair
+  requires enough parts for the maximum possible d6 cost at admission. Stock
+  sufficient for a smaller rolled cost can therefore be refused.
+
+Trusted-GM performer/model/specialty observations now apply the B178
+unfamiliarity modifier to actual accepted repair checks, with resulting HP
+oracles in `tests/test_armoury_familiarity.py`. Missing observations preserve
+historical zero adjustment; they do not establish familiarity. Initial
+allocation, eight-hour practice acquisition, and six-familiarity GM rolls
+remain separate unimplemented acquisition work.
+
+These variants require a reviewed authoritative input/state design. No frozen request
 fields, API/UI flow, source-evidence promotion or completion flag is introduced.
 Other Armoury specialties and general technology/familiarity certification also
 remain outside this implementation.
