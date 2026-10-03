@@ -11,6 +11,14 @@ from wayfarer.engine.simulation.magic.spell_state import SpellResult, event_id, 
 from wayfarer.engine.simulation.magic.spell_transitions import SpellExecutionContext, reduce_spell
 from wayfarer.engine.simulation.magic.spells import PROFILE, RuntimeSpellCommand
 from wayfarer.engine.simulation.magic.water_bindings import channels
+from wayfarer.engine.simulation.magic.water_collection import (
+    CollectionReceipt,
+    CollectWater,
+    DeclareWaterCollection,
+)
+from wayfarer.engine.simulation.magic.water_collection import (
+    event_id as collection_event_id,
+)
 from wayfarer.engine.simulation.magic.water_discovery import WaterSpellResult, command_finding
 from wayfarer.engine.simulation.magic.water_host import (
     DeclareWater,
@@ -41,6 +49,8 @@ WaterCommand = Annotated[
     | DeclareWaterChannel
     | DeclareWaterScene
     | DeclareWaterParcels
+    | DeclareWaterCollection
+    | CollectWater
     | RuntimeSpellCommand,
     Field(discriminator="kind"),
 ]
@@ -60,18 +70,20 @@ class WaterService:
         command: WaterHostCommand | RuntimeSpellCommand,
         *,
         principal_id: str,
-    ) -> CommandPlan[WaterReceipt | SpellResult]:
+    ) -> CommandPlan[WaterReceipt | CollectionReceipt | SpellResult]:
         if play.engine.reviewer.compiler.statistics_profile != PROFILE:
             raise ValidationError("Water requires the exact Basic Set profile")
         if isinstance(command, RuntimeSpellCommand) and command.spell_id not in WATER_SPELLS:
             raise ValidationError("Water host only executes its four admitted named spells")
         member = member_for(state, principal_id)
         controls: tuple[Control, ...]
-        if isinstance(command, RuntimeSpellCommand) and member.role == "player":
+        if isinstance(command, CollectWater):
+            controls = (Controls(member, command.actor_id, state=state),)
+        elif isinstance(command, RuntimeSpellCommand) and member.role == "player":
             controls = (Controls(member, command.actor_id),)
         else:
             controls = (Seats(state), Trusted(play.engine.reviewer.gm_ids))
-        if isinstance(command, DeclareWaterParcels):
+        if isinstance(command, (DeclareWaterParcels, DeclareWaterCollection)):
             controls += (ActsAs(command.actor_id),)
         payload = json.dumps(
             {
@@ -85,7 +97,7 @@ class WaterService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            result: WaterReceipt | SpellResult
+            result: WaterReceipt | CollectionReceipt | SpellResult
             if isinstance(command, RuntimeSpellCommand):
                 updated, result = reduce_spell(
                     before, command, SpellExecutionContext(play.rules_context)
@@ -121,7 +133,7 @@ class WaterService:
             play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome="water:" + result.outcome)
 
-        async def outcome(campaign: Campaign) -> WaterReceipt | SpellResult:
+        async def outcome(campaign: Campaign) -> WaterReceipt | CollectionReceipt | SpellResult:
             resources = play._load(campaign).resources
             if isinstance(command, RuntimeSpellCommand):
                 result = parse_event(
@@ -144,6 +156,14 @@ class WaterService:
                     if discovered is not None
                     else result
                 )
+            if isinstance(command, CollectWater):
+                return CollectionReceipt.model_validate_json(
+                    next(
+                        e.kind
+                        for e in resources.events
+                        if e.id == collection_event_id("collected", command.id)
+                    )
+                )
             return WaterReceipt.model_validate_json(
                 next(e.kind for e in resources.events if e.id == receipt_id(command.id))
             )
@@ -161,7 +181,7 @@ class WaterService:
 
     async def execute(
         self, cid: str, value: object, *, principal_id: str
-    ) -> WaterReceipt | SpellResult:
+    ) -> WaterReceipt | CollectionReceipt | SpellResult:
         # No public API adapter is widened by this private host.
         command = ADAPTER.validate_python(value)
         campaign = await self.play.store.read(cid)
