@@ -18,6 +18,7 @@ from wayfarer.engine.simulation.magic.great_haste_named import (
     HOST_ADAPTER as GREAT_HASTE_ADAPTER,
 )
 from wayfarer.engine.simulation.magic.haste_host import ADAPTER as HASTE_ADAPTER
+from wayfarer.engine.simulation.magic.haste_manufacture import ObserveHasteManufacture
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
@@ -60,6 +61,15 @@ from wayfarer.orchestration.water import ADAPTER as WATER_ADAPTER
 from wayfarer.orchestration.water import WaterService
 from wayfarer.persistence.events import CommandInput, CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
+
+
+async def _haste_manufacture(play: PlayService, record: CommandRecord, encoded: str) -> None:
+
+    await EnchantmentService(play).observe_haste_manufacture(
+        record.campaign_id,
+        ObserveHasteManufacture.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
 
 
 async def _enchantment(play: PlayService, record: CommandRecord, encoded: str) -> None:
@@ -228,6 +238,7 @@ _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], A
     "composed-defense": _composed_defense,
     "enchantment": _enchantment,
     "staff-construction": _staff_construction,
+    "haste-manufacture": _haste_manufacture,
     "staff-casting": _staff_casting,
     "combat-abandon-pending-attack": _abandon_pending_attack,
     "combat-random-unarmed": _random_unarmed,

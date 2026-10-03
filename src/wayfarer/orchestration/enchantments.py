@@ -1,16 +1,26 @@
 """Trusted enchanting and staff facts on the canonical command transaction."""
 
+import hashlib
 import json
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER,
+    CreateEnchantment,
     EnchantmentOutcome,
     TypedEnchantmentCommand,
     apply_enchantment,
     command_payload,
 )
+from wayfarer.engine.simulation.magic.haste_manufacture import (
+    OBSERVATION,
+    HasteManufacture,
+    ObserveHasteManufacture,
+    facts,
+    observe,
+)
+from wayfarer.engine.simulation.magic.haste_state import record
 from wayfarer.engine.simulation.magic.staff_state import (
     DeclareStaffConstruction,
     StaffConstruction,
@@ -18,7 +28,11 @@ from wayfarer.engine.simulation.magic.staff_state import (
     identifier,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.enchantment_generations import current_energy, current_settlement
+from wayfarer.orchestration.enchantment_generations import (
+    current_energy,
+    current_haste_manufacture,
+    current_settlement,
+)
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -31,32 +45,49 @@ class EnchantmentService:
         self,
         play: PlayService,
         state: PlayState,
-        command: TypedEnchantmentCommand | DeclareStaffConstruction,
+        command: TypedEnchantmentCommand | DeclareStaffConstruction | ObserveHasteManufacture,
         *,
         principal_id: str,
         correct_settlement: bool = True,
         correct_energy: bool = True,
-    ) -> CommandPlan[EnchantmentOutcome | StaffConstruction]:
+        haste_manufacture: bool = False,
+    ) -> CommandPlan[EnchantmentOutcome | StaffConstruction | HasteManufacture]:
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Enchanting requires the exact Basic Set profile")
         payload = json.dumps(
             {
-                "operation": "staff-construction"
+                "operation": "haste-manufacture"
+                if isinstance(command, ObserveHasteManufacture)
+                else "staff-construction"
                 if isinstance(command, DeclareStaffConstruction)
                 else "enchantment",
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json")
-                if isinstance(command, DeclareStaffConstruction)
+                if isinstance(command, (DeclareStaffConstruction, ObserveHasteManufacture))
                 else command_payload(command),
                 **({"enchantment_settlement_generation": 1} if correct_settlement else {}),
                 **({"enchantment_energy_generation": 1} if correct_energy else {}),
+                **(
+                    {"haste_manufacture_generation": 1}
+                    if haste_manufacture and isinstance(command, CreateEnchantment)
+                    else {}
+                ),
             },
             sort_keys=True,
         )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            if isinstance(command, DeclareStaffConstruction):
+            if isinstance(command, ObserveHasteManufacture):
+                fact = observe(play.rules_context, before, command)
+                resources = record(
+                    before.resources, OBSERVATION, command.id, command.target_item_id, fact
+                ).model_copy(update={"revision": before.revision + 1})
+                updated = before.model_copy(
+                    update={"revision": before.revision + 1, "resources": resources}
+                )
+                result = "haste-manufacture"
+            elif isinstance(command, DeclareStaffConstruction):
                 resources = declare(before.resources, command).model_copy(
                     update={"revision": before.revision + 1}
                 )
@@ -72,13 +103,24 @@ class EnchantmentService:
                     system=True,
                     correct_settlement=correct_settlement,
                     correct_energy=correct_energy,
+                    haste_manufacture=haste_manufacture,
                 )
                 result = receipt.status
             play.commit(campaign, play.checkpoint(updated, before=before))
             return CommandReceipt(action="resource", outcome="enchantment:" + result)
 
-        async def outcome(campaign: Campaign) -> EnchantmentOutcome | StaffConstruction:
+        async def outcome(
+            campaign: Campaign,
+        ) -> EnchantmentOutcome | StaffConstruction | HasteManufacture:
             resource_state = play._load(campaign).resources
+            if isinstance(command, ObserveHasteManufacture):
+                return HasteManufacture.model_validate_json(
+                    next(
+                        e.kind
+                        for e in resource_state.events
+                        if e.id == OBSERVATION + hashlib.sha256(command.id.encode()).hexdigest()
+                    )
+                )
             if isinstance(command, DeclareStaffConstruction):
                 return StaffConstruction.model_validate_json(
                     next(e.kind for e in resource_state.events if e.id == identifier(command.id))
@@ -101,9 +143,9 @@ class EnchantmentService:
     async def _submit(
         self,
         cid: str,
-        command: TypedEnchantmentCommand | DeclareStaffConstruction,
+        command: TypedEnchantmentCommand | DeclareStaffConstruction | ObserveHasteManufacture,
         principal_id: str,
-    ) -> EnchantmentOutcome | StaffConstruction:
+    ) -> EnchantmentOutcome | StaffConstruction | HasteManufacture:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         return await submit(
@@ -116,6 +158,19 @@ class EnchantmentService:
                 principal_id=principal_id,
                 correct_settlement=await current_settlement(play, cid, command.id),
                 correct_energy=await current_energy(play, cid, command.id),
+                haste_manufacture=await current_haste_manufacture(
+                    play,
+                    cid,
+                    command.id,
+                    eligible=any(
+                        f.project_id is None
+                        and f.recipe_id == command.recipe_id
+                        and f.target_item_id == command.target_item_id
+                        for f in facts(play._load(campaign).resources)
+                    ),
+                )
+                if isinstance(command, CreateEnchantment)
+                else False,
             ),
             principal_id=principal_id,
         )
@@ -132,4 +187,13 @@ class EnchantmentService:
             cid, DeclareStaffConstruction.model_validate(value), principal_id
         )
         assert isinstance(result, StaffConstruction)
+        return result
+
+    async def observe_haste_manufacture(
+        self, cid: str, value: object, *, principal_id: str
+    ) -> HasteManufacture:
+        result = await self._submit(
+            cid, ObserveHasteManufacture.model_validate(value), principal_id
+        )
+        assert isinstance(result, HasteManufacture)
         return result
