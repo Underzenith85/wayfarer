@@ -24,13 +24,16 @@ from wayfarer.engine.simulation.magic.great_haste_casting import (
     subjective_casting,
 )
 from wayfarer.engine.simulation.magic.great_haste_host import apply_host, bound_cast
+from wayfarer.engine.simulation.magic.great_haste_named import binding as named_binding
+from wayfarer.engine.simulation.magic.great_haste_named import named_step
 from wayfarer.engine.simulation.magic.great_haste_state import RECEIPT, GreatHasteReceipt, save
 from wayfarer.engine.simulation.magic.great_haste_step_state import (
     PREFIX,
     RESOLVED,
     CastingStepLease,
+    NamedStepCastGreatHaste,
     ResolvedStepDistraction,
-    StepCastGreatHaste,
+    StepCommand,
     cast_command,
     distractions,
     leases,
@@ -79,7 +82,7 @@ def pending_resume(state: PlayState, command: object) -> CastingStepLease | None
     return lease
 
 
-def _origin_guard(state: PlayState, encounter: Encounter, command: StepCastGreatHaste) -> None:
+def _origin_guard(state: PlayState, encounter: Encounter, command: StepCommand) -> None:
     effect = latest(state.resources).get(command.cast_id)
     if command.operation == "start" and effect is not None:
         raise ConflictError("Great Haste cast identity is already recorded")
@@ -123,11 +126,18 @@ def _finish_cast(
             "encounters": tuple(witness if e.id == witness.id else e for e in state.encounters),
         }
     )
-    _, spell, bound = bound_cast(context.play.rules_context, state, command, witness)
-    if (bound.build_revision, spell.energy) != (lease.build_revision, lease.energy):
-        raise ConflictError("Accepted Great Haste Step binding changed")
-    with subjective_casting():
-        state, _ = apply_host(context.play.rules_context, state, command, combat_encounter=witness)
+    with named_step(lease.command):
+        _, spell, bound = bound_cast(context.play.rules_context, state, command, witness)
+        if (bound.build_revision, spell.energy) != (lease.build_revision, lease.energy):
+            raise ConflictError("Accepted Great Haste Step binding changed")
+        if lease.named_origin_json is not None:
+            selected = named_binding(state, bound.target_id, command)
+            if selected is None or selected.model_dump_json() != lease.named_origin_json:
+                raise ConflictError("Accepted named Step subject knowledge changed")
+        with subjective_casting():
+            state, _ = apply_host(
+                context.play.rules_context, state, command, combat_encounter=witness
+            )
     if command.operation == "start":
         state = state.model_copy(
             update={
@@ -232,7 +242,7 @@ def execute_step(
 
 
 def cast_with_step(
-    play: PlayService, before: PlayState, command: StepCastGreatHaste
+    play: PlayService, before: PlayState, command: StepCommand, *, ritual_step: bool = False
 ) -> tuple[PlayState, GreatHasteReceipt]:
     encounter = next(
         (e for e in before.encounters if e.status == "active" and command.actor_id in e.turn_order),
@@ -262,8 +272,25 @@ def cast_with_step(
     explosion_guard(state.resources)
     _origin_guard(state, encounter, command)
     _, spell, bound = bound_cast(play.rules_context, state, cast_command(command), encounter)
+    if ritual_step or isinstance(command, NamedStepCastGreatHaste):
+        ritual_skill = bound.skill - 5 * int(bound.mana == "low")
+        actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+        distance = (
+            len(command.step.hex_path)
+            if command.step.hex_path
+            else context.engine.distance(actor.position, command.step.destination)
+            if command.step.destination is not None
+            else 0
+        )
+        if distance > 1:
+            raise ValidationError("Selected casting Step supports at most one yard")
+        if command.operation == "concentrate" and ritual_skill < 15:
+            raise ValidationError("Ongoing casting Step requires ritual base skill 15+")
+    selected_name = named_binding(state, bound.target_id, cast_command(command))
     lease = CastingStepLease(
         command=command,
+        ritual_step=ritual_step,
+        named_origin_json=selected_name.model_dump_json() if selected_name else None,
         encounter_id=encounter.id,
         build_revision=bound.build_revision,
         energy=spell.energy,

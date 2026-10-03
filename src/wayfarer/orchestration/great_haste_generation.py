@@ -6,7 +6,10 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer import validation
 from wayfarer.engine.simulation.magic.great_haste_named import NamedCastGreatHaste
-from wayfarer.engine.simulation.magic.great_haste_step_state import StepCastGreatHaste
+from wayfarer.engine.simulation.magic.great_haste_step_state import (
+    NamedStepCastGreatHaste,
+    StepCastGreatHaste,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.replay_inputs import recorded_command
 from wayfarer.orchestration.sessions import Store
@@ -42,12 +45,13 @@ def features(record: CommandInput) -> bool:
     step = command.get("kind") == "step-great-haste"
     if (
         type(generation) is not int
-        or generation not in (1, 2, 3)
-        or (generation == 2) != step
+        or generation not in (1, 2, 3, 4, 5)
+        or (generation in (2, 5)) != step
         or (generation == 3) != (command.get("kind") == "named-great-haste")
+        or (generation == 4) != (command.get("kind") == "named-step-great-haste")
     ):
         raise ValidationError("Unsupported Great Haste casting generation")
-    if generation == 2:
+    if generation in (2, 5):
         try:
             StepCastGreatHaste.model_validate_json(json.dumps(command, sort_keys=True))
         except SchemaError as error:
@@ -57,4 +61,24 @@ def features(record: CommandInput) -> bool:
             NamedCastGreatHaste.model_validate_json(json.dumps(command, sort_keys=True))
         except SchemaError as error:
             raise ValidationError("Invalid named casting generation") from error
+    if generation == 4:
+        try:
+            NamedStepCastGreatHaste.model_validate_json(json.dumps(command, sort_keys=True))
+        except SchemaError as error:
+            raise ValidationError("Invalid named selected-Step casting generation") from error
     return KEY in payload
+
+
+async def ritual_steps(store: Store, cid: str, command_id: str) -> bool:
+    prior = recorded_command.get()
+    record = (
+        CommandInput(prior.payload_hash, prior.command_input)
+        if prior
+        else await store.command_input(cid, command_id)
+    )
+    if record is None:
+        return True
+    if record.text is None:
+        return False
+    features(record)
+    return validation.mapping(replay_payload(record.text)).get("generation") in (4, 5)

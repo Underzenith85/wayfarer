@@ -13,17 +13,21 @@ from wayfarer.engine.simulation.magic.great_haste_named import (
     NamedHostCommand,
     cast_command,
     named_cast,
+    named_step,
 )
 from wayfarer.engine.simulation.magic.great_haste_state import (
     RECEIPT,
     CastGreatHaste,
     GreatHasteReceipt,
 )
-from wayfarer.engine.simulation.magic.great_haste_step_state import StepCastGreatHaste
+from wayfarer.engine.simulation.magic.great_haste_step_state import (
+    NamedStepCastGreatHaste,
+    StepCastGreatHaste,
+)
 from wayfarer.engine.simulation.magic.spells import PROFILE
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.great_haste_combat import cast_in_combat
-from wayfarer.orchestration.great_haste_generation import KEY, ORIGINAL, capture
+from wayfarer.orchestration.great_haste_generation import KEY, ORIGINAL, capture, ritual_steps
 from wayfarer.orchestration.great_haste_steps import cast_with_step
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import (
@@ -49,12 +53,16 @@ class GreatHasteService:
         principal_id: str,
         *,
         combat_casting: bool = False,
+        ritual_step: bool = False,
     ) -> CommandPlan[GreatHasteReceipt]:
         if self.play.engine.reviewer.compiler.statistics_profile != PROFILE:
             raise ValidationError("GreatHaste requires the exact Basic Set profile")
         member = member_for(state, principal_id)
         controls: tuple[Control, ...]
-        if isinstance(command, (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste)):
+        if isinstance(
+            command,
+            (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste, NamedStepCastGreatHaste),
+        ):
             controls = (
                 (Controls(member, command.actor_id, state=state),)
                 if member.role == "player"
@@ -70,9 +78,11 @@ class GreatHasteService:
             {
                 "operation": "great-haste",
                 "generation": (
-                    3
+                    4
+                    if isinstance(command, NamedStepCastGreatHaste)
+                    else 3
                     if isinstance(command, NamedCastGreatHaste)
-                    else 2
+                    else (5 if ritual_step else 2)
                     if isinstance(command, StepCastGreatHaste)
                     else 1
                 ),
@@ -104,16 +114,25 @@ class GreatHasteService:
                         if command.operation == "cancel"
                         else cast_in_combat(self.play, before, converted)
                     )
-            elif isinstance(command, StepCastGreatHaste):
+            elif isinstance(command, (StepCastGreatHaste, NamedStepCastGreatHaste)):
                 if not combat_casting:
                     raise ValidationError("Selected Step requires authenticated casting generation")
-                updated, result = cast_with_step(self.play, before, command)
+                with named_step(command):
+                    updated, result = cast_with_step(
+                        self.play, before, command, ritual_step=ritual_step
+                    )
             else:
                 updated, result = (
                     cast_in_combat(self.play, before, command)
                     if combat_casting
                     and isinstance(
-                        command, (CastGreatHaste, StepCastGreatHaste, NamedCastGreatHaste)
+                        command,
+                        (
+                            CastGreatHaste,
+                            StepCastGreatHaste,
+                            NamedCastGreatHaste,
+                            NamedStepCastGreatHaste,
+                        ),
                     )
                     and command.operation != "cancel"
                     and any(
@@ -152,11 +171,16 @@ class GreatHasteService:
         play = self.play.for_campaign(campaign)
         service = self if play is self.play else GreatHasteService(play)
         combat_casting = await capture(play.store, cid, command.id)
+        ritual_step = await ritual_steps(play.store, cid, command.id)
         return await submit(
             play,
             cid,
             service.plan(
-                play._load(campaign), command, principal_id, combat_casting=combat_casting
+                play._load(campaign),
+                command,
+                principal_id,
+                combat_casting=combat_casting,
+                ritual_step=ritual_step,
             ),
             principal_id=principal_id,
         )
