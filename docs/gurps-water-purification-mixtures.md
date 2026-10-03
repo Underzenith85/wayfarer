@@ -39,6 +39,11 @@ capacity, qualitative impurity, the historical commitment digest and unchanged
 public spell models. The repaired Seek Water base is retained without edits to
 its binding, discovery or view seams.
 
-Accelerated large-ring pouring, mixed-source flow composition, fractional volume,
-airborne globes, mist/fire effects, deep/refilling water and other still unsupported
-variants remain outside this bounded change. It does not complete issue 804.
+Partial heterogeneous-source flow composition, fractional volume, accelerated
+large-ring pouring, airborne globes and deep/refilling water remain unverified.
+Complete heterogeneous-source transfer and admitted one-gallon mist now have
+separate execution evidence. See the reconciled
+[four-spell baseline and follow-up contracts](gurps-spell-water-effects.md).
+
+Remaining Water material and geometry contracts are tracked in
+[issue #981](https://github.com/Underzenith85/wayfarer/issues/981).

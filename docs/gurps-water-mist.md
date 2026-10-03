@@ -36,5 +36,9 @@ failed because the real Water host could not accept mist intent.
 Remaining issue #804 scope includes other mist volumes/geometry, moving clothing
 fires, arbitrary object footprints, physical collection and flows, midair globes,
 fractional gallons, partial heterogeneous purification, accelerated large-ring
-rates, and deep/refilling water. This bounded implementation does not close the
-whole issue.
+rates, and deep/refilling water. See the reconciled [four-spell baseline](gurps-spell-water-effects.md)
+for written acceptance evidence and separate follow-up ownership; this mist
+implementation does not certify the unsupported variants.
+
+Remaining Water material and geometry contracts are tracked in
+[issue #981](https://github.com/Underzenith85/wayfarer/issues/981).

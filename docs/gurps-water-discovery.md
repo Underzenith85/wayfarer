@@ -26,7 +26,11 @@ nonadmission, preserved world secrecy, restart, ordinary event folding and full
 seeded command reexecution on SQLite and PostgreSQL. Current actor control and
 trusted GM authority remain enforced by the canonical command pipeline.
 
-This repairs one bounded #804 information consequence. Fractional/accelerated
-purification, mixtures, airborne creation/fire, deep or refilling destruction,
-combat and item-casting variants retain their explicit unsupported boundaries.
-It does not certify the entire water college or close #804.
+This document describes the Seek information consequence within the merged
+[four-spell baseline](gurps-spell-water-effects.md). Receiver mixing, full-source
+purification and admitted one-gallon mist now have companion execution evidence.
+The baseline document lists the genuinely unsupported contracts separately; this
+finding feature does not certify other water-college spells or physical variants.
+
+Remaining Water material and geometry contracts are tracked in
+[issue #981](https://github.com/Underzenith85/wayfarer/issues/981).

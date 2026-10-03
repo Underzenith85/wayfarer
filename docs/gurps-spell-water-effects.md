@@ -30,19 +30,62 @@ and historical spell events gain no fields. Five public model schemas match
 verified main 33271dca byte for byte. Successful water effects end their casting
 record immediately; the material/discovery record survives time advancement.
 
-Sixty-one focused tests cover independent material/construction expectations, real
-approved casting for all four spells in both SQLite and PostgreSQL, ordinary
-failure payment without material changes, director authority, exact retry,
-restart, stale revisions and event replay, and actual channel/gallons/actor
-substitution rollback without dice. Eight seeded command re-execution cases
-cover all four spells in both stores through the registered private replay
-family, with folded and re-executed events and the entire final campaign equal.
-Actual material/discovery, persistence after time advancement and exact retry
-are checked.
+The merged baseline supplies actual consequences for all four named spells.
+The acceptance evidence is independent of catalog verification flags:
 
-Remaining explicit boundaries: fractional gallon energy/flow; source mixtures
-whose flow composition is unspecified; contaminated receiving-vessel mixing;
-large-container/ring accelerated purification; created airborne globes and
-mist/fire consequences; deep-water partial columns and surrounding refill;
-hex/combat placement; item casting. These are not implemented by inventory
-status. Full issue 804 acceptance still requires the remaining variants.
+| Spell | Construction and source | Actual successful consequence | Ordinary failed consequence and lifecycle |
+| --- | --- | --- | --- |
+| Seek Water | IQ/Hard, B253; approved budget | Nearest significant source; caster receives direction, distance and nature and can exclude the remembered source on a later cast | No finding or knowledge; ordinary failure payment; default one-second cast |
+| Purify Water | IQ/Hard, B253; Seek Water prerequisite | Ordinary uninterrupted ring/finger transfer removes impurities; source loses selected gallons and receiver gains pure gallons | No material transfer; ordinary failure payment; 1 energy/gallon and declared 5–10 seconds/gallon |
+| Create Water | IQ/Hard, B253; Purify Water prerequisite | Receiving container gains permanent pure water; admitted one-gallon mist separately records material and extinguishes supported enclosed fires | No material or fire changes; ordinary failure payment; 2 energy/gallon and default one-second cast |
+| Destroy Water | IQ/Hard, B253; Create Water prerequisite | Selected isolated square-area portions disappear, including liquid, ice and steam, within the supported two-yard depth | No material changes; ordinary failure payment; base 3 per radius and default one-second cast |
+
+Base costs and times above precede the shared B236–237 skill adjustments.
+Successful effects end their casting record immediately; material and findings
+persist without maintenance. Unsupported requests are rejected rather than
+reported as successful effects. The nonliving-world-object admission prevents
+creation inside a foe and destruction as a dehydration attack.
+
+`test_water_construction.py` proves all four legal source-linked purchases and
+illegal missing prerequisites or budget. `test_water_cast_persistence.py` runs
+each approved spell with independently asserted costs, times and successful or
+failed resulting material in SQLite and PostgreSQL. It checks restart, exact
+retry, stale revisions and channel/gallons/actor substitution rollback before
+dice. `test_water_seeded_replay.py` reexecutes all four spells from recorded seeds,
+compares folded and reexecuted commands and final campaign state, and checks
+material after later time advancement. `test_water_effects.py` supplies independent
+nearest-source, purity, area, form, depth, refill and living-body restriction
+oracles. `test_water_persistence.py` rejects player-authored material facts.
+
+The companion execution documents and their host tests extend that baseline:
+[remembered Seek findings](gurps-water-discovery.md),
+[receiver recontamination](gurps-water-purification-mixtures.md),
+[complete heterogeneous-source purification](gurps-water-complete-source.md),
+and [one-gallon mist and canonical fire extinction](gurps-water-mist.md).
+These cover current authority and private projection, changed current source or
+scene refusal, restart/retry and deterministic reexecution in both stores.
+Historical omitted-default commitment bytes and the five public spell schemas
+remain pinned by `test_water_purification_legacy.py` and `test_water_schema.py`.
+
+This reconciles the four named-spell written baseline for issue #804. It does not
+claim every physical variant or the entire water college is implemented. Issue
+closure remains contingent on current verification and explicit follow-up
+ownership of the unsupported contracts below.
+
+Remaining unverified contracts are owned by open follow-up
+[#981: Complete remaining Water material and geometry carriers](https://github.com/Underzenith85/wayfarer/issues/981):
+
+- Exact fractional liquid and purity accounting, partial heterogeneous-source
+  parcel composition, and all affected material consumers. Mass fractions are
+  not fluid-volume evidence; fractional FP rounding is not established here.
+- Accelerated large-container/ring purification with actual current vessel,
+  ring and continuous-flow/time facts. B253 supplies no faster numeric rate or
+  large-ring threshold; neither is invented by this baseline.
+- Physical creation and destruction geometry: immediately falling airborne
+  globes, collection/flow, deep partial columns and surrounding-water refill.
+  These require actual geometry/material carriers and resulting-state consumers.
+- Broader mist geometry and live fire carriers, including hex/combat placement,
+  multi-cell object extents and moving clothing fires. The current single-cell
+  scene refuses ambiguous or unsupported carriers; it does not certify them.
+- Water item casting through an authorized item-specific host. No inventory
+  status substitutes for the actual casting and material consequences.
