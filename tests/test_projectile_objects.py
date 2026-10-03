@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from support.missile_timing import missile_spell_service
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
@@ -116,14 +117,14 @@ async def test_burst_shield_interception_overpenetrates_separately(tmp_path: Pat
 
 
 @pytest.mark.parametrize("target_object", [False, True])
+@pytest.mark.parametrize("missile_attack", [False, True])
 async def test_fireball_object_target_or_shield_interception(
-    tmp_path: Path, target_object: bool
+    tmp_path: Path, target_object: bool, missile_attack: bool
 ) -> None:
     from test_spell_bindings import command, idle, start_fight
     from test_spell_bindings import setup as spell_setup
 
     from wayfarer.engine.simulation.equipment.catalog import LITE_SOURCE, EquipmentProfile, Shield
-    from wayfarer.orchestration.spells import SpellService
 
     entry = EquipmentProfile(
         definition_id="equipment:target",
@@ -137,11 +138,12 @@ async def test_fireball_object_target_or_shield_interception(
     )
     cid, play = await spell_setup(tmp_path, combat=True, execution_version=2, equipment=(entry,))
     combat = await start_fight(cid, play)
-    service = SpellService(play)
+    service = missile_spell_service(play, missile_attack=missile_attack)
     start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
+    play.rng = RecordedDice([1, 2, 2] if missile_attack and not target_object else [])
     await service.execute(
         cid,
         start.model_copy(
@@ -154,9 +156,19 @@ async def test_fireball_object_target_or_shield_interception(
         ),
         principal_id="a",
     )
+    pending = play._load(await play.store.read(cid)).encounters[0].pending_defense
+    assert pending is not None
+    assert (pending.attack_roll is not None) is (missile_attack and not target_object)
+    assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
     # DX10 default Innate Attack: 6, or 4 for the object. A roll of 5 succeeds
     # normally; object case rolls 4 (critical) then table 10 with no extra effect.
-    play.rng = RecordedDice([1, 1, 2, 3, 3, 4, 6] if target_object else [1, 2, 2, 3, 3, 3, 6])
+    play.rng = RecordedDice(
+        [1, 1, 2, 3, 3, 4, 6]
+        if target_object
+        else [3, 3, 3, 6]
+        if missile_attack
+        else [1, 2, 2, 3, 3, 3, 6]
+    )
     choice = ChooseDefense(
         id="fire-impact",
         actor_id="b",

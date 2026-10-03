@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.missile_timing import missile_spell_service
 from support.runtime import seed_campaign
 from test_abilities import resources, world
 from test_actions import campaign
@@ -517,15 +518,16 @@ async def idle(cid: str, play: PlayService, actor: str) -> None:
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+@pytest.mark.parametrize("missile_attack", [False, True])
 async def test_fireball_release_uses_defense_and_exactly_once_injury(
-    tmp_path: Path, backend: str
+    tmp_path: Path, backend: str, missile_attack: bool
 ) -> None:
     from wayfarer.engine.simulation.magic.spells import latest
     from wayfarer.orchestration.combat import ChooseDefense
 
     cid, play = await setup(tmp_path, combat=True, backend=backend)
     combat = await start_fight(cid, play)
-    service = SpellService(play)
+    service = missile_spell_service(play, missile_attack=missile_attack)
     start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
@@ -535,6 +537,7 @@ async def test_fireball_release_uses_defense_and_exactly_once_injury(
         start.model_copy(update={"id": "finish", "kind": "complete", "expected_revision": 3}),
         principal_id="a",
     )
+    play.rng = RecordedDice([1, 2, 2] if missile_attack else [])
     await service.execute(
         cid,
         start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 4}),
@@ -543,8 +546,10 @@ async def test_fireball_release_uses_defense_and_exactly_once_injury(
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].pending_defense is not None
     assert state.encounters[0].pending_defense.allowed == ("none", "dodge")
+    assert (state.encounters[0].pending_defense.attack_roll is not None) is missile_attack
+    assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
     # DX10 default -4 =6; five succeeds without a critical, 1d burning rolls four.
-    play.rng = RecordedDice([1, 2, 2, 4])
+    play.rng = RecordedDice([4] if missile_attack else [1, 2, 2, 4])
     defense = ChooseDefense(
         id="defense", actor_id="b", expected_revision=5, encounter_id="fight", defense="none"
     )

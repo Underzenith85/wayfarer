@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
+from support.missile_timing import missile_spell_service
 from support.runtime import build_play, seed_campaign
 from test_blindness_combat_consumers import Context, blind, prepare, sense
 from test_combat_sensory_authority import change
@@ -386,27 +387,30 @@ async def test_seeded_command_reexecution_preserves_abandonment(
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+@pytest.mark.parametrize("missile_attack,hit", [(False, False), (True, False), (True, True)])
 async def test_held_fireball_abandonment_preserves_paid_energy_and_held_effect(
-    tmp_path: Path, backend: str
+    tmp_path: Path, backend: str, missile_attack: bool, hit: bool
 ) -> None:
     from test_spell_bindings import command as spell_command
     from test_spell_bindings import idle, start_fight
     from test_spell_bindings import setup as spell_setup
 
     from wayfarer.engine.simulation.magic.spells import latest
-    from wayfarer.orchestration.spells import SpellService
 
     cid, play = await spell_setup(tmp_path, combat=True, backend=backend, execution_version=2)
     await start_fight(cid, play)
     before_cast = await state_of(cid, play)
     start = spell_command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
     play.rng = RecordedDice((3, 3, 3))
-    cast = await SpellService(play).execute(cid, start, principal_id="a")
+    cast = await missile_spell_service(play, missile_attack=missile_attack).execute(
+        cid, start, principal_id="a"
+    )
     assert cast.energy_spent > 0
     await idle(cid, play, "b")
     before_release = await state_of(cid, play)
-    play.rng = RecordedDice(())
-    await SpellService(play).execute(
+    dice = (1, 2, 2) if hit else (5, 5, 5)
+    play.rng = RecordedDice(dice if missile_attack else ())
+    await missile_spell_service(play, missile_attack=missile_attack).execute(
         cid,
         start.model_copy(
             update={
@@ -421,7 +425,36 @@ async def test_held_fireball_abandonment_preserves_paid_energy_and_held_effect(
     pending = await state_of(cid, play)
     effect = latest(pending.resources)["cast"]
     assert effect.phase == "active"
+    attack = pending.encounters[0].pending_defense
+    assert attack is not None
+    assert (attack.attack_roll is not None) is missile_attack
+    play.rng = RecordedDice(())
     command = abandon_command(pending)
+    if missile_attack:
+        # Once Release exposes a hit or miss, abandoning cannot discard that roll.
+        assert attack.attack_roll is not None and attack.attack_roll.dice == dice
+        before, records = await play.store.read(cid), await play.store.history(cid)
+        with pytest.raises(ConflictError, match="committed attack roll"):
+            await AbandonPendingAttackService(play).execute(cid, command, principal_id="a")
+        assert await play.store.read(cid) == before
+        assert await play.store.history(cid) == records and play.rng.exhausted()
+        play.rng = RecordedDice((4,) if hit else ())
+        result = await defend(cid, play, "b")
+        assert result.injury is not None and result.injury.attack == attack.attack_roll
+        assert result.injury.injury == (4 if hit else 0)
+        finished = await state_of(cid, play)
+        assert latest(finished.resources)["cast"].phase == "ended"
+        fp_before = next(p.current for p in before_cast.resources.pools if p.id == "fp:a")
+        assert (
+            next(p.current for p in finished.resources.pools if p.id == "fp:a")
+            == fp_before - cast.energy_spent
+        )
+        assert next(p.current for p in finished.resources.pools if p.id == "hp:b") == (
+            6 if hit else 10
+        )
+        assert finished.encounters[0].current_actor_id == "b"
+        assert play.rng.exhausted() and await play.store.read(cid) == await play.store.replay(cid)
+        return
     await AbandonPendingAttackService(play).execute(cid, command, principal_id="a")
     after = await state_of(cid, play)
     assert latest(after.resources)["cast"] == effect
@@ -435,14 +468,15 @@ async def test_held_fireball_abandonment_preserves_paid_energy_and_held_effect(
     await idle(cid, play, "b")
     await change(play, cid, lambda s: blind(s, "a", active=False))
     state = await state_of(cid, play)
-    await SpellService(play).execute(
+    play.rng = RecordedDice((5, 5, 5) if missile_attack else ())
+    await missile_spell_service(play, missile_attack=missile_attack).execute(
         cid,
         start.model_copy(
             update={"id": "release-later", "kind": "release", "expected_revision": state.revision}
         ),
         principal_id="a",
     )
-    play.rng = RecordedDice((5, 5, 5))
+    play.rng = RecordedDice(() if missile_attack else (5, 5, 5))
     await defend(cid, play, "b")
     finished = await state_of(cid, play)
     assert latest(finished.resources)["cast"].phase == "ended"
