@@ -160,7 +160,8 @@ def combat_intent(text: str) -> str:
             or not isinstance(raw_task, list)
             or any(not isinstance(item, str) for item in raw_task)
             or len(set(raw_task)) != len(raw_task)
-            or not set(raw_task) <= ({"ground-dive-step"} if fragment else {"grenade-fuse"})
+            or not set(raw_task)
+            <= ({"ground-dive-step", "secondary-object-blasts"} if fragment else {"grenade-fuse"})
             or text != canonical(payload)
         ):
             raise ValidationError("Invalid recorded task combat feature generation")
@@ -174,7 +175,13 @@ def combat_intent(text: str) -> str:
         or any(not isinstance(item, str) for item in raw)
         or len(set(raw)) != len(raw)
         or not set(raw)
-        <= {"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses", "ground-dive-step"}
+        <= {
+            "grenade-fuse",
+            "maneuver-budget",
+            "acrobatic-trait-bonuses",
+            "ground-dive-step",
+            "secondary-object-blasts",
+        }
         or text != canonical(payload)
     ):
         raise ValidationError("Invalid recorded combat feature generation")

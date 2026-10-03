@@ -258,7 +258,7 @@ async def test_task_fragment_ground_generation_seed_and_record_identity(
         assert (TASK_KEY in payload) is not legacy
         assert task_combat_generations.features(
             CommandInput(row.payload_hash, row.command_input)
-        ) == (frozenset() if legacy else frozenset({"ground-dive-step"}))
+        ) == (frozenset() if legacy else frozenset({"ground-dive-step", "secondary-object-blasts"}))
         public_raw = combat_intent(intent_input(row.command_input))
         assert await play.store.duplicate(cid, row.command_id, public_raw) is not None
         with pytest.raises(ConflictError, match="different input"):

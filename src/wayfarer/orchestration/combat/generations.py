@@ -9,7 +9,13 @@ from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "combat_protocol_features"
 KNOWN = frozenset(
-    {"grenade-fuse", "maneuver-budget", "acrobatic-trait-bonuses", "ground-dive-step"}
+    {
+        "grenade-fuse",
+        "maneuver-budget",
+        "acrobatic-trait-bonuses",
+        "ground-dive-step",
+        "secondary-object-blasts",
+    }
 )
 ACTIVE = KNOWN
 
