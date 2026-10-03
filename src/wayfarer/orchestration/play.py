@@ -246,6 +246,7 @@ class PlayService:
                     "power-cast-origin:",
                     "armoury-familiarity:",
                     "armoury-parts:",
+                    "armoury-time:",
                     "water-state:",
                     "water-channel:",
                     "water-host:",
