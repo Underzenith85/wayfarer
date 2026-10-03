@@ -23,6 +23,7 @@ from wayfarer.engine.simulation.combat.spatial import (
 )
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.magic import haste_manufacture as manufacture
 from wayfarer.engine.simulation.magic.backfires import refund_later
 from wayfarer.engine.simulation.magic.enchanting import (
     EnchantingRules,
@@ -1039,6 +1040,7 @@ def apply_enchantment(
     system: bool = False,
     correct_settlement: bool = True,
     correct_energy: bool = True,
+    haste_manufacture: bool = False,
 ) -> tuple[PlayState, EnchantmentOutcome]:
     """Apply one project command; persisted receipts suppress repeated costs and rolls."""
     if not system:
@@ -1064,6 +1066,18 @@ def apply_enchantment(
             raise ConflictError("Target item already has an unfinished enchantment")
         recipe = _recipe(rules, command.recipe_id)
         _validate_bindings(runtime, state, recipe, command.target_item_id, command.enchanter_ids)
+        state = state.model_copy(
+            update={
+                "resources": manufacture.capture_if(
+                    haste_manufacture,
+                    runtime,
+                    state,
+                    command.project_id,
+                    recipe.id,
+                    command.target_item_id,
+                )
+            }
+        )
         resources = _consume_materials(state.resources, command.actor_id, recipe.materials)
         state = state.model_copy(update={"resources": resources})
         project = EnchantmentProject(
@@ -1083,6 +1097,7 @@ def apply_enchantment(
     else:
         project = _project(state.resources, command.project_id, command.actor_id)
         recipe = _recipe(rules, project.recipe_id)
+        manufacture.context(runtime, state, project.id, kind=command.kind)
         if isinstance(command, BeginEnchanting):
             state, project, outcome = _begin(
                 runtime, state, command, project, recipe, correct_energy=correct_energy
@@ -1115,6 +1130,9 @@ def apply_enchantment(
                 correct_settlement=correct_settlement,
                 correct_energy=correct_energy,
             )
+    state = manufacture.complete(
+        state, project.id, project.magic_item_binding_id, outcome.status, command.id
+    )
     state = _record(state, command, project, outcome)
     if correct_settlement and isinstance(command, (CreateEnchantment, BeginEnchanting)):
         state = state.model_copy(

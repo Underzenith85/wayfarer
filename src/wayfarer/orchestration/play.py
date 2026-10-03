@@ -234,6 +234,7 @@ class PlayService:
                     "runtime-spell:",
                     "spell-ritual:",
                     "staff-construction:",
+                    "haste-manufacture:",
                     "staff-casting-intent:",
                     "staff-casting-touch:",
                     "staff-casting-invalid:",
