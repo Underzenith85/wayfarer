@@ -249,6 +249,7 @@ class PlayService:
                     "armoury-time:",
                     "armoury-training:",
                     "armoury-default:",
+                    "water-parcels:",
                     "water-state:",
                     "water-channel:",
                     "water-host:",

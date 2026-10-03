@@ -21,14 +21,27 @@ from wayfarer.engine.simulation.magic.water_host import (
     receipt_id,
 )
 from wayfarer.engine.simulation.magic.water_mist import DeclareWaterScene, extinguish, require_scene
+from wayfarer.engine.simulation.magic.water_parcels import DeclareWaterParcels, settle
 from wayfarer.engine.simulation.magic.water_state import latest as water_bodies
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.membership import member_for
-from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
+from wayfarer.orchestration.pipeline import (
+    ActsAs,
+    CommandPlan,
+    Control,
+    Controls,
+    Seats,
+    Trusted,
+    submit,
+)
 from wayfarer.orchestration.play import PlayService
 
 WaterCommand = Annotated[
-    DeclareWater | DeclareWaterChannel | DeclareWaterScene | RuntimeSpellCommand,
+    DeclareWater
+    | DeclareWaterChannel
+    | DeclareWaterScene
+    | DeclareWaterParcels
+    | RuntimeSpellCommand,
     Field(discriminator="kind"),
 ]
 ADAPTER: TypeAdapter[WaterCommand] = TypeAdapter(WaterCommand)
@@ -58,6 +71,8 @@ class WaterService:
             controls = (Controls(member, command.actor_id),)
         else:
             controls = (Seats(state), Trusted(play.engine.reviewer.gm_ids))
+        if isinstance(command, DeclareWaterParcels):
+            controls += (ActsAs(command.actor_id),)
         payload = json.dumps(
             {
                 "operation": "water",
@@ -78,6 +93,17 @@ class WaterService:
                 if command.kind == "complete" and result.outcome == "active":
                     channel = next(
                         c for c in channels(before.resources) if c.id == command.channel_id
+                    )
+                    updated = updated.model_copy(
+                        update={
+                            "world": settle(
+                                before.world,
+                                before.resources,
+                                updated.resources,
+                                channel.plan.parcel_flow_id,
+                                command.id,
+                            )
+                        }
                     )
                     if channel.plan.mist_scene_id is not None:
                         admission = require_scene(

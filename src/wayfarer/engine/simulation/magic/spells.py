@@ -365,7 +365,12 @@ def _casting_time(spec: RuntimeSpellSpec, context: SpellContext, skill: int) -> 
             if spec.id == "purify-water"
             else 1
         )
-        return casting_seconds(seconds, skill)
+        duration = casting_seconds(seconds, skill)
+        return (
+            max(duration, seconds)
+            if spec.id == "purify-water" and context.water_plan.parcel_flow_id is not None
+            else duration
+        )
     if context.item_cast:
         return spec.seconds
     if context.ceremonial is not None:
