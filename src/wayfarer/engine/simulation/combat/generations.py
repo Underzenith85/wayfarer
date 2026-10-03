@@ -38,3 +38,7 @@ def secondary_object_blasts_enabled() -> bool:
 
 def missile_interposition_enabled() -> bool:
     return "missile-interposition" in _current.get()
+
+
+def acrobatic_reaction_attributes_enabled() -> bool:
+    return "acrobatic-reaction-attributes" in _current.get()

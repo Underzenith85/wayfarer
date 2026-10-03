@@ -13,6 +13,7 @@ KNOWN = frozenset(
         "grenade-fuse",
         "maneuver-budget",
         "acrobatic-trait-bonuses",
+        "acrobatic-reaction-attributes",
         "ground-dive-step",
         "secondary-object-blasts",
         "missile-interposition",

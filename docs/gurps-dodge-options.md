@@ -22,8 +22,10 @@ successful interposition injury, the friend's failed-interposition defense and
 exact command retry behavior. Focused host regressions exercise blocked versus
 legal two-yard paths on both map types and both persistence stores.
 
-This bounded correction does not certify all of issue #878. Acrobatics preceding
-skill-roll condition exemptions remain to be reconciled with B375/B419/B428;
+This bounded correction does not certify all of issue #878. The preceding
+Acrobatics/Aerobatics reaction now uses the B421 temporary-attribute exemption,
+with ordinary skill and attack penalties retained; explicit B428 skill-condition
+consumers remain separate from that correction;
 concealing aerial/swimming drops and specialized interpositions retain the
 consumer boundaries above.
 
