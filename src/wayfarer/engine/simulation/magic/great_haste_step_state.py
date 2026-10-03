@@ -57,7 +57,30 @@ class NamedStepCastGreatHaste(Command):
     step: CastingStep
 
 
-StepCommand = Annotated[StepCastGreatHaste | NamedStepCastGreatHaste, Field(discriminator="kind")]
+class InitialStepCastGreatHaste(Command):
+    kind: Literal["initial-step-great-haste"] = "initial-step-great-haste"
+    operation: Literal["start"] = "start"
+    channel_id: Id
+    cast_id: Id
+    step: CastingStep
+
+
+class NamedInitialStepCastGreatHaste(Command):
+    kind: Literal["named-initial-step-great-haste"] = "named-initial-step-great-haste"
+    operation: Literal["start"] = "start"
+    channel_id: Id
+    cast_id: Id
+    known_fact_id: Id
+    step: CastingStep
+
+
+StepCommand = Annotated[
+    StepCastGreatHaste
+    | NamedStepCastGreatHaste
+    | InitialStepCastGreatHaste
+    | NamedInitialStepCastGreatHaste,
+    Field(discriminator="kind"),
+]
 
 
 class CastingStepLease(Record):
@@ -83,7 +106,12 @@ def leases(resources: ResourceState) -> dict[str, CastingStepLease]:
 
 
 HostCommand = Annotated[
-    DeclareGreatHasteChannel | CastGreatHaste | StepCastGreatHaste | NamedStepCastGreatHaste,
+    DeclareGreatHasteChannel
+    | CastGreatHaste
+    | StepCastGreatHaste
+    | NamedStepCastGreatHaste
+    | InitialStepCastGreatHaste
+    | NamedInitialStepCastGreatHaste,
     Field(discriminator="kind"),
 ]
 HOST_ADAPTER: TypeAdapter[HostCommand] = TypeAdapter(HostCommand)

@@ -7,6 +7,8 @@ from pydantic import ValidationError as SchemaError
 from wayfarer import validation
 from wayfarer.engine.simulation.magic.great_haste_named import NamedCastGreatHaste
 from wayfarer.engine.simulation.magic.great_haste_step_state import (
+    InitialStepCastGreatHaste,
+    NamedInitialStepCastGreatHaste,
     NamedStepCastGreatHaste,
     StepCastGreatHaste,
 )
@@ -45,10 +47,12 @@ def features(record: CommandInput) -> bool:
     step = command.get("kind") == "step-great-haste"
     if (
         type(generation) is not int
-        or generation not in (1, 2, 3, 4, 5)
+        or generation not in (1, 2, 3, 4, 5, 6, 7)
         or (generation in (2, 5)) != step
         or (generation == 3) != (command.get("kind") == "named-great-haste")
         or (generation == 4) != (command.get("kind") == "named-step-great-haste")
+        or (generation == 6) != (command.get("kind") == "initial-step-great-haste")
+        or (generation == 7) != (command.get("kind") == "named-initial-step-great-haste")
     ):
         raise ValidationError("Unsupported Great Haste casting generation")
     if generation in (2, 5):
@@ -66,6 +70,14 @@ def features(record: CommandInput) -> bool:
             NamedStepCastGreatHaste.model_validate_json(json.dumps(command, sort_keys=True))
         except SchemaError as error:
             raise ValidationError("Invalid named selected-Step casting generation") from error
+    if generation in (6, 7):
+        if KEY not in payload:
+            raise ValidationError("Initial selected-Step requires authenticated casting generation")
+        try:
+            model = InitialStepCastGreatHaste if generation == 6 else NamedInitialStepCastGreatHaste
+            model.model_validate_json(json.dumps(command, sort_keys=True))
+        except SchemaError as error:
+            raise ValidationError("Invalid initial selected-Step casting generation") from error
     return KEY in payload
 
 
@@ -81,4 +93,4 @@ async def ritual_steps(store: Store, cid: str, command_id: str) -> bool:
     if record.text is None:
         return False
     features(record)
-    return validation.mapping(replay_payload(record.text)).get("generation") in (4, 5)
+    return validation.mapping(replay_payload(record.text)).get("generation") in (4, 5, 6, 7)

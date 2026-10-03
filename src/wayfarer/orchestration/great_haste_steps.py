@@ -31,6 +31,8 @@ from wayfarer.engine.simulation.magic.great_haste_step_state import (
     PREFIX,
     RESOLVED,
     CastingStepLease,
+    InitialStepCastGreatHaste,
+    NamedInitialStepCastGreatHaste,
     NamedStepCastGreatHaste,
     ResolvedStepDistraction,
     StepCommand,
@@ -38,6 +40,7 @@ from wayfarer.engine.simulation.magic.great_haste_step_state import (
     distractions,
     leases,
 )
+from wayfarer.engine.simulation.magic.initial_step_binding import initial_binding
 from wayfarer.engine.simulation.magic.spell_state import (
     PREFIX as SPELL_PREFIX,
 )
@@ -271,8 +274,13 @@ def cast_with_step(
     encounter = _prepare_encounter(state, turn, context)
     explosion_guard(state.resources)
     _origin_guard(state, encounter, command)
-    _, spell, bound = bound_cast(play.rules_context, state, cast_command(command), encounter)
-    if ritual_step or isinstance(command, NamedStepCastGreatHaste):
+    with initial_binding(
+        enabled=isinstance(command, (InitialStepCastGreatHaste, NamedInitialStepCastGreatHaste))
+    ):
+        _, spell, bound = bound_cast(play.rules_context, state, cast_command(command), encounter)
+    if (ritual_step or isinstance(command, NamedStepCastGreatHaste)) and not isinstance(
+        command, (InitialStepCastGreatHaste, NamedInitialStepCastGreatHaste)
+    ):
         ritual_skill = bound.skill - 5 * int(bound.mana == "low")
         actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
         distance = (
