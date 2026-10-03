@@ -74,11 +74,30 @@ class NamedInitialStepCastGreatHaste(Command):
     step: CastingStep
 
 
+class OngoingStepCastGreatHaste(Command):
+    kind: Literal["ongoing-step-great-haste"] = "ongoing-step-great-haste"
+    operation: Literal["concentrate"] = "concentrate"
+    channel_id: Id
+    cast_id: Id
+    step: CastingStep
+
+
+class NamedOngoingStepCastGreatHaste(Command):
+    kind: Literal["named-ongoing-step-great-haste"] = "named-ongoing-step-great-haste"
+    operation: Literal["concentrate"] = "concentrate"
+    channel_id: Id
+    cast_id: Id
+    known_fact_id: Id
+    step: CastingStep
+
+
 StepCommand = Annotated[
     StepCastGreatHaste
     | NamedStepCastGreatHaste
     | InitialStepCastGreatHaste
-    | NamedInitialStepCastGreatHaste,
+    | NamedInitialStepCastGreatHaste
+    | OngoingStepCastGreatHaste
+    | NamedOngoingStepCastGreatHaste,
     Field(discriminator="kind"),
 ]
 
@@ -111,7 +130,9 @@ HostCommand = Annotated[
     | StepCastGreatHaste
     | NamedStepCastGreatHaste
     | InitialStepCastGreatHaste
-    | NamedInitialStepCastGreatHaste,
+    | NamedInitialStepCastGreatHaste
+    | OngoingStepCastGreatHaste
+    | NamedOngoingStepCastGreatHaste,
     Field(discriminator="kind"),
 ]
 HOST_ADAPTER: TypeAdapter[HostCommand] = TypeAdapter(HostCommand)

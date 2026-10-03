@@ -33,7 +33,9 @@ from wayfarer.engine.simulation.magic.great_haste_step_state import (
     CastingStepLease,
     InitialStepCastGreatHaste,
     NamedInitialStepCastGreatHaste,
+    NamedOngoingStepCastGreatHaste,
     NamedStepCastGreatHaste,
+    OngoingStepCastGreatHaste,
     ResolvedStepDistraction,
     StepCommand,
     cast_command,
@@ -278,8 +280,13 @@ def cast_with_step(
         enabled=isinstance(command, (InitialStepCastGreatHaste, NamedInitialStepCastGreatHaste))
     ):
         _, spell, bound = bound_cast(play.rules_context, state, cast_command(command), encounter)
-    if (ritual_step or isinstance(command, NamedStepCastGreatHaste)) and not isinstance(
-        command, (InitialStepCastGreatHaste, NamedInitialStepCastGreatHaste)
+    ongoing = isinstance(command, (OngoingStepCastGreatHaste, NamedOngoingStepCastGreatHaste))
+    if ongoing and bound.skill - 5 * int(bound.mana == "low") < 20:
+        raise ValidationError("Larger ongoing casting Step requires ritual base skill 20+")
+    if (
+        (ritual_step or isinstance(command, NamedStepCastGreatHaste))
+        and not isinstance(command, (InitialStepCastGreatHaste, NamedInitialStepCastGreatHaste))
+        and not ongoing
     ):
         ritual_skill = bound.skill - 5 * int(bound.mana == "low")
         actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
