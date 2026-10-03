@@ -21,6 +21,10 @@ The selected printings have now been reopened; the current numerical review and
 per-criterion evidence are in [Armoury source review](gurps-armoury-source-review.md).
 The same two consumers now use existing authored toolkit modifiers, preserve
 exact fractional-price parts costs, and cover B178 shields and thrown weapons.
-Whole-issue acceptance remains incomplete for time choices, actor/item
-familiarity, defaulted Armoury, and the remaining tooling variants listed there.
+Trusted-GM performer/model/specialty familiarity observations also affect the
+actual repair skill and restored HP. The written #818 baseline checklist is
+covered by resulting-state, eligibility, conservation and replay evidence.
+Source-valid time, toolkit, defaulted-skill and smaller-stock variants remain
+explicitly unverified in issues #975–978 linked from the source review.
+Familiarity acquisition remains separate unimplemented work.
 No source/certification status or frozen request contract is promoted.
