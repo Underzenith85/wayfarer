@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.magic import haste_wearable_construction as wearables
 from wayfarer.engine.simulation.magic.enchanting import EnchantmentRecipe
 from wayfarer.engine.simulation.magic.haste_state import ITEM, HasteItem, record
 from wayfarer.engine.simulation.magic.haste_state import items as haste_items
@@ -34,6 +35,9 @@ class HasteManufacture(Record):
     recipe_json: str
     physical_hash: str
     project_id: Id | None = None
+    wearable: wearables.WearableConstruction | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
 
 
 def _digest(value: object) -> str:
@@ -96,6 +100,20 @@ def _physical(runtime: RulesContext, state: PlayState, target_id: str) -> str:
     )
 
 
+def physical(
+    runtime: RulesContext,
+    state: PlayState,
+    target_id: str,
+    wearable: wearables.WearableConstruction | None,
+) -> str:
+    if wearable is None:
+        return _physical(runtime, state, target_id)
+    current = wearables.require(runtime, state, target_id)
+    if current != wearable:
+        raise ValidationError("Haste wearable construction changed")
+    return _digest(current.model_dump(mode="json"))
+
+
 def validate(runtime: RulesContext, state: PlayState, fact: HasteManufacture) -> None:
     recipe = recipe_for(runtime, fact.recipe_id)
     if (
@@ -110,7 +128,7 @@ def validate(runtime: RulesContext, state: PlayState, fact: HasteManufacture) ->
         or recipe.maximum_charges is not None
         or recipe.maintenance_energy != 0
         or recipe.model_dump_json() != fact.recipe_json
-        or _physical(runtime, state, fact.target_item_id) != fact.physical_hash
+        or physical(runtime, state, fact.target_item_id, fact.wearable) != fact.physical_hash
     ):
         raise ValidationError("Haste manufacture recipe or physical identity changed")
 
@@ -123,19 +141,34 @@ def observe(
         for f in facts(state.resources)
     ):
         raise ConflictError("Haste manufacture observation cannot be replaced")
+    wearable = next(
+        (
+            c
+            for c in wearables.constructions(state.resources)
+            if c.item_id == command.target_item_id
+        ),
+        None,
+    )
     fact = HasteManufacture(
         recipe_id=command.recipe_id,
         target_item_id=command.target_item_id,
         levels=command.levels,
         recipe_json=recipe_for(runtime, command.recipe_id).model_dump_json(),
-        physical_hash=_physical(runtime, state, command.target_item_id),
+        physical_hash=physical(runtime, state, command.target_item_id, wearable),
+        wearable=wearable,
     )
     validate(runtime, state, fact)
     return fact
 
 
 def capture(
-    runtime: RulesContext, state: PlayState, project_id: str, recipe_id: str, target_id: str
+    runtime: RulesContext,
+    state: PlayState,
+    project_id: str,
+    recipe_id: str,
+    target_id: str,
+    *,
+    generation: int = 1,
 ) -> ResourceState:
     fact = next(
         (
@@ -147,6 +180,10 @@ def capture(
     )
     if fact is None:
         return state.resources
+    if (fact.wearable is None and generation != 1) or (
+        fact.wearable is not None and generation != 2
+    ):
+        raise ValidationError("Haste manufacture generation does not match physical construction")
     validate(runtime, state, fact)
     return record(
         state.resources,
@@ -194,7 +231,7 @@ def bind(state: PlayState, fact: HasteManufacture, binding_id: str, command_id: 
             binding_id=binding_id,
             definition_id=target.definition_id,
             levels=fact.levels,
-            form="clothing",
+            form=fact.wearable.form if fact.wearable is not None else "clothing",
         ),
     )
     return state.model_copy(update={"resources": resources})
@@ -207,8 +244,14 @@ def capture_if(
     project_id: str,
     recipe_id: str,
     target_id: str,
+    *,
+    generation: int = 1,
 ) -> ResourceState:
-    return capture(runtime, state, project_id, recipe_id, target_id) if enabled else state.resources
+    return (
+        capture(runtime, state, project_id, recipe_id, target_id, generation=generation)
+        if enabled
+        else state.resources
+    )
 
 
 def complete(

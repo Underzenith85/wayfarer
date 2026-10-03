@@ -1041,6 +1041,7 @@ def apply_enchantment(
     correct_settlement: bool = True,
     correct_energy: bool = True,
     haste_manufacture: bool = False,
+    manufacture_generation: int = 1,
 ) -> tuple[PlayState, EnchantmentOutcome]:
     """Apply one project command; persisted receipts suppress repeated costs and rolls."""
     if not system:
@@ -1075,6 +1076,7 @@ def apply_enchantment(
                     command.project_id,
                     recipe.id,
                     command.target_item_id,
+                    generation=manufacture_generation,
                 )
             }
         )

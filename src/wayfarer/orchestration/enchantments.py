@@ -5,6 +5,7 @@ import json
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.magic import haste_wearable_construction as wearables
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER,
     CreateEnchantment,
@@ -30,7 +31,7 @@ from wayfarer.engine.simulation.magic.staff_state import (
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.enchantment_generations import (
     current_energy,
-    current_haste_manufacture,
+    current_haste_generation,
     current_settlement,
 )
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
@@ -45,30 +46,47 @@ class EnchantmentService:
         self,
         play: PlayService,
         state: PlayState,
-        command: TypedEnchantmentCommand | DeclareStaffConstruction | ObserveHasteManufacture,
+        command: TypedEnchantmentCommand
+        | DeclareStaffConstruction
+        | ObserveHasteManufacture
+        | wearables.DeclareHasteWearableConstruction,
         *,
         principal_id: str,
         correct_settlement: bool = True,
         correct_energy: bool = True,
         haste_manufacture: bool = False,
-    ) -> CommandPlan[EnchantmentOutcome | StaffConstruction | HasteManufacture]:
+        manufacture_generation: int = 1,
+    ) -> CommandPlan[
+        EnchantmentOutcome | StaffConstruction | HasteManufacture | wearables.WearableConstruction
+    ]:
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Enchanting requires the exact Basic Set profile")
+        if type(manufacture_generation) is not int or manufacture_generation not in (1, 2):
+            raise ValidationError("Unsupported Haste manufacture generation")
         payload = json.dumps(
             {
-                "operation": "haste-manufacture"
+                "operation": "haste-wearable-construction"
+                if isinstance(command, wearables.DeclareHasteWearableConstruction)
+                else "haste-manufacture"
                 if isinstance(command, ObserveHasteManufacture)
                 else "staff-construction"
                 if isinstance(command, DeclareStaffConstruction)
                 else "enchantment",
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json")
-                if isinstance(command, (DeclareStaffConstruction, ObserveHasteManufacture))
+                if isinstance(
+                    command,
+                    (
+                        DeclareStaffConstruction,
+                        ObserveHasteManufacture,
+                        wearables.DeclareHasteWearableConstruction,
+                    ),
+                )
                 else command_payload(command),
                 **({"enchantment_settlement_generation": 1} if correct_settlement else {}),
                 **({"enchantment_energy_generation": 1} if correct_energy else {}),
                 **(
-                    {"haste_manufacture_generation": 1}
+                    {"haste_manufacture_generation": manufacture_generation}
                     if haste_manufacture and isinstance(command, CreateEnchantment)
                     else {}
                 ),
@@ -78,7 +96,15 @@ class EnchantmentService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            if isinstance(command, ObserveHasteManufacture):
+            if isinstance(command, wearables.DeclareHasteWearableConstruction):
+                resources = wearables.declare(play.rules_context, before, command).model_copy(
+                    update={"revision": before.revision + 1}
+                )
+                updated = before.model_copy(
+                    update={"revision": before.revision + 1, "resources": resources}
+                )
+                result = "haste-wearable-construction"
+            elif isinstance(command, ObserveHasteManufacture):
                 fact = observe(play.rules_context, before, command)
                 resources = record(
                     before.resources, OBSERVATION, command.id, command.target_item_id, fact
@@ -104,6 +130,7 @@ class EnchantmentService:
                     correct_settlement=correct_settlement,
                     correct_energy=correct_energy,
                     haste_manufacture=haste_manufacture,
+                    manufacture_generation=manufacture_generation,
                 )
                 result = receipt.status
             play.commit(campaign, play.checkpoint(updated, before=before))
@@ -111,8 +138,21 @@ class EnchantmentService:
 
         async def outcome(
             campaign: Campaign,
-        ) -> EnchantmentOutcome | StaffConstruction | HasteManufacture:
+        ) -> (
+            EnchantmentOutcome
+            | StaffConstruction
+            | HasteManufacture
+            | wearables.WearableConstruction
+        ):
             resource_state = play._load(campaign).resources
+            if isinstance(command, wearables.DeclareHasteWearableConstruction):
+                return wearables.WearableConstruction.model_validate_json(
+                    next(
+                        e.kind
+                        for e in resource_state.events
+                        if e.id == wearables.identifier(command.id)
+                    )
+                )
             if isinstance(command, ObserveHasteManufacture):
                 return HasteManufacture.model_validate_json(
                     next(
@@ -143,11 +183,34 @@ class EnchantmentService:
     async def _submit(
         self,
         cid: str,
-        command: TypedEnchantmentCommand | DeclareStaffConstruction | ObserveHasteManufacture,
+        command: TypedEnchantmentCommand
+        | DeclareStaffConstruction
+        | ObserveHasteManufacture
+        | wearables.DeclareHasteWearableConstruction,
         principal_id: str,
-    ) -> EnchantmentOutcome | StaffConstruction | HasteManufacture:
+    ) -> EnchantmentOutcome | StaffConstruction | HasteManufacture | wearables.WearableConstruction:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
+        generation = (
+            await current_haste_generation(
+                play,
+                cid,
+                command.id,
+                fresh=next(
+                    (
+                        2 if f.wearable is not None else 1
+                        for f in facts(play._load(campaign).resources)
+                        if f.project_id is None
+                        and isinstance(command, CreateEnchantment)
+                        and f.recipe_id == command.recipe_id
+                        and f.target_item_id == command.target_item_id
+                    ),
+                    0,
+                ),
+            )
+            if isinstance(command, CreateEnchantment)
+            else 0
+        )
         return await submit(
             play,
             cid,
@@ -158,19 +221,8 @@ class EnchantmentService:
                 principal_id=principal_id,
                 correct_settlement=await current_settlement(play, cid, command.id),
                 correct_energy=await current_energy(play, cid, command.id),
-                haste_manufacture=await current_haste_manufacture(
-                    play,
-                    cid,
-                    command.id,
-                    eligible=any(
-                        f.project_id is None
-                        and f.recipe_id == command.recipe_id
-                        and f.target_item_id == command.target_item_id
-                        for f in facts(play._load(campaign).resources)
-                    ),
-                )
-                if isinstance(command, CreateEnchantment)
-                else False,
+                haste_manufacture=generation != 0,
+                manufacture_generation=generation or 1,
             ),
             principal_id=principal_id,
         )
@@ -196,4 +248,13 @@ class EnchantmentService:
             cid, ObserveHasteManufacture.model_validate(value), principal_id
         )
         assert isinstance(result, HasteManufacture)
+        return result
+
+    async def declare_haste_wearable(
+        self, cid: str, value: object, *, principal_id: str
+    ) -> wearables.WearableConstruction:
+        result = await self._submit(
+            cid, wearables.DeclareHasteWearableConstruction.model_validate(value), principal_id
+        )
+        assert isinstance(result, wearables.WearableConstruction)
         return result

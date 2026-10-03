@@ -19,6 +19,9 @@ from wayfarer.engine.simulation.magic.great_haste_named import (
 )
 from wayfarer.engine.simulation.magic.haste_host import ADAPTER as HASTE_ADAPTER
 from wayfarer.engine.simulation.magic.haste_manufacture import ObserveHasteManufacture
+from wayfarer.engine.simulation.magic.haste_wearable_construction import (
+    DeclareHasteWearableConstruction,
+)
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
@@ -68,6 +71,16 @@ async def _haste_manufacture(play: PlayService, record: CommandRecord, encoded: 
     await EnchantmentService(play).observe_haste_manufacture(
         record.campaign_id,
         ObserveHasteManufacture.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _haste_wearable_construction(
+    play: PlayService, record: CommandRecord, encoded: str
+) -> None:
+    await EnchantmentService(play).declare_haste_wearable(
+        record.campaign_id,
+        DeclareHasteWearableConstruction.model_validate_json(encoded),
         principal_id=record.actor_id,
     )
 
@@ -239,6 +252,7 @@ _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], A
     "enchantment": _enchantment,
     "staff-construction": _staff_construction,
     "haste-manufacture": _haste_manufacture,
+    "haste-wearable-construction": _haste_wearable_construction,
     "staff-casting": _staff_casting,
     "combat-abandon-pending-attack": _abandon_pending_attack,
     "combat-random-unarmed": _random_unarmed,
