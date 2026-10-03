@@ -834,7 +834,7 @@ class TaskService:
                     ChooseOpponentFragment,
                 ),
             ):
-                if isinstance(command, ChooseOpponentAttack):
+                if isinstance(command, (ChooseOpponentAttack, PrepareOwnerDamage)):
                     with combat_generation(task_features):
                         state, saved, clock, result = _continued_roll(
                             play, state, command, saved, clock

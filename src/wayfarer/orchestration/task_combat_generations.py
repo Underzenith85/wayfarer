@@ -1,4 +1,4 @@
-"""Private grenade-fuse capture for an actual ordinary opponent task choice."""
+"""Private grenade-fuse capture for an actual ordinary task defense producer."""
 
 import json
 
@@ -8,6 +8,7 @@ from wayfarer import validation
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.opponent_attack_records import ChooseOpponentAttack
+from wayfarer.orchestration.owner_damage_records import PrepareOwnerDamage
 from wayfarer.orchestration.replay_inputs import recorded_command
 from wayfarer.orchestration.sessions import Store
 from wayfarer.persistence.command_inputs import combat_intent, intent_input, replay_payload
@@ -18,19 +19,29 @@ ACTIVE = frozenset({"grenade-fuse"})
 
 
 def applicable(command: object) -> bool:
-    return isinstance(command, ChooseOpponentAttack) and isinstance(command.response, ChooseDefense)
+    return isinstance(command, (ChooseOpponentAttack, PrepareOwnerDamage)) and isinstance(
+        command.response, ChooseDefense
+    )
 
 
-def producer(record: CommandInput) -> ChooseOpponentAttack:
+def producer(record: CommandInput) -> ChooseOpponentAttack | PrepareOwnerDamage:
     if record.text is None or payload_digest({"input": record.text}) != record.payload_hash:
         raise ValidationError("Recorded task combat input does not match its digest")
     payload = validation.mapping(replay_payload(record.text))
     if payload.get("operation") != "task-host":
         raise ValidationError("Task combat features require their registered host operation")
     try:
-        command = ChooseOpponentAttack.model_validate_json(json.dumps(payload.get("command")))
+        raw = validation.mapping(payload.get("command"))
+        model = (
+            PrepareOwnerDamage
+            if raw.get("kind") == "prepare-owner-damage"
+            else ChooseOpponentAttack
+        )
+        command = model.model_validate_json(json.dumps(raw))
     except SchemaError as exc:
-        raise ValidationError("Task combat features require a canonical opponent choice") from exc
+        raise ValidationError(
+            "Task combat features require a canonical task defense producer"
+        ) from exc
     if not applicable(command):
         raise ValidationError("Task combat features require an actual ordinary defense")
     return command

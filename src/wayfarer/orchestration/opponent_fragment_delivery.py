@@ -109,6 +109,8 @@ def latest_delivery(history: list[CommandRecord], blast_id: str) -> FragmentDeli
                     "Grenade task delivery differs from its accepted receipt identity"
                 )
             command = task.response
+            if command is None or command.actor_id != pending.defender_id:
+                raise ValidationError("Grenade task delivery differs from its pending target")
         else:
             if payload.get("operation") != "combat" or "grenade-fuse" not in features(record):
                 raise ValidationError("Grenade delivery lacks its trusted canonical generation")
