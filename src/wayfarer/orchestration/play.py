@@ -245,6 +245,7 @@ class PlayService:
                     "enchantment-loss:",
                     "power-cast-origin:",
                     "armoury-familiarity:",
+                    "armoury-parts:",
                     "water-state:",
                     "water-channel:",
                     "water-host:",

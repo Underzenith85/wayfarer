@@ -24,7 +24,9 @@ exact fractional-price parts costs, and cover B178 shields and thrown weapons.
 Trusted-GM performer/model/specialty familiarity observations also affect the
 actual repair skill and restored HP. The written #818 baseline checklist is
 covered by resulting-state, eligibility, conservation and replay evidence.
-Source-valid time, toolkit, defaulted-skill and smaller-stock variants remain
-explicitly unverified in issues #975–978 linked from the source review.
+The explicit [recorded parts assessment](gurps-armoury-parts.md) admits
+source-sufficient rolled stock for major repairs. Source-valid time, toolkit and
+defaulted-skill variants remain unverified in issues #976–978 linked from the
+source review.
 Familiarity acquisition remains separate unimplemented work.
 No source/certification status or frozen request contract is promoted.

@@ -77,9 +77,10 @@ visible and unverified; they do not receive source or certification promotion.
   consumer does not yet bind the IQ/Engineer/cross-specialty defaults to a
   verified training TL.
 
-- [#975](https://github.com/Underzenith85/wayfarer/issues/975): major repair
-  requires enough parts for the maximum possible d6 cost at admission. Stock
-  sufficient for a smaller rolled cost can therefore be refused.
+- [#975](https://github.com/Underzenith85/wayfarer/issues/975): the new private
+  [recorded assessment](gurps-armoury-parts.md) admits stock sufficient for the
+  actual immutable rolled requirement. Unassessed historical starts retain
+  their maximum-cost preflight and original random stream.
 
 Trusted-GM performer/model/specialty observations now apply the B178
 unfamiliarity modifier to actual accepted repair checks, with resulting HP
