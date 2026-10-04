@@ -288,6 +288,7 @@ class PlayService:
                     "great-haste-step-resolved:",
                     "analyze-magic:",
                     "detect-magic:",
+                    "identify-spell:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",

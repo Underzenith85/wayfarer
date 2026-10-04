@@ -25,6 +25,8 @@ from wayfarer.engine.simulation.magic.haste_manufacture import ObserveHasteManuf
 from wayfarer.engine.simulation.magic.haste_wearable_construction import (
     DeclareHasteWearableConstruction,
 )
+from wayfarer.engine.simulation.magic.identify_spell_admission import AcceptedSpellProducer
+from wayfarer.engine.simulation.magic.identify_spell_state import ADAPTER as IDENTIFY_SPELL_ADAPTER
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
@@ -50,6 +52,7 @@ from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.haste import HasteService
 from wayfarer.orchestration.hazard_resume import recorded_resume
 from wayfarer.orchestration.hazards import HazardContext, HazardService
+from wayfarer.orchestration.identify_spell import IdentifySpellService
 from wayfarer.orchestration.locks import LockService, LockSpellService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
@@ -260,6 +263,22 @@ async def _analyze_magic(play: PlayService, record: CommandRecord, encoded: str)
     )
 
 
+async def _identify_spell(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    payload = validation.mapping(validation.decode(record.command_input or "{}"))
+    if payload.get("producer_generation") != 1:
+        raise ValidationError("Identify Spell replay requires captured producer evidence")
+    producers = tuple(
+        AcceptedSpellProducer.model_validate(value)
+        for value in validation.sequence(payload["producer_evidence"])
+    )
+    await IdentifySpellService(play).execute(
+        record.campaign_id,
+        IDENTIFY_SPELL_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+        replay_producers=producers,
+    )
+
+
 async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) -> None:
     await DetectMagicService(play).execute(
         record.campaign_id,
@@ -270,6 +289,7 @@ async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
     "detect-magic": _detect_magic,
+    "identify-spell": _identify_spell,
     "analyze-magic": _analyze_magic,
     "armoury": _armoury,
     "great-haste": _great_haste,
