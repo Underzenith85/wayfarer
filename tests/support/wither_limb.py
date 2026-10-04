@@ -17,11 +17,13 @@ from wayfarer.engine.character.power import CharacterProposal, PowerReviewer
 from wayfarer.engine.rules.catalog import (
     DefinitionKind,
     ImplementationStatus,
+    PackagePin,
     RuleDefinition,
     RulesCatalog,
 )
 from wayfarer.engine.rules.magic.body_control import package as body_package
 from wayfarer.engine.rules.magic.enchantment import package as enchantment_package
+from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 from wayfarer.engine.rules.skills.mundane.melee import definitions as melee_definitions
 from wayfarer.engine.rules.types.object import ObjectCondition
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
@@ -73,6 +75,7 @@ async def fixture(
     defender_item: Literal["staff", "shield"] | None = None,
     defender_armor: bool = False,
     defender_arm_armor: bool = False,
+    defender_first_aid: bool = False,
     equipment_target: Literal["buckler"] | None = None,
     victim_mode: Literal["dead", "diffuse"] | None = None,
 ) -> tuple[str, PlayService, Campaign]:
@@ -103,6 +106,9 @@ async def fixture(
             )
         }
     )
+    if defender_first_aid:
+        first_aid = next(d for d in medical_definitions() if d.id == "skill:first-aid")
+        definitions[first_aid.id] = first_aid
     definitions["equipment:quarterstaff"] = RuleDefinition(
         "equipment:quarterstaff",
         DefinitionKind.EQUIPMENT,
@@ -170,7 +176,11 @@ async def fixture(
             }.values()
         ),
     )
-    rebuilt = profile_compiler("gurps-basic-set-4e-2004", package=combined)
+    rules = (
+        replace(base.rules, packages=(PackagePin(combined.id, combined.version, combined.digest),))
+        if defender_first_aid
+        else profile_compiler("gurps-basic-set-4e-2004", package=combined).rules
+    )
     policy = replace(
         base.policy,
         allowed_equipment=base.policy.allowed_equipment
@@ -178,9 +188,10 @@ async def fixture(
         | ({buckler.definition_id} if equipment_target == "buckler" else set())
         | ({arm_armor.definition_id} if defender_arm_armor else set()),
         point_budget=1000,
+        technology_level=8 if defender_first_aid else base.policy.technology_level,
     )
     compiler = CharacterCompiler(
-        RulesCatalog((combined,)), rebuilt.rules, policy, statistics_profile=base.statistics_profile
+        RulesCatalog((combined,)), rules, policy, statistics_profile=base.statistics_profile
     )
     combat = original.engine.rules.combat
     assert combat is not None and combat.gurps_equipment is not None
@@ -308,6 +319,17 @@ async def fixture(
                         update={
                             "purchases": draft.purchases
                             + (
+                                (
+                                    Purchase(
+                                        definition_id="skill:first-aid",
+                                        amount=4,
+                                        technology_level=8,
+                                    ),
+                                )
+                                if defender_first_aid
+                                else ()
+                            )
+                            + (
                                 Purchase(
                                     definition_id="skill:shield-buckler"
                                     if equipment_target == "buckler"
@@ -319,6 +341,17 @@ async def fixture(
                     )
                     if a.actor_id == "b"
                     and (defender_item == "shield" or equipment_target == "buckler")
+                    else draft.model_copy(
+                        update={
+                            "purchases": draft.purchases
+                            + (
+                                Purchase(
+                                    definition_id="skill:first-aid", amount=4, technology_level=8
+                                ),
+                            )
+                        }
+                    )
+                    if a.actor_id == "b" and defender_first_aid
                     else draft
                 ),
                 body=a.body,

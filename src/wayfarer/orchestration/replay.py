@@ -63,6 +63,8 @@ from wayfarer.orchestration.hazards import HazardContext, HazardService
 from wayfarer.orchestration.identify_spell import IdentifySpellService
 from wayfarer.orchestration.limb_spells import LimbSpellService
 from wayfarer.orchestration.locks import LockService, LockSpellService
+from wayfarer.orchestration.medical import CareEnvironment, MedicalService
+from wayfarer.orchestration.medical_commands import recorded_command as recorded_medical_command
 from wayfarer.orchestration.melee_spells import MeleeSpellService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
@@ -355,6 +357,25 @@ async def _identify_spell(play: PlayService, record: CommandRecord, encoded: str
     )
 
 
+def _missing_medical_environment(
+    _play: PlayService, _state: PlayState, _target_id: str
+) -> CareEnvironment:
+    raise ValidationError("Trusted original medical care context unavailable")
+
+
+async def _medical(play: PlayService, record: CommandRecord, _encoded: str) -> None:
+    command = recorded_medical_command(CommandInput(record.payload_hash, record.command_input))
+    if (command.id, command.actor_id, command.expected_revision) != (
+        record.command_id,
+        record.actor_id,
+        record.expected_revision,
+    ):
+        raise ValidationError("Recorded medical command does not match its receipt")
+    await MedicalService(play, _missing_medical_environment).execute(
+        record.campaign_id, command, principal_id=record.actor_id
+    )
+
+
 async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) -> None:
     await DetectMagicService(play).execute(
         record.campaign_id,
@@ -364,6 +385,7 @@ async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) 
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "gurps-recovery": _medical,
     "rooted-feet": _rooted_feet,
     "limb-spell": _limb_spell,
     "wither-spell": _wither_spell,
