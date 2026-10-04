@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.engine import hex_template
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.fright_state import projection as fright_projection
+from wayfarer.engine.simulation.magic.analyze_magic_state import projection as magic_projection
 from wayfarer.engine.simulation.magic.item_power_knowledge import item_projection
 from wayfarer.engine.simulation.magic.water_discovery import projection as water_projection
 from wayfarer.engine.simulation.resources import wire_weight
@@ -45,6 +46,7 @@ def campaign_view(
             "fright": fright_projection(state.resources, (), director=True),
         }
     water_findings = water_projection(state.resources, member.actor_ids)
+    magic_findings = magic_projection(state.resources, member.actor_ids)
     perspectives: dict[str, object] = {}
     for actor_id in member.actor_ids:
         own = next(e for e in state.world.entities if e.id == actor_id)
@@ -136,8 +138,9 @@ def campaign_view(
         "actors": member.actor_ids,
         "fright": fright_projection(state.resources, member.actor_ids),
         **({"water_findings": water_findings} if water_findings else {}),
+        **({"magic_findings": magic_findings} if magic_findings else {}),
         "inventory": tuple(
-            item_projection(state.resources, i)
+            item_projection(state.resources, i, member.actor_ids)
             for i in state.resources.items
             if i.owner_id in member.actor_ids
         ),

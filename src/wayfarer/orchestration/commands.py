@@ -17,8 +17,10 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.social_policy import parse_graph
 from wayfarer.engine.simulation.health.fright_transitions import FrightDecision
 from wayfarer.engine.simulation.health.recovery_guard import guard
+from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
+from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.encounter_scenes import (
     EncounterSceneService,
@@ -265,7 +267,28 @@ async def _typed_action(submission: Submission) -> None:
     )
 
 
+async def _analyze_magic(submission: Submission) -> None:
+    await AnalyzeMagicService(submission.play).execute(
+        submission.cid, submission.command, principal_id=submission.principal_id
+    )
+
+
 FAMILIES: tuple[CommandFamily, ...] = (
+    CommandFamily(
+        kinds=(
+            "analyze_magic_subject",
+            "analyze_magic_start",
+            "analyze_magic_work",
+            "analyze_magic_complete",
+            "analyze_magic_cancel",
+            "analyze_magic_report",
+        ),
+        parse=ANALYZE_MAGIC_ADAPTER.validate_json,
+        service=_analyze_magic,
+        receipt="resource",
+        authorize=service_authorizes,
+        preconditions=(recovery_guard,),
+    ),
     CommandFamily(
         kinds=("propose_fright_build",),
         parse=ProposeFrightBuild.model_validate_json,

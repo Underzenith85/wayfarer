@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_AD
 from wayfarer.engine.simulation.equipment.world_ground import WorldGroundCommand
 from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLIC_HOST_ADAPTER
 from wayfarer.engine.simulation.health.hazard_records import HazardCommand
+from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORTATION_ADAPTER
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
@@ -31,6 +32,7 @@ from wayfarer.engine.simulation.magic.staff_state import DeclareStaffConstructio
 from wayfarer.engine.simulation.social.social import SocialCommand
 from wayfarer.engine.simulation.traits.composed_host import ADAPTER as COMPOSED_ADAPTER
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
 from wayfarer.orchestration.apportation import ApportationService
 from wayfarer.orchestration.armoury import ADAPTER as ARMOURY_ADAPTER
 from wayfarer.orchestration.armoury import ArmouryService
@@ -248,7 +250,16 @@ async def _world_equipment(play: PlayService, record: CommandRecord, encoded: st
     )
 
 
+async def _analyze_magic(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await AnalyzeMagicService(play).execute(
+        record.campaign_id,
+        ANALYZE_MAGIC_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "analyze-magic": _analyze_magic,
     "armoury": _armoury,
     "great-haste": _great_haste,
     "water": _water,
