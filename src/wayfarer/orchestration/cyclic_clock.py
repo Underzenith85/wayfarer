@@ -31,6 +31,9 @@ from wayfarer.engine.simulation.magic.detect_magic_state import (
 )
 from wayfarer.engine.simulation.magic.enchanting_lifecycle import needs_clock_checkpoints
 from wayfarer.engine.simulation.magic.great_haste_effects import deadlines as great_haste_deadlines
+from wayfarer.engine.simulation.magic.hand_melee_spell_state import (
+    needs_clock_checkpoints as needs_hand_checkpoints,
+)
 from wayfarer.engine.simulation.magic.limb_spell_state import (
     needs_clock_checkpoints as needs_limb_checkpoints,
 )
@@ -60,6 +63,7 @@ def _needs_checkpoints(state: PlayState, to: int) -> bool:
         needs_analysis_checkpoints(resources)
         or needs_detection_checkpoints(resources)
         or needs_melee_checkpoints(resources)
+        or needs_hand_checkpoints(resources)
         or needs_limb_checkpoints(resources)
         or needs_wither_checkpoints(resources)
         or any(

@@ -50,3 +50,7 @@ def paralyze_buckler_drop_enabled() -> bool:
 
 def rooted_dodge_health_trait_composition() -> bool:
     return "rooted-dodge-health-trait-composition" in _current.get()
+
+
+def hand_melee_spell_contact_enabled() -> bool:
+    return "hand-melee-spell-contact" in _current.get()

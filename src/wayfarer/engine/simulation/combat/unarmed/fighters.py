@@ -122,18 +122,24 @@ def _guard_innate_balance(
             require_innate_action(state.resources, encounter, command.actor_id, command.item_id)
 
 
+def _guard_pending_unarmed(encounter: Encounter, command: TypedCombatCommand) -> bool:
+    pending = encounter.pending_unarmed
+    if pending is None:
+        return False
+    if isinstance(command, MigrateEncounterBasic):
+        return True
+    if encounter.blocked_reason:
+        raise ConflictError("Encounter is blocked on its captured unarmed consequence")
+    if not isinstance(command, ChooseDefense) or command.actor_id != pending.target_id:
+        raise ConflictError("Only the target may resolve the pending unarmed defense")
+    return True
+
+
 def guard_control(encounter: Encounter, command: TypedCombatCommand, state: PlayState) -> None:
     require_choke_turn_settled(state, encounter, exempt=isinstance(command, ResolveChokeEffects))
     _guard_innate_balance(encounter, command, state)
 
-    if encounter.pending_unarmed is not None:
-        if isinstance(command, MigrateEncounterBasic):
-            return
-        if (
-            not isinstance(command, ChooseDefense)
-            or command.actor_id != encounter.pending_unarmed.target_id
-        ):
-            raise ConflictError("Only the target may resolve the pending unarmed defense")
+    if _guard_pending_unarmed(encounter, command):
         return
     if isinstance(command, TakeUnarmedTurn):
         if fighter(encounter, command.actor_id).unarmed_balance_lost:

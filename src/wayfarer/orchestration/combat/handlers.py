@@ -25,6 +25,7 @@ from wayfarer.engine.simulation.equipment.repair_transitions import repair
 from wayfarer.engine.simulation.equipment.retrieval import retrieve as retrieve_field
 from wayfarer.engine.simulation.equipment.salvage import salvage
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
+from wayfarer.orchestration.melee_spell_contacts import capture_pending_contact
 
 
 def _explosion(
@@ -210,5 +211,7 @@ def _unarmed(
         selected_attack=context.selected_attack.selected if context.selected_attack else None,
         attack_runtime=context.attack_runtime if context.selected_attack else None,
     )
+    if isinstance(command, TakeUnarmedTurn):
+        state = capture_pending_contact(play.rules_context, state, encounter, command.id)
     resources = state.resources
     return CombatStep(state, encounter, resources, result)

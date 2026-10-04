@@ -67,6 +67,10 @@ def execute_unarmed(
                     ),
                 }
             )
+        # deferred: the private hand producer and combat engine share a context cycle.
+        from wayfarer.engine.simulation.magic.hand_melee_contacts import guard_unarmed_declaration
+
+        guard_unarmed_declaration(runtime, state, encounter, command)
         validate_sequence(runtime, state, encounter, command)
         if not reacting:
             fired = interrupt_wait(runtime, state, encounter, command)
@@ -215,9 +219,15 @@ def finish_unarmed_response(
             else None,
         )
     encounter = settle_control(state, encounter)
+    retain_hand_pause = False
+    if trace.blocked_reason and encounter.pending_unarmed is not None:
+        # deferred: private hand contact and combat response share a runtime context cycle.
+        from wayfarer.engine.simulation.magic.hand_melee_contacts import read_contact
+
+        retain_hand_pause = read_contact(state.resources, encounter.pending_unarmed.id) is not None
     encounter = encounter.model_copy(
         update={
-            "pending_unarmed": None,
+            "pending_unarmed": encounter.pending_unarmed if retain_hand_pause else None,
             "unarmed_history": encounter.unarmed_history + (trace,),
             "blocked_reason": trace.blocked_reason,
         }

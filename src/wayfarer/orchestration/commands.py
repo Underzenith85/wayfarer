@@ -20,6 +20,7 @@ from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.aura_state import ADAPTER as AURA_ADAPTER
 from wayfarer.engine.simulation.magic.detect_magic_state import ADAPTER as DETECT_MAGIC_ADAPTER
+from wayfarer.engine.simulation.magic.hand_melee_spell_state import ADAPTER as HAND_MELEE_ADAPTER
 from wayfarer.engine.simulation.magic.identify_spell_state import ADAPTER as IDENTIFY_SPELL_ADAPTER
 from wayfarer.engine.simulation.magic.limb_spell_commands import ADAPTER as LIMB_SPELL_ADAPTER
 from wayfarer.engine.simulation.magic.melee_spell_state import ADAPTER as MELEE_SPELL_ADAPTER
@@ -41,6 +42,7 @@ from wayfarer.orchestration.fright_builds import (
     FrightBuildService,
     ProposeFrightBuild,
 )
+from wayfarer.orchestration.hand_melee_spells import HandMeleeSpellService
 from wayfarer.orchestration.identify_spell import IdentifySpellService
 from wayfarer.orchestration.limb_spells import LimbSpellService
 from wayfarer.orchestration.melee_spells import MeleeSpellService
@@ -299,6 +301,12 @@ async def _aura(submission: Submission) -> None:
     )
 
 
+async def _hand_melee_spell(submission: Submission) -> None:
+    await HandMeleeSpellService(submission.play).execute(
+        submission.cid, submission.command, principal_id=submission.principal_id
+    )
+
+
 async def _melee_spell(submission: Submission) -> None:
     await MeleeSpellService(submission.play).execute(
         submission.cid, submission.command, principal_id=submission.principal_id
@@ -350,6 +358,14 @@ FAMILIES: tuple[CommandFamily, ...] = (
         kinds=("rooted_feet_subject", "rooted_feet_cast", "rooted_feet_escape"),
         parse=ROOTED_FEET_ADAPTER.validate_json,
         service=_rooted_feet,
+        receipt="resource",
+        authorize=service_authorizes,
+        preconditions=(recovery_guard,),
+    ),
+    CommandFamily(
+        kinds=("cast-hand-deathtouch",),
+        parse=HAND_MELEE_ADAPTER.validate_json,
+        service=_hand_melee_spell,
         receipt="resource",
         authorize=service_authorizes,
         preconditions=(recovery_guard,),
@@ -468,7 +484,12 @@ FAMILIES: tuple[CommandFamily, ...] = (
         preconditions=(recovery_guard,),
     ),
     CommandFamily(
-        kinds=("take_combat_turn", "resume_interrupted_turn", "choose_defense"),
+        kinds=(
+            "take_combat_turn",
+            "take_unarmed_turn",
+            "resume_interrupted_turn",
+            "choose_defense",
+        ),
         parse=COMBAT_ADAPTER.validate_json,
         service=_combat,
         receipt="combat",
@@ -544,8 +565,8 @@ ACTIONS = CommandFamily(
     preconditions=(recovery_guard,),
 )
 
-# `take_unarmed_turn` is a typed action, so it reaches the fallback family; the
-# ladder exempted it from the guard by name and that exemption is kept here.
+# Preserve the historic recovery-guard exemption name. The actual unarmed
+# command is now routed through its canonical combat family.
 UNGUARDED_ACTIONS = frozenset({"take_unarmed_turn"})
 
 BY_KIND: dict[str, CommandFamily] = {kind: family for family in FAMILIES for kind in family.kinds}

@@ -5590,14 +5590,20 @@
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Approved purchased learning and actual manufactured Staff charge/contact with source-selected 1\u20133 dice, separate armor-ignoring HP injury, payment, custody, privacy and seeded replay; hand, undead injury and broader delivery variants remain unverified.",
+      "supported_subset": "Approved purchased learning and actual manufactured Staff or selected empty ordinary-hand charge/contact with source-selected 1\u20133 dice, separate armor-ignoring HP injury, payment, custody, privacy and seeded replay. The hand consumer uses one actual DX/Brawling punch, successful barehand-Parry arc, Dodge/weapon-Parry retention, separate physical critical arithmetic and actual owner-damage stages. Undead injury, other attack/training forms, attack-selection Luck and qualified contextual continuation remain unverified.",
       "evidence": [
         "tests/test_spell_body_control.py",
         "tests/test_college_dispatch.py",
         "tests/test_body_control_named_construction.py",
         "tests/test_deathtouch_casting.py",
         "tests/test_staff_melee_contact.py",
-        "docs/gurps-deathtouch-staff.md"
+        "docs/gurps-deathtouch-staff.md",
+        "tests/test_hand_deathtouch_casting.py",
+        "tests/test_hand_deathtouch_host.py",
+        "tests/test_hand_deathtouch_contact.py",
+        "tests/test_hand_deathtouch_replay.py",
+        "tests/test_hand_melee_contact_protocols.py",
+        "docs/gurps-deathtouch-hand-contact.md"
       ],
       "members": [],
       "talent_cost": null,
