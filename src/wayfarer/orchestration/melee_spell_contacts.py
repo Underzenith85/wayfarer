@@ -2,8 +2,7 @@
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.magic.melee_spell_admission import prepare_contact
-from wayfarer.engine.simulation.magic.melee_spell_state import attach_contact
+from wayfarer.engine.simulation.magic.melee_contact_dispatch import attach_contact, prepare_contact
 from wayfarer.engine.simulation.rules_context import RulesContext
 
 
@@ -23,6 +22,7 @@ def capture_pending_contact(
         defender_id=pending.defender_id,
         carrier_item_id=pending.weapon_id,
         mode_id=pending.mode_id,
+        requested_location=pending.hit_location,
     )
     if contact is None:
         return state

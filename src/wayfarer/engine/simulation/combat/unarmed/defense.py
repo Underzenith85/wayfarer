@@ -25,11 +25,26 @@ from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.health.fright_state import can_defend
 from wayfarer.engine.simulation.health.fright_state import stunned as fright_stunned
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
+from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.combat.commands import ChooseDefense
     from wayfarer.engine.simulation.rules_context import RulesContext
+
+
+def _require_barehand_classification(state: PlayState, actor_id: str) -> None:
+    if active_effect(state.resources, actor_id) is not None:
+        raise ValidationError("Rooted Feet barehand Parry classification is unsupported")
+
+
+def _require_rooted_dodge_modifiers(
+    state: PlayState, actor_id: str, height_bonus: int, external_penalty: int
+) -> None:
+    if active_effect(state.resources, actor_id) is not None and (
+        height_bonus != 0 or external_penalty != 0
+    ):
+        raise ValidationError("Rooted Feet unarmed Dodge composition is unsupported")
 
 
 def unarmed_defense(
@@ -84,6 +99,7 @@ def unarmed_defense(
     if selected == "dodge":
         if item_id is not None:
             raise ValidationError("Dodge cannot select equipment")
+        _require_rooted_dodge_modifiers(state, actor_id, height_bonus, external_penalty)
         value, _ = standard_defense_value(runtime, state, actor, "dodge")
         assert value is not None
         return int(value.value) + height_bonus + external_penalty, None
@@ -109,6 +125,7 @@ def unarmed_defense(
         )
         assert value is not None
         return int(value.value) + height_bonus + external_penalty, selected_item
+    _require_barehand_classification(state, actor_id)
     hand = item_id or next(iter(free_hands(state, encounter, actor_id)), None)
     if hand not in free_hands(state, encounter, actor_id):
         raise ValidationError("Unarmed parry requires a free usable hand")

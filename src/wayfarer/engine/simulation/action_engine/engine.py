@@ -89,6 +89,7 @@ from wayfarer.engine.simulation.magic.bindings import validate_channels as valid
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
 from wayfarer.engine.simulation.magic.enchanting import validate_projects as validate_enchantments
 from wayfarer.engine.simulation.magic.lock_state import passage_blocked
+from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.engine.simulation.play_clock import PlayClock, advance_play
 from wayfarer.engine.simulation.projects.inventions import validate_projects
 from wayfarer.engine.simulation.resources import Advance, Consume, ResourceState
@@ -560,16 +561,21 @@ class ActionEngine:
                 else result("rejected", "wait.limit")
             )
         if isinstance(command, Move):
+            rooted = active_effect(state.resources, actor.actor_id) is not None
             hp = pools[f"hp:{actor.actor_id}"]
-            if hp.injury and any(
-                p in ("left-leg", "right-leg", "left-foot", "right-foot")
-                for p in disabled_locations(
-                    hp.injury.lasting_injuries,
-                    now=state.resources.game_time,
-                    full_hp=hp.current >= hp.maximum,
+            if (
+                rooted
+                or hp.injury
+                and any(
+                    p in ("left-leg", "right-leg", "left-foot", "right-foot")
+                    for p in disabled_locations(
+                        hp.injury.lasting_injuries,
+                        now=state.resources.game_time,
+                        full_hp=hp.current >= hp.maximum,
+                    )
                 )
             ):
-                return result("rejected", "move.crippled")
+                return result("rejected", "move.rooted" if rooted else "move.crippled")
             if self.rules.scenes is not None:
                 return result("rejected", "scene.command_required")
             if command.destination_id is None:

@@ -21,7 +21,9 @@ from wayfarer.engine.simulation.magic.aura_state import projection as aura_proje
 from wayfarer.engine.simulation.magic.detect_magic_state import projection as detect_projection
 from wayfarer.engine.simulation.magic.identify_spell_state import projection as identify_projection
 from wayfarer.engine.simulation.magic.item_power_knowledge import item_projection
+from wayfarer.engine.simulation.magic.limb_spell_state import projection as limb_spell_projection
 from wayfarer.engine.simulation.magic.melee_spell_state import projection as melee_spell_projection
+from wayfarer.engine.simulation.magic.rooted_feet_state import projection as rooted_feet_projection
 from wayfarer.engine.simulation.magic.water_discovery import projection as water_projection
 from wayfarer.engine.simulation.resources import wire_weight
 from wayfarer.errors import ConflictError, ValidationError
@@ -55,6 +57,8 @@ def campaign_view(
     spell_identifications = identify_projection(state.resources, member.actor_ids)
     aura_findings = aura_projection(state.resources, member.actor_ids)
     melee_spell_findings = melee_spell_projection(state.resources, member.actor_ids)
+    limb_spell_findings = limb_spell_projection(state.resources, member.actor_ids)
+    rooted_feet_findings = rooted_feet_projection(state.resources, member.actor_ids)
     perspectives: dict[str, object] = {}
     for actor_id in member.actor_ids:
         own = next(e for e in state.world.entities if e.id == actor_id)
@@ -151,6 +155,8 @@ def campaign_view(
         **({"spell_identifications": spell_identifications} if spell_identifications else {}),
         **({"aura_findings": aura_findings} if aura_findings else {}),
         **({"melee_spell_findings": melee_spell_findings} if melee_spell_findings else {}),
+        **({"limb_spell_findings": limb_spell_findings} if limb_spell_findings else {}),
+        **({"rooted_feet_findings": rooted_feet_findings} if rooted_feet_findings else {}),
         "inventory": tuple(
             item_projection(state.resources, i, member.actor_ids)
             for i in state.resources.items

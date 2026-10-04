@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry,
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.lock_state import passage_blocked
+from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
@@ -26,6 +27,10 @@ def travel_scene(
 ) -> PlayState:
     """Traverse one authored exit without charging a second time interval."""
     guard(state, actor_id, "travel_scene")
+    require_locomotion(state.resources, actor_id)
+    if group_travel and state.party.groups:
+        for member in group_for(state, actor_id).actor_ids:
+            require_locomotion(state.resources, member)
     rules = runtime.rules.scenes
     if rules is None:
         raise ValidationError("Campaign scenes are not configured")

@@ -130,6 +130,25 @@ def prepare_attack(
         armor_chink=armor_chink,
     )
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, mode_id)
+    # deferred: the private rooting guard reads current canonical combat equipment.
+    from wayfarer.engine.simulation.magic.rooted_combat_guards import require_supported_impact
+
+    require_supported_impact(
+        runtime,
+        state,
+        encounter,
+        pending.defender_id,
+        "cr" if subdual_mode is not None else selected.damage.damage_type,
+    )
+    # deferred: private rooting is read only for its new active actor ledger.
+    from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
+
+    if (
+        isinstance(selected, MeleeMode)
+        and selected.shield_attack
+        and active_effect(state.resources, pending.attacker_id) is not None
+    ):
+        raise ValidationError("Rooted Feet does not yet support Shield weapon classification")
     item = next(
         candidate for candidate in state.resources.items if candidate.id == pending.weapon_id
     )
@@ -181,7 +200,7 @@ def prepare_attack(
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
     # deferred: private Melee spell admission depends on canonical weapon modes.
-    from wayfarer.engine.simulation.magic.melee_spell_admission import prepare_contact
+    from wayfarer.engine.simulation.magic.melee_contact_dispatch import prepare_contact
 
     # Pure previews validate the same source and current victim before even
     # bystander-selection dice. The host attaches the returned association only
@@ -196,6 +215,7 @@ def prepare_attack(
         defender_id=pending.defender_id,
         carrier_item_id=pending.weapon_id,
         mode_id=selected.id,
+        requested_location=hit_location,
     )
     lance_dice, riding_cap = _mounted_lance_damage(
         runtime, state, encounter, pending.attacker_id, selected, mounted_charge
@@ -263,7 +283,17 @@ def prepare_attack(
         selected,
     )
     allowed = tuple(d for d in physical if d == "none" or d in visibility.defenses)
-    if contact is not None and "parry" not in allowed and "parry" in visibility.defenses:
+    # deferred: contact classification shares the canonical combat context.
+    from wayfarer.engine.simulation.magic.limb_spell_state import ParalyzeLimbContact
+
+    if isinstance(contact, ParalyzeLimbContact):
+        allowed = tuple(d for d in allowed if d != "block")
+    if (
+        contact is not None
+        and not isinstance(contact, ParalyzeLimbContact)
+        and "parry" not in allowed
+        and "parry" in visibility.defenses
+    ):
         # deferred: the scoped barehand scorer shares ordinary defense facts.
         from wayfarer.engine.simulation.combat.melee.defense import bare_melee_defense
 

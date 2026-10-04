@@ -56,6 +56,7 @@ from wayfarer.engine.simulation.combat.turn_commitment import prepare as prepare
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex, HexFacing, Pose
+from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
 from wayfarer.engine.simulation.magic.staff_casting_state import (
     invalidate_movement as invalidate_staff_movement,
 )
@@ -463,6 +464,13 @@ def take_turn(
     movement_checkpoint: bool = False,
 ) -> tuple[Encounter, ResourceState, CombatResult]:
     original, original_resources = encounter, resources
+    actor = next(p for p in encounter.participants if p.actor_id == actor_id)
+    if (
+        (destination is not None and destination != actor.position)
+        or any(point != actor.position for point in hex_path)
+        or basic_move is not None
+    ):
+        require_locomotion(resources, actor_id)
     interrupt = encounter.wait_interrupt
     if interrupt is not None:
         if interrupt.ready or interrupt.reacting or actor_id != interrupt.waiter_id:

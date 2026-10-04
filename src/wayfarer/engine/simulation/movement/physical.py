@@ -34,7 +34,7 @@ from wayfarer.engine.rules.types.location import disabled_locations
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import exertion, injury_turn
-from wayfarer.engine.simulation.campaign.party import migrate, synchronous
+from wayfarer.engine.simulation.campaign.party import group_for, migrate, synchronous
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import (
     FatigueCost,
@@ -44,6 +44,7 @@ from wayfarer.engine.simulation.health.fatigue import (
 )
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury, impaired_movement
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
+from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
 from wayfarer.engine.simulation.movement.hiking import group_hiking
 from wayfarer.engine.simulation.movement.scene_travel import travel_scene
 from wayfarer.engine.simulation.resources import (
@@ -139,8 +140,20 @@ class PreparedFeat:
     elapsed: int
 
 
+def _require_feat_locomotion(before: PlayState, command: PhysicalCommand) -> None:
+    if command.kind in ("climb", "jump", "hike", "swim"):
+        require_locomotion(before.resources, command.actor_id)
+
+
+def _require_group_locomotion(before: PlayState, actor_id: str, route: PhysicalRoute) -> None:
+    if route.group_hike:
+        for member in group_for(before, actor_id).actor_ids:
+            require_locomotion(before.resources, member)
+
+
 def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalContext) -> PreparedFeat:
     runtime = context.runtime
+    _require_feat_locomotion(before, command)
     if command.kind != "fall":
         require_innate_actor_action(before, command.actor_id)
     synchronous(before, command.actor_id)
@@ -153,6 +166,7 @@ def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalConte
         before.resources.hazards, frozenset({actor.actor_id}), before.resources.game_time
     )
     route = context.resolver(runtime, before, actor.actor_id, command.route_id)
+    _require_group_locomotion(before, actor.actor_id, route)
     entity = next(e for e in before.world.entities if e.id == actor.actor_id)
     if (
         route.id != command.route_id

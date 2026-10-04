@@ -18,6 +18,7 @@ from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry,
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.lock_state import passage_blocked
+from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.world import EntityKind
@@ -39,6 +40,13 @@ class TravelScene(ActionCommand):
 
 SceneCommand = ObserveScene | TravelScene
 SCENE_ADAPTER: TypeAdapter[SceneCommand] = TypeAdapter(SceneCommand)
+
+
+def _require_scene_locomotion(state: PlayState, actor_id: str, group_travel: bool) -> None:
+    require_locomotion(state.resources, actor_id)
+    if group_travel and state.party.groups:
+        for member in group_for(state, actor_id).actor_ids:
+            require_locomotion(state.resources, member)
 
 
 class SceneService:
@@ -133,6 +141,7 @@ class SceneService:
         destination = scene
         event_kind: Literal["entered", "exited", "discovered", "observed"] = "observed"
         if isinstance(command, TravelScene):
+            _require_scene_locomotion(state, command.actor_id, group_travel)
             if disabled(state.resources, command.actor_id) & {
                 "left-leg",
                 "right-leg",

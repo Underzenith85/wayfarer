@@ -30,6 +30,13 @@ from wayfarer.engine.simulation.health.injury import impaired_movement
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.engine.simulation.magic.haste_effects import bonus as haste_bonus
+from wayfarer.engine.simulation.magic.rooted_feet_state import (
+    active_effect as rooting,
+)
+from wayfarer.engine.simulation.magic.rooted_feet_state import (
+    melee_weapon_penalty,
+    rooted_dodge,
+)
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
@@ -173,6 +180,57 @@ def fencing_retreat_bonus(state: PlayState, participant: Combatant, *, fencing: 
     )
 
 
+def _require_rooted_choice(
+    state: PlayState, participant: Combatant, selected: Defense, *, shield: bool = False
+) -> None:
+    if rooting(state.resources, participant.actor_id) is not None and (
+        selected == "block" or shield
+    ):
+        raise ValidationError(
+            "Rooted Feet does not yet support Shield or Cloak skill classification"
+        )
+
+
+def _require_rooted_dodge(
+    runtime: RulesContext,
+    state: PlayState,
+    participant: Combatant,
+    hp: Pool,
+    fp: Pool,
+    bonus: int,
+    blind: bool,
+) -> None:
+    assert hp.injury is not None
+    if rooting(state.resources, participant.actor_id) is not None and (
+        hp.current * 3 < hp.maximum
+        or fp.current * 3 < fp.maximum
+        or haste_bonus(state.resources, participant.actor_id)
+        or hp.injury.physical_traits.combat_reflexes
+        or participant.posture != "standing"
+        or bonus
+        or blind
+        or participant.grappled
+        or participant.arm_locked
+        or hp.injury.stunned
+        or fright_stunned(state.resources, participant.actor_id)
+        or entangle_defense_penalty(participant)
+        or defense_height_bonus(runtime, state, participant)
+        or any(
+            e.pending_defense is not None
+            and e.pending_defense.defender_id == participant.actor_id
+            and (
+                e.pending_defense.visibility_defense_penalty
+                or e.pending_defense.attention_defense_penalty
+            )
+            for e in state.encounters
+        )
+        or participant.defense_penalty
+        or participant.tactical_defense_bonus
+        or participant.maneuver_state.enhanced_defense == "dodge"
+    ):
+        raise ValidationError("Rooted Feet does not yet support this Dodge composition")
+
+
 def score_defense(
     runtime: RulesContext,
     state: PlayState,
@@ -186,6 +244,7 @@ def score_defense(
     incoming_mode_id: str | None = None,
 ) -> tuple[DerivedValue | None, str | None]:
     compiled, hp, fp = _ready_defender(runtime, state, participant)
+    _require_rooted_choice(state, participant, selected)
     assert compiled.statistics is not None
     assert hp.injury is not None
     equipment = catalog(runtime)
@@ -257,13 +316,18 @@ def score_defense(
         )
         if loaded.dodge is None:
             raise ValidationError("Overloaded actor cannot dodge")
+        _require_rooted_dodge(runtime, state, participant, hp, fp, bonus, blind)
         return DerivedValue(
             "defense:dodge",
             Decimal(
-                fatigue_value(
-                    fp,
-                    impaired_movement(
-                        hp, loaded.dodge + haste_bonus(state.resources, participant.actor_id)
+                rooted_dodge(
+                    state.resources,
+                    participant.actor_id,
+                    fatigue_value(
+                        fp,
+                        impaired_movement(
+                            hp, loaded.dodge + haste_bonus(state.resources, participant.actor_id)
+                        ),
                     ),
                 )
                 + bonus
@@ -329,6 +393,9 @@ def score_defense(
                     and participant.last_attack_item_id == item.id
                 ):
                     continue
+                _require_rooted_choice(
+                    state, participant, selected, shield=entry.shield is not None
+                )
                 value = level(compiled, weapon_mode.skill_id)
                 repeats = participant.parries.count(item.id)
                 # Lite permits only one parry with each weapon per turn.
@@ -345,6 +412,7 @@ def score_defense(
                     (
                         (
                             int(value.value)
+                            + melee_weapon_penalty(state.resources, participant.actor_id)
                             - (
                                 minimum_strength_penalty(
                                     weapon_mode.minimum_st,

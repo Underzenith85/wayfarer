@@ -22,6 +22,7 @@ from wayfarer.engine.simulation.health.injury import InjuryTurn, apply_injury, i
 from wayfarer.engine.simulation.health.symptom_state import projected_build
 from wayfarer.engine.simulation.magic.backfires import clear_stun, mental_stun, refund_due
 from wayfarer.engine.simulation.magic.haste_effects import bonus as haste_bonus
+from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.size_forms import reduced_body_result
 from wayfarer.errors import ValidationError
@@ -69,6 +70,8 @@ def exertion(
 
 
 def movement(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
+    if active_effect(state.resources, actor_id) is not None:
+        return 0
     if any(part(p) in ("leg", "foot") for p in disabled(state.resources, actor_id)):
         # Supported combat movement is walking; crutches/crawling require an explicit mode.
         return 0

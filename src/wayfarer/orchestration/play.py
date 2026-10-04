@@ -55,12 +55,17 @@ from wayfarer.engine.simulation.magic.haste_effects import checkpoint as haste_c
 from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
 from wayfarer.engine.simulation.magic.item_state import checkpoint as item_magic_checkpoint
+from wayfarer.engine.simulation.magic.limb_spell_state import (
+    interrupt_casts as interrupt_limb_casts,
+)
+from wayfarer.engine.simulation.magic.limb_spell_transitions import checkpoint as limb_checkpoint
 from wayfarer.engine.simulation.magic.melee_spell_state import (
     interrupt_casts as interrupt_melee_casts,
 )
 from wayfarer.engine.simulation.magic.melee_spell_transitions import checkpoint as melee_checkpoint
 from wayfarer.engine.simulation.magic.power_lifecycle import checkpoint as power_checkpoint
 from wayfarer.engine.simulation.magic.power_wearer import checkpoint as wearer_checkpoint
+from wayfarer.engine.simulation.magic.rooted_feet_state import expire as expire_roots
 from wayfarer.engine.simulation.magic.staff_casting_state import checkpoint as staff_checkpoint
 from wayfarer.engine.simulation.resources import Advance, Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -295,6 +300,8 @@ class PlayService:
                     "identify-spell:",
                     "aura:",
                     "melee-spell:",
+                    "limb-spell:",
+                    "rooted-feet:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",
@@ -517,6 +524,7 @@ class PlayService:
             before=before.resources if before is not None else None,
             configured_bindings=configured_magic,
         )
+        resources = expire_roots(resources, resources.game_time)
         for actor in state.actors:
             resources = refund_due(resources, actor.actor_id)
         state = state.model_copy(update={"resources": resources})
@@ -527,6 +535,7 @@ class PlayService:
             state = concentration_checkpoint(self.rules_context, state, before)
             state = held_checkpoint(self.rules_context, state, before)
             state = melee_checkpoint(state, before=before)
+            state = limb_checkpoint(state, before=before)
         state = wearer_checkpoint(self.rules_context, state)
         state = power_checkpoint(self.rules_context, state, before=before)
         before_fire = state
@@ -538,6 +547,7 @@ class PlayService:
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
         state = melee_checkpoint(state, before=before_fire)
+        state = limb_checkpoint(state, before=before_fire)
         state = analysis_checkpoint(self.rules_context, state, before_fire)
         state = detection_checkpoint(self.rules_context, state, before_fire)
         state = shapeshifting_checkpoint(self, state, before=before)
@@ -565,6 +575,7 @@ class PlayService:
         state = analysis_checkpoint(self.rules_context, state, before_late_magic)
         state = detection_checkpoint(self.rules_context, state, before_late_magic)
         state = melee_checkpoint(state, before=before_late_magic)
+        state = limb_checkpoint(state, before=before_late_magic)
         return enchanting_checkpoint(state, before=before)
 
     @staticmethod
@@ -618,8 +629,10 @@ class PlayService:
             if command.kind not in ("question", "wait"):
                 state = state.model_copy(
                     update={
-                        "resources": interrupt_melee_casts(
-                            state.resources, command.actor_id, command.id
+                        "resources": interrupt_limb_casts(
+                            interrupt_melee_casts(state.resources, command.actor_id, command.id),
+                            command.actor_id,
+                            command.id,
                         )
                     }
                 )

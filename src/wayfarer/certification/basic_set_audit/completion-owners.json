@@ -440,7 +440,7 @@
     },
     {
       "issue": 785,
-      "state": "open",
+      "state": "closed",
       "title": "[GURPS audit] Implement spell effects: Enchant, Staff, Power"
     },
     {
@@ -632,6 +632,16 @@
       "issue": 878,
       "state": "open",
       "title": "Implement Acrobatic Dodge, Sacrificial Dodge and Dodge and Drop consumers"
+    },
+    {
+      "issue": 1013,
+      "state": "open",
+      "title": "[GURPS] Join enchantment work to split-party clocks and timed off-work activities"
+    },
+    {
+      "issue": 742,
+      "state": "open",
+      "title": "[GURPS audit] Close semantic compliance gaps with PR-sized work"
     }
   ]
 }

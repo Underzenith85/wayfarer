@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, skill_va
 from wayfarer.engine.simulation.combat.unarmed.records import BASIC
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -22,6 +23,8 @@ if TYPE_CHECKING:
 
 
 def defense_skill(runtime: RulesContext, state: PlayState, target: Combatant) -> int:
+    if active_effect(state.resources, target.actor_id) is not None:
+        raise ValidationError("Rooted Feet combined unarmed Feint resistance is unsupported")
     compiled = build(runtime, state, target.actor_id)
     assert compiled.statistics is not None
     skills = {
@@ -52,6 +55,11 @@ def feint(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
 ) -> Encounter:
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)
+    if any(
+        active_effect(state.resources, actor_id) is not None
+        for actor_id in (actor.actor_id, target.actor_id)
+    ):
+        raise ValidationError("Rooted Feet combined unarmed Feint classification is unsupported")
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
     value = attack_modifier(

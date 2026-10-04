@@ -39,6 +39,7 @@ from wayfarer.engine.simulation.hex_geometry import (
     distance,
     neighbor,
 )
+from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
 from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -398,9 +399,15 @@ def prepare_defense(
     return prepare_options(runtime, state, prepared, command, resolve=resolve_options)
 
 
+def _require_retreat_locomotion(state: PlayState, command: ChooseDefense) -> None:
+    if command.retreat is not None or command.basic_retreat:
+        require_locomotion(state.resources, command.actor_id)
+
+
 def _prepare_defense_geometry(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> Encounter:
+    _require_retreat_locomotion(state, command)
     if isinstance(encounter.spatial, BasicSpatialContext):
         if command.retreat is not None:
             raise ValidationError("Basic retreat does not accept a hex destination")
