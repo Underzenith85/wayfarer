@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.magic.analyze_magic_state import (
     observations,
     secrets,
 )
+from wayfarer.engine.simulation.magic.concentration import require_no_held_melee
 from wayfarer.engine.simulation.magic.haste_state import environments
 from wayfarer.engine.simulation.magic.spell_state import active_spells
 from wayfarer.engine.simulation.resources import Item, is_carried
@@ -115,6 +116,7 @@ def ready(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
     if runtime.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
         raise ValidationError("Analyze Magic requires the exact Basic Set profile")
     guard(state, actor_id, "analyze_magic_work")
+    require_no_held_melee(state.resources, actor_id)
     synchronous(state, actor_id)
     if state.party.groups and len(state.party.groups) != 1:
         raise ConflictError("Bounded Analyze Magic requires one synchronous party")

@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.resources import is_carried
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -112,7 +113,20 @@ def settle_encounter(runtime: RulesContext, state: PlayState, encounter: Encount
 
 def reconcile_equipment(state: PlayState, encounter: Encounter) -> tuple[PlayState, Encounter]:
     """Remove dropped equipment from every canonical ready/hand projection."""
-    held = {i.id for i in state.resources.items if i.ready and i.equipped}
+    # deferred: the new private Staff family shares the CombatEngine context
+    # cycle; no historical equipment projection is widened without its record.
+    from wayfarer.engine.simulation.magic.melee_spell_state import StaffCarrier, casts
+
+    charged = {
+        c.carrier.item_id
+        for c in casts(state.resources).values()
+        if c.status == "held" and isinstance(c.carrier, StaffCarrier)
+    }
+    held = {
+        i.id
+        for i in state.resources.items
+        if i.equipped and (i.ready or i.id in charged and is_carried(state.resources, i))
+    }
     hands = {
         p.actor_id: tuple((i, h) for i, h in p.hand_bindings if i in held)
         for p in encounter.participants
@@ -146,4 +160,8 @@ def reconcile_equipment(state: PlayState, encounter: Encounter) -> tuple[PlaySta
             )
         }
     )
-    return state, encounter
+    # deferred: private held-Melee custody observes this canonical projection
+    # transition without importing its RulesContext/CombatEngine cycle eagerly.
+    from wayfarer.engine.simulation.magic.melee_spell_transitions import checkpoint
+
+    return checkpoint(state), encounter

@@ -180,6 +180,23 @@ def prepare_attack(
         raise ValidationError("Cover and overpenetration require a ranged mode")
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
+    # deferred: private Melee spell admission depends on canonical weapon modes.
+    from wayfarer.engine.simulation.magic.melee_spell_admission import prepare_contact
+
+    # Pure previews validate the same source and current victim before even
+    # bystander-selection dice. The host attaches the returned association only
+    # for an accepted attack, in its enclosing transaction.
+    contact = prepare_contact(
+        runtime,
+        state,
+        command_id=pending.id,
+        pending_id=pending.id,
+        encounter_id=encounter.id,
+        attacker_id=pending.attacker_id,
+        defender_id=pending.defender_id,
+        carrier_item_id=pending.weapon_id,
+        mode_id=selected.id,
+    )
     lance_dice, riding_cap = _mounted_lance_damage(
         runtime, state, encounter, pending.attacker_id, selected, mounted_charge
     )
@@ -246,6 +263,17 @@ def prepare_attack(
         selected,
     )
     allowed = tuple(d for d in physical if d == "none" or d in visibility.defenses)
+    if contact is not None and "parry" not in allowed and "parry" in visibility.defenses:
+        # deferred: the scoped barehand scorer shares ordinary defense facts.
+        from wayfarer.engine.simulation.combat.melee.defense import bare_melee_defense
+
+        for hand in ("left-hand", "right-hand"):
+            try:
+                bare_melee_defense(runtime, state, encounter, defender, hand, selected)
+            except ValidationError:
+                continue
+            allowed += ("parry",)
+            break
     return encounter.model_copy(
         update={
             "pending_defense": pending.model_copy(

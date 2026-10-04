@@ -24,6 +24,9 @@ from wayfarer.engine.simulation.health.condition_checks import check_modifiers, 
 from wayfarer.engine.simulation.health.fatigue import ContinueExertion, FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.melee_spell_state import (
+    interrupt_casts as interrupt_melee_casts,
+)
 from wayfarer.engine.simulation.magic.spell_state import interrupt_spells
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.simulation.traits.neutralization import power_suppressed
@@ -74,6 +77,7 @@ def interrupt_concentration(
 ) -> ResourceState:
     """Other maneuvers abandon concentration; an active defense needs Will-3."""
     resources = interrupt_spells(resources, actor_id, command_id, distraction=distraction)
+    resources = interrupt_melee_casts(resources, actor_id, command_id, distraction=distraction)
     additions = []
     for effect in effects(resources):
         if effect.actor_id != actor_id or not effect.concentrating:

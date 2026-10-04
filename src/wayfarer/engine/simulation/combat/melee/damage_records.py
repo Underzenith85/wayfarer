@@ -11,9 +11,22 @@ from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, PendingDefense
+from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import DamageType, MeleeMode
 from wayfarer.engine.simulation.resources import Pool, SilverConstruction
 from wayfarer.models import Record
+
+
+class BareContactCritical(Record):
+    """Private B557 facts for a bare defense of the charged Staff blow."""
+
+    pending_id: str
+    defender_id: str
+    hand: str
+    table: tuple[int, ...]
+    checks: tuple[CheckTrace, ...]
+    effect_dice: tuple[int, ...]
+    handled: bool
 
 
 class MeleeDamageInputs(Record):
@@ -52,6 +65,9 @@ class MeleeDamageInputs(Record):
     location: HumanLocation | None
     location_dice: tuple[int, ...]
     vulnerability_multiplier: Decimal
+    # Present only for the new private held-Melee contact consumer. Ordinary
+    # historical damage-stage payloads retain their exact absent-field bytes.
+    contact_defense: Defense = Field(default="none", exclude_if=lambda value: value == "none")
 
     @property
     def rollable(self) -> bool:

@@ -17155,7 +17155,11 @@
         "tests/test_enchanting_source.py",
         "tests/test_enchanting_calendar.py",
         "tests/test_magic_item_execution.py",
-        "tests/test_staff_casting_integration.py"
+        "tests/test_staff_casting_integration.py",
+        "docs/gurps-enchantment-baseline.md",
+        "tests/test_haste_manufacture_power_composition.py",
+        "tests/test_critical_item_power_privacy.py",
+        "tests/test_item_receipt_privacy.py"
       ],
       "historical_owners": [
         191,
@@ -17192,7 +17196,11 @@
         "tests/test_enchanting_source.py",
         "tests/test_enchanting_calendar.py",
         "tests/test_magic_item_execution.py",
-        "tests/test_staff_casting_integration.py"
+        "tests/test_staff_casting_integration.py",
+        "docs/gurps-enchantment-baseline.md",
+        "tests/test_haste_manufacture_power_composition.py",
+        "tests/test_critical_item_power_privacy.py",
+        "tests/test_item_receipt_privacy.py"
       ],
       "historical_owners": [
         191,
@@ -17227,7 +17235,11 @@
         "tests/test_enchanting_source.py",
         "tests/test_enchanting_calendar.py",
         "tests/test_magic_item_execution.py",
-        "tests/test_staff_casting_integration.py"
+        "tests/test_staff_casting_integration.py",
+        "docs/gurps-enchantment-baseline.md",
+        "tests/test_haste_manufacture_power_composition.py",
+        "tests/test_critical_item_power_privacy.py",
+        "tests/test_item_receipt_privacy.py"
       ],
       "historical_owners": [
         191,
@@ -17261,7 +17273,11 @@
         "tests/test_enchanting_source.py",
         "tests/test_enchanting_calendar.py",
         "tests/test_magic_item_execution.py",
-        "tests/test_staff_casting_integration.py"
+        "tests/test_staff_casting_integration.py",
+        "docs/gurps-enchantment-baseline.md",
+        "tests/test_haste_manufacture_power_composition.py",
+        "tests/test_critical_item_power_privacy.py",
+        "tests/test_item_receipt_privacy.py"
       ],
       "historical_owners": [
         191,
@@ -17295,7 +17311,11 @@
         "tests/test_enchanting_source.py",
         "tests/test_enchanting_calendar.py",
         "tests/test_magic_item_execution.py",
-        "tests/test_staff_casting_integration.py"
+        "tests/test_staff_casting_integration.py",
+        "docs/gurps-enchantment-baseline.md",
+        "tests/test_haste_manufacture_power_composition.py",
+        "tests/test_critical_item_power_privacy.py",
+        "tests/test_item_receipt_privacy.py"
       ],
       "historical_owners": [
         191,

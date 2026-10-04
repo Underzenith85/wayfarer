@@ -115,15 +115,14 @@ combat engine validates reachability and stores only the destination. Crossing
 fire between two safe square endpoints remains unverified under #785. This
 repair does not invent a separate path planner.
 
-Whole #785 remains open. Its existing residuals include the Staff's held Melee
-spell carrier and two-roll attack host; Quick and Dirty nearby-nonparticipant
-penalty; extra Slow and Sure ceremonial energy; overlapping active enchanting
-concentration and other project clocks; source-permitted nighttime activities
-whose complete intervals are not joined; explicit Quick and Dirty perversion and
-very-high-mana disaster adjudication; zero-cast-cost wearer effects; and undefined
-multiple-Power composition. The permanent-Power interpretation of a lead caster's
-HP roll penalty remains unverified. Existing magical-sight and purchased
-Blindness consumers also remain unverified under #763/#785.
+The supported named-spell baseline and current ownership are reconciled in
+[named-spell acceptance](gurps-enchantment-baseline.md). Nearby-nonparticipant
+penalties and extra Slow and Sure energy now have actual persisted consumers;
+zero-cost Haste wearer behavior and two actual item producers have separate
+proofs. A developing held Staff/Deathtouch consumer is not yet credited as merged
+or CI-verified here. Overlapping project clocks, unsupported nighttime activities,
+director perversion/disaster adjudication, multiple-Power composition and broader
+magical sight remain unverified. This Area proof does not certify them.
 
 Power above 100 is not a source cap. The existing `MagicItemBinding` and
 `MagicItemInstance` model cap is present in three reviewed authored schema

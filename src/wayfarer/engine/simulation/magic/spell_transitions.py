@@ -30,7 +30,10 @@ from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context
 from wayfarer.engine.simulation.magic.bindings import SpellRules
-from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.concentration import (
+    require_idle_concentration,
+    require_no_held_melee,
+)
 from wayfarer.engine.simulation.magic.item_state import (
     item_magic_lost,
     item_power_reduction,
@@ -754,6 +757,7 @@ def _prepare_spell(
         receipt.command_id == command.id for receipt in before.resources.receipts
     ):
         require_idle_concentration(before.resources, command.actor_id)
+        require_no_held_melee(before.resources, command.actor_id)
     return context, encounter
 
 

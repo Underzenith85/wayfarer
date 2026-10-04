@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANAL
 from wayfarer.engine.simulation.magic.aura_state import ADAPTER as AURA_ADAPTER
 from wayfarer.engine.simulation.magic.detect_magic_state import ADAPTER as DETECT_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.identify_spell_state import ADAPTER as IDENTIFY_SPELL_ADAPTER
+from wayfarer.engine.simulation.magic.melee_spell_state import ADAPTER as MELEE_SPELL_ADAPTER
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
@@ -38,6 +39,7 @@ from wayfarer.orchestration.fright_builds import (
     ProposeFrightBuild,
 )
 from wayfarer.orchestration.identify_spell import IdentifySpellService
+from wayfarer.orchestration.melee_spells import MeleeSpellService
 from wayfarer.orchestration.membership import require_control
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.npcs import NPCProposal, NPCService
@@ -291,6 +293,12 @@ async def _aura(submission: Submission) -> None:
     )
 
 
+async def _melee_spell(submission: Submission) -> None:
+    await MeleeSpellService(submission.play).execute(
+        submission.cid, submission.command, principal_id=submission.principal_id
+    )
+
+
 async def _detect_magic(submission: Submission) -> None:
     await DetectMagicService(submission.play).execute(
         submission.cid, submission.command, principal_id=submission.principal_id
@@ -298,6 +306,14 @@ async def _detect_magic(submission: Submission) -> None:
 
 
 FAMILIES: tuple[CommandFamily, ...] = (
+    CommandFamily(
+        kinds=("observe-melee-mana", "cast-deathtouch"),
+        parse=MELEE_SPELL_ADAPTER.validate_json,
+        service=_melee_spell,
+        receipt="resource",
+        authorize=service_authorizes,
+        preconditions=(recovery_guard,),
+    ),
     CommandFamily(
         kinds=("aura_subject", "aura_cast", "aura_report"),
         parse=AURA_ADAPTER.validate_json,

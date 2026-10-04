@@ -136,9 +136,10 @@ retain the original payload generation. Historical unresolved casts without a
 targeting snapshot retain their recorded starting targeting. New casts capture
 the source-correct roll-time targeting inputs without changing public commands.
 
-Issue #785 remains the live owner of incomplete named-spell/item acceptance.
-Staff's held Melee-spell carrier remains here; the earlier #747 runtime does not
-yet supply that path. Mapless proximity needs explicit trusted distances; no area is silently assumed empty.
+The supported Enchant, Staff and Power baseline has construction and actual
+project/item-use evidence; see [named-spell acceptance](gurps-enchantment-baseline.md).
+A separate manufactured Staff/Deathtouch contact candidate is awaiting its own
+full CI and merge verification; it is not credited here as merged evidence. Mapless proximity needs explicit trusted distances; no area is silently assumed empty.
 Created Power above 100 still exceeds the completed-item schema's existing bound;
 that is not a printed source cap, and such settlement remains unverified.
 Grouped project-time progression and concurrent spellcasting during active

@@ -6,18 +6,50 @@ from decimal import Decimal
 
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import exertion
+from wayfarer.engine.simulation.actors import build, exertion
 from wayfarer.engine.simulation.combat.close_combat import validate_defense
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_effects import defense_stress, worn_stress
-from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
 from wayfarer.engine.simulation.combat.melee.values import defense_selection, score_defense
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
+
+
+def bare_melee_defense(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    participant: Combatant,
+    hand: str,
+    incoming: MeleeMode,
+) -> tuple[DerivedValue, str]:
+    """B376 one-hand weapon parry for the scoped held-Melee consumer."""
+    pending = encounter.pending_defense
+    assert pending is not None
+    compiled = build(runtime, state, participant.actor_id, defensive=True)
+    assert compiled.statistics is not None
+    incoming_weight = heavy_parry_weight(
+        runtime, state, participant, pending.weapon_id, incoming.id
+    )
+    if incoming_weight is not None and incoming_weight > compiled.statistics.basic_lift * 1000:
+        raise ValidationError("Held Melee contact does not yet support heavy barehanded parries")
+    value, used = unarmed_defense(
+        runtime,
+        state,
+        CombatEngine._replace(encounter, participant),
+        participant.actor_id,
+        "parry",
+        hand,
+        attacker_id=pending.attacker_id,
+        incoming_melee=incoming,
+    )
+    assert value is not None and used is not None
+    return DerivedValue("defense:parry", Decimal(value), ()), used
 
 
 def defense_value(
@@ -47,6 +79,14 @@ def defense_value(
             raise ValidationError("Barehanded projectile parry requires a pending throw")
         pending = encounter.pending_defense
         incoming = mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
+        if isinstance(incoming, MeleeMode):
+            # deferred: ordinary barehand weapon parry is not globally enabled;
+            # this route belongs to a durable, actual held-Melee contact only.
+            from wayfarer.engine.simulation.magic.melee_spell_state import read_contact
+
+            if read_contact(state.resources, pending.id) is None:
+                raise ValidationError("Barehanded melee parry requires held spell contact")
+            return bare_melee_defense(runtime, state, encounter, participant, item_id, incoming)
         if not isinstance(incoming, RangedMode) or not incoming.catchable:
             raise ValidationError("Barehanded projectile parry requires an opted-in thrown mode")
         encounter = CombatEngine._replace(encounter, participant)

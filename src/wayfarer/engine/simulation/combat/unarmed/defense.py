@@ -42,6 +42,8 @@ def unarmed_defense(
     attacker_id: str | None = None,
     location: GrappleLocation = "torso",
     mode_id: str | None = None,
+    *,
+    incoming_melee: MeleeMode | None = None,
 ) -> tuple[int | None, str | None]:
     actor = fighter(encounter, actor_id)
     if mode_id is not None and (
@@ -75,7 +77,7 @@ def unarmed_defense(
                 encounter,
                 attacker,
                 actor,
-                reach=1,
+                reach=max(incoming_melee.reach) if incoming_melee is not None else 1,
                 location=location,
                 board=runtime.hex_map(encounter),
             ).defender_modifier
@@ -115,7 +117,7 @@ def unarmed_defense(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     if hp.injury is None or hp.injury.incapacitated or not fatigue_ready(state, actor_id):
         raise ValidationError("Incapacitated actor cannot parry")
-    targets = parry_candidates(runtime, state, encounter, actor_id)
+    targets = parry_candidates(runtime, state, encounter, actor_id, incoming_melee=incoming_melee)
 
     penalty = (
         (-4 if hp.injury.stunned or fright_stunned(state.resources, actor_id) else 0)
@@ -137,7 +139,12 @@ def unarmed_defense(
 
 
 def parry_candidates(
-    runtime: RulesContext, state: PlayState, encounter: Encounter, actor_id: str
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    *,
+    incoming_melee: MeleeMode | None = None,
 ) -> list[tuple[int, str]]:
     """Keep the actual automatically selected skill with its defense value.
 
@@ -148,17 +155,29 @@ def parry_candidates(
     actor = fighter(encounter, actor_id)
     compiled = build(runtime, state, actor_id, defensive=True)
     assert compiled.statistics is not None
-    targets = [(compiled.statistics.dx // 2 + 3, "attribute:dx")]
+    weapon_penalty = (
+        3 if incoming_melee is not None and incoming_melee.damage.basis != "thrust" else 0
+    )
+    targets = [(compiled.statistics.dx // 2 + 3 - weapon_penalty, "attribute:dx")]
     incoming_kick = (
         encounter.pending_unarmed is not None and encounter.pending_unarmed.action == "kick"
     )
     for v in compiled.sheet.values:
         if v.target in {"skill:brawling", "skill:boxing", "skill:karate", "skill:judo"}:
             score = int(v.value) // 2 + 3
+            if v.target not in ("skill:judo", "skill:karate"):
+                score -= weapon_penalty
             score -= 2 if v.target == "skill:boxing" and incoming_kick else 0
             if v.target in ("skill:boxing", "skill:judo", "skill:karate") and (
-                encounter.pending_unarmed is not None
-                and actor.retreat_attacker_id == encounter.pending_unarmed.actor_id
+                (
+                    encounter.pending_unarmed is not None
+                    and actor.retreat_attacker_id == encounter.pending_unarmed.actor_id
+                )
+                or (
+                    incoming_melee is not None
+                    and encounter.pending_defense is not None
+                    and actor.retreat_attacker_id == encounter.pending_defense.attacker_id
+                )
             ):
                 score += 2  # B377: +3 total, including prepare_defense's ordinary +1.
             if v.target in ("skill:judo", "skill:karate"):

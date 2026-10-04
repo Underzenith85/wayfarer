@@ -7,7 +7,7 @@ persisted table result rather than silently substituting ordinary damage.
 
 from __future__ import annotations
 
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.character.statistics import damage as strength_damage
@@ -121,6 +121,68 @@ def _apply_cattle_prod(
     if electrical.resistance is not None:
         effect_dice += electrical.resistance.dice
     return state.model_copy(update={"resources": resources}), effect_dice
+
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.magic.melee_spell_state import MeleeSpellContact
+
+
+def _current_contact(
+    runtime: RulesContext, state: PlayState, pending_id: str
+) -> MeleeSpellContact | None:
+    # deferred: held-Melee admission shares the CombatEngine/RulesContext cycle.
+    from wayfarer.engine.simulation.magic.melee_spell_admission import validate_contact
+
+    # deferred: held-Melee state shares the CombatEngine/RulesContext cycle.
+    from wayfarer.engine.simulation.magic.melee_spell_state import read_contact
+
+    contact = read_contact(state.resources, pending_id)
+    if contact is not None:
+        validate_contact(runtime, state, contact)
+    return contact
+
+
+def _damage_contact(
+    runtime: RulesContext,
+    state: PlayState,
+    inputs: MeleeDamageInputs,
+    *,
+    prevalidated: bool = False,
+) -> MeleeSpellContact | None:
+    if not prevalidated:
+        return _current_contact(runtime, state, inputs.pending.id)
+    # deferred: private held-Melee facts share the CombatEngine/RulesContext cycle.
+    from wayfarer.engine.simulation.magic.melee_spell_state import read_contact
+
+    return read_contact(state.resources, inputs.pending.id)
+
+
+def _settle_contact(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    contact: MeleeSpellContact | None,
+    inputs: MeleeDamageInputs,
+    hit: bool,
+) -> tuple[PlayState, Encounter, int]:
+    if contact is None:
+        return state, encounter, 0
+    # deferred: held-Melee settlement shares the CombatEngine/RulesContext cycle.
+    from wayfarer.engine.simulation.magic.melee_spell_transitions import finish_contact
+
+    implement = inputs.defense_item
+    state, encounter, result = finish_contact(
+        runtime,
+        state,
+        encounter,
+        contact,
+        ordinary_hit=hit,
+        actual_defense=inputs.contact_defense,
+        defense_check=inputs.defense,
+        defense_implement_id=None if implement in ("left-hand", "right-hand") else implement,
+        critical_row=inputs.critical,
+    )
+    return state, encounter, result.injury
 
 
 def _route_weapon(
@@ -247,6 +309,14 @@ def resolve_melee(
 ) -> tuple[PlayState, Encounter, InjuryTrace] | AttackRollSpec | MeleeDamageStage:
     pending = encounter.pending_defense
     assert pending is not None
+    # Validate before attack/defense dice. Later same-transaction critical
+    # consequences cannot retroactively invalidate the already accepted contact.
+    contact = _current_contact(runtime, state, pending.id)
+    if contact is not None:
+        if prepare_only or prepare_damage or secret_damage:
+            raise ValidationError("Held Melee contact does not yet support Luck damage choices")
+        if second_defense is not None:
+            raise ValidationError("Held Melee contact requires one actual active defense")
     if (prepare_only or prepare_damage) and (
         pending.spell_cast_id is not None
         or isinstance(
@@ -490,6 +560,7 @@ def resolve_melee(
         if (
             defense.outcome.succeeded
             and selected == "parry"
+            and defense_item not in ("left-hand", "right-hand")
             and intercepting_shield(runtime, state, encounter, defense, require_durable=False)
             is None
         ):
@@ -501,7 +572,79 @@ def resolve_melee(
             if not stopped:
                 hit = True
                 blocked = None
-        if equipment.profile_id == "gurps-basic-set-4e-2004" and (
+        bare_failure = (
+            contact is not None
+            and selected == "parry"
+            and defense_item in ("left-hand", "right-hand")
+            and defense.outcome is Outcome.CRITICAL_FAILURE
+        )
+        if bare_failure:
+            # B557 applies to the actual bare limb, never the Staff weapon table.
+            # deferred: held-Melee and unarmed adapters share the CombatEngine/RulesContext cycle.
+            from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
+
+            # deferred: held-Melee and unarmed adapters share the CombatEngine/RulesContext cycle.
+            from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
+
+            assert defense_item in ("left-hand", "right-hand")
+            critical_dice = draw_dice(runtime.rng, 3)
+            bare_hand: Literal["left-hand", "right-hand"] = (
+                "left-hand" if defense_item == "left-hand" else "right-hand"
+            )
+            local = PendingUnarmed(
+                id=pending.id,
+                actor_id=attacker.actor_id,
+                target_id=defender.actor_id,
+                action="punch",
+                skill="attribute:dx",
+                hands=(bare_hand,),
+                allowed=("none",),
+            )
+            encounter = encounter.model_copy(
+                update={
+                    "participants": tuple(
+                        defender if p.actor_id == defender.actor_id else p
+                        for p in encounter.participants
+                    )
+                }
+            )
+            state, encounter, bare_checks, extra, handled = critical_miss(
+                runtime, state, encounter, local, defender.actor_id, critical_dice, defense_item
+            )
+            # deferred: held-Melee and unarmed adapters share the CombatEngine/RulesContext cycle.
+            from wayfarer.engine.simulation.combat.melee.damage_records import BareContactCritical
+
+            # deferred: held-Melee and unarmed adapters share the CombatEngine/RulesContext cycle.
+            from wayfarer.engine.simulation.magic.melee_spell_state import append
+
+            state = state.model_copy(
+                update={
+                    "resources": append(
+                        state.resources,
+                        "bare-critical",
+                        pending.id,
+                        defender.actor_id,
+                        BareContactCritical(
+                            pending_id=pending.id,
+                            defender_id=defender.actor_id,
+                            hand=bare_hand,
+                            table=critical_dice,
+                            checks=bare_checks,
+                            effect_dice=extra,
+                            handled=handled,
+                        ),
+                    )
+                }
+            )
+            effect_dice += extra
+            defender = next(p for p in encounter.participants if p.actor_id == defender.actor_id)
+            blocked = (
+                None
+                if handled
+                else f"basic-unarmed-defense-critical:critical-failure:{sum(critical_dice)}"
+            )
+            hit = handled
+        elif equipment.profile_id == "gurps-basic-set-4e-2004" and (
             (defense.outcome is Outcome.CRITICAL_SUCCESS and not hit)
             or (selected == "parry" and defense.outcome is Outcome.CRITICAL_FAILURE)
         ):
@@ -769,6 +912,9 @@ def resolve_melee(
     maximum = critical in ((3, 15) if head else (6, 15)) or (
         equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
     )
+    if contact is not None:
+        # The physical receipt starts after any separate B557 self-injury.
+        hp = next(p for p in state.resources.pools if p.id == hp.id)
     inputs = MeleeDamageInputs(
         pending=pending,
         weapon=weapon,
@@ -803,6 +949,7 @@ def resolve_melee(
         location=location,
         location_dice=location_dice,
         vulnerability_multiplier=vulnerability_multiplier,
+        contact_defense=selected if contact is not None else "none",
     )
     if prepare_damage:
         original = (
@@ -815,7 +962,9 @@ def resolve_melee(
             encounter,
             PreparedMeleeDamage(inputs=inputs, original=original, secret=secret_damage),
         )
-    return finish_melee_damage(runtime, state, encounter, inputs)
+    return finish_melee_damage(
+        runtime, state, encounter, inputs, contact_prevalidated=contact is not None
+    )
 
 
 def refresh_melee_damage_target(
@@ -845,9 +994,11 @@ def finish_melee_damage(
     inputs: MeleeDamageInputs,
     *,
     selected_damage: tuple[int, ...] | None = None,
+    contact_prevalidated: bool = False,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     """Apply one fixed melee delivery's selected damage through its actual tail."""
     pending = inputs.pending
+    contact = _damage_contact(runtime, state, inputs, prevalidated=contact_prevalidated)
     weapon = inputs.weapon
     attack_build = inputs.attack_build
     defend_build = inputs.defend_build
@@ -1045,6 +1196,13 @@ def finish_melee_damage(
     updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
     status = updated_hp.injury
     assert status is not None
+    physical_status = status
+    state, encounter, magical_injury = _settle_contact(
+        runtime, state, encounter, contact, inputs, hit
+    )
+    combined_hp = next(p for p in state.resources.pools if p.id == hp.id)
+    assert combined_hp.injury is not None
+    status = combined_hp.injury
     state, drop_dice = _critical_drop_items(
         runtime, state, defender, pending, held, head=head, critical=critical
     )
@@ -1188,7 +1346,7 @@ def finish_melee_damage(
         injury=injury,
         hp_before=hp.current,
         hp_after=updated_hp.current,
-        incapacitated=status.incapacitated,
+        incapacitated=physical_status.incapacitated,
         profile_id=equipment.profile_id,
         rules_version="2004",
         critical_table=critical_dice,
@@ -1205,7 +1363,7 @@ def finish_melee_damage(
         encounter,
         defender.actor_id,
         defended=defense is not None,
-        injured=injury > 0,
+        injured=injury > 0 or magical_injury > 0,
     )
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     stuck = weapon.can_stick and injury > 0 and hit

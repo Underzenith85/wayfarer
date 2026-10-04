@@ -47,6 +47,7 @@ from wayfarer.engine.simulation.magic.lock_ready import finish_lock_ready, valid
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
+from wayfarer.orchestration.melee_spell_contacts import capture_pending_contact
 
 
 def _validate_special_strike_command(command: TakeCombatTurn, *, gurps: bool) -> None:
@@ -624,6 +625,13 @@ def _prepare_attack_turn(
         )
         state = state.model_copy(update={"resources": resources})
     assert encounter.pending_defense is not None
+    state = capture_pending_contact(
+        context.play.rules_context,
+        state.model_copy(update={"resources": resources}),
+        encounter,
+        command.id,
+    )
+    resources = state.resources
     result = result.model_copy(update={"available": encounter.pending_defense.allowed})
     return CombatStep(state, encounter, resources, result)
 
