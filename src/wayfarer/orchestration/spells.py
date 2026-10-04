@@ -8,6 +8,7 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.generations import combat_generation
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.casting_targeting import awaken_checks
+from wayfarer.engine.simulation.magic.item_receipt_privacy import item_result
 from wayfarer.engine.simulation.magic.spell_transitions import RuntimeSpellResolver
 from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellExecutionContext as SpellExecutionContext,
@@ -64,7 +65,24 @@ def _runtime_resolver(resolve: SpellResolver | None) -> RuntimeSpellResolver | N
 async def _player_result(
     play: PlayService, saved: PlayState, command: SpellCommand, result: SpellResult
 ) -> SpellResult:
+    rules = play.engine.rules.spells
+    channel = (
+        next((c for c in rules.channels if c.id == command.channel_id), None) if rules else None
+    )
+    private_checks = False
+    if result.checks and channel is not None and channel.magic_item_id is not None:
+        original = play._load(await play.store.replay(saved.campaign_id, command.expected_revision))
+        presented = item_result(
+            original.resources,
+            result,
+            item_id=channel.magic_item_id,
+            spell_id=command.spell_id,
+        )
+        private_checks = presented is not result
+        result = presented
     result = apparent_result(saved.resources, command, result)
+    if private_checks:
+        return result
     subjects = awaken_checks(saved.resources, command.cast_id)
     if not subjects:
         return result

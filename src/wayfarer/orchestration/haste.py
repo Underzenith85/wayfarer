@@ -6,7 +6,14 @@ import json
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic.haste_host import ADAPTER, HasteCommand, apply_host
-from wayfarer.engine.simulation.magic.haste_state import RECEIPT, HasteReceipt, SwitchHasteItem
+from wayfarer.engine.simulation.magic.haste_state import (
+    RECEIPT,
+    HasteReceipt,
+    SwitchHasteItem,
+    channels,
+    items,
+)
+from wayfarer.engine.simulation.magic.item_receipt_privacy import item_result
 from wayfarer.engine.simulation.magic.spell_state import SpellResult, event_id, parse_event
 from wayfarer.engine.simulation.magic.spell_transitions import SpellExecutionContext, reduce_spell
 from wayfarer.engine.simulation.magic.spells import PROFILE, RuntimeSpellCommand
@@ -74,9 +81,28 @@ class HasteService:
         async def outcome(campaign: Campaign) -> SpellResult | HasteReceipt:
             resources = play._load(campaign).resources
             if isinstance(command, RuntimeSpellCommand):
-                return parse_event(
+                result = parse_event(
                     next(e for e in resources.events if e.id == event_id(command.id, "haste"))
                 ).result
+                if member.role != "player" or not result.checks:
+                    return result
+                original = play._load(
+                    await play.store.replay(campaign["id"], command.expected_revision)
+                )
+                channel = next(
+                    (c for c in channels(original.resources) if c.id == command.channel_id), None
+                )
+                item_id = channel.magic_item_id if channel else None
+                metadata = next(
+                    (v for v in reversed(items(original.resources)) if v.item_id == item_id), None
+                )
+                return item_result(
+                    original.resources,
+                    result,
+                    item_id=item_id,
+                    spell_id=command.spell_id,
+                    binding_id=metadata.binding_id if metadata else None,
+                )
             return HasteReceipt.model_validate_json(
                 next(
                     e.kind
