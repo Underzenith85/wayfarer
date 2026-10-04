@@ -34,7 +34,7 @@ proof; a private effect record or a reducer diagnostic alone certifies none of
 those actions. Exact expiry belongs to canonical clock checkpoint settlement.
 
 The first carrier excludes transformed or nonhuman anatomy, Magic Resistance,
-other active spell carriers, unknown size, incompatible timed hazards and casting
+other active spell carriers except the captured Haste route below, unknown size, incompatible timed hazards and casting
 during combat. Unresolved defense combinations and unclassified productive
 Shield, Cloak or unarmed choices must be refused rather than assigned an invented
 modifier. Ranged weapon skills receive no Rooted Feet penalty. These restrictions
@@ -59,7 +59,7 @@ one-third HP/FP (B419/B426), then halved downward for Rooted Feet (B244). Combat
 Reflexes adds its +1 active-defense roll bonus afterward (B43), once. Health
 before Rooted is an explicit composed interpretation; the supplied sources do
 not give a mixed-rounding ordering formula. The two upward health halvings commute.
-Current zero or negative HP/FP, Haste, posture, shield, height, entangle and pending
+Current zero or negative HP/FP, Haste without its separate captured feature, posture, shield, height, entangle and pending
 visibility or attention combinations remain unsupported and refuse before dice. Mapped
 shield knockback from crushing melee or ranged impacts and Shield Rush against a
 rooted target are explicit unsupported displacement compositions. These guards
@@ -80,5 +80,36 @@ and full original-genesis command reexecution. Fresh captured defenses and a
 fresh defense after an older pending attack have their own replay proofs.
 Remaining unsupported options reject before randomness with unchanged state,
 history and stream. These consumers keep the Rooted source row partial under
-#1018; they do not certify Haste, nonpositive exertion, posture or shield
+#1018; they do not certify Haste outside the bounded route below, nonpositive exertion, posture or shield
 compositions, forced displacement or other deferred variants.
+
+
+The separate private `rooted-dodge-haste-composition` feature admits current
+executing, unreversed Haste of energy 1–3 from a different caster to an otherwise
+plain healthy standing subject. The strongest live Haste score bonus is added to
+canonical encumbered Dodge before Rooted halves that score downward. B251 names
+a Move/Dodge score increase, and B244 halves the Dodge score; this ordering is an
+explicit composed interpretation, not a printed simultaneous-spell formula.
+Haste with low HP/FP or Combat Reflexes, self-cast Haste and item-origin Haste
+remain unverified in this first route. Canonical item Haste requires self-targeting,
+so a genuine accepted cross-actor effect excludes item origin without inferring
+provenance from a subsequently changed targeting channel.
+
+Rooted observation, casting and escape capture a new private envelope generation
+2 for this admission policy. Existing state/effect generation 1 bytes and the
+original caster check remain unchanged. Old envelope generation 1 retains its
+old active-spell refusal, including on retry and complete original-genesis
+reexecution; fresh escape against an old Rooted effect deliberately uses its
+own newly captured admission policy. Public command shapes contain no generation
+or caller-authored source evidence. Each current target, body, build and other
+spell carrier still undergoes the existing checks before randomness.
+
+Genuine paid Haste and Rooted producers are exercised in both orders, including
+source energy, casting time, payment, current target strength and exact independent
+expiry. Haste leaves the original Rooted caster roll and ST−5 escape rule intact,
+and its increased Move never permits displacement while Rooted remains active.
+Actual incoming melee, unarmed and ranged defenses, original-genesis replay,
+strongest-effect and deadline tests supply the consumer evidence separately
+from pure scoring or capture diagnostics. The owned Rooted row remains partial
+under #1018; additional combinations and forced displacement require their own
+source and actual-host proof.

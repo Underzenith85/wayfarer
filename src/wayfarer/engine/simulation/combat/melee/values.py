@@ -14,7 +14,10 @@ from wayfarer.engine.simulation.combat.combat_height import defense_height
 from wayfarer.engine.simulation.combat.encounter import Combatant
 from wayfarer.engine.simulation.combat.entangle import defense_penalty as entangle_defense_penalty
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry, weapon_target
-from wayfarer.engine.simulation.combat.generations import rooted_dodge_health_trait_composition
+from wayfarer.engine.simulation.combat.generations import (
+    rooted_dodge_haste_composition,
+    rooted_dodge_health_trait_composition,
+)
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.heavy_parry import require_breakage
 from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
@@ -31,6 +34,7 @@ from wayfarer.engine.simulation.health.injury import impaired_movement
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.engine.simulation.magic.haste_effects import bonus as haste_bonus
+from wayfarer.engine.simulation.magic.rooted_feet_policy import qualified_haste_bonus
 from wayfarer.engine.simulation.magic.rooted_feet_state import (
     active_effect as rooting,
 )
@@ -203,6 +207,22 @@ def _unsupported_rooted_health(hp: Pool, fp: Pool) -> bool:
     )
 
 
+def _unsupported_rooted_haste(state: PlayState, actor_id: str, hp: Pool, fp: Pool) -> bool:
+    current = haste_bonus(state.resources, actor_id)
+    if not current:
+        return False
+    assert hp.injury is not None
+    if (
+        not rooted_dodge_haste_composition()
+        or hp.current * 3 < hp.maximum
+        or fp.current * 3 < fp.maximum
+        or hp.injury.physical_traits.combat_reflexes
+    ):
+        return True
+    qualified = qualified_haste_bonus(state, actor_id)
+    return qualified is None or qualified != current or qualified not in (1, 2, 3)
+
+
 def _require_rooted_dodge(
     runtime: RulesContext,
     state: PlayState,
@@ -215,7 +235,7 @@ def _require_rooted_dodge(
     assert hp.injury is not None
     if rooting(state.resources, participant.actor_id) is not None and (
         _unsupported_rooted_health(hp, fp)
-        or haste_bonus(state.resources, participant.actor_id)
+        or _unsupported_rooted_haste(state, participant.actor_id, hp, fp)
         or participant.posture != "standing"
         or bonus
         or blind

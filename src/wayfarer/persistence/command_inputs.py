@@ -192,6 +192,7 @@ def combat_intent(text: str) -> str:
             "missile-interposition",
             "paralyze-buckler-drop",
             "rooted-dodge-health-trait-composition",
+            "rooted-dodge-haste-composition",
             "hand-melee-spell-contact",
         }
         or text != canonical(payload)

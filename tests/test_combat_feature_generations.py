@@ -85,6 +85,7 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "missile-interposition",
             "paralyze-buckler-drop",
             "rooted-dodge-health-trait-composition",
+            "rooted-dodge-haste-composition",
             "hand-melee-spell-contact",
         }
     )

@@ -4,6 +4,7 @@ import json
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.magic.rooted_feet_policy import RootedGeneration, rooted_generation
 from wayfarer.engine.simulation.magic.rooted_feet_state import (
     ADAPTER,
     ObserveRootedFeetSubject,
@@ -15,6 +16,7 @@ from wayfarer.engine.simulation.magic.rooted_feet_transitions import apply
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.rooted_feet_generations import capture
 
 
 class RootedFeetService:
@@ -22,13 +24,19 @@ class RootedFeetService:
         self.play = play
 
     def plan(
-        self, play: PlayService, state: PlayState, command: RootedFeetCommand, *, principal_id: str
+        self,
+        play: PlayService,
+        state: PlayState,
+        command: RootedFeetCommand,
+        *,
+        principal_id: str,
+        generation: RootedGeneration,
     ) -> CommandPlan[RootedFeetReceipt]:
         trusted = isinstance(command, ObserveRootedFeetSubject)
         payload = json.dumps(
             {
                 "operation": "rooted-feet",
-                "generation": 1,
+                "generation": generation,
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
             },
@@ -37,7 +45,8 @@ class RootedFeetService:
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            updated, result = apply(play.rules_context, before, command)
+            with rooted_generation(generation):
+                updated, result = apply(play.rules_context, before, command)
             revision = before.revision + 1
             updated = updated.model_copy(
                 update={
@@ -74,9 +83,16 @@ class RootedFeetService:
         command = ADAPTER.validate_python(value)
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
+        generation = await capture(play.store, cid, command.id)
         return await submit(
             play,
             cid,
-            self.plan(play, play._load(campaign), command, principal_id=principal_id),
+            self.plan(
+                play,
+                play._load(campaign),
+                command,
+                principal_id=principal_id,
+                generation=generation,
+            ),
             principal_id=principal_id,
         )
