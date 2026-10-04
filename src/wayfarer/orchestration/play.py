@@ -245,6 +245,7 @@ class PlayService:
                     "enchantment-rest:",
                     "enchantment-lifecycle:",
                     "enchantment-loss:",
+                    "enchantment-power:",
                     "power-cast-origin:",
                     "armoury-familiarity:",
                     "armoury-parts:",
