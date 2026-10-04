@@ -6985,7 +6985,7 @@
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Approved purchased normal-mana cast, current ST resistance, original-roll turn escape, one-minute expiry, actual locomotion restrictions, supported melee/Feint/Parry penalties and plain Dodge halving. Captured fresh defenses also compose positive low HP/FP and approved Combat Reflexes with current-health upward rounding before Rooted downward rounding and the separate roll bonus; historical absence retains plain-only admission. Haste, nonpositive HP/FP, other defense and forced-displacement compositions remain unverified.",
+      "supported_subset": "Approved purchased normal-mana cast, current ST resistance, original-roll turn escape, one-minute expiry, actual locomotion restrictions, supported melee/Feint/Parry penalties and plain Dodge halving. Captured fresh defenses also compose positive low HP/FP and approved Combat Reflexes with current-health upward rounding before Rooted downward rounding and the separate roll bonus. A separate captured feature and private admission envelope admit current strongest cross-actor personal Haste1\u20133 on otherwise plain healthy standing subjects, before Rooted score halving; actual paid casting in both orders, unchanged escape ST/original roll, exact independent expiry and original-genesis replay are covered. Historical envelope1 and absent features retain old admission. Self-cast/item Haste, Haste with low health/Combat Reflexes, nonpositive HP/FP, other defense and forced-displacement compositions remain unverified.",
       "evidence": [
         "tests/test_spell_body_control.py",
         "tests/test_college_dispatch.py",
@@ -7001,7 +7001,16 @@
         "tests/test_rooted_dodge_composition_replay.py",
         "tests/test_rooted_dodge_cross_hosts.py",
         "tests/test_rooted_dodge_current_fatigue.py",
-        "tests/test_rooted_dodge_composition_protocols.py"
+        "tests/test_rooted_dodge_composition_protocols.py",
+        "tests/test_rooted_haste_feature.py",
+        "tests/test_rooted_haste_capture_protocols.py",
+        "tests/test_rooted_haste_fixture.py",
+        "tests/test_rooted_haste_admission.py",
+        "tests/test_rooted_haste_escape.py",
+        "tests/test_rooted_haste_scoring.py",
+        "tests/test_rooted_haste_melee_host.py",
+        "tests/test_rooted_haste_cross_hosts.py",
+        "tests/test_rooted_haste_lifecycle.py"
       ],
       "members": [],
       "talent_cost": null,

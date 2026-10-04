@@ -19,6 +19,7 @@ KNOWN = frozenset(
         "missile-interposition",
         "paralyze-buckler-drop",
         "rooted-dodge-health-trait-composition",
+        "rooted-dodge-haste-composition",
         "hand-melee-spell-contact",
     }
 )

@@ -19,9 +19,9 @@ from wayfarer.persistence.events import payload_digest
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
-@pytest.mark.parametrize("generation", [True, 1.0, 2, None])
+@pytest.mark.parametrize("generation", [True, 1.0, 3, None])
 async def test_actual_rooted_record_generation_is_strict(
-    tmp_path: Path, backend: str, generation: bool | float | None
+    tmp_path: Path, backend: str, generation: bool | int | float | None
 ) -> None:
     cid, play, _ = await fixture(tmp_path, backend)
     from wayfarer.engine.simulation.magic.rooted_feet_state import CastRootedFeet

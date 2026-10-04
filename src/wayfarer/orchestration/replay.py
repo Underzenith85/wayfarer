@@ -306,7 +306,7 @@ async def _aura(play: PlayService, record: CommandRecord, encoded: str) -> None:
 async def _rooted_feet(play: PlayService, record: CommandRecord, encoded: str) -> None:
     payload = validation.mapping(validation.decode(record.command_input or "{}"))
     generation = payload.get("generation")
-    if type(generation) is not int or generation != 1:
+    if type(generation) is not int or generation not in (1, 2):
         raise ValidationError("Rooted Feet replay requires its captured generation")
     await RootedFeetService(play).execute(
         record.campaign_id,

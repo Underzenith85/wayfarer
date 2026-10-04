@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.magic.concentration import (
 )
 from wayfarer.engine.simulation.magic.haste_state import environments
 from wayfarer.engine.simulation.magic.rituals import require_ordinary_ritual
+from wayfarer.engine.simulation.magic.rooted_feet_policy import allows_haste, qualified_haste_bonus
 from wayfarer.engine.simulation.magic.rooted_feet_state import (
     RootedFeetObservation,
     RootedFeetSubject,
@@ -53,11 +54,27 @@ def target_strength(runtime: RulesContext, state: PlayState, actor_id: str) -> i
         for p in compiled.purchases
     ):
         raise ConflictError("Rooted Feet does not yet admit Magic Resistance")
-    if any(
+    relevant = any(
         e.actor_id == actor_id or e.target_id == actor_id for e in active_spells(state.resources)
-    ):
-        raise ConflictError("Rooted Feet does not admit other active spell carriers")
+    )
     fp = next(p for p in state.resources.pools if p.id == "fp:" + actor_id)
+    if relevant:
+        haste = qualified_haste_bonus(state, actor_id) if allows_haste() else None
+        if haste is None or haste == 0:
+            raise ConflictError("Rooted Feet does not admit other active spell carriers")
+        if (
+            hp.current * 3 < hp.maximum
+            or fp.current * 3 < fp.maximum
+            or hp.current <= 0
+            or fp.current <= 0
+            or any(
+                p.amount > 0 and p.definition_id == "trait:combat-reflexes"
+                for p in compiled.purchases
+            )
+        ):
+            raise ConflictError(
+                "Rooted Feet Haste carrier requires healthy subject without Combat Reflexes"
+            )
     return fatigue_value(fp, compiled.statistics.st)
 
 
