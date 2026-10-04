@@ -8,7 +8,10 @@ from wayfarer.engine.simulation.actors import build, fatigue_ready
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.backfires import forgotten, require_settled
-from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.concentration import (
+    require_idle_concentration,
+    require_no_held_melee,
+)
 from wayfarer.engine.simulation.magic.melee_spell_state import (
     PREFIX,
     CastDeathtouch,
@@ -82,6 +85,7 @@ def ready(runtime: RulesContext, state: PlayState, command: CastDeathtouch) -> t
         raise ConflictError("Deathtouch requires authenticated normal mana")
     if command.operation == "start":
         require_idle_concentration(state.resources, command.actor_id)
+        require_no_held_melee(state.resources, command.actor_id)
         if command.actor_id in held_actor_ids(state.resources) or any(
             e.actor_id == command.actor_id and e.spell_id == "fireball" and e.phase == "active"
             for e in latest(state.resources).values()

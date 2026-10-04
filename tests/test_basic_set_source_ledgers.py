@@ -141,7 +141,8 @@ def test_campaigns_section_audit_has_exact_reviewed_obligations_and_bounded_resi
         "section:campaigns:b480:magic-items",
         "section:campaigns:b480:enchantment-spells",
     }
-    assert all(row.completion_owner == 785 for row in rows if row.completion_owner is not None)
+    assert all(row.completion_owner == 742 for row in rows if row.completion_owner is not None)
+    assert all(785 in row.historical_owners for row in rows if row.completion_owner is not None)
     assert all(row.completion_owner != 94 for row in rows)
 
     appendix = tuple(row for row in rows if row.id in CAMPAIGNS_APPENDIX_REVIEW_IDS)
@@ -347,7 +348,10 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         ("modifier:enhancement:symptoms", 763),
         ("trait:advantage:innate-attack", 764),
         ("modifier:enhancement:cyclic", 764),
-        *((identifier, 785) for identifier in ENCHANTING_RESIDUAL_IDS),
+        *(
+            (identifier, 1013 if identifier.endswith(":interruptions") else 742)
+            for identifier in ENCHANTING_RESIDUAL_IDS
+        ),
         ("section:campaigns:b377:active-defense-options", 878),
     }
     assert all(
@@ -361,7 +365,8 @@ def test_certification_reports_stable_ledger_blockers_and_rollups() -> None:
         "764": 2,
         "757": 2,
         "763": 1,
-        "785": 5,
+        "742": 4,
+        "1013": 1,
         "854": 1,
         "906": 1,
         "878": 1,

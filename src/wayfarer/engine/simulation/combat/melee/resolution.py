@@ -13,11 +13,11 @@ import wayfarer.engine.simulation.combat.criticals.limbs as critical_limbs
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.character.traits.attack_defense import attack_defense_traits
 from wayfarer.engine.character.traits.mastery import damage_bonus
-from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource, draw_dice
+from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty, strong_damage_bonus
-from wayfarer.engine.rules.types.location import HumanLocation
+from wayfarer.engine.rules.types.location import Hand, HumanLocation
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
@@ -124,22 +124,36 @@ def _apply_cattle_prod(
 
 
 if TYPE_CHECKING:
-    from wayfarer.engine.simulation.magic.melee_spell_state import MeleeSpellContact
+    from wayfarer.engine.simulation.magic.melee_contact_dispatch import Contact
 
 
-def _current_contact(
-    runtime: RulesContext, state: PlayState, pending_id: str
-) -> MeleeSpellContact | None:
+def _current_contact(runtime: RulesContext, state: PlayState, pending_id: str) -> Contact | None:
     # deferred: held-Melee admission shares the CombatEngine/RulesContext cycle.
-    from wayfarer.engine.simulation.magic.melee_spell_admission import validate_contact
-
-    # deferred: held-Melee state shares the CombatEngine/RulesContext cycle.
-    from wayfarer.engine.simulation.magic.melee_spell_state import read_contact
+    from wayfarer.engine.simulation.magic.melee_contact_dispatch import (
+        read_contact,
+        validate_contact,
+    )
 
     contact = read_contact(state.resources, pending_id)
     if contact is not None:
         validate_contact(runtime, state, contact)
     return contact
+
+
+def _require_rooted_dodge_context(
+    state: PlayState, pending: PendingDefense, selected: Defense, second_defense: Defense | None
+) -> None:
+    # deferred: the private rooting ledger shares the canonical combat context cycle.
+    from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
+
+    if (
+        "dodge" in (selected, second_defense)
+        and (pending.visibility_defense_penalty or pending.attention_defense_penalty)
+        and active_effect(state.resources, pending.defender_id) is not None
+    ):
+        raise ValidationError(
+            "Rooted Feet Dodge does not yet support visibility or attention modifiers"
+        )
 
 
 def _damage_contact(
@@ -148,11 +162,11 @@ def _damage_contact(
     inputs: MeleeDamageInputs,
     *,
     prevalidated: bool = False,
-) -> MeleeSpellContact | None:
+) -> Contact | None:
     if not prevalidated:
         return _current_contact(runtime, state, inputs.pending.id)
     # deferred: private held-Melee facts share the CombatEngine/RulesContext cycle.
-    from wayfarer.engine.simulation.magic.melee_spell_state import read_contact
+    from wayfarer.engine.simulation.magic.melee_contact_dispatch import read_contact
 
     return read_contact(state.resources, inputs.pending.id)
 
@@ -161,16 +175,24 @@ def _settle_contact(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
-    contact: MeleeSpellContact | None,
+    contact: Contact | None,
     inputs: MeleeDamageInputs,
     hit: bool,
+    resolved_location: HumanLocation | None,
 ) -> tuple[PlayState, Encounter, int]:
     if contact is None:
         return state, encounter, 0
     # deferred: held-Melee settlement shares the CombatEngine/RulesContext cycle.
-    from wayfarer.engine.simulation.magic.melee_spell_transitions import finish_contact
+    from wayfarer.engine.simulation.magic.melee_contact_dispatch import finish_contact
 
     implement = inputs.defense_item
+    defense_hand: Hand | None = (
+        "left-hand"
+        if implement == "left-hand"
+        else "right-hand"
+        if implement == "right-hand"
+        else None
+    )
     state, encounter, result = finish_contact(
         runtime,
         state,
@@ -181,6 +203,8 @@ def _settle_contact(
         defense_check=inputs.defense,
         defense_implement_id=None if implement in ("left-hand", "right-hand") else implement,
         critical_row=inputs.critical,
+        resolved_location=resolved_location,
+        defense_hand=defense_hand,
     )
     return state, encounter, result.injury
 
@@ -311,6 +335,7 @@ def resolve_melee(
     assert pending is not None
     # Validate before attack/defense dice. Later same-transaction critical
     # consequences cannot retroactively invalidate the already accepted contact.
+    _require_rooted_dodge_context(state, pending, selected, second_defense)
     contact = _current_contact(runtime, state, pending.id)
     if contact is not None:
         if prepare_only or prepare_damage or secret_damage:
@@ -490,10 +515,19 @@ def resolve_melee(
         external_defense_penalty(state, pending.defender_id, pending.visibility_defense_penalty)
         + pending.attention_defense_penalty,
     )
+    # deferred: the private spell state shares the combat runtime context cycle.
+    from wayfarer.engine.simulation.magic.rooted_feet_state import melee_weapon_penalty
+
+    rooted = melee_weapon_penalty(state.resources, attacker.actor_id)
     spec = AttackRollSpec(
         profile_id=equipment.profile_id,
         target=attack_target,
-        modifiers=check_modifiers(state.resources, attacker.actor_id, "dx"),
+        modifiers=check_modifiers(state.resources, attacker.actor_id, "dx")
+        + (
+            (Modifier(rooted, "Rooted Feet melee weapon skill", "basic-set:B244", "2004"),)
+            if rooted
+            else ()
+        ),
     )
     if prepare_only:
         return spec
@@ -572,8 +606,11 @@ def resolve_melee(
             if not stopped:
                 hit = True
                 blocked = None
+        # deferred: only the accepted Deathtouch family admits the bare-arc context.
+        from wayfarer.engine.simulation.magic.melee_spell_state import MeleeSpellContact
+
         bare_failure = (
-            contact is not None
+            isinstance(contact, MeleeSpellContact)
             and selected == "parry"
             and defense_item in ("left-hand", "right-hand")
             and defense.outcome is Outcome.CRITICAL_FAILURE
@@ -1198,7 +1235,7 @@ def finish_melee_damage(
     assert status is not None
     physical_status = status
     state, encounter, magical_injury = _settle_contact(
-        runtime, state, encounter, contact, inputs, hit
+        runtime, state, encounter, contact, inputs, hit, location
     )
     combined_hp = next(p for p in state.resources.pools if p.id == hp.id)
     assert combined_hp.injury is not None

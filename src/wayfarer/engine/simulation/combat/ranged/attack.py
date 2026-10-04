@@ -156,6 +156,12 @@ def prepare(
         weapon,
         ammunition_profile(catalog(runtime), state.resources, pending.weapon_id, weapon),
     )
+    # deferred: the private rooting guard reads current canonical combat equipment.
+    from wayfarer.engine.simulation.magic.rooted_combat_guards import require_supported_impact
+
+    require_supported_impact(
+        runtime, state, encounter, pending.defender_id, weapon.damage.damage_type
+    )
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     _validate_dual_weapon(actor, weapon)

@@ -34,6 +34,7 @@ from wayfarer.engine.simulation.combat.unarmed.senses import visibility
 from wayfarer.engine.simulation.health.hit_locations import disabled, require_location
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
 from wayfarer.engine.simulation.hex_geometry import movement as hex_movement
+from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -53,6 +54,8 @@ def declare_unarmed_wait(
     target's state belong to the reaction itself, which is validated when it happens.
 
     """
+    if active_effect(state.resources, actor_id) is not None:
+        raise ValidationError("Rooted Feet unarmed Wait classification is unsupported")
     declared = trigger.unarmed
     assert declared is not None
     require_basic(catalog(runtime).profile_id)
@@ -112,6 +115,13 @@ def require_declared(encounter: Encounter, command: TakeUnarmedTurn) -> None:
 def validate_action(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
 ) -> None:
+    if command.action != "release" and active_effect(state.resources, command.actor_id) is not None:
+        raise ValidationError("Rooted Feet unarmed action classification is unsupported")
+    if (
+        command.action not in ("punch", "kick", "release")
+        and active_effect(state.resources, command.target_id) is not None
+    ):
+        raise ValidationError("Rooted Feet target control composition is unsupported")
     require_basic(catalog(runtime).profile_id)
     validate_options(command)
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)

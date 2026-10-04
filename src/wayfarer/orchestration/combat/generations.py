@@ -17,6 +17,7 @@ KNOWN = frozenset(
         "ground-dive-step",
         "secondary-object-blasts",
         "missile-interposition",
+        "paralyze-buckler-drop",
     }
 )
 ACTIVE = KNOWN

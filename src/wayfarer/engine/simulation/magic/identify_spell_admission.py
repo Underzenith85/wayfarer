@@ -16,7 +16,12 @@ from wayfarer.engine.simulation.magic.identify_spell_state import (
     observations,
     secrets,
 )
+from wayfarer.engine.simulation.magic.limb_spell_state import ParalyzeLimbCast
+from wayfarer.engine.simulation.magic.limb_spell_state import casts as limb_casts
+from wayfarer.engine.simulation.magic.melee_spell_state import MeleeCast
+from wayfarer.engine.simulation.magic.melee_spell_state import casts as melee_casts
 from wayfarer.engine.simulation.magic.rituals import require_ordinary_ritual
+from wayfarer.engine.simulation.magic.rooted_feet_state import effects as rooted_effects
 from wayfarer.engine.simulation.magic.spell_state import (
     PREFIX as SPELL_PREFIX,
 )
@@ -26,6 +31,8 @@ from wayfarer.engine.simulation.magic.spell_state import (
     latest,
     parse_event,
 )
+from wayfarer.engine.simulation.magic.wither_spell_state import WitherLimbCast
+from wayfarer.engine.simulation.magic.wither_spell_state import casts as wither_casts
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -120,6 +127,37 @@ def ready(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
 
 
 def _private_spell_producers(state: PlayState, target: str) -> None:
+    now = state.resources.game_time
+    contact_casts: tuple[MeleeCast | ParalyzeLimbCast | WitherLimbCast, ...] = (
+        *melee_casts(state.resources).values(),
+        *limb_casts(state.resources).values(),
+        *wither_casts(state.resources).values(),
+    )
+    relevant_contact_cast = any(
+        cast.actor_id == target
+        and (
+            cast.status in {"casting", "held"}
+            or (
+                cast.check is not None
+                and cast.check.outcome.succeeded
+                and cast.completed_at is not None
+                and 0 <= now - cast.completed_at <= 5
+            )
+        )
+        for cast in contact_casts
+    )
+    relevant_root = any(
+        target in {effect.caster_id, effect.target_id}
+        and (
+            (effect.status == "active" and now < effect.expires_at)
+            or (effect.original_check.outcome.succeeded and 0 <= now - effect.started_at <= 5)
+        )
+        for effect in rooted_effects(state.resources).values()
+    )
+    if relevant_contact_cast or relevant_root:
+        raise ConflictError(
+            "Bounded Identify Spell has a relevant unsupported private spell producer"
+        )
     latest_casts: dict[tuple[str, str], tuple[str, str, int]] = {}
     detected: set[tuple[str, int]] = set()
     for event in state.resources.events:

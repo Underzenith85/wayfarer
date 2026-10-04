@@ -136,8 +136,11 @@ def test_reconciled_entries_retain_only_concrete_runtime_blockers_and_real_evide
     assert coverage_blockers(PROFILE) == (
         757,
         764,
-        *tuple(range(774, 790)),
+        *tuple(range(774, 779)),
+        *tuple(range(780, 790)),
         *tuple(range(791, 806)),
+        1018,
+        1019,
     )
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 

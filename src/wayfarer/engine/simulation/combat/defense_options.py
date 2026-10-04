@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.generations import acrobatic_reaction_attributes_enabled
 from wayfarer.engine.simulation.combat.incoming import incoming_ranged
+from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -29,6 +30,35 @@ def _repeat_drop(encounter: Encounter, command: ChooseDefense) -> Encounter:
     return encounter
 
 
+def _require_rooted_defense(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
+) -> None:
+    if active_effect(state.resources, command.actor_id) is not None:
+        if command.acrobatic_dodge or command.dodge_and_drop:
+            raise ValidationError("Rooted Feet optional Dodge composition is unsupported")
+        if "block" in (command.defense, command.second_defense):
+            raise ValidationError("Rooted Feet Block classification is unsupported")
+        if any(
+            selected == "parry"
+            and (
+                item in ("left-hand", "right-hand")
+                or encounter.pending_unarmed is not None
+                and item is None
+            )
+            for selected, item in (
+                (command.defense, command.item_id),
+                (command.second_defense, command.second_item_id),
+            )
+        ):
+            raise ValidationError("Rooted Feet barehand Parry classification is unsupported")
+        if command.defense == "dodge":
+            # deferred: the standard scorer and optional-defense dispatcher share CombatEngine.
+            from wayfarer.engine.simulation.combat.melee.values import standard_defense_value
+
+            target = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+            standard_defense_value(runtime, state, target, "dodge")
+
+
 def prepare_options(
     runtime: RulesContext,
     state: PlayState,
@@ -37,6 +67,7 @@ def prepare_options(
     *,
     resolve: bool,
 ) -> Encounter:
+    _require_rooted_defense(runtime, state, encounter, command)
     if not command.acrobatic_dodge and not command.dodge_and_drop:
         return _repeat_drop(encounter, command)
     if (

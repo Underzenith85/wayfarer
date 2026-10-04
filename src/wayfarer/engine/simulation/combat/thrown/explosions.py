@@ -331,6 +331,10 @@ def _validate_actor_response(
     ):
         raise ValidationError("Cover requires explicitly protected hit locations")
     if response.dive_to:
+        # deferred: private rooting joins the actual displacement admission.
+        from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
+
+        require_locomotion(state.resources, actor.actor_id)
         validate_position(runtime, encounter, response.dive_to)
         if separation(position(encounter, actor), response.dive_to) not in range(
             1, max(1, (movement(runtime, state, actor.actor_id) + 9) // 10) + 1

@@ -42,3 +42,7 @@ def missile_interposition_enabled() -> bool:
 
 def acrobatic_reaction_attributes_enabled() -> bool:
     return "acrobatic-reaction-attributes" in _current.get()
+
+
+def paralyze_buckler_drop_enabled() -> bool:
+    return "paralyze-buckler-drop" in _current.get()

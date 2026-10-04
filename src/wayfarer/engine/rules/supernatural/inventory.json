@@ -1237,7 +1237,9 @@
       "classification": "X",
       "difficulty": null,
       "colleges": [],
-      "blockers": [764],
+      "blockers": [
+        764
+      ],
       "source": "characters-third",
       "status": "partial",
       "supported_subset": "Approved persisted torso ranged and Malediction 1 attacks, current defenses and injury, source-bound Cyclic/Symptoms, exact retry and replay. Corrosion DR destruction, crushing/cutting knockback, fractional dice and broader delivery/modifier/clock integrations remain unverified under #764; natural critical substitutions require recorded GM adjudication.",
@@ -5584,14 +5586,18 @@
         "body-control"
       ],
       "blockers": [
-        779
+        1019
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "supported_subset": "Approved purchased learning and actual manufactured Staff charge/contact with source-selected 1\u20133 dice, separate armor-ignoring HP injury, payment, custody, privacy and seeded replay; hand, undead injury and broader delivery variants remain unverified.",
       "evidence": [
         "tests/test_spell_body_control.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_body_control_named_construction.py",
+        "tests/test_deathtouch_casting.py",
+        "tests/test_staff_melee_contact.py",
+        "docs/gurps-deathtouch-staff.md"
       ],
       "members": [],
       "talent_cost": null,
@@ -6678,14 +6684,20 @@
         "body-control"
       ],
       "blockers": [
-        779
+        1019
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "supported_subset": "Approved purchased manufactured Staff charge and actual arm contact with independent current HT contest, one-minute functional cripple and real equipment/action consequences; captured contact generation preserves old history, while broader limb and delivery variants remain unverified.",
       "evidence": [
         "tests/test_spell_body_control.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_body_control_named_construction.py",
+        "tests/test_paralyze_limb_casting.py",
+        "tests/test_paralyze_limb_host.py",
+        "tests/test_paralyze_arm_host_consequences.py",
+        "tests/test_paralyze_limb_privacy.py",
+        "docs/gurps-paralyze-limb.md"
       ],
       "members": [],
       "talent_cost": null,
@@ -6963,14 +6975,20 @@
         "body-control"
       ],
       "blockers": [
-        779
+        1018
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "supported_subset": "Approved purchased normal-mana cast, current ST resistance, original-roll turn escape, one-minute expiry, actual locomotion restrictions, supported melee/Feint/Parry penalties and plain Dodge halving; unresolved defense and forced-displacement compositions remain unverified.",
       "evidence": [
         "tests/test_spell_body_control.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_body_control_named_construction.py",
+        "tests/test_rooted_feet_host.py",
+        "tests/test_rooted_feet_combat.py",
+        "tests/test_rooted_feet_escape.py",
+        "tests/test_rooted_feet_replay.py",
+        "docs/gurps-rooted-feet-execution.md"
       ],
       "members": [],
       "talent_cost": null,
@@ -7587,14 +7605,21 @@
         "body-control"
       ],
       "blockers": [
-        779
+        1019
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Pinned inventory identity and source locator; check-only college commands reject atomically because no concrete effect is available.",
+      "supported_subset": "Approved purchased generation-three manufactured Staff charge and actual arm contact with independent current HT contest, separate 1d HP injury, one magical major-wound check and permanent cripple/equipment consequences; qualified magical limb restoration, broader anatomy and delivery variants remain unverified.",
       "evidence": [
         "tests/test_spell_body_control.py",
-        "tests/test_college_dispatch.py"
+        "tests/test_college_dispatch.py",
+        "tests/test_body_control_named_construction.py",
+        "tests/test_wither_limb_casting.py",
+        "tests/test_wither_limb_host.py",
+        "tests/test_wither_arm_host_consequences.py",
+        "tests/test_wither_limb_guards.py",
+        "tests/test_wither_limb_replay.py",
+        "docs/gurps-wither-limb.md"
       ],
       "members": [],
       "talent_cost": null,

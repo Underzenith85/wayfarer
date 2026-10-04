@@ -17164,9 +17164,10 @@
       "historical_owners": [
         191,
         527,
-        679
+        679,
+        785
       ],
-      "completion_owner": 785,
+      "completion_owner": 742,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b462:17-technology-and-atrifacts",
@@ -17205,9 +17206,10 @@
       "historical_owners": [
         191,
         527,
-        679
+        679,
+        785
       ],
-      "completion_owner": 785,
+      "completion_owner": 742,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -17243,9 +17245,10 @@
       ],
       "historical_owners": [
         191,
-        526
+        526,
+        785
       ],
-      "completion_owner": 785,
+      "completion_owner": 742,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -17281,9 +17284,10 @@
       ],
       "historical_owners": [
         191,
-        526
+        526,
+        785
       ],
-      "completion_owner": 785,
+      "completion_owner": 1013,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",
@@ -17319,9 +17323,10 @@
       ],
       "historical_owners": [
         191,
-        526
+        526,
+        785
       ],
-      "completion_owner": 785,
+      "completion_owner": 742,
       "capability_id": "gurps.magic.items",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b480:magic-items",

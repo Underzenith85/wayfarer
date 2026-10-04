@@ -31,6 +31,7 @@ from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_obj
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex, arc
+from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.engine.simulation.movement.vehicles.collisions import collision_dice, roll_damage
 from wayfarer.engine.simulation.resources import Item
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -69,6 +70,13 @@ def validate_declaration(
 
     if not command.shield_rush:
         return
+    if active_effect(state.resources, command.actor_id) is not None:
+        raise ValidationError("Rooted Feet shield rush classification is unsupported")
+    if (
+        command.target_id is not None
+        and active_effect(state.resources, command.target_id) is not None
+    ):
+        raise ValidationError("Rooted Feet shield rush target composition is unsupported")
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Shield rush requires exact Basic Set dispatch")
     item, _, shield = _shield(runtime, state, command.actor_id, command.item_id or "")

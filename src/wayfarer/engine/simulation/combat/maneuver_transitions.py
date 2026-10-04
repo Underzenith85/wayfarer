@@ -23,6 +23,10 @@ from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.symptom_state import acute_blindness
+from wayfarer.engine.simulation.magic.rooted_feet_state import (
+    active_effect,
+    melee_weapon_penalty,
+)
 from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.errors import ValidationError
 
@@ -147,6 +151,8 @@ def observe(
     weapon = mode(runtime, state, actor.actor_id, command.item_id or "", command.mode_id)
     if not isinstance(weapon, MeleeMode):
         raise ValidationError("Feint requires a melee mode")
+    if active_effect(state.resources, actor.actor_id) is not None and weapon.shield_attack:
+        raise ValidationError("Rooted Feet shield Feint classification is unsupported")
     attacker = build(runtime, state, actor.actor_id)
     defender = build(runtime, state, target.actor_id)
     assert defender.statistics is not None
@@ -157,15 +163,24 @@ def observe(
         entry = next(e for e in catalog(runtime).entries if e.definition_id == item.definition_id)
         skills = [m.skill_id for m in entry.modes if isinstance(m, MeleeMode)]
         if entry.shield:
+            if active_effect(state.resources, target.actor_id) is not None:
+                raise ValidationError("Rooted Feet shield Feint resistance is unsupported")
             skills.append(entry.shield.skill_id)
         for skill in skills:
             try:
-                defense = max(defense, int(level(defender, skill).value))
+                defense = max(
+                    defense,
+                    int(level(defender, skill).value)
+                    + melee_weapon_penalty(state.resources, target.actor_id),
+                )
             except ValidationError:
                 continue
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     value = attack_modifier(
-        actor.maneuver_state, target.actor_id, int(level(attacker, weapon.skill_id).value)
+        actor.maneuver_state,
+        target.actor_id,
+        int(level(attacker, weapon.skill_id).value)
+        + melee_weapon_penalty(state.resources, actor.actor_id),
     )
     if target.unarmed_guard_dropped and actor.maneuver_state.evaluate_target_id == target.actor_id:
         value += actor.maneuver_state.evaluate_bonus

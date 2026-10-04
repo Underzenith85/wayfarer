@@ -83,6 +83,7 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "ground-dive-step",
             "secondary-object-blasts",
             "missile-interposition",
+            "paralyze-buckler-drop",
         }
     )
 

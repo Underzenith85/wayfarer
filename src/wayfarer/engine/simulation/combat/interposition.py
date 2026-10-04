@@ -152,6 +152,10 @@ def prepare_interposition(
 ) -> Encounter:
     if command.sacrificial_for is None:
         return encounter
+    # deferred: private rooting joins the actual protecting actor step.
+    from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
+
+    require_locomotion(state.resources, command.actor_id)
     if (
         runtime.rules.combat is None
         or runtime.rules.combat.gurps_equipment is None

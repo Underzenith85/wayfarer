@@ -44,6 +44,7 @@ from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.engine.simulation.magic.lock_ready import finish_lock_ready, validate_known_lock
+from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
@@ -112,6 +113,18 @@ def _concentration_for_turn(
     return interrupt_concentration(resources, command.actor_id, command.id)
 
 
+def _require_turn_locomotion(
+    state: PlayState, encounter: Encounter, command: TakeCombatTurn
+) -> None:
+    participant = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+    if (
+        (command.destination is not None and command.destination != participant.position)
+        or any(point != participant.position for point in command.hex_path)
+        or command.basic_move is not None
+    ):
+        require_locomotion(state.resources, command.actor_id)
+
+
 def _validate_turn(
     state: PlayState,
     command: TakeCombatTurn,
@@ -123,6 +136,7 @@ def _validate_turn(
     play = context.play
     engine = context.engine
     resources = state.resources
+    _require_turn_locomotion(state, encounter, command)
 
     validate_known_lock(
         state,
