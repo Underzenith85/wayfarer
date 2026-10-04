@@ -26,6 +26,9 @@ from wayfarer.engine.simulation.magic.analyze_magic_state import (
     needs_clock_checkpoints as needs_analysis_checkpoints,
 )
 from wayfarer.engine.simulation.magic.backfires import chronological_refund_deadlines
+from wayfarer.engine.simulation.magic.detect_magic_state import (
+    needs_clock_checkpoints as needs_detection_checkpoints,
+)
 from wayfarer.engine.simulation.magic.enchanting_lifecycle import needs_clock_checkpoints
 from wayfarer.engine.simulation.magic.great_haste_effects import deadlines as great_haste_deadlines
 from wayfarer.engine.simulation.resources import Advance
@@ -45,6 +48,7 @@ def _needs_checkpoints(state: PlayState, to: int) -> bool:
     resources = state.resources
     return (
         needs_analysis_checkpoints(resources)
+        or needs_detection_checkpoints(resources)
         or needs_clock_checkpoints(resources)
         or any(t <= to for t in chronological_refund_deadlines(resources))
         or any(t <= to for t in great_haste_deadlines(resources))

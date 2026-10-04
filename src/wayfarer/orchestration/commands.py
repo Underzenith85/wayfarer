@@ -18,10 +18,12 @@ from wayfarer.engine.simulation.campaign.social_policy import parse_graph
 from wayfarer.engine.simulation.health.fright_transitions import FrightDecision
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
+from wayfarer.engine.simulation.magic.detect_magic_state import ADAPTER as DETECT_MAGIC_ADAPTER
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
+from wayfarer.orchestration.detect_magic import DetectMagicService
 from wayfarer.orchestration.encounter_scenes import (
     EncounterSceneService,
     MigrateEncounterScenes,
@@ -273,7 +275,27 @@ async def _analyze_magic(submission: Submission) -> None:
     )
 
 
+async def _detect_magic(submission: Submission) -> None:
+    await DetectMagicService(submission.play).execute(
+        submission.cid, submission.command, principal_id=submission.principal_id
+    )
+
+
 FAMILIES: tuple[CommandFamily, ...] = (
+    CommandFamily(
+        kinds=(
+            "detect_magic_subject",
+            "detect_magic_start",
+            "detect_magic_work",
+            "detect_magic_complete",
+            "detect_magic_cancel",
+        ),
+        parse=DETECT_MAGIC_ADAPTER.validate_json,
+        service=_detect_magic,
+        receipt="resource",
+        authorize=service_authorizes,
+        preconditions=(recovery_guard,),
+    ),
     CommandFamily(
         kinds=(
             "analyze_magic_subject",

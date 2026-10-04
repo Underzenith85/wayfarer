@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.health.fright_state import blocked, requires_adj
 from wayfarer.engine.simulation.health.recovery import Captivity
 from wayfarer.engine.simulation.magic.analyze_magic_state import pending_actor_ids
 from wayfarer.engine.simulation.magic.backfires import backfires
+from wayfarer.engine.simulation.magic.detect_magic_state import pending_actor_ids as detect_pending
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -34,6 +35,14 @@ def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = Fa
         "analyze_magic_cancel",
     ) and actor_id in pending_actor_ids(state.resources):
         raise ConflictError("Finish or cancel Analyze Magic before acting")
+    if kind not in (
+        "question",
+        "wait",
+        "detect_magic_work",
+        "detect_magic_complete",
+        "detect_magic_cancel",
+    ) and actor_id in detect_pending(state.resources):
+        raise ConflictError("Finish or cancel Detect Magic before acting")
     if kind not in ("question", "wait") and drug_unconscious(state.resources, actor_id):
         raise ValidationError("An unconscious drugged actor cannot act")
     if kind not in ("resolve_weapon_explosion", "declare_thrown_landing"):

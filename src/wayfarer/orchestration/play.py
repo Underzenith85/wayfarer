@@ -43,6 +43,8 @@ from wayfarer.engine.simulation.magic.analyze_magic_work import checkpoint as an
 from wayfarer.engine.simulation.magic.area_fire import checkpoint as spell_checkpoint
 from wayfarer.engine.simulation.magic.backfire_transitions import perceive, recover_stuns
 from wayfarer.engine.simulation.magic.backfires import refund_due
+from wayfarer.engine.simulation.magic.detect_magic_state import pending_actor_ids as detect_pending
+from wayfarer.engine.simulation.magic.detect_magic_work import checkpoint as detection_checkpoint
 from wayfarer.engine.simulation.magic.enchanting_lifecycle import (
     checkpoint as enchanting_checkpoint,
 )
@@ -82,8 +84,8 @@ if TYPE_CHECKING:
 
 
 def _require_analysis_free(state: PlayState, command: TypedAction) -> None:
-    if command.kind not in ("question", "wait") and command.actor_id in pending_actor_ids(
-        state.resources
+    if command.kind not in ("question", "wait") and command.actor_id in (
+        pending_actor_ids(state.resources) | detect_pending(state.resources)
     ):
         raise ConflictError("Finish or cancel Analyze Magic before acting")
 
@@ -285,6 +287,7 @@ class PlayService:
                     "great-haste-named-origin:",
                     "great-haste-step-resolved:",
                     "analyze-magic:",
+                    "detect-magic:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",
@@ -513,6 +516,7 @@ class PlayService:
 
         if before is not None:
             state = analysis_checkpoint(self.rules_context, state, before)
+            state = detection_checkpoint(self.rules_context, state, before)
             state = concentration_checkpoint(self.rules_context, state, before)
             state = held_checkpoint(self.rules_context, state, before)
         state = wearer_checkpoint(self.rules_context, state)
@@ -526,6 +530,7 @@ class PlayService:
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
         state = analysis_checkpoint(self.rules_context, state, before_fire)
+        state = detection_checkpoint(self.rules_context, state, before_fire)
         state = shapeshifting_checkpoint(self, state, before=before)
         state = size_geometry_checkpoint(self.rules_context, state)
         before_late_magic = state
@@ -549,6 +554,7 @@ class PlayService:
             state = staff_checkpoint(state, before=before)
             state = sensory_checkpoint(state, before=before)
         state = analysis_checkpoint(self.rules_context, state, before_late_magic)
+        state = detection_checkpoint(self.rules_context, state, before_late_magic)
         return enchanting_checkpoint(state, before=before)
 
     @staticmethod
