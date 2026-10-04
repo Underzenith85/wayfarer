@@ -39,7 +39,7 @@ during combat. Unresolved defense combinations and unclassified productive
 Shield, Cloak or unarmed choices must be refused rather than assigned an invented
 modifier. Ranged weapon skills receive no Rooted Feet penalty. These restrictions
 are visible unverified variants, not claims that the printed spell forbids them.
-Whole Body Control issue #779 also includes other named spells and remains open.
+The bounded named-spell baseline #779 is complete. Broader Rooted Feet combinations remain partial under #1018.
 
 Focused actual-host tests cover the five casting outcomes, original ordinary and
 critical roll escape contests, costs, time, persistence, authority, stale revision,
@@ -50,9 +50,35 @@ They fold and reexecute the full original genesis through all registered command
 and prove active T59 and expired T60 effects. Actual locomotion consumers include
 Move, Step, retreat, scene travel and physical movement.
 
-The first Dodge carrier halves the canonical base score before roll modifiers and
-refuses unsupported low-HP/FP, Haste, Combat Reflexes, posture, shield, height,
-entangle and pending visibility or attention combinations before dice. Mapped
+Historical defenses without the captured private
+`rooted-dodge-health-trait-composition` feature retain the original plain-Dodge
+admission. Fresh defenses with that feature also admit strictly positive low HP/FP
+and source-approved Combat Reflexes on an otherwise plain standing Dodge. The
+canonical encumbered Dodge is halved upward for each current state strictly below
+one-third HP/FP (B419/B426), then halved downward for Rooted Feet (B244). Combat
+Reflexes adds its +1 active-defense roll bonus afterward (B43), once. Health
+before Rooted is an explicit composed interpretation; the supplied sources do
+not give a mixed-rounding ordering formula. The two upward health halvings commute.
+Current zero or negative HP/FP, Haste, posture, shield, height, entangle and pending
+visibility or attention combinations remain unsupported and refuse before dice. Mapped
 shield knockback from crushing melee or ranged impacts and Shield Rush against a
 rooted target are explicit unsupported displacement compositions. These guards
 leave source-uncertain variants visible instead of assigning invented physics.
+
+Actual composition tests start from approved builds and original physical HP/FP
+facts, then execute paid Rooted casting, incoming attacks and chosen defenses.
+They distinguish the upward and downward rounding order, exact one-third
+boundaries, the separate purchased Combat Reflexes bonus, and FP1 without a new
+Will roll or fatigue cost. A registered failed Haste attempt separately changes
+current FP across the threshold without leaving an active Haste effect; later
+Dodge uses that current value while preserving the original Rooted trace.
+Ordinary incoming unarmed and ranged attacks use the same captured scoring
+scope, with actual defended or injured HP results.
+
+Saved feature absence retains historical admission, exact input interpretation
+and full original-genesis command reexecution. Fresh captured defenses and a
+fresh defense after an older pending attack have their own replay proofs.
+Remaining unsupported options reject before randomness with unchanged state,
+history and stream. These consumers keep the Rooted source row partial under
+#1018; they do not certify Haste, nonpositive exertion, posture or shield
+compositions, forced displacement or other deferred variants.
