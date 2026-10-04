@@ -84,6 +84,7 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "secondary-object-blasts",
             "missile-interposition",
             "paralyze-buckler-drop",
+            "rooted-dodge-health-trait-composition",
         }
     )
 

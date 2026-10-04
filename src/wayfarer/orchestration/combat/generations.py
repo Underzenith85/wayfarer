@@ -18,6 +18,7 @@ KNOWN = frozenset(
         "secondary-object-blasts",
         "missile-interposition",
         "paralyze-buckler-drop",
+        "rooted-dodge-health-trait-composition",
     }
 )
 ACTIVE = KNOWN

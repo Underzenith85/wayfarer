@@ -29,6 +29,7 @@ from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
 from wayfarer.engine.rules.magic.water import package as water_package
 from wayfarer.engine.rules.skills.mundane.melee import definitions as melee_definitions
 from wayfarer.engine.rules.skills.mundane.ranged import definitions as ranged_definitions
+from wayfarer.engine.rules.traits.mundane import candidate_package as mundane_package
 from wayfarer.engine.rules.types.object import ObjectCondition
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActorSetup
@@ -62,6 +63,10 @@ async def fixture(
     subject_mage: bool = True,
     subject_st: int = 10,
     subject_fp: int = 10,
+    subject_hp: int | None = None,
+    subject_ht: int | None = None,
+    subject_dx: int | None = None,
+    subject_purchases: tuple[Purchase, ...] = (),
     bidirectional_visibility: bool = False,
     combat_weapons: bool = False,
     ranged_weapon: bool = False,
@@ -84,6 +89,12 @@ async def fixture(
             for d in p.definitions
         }
     )
+    if any(
+        p.definition_id == "trait:combat-reflexes" for p in (*subject_purchases, *extra_purchases)
+    ):
+        definitions.update(
+            {d.id: d for d in mundane_package().definitions if d.id == "trait:combat-reflexes"}
+        )
     sword = next(p for p in WEAPONS if p.definition_id == "equipment:broadsword")
     if combat_weapons:
         definitions.update(
@@ -144,23 +155,45 @@ async def fixture(
                     fire_package(),
                     body_package(),
                     enchantment_package(),
+                    *(
+                        (mundane_package(),)
+                        if any(
+                            p.definition_id == "trait:combat-reflexes"
+                            for p in (*subject_purchases, *extra_purchases)
+                        )
+                        else ()
+                    ),
                 )
                 for s in p.sources
             }.values()
         ),
     )
     catalog = RulesCatalog((combined,))
+    cr_selected = any(
+        p.definition_id == "trait:combat-reflexes" for p in (*subject_purchases, *extra_purchases)
+    )
+    base_policy = (
+        replace(
+            base.policy,
+            permitted_sources=base.policy.permitted_sources
+            | frozenset(source.id for source in mundane_package().sources),
+        )
+        if cr_selected
+        else base.policy
+    )
     compiler = CharacterCompiler(
         catalog,
         replace(base.rules, packages=(PackagePin(combined.id, combined.version, combined.digest),)),
         replace(
-            base.policy,
-            allowed_equipment=base.policy.allowed_equipment
+            base_policy,
+            allowed_equipment=base_policy.allowed_equipment
             | {p.definition_id for p in added_profiles},
         )
         if added_profiles
-        else base.policy,
+        else base_policy,
         statistics_profile=base.statistics_profile,
+        trait_runtime_hooks=base.trait_runtime_hooks
+        | (frozenset({"trait.combat_reflexes"}) if cr_selected else frozenset()),
     )
     world = replace(
         foundation.world,
@@ -340,6 +373,20 @@ async def fixture(
             )
         }
     )
+    if subject_ht is not None or subject_dx is not None or subject_purchases:
+        subject_draft = subject_draft.model_copy(
+            update={
+                "purchases": tuple(
+                    p.model_copy(update={"amount": subject_ht})
+                    if p.definition_id == "attribute:ht" and subject_ht is not None
+                    else p.model_copy(update={"amount": subject_dx})
+                    if p.definition_id == "attribute:dx" and subject_dx is not None
+                    else p
+                    for p in subject_draft.purchases
+                )
+                + subject_purchases
+            }
+        )
     if combat_weapons:
         subject_draft = subject_draft.model_copy(
             update={
@@ -403,13 +450,17 @@ async def fixture(
         members=foundation.members
         + (CampaignMember(principal_id="cora", role="player", actor_ids=("c",)),),
     )
-    if subject_fp != 10:
+    if subject_fp != 10 or subject_hp is not None:
         state = state.model_copy(
             update={
                 "resources": state.resources.model_copy(
                     update={
                         "pools": tuple(
-                            p.model_copy(update={"current": subject_fp}) if p.id == "fp:b" else p
+                            p.model_copy(update={"current": subject_fp})
+                            if p.id == "fp:b"
+                            else p.model_copy(update={"current": subject_hp})
+                            if p.id == "hp:b" and subject_hp is not None
+                            else p
                             for p in state.resources.pools
                         )
                     }

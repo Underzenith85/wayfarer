@@ -14,6 +14,7 @@ from wayfarer.engine.simulation.combat.combat_height import defense_height
 from wayfarer.engine.simulation.combat.encounter import Combatant
 from wayfarer.engine.simulation.combat.entangle import defense_penalty as entangle_defense_penalty
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry, weapon_target
+from wayfarer.engine.simulation.combat.generations import rooted_dodge_health_trait_composition
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.heavy_parry import require_breakage
 from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
@@ -191,6 +192,17 @@ def _require_rooted_choice(
         )
 
 
+def _unsupported_rooted_health(hp: Pool, fp: Pool) -> bool:
+    assert hp.injury is not None
+    if rooted_dodge_health_trait_composition():
+        return hp.current <= 0 or fp.current <= 0
+    return (
+        hp.current * 3 < hp.maximum
+        or fp.current * 3 < fp.maximum
+        or hp.injury.physical_traits.combat_reflexes
+    )
+
+
 def _require_rooted_dodge(
     runtime: RulesContext,
     state: PlayState,
@@ -202,10 +214,8 @@ def _require_rooted_dodge(
 ) -> None:
     assert hp.injury is not None
     if rooting(state.resources, participant.actor_id) is not None and (
-        hp.current * 3 < hp.maximum
-        or fp.current * 3 < fp.maximum
+        _unsupported_rooted_health(hp, fp)
         or haste_bonus(state.resources, participant.actor_id)
-        or hp.injury.physical_traits.combat_reflexes
         or participant.posture != "standing"
         or bonus
         or blind

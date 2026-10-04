@@ -6979,7 +6979,7 @@
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Approved purchased normal-mana cast, current ST resistance, original-roll turn escape, one-minute expiry, actual locomotion restrictions, supported melee/Feint/Parry penalties and plain Dodge halving; unresolved defense and forced-displacement compositions remain unverified.",
+      "supported_subset": "Approved purchased normal-mana cast, current ST resistance, original-roll turn escape, one-minute expiry, actual locomotion restrictions, supported melee/Feint/Parry penalties and plain Dodge halving. Captured fresh defenses also compose positive low HP/FP and approved Combat Reflexes with current-health upward rounding before Rooted downward rounding and the separate roll bonus; historical absence retains plain-only admission. Haste, nonpositive HP/FP, other defense and forced-displacement compositions remain unverified.",
       "evidence": [
         "tests/test_spell_body_control.py",
         "tests/test_college_dispatch.py",
@@ -6988,7 +6988,14 @@
         "tests/test_rooted_feet_combat.py",
         "tests/test_rooted_feet_escape.py",
         "tests/test_rooted_feet_replay.py",
-        "docs/gurps-rooted-feet-execution.md"
+        "docs/gurps-rooted-feet-execution.md",
+        "tests/test_rooted_dodge_feature.py",
+        "tests/test_rooted_dodge_health_trait_scoring.py",
+        "tests/test_rooted_dodge_composition.py",
+        "tests/test_rooted_dodge_composition_replay.py",
+        "tests/test_rooted_dodge_cross_hosts.py",
+        "tests/test_rooted_dodge_current_fatigue.py",
+        "tests/test_rooted_dodge_composition_protocols.py"
       ],
       "members": [],
       "talent_cost": null,

@@ -46,3 +46,7 @@ def acrobatic_reaction_attributes_enabled() -> bool:
 
 def paralyze_buckler_drop_enabled() -> bool:
     return "paralyze-buckler-drop" in _current.get()
+
+
+def rooted_dodge_health_trait_composition() -> bool:
+    return "rooted-dodge-health-trait-composition" in _current.get()
