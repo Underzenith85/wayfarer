@@ -39,6 +39,9 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.engine.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
+from wayfarer.engine.rules.magic.body_control_learning import (
+    prerequisite_failures as body_control_prerequisite_failures,
+)
 from wayfarer.engine.rules.magic.colleges import college_prerequisite_failures
 from wayfarer.engine.rules.magic.gurps_magic import (
     magery_level,
@@ -730,6 +733,16 @@ class CharacterCompiler:
                 f"Missing distinct-college prerequisites: {key}",
             )
             for key in college_prerequisite_failures(
+                self.definitions, {p.definition_id: p.amount for p in draft.purchases}
+            )
+        )
+        diagnostics.extend(
+            Diagnostic(
+                "spell.prerequisite",
+                ("purchases",),
+                f"Paralyze Limb requires five other lawful Body Control spells including Pain: {key}",
+            )
+            for key in body_control_prerequisite_failures(
                 self.definitions, {p.definition_id: p.amount for p in draft.purchases}
             )
         )
