@@ -642,6 +642,16 @@
       "issue": 742,
       "state": "open",
       "title": "[GURPS audit] Close semantic compliance gaps with PR-sized work"
+    },
+    {
+      "issue": 1018,
+      "state": "open",
+      "title": "[GURPS audit] Compose Rooted Feet with deferred defense and locomotion conditions"
+    },
+    {
+      "issue": 1019,
+      "state": "open",
+      "title": "[GURPS audit] Extend Body Control Melee spells beyond Staff arm delivery"
     }
   ]
 }

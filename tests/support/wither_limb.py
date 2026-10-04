@@ -29,7 +29,8 @@ from wayfarer.engine.simulation.actions import ActorSetup
 from wayfarer.engine.simulation.combat.battlefield import Battlefield
 from wayfarer.engine.simulation.equipment.basic.armor import ARMOR, SHIELDS
 from wayfarer.engine.simulation.equipment.basic.melee import WEAPONS
-from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog
+from wayfarer.engine.simulation.equipment.basic.rows import source
+from wayfarer.engine.simulation.equipment.catalog import Armor, EquipmentCatalog, EquipmentProfile
 from wayfarer.engine.simulation.magic.enchanting import EnchantingRules, EnchantmentRecipe
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     AdvanceEnchanting,
@@ -71,6 +72,7 @@ async def fixture(
     manufacture: bool = True,
     defender_item: Literal["staff", "shield"] | None = None,
     defender_armor: bool = False,
+    defender_arm_armor: bool = False,
     equipment_target: Literal["buckler"] | None = None,
     victim_mode: Literal["dead", "diffuse"] | None = None,
 ) -> tuple[str, PlayService, Campaign]:
@@ -137,6 +139,25 @@ async def fixture(
         100,
         ImplementationStatus.IMPLEMENTED,
     )
+    # B283 exact rigid Heavy Leather Sleeves, isolated test carrier before genesis.
+    arm_armor = EquipmentProfile(
+        definition_id="equipment:heavy-leather-sleeves",
+        provenance=source(283),
+        technology_level=1,
+        weight_millipounds=2000,
+        price=50,
+        slot="body",
+        armor=Armor(locations=("left-arm", "right-arm"), dr=2),
+    )
+    if defender_arm_armor:
+        definitions[arm_armor.definition_id] = RuleDefinition(
+            arm_armor.definition_id,
+            DefinitionKind.EQUIPMENT,
+            "Heavy Leather Sleeves",
+            "sjg:basic-set-characters-4e-2004",
+            50,
+            ImplementationStatus.IMPLEMENTED,
+        )
     combined = profile_package("gurps-basic-set-4e-2004", *definitions.values())
     combined = replace(
         combined,
@@ -154,7 +175,8 @@ async def fixture(
         base.policy,
         allowed_equipment=base.policy.allowed_equipment
         | {"equipment:quarterstaff", shield.definition_id, armor.definition_id}
-        | ({buckler.definition_id} if equipment_target == "buckler" else set()),
+        | ({buckler.definition_id} if equipment_target == "buckler" else set())
+        | ({arm_armor.definition_id} if defender_arm_armor else set()),
         point_budget=1000,
     )
     compiler = CharacterCompiler(
@@ -167,7 +189,8 @@ async def fixture(
     profiles = EquipmentCatalog(
         profile_id="gurps-basic-set-4e-2004",
         entries=(staff, workspace, shield, armor)
-        + ((buckler,) if equipment_target == "buckler" else ()),
+        + ((buckler,) if equipment_target == "buckler" else ())
+        + ((arm_armor,) if defender_arm_armor else ()),
     )
     resources = ResourceEngine(
         foundation.world,
@@ -244,6 +267,16 @@ async def fixture(
             Item(
                 id="defender-armor",
                 definition_id=armor.definition_id,
+                owner_id="b",
+                equipped=True,
+                ready=True,
+            ),
+        )
+    if defender_arm_armor:
+        defender_inventory += (
+            Item(
+                id="defender-arm-armor",
+                definition_id=arm_armor.definition_id,
                 owner_id="b",
                 equipped=True,
                 ready=True,
