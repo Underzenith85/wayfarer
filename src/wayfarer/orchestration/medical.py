@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import Literal, cast
 
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -23,35 +22,15 @@ from wayfarer.engine.simulation.health.medical.commands import (
 from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.magic.spell_state import active_spells
-from wayfarer.errors import ValidationError
-from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration import medical_context
+from wayfarer.orchestration.medical_commands import ADAPTER as MEDICAL_ADAPTER
+from wayfarer.orchestration.medical_environment import CareEnvironment as CareEnvironment
+from wayfarer.orchestration.medical_environment import EnvironmentResolver as EnvironmentResolver
+from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, authorized, submit
 from wayfarer.orchestration.play import PlayService
-
-
-@dataclass(frozen=True)
-class CareEnvironment:
-    technology_level: int = 8
-    food: bool = False
-    water: bool = False
-    sleep: bool = False
-    physician_id: str | None = None
-    surgical_facility: bool = False
-    anesthetic: bool = True
-    surgical_modifier: int = 0
-    life_support: bool = False
-    sterile: bool = True
-    equipment_quality_modifier: int = 0
-    infection_risk: bool = False
-    infection_modifier: int = 0
-    resuscitation_first_aid_penalty: int = 4
-    drug_item_id: str | None = None
-    drug_form: Literal["pill", "contact", "aerosol", "injection"] | None = None
-    drug_hp: int = 0
-    drug_fp: int = 0
-    mana: Literal["none", "low", "normal", "high", "very-high"] | None = None
-
-
-EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
+from wayfarer.orchestration.replay_inputs import recorded_command
+from wayfarer.persistence.events import CommandInput
 
 
 def _build(play: PlayService, state: PlayState, actor_id: str) -> ValidatedBuild:
@@ -143,8 +122,14 @@ class MedicalService:
     services determine elapsed time, and authoritative actions interrupt work.
     """
 
-    def __init__(self, play: PlayService, environment: EnvironmentResolver) -> None:
-        self.play, self.environment = play, environment
+    def __init__(
+        self,
+        play: PlayService,
+        environment: EnvironmentResolver,
+        *,
+        source_kind: medical_context.SourceKind = "trusted-scenario-snapshot",
+    ) -> None:
+        self.play, self.environment, self.source_kind = play, environment, source_kind
 
     def plan(
         self,
@@ -153,6 +138,9 @@ class MedicalService:
         command: BeginRecovery | FinishRecovery,
         *,
         principal_id: str,
+        captured: medical_context.MedicalCapture | None = None,
+        replaying: bool = False,
+        original_input: str | None = None,
     ) -> CommandPlan[RecoveryResult]:
         """What a care command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
@@ -160,8 +148,17 @@ class MedicalService:
             sort_keys=True,
         )
 
+        if original_input is not None:
+            payload = original_input
+        if captured is not None:
+            payload = medical_context.envelope(payload, captured)
+
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
+            if isinstance(command, BeginRecovery):
+                if captured is None:
+                    raise ValidationError("Trusted original medical care context unavailable")
+                medical_context.validate(captured, before, command, selected)
             task = next(
                 (
                     t
@@ -230,13 +227,14 @@ class MedicalService:
                     )
                 ):
                     raise ValidationError("Incapacitated characters cannot provide medical care")
-            env = (
-                CareEnvironment(
-                    task.technology_level, task.food, task.water, task.sleep, task.physician_id
-                )
-                if task is not None
-                else self.environment(play, before, target_id)
-            )
+            assert captured is not None
+            if not replaying:
+                locked = self.environment(play, before, target_id)
+                if medical_context.snapshot(locked) != captured.environment:
+                    raise ConflictError(
+                        "Trusted medical care environment changed before acceptance"
+                    )
+            env = medical_context.environment(captured)
             if (
                 kind == "resuscitate"
                 and env.technology_level >= 7
@@ -327,10 +325,59 @@ class MedicalService:
         profile_id = play.engine.reviewer.compiler.statistics_profile
         if profile_id not in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
             raise ValidationError("Recovery requires an exact GURPS profile")
+        authorized(
+            self.plan(play, cast(ProfileId, profile_id), command, principal_id=principal_id),
+            principal_id,
+        )
+        prior = recorded_command.get()
+        saved = (
+            CommandInput(prior.payload_hash, prior.command_input)
+            if prior is not None
+            else await play.store.command_input(cid, command.id)
+        )
+        captured = None
+        preserved = None
+        if saved is not None:
+            original, captured = medical_context.recorded(saved)
+            if captured is not None:
+                intended = json.dumps(
+                    {"operation": "gurps-recovery", "command": command.model_dump(mode="json")},
+                    sort_keys=True,
+                )
+                if intended != original:
+                    raise ConflictError("Medical command was accepted with different input")
+            else:
+                legacy = json.loads(original)
+                accepted = MEDICAL_ADAPTER.validate_json(json.dumps(legacy["command"]))
+                if accepted != command:
+                    raise ConflictError("Medical command was accepted with different input")
+                preserved = original
+            if prior is not None and isinstance(command, BeginRecovery) and captured is None:
+                raise ValidationError("Trusted original medical care context unavailable")
+        elif isinstance(command, BeginRecovery):
+            before = play._load(await play.store.read(cid))
+            if before.revision != command.expected_revision:
+                raise ConflictError("Campaign changed. Refresh before retrying.")
+            # Provisional server snapshot. Acceptance revalidates it under the CAS lock.
+            captured = medical_context.capture(
+                before,
+                command,
+                profile_id,
+                self.environment(play, before, command.target_id),
+                source_kind=self.source_kind,
+            )
         return await submit(
             play,
             cid,
-            self.plan(play, cast(ProfileId, profile_id), command, principal_id=principal_id),
+            self.plan(
+                play,
+                cast(ProfileId, profile_id),
+                command,
+                principal_id=principal_id,
+                captured=captured,
+                replaying=prior is not None,
+                original_input=preserved,
+            ),
             principal_id=principal_id,
         )
 

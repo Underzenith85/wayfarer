@@ -32,6 +32,7 @@ from wayfarer.orchestration.medical import (
     _value,
     care_context,
 )
+from wayfarer.orchestration.medical_commands import recorded_command as recorded_medical_command
 from wayfarer.orchestration.play import PlayService
 
 MedicalKind = Literal[
@@ -293,6 +294,7 @@ async def execute(
     # Treat the persisted receipt as the authoritative completed replay instead of
     # re-deriving a now-obsolete choice or consuming randomness again.
     if any(receipt.command_id == command.id for receipt in state.resources.receipts):
+        await _validate_retry(play, state, command, controlled_actor_ids)
         return
 
     resolver = environment or default_environment
@@ -319,6 +321,44 @@ async def execute(
             wound_id=selected.wound_id,
             seconds=600,
         )
-    await MedicalService(play, resolver).execute(
-        state.campaign_id, medical, principal_id=command.actor_id
-    )
+    await MedicalService(
+        play,
+        resolver,
+        source_kind=(
+            "configuration-default"
+            if environment is None or environment is default_environment
+            else "trusted-scenario-snapshot"
+        ),
+    ).execute(state.campaign_id, medical, principal_id=command.actor_id)
+
+
+async def _validate_retry(
+    play: PlayService,
+    state: PlayState,
+    command: PlayerRecoveryCommand,
+    controlled_actor_ids: tuple[str, ...],
+) -> None:
+    """Recover the original opaque choice without previewing current care."""
+    source = await play.store.command_input(state.campaign_id, command.id)
+    if source is None or command.actor_id not in controlled_actor_ids:
+        raise ValidationError("Original recovery choice is unavailable or unauthorized")
+    original = recorded_medical_command(source)
+    if (original.id, original.actor_id, original.expected_revision) != (
+        command.id,
+        command.actor_id,
+        command.expected_revision,
+    ):
+        raise ConflictError("Recovery retry does not match its original command")
+    if isinstance(original, BeginRecovery):
+        choice = _choice_id(
+            original.kind, original.actor_id, original.target_id, original.wound_id or ""
+        )
+    else:
+        task = next(
+            (task for task in state.resources.recovery_tasks if task.id == original.task_id), None
+        )
+        if task is None or task.actor_id != original.actor_id:
+            raise ValidationError("Original recovery task is unavailable")
+        choice = _choice_id("finish", task.actor_id, task.target_id, task.id)
+    if command.choice_id != choice:
+        raise ConflictError("Recovery retry does not match its original opaque choice")
