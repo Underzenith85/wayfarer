@@ -111,6 +111,27 @@ def hurt(
         pain_only=pain_only,
     )
     state = state.model_copy(update={"resources": resources})
+    state, encounter = refresh_after_injury(
+        runtime,
+        state,
+        encounter,
+        actor_id,
+        injured=result.injury > 0 or (pain_only and result.penetration > 0),
+    )
+    return state, encounter, result.injury
+
+
+def refresh_after_injury(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    *,
+    injured: bool,
+) -> tuple[PlayState, Encounter]:
+    """Refresh actual health consequences without inventing another wound or dice."""
+    target = fighter(encounter, actor_id)
+    resources = state.resources
     hp = next(p for p in resources.pools if p.id == f"hp:{actor_id}")
     assert hp.injury is not None
     if hp.injury.incapacitated:
@@ -146,9 +167,9 @@ def hurt(
         encounter,
         actor_id,
         defended=False,
-        injured=result.injury > 0 or (pain_only and result.penetration > 0),
+        injured=injured,
     )
-    return state, encounter, result.injury
+    return state, encounter
 
 
 def critical_miss(

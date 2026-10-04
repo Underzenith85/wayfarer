@@ -51,6 +51,12 @@ from wayfarer.engine.simulation.magic.enchanting_lifecycle import (
 from wayfarer.engine.simulation.magic.great_haste_effects import (
     checkpoint as great_haste_checkpoint,
 )
+from wayfarer.engine.simulation.magic.hand_melee_spell_state import (
+    interrupt_casts as interrupt_hand_casts,
+)
+from wayfarer.engine.simulation.magic.hand_melee_spell_transitions import (
+    checkpoint as hand_checkpoint,
+)
 from wayfarer.engine.simulation.magic.haste_effects import checkpoint as haste_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
@@ -306,6 +312,7 @@ class PlayService:
                     "identify-spell:",
                     "aura:",
                     "melee-spell:",
+                    "hand-melee-spell:",
                     "limb-spell:",
                     "wither-spell:",
                     "rooted-feet:",
@@ -542,6 +549,7 @@ class PlayService:
             state = concentration_checkpoint(self.rules_context, state, before)
             state = held_checkpoint(self.rules_context, state, before)
             state = melee_checkpoint(state, before=before)
+            state = hand_checkpoint(self.rules_context, state, before=before)
             state = limb_checkpoint(state, before=before)
             state = wither_checkpoint(state, before=before)
         state = wearer_checkpoint(self.rules_context, state)
@@ -555,6 +563,7 @@ class PlayService:
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
         state = melee_checkpoint(state, before=before_fire)
+        state = hand_checkpoint(self.rules_context, state, before=before_fire)
         state = limb_checkpoint(state, before=before_fire)
         state = wither_checkpoint(state, before=before_fire)
         state = analysis_checkpoint(self.rules_context, state, before_fire)
@@ -584,6 +593,7 @@ class PlayService:
         state = analysis_checkpoint(self.rules_context, state, before_late_magic)
         state = detection_checkpoint(self.rules_context, state, before_late_magic)
         state = melee_checkpoint(state, before=before_late_magic)
+        state = hand_checkpoint(self.rules_context, state, before=before_late_magic)
         state = limb_checkpoint(state, before=before_late_magic)
         state = wither_checkpoint(state, before=before_late_magic)
         return enchanting_checkpoint(state, before=before)
@@ -639,10 +649,14 @@ class PlayService:
             if command.kind not in ("question", "wait"):
                 state = state.model_copy(
                     update={
-                        "resources": interrupt_limb_casts(
-                            interrupt_wither_casts(
-                                interrupt_melee_casts(
-                                    state.resources, command.actor_id, command.id
+                        "resources": interrupt_hand_casts(
+                            interrupt_limb_casts(
+                                interrupt_wither_casts(
+                                    interrupt_melee_casts(
+                                        state.resources, command.actor_id, command.id
+                                    ),
+                                    command.actor_id,
+                                    command.id,
                                 ),
                                 command.actor_id,
                                 command.id,

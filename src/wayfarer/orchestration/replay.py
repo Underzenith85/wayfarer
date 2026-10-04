@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.magic.enchanting_transitions import (
 from wayfarer.engine.simulation.magic.great_haste_named import (
     HOST_ADAPTER as GREAT_HASTE_ADAPTER,
 )
+from wayfarer.engine.simulation.magic.hand_melee_spell_state import ADAPTER as HAND_MELEE_ADAPTER
 from wayfarer.engine.simulation.magic.haste_host import ADAPTER as HASTE_ADAPTER
 from wayfarer.engine.simulation.magic.haste_manufacture import ObserveHasteManufacture
 from wayfarer.engine.simulation.magic.haste_wearable_construction import (
@@ -54,6 +55,7 @@ from wayfarer.orchestration.cyclic import CyclicService
 from wayfarer.orchestration.detect_magic import DetectMagicService
 from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.great_haste import GreatHasteService
+from wayfarer.orchestration.hand_melee_spells import HandMeleeSpellService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.haste import HasteService
 from wayfarer.orchestration.hazard_resume import recorded_resume
@@ -273,6 +275,16 @@ async def _analyze_magic(play: PlayService, record: CommandRecord, encoded: str)
     )
 
 
+async def _hand_melee_spell(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    payload = validation.mapping(validation.decode(record.command_input or "{}"))
+    generation = payload.get("generation")
+    if type(generation) is not int or generation != 1:
+        raise ValidationError("Hand Melee replay requires its captured generation")
+    await HandMeleeSpellService(play).execute(
+        record.campaign_id, HAND_MELEE_ADAPTER.validate_json(encoded), principal_id=record.actor_id
+    )
+
+
 async def _melee_spell(play: PlayService, record: CommandRecord, encoded: str) -> None:
     payload = validation.mapping(validation.decode(record.command_input or "{}"))
     generation = payload.get("generation")
@@ -356,6 +368,7 @@ _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], A
     "limb-spell": _limb_spell,
     "wither-spell": _wither_spell,
     "melee-spell": _melee_spell,
+    "hand-melee-spell": _hand_melee_spell,
     "aura": _aura,
     "detect-magic": _detect_magic,
     "identify-spell": _identify_spell,

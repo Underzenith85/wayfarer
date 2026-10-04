@@ -51,6 +51,7 @@ from wayfarer.engine.simulation.combat.unarmed.injury import (
     drop_held,
     hurt,
     prepare_armed_parry_damage,
+    refresh_after_injury,
 )
 from wayfarer.engine.simulation.combat.unarmed.random_strike import (
     RandomStrike,
@@ -76,7 +77,76 @@ from wayfarer.errors import ValidationError
 if TYPE_CHECKING:
     from wayfarer.engine.rules.types.injury import InjuryStatus
     from wayfarer.engine.simulation.combat.commands import ChooseDefense
+    from wayfarer.engine.simulation.magic.hand_melee_contact_state import HandContact
     from wayfarer.engine.simulation.rules_context import RulesContext
+
+
+def _current_hand_contact(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+) -> HandContact | None:
+    # deferred: private hand contact and the combat engine share a runtime context cycle.
+    from wayfarer.engine.simulation.magic.hand_melee_contacts import read_contact, validate_contact
+
+    contact = read_contact(state.resources, pending.id)
+    if contact is not None:
+        validate_contact(runtime, state, encounter, pending, contact)
+    return contact
+
+
+def _settle_hand_contact(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    *,
+    ordinary_hit: bool,
+    actual_defense: Literal["none", "dodge", "parry", "block"],
+    defense_check: CheckTrace | None,
+    defense_implement_id: str | None,
+    resolved_location: HumanLocation | None,
+    critical_row: int | None,
+    contact_prevalidated: bool = False,
+    unresolved: bool = False,
+) -> tuple[PlayState, Encounter]:
+    # deferred: private hand contact and the combat engine share a runtime context cycle.
+    from wayfarer.engine.simulation.magic.hand_melee_contacts import (
+        finish_contact,
+        read_contact,
+        validate_contact,
+    )
+
+    if unresolved:
+        return state, encounter
+    contact = read_contact(state.resources, pending.id)
+    if contact is None:
+        return state, encounter
+    if not contact_prevalidated:
+        validate_contact(runtime, state, encounter, pending, contact)
+    state, encounter, result = finish_contact(
+        runtime,
+        state,
+        encounter,
+        contact,
+        ordinary_hit=ordinary_hit,
+        actual_defense=actual_defense,
+        defense_check=defense_check,
+        defense_implement_id=defense_implement_id,
+        resolved_location=resolved_location,
+        critical_row=critical_row,
+        prevalidated=True,
+    )
+    if result.injury:
+        state, encounter = refresh_after_injury(
+            runtime,
+            state,
+            encounter,
+            pending.target_id,
+            injured=True,
+        )
+    return state, encounter
 
 
 def _defense_values(
@@ -195,6 +265,13 @@ def defend(
         or (pending.choke_hold and command.defense != "none")
     ):
         raise ValidationError("Defense is not authorized for this unarmed attack")
+    contact = _current_hand_contact(runtime, state, encounter, pending)
+    if contact is not None and (
+        prepare_only or selected_attack is not None or command.second_defense is not None
+    ):
+        raise ValidationError(
+            "Charged punch does not yet support attack selection or double defense"
+        )
     actor, target, defenses = _defense_values(runtime, state, encounter, pending, command)
     defense_target = defenses[0][0]
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
@@ -301,6 +378,9 @@ def defend(
     effect_checks: tuple[CheckTrace, ...] = ()
     critical = 0
     counterdamage: ArmedParryDamageInputs | None = None
+    successful_defense: (
+        tuple[Literal["none", "dodge", "parry", "block"], CheckTrace, str | None] | None
+    ) = None
     if attack.outcome is Outcome.CRITICAL_SUCCESS:
         table = draw_dice(runtime.rng, 3)
         critical = sum(table)
@@ -321,6 +401,11 @@ def defend(
                 defense = success_roll(BASIC, defense_level, rng=runtime.rng)
                 checks += (defense,)
                 hit = not defense.outcome.succeeded
+                if defense.outcome.succeeded:
+                    choice = command.defense if index == 0 else command.second_defense
+                    assert choice is not None
+                    successful_defense = (choice, defense, parrying_hand)
+
                 if parrying_hand:
                     target = target.model_copy(
                         update={"parries": target.parries + (parrying_hand,)}
@@ -477,7 +562,32 @@ def defend(
                     secret=secret_damage,
                 ),
             )
-        return finish_unarmed_damage(runtime, state, encounter, inputs)
+        return finish_unarmed_damage(
+            runtime,
+            state,
+            encounter,
+            inputs,
+            contact_prevalidated=contact is not None,
+        )
+    settled_defense, settled_check, settled_implement = (
+        successful_defense
+        if successful_defense is not None
+        else (command.defense, None, command.item_id)
+    )
+    state, encounter = _settle_hand_contact(
+        runtime,
+        state,
+        encounter,
+        pending,
+        ordinary_hit=False,
+        actual_defense=settled_defense,
+        defense_check=settled_check,
+        defense_implement_id=settled_implement,
+        resolved_location=resolved_location,
+        critical_row=critical or None,
+        contact_prevalidated=True,
+        unresolved=bool(blocked and attack.outcome.succeeded and successful_defense is None),
+    )
     if counterdamage is not None:
         selected = runtime.attack_source
         if selected is not None and selected[0] == pending.actor_id:
@@ -580,6 +690,7 @@ def finish_unarmed_damage(
     inputs: UnarmedDamageInputs,
     *,
     selected_damage: tuple[int, ...] | None = None,
+    contact_prevalidated: bool = False,
 ) -> tuple[PlayState, Encounter, UnarmedTrace]:
     """Resume one delivered strike using current target injury facts, without prior rolls."""
     pending = inputs.pending
@@ -591,6 +702,8 @@ def finish_unarmed_damage(
         or any(type(die) is not int or not 1 <= die <= 6 for die in selected_damage)
     ):
         raise ValidationError("Selected unarmed damage differs from its captured expression")
+    if not contact_prevalidated:
+        _current_hand_contact(runtime, state, encounter, pending)
     dice = (
         selected_damage
         if selected_damage is not None
@@ -630,6 +743,20 @@ def finish_unarmed_damage(
             min(resistance, basic // 5),
             location=striking_part,
         )
+    choice, implement = inputs.trace.defenses[0] if inputs.trace.defenses else ("none", None)
+    state, encounter = _settle_hand_contact(
+        runtime,
+        state,
+        encounter,
+        pending,
+        ordinary_hit=True,
+        actual_defense=choice,
+        defense_check=inputs.trace.checks[1] if len(inputs.trace.checks) > 1 else None,
+        defense_implement_id=implement,
+        resolved_location=inputs.location,
+        critical_row=inputs.critical or None,
+        contact_prevalidated=True,
+    )
     return _finish_delivery(
         state,
         encounter,
