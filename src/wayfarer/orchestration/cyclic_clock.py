@@ -22,6 +22,9 @@ from wayfarer.engine.simulation.health.cyclic_host_state import binding
 from wayfarer.engine.simulation.health.fright import advance as advance_resource_clock
 from wayfarer.engine.simulation.health.fright import effects as fright_effects
 from wayfarer.engine.simulation.health.injury import InjuryResult
+from wayfarer.engine.simulation.magic.analyze_magic_state import (
+    needs_clock_checkpoints as needs_analysis_checkpoints,
+)
 from wayfarer.engine.simulation.magic.backfires import chronological_refund_deadlines
 from wayfarer.engine.simulation.magic.enchanting_lifecycle import needs_clock_checkpoints
 from wayfarer.engine.simulation.magic.great_haste_effects import deadlines as great_haste_deadlines
@@ -41,7 +44,8 @@ if TYPE_CHECKING:
 def _needs_checkpoints(state: PlayState, to: int) -> bool:
     resources = state.resources
     return (
-        needs_clock_checkpoints(resources)
+        needs_analysis_checkpoints(resources)
+        or needs_clock_checkpoints(resources)
         or any(t <= to for t in chronological_refund_deadlines(resources))
         or any(t <= to for t in great_haste_deadlines(resources))
         or any(

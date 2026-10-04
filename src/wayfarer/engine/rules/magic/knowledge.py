@@ -3,12 +3,30 @@
 from typing import Final
 
 from wayfarer.engine.rules.catalog import RulesPackage
-from wayfarer.engine.rules.magic.colleges import CollegeSpellBinding, college_package
+from wayfarer.engine.rules.magic.colleges import CollegeSpellBinding, college_package, learning_spec
 
 ISSUE: Final = 222
 COLLEGE: Final = "knowledge"
 BINDINGS: Final = tuple(
-    CollegeSpellBinding(key, name, page, COLLEGE)
+    CollegeSpellBinding(
+        key,
+        name,
+        page,
+        COLLEGE,
+        learning=(
+            learning_spec(
+                page,
+                magery=1 if key == "detect-magic" else 0,
+                spells={
+                    "detect-magic": (),
+                    "identify-spell": ("detect-magic",),
+                    "analyze-magic": ("identify-spell",),
+                }[key],
+            )
+            if key in {"detect-magic", "identify-spell", "analyze-magic"}
+            else None
+        ),
+    )
     for key, name, page in (
         ("analyze-magic", "Analyze Magic", 249),
         ("aura", "Aura", 249),

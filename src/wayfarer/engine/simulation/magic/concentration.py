@@ -2,6 +2,7 @@
 
 from wayfarer.engine.simulation.ability_state import effects
 from wayfarer.engine.simulation.health.condition_checks import retching_penalty
+from wayfarer.engine.simulation.magic.analyze_magic_state import pending_actor_ids
 from wayfarer.engine.simulation.magic.spell_state import latest
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError
@@ -17,6 +18,8 @@ def require_idle_concentration(resources: ResourceState, actor_id: str) -> None:
 
     if retching_penalty(resources, actor_id):
         raise ConflictError("Retching prevents concentration")
+    if actor_id in pending_actor_ids(resources):
+        raise ConflictError("Actor is already concentrating on Analyze Magic")
     if any(e.actor_id == actor_id and e.concentrating for e in effects(resources)) or any(
         e.actor_id == actor_id and e.phase == "casting" for e in latest(resources).values()
     ):

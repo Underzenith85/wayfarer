@@ -38,6 +38,8 @@ from wayfarer.engine.simulation.campaign.social_policy import parse_graph
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.combat.sensory_state import checkpoint as sensory_checkpoint
 from wayfarer.engine.simulation.events import action_result
+from wayfarer.engine.simulation.magic.analyze_magic_state import pending_actor_ids
+from wayfarer.engine.simulation.magic.analyze_magic_work import checkpoint as analysis_checkpoint
 from wayfarer.engine.simulation.magic.area_fire import checkpoint as spell_checkpoint
 from wayfarer.engine.simulation.magic.backfire_transitions import perceive, recover_stuns
 from wayfarer.engine.simulation.magic.backfires import refund_due
@@ -58,7 +60,7 @@ from wayfarer.engine.simulation.resources import Advance, Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.size_geometry import checkpoint as size_geometry_checkpoint
 from wayfarer.engine.world import World
-from wayfarer.errors import ValidationError
+from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.cyclic_clock import advance as advance_cyclic_clock
@@ -77,6 +79,13 @@ from wayfarer.persistence.postgres import AsyncPostgresStore
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.profiles import ProfileRuntime
+
+
+def _require_analysis_free(state: PlayState, command: TypedAction) -> None:
+    if command.kind not in ("question", "wait") and command.actor_id in pending_actor_ids(
+        state.resources
+    ):
+        raise ConflictError("Finish or cancel Analyze Magic before acting")
 
 
 class ApproveCharacter(Record):
@@ -275,6 +284,7 @@ class PlayService:
                     "great-haste-step-lease:",
                     "great-haste-named-origin:",
                     "great-haste-step-resolved:",
+                    "analyze-magic:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",
@@ -502,6 +512,7 @@ class PlayService:
         state = state.model_copy(update={"resources": resources})
 
         if before is not None:
+            state = analysis_checkpoint(self.rules_context, state, before)
             state = concentration_checkpoint(self.rules_context, state, before)
             state = held_checkpoint(self.rules_context, state, before)
         state = wearer_checkpoint(self.rules_context, state)
@@ -514,6 +525,7 @@ class PlayService:
         state = recover_stuns(self.rules_context, state)
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
+        state = analysis_checkpoint(self.rules_context, state, before_fire)
         state = shapeshifting_checkpoint(self, state, before=before)
         state = size_geometry_checkpoint(self.rules_context, state)
         before_late_magic = state
@@ -536,6 +548,7 @@ class PlayService:
         if before is not None:
             state = staff_checkpoint(state, before=before)
             state = sensory_checkpoint(state, before=before)
+        state = analysis_checkpoint(self.rules_context, state, before_late_magic)
         return enchanting_checkpoint(state, before=before)
 
     @staticmethod
@@ -548,7 +561,9 @@ class PlayService:
     async def preview(self, cid: str, value: object, *, principal_id: str) -> ActionResult:
         command = self.propose(value)
         ActsAs(command.actor_id)(principal_id)
-        return self.engine.assess(self._load(await self.store.read(cid)), command)
+        state = self._load(await self.store.read(cid))
+        _require_analysis_free(state, command)
+        return self.engine.assess(state, command)
 
     def plan(self, command: TypedAction, checkpoint: Campaign) -> CommandPlan[ActionResult]:
         """What a typed action writes; the pipeline decides whether it runs.
@@ -565,11 +580,14 @@ class PlayService:
         )
 
         def assess() -> ActionResult | None:
-            feasible = self.engine.assess(self._load(checkpoint), command)
+            state = self._load(checkpoint)
+            _require_analysis_free(state, command)
+            feasible = self.engine.assess(state, command)
             return None if feasible.status == "feasible" else feasible
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = self._load(campaign)
+            _require_analysis_free(current, command)
             synchronous(current, command.actor_id, enchanting_rest=True)
             state, resolved_events = self.engine.resolve(
                 current,
