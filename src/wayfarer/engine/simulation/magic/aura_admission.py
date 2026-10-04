@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.magic.aura_state import (
     secrets,
 )
 from wayfarer.engine.simulation.magic.backfires import forgotten, require_settled
+from wayfarer.engine.simulation.magic.concentration import require_no_held_melee
 from wayfarer.engine.simulation.magic.haste_state import environments
 from wayfarer.engine.simulation.magic.rituals import require_ordinary_ritual
 from wayfarer.engine.simulation.magic.spell_state import active_spells
@@ -117,6 +118,7 @@ def ready(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
     guard(state, actor_id, "aura_cast")
     synchronous(state, actor_id)
     require_settled(state.resources, actor_id)
+    require_no_held_melee(state.resources, actor_id)
     if forgotten(state.resources, actor_id, "aura"):
         raise ConflictError("Aura is currently forgotten")
     if len(state.party.groups) > 1 or any(e.status == "active" for e in state.encounters):

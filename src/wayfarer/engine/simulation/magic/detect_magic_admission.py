@@ -7,7 +7,10 @@ from wayfarer.engine.simulation.actors import build, fatigue_ready
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.backfires import forgotten, require_settled
-from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.concentration import (
+    require_idle_concentration,
+    require_no_held_melee,
+)
 from wayfarer.engine.simulation.magic.detect_magic_state import (
     Detection,
     DetectObservation,
@@ -158,6 +161,7 @@ def ready(runtime: RulesContext, state: PlayState, actor_id: str, *, starting: b
     if runtime.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
         raise ValidationError("Detect Magic requires the exact Basic Set profile")
     guard(state, actor_id, "detect_magic_work")
+    require_no_held_melee(state.resources, actor_id)
     resources = state.resources
     if (
         resources.scheduled

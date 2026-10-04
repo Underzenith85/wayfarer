@@ -55,6 +55,10 @@ from wayfarer.engine.simulation.magic.haste_effects import checkpoint as haste_c
 from wayfarer.engine.simulation.magic.held_missiles import checkpoint as held_checkpoint
 from wayfarer.engine.simulation.magic.held_missiles import concentration_checkpoint
 from wayfarer.engine.simulation.magic.item_state import checkpoint as item_magic_checkpoint
+from wayfarer.engine.simulation.magic.melee_spell_state import (
+    interrupt_casts as interrupt_melee_casts,
+)
+from wayfarer.engine.simulation.magic.melee_spell_transitions import checkpoint as melee_checkpoint
 from wayfarer.engine.simulation.magic.power_lifecycle import checkpoint as power_checkpoint
 from wayfarer.engine.simulation.magic.power_wearer import checkpoint as wearer_checkpoint
 from wayfarer.engine.simulation.magic.staff_casting_state import checkpoint as staff_checkpoint
@@ -290,6 +294,7 @@ class PlayService:
                     "detect-magic:",
                     "identify-spell:",
                     "aura:",
+                    "melee-spell:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",
@@ -521,6 +526,7 @@ class PlayService:
             state = detection_checkpoint(self.rules_context, state, before)
             state = concentration_checkpoint(self.rules_context, state, before)
             state = held_checkpoint(self.rules_context, state, before)
+            state = melee_checkpoint(state, before=before)
         state = wearer_checkpoint(self.rules_context, state)
         state = power_checkpoint(self.rules_context, state, before=before)
         before_fire = state
@@ -531,6 +537,7 @@ class PlayService:
         state = recover_stuns(self.rules_context, state)
         state = concentration_checkpoint(self.rules_context, state, before_fire)
         state = held_checkpoint(self.rules_context, state, before_fire)
+        state = melee_checkpoint(state, before=before_fire)
         state = analysis_checkpoint(self.rules_context, state, before_fire)
         state = detection_checkpoint(self.rules_context, state, before_fire)
         state = shapeshifting_checkpoint(self, state, before=before)
@@ -557,6 +564,7 @@ class PlayService:
             state = sensory_checkpoint(state, before=before)
         state = analysis_checkpoint(self.rules_context, state, before_late_magic)
         state = detection_checkpoint(self.rules_context, state, before_late_magic)
+        state = melee_checkpoint(state, before=before_late_magic)
         return enchanting_checkpoint(state, before=before)
 
     @staticmethod
@@ -607,6 +615,14 @@ class PlayService:
             result = action_result(resolved_events)
             if result.status != "committed":
                 raise ValidationError("Action is no longer feasible")
+            if command.kind not in ("question", "wait"):
+                state = state.model_copy(
+                    update={
+                        "resources": interrupt_melee_casts(
+                            state.resources, command.actor_id, command.id
+                        )
+                    }
+                )
             state = self.checkpoint(state, before=current)
             self.commit(campaign, state)
             return CommandReceipt(action="typed-action", outcome=result.model_dump_json())

@@ -24,6 +24,7 @@ from wayfarer.engine.simulation.traits.composed_resolution import resolve
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.handlers import _unarmed
+from wayfarer.orchestration.melee_spell_contacts import capture_pending_contact
 
 
 def _failed_interposition(
@@ -330,6 +331,8 @@ def finish_inventory_defense(
             target_item_id=queued.target_item_id,
             shots=queued.shots,
         )
+        state = capture_pending_contact(play.rules_context, state, encounter, command.id)
+        resources = state.resources
     encounter = encounter.model_copy(update={"wounds": encounter.wounds + (injury,)})
     result = result.model_copy(
         update={

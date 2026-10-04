@@ -7,6 +7,7 @@ from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.analyze_magic_state import secrets as analysis_secrets
 from wayfarer.engine.simulation.magic.backfires import forgotten, require_settled
+from wayfarer.engine.simulation.magic.concentration import require_no_held_melee
 from wayfarer.engine.simulation.magic.haste_state import environments
 from wayfarer.engine.simulation.magic.identify_spell_state import (
     IdentifySubject,
@@ -75,6 +76,7 @@ def ready(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
     guard(state, actor_id, "identify_spell_cast")
     synchronous(state, actor_id)
     require_settled(state.resources, actor_id)
+    require_no_held_melee(state.resources, actor_id)
     if forgotten(state.resources, actor_id, "identify-spell"):
         raise ConflictError("Identify Spell is currently forgotten")
     if len(state.party.groups) > 1 or any(e.status == "active" for e in state.encounters):

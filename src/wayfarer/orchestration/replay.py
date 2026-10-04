@@ -29,6 +29,7 @@ from wayfarer.engine.simulation.magic.haste_wearable_construction import (
 from wayfarer.engine.simulation.magic.identify_spell_admission import AcceptedSpellProducer
 from wayfarer.engine.simulation.magic.identify_spell_state import ADAPTER as IDENTIFY_SPELL_ADAPTER
 from wayfarer.engine.simulation.magic.lock_host import ADAPTER as LOCK_ADAPTER
+from wayfarer.engine.simulation.magic.melee_spell_state import ADAPTER as MELEE_SPELL_ADAPTER
 from wayfarer.engine.simulation.magic.ritual_state import DeclareRitualCapability
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
 from wayfarer.engine.simulation.magic.staff_casting_state import ADAPTER as STAFF_CASTING_ADAPTER
@@ -56,6 +57,7 @@ from wayfarer.orchestration.hazard_resume import recorded_resume
 from wayfarer.orchestration.hazards import HazardContext, HazardService
 from wayfarer.orchestration.identify_spell import IdentifySpellService
 from wayfarer.orchestration.locks import LockService, LockSpellService
+from wayfarer.orchestration.melee_spells import MeleeSpellService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
@@ -265,6 +267,18 @@ async def _analyze_magic(play: PlayService, record: CommandRecord, encoded: str)
     )
 
 
+async def _melee_spell(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    payload = validation.mapping(validation.decode(record.command_input or "{}"))
+    generation = payload.get("generation")
+    if type(generation) is not int or generation != 1:
+        raise ValidationError("Melee spell replay requires its captured generation")
+    await MeleeSpellService(play).execute(
+        record.campaign_id,
+        MELEE_SPELL_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 async def _aura(play: PlayService, record: CommandRecord, encoded: str) -> None:
     await AuraService(play).execute(
         record.campaign_id, AURA_ADAPTER.validate_json(encoded), principal_id=record.actor_id
@@ -296,6 +310,7 @@ async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) 
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "melee-spell": _melee_spell,
     "aura": _aura,
     "detect-magic": _detect_magic,
     "identify-spell": _identify_spell,

@@ -47,7 +47,10 @@ from wayfarer.engine.simulation.magic.casting_targeting import (
     completion_targeting,
     remember_targeting,
 )
-from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.concentration import (
+    require_idle_concentration,
+    require_no_held_melee,
+)
 from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchanting_free
 from wayfarer.engine.simulation.magic.great_haste_casting import enabled as subjective_great_haste
 from wayfarer.engine.simulation.magic.healing_effects import (
@@ -830,6 +833,7 @@ def apply_spell(
         if effect is not None:
             raise ConflictError("Cast identity already used")
         require_idle_concentration(state, command.actor_id)
+        require_no_held_melee(state, command.actor_id)
         if any(
             e.actor_id == command.actor_id and e.spell_id == "fireball"
             for e in active_spells(state)

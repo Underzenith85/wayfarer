@@ -71,6 +71,24 @@ def physical_defenses(
                 incoming_mode_id=incoming.id if isinstance(incoming, MeleeMode) else None,
             )
         except ValidationError:
+            # A durable B240 Staff association admits only its actual bare-limb
+            # defense; ordinary historical weapon attacks retain their offer.
+            if candidate == "parry" and isinstance(incoming, MeleeMode) and not targeting_weapon:
+                # deferred: scoped bare contact shares the CombatEngine/RulesContext import cycle.
+                from wayfarer.engine.simulation.combat.melee.defense import bare_melee_defense
+
+                # deferred: scoped bare contact shares the CombatEngine/RulesContext import cycle.
+                from wayfarer.engine.simulation.magic.melee_spell_state import read_contact
+
+                if read_contact(state.resources, pending.id) is not None:
+                    for hand in ("left-hand", "right-hand"):
+                        try:
+                            bare_melee_defense(runtime, state, encounter, defender, hand, incoming)
+                        except ValidationError:
+                            continue
+                        allowed.append(candidate)
+                        break
+                    continue
             if (
                 candidate != "parry"
                 or not isinstance(incoming, RangedMode)
