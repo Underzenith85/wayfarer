@@ -289,6 +289,7 @@ class PlayService:
                     "analyze-magic:",
                     "detect-magic:",
                     "identify-spell:",
+                    "aura:",
                     "haste-channel:",
                     "haste-item:",
                     "haste-mana:",
