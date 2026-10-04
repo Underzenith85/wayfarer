@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLI
 from wayfarer.engine.simulation.health.hazard_records import HazardCommand
 from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORTATION_ADAPTER
+from wayfarer.engine.simulation.magic.detect_magic_state import ADAPTER as DETECT_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
 )
@@ -42,6 +43,7 @@ from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, Ran
 from wayfarer.orchestration.combat_senses import CombatSensesService
 from wayfarer.orchestration.composed_attacks import ComposedAttackService
 from wayfarer.orchestration.cyclic import CyclicService
+from wayfarer.orchestration.detect_magic import DetectMagicService
 from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.great_haste import GreatHasteService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
@@ -258,7 +260,16 @@ async def _analyze_magic(play: PlayService, record: CommandRecord, encoded: str)
     )
 
 
+async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await DetectMagicService(play).execute(
+        record.campaign_id,
+        DETECT_MAGIC_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "detect-magic": _detect_magic,
     "analyze-magic": _analyze_magic,
     "armoury": _armoury,
     "great-haste": _great_haste,

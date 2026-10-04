@@ -12,6 +12,7 @@ from wayfarer.engine.rules.magic.protocols import (
     HeldSpellDisposition,
 )
 from wayfarer.engine.simulation.magic.analyze_magic_state import interrupt_casts
+from wayfarer.engine.simulation.magic.detect_magic_state import interrupt_casts as interrupt_detect
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.models import Id, Record
 
@@ -168,6 +169,7 @@ def interrupt_spells(
     state: ResourceState, actor_id: str, command_id: str, *, distraction: bool = False
 ) -> ResourceState:
     state = interrupt_casts(state, actor_id, command_id, distraction=distraction)
+    state = interrupt_detect(state, actor_id, command_id, distraction=distraction)
     events: list[ResourceEvent] = []
     for effect in latest(state).values():
         if effect.actor_id != actor_id or effect.phase != "casting":
