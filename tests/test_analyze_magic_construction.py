@@ -86,6 +86,6 @@ def test_magery_zero_cannot_learn_detect_or_its_descendants(index: int) -> None:
 
 def test_other_knowledge_inventory_spells_are_not_promoted() -> None:
     definitions = {d.id: d for d in package().definitions}
-    for key in ("aura", "seeker", "trace"):
+    for key in ("seeker", "trace"):
         definition = definitions["spell:" + key]
         assert definition.skill is None and definition.status is ImplementationStatus.MANUAL

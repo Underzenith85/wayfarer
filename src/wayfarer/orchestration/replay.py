@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLI
 from wayfarer.engine.simulation.health.hazard_records import HazardCommand
 from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORTATION_ADAPTER
+from wayfarer.engine.simulation.magic.aura_state import ADAPTER as AURA_ADAPTER
 from wayfarer.engine.simulation.magic.detect_magic_state import ADAPTER as DETECT_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER as ENCHANTMENT_ADAPTER,
@@ -39,6 +40,7 @@ from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
 from wayfarer.orchestration.apportation import ApportationService
 from wayfarer.orchestration.armoury import ADAPTER as ARMOURY_ADAPTER
 from wayfarer.orchestration.armoury import ArmouryService
+from wayfarer.orchestration.aura import AuraService
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.combat.abandon import AbandonPendingAttackService
 from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, RandomUnarmedStrike
@@ -263,6 +265,12 @@ async def _analyze_magic(play: PlayService, record: CommandRecord, encoded: str)
     )
 
 
+async def _aura(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await AuraService(play).execute(
+        record.campaign_id, AURA_ADAPTER.validate_json(encoded), principal_id=record.actor_id
+    )
+
+
 async def _identify_spell(play: PlayService, record: CommandRecord, encoded: str) -> None:
     payload = validation.mapping(validation.decode(record.command_input or "{}"))
     if payload.get("producer_generation") != 1:
@@ -288,6 +296,7 @@ async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) 
 
 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "aura": _aura,
     "detect-magic": _detect_magic,
     "identify-spell": _identify_spell,
     "analyze-magic": _analyze_magic,

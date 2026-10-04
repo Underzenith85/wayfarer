@@ -21,9 +21,10 @@ BINDINGS: Final = tuple(
                     "detect-magic": (),
                     "identify-spell": ("detect-magic",),
                     "analyze-magic": ("identify-spell",),
+                    "aura": ("detect-magic",),
                 }[key],
             )
-            if key in {"detect-magic", "identify-spell", "analyze-magic"}
+            if key in {"detect-magic", "identify-spell", "analyze-magic", "aura"}
             else None
         ),
     )

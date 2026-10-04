@@ -18,11 +18,13 @@ from wayfarer.engine.simulation.campaign.social_policy import parse_graph
 from wayfarer.engine.simulation.health.fright_transitions import FrightDecision
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
+from wayfarer.engine.simulation.magic.aura_state import ADAPTER as AURA_ADAPTER
 from wayfarer.engine.simulation.magic.detect_magic_state import ADAPTER as DETECT_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.identify_spell_state import ADAPTER as IDENTIFY_SPELL_ADAPTER
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
+from wayfarer.orchestration.aura import AuraService
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.detect_magic import DetectMagicService
 from wayfarer.orchestration.encounter_scenes import (
@@ -283,6 +285,12 @@ async def _identify_spell(submission: Submission) -> None:
     )
 
 
+async def _aura(submission: Submission) -> None:
+    await AuraService(submission.play).execute(
+        submission.cid, submission.command, principal_id=submission.principal_id
+    )
+
+
 async def _detect_magic(submission: Submission) -> None:
     await DetectMagicService(submission.play).execute(
         submission.cid, submission.command, principal_id=submission.principal_id
@@ -290,6 +298,14 @@ async def _detect_magic(submission: Submission) -> None:
 
 
 FAMILIES: tuple[CommandFamily, ...] = (
+    CommandFamily(
+        kinds=("aura_subject", "aura_cast", "aura_report"),
+        parse=AURA_ADAPTER.validate_json,
+        service=_aura,
+        receipt="resource",
+        authorize=service_authorizes,
+        preconditions=(recovery_guard,),
+    ),
     CommandFamily(
         kinds=("identify_spell_subject", "identify_spell_cast", "identify_spell_report"),
         parse=IDENTIFY_SPELL_ADAPTER.validate_json,
