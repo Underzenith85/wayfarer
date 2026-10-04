@@ -67,6 +67,12 @@ from wayfarer.engine.simulation.magic.power_lifecycle import checkpoint as power
 from wayfarer.engine.simulation.magic.power_wearer import checkpoint as wearer_checkpoint
 from wayfarer.engine.simulation.magic.rooted_feet_state import expire as expire_roots
 from wayfarer.engine.simulation.magic.staff_casting_state import checkpoint as staff_checkpoint
+from wayfarer.engine.simulation.magic.wither_spell_state import (
+    interrupt_casts as interrupt_wither_casts,
+)
+from wayfarer.engine.simulation.magic.wither_spell_transitions import (
+    checkpoint as wither_checkpoint,
+)
 from wayfarer.engine.simulation.resources import Advance, Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.size_geometry import checkpoint as size_geometry_checkpoint
@@ -301,6 +307,7 @@ class PlayService:
                     "aura:",
                     "melee-spell:",
                     "limb-spell:",
+                    "wither-spell:",
                     "rooted-feet:",
                     "haste-channel:",
                     "haste-item:",
@@ -536,6 +543,7 @@ class PlayService:
             state = held_checkpoint(self.rules_context, state, before)
             state = melee_checkpoint(state, before=before)
             state = limb_checkpoint(state, before=before)
+            state = wither_checkpoint(state, before=before)
         state = wearer_checkpoint(self.rules_context, state)
         state = power_checkpoint(self.rules_context, state, before=before)
         before_fire = state
@@ -548,6 +556,7 @@ class PlayService:
         state = held_checkpoint(self.rules_context, state, before_fire)
         state = melee_checkpoint(state, before=before_fire)
         state = limb_checkpoint(state, before=before_fire)
+        state = wither_checkpoint(state, before=before_fire)
         state = analysis_checkpoint(self.rules_context, state, before_fire)
         state = detection_checkpoint(self.rules_context, state, before_fire)
         state = shapeshifting_checkpoint(self, state, before=before)
@@ -576,6 +585,7 @@ class PlayService:
         state = detection_checkpoint(self.rules_context, state, before_late_magic)
         state = melee_checkpoint(state, before=before_late_magic)
         state = limb_checkpoint(state, before=before_late_magic)
+        state = wither_checkpoint(state, before=before_late_magic)
         return enchanting_checkpoint(state, before=before)
 
     @staticmethod
@@ -630,7 +640,13 @@ class PlayService:
                 state = state.model_copy(
                     update={
                         "resources": interrupt_limb_casts(
-                            interrupt_melee_casts(state.resources, command.actor_id, command.id),
+                            interrupt_wither_casts(
+                                interrupt_melee_casts(
+                                    state.resources, command.actor_id, command.id
+                                ),
+                                command.actor_id,
+                                command.id,
+                            ),
                             command.actor_id,
                             command.id,
                         )

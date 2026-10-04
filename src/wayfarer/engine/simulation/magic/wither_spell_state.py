@@ -1,9 +1,9 @@
-"""Isolated generation-two B244 Paralyze charge, contact and effect records."""
+"""Isolated generation-three B244 Wither charge, contact and effect records."""
 
 import hashlib
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field
 
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.simulation.magic.melee_spell_state import StaffCarrier
@@ -11,10 +11,10 @@ from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError
 from wayfarer.models import Id, Record
 
-PREFIX = "limb-spell:"
+PREFIX = "wither-spell:"
 
 
-class ParalyzeLimbCast(Record):
+class WitherLimbCast(Record):
     actor_id: Id
     cast_id: Id
     command_id: Id
@@ -23,7 +23,7 @@ class ParalyzeLimbCast(Record):
     carrier_digest: str
     build_revision: Id
     skill: int
-    energy: int = Field(default=3, strict=True, ge=3, le=3)
+    energy: int = Field(default=5, strict=True, ge=5, le=5)
     started_at: int
     ready_at: int
     hp_at_start: int
@@ -34,8 +34,7 @@ class ParalyzeLimbCast(Record):
     paid_fp: int = 0
 
 
-class ParalyzeLimbContact(Record):
-    generation: Literal[2, 4] = Field(default=2, exclude_if=lambda value: value == 2)
+class WitherLimbContact(Record):
     pending_id: Id
     command_id: Id
     encounter_id: Id
@@ -46,17 +45,10 @@ class ParalyzeLimbContact(Record):
     charge_digest: str
     carrier_item_id: Id | None
     mode_id: str | None
-    energy: int = Field(default=3, strict=True, ge=3, le=3)
-
-    @field_validator("generation", mode="before")
-    @classmethod
-    def strict_contact_generation(cls, value: object) -> Literal[2, 4]:
-        if type(value) is not int or value not in (2, 4):
-            raise ValueError("Paralyze contact generation must be the integer 2 or 4")
-        return 2 if value == 2 else 4
+    energy: int = Field(default=5, strict=True, ge=5, le=5)
 
 
-class ParalyzeLimbContactResult(Record):
+class WitherLimbContactResult(Record):
     attacker_id: Id
     hp_before: int
     hp_after: int
@@ -69,7 +61,7 @@ class ParalyzeLimbContactResult(Record):
     injury: int = 0
     injury_checks: tuple[CheckTrace, ...] = ()
     injury_check_reasons: tuple[str, ...] = ()
-    outcome: Literal["held", "no-effect", "contact-failed", "resisted", "paralyzed"]
+    outcome: Literal["held", "no-effect", "contact-failed", "resisted", "withered"]
     location: str | None = None
     contact_check: CheckTrace | None = None
     resistance_check: CheckTrace | None = None
@@ -80,7 +72,7 @@ class ParalyzeLimbContactResult(Record):
     grip_checks: tuple[CheckTrace, ...] = ()
 
 
-class ParalyzeLimbReceipt(Record):
+class WitherLimbReceipt(Record):
     command_id: Id
     cast_id: Id | None = None
     outcome: str
@@ -106,11 +98,11 @@ def append(
     return resources.model_copy(update={"events": resources.events + (event,)})
 
 
-def casts(resources: ResourceState) -> dict[str, ParalyzeLimbCast]:
-    found: dict[str, ParalyzeLimbCast] = {}
+def casts(resources: ResourceState) -> dict[str, WitherLimbCast]:
+    found: dict[str, WitherLimbCast] = {}
     for event in resources.events:
         if event.id.startswith(PREFIX + "cast:"):
-            value = ParalyzeLimbCast.model_validate_json(event.kind)
+            value = WitherLimbCast.model_validate_json(event.kind)
             found[value.cast_id] = value
     return found
 
@@ -120,7 +112,7 @@ def cast_event(resources: ResourceState, cast_id: str) -> ResourceEvent:
         e
         for e in reversed(resources.events)
         if e.id.startswith(PREFIX + "cast:")
-        and ParalyzeLimbCast.model_validate_json(e.kind).cast_id == cast_id
+        and WitherLimbCast.model_validate_json(e.kind).cast_id == cast_id
     )
 
 
@@ -147,16 +139,16 @@ def interrupt_casts(
 
 
 def attach_contact(
-    resources: ResourceState, pending_id: str, contact: ParalyzeLimbContact
+    resources: ResourceState, pending_id: str, contact: WitherLimbContact
 ) -> ResourceState:
     if pending_id != contact.pending_id:
         raise ConflictError("Melee spell contact pending identity mismatch")
     return append(resources, "contact", pending_id, contact.attacker_id, contact)
 
 
-def read_contact(resources: ResourceState, pending_id: str) -> ParalyzeLimbContact | None:
+def read_contact(resources: ResourceState, pending_id: str) -> WitherLimbContact | None:
     event = next((e for e in resources.events if e.id == identifier("contact", pending_id)), None)
-    return ParalyzeLimbContact.model_validate_json(event.kind) if event else None
+    return WitherLimbContact.model_validate_json(event.kind) if event else None
 
 
 def projection(
@@ -197,9 +189,9 @@ def needs_clock_checkpoints(resources: ResourceState) -> bool:
     return bool(pending_actor_ids(resources))
 
 
-def contact_results(resources: ResourceState) -> tuple[ParalyzeLimbContactResult, ...]:
+def contact_results(resources: ResourceState) -> tuple[WitherLimbContactResult, ...]:
     return tuple(
-        ParalyzeLimbContactResult.model_validate_json(e.kind)
+        WitherLimbContactResult.model_validate_json(e.kind)
         for e in resources.events
         if e.id.startswith(PREFIX + "result:")
     )

@@ -1,13 +1,8 @@
-"""Private B244/B421 functional arm crippling, without invented HP injury.
-
-Paralyze's considered-crippled effect uses ordinary arm/drop/grip consequences.
-Its zero-HP effect does not introduce a damage-caused major-wound check; the
-physical packet continues to own all of its normal injury checks.
-"""
+"""Private B244/B421 damaging permanent arm cripple, separate from Paralyze."""
 
 from typing import Literal
 
-from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.checks import CheckTrace, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.location import LastingInjury
 from wayfarer.engine.simulation.actions import PlayState
@@ -15,24 +10,26 @@ from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.hit_locations import require_location
+from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.magic.melee_spell_admission import admit_target
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
 
 
-class LimbCrippleResult(Record):
+class WitherLimbResult(Record):
     lasting_id: str
-    recovery_at: int
+    dice: tuple[int, ...]
+    injury: int
+    hp_before: int
+    hp_after: int
+    injury_checks: tuple[CheckTrace, ...] = ()
+    injury_check_reasons: tuple[str, ...] = ()
     dropped_item_ids: tuple[str, ...] = ()
     grip_checks: tuple[CheckTrace, ...] = ()
 
 
-def _require_contact_generation(value: object) -> None:
-    if type(value) is not int or value not in (2, 4):
-        raise ValidationError("Paralyze arm requires a supported captured contact generation")
-
-
-def apply_paralyze_arm(
+def apply_wither_arm(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
@@ -40,23 +37,59 @@ def apply_paralyze_arm(
     effect_id: str,
     actor_id: str,
     location: Literal["left-arm", "right-arm"],
-    duration_seconds: int = 60,
-    contact_generation: Literal[2, 4] = 2,
-) -> tuple[PlayState, Encounter, LimbCrippleResult]:
+) -> tuple[PlayState, Encounter, WitherLimbResult]:
     """Apply one accepted source effect; family receipts own exact command retries."""
-    _require_contact_generation(contact_generation)
-    if duration_seconds != 60 or location not in ("left-arm", "right-arm"):
-        raise ValidationError("Paralyze arm requires its source-fixed limb and minute")
+    if location not in ("left-arm", "right-arm"):
+        raise ValidationError("Wither arm requires its source-fixed limb")
+    admit_target(runtime, state, actor_id)
     hp = next((p for p in state.resources.pools if p.id == "hp:" + actor_id), None)
     actor = next((p for p in encounter.participants if p.actor_id == actor_id), None)
     if hp is None or hp.injury is None or actor is None:
-        raise ValidationError("Paralyze arm requires current injury and encounter identity")
+        raise ValidationError("Wither arm requires current injury and encounter identity")
+    if hp.maximum < 10:
+        raise ValidationError("Wither arm requires an admitted HP maximum of at least ten")
     require_location(hp.injury, location)
     if not effect_id or any(w.id == effect_id for w in hp.injury.lasting_injuries):
-        raise ConflictError("Paralyze arm effect identity is immutable")
+        raise ConflictError("Wither arm effect identity is immutable")
     compiled = build(runtime, state, actor_id)
     if compiled.statistics is None:
         raise ValidationError("Arm grip retention requires current compiled DX")
+    hp_before = hp.current
+    dice = draw_dice(runtime.rng, 1)
+    profiles = {e.definition_id: e for e in catalog(runtime).entries}
+    current_items = {i.id: i for i in state.resources.items}
+    # B287: ordinary shields are strapped; only bucklers drop like weapons.
+    # Hand occupancy alone is not a freely held shield attachment claim.
+    held = tuple(
+        dict.fromkeys(
+            i
+            for i, _ in actor.hand_bindings
+            if i in current_items
+            and (
+                (shield := profiles[current_items[i].definition_id].shield) is None
+                or shield.buckler
+            )
+        )
+    )
+    resources, injury_result = apply_injury(
+        state.resources,
+        Wound(
+            id=effect_id + ":injury",
+            actor_id=actor_id,
+            expected_revision=state.resources.revision,
+            basic_damage=sum(dice),
+            resistance=0,
+            damage_type="cr",
+        ),
+        ht=compiled.statistics.ht,
+        rng=runtime.rng,
+        system=True,
+        held_item_ids=held,
+        force_major_wound=True,
+    )
+    state = state.model_copy(update={"resources": resources})
+    hp = next(p for p in resources.pools if p.id == "hp:" + actor_id)
+    assert hp.injury is not None
     items = {i.id: i for i in state.resources.items}
     entries = {e.definition_id: e for e in catalog(runtime).entries}
     hand = location.replace("arm", "hand")
@@ -68,13 +101,10 @@ def apply_paralyze_arm(
             and item_id in items
             and items[item_id].owner_id == actor_id
             and items[item_id].equipped
-            and (
-                (shield := entries[items[item_id].definition_id].shield) is None
-                or (contact_generation == 4 and shield.buckler)
-            )
+            and ((shield := entries[items[item_id].definition_id].shield) is None or shield.buckler)
         )
     )
-    dropped: list[str] = []
+    dropped: list[str] = list(injury_result.dropped_ready_items)
     checks: list[CheckTrace] = []
     for item_id in affected:
         if sum(i == item_id for i, _ in actor.hand_bindings) > 1:
@@ -88,14 +118,12 @@ def apply_paralyze_arm(
             if grip.outcome.succeeded:
                 continue
         dropped.append(item_id)
-    recovery_at = state.resources.game_time + duration_seconds
     wound = LastingInjury(
         id=effect_id,
         location=location,
         kind="crippled",
-        duration="timed",
+        duration="permanent",
         inflicted_at=state.resources.game_time,
-        recovery_at=recovery_at,
         injury=0,
     )
     updated_hp = hp.model_copy(
@@ -133,9 +161,14 @@ def apply_paralyze_arm(
     return (
         state,
         encounter,
-        LimbCrippleResult(
+        WitherLimbResult(
             lasting_id=effect_id,
-            recovery_at=recovery_at,
+            dice=dice,
+            injury=injury_result.injury,
+            hp_before=hp_before,
+            hp_after=hp.current,
+            injury_checks=tuple(c.check for c in injury_result.checks),
+            injury_check_reasons=tuple(c.reason for c in injury_result.checks),
             dropped_item_ids=tuple(dropped),
             grip_checks=tuple(checks),
         ),

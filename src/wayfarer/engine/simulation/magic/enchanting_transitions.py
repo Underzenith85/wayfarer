@@ -67,6 +67,7 @@ from wayfarer.engine.simulation.magic.item_state import has_item_magic, require_
 from wayfarer.engine.simulation.magic.limb_spell_state import pending_actor_ids as limb_pending
 from wayfarer.engine.simulation.magic.melee_spell_state import pending_actor_ids as melee_pending
 from wayfarer.engine.simulation.magic.staff_state import require_staff_construction
+from wayfarer.engine.simulation.magic.wither_spell_state import pending_actor_ids as wither_pending
 from wayfarer.engine.simulation.resources import (
     Advance,
     Item,
@@ -486,7 +487,11 @@ def _begin(
         raise ConflictError("An enchanter is committed to another unfinished enchantment")
     for actor_id in project.enchanter_ids:
         synchronous(state, actor_id)
-        if actor_id in (*melee_pending(state.resources), *limb_pending(state.resources)):
+        if actor_id in (
+            *melee_pending(state.resources),
+            *limb_pending(state.resources),
+            *wither_pending(state.resources),
+        ):
             raise ConflictError("Enchanter is concentrating on a Melee spell")
         require_no_held_melee(state.resources, actor_id)
     if busy_actor_ids(state.resources.enchantment_projects) & set(project.enchanter_ids):

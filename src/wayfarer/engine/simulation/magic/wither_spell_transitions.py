@@ -13,34 +13,34 @@ from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.magic.backfires import apply_backfire
-from wayfarer.engine.simulation.magic.limb_spell_admission import ready
-from wayfarer.engine.simulation.magic.limb_spell_commands import CastParalyzeLimb
-from wayfarer.engine.simulation.magic.limb_spell_effects import resolve_contact
-from wayfarer.engine.simulation.magic.limb_spell_state import (
-    ParalyzeLimbCast,
-    ParalyzeLimbContact,
-    ParalyzeLimbContactResult,
-    ParalyzeLimbReceipt,
+from wayfarer.engine.simulation.magic.melee_staff_carrier import carrier_digest
+from wayfarer.engine.simulation.magic.spells import _casting_modifiers, cost_reduction
+from wayfarer.engine.simulation.magic.wither_spell_admission import ready
+from wayfarer.engine.simulation.magic.wither_spell_commands import CastWitherLimb
+from wayfarer.engine.simulation.magic.wither_spell_effects import resolve_contact
+from wayfarer.engine.simulation.magic.wither_spell_state import (
+    WitherLimbCast,
+    WitherLimbContact,
+    WitherLimbContactResult,
+    WitherLimbReceipt,
     append,
     cast_event,
     casts,
 )
-from wayfarer.engine.simulation.magic.melee_staff_carrier import carrier_digest
-from wayfarer.engine.simulation.magic.spells import _casting_modifiers, cost_reduction
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError
 
-_WORK: ContextVar[str | None] = ContextVar("limb_spell_work", default=None)
+_WORK: ContextVar[str | None] = ContextVar("wither_spell_work", default=None)
 
 
 def work(
-    runtime: RulesContext, state: PlayState, command: CastParalyzeLimb, cast: ParalyzeLimbCast
-) -> tuple[PlayState, ParalyzeLimbCast]:
+    runtime: RulesContext, state: PlayState, command: CastWitherLimb, cast: WitherLimbCast
+) -> tuple[PlayState, WitherLimbCast]:
     if cast.credited_seconds or state.resources.game_time != cast.started_at:
-        raise ConflictError("Paralyze Limb requires one actual consecutive Concentrate second")
+        raise ConflictError("Wither Limb requires one actual consecutive Concentrate second")
     if cast.distracted:
-        raise ConflictError("Bounded Paralyze Limb does not admit casting distraction")
+        raise ConflictError("Bounded Wither Limb does not admit casting distraction")
     r = state.resources
     if (
         r.scheduled
@@ -54,7 +54,7 @@ def work(
         or r.recovery_tasks
         or runtime.rules.npcs is not None
     ):
-        raise ConflictError("Bounded Paralyze Limb does not admit timed hazard carriers")
+        raise ConflictError("Bounded Wither Limb does not admit timed hazard carriers")
     token = _WORK.set(cast.cast_id)
     try:
         advanced = runtime.advance(
@@ -69,12 +69,12 @@ def work(
     finally:
         _WORK.reset(token)
     if advanced.party != state.party:
-        raise ConflictError("Paralyze Limb concentration cannot settle changed party activity")
+        raise ConflictError("Wither Limb concentration cannot settle changed party activity")
     actor = next(a for a in advanced.actors if a.actor_id == command.actor_id)
     if actor.available_at > advanced.resources.game_time or actor.conditions:
-        raise ConflictError("Paralyze Limb caster became unavailable")
+        raise ConflictError("Wither Limb caster became unavailable")
     if ready(runtime, advanced, command) != (cast.skill, cast.build_revision, cast.carrier_digest):
-        raise ConflictError("Paralyze Limb source changed during actual work")
+        raise ConflictError("Wither Limb source changed during actual work")
     advanced = advanced.model_copy(
         update={
             "actors": tuple(
@@ -97,8 +97,8 @@ def work(
 
 
 def apply(
-    runtime: RulesContext, state: PlayState, command: CastParalyzeLimb
-) -> tuple[PlayState, ParalyzeLimbReceipt]:
+    runtime: RulesContext, state: PlayState, command: CastWitherLimb
+) -> tuple[PlayState, WitherLimbReceipt]:
     resources = state.resources
     existing = casts(resources).get(command.cast_id)
     if command.operation == "cancel":
@@ -116,8 +116,8 @@ def apply(
         hp = next(p for p in resources.pools if p.id == "hp:" + command.actor_id)
         fp = next(p for p in resources.pools if p.id == "fp:" + command.actor_id)
         if fp.current < max(0, command.energy - cost_reduction(skill)):
-            raise ConflictError("Paralyze Limb requires selected FP before casting")
-        cast = ParalyzeLimbCast(
+            raise ConflictError("Wither Limb requires selected FP before casting")
+        cast = WitherLimbCast(
             actor_id=command.actor_id,
             cast_id=command.cast_id,
             command_id=command.id,
@@ -158,11 +158,11 @@ def apply(
             hp = next(p for p in resources.pools if p.id == "hp:" + command.actor_id)
             if existing.distracted or hp.current < existing.hp_at_start:
                 raise ConflictError(
-                    "Bounded Paralyze Limb does not admit unresolved casting distraction"
+                    "Bounded Wither Limb does not admit unresolved casting distraction"
                 )
             fp = next(p for p in resources.pools if p.id == "fp:" + command.actor_id)
             if fp.current < max(0, existing.energy - cost_reduction(existing.skill)):
-                raise ConflictError("Paralyze Limb cannot pay selected energy")
+                raise ConflictError("Wither Limb cannot pay selected energy")
             check = success_roll(
                 "gurps-basic-set-4e-2004",
                 existing.skill,
@@ -202,7 +202,7 @@ def apply(
                     command_id=command.id,
                     actor_id=command.actor_id,
                     cast_id=command.cast_id,
-                    spell_id="paralyze-limb",
+                    spell_id="wither-limb",
                     ht=compiled.statistics.ht,
                     severity="normal",
                     rng=runtime.rng,
@@ -216,7 +216,7 @@ def apply(
                 }
             )
     resources = append(resources, "cast", command.id, command.actor_id, cast)
-    receipt = ParalyzeLimbReceipt(
+    receipt = WitherLimbReceipt(
         command_id=command.id,
         cast_id=command.cast_id,
         outcome=cast.status,
@@ -231,7 +231,7 @@ def finish_contact(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
-    contact: ParalyzeLimbContact,
+    contact: WitherLimbContact,
     *,
     ordinary_hit: bool,
     actual_defense: Defense,
@@ -240,25 +240,25 @@ def finish_contact(
     critical_row: int | None = None,
     resolved_location: HumanLocation | None = None,
     defense_hand: Hand | None = None,
-) -> tuple[PlayState, Encounter, ParalyzeLimbContactResult]:
+) -> tuple[PlayState, Encounter, WitherLimbContactResult]:
     del critical_row, defense_hand
     charge = casts(state.resources).get(contact.cast_id)
     if charge is None or charge.status != "held" or charge.actor_id != contact.attacker_id:
-        raise ConflictError("Paralyze contact charge is no longer held")
+        raise ConflictError("Wither contact charge is no longer held")
     event = cast_event(state.resources, charge.cast_id)
     if (
         event.id != contact.charge_event_id
         or hashlib.sha256(event.kind.encode()).hexdigest() != contact.charge_digest
         or encounter.id != contact.encounter_id
     ):
-        raise ConflictError("Paralyze contact immutable source identity changed")
+        raise ConflictError("Wither contact immutable source identity changed")
     defended = defense_check is not None and defense_check.outcome.succeeded
     if defended and (
         actual_defense == "block" or (actual_defense == "parry" and defense_implement_id is None)
     ):
-        raise ConflictError("Paralyze armor-ignoring arc requires a qualified actual limb contact")
+        raise ConflictError("Wither armor-ignoring arc requires a qualified actual limb contact")
     hp = next(p for p in state.resources.pools if p.id == "hp:" + contact.defender_id)
-    result = ParalyzeLimbContactResult(
+    result = WitherLimbContactResult(
         attacker_id=contact.attacker_id,
         hp_before=hp.current,
         hp_after=hp.current,
@@ -290,7 +290,7 @@ def finish_contact(
             and hp.injury is not None
             and not hp.injury.dead
         ):
-            state, encounter, result = _paralyze_contact(
+            state, encounter, result = _wither_contact(
                 runtime, state, encounter, contact, charge, result, resolved_location
             )
     state = state.model_copy(
@@ -303,15 +303,15 @@ def finish_contact(
     return state, encounter, result
 
 
-def _paralyze_contact(
+def _wither_contact(
     runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
-    contact: ParalyzeLimbContact,
-    charge: ParalyzeLimbCast,
-    result: ParalyzeLimbContactResult,
+    contact: WitherLimbContact,
+    charge: WitherLimbCast,
+    result: WitherLimbContactResult,
     location: Literal["left-arm", "right-arm"],
-) -> tuple[PlayState, Encounter, ParalyzeLimbContactResult]:
+) -> tuple[PlayState, Encounter, WitherLimbContactResult]:
     rolled = resolve_contact(
         runtime,
         state,
@@ -335,30 +335,33 @@ def _paralyze_contact(
             command_id=contact.pending_id + ":contact-backfire",
             actor_id=contact.attacker_id,
             cast_id=contact.cast_id,
-            spell_id="paralyze-limb",
+            spell_id="wither-limb",
             ht=compiled.statistics.ht,
             severity="normal",
             rng=runtime.rng,
         )
         state = state.model_copy(update={"resources": resources})
-    if rolled.outcome == "paralyzed":
+    if rolled.outcome == "withered":
         # deferred: the independently owned canonical limb adapter joins this effect family.
-        from wayfarer.engine.simulation.magic.limb_cripple_effects import apply_paralyze_arm
+        from wayfarer.engine.simulation.magic.wither_cripple_effects import apply_wither_arm
 
-        state, encounter, cripple = apply_paralyze_arm(
+        state, encounter, cripple = apply_wither_arm(
             runtime,
             state,
             encounter,
-            effect_id=contact.pending_id + ":paralyze-limb",
+            effect_id=contact.pending_id + ":wither-limb",
             actor_id=contact.defender_id,
             location=location,
-            duration_seconds=60,
-            contact_generation=contact.generation,
         )
         result = result.model_copy(
             update={
                 "lasting_id": cripple.lasting_id,
-                "recovery_at": cripple.recovery_at,
+                "dice": cripple.dice,
+                "injury": cripple.injury,
+                "hp_before": cripple.hp_before,
+                "hp_after": cripple.hp_after,
+                "injury_checks": cripple.injury_checks,
+                "injury_check_reasons": cripple.injury_check_reasons,
                 "dropped_item_ids": cripple.dropped_item_ids,
                 "grip_checks": cripple.grip_checks,
             }

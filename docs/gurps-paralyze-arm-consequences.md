@@ -44,3 +44,23 @@ The adapter does not change B557's existing timed `disabled` shoulder result or
 ordinary wound duration/HP payloads. Wither, leg consequences, broader anatomy
 and magical restoration are separate consumers. This bounded arm adapter alone
 does not complete the Body Control issue.
+
+## Captured buckler contact policy
+
+New private contact generation four distinguishes B287's hand-held buckler from
+an attached standard shield. An affected hand drops the buckler; a standard
+shield remains attached with the existing DB/Block consequences. The helper's
+default generation two preserves recorded historical outcomes. Contact
+settlement reads its immutable saved generation, rather than the feature set
+currently enabled for the defense command. No public schema changes or
+physical-wound behavior changes are introduced.
+
+`tests/test_paralyze_buckler_consequences.py` proves real approved Paralyze
+casting through a genuinely manufactured Staff against a canonical buckler on
+both stores. A historical generation-two pending contact settled after enabling
+new features retains its old equipped item, while a new generation-four contact
+drops it exactly once, without DX or magical HP injury. Both lose Block
+eligibility while the arm is crippled. Exact retry through a reconstructed
+service preserves the response and checkpoint without dice; store fold matches.
+Original-genesis seeded generation compatibility is owned by the companion
+buckler replay suite.

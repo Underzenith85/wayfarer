@@ -284,13 +284,13 @@ def prepare_attack(
     )
     allowed = tuple(d for d in physical if d == "none" or d in visibility.defenses)
     # deferred: contact classification shares the canonical combat context.
-    from wayfarer.engine.simulation.magic.limb_spell_state import ParalyzeLimbContact
+    from wayfarer.engine.simulation.magic.melee_contact_dispatch import is_limb_contact
 
-    if isinstance(contact, ParalyzeLimbContact):
+    if is_limb_contact(contact):
         allowed = tuple(d for d in allowed if d != "block")
     if (
         contact is not None
-        and not isinstance(contact, ParalyzeLimbContact)
+        and not is_limb_contact(contact)
         and "parry" not in allowed
         and "parry" in visibility.defenses
     ):

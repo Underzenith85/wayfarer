@@ -24,6 +24,7 @@ from wayfarer.engine.simulation.magic.identify_spell_state import ADAPTER as IDE
 from wayfarer.engine.simulation.magic.limb_spell_commands import ADAPTER as LIMB_SPELL_ADAPTER
 from wayfarer.engine.simulation.magic.melee_spell_state import ADAPTER as MELEE_SPELL_ADAPTER
 from wayfarer.engine.simulation.magic.rooted_feet_state import ADAPTER as ROOTED_FEET_ADAPTER
+from wayfarer.engine.simulation.magic.wither_spell_commands import ADAPTER as WITHER_SPELL_ADAPTER
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
@@ -54,6 +55,7 @@ from wayfarer.orchestration.player_medical import execute as execute_medical
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 from wayfarer.orchestration.rooted_feet import RootedFeetService
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.orchestration.wither_spells import WitherSpellService
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.medical import EnvironmentResolver
@@ -321,7 +323,21 @@ async def _rooted_feet(submission: Submission) -> None:
     )
 
 
+async def _wither_spell(submission: Submission) -> None:
+    await WitherSpellService(submission.play).execute(
+        submission.cid, submission.command, principal_id=submission.principal_id
+    )
+
+
 FAMILIES: tuple[CommandFamily, ...] = (
+    CommandFamily(
+        kinds=("cast-wither-limb",),
+        parse=WITHER_SPELL_ADAPTER.validate_json,
+        service=_wither_spell,
+        receipt="resource",
+        authorize=service_authorizes,
+        preconditions=(recovery_guard,),
+    ),
     CommandFamily(
         kinds=("cast-paralyze-limb",),
         parse=LIMB_SPELL_ADAPTER.validate_json,

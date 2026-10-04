@@ -38,6 +38,9 @@ from wayfarer.engine.simulation.magic.melee_spell_state import (
     needs_clock_checkpoints as needs_melee_checkpoints,
 )
 from wayfarer.engine.simulation.magic.rooted_feet_state import effects as rooted_effects
+from wayfarer.engine.simulation.magic.wither_spell_state import (
+    needs_clock_checkpoints as needs_wither_checkpoints,
+)
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.harmful_physiology_play import settle_actor
@@ -58,6 +61,7 @@ def _needs_checkpoints(state: PlayState, to: int) -> bool:
         or needs_detection_checkpoints(resources)
         or needs_melee_checkpoints(resources)
         or needs_limb_checkpoints(resources)
+        or needs_wither_checkpoints(resources)
         or any(
             e.status == "active" and e.expires_at <= to for e in rooted_effects(resources).values()
         )

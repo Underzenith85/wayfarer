@@ -36,6 +36,7 @@ from wayfarer.engine.simulation.magic.rooted_feet_state import ADAPTER as ROOTED
 from wayfarer.engine.simulation.magic.spells import RuntimeSpellCommand, SpellCommand
 from wayfarer.engine.simulation.magic.staff_casting_state import ADAPTER as STAFF_CASTING_ADAPTER
 from wayfarer.engine.simulation.magic.staff_state import DeclareStaffConstruction
+from wayfarer.engine.simulation.magic.wither_spell_commands import ADAPTER as WITHER_SPELL_ADAPTER
 from wayfarer.engine.simulation.social.social import SocialCommand
 from wayfarer.engine.simulation.traits.composed_host import ADAPTER as COMPOSED_ADAPTER
 from wayfarer.errors import ValidationError
@@ -79,6 +80,7 @@ from wayfarer.orchestration.tasks import TaskService
 from wayfarer.orchestration.transformations import TransformationService
 from wayfarer.orchestration.water import ADAPTER as WATER_ADAPTER
 from wayfarer.orchestration.water import WaterService
+from wayfarer.orchestration.wither_spells import WitherSpellService
 from wayfarer.persistence.events import CommandInput, CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
 
@@ -301,6 +303,18 @@ async def _rooted_feet(play: PlayService, record: CommandRecord, encoded: str) -
     )
 
 
+async def _wither_spell(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    payload = validation.mapping(validation.decode(record.command_input or "{}"))
+    generation = payload.get("generation")
+    if type(generation) is not int or generation != 3:
+        raise ValidationError("Wither spell replay requires its captured generation")
+    await WitherSpellService(play).execute(
+        record.campaign_id,
+        WITHER_SPELL_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 async def _limb_spell(play: PlayService, record: CommandRecord, encoded: str) -> None:
     payload = validation.mapping(validation.decode(record.command_input or "{}"))
     generation = payload.get("generation")
@@ -340,6 +354,7 @@ async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) 
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
     "rooted-feet": _rooted_feet,
     "limb-spell": _limb_spell,
+    "wither-spell": _wither_spell,
     "melee-spell": _melee_spell,
     "aura": _aura,
     "detect-magic": _detect_magic,

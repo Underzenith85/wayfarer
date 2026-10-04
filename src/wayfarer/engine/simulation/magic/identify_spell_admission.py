@@ -31,6 +31,8 @@ from wayfarer.engine.simulation.magic.spell_state import (
     latest,
     parse_event,
 )
+from wayfarer.engine.simulation.magic.wither_spell_state import WitherLimbCast
+from wayfarer.engine.simulation.magic.wither_spell_state import casts as wither_casts
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -126,9 +128,10 @@ def ready(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
 
 def _private_spell_producers(state: PlayState, target: str) -> None:
     now = state.resources.game_time
-    contact_casts: tuple[MeleeCast | ParalyzeLimbCast, ...] = (
+    contact_casts: tuple[MeleeCast | ParalyzeLimbCast | WitherLimbCast, ...] = (
         *melee_casts(state.resources).values(),
         *limb_casts(state.resources).values(),
+        *wither_casts(state.resources).values(),
     )
     relevant_contact_cast = any(
         cast.actor_id == target

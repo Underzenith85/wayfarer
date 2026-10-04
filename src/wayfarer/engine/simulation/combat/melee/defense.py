@@ -66,18 +66,19 @@ def defense_value(
     if selected == "none":
         return None, None
     # deferred: private contact admission shares the canonical combat context.
-    from wayfarer.engine.simulation.magic.limb_spell_state import read_contact as read_limb
+    from wayfarer.engine.simulation.magic.melee_contact_dispatch import (
+        is_limb_contact,
+        read_contact,
+    )
 
     if selected == "block" or selected == "parry" and item_id in ("left-hand", "right-hand"):
         if any(
             e.pending_defense is not None
             and e.pending_defense.defender_id == participant.actor_id
-            and read_limb(state.resources, e.pending_defense.id) is not None
+            and is_limb_contact(read_contact(state.resources, e.pending_defense.id))
             for e in state.encounters
         ):
-            raise ValidationError(
-                "Paralyze Limb does not yet support shield or barehand contact arcs"
-            )
+            raise ValidationError("Limb spells do not yet support shield or barehand contact arcs")
     item_id, targeted_weapon = defense_selection(runtime, state, participant, selected, item_id)
     if selected == "parry" and item_id in ("left-hand", "right-hand"):
         encounter = next(

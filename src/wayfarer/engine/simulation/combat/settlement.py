@@ -128,6 +128,12 @@ def reconcile_equipment(state: PlayState, encounter: Encounter) -> tuple[PlaySta
     charged.update(
         c.carrier.item_id for c in limb_casts(state.resources).values() if c.status == "held"
     )
+    # deferred: isolated generation-three custody shares this canonical boundary.
+    from wayfarer.engine.simulation.magic.wither_spell_state import casts as wither_casts
+
+    charged.update(
+        c.carrier.item_id for c in wither_casts(state.resources).values() if c.status == "held"
+    )
     held = {
         i.id
         for i in state.resources.items
@@ -176,4 +182,9 @@ def reconcile_equipment(state: PlayState, encounter: Encounter) -> tuple[PlaySta
     # deferred: historical held-Melee custody shares the canonical combat cycle.
     from wayfarer.engine.simulation.magic.melee_spell_transitions import checkpoint
 
-    return limb_checkpoint(checkpoint(state)), encounter
+    # deferred: generation-three custody observes this canonical combat transition.
+    from wayfarer.engine.simulation.magic.wither_spell_transitions import (
+        checkpoint as wither_checkpoint,
+    )
+
+    return wither_checkpoint(limb_checkpoint(checkpoint(state))), encounter
