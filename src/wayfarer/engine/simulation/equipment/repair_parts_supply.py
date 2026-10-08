@@ -33,26 +33,23 @@ def major_parts(
         (e for e in catalog(runtime).entries if e.definition_id == profile.repair_parts_definition),
         None,
     )
-    supplies = next(
-        (
-            i
-            for i in resources.items
-            if i.owner_id == actor_id
-            and not i.ground
-            and available_here(state, actor_id, i)
-            and not i.equipped
-            and i.definition_id == profile.repair_parts_definition
-        ),
-        None,
+    supplies = tuple(
+        i
+        for i in resources.items
+        if i.owner_id == actor_id
+        and not i.ground
+        and available_here(state, actor_id, i)
+        and not i.equipped
+        and i.definition_id == profile.repair_parts_definition
     )
-    if part_entry is None or part_entry.price <= 0 or (supplies is None and not assessment_only):
+    if part_entry is None or part_entry.price <= 0 or (not supplies and not assessment_only):
         raise ValidationError("Major repair requires priced, owned spare parts")
     entry_price = Fraction(entry.price)
     part_price = Fraction(part_entry.price)
     assessment = repair_parts.latest(resources, item.id)
     if assessment_only:
         return resources, None, 0
-    assert supplies is not None
+    available_quantity = sum(supply.quantity for supply in supplies)
     if assessment is not None:
         repair_parts.require_current(
             assessment,
@@ -63,26 +60,33 @@ def major_parts(
             part_entry=part_entry,
         )
         parts_die, quantity = assessment.die, assessment.quantity
-        if supplies.quantity < quantity:
+        if available_quantity < quantity:
             raise ValidationError("Major repair requires the recorded rolled parts quantity")
     else:
         # Historical, unassessed starts retain their exact random stream.
         maximum = ceil(entry_price * 6 / (part_price * 10))
-        if supplies.quantity < maximum:
+        if available_quantity < maximum:
             raise ValidationError("Major repair requires supplies covering the maximum parts cost")
         parts_die = 6 if preview else draw_dice(runtime.rng, 1)[0]
         quantity = ceil(entry_price * parts_die / (part_price * 10))
-    if quantity:
+    remaining = quantity
+    for index, supply in enumerate(supplies):
+        if not remaining:
+            break
+        consumed = min(supply.quantity, remaining)
         resources = runtime.resources.apply(
             resources,
             Consume(
-                id="repair-parts:" + hashlib.sha256(command_id.encode()).hexdigest(),
+                id="repair-parts:"
+                + hashlib.sha256(command_id.encode()).hexdigest()
+                + (f":{index}" if index else ""),
                 actor_id=actor_id,
                 expected_revision=resources.revision,
-                item_id=supplies.id,
-                quantity=quantity,
+                item_id=supply.id,
+                quantity=consumed,
             ),
         )
+        remaining -= consumed
     return resources, parts_die, quantity
 
 

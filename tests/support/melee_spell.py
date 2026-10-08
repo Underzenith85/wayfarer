@@ -73,6 +73,7 @@ async def fixture(
     defender_item: Literal["staff", "shield"] | None = None,
     defender_armor: bool = False,
     victim_mode: Literal["dead", "diffuse"] | None = None,
+    haste_route: bool = False,
 ) -> tuple[str, PlayService, Campaign]:
     base_id, original = await blueprint(path / "blueprint", backend, 1)
     foundation = original._load(await original.store.read(base_id))
@@ -199,7 +200,14 @@ async def fixture(
             + (
                 Purchase(definition_id="spell:staff", amount=4),
                 Purchase(definition_id="skill:staff", amount=8),
-                *(Purchase(definition_id="spell:" + key) for key in CHAIN),
+                *(
+                    Purchase(definition_id="spell:" + key)
+                    for key in (
+                        (*tuple(s for s in CHAIN if s != "clumsiness"), "rooted-feet")
+                        if haste_route
+                        else CHAIN
+                    )
+                ),
             )
         }
     )

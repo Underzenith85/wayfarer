@@ -118,3 +118,28 @@ def test_required_status_and_path_only_rows_remain_blocked() -> None:
     assert any(identifier.startswith("section:") for identifier in blocked)
     assert any(identifier.startswith("supernatural/") for identifier in blocked)
     assert not result.certified
+
+
+@pytest.mark.parametrize("filename", ["pyproject.toml", "uv.lock", ".python-version", "server.py"])
+def test_dependency_and_entrypoint_changes_invalidate_executed_evidence(
+    tmp_path: Path, filename: str
+) -> None:
+    root, case, node = evidence_root(tmp_path)
+    pin = root / filename
+    pin.write_text("original configuration\n")
+    path = report(root, case, node)
+    assert evaluate_execution(root, path).problem("trait:example") is None
+
+    pin.write_text("changed configuration\n")
+    result = evaluate_execution(root, path)
+    assert "stale" in str(result.problem("trait:example"))
+
+
+def test_generated_outputs_do_not_invalidate_executed_evidence(tmp_path: Path) -> None:
+    root, case, node = evidence_root(tmp_path)
+    path = report(root, case, node)
+    (root / "artifacts").mkdir()
+    (root / "artifacts/coverage.json").write_text('{"coverage": 100}')
+    (root / "src/__pycache__").mkdir()
+    (root / "src/__pycache__/generated.pyc").write_bytes(b"generated cache")
+    assert evaluate_execution(root, path).problem("trait:example") is None

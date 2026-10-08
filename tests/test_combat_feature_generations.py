@@ -80,6 +80,7 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "maneuver-budget",
             "acrobatic-trait-bonuses",
             "acrobatic-reaction-attributes",
+            "acrobatic-coughing-conditions",
             "ground-dive-step",
             "secondary-object-blasts",
             "missile-interposition",

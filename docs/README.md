@@ -40,6 +40,8 @@ conformance and certification pages when making claims about GURPS coverage.
   [projectile readiness](gurps-projectile-readiness.md),
   [unarmed combat](gurps-unarmed.md), [hit locations](gurps-hit-locations.md),
   [injury state](gurps-injury-state.md), and [object integration](gurps-object-integration.md)
+- [Acrobatic Dodge condition penalties](gurps-acrobatic-coughing-conditions.md)
+  and [repair spare-parts accounting](gurps-armoury-parts.md)
 - [UI onboarding](ui-onboarding.md), [availability states](ui-availability.md),
   [voice controls](ui-voice.md), and [PWA/accessibility](pwa-accessibility.md)
 
@@ -86,6 +88,7 @@ describe bounded implementations; a topic page is not a whole-profile certificat
   [healing](gurps-spell-healing.md), [knowledge](gurps-spell-knowledge.md),
   [mind control](gurps-spell-mind-control.md), [movement](gurps-spell-movement.md),
   [necromantic](gurps-spell-necromantic.md), and [water](gurps-spell-water.md)
+- [Deathtouch through the Haste prerequisite route](gurps-deathtouch-haste-learning-route.md)
 
 ## Design system
 

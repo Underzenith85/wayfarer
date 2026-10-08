@@ -17,7 +17,10 @@ requirement without rerolling; the original assessor provenance is retained. A n
 only after the canonical completed repair proves the exact changed condition.
 
 An assessed start consumes precisely the recorded quantity from current owned,
-accessible, unequipped stock. Success and failure retain the existing deadline,
+accessible, unequipped stock. That stock can span several stacks: both assessed
+and historical starts admit their combined quantity and consume only the exact
+requirement, in inventory order. Unavailable and other actors' stacks do not
+contribute. Success and failure retain the existing deadline,
 check, restored HP and material conservation. Failed stock admission consumes
 nothing and cannot erase the assessment. Cancelled work does not refund spent
 parts or reroll the requirement. Public repair commands, results and task records

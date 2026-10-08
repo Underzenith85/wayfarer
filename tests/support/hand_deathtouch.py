@@ -19,6 +19,7 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.engine.rules.magic.body_control import package as body_package
+from wayfarer.engine.rules.magic.movement import package as movement_package
 from wayfarer.engine.rules.skills.mundane.melee import definitions as melee_definitions
 from wayfarer.engine.rules.skills.mundane.ranged import definitions as ranged_definitions
 from wayfarer.engine.rules.types.location import HumanBody
@@ -63,6 +64,7 @@ async def fixture(
     spell_skill: int = 16,
     missing_prerequisite: str | None = None,
     magery: int = 2,
+    haste_route: bool = False,
 ) -> tuple[str, PlayService, Campaign]:
     body = body_package()
     staff = next(e for e in WEAPONS if e.definition_id == "equipment:quarterstaff")
@@ -72,6 +74,11 @@ async def fixture(
     equipment = EquipmentCatalog(profile_id=PROFILE, entries=profiles)
     definitions = (
         tuple(body.definitions)
+        + (
+            tuple(d for d in movement_package().definitions if d.id == "spell:haste")
+            if haste_route
+            else ()
+        )
         + tuple(
             d
             for d in melee_definitions()
@@ -106,7 +113,17 @@ async def fixture(
         )
     package = profile_package(PROFILE, *definitions)
     package = replace(
-        package, sources=tuple({s.id: s for s in (*package.sources, *body.sources)}.values())
+        package,
+        sources=tuple(
+            {
+                s.id: s
+                for s in (
+                    *package.sources,
+                    *body.sources,
+                    *(movement_package().sources if haste_route else ()),
+                )
+            }.values()
+        ),
     )
     baseline = profile_compiler(PROFILE, package=package)
     catalog = RulesCatalog((package,))
@@ -157,7 +174,15 @@ async def fixture(
     caster = gurps_draft(
         Purchase(definition_id="trait:magery-0"),
         Purchase(definition_id="trait:magery", amount=magery),
-        *(Purchase(definition_id="spell:" + key) for key in CHAIN if key != missing_prerequisite),
+        *(
+            Purchase(definition_id="spell:" + key)
+            for key in (
+                (*tuple(s for s in CHAIN if s != "clumsiness"), "haste", "rooted-feet")
+                if haste_route
+                else CHAIN
+            )
+            if key != missing_prerequisite
+        ),
         Purchase(definition_id="skill:brawling", amount=8),
     )
     caster = caster.model_copy(

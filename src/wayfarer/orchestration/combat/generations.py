@@ -14,6 +14,7 @@ KNOWN = frozenset(
         "maneuver-budget",
         "acrobatic-trait-bonuses",
         "acrobatic-reaction-attributes",
+        "acrobatic-coughing-conditions",
         "ground-dive-step",
         "secondary-object-blasts",
         "missile-interposition",

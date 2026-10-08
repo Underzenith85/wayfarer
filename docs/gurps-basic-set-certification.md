@@ -56,6 +56,10 @@ Each binding resolves an independently entered source case in `conformance.json`
 to exact passing JUnit node IDs. The behavioral test records the case ID and
 case, profile, baseline and checkout fingerprints after its consequence assertions.
 Missing, failed, skipped, duplicate, stale or status-only evidence fails closed.
+The checkout fingerprint includes Python dependency declarations, the frozen
+lockfile, the Python version pin and the root server entrypoint. Changing those
+files invalidates earlier execution evidence; generated reports and caches do
+not change the fingerprint.
 The initial registry binds only the existing source-derived success-roll cases;
 remaining evidence belongs to the bounded audit issues in #742.
 

@@ -4,6 +4,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, level
 from wayfarer.engine.simulation.combat.acrobatic_bonuses import modifiers
+from wayfarer.engine.simulation.combat.acrobatic_conditions import modifiers as condition_modifiers
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -124,7 +125,10 @@ def prepare_options(
         target = target.model_copy(update={"drop_attacker_id": pending.attacker_id})
     if command.acrobatic_dodge:
         trace = success_roll(
-            "gurps-basic-set-4e-2004", skill, modifiers(compiled, skill_id), rng=runtime.rng
+            "gurps-basic-set-4e-2004",
+            skill,
+            modifiers(compiled, skill_id) + condition_modifiers(state.resources, target.actor_id),
+            rng=runtime.rng,
         )
         bonus += 2 if trace.outcome.succeeded else -2
         target = target.model_copy(update={"acrobatic_dodge_trace": trace})

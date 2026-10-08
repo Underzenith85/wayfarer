@@ -44,6 +44,10 @@ def acrobatic_reaction_attributes_enabled() -> bool:
     return "acrobatic-reaction-attributes" in _current.get()
 
 
+def acrobatic_coughing_conditions_enabled() -> bool:
+    return "acrobatic-coughing-conditions" in _current.get()
+
+
 def paralyze_buckler_drop_enabled() -> bool:
     return "paralyze-buckler-drop" in _current.get()
 

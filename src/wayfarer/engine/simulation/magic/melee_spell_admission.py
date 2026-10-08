@@ -2,7 +2,6 @@
 
 import hashlib
 
-from wayfarer.engine.rules.magic.body_control import package as body_package
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, fatigue_ready
 from wayfarer.engine.simulation.campaign.party import synchronous
@@ -12,6 +11,7 @@ from wayfarer.engine.simulation.magic.concentration import (
     require_idle_concentration,
     require_no_held_melee,
 )
+from wayfarer.engine.simulation.magic.deathtouch_learning import require_learning
 from wayfarer.engine.simulation.magic.melee_spell_state import (
     PREFIX,
     CastDeathtouch,
@@ -53,24 +53,7 @@ def ready(runtime: RulesContext, state: PlayState, command: CastDeathtouch) -> t
         raise ConflictError("Deathtouch is currently forgotten")
     compiled = build(runtime, state, command.actor_id)
     purchase = {p.definition_id: p.amount for p in compiled.purchases}
-    chain = (
-        "itch",
-        "spasm",
-        "pain",
-        "clumsiness",
-        "hinder",
-        "paralyze-limb",
-        "wither-limb",
-        "deathtouch",
-    )
-    expected = {d.id: d for d in body_package().definitions}
-    if any(
-        runtime.reviewer.compiler.definitions.get("spell:" + key) != expected["spell:" + key]
-        for key in chain
-    ):
-        raise ValidationError("Deathtouch requires exact source-bound Body Control learning")
-    if not all(purchase.get("spell:" + s, 0) > 0 for s in chain):
-        raise ValidationError("Bounded Deathtouch requires its genuinely purchased source chain")
+    require_learning(runtime, purchase)
     skill = next(
         (int(v.value) for v in compiled.sheet.values if v.target == "spell:deathtouch"), None
     )

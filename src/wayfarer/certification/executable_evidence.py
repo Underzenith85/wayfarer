@@ -42,13 +42,20 @@ class ExecutionManifest(AuditRecord):
 
 
 def checkout_digest(root: Path) -> str:
-    """Fingerprint runtime, tests, fixtures and runners, excluding generated files."""
+    """Fingerprint runtime, tests, runners and toolchain pins, excluding generated files."""
     digest = hashlib.sha256()
     paths = sorted(
-        path
-        for directory in ("src", "tests", "scripts")
-        for path in (root / directory).rglob("*")
-        if path.is_file() and path.suffix in {".py", ".json"}
+        [
+            path
+            for directory in ("src", "tests", "scripts")
+            for path in (root / directory).rglob("*")
+            if path.is_file() and path.suffix in {".py", ".json"}
+        ]
+        + [
+            root / name
+            for name in ("pyproject.toml", "uv.lock", ".python-version", "server.py")
+            if (root / name).is_file()
+        ]
     )
     for path in paths:
         digest.update(path.relative_to(root).as_posix().encode() + b"\0")
