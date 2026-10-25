@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import Literal
 
 from pydantic import TypeAdapter
 from pydantic import ValidationError as SchemaError
@@ -18,9 +19,13 @@ from wayfarer.engine.simulation.actors import exertion
 from wayfarer.engine.simulation.campaign._task_phases import (
     LongTaskPreparation,
     ensure_long_task_available,
+    minimum_allows_phase,
     prepare_long_task,
+    require_long_task_admission,
+    reserve_spent_shift,
     roll_long_task_check,
     select_long_task_check,
+    skip_unavailable_supervision,
 )
 from wayfarer.engine.simulation.campaign.activities import PerformActivity
 from wayfarer.engine.simulation.combat.generations import combat_generation
@@ -33,6 +38,7 @@ from wayfarer.engine.simulation.social.reactions import (
 )
 from wayfarer.engine.simulation.traits.luck import LuckCommand, LuckRoll, apply_luck, luck_cooldown
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
+from wayfarer.orchestration.action_admission import require_prepared_minimum
 from wayfarer.orchestration.entropy import current_command_instant
 from wayfarer.orchestration.inventory_damage_records import InventoryDamagePending
 from wayfarer.orchestration.membership import member_for, require_control
@@ -101,6 +107,10 @@ from wayfarer.orchestration.task_context import (
     supervision_skill,
     task_modifiers,
 )
+from wayfarer.orchestration.task_minimum import KEY as MINIMUM_KEY
+from wayfarer.orchestration.task_minimum import capture as capture_minimum
+from wayfarer.orchestration.task_minimum import enabled as minimum_enabled
+from wayfarer.orchestration.task_minimum import generation as minimum_generation
 from wayfarer.orchestration.task_records import (
     ADAPTER,
     CLOCK_PREFIX,
@@ -122,6 +132,10 @@ from wayfarer.orchestration.task_records import (
     identity,
     snapshot,
 )
+from wayfarer.orchestration.task_skill_context import KEY as SKILL_CONTEXT_KEY
+from wayfarer.orchestration.task_skill_context import capture as capture_skill_context
+from wayfarer.orchestration.task_skill_context import enabled as skill_context_enabled
+from wayfarer.orchestration.task_skill_context import generation as skill_context_generation
 from wayfarer.orchestration.unarmed_damage_records import (
     ArmedParryDamagePending,
     UnarmedDamagePending,
@@ -329,7 +343,15 @@ def _begin_check(
         expected_revision=state.revision,
         target_id=rule.target_id,
     )
-    play.engine.prepare_task_check(state, ordinary)
+    initial = play.engine.prepare_task_check(
+        state,
+        ordinary,
+        correct_skill_context=skill_context_enabled(),
+        correct_default_knowledge=play.rules_context.correct_default_knowledge,
+        require_default_knowledge=play.rules_context.require_default_knowledge,
+    )
+    if minimum_enabled():
+        require_prepared_minimum(initial)
     if isinstance(ordinary, Inspect):
         state, allowed = exertion(
             play.rules_context, state, command.actor_id, identity("task-exertion:", command.id)
@@ -375,7 +397,16 @@ def _begin_check(
     ordinary = ordinary.model_copy(update={"expected_revision": state.revision})
     try:
         ready(play, state, command.actor_id)
-        prepared = play.engine.prepare_task_check(state, ordinary, fatigue_already_paid=True)
+        prepared = play.engine.prepare_task_check(
+            state,
+            ordinary,
+            fatigue_already_paid=True,
+            correct_skill_context=skill_context_enabled(),
+            correct_default_knowledge=play.rules_context.correct_default_knowledge,
+            require_default_knowledge=play.rules_context.require_default_knowledge,
+        )
+        if minimum_enabled():
+            require_prepared_minimum(prepared)
     except ValidationError, ConflictError:
         return (
             state,
@@ -454,6 +485,43 @@ def _refresh_work_phase(
     )
 
 
+def _admit_work_phase(
+    play: PlayService, state: PlayState, prepared: LongTaskPreparation
+) -> tuple[PlayState, LongTaskPreparation, bool]:
+    """Admit only an unresolved original; preserve prior selected consequences."""
+    for _ in range(2):
+        reason: Literal["minimum-skill", "context-unavailable"] = "minimum-skill"
+        try:
+            ready(play, state, prepared.check_actor_id)
+            prepared = _refresh_work_phase(play, state, prepared)
+        except ValidationError, ConflictError:
+            if prepared.minimum_skill_generation != 1 or prepared.phase != "supervision":
+                return state, prepared, False
+            reason = "context-unavailable"
+        else:
+            if minimum_allows_phase(prepared):
+                return state, prepared, True
+            if prepared.phase != "supervision":
+                return state, prepared, False
+        resources, prepared = skip_unavailable_supervision(state.resources, prepared, reason=reason)
+        state = state.model_copy(update={"resources": resources})
+    return state, prepared, False
+
+
+def _spent_interrupted_work(
+    state: PlayState, command: BeginTaskWork, actor_ids: tuple[str, ...], started_at: int
+) -> PlayState:
+    if not minimum_enabled():
+        return state
+    return state.model_copy(
+        update={
+            "resources": reserve_spent_shift(
+                state.resources, command.id, actor_ids, started_at=started_at
+            )
+        }
+    )
+
+
 def _begin_work(
     play: PlayService,
     state: PlayState,
@@ -481,6 +549,24 @@ def _begin_work(
             seconds=command.seconds,
         )
         participants += (command.supervisor_actor_id,)
+    initial_actor = activity_actor(play, state, command.actor_id, source.rule.target_id)
+    skill = supervision_skill(source)
+    initial_supervisor = (
+        activity_actor(play, state, command.supervisor_actor_id, skill)
+        if command.supervisor_actor_id is not None and skill is not None
+        else None
+    )
+    if minimum_enabled():
+        require_long_task_admission(
+            source.rule,
+            initial_actor,
+            supervisor=initial_supervisor,
+            supervisor_target_id=skill,
+            worker_modifiers=task_modifiers(play, state, command.actor_id, source.rule.target_id),
+            supervisor_modifiers=task_modifiers(play, state, command.supervisor_actor_id, skill)
+            if command.supervisor_actor_id is not None and skill is not None
+            else (),
+        )
     for actor_id in participants:
         if command.seconds > 28800 and not any(
             actor_id in member.actor_ids for member in state.members if member.role == "player"
@@ -499,10 +585,6 @@ def _begin_work(
                 )
             }
         )
-    # All bound targets are checked before committing elapsed work.
-    activity_actor(play, state, command.actor_id, source.rule.target_id)
-    if command.supervisor_actor_id is not None and source.supervisor_skill_id is not None:
-        activity_actor(play, state, command.supervisor_actor_id, source.supervisor_skill_id)
     for actor_id in participants:
         state, allowed = exertion(
             play.rules_context,
@@ -540,7 +622,7 @@ def _begin_work(
         )
     except ValidationError, ConflictError:
         return (
-            state,
+            _spent_interrupted_work(state, command, participants, started_at),
             saved,
             TaskResult(
                 command_id=command.id,
@@ -563,8 +645,20 @@ def _begin_work(
         started_at=started_at,
         supervisor=supervisor,
         supervisor_target_id=skill if supervisor else None,
+        minimum_skill_generation=1 if minimum_enabled() else None,
     )
-    prepared = _refresh_work_phase(play, state, prepared)
+    state, prepared, allowed = _admit_work_phase(play, state, prepared)
+    if not allowed:
+        return (
+            _spent_interrupted_work(state, command, participants, started_at),
+            saved,
+            TaskResult(
+                command_id=command.id,
+                actor_id=command.actor_id,
+                status="interrupted",
+                reason="Work skill cannot support a legal original after elapsed time",
+            ),
+        )
     pending = _work_pending(prepared, clock, play.rng)
     return (
         state,
@@ -686,10 +780,8 @@ def _choose(
         if outcome is not None:
             result = result.model_copy(update={"activity": outcome})
         else:
-            try:
-                ready(play, state, prepared.check_actor_id)
-                prepared = _refresh_work_phase(play, state, prepared)
-            except ValidationError, ConflictError:
+            state, prepared, allowed = _admit_work_phase(play, state, prepared)
+            if not allowed:
                 result = result.model_copy(
                     update={
                         "status": "interrupted",
@@ -761,10 +853,14 @@ class TaskService:
         initial = play._load(campaign)
         command = await _bind_task_sources(play, cid, command)
         task_features = await capture_task_combat(play.store, cid, command, command.id)
+        skill_context = await capture_skill_context(play, cid, command.id, command.kind)
+        minimum = await capture_minimum(play, cid, command.id, command.kind)
         envelope: dict[str, object] = {
             "operation": "task-host",
             "principal_id": principal_id,
             "command": command.model_dump(mode="json"),
+            **({SKILL_CONTEXT_KEY: 1} if skill_context else {}),
+            **({MINIMUM_KEY: 1} if minimum else {}),
         }
         if task_features:
             envelope[TASK_COMBAT_KEY] = sorted(task_features)
@@ -950,7 +1046,8 @@ class TaskService:
             else None,
             task_clock_only=isinstance(command, SetRealPlayClock),
         )
-        return await submit(play, cid, plan, principal_id=principal_id)
+        with skill_context_generation(skill_context), minimum_generation(minimum):
+            return await submit(play, cid, plan, principal_id=principal_id)
 
     async def pending(self, cid: str, *, principal_id: str) -> TaskResult | None:
         campaign = await self.play.store.read(cid)

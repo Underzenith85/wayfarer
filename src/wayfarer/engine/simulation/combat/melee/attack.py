@@ -7,10 +7,12 @@ from typing import Literal
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.mastery import parry_multiplier
 from wayfarer.engine.rules.checks import draw_dice
+from wayfarer.engine.rules.tables.combat import posture_melee_reach_allowed
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
+from wayfarer.engine.simulation.combat.attack_policy import posture_rules
 from wayfarer.engine.simulation.combat.close_combat import (
     opponents_in_close_combat,
     pair,
@@ -114,6 +116,7 @@ def prepare_attack(
     scatter_squared: bool = False,
     shots: int = 1,
     mounted_charge: bool = False,
+    preview: bool = False,
 ) -> Encounter:
     pending = encounter.pending_defense
     assert pending is not None
@@ -194,6 +197,7 @@ def prepare_attack(
             overpenetration_target_id=overpenetration_target_id,
             area_aim_point=area_aim_point,
             scatter_squared=scatter_squared,
+            preview=preview,
         )
     if cover_item_id is not None or overpenetration_target_id is not None or area_aim_point:
         raise ValidationError("Cover and overpenetration require a ranged mode")
@@ -231,8 +235,14 @@ def prepare_attack(
         if actor.actor_id not in (attacker.actor_id, defender.actor_id)
         and pair(actor.actor_id, defender.actor_id) in encounter.close_pairs
     )
-    selectors = draw_dice(runtime.rng, len(bystanders)) if bystanders else ()
-    stray_order = stray_target_order(bystanders, selectors) if bystanders else ()
+    selectors = draw_dice(runtime.rng, len(bystanders)) if bystanders and not preview else ()
+    stray_order = (
+        tuple(sorted(bystanders))
+        if preview
+        else stray_target_order(bystanders, selectors)
+        if bystanders
+        else ()
+    )
 
     validate_target(
         runtime, state, encounter, pending.attacker_id, pending.defender_id, selected, hit_location
@@ -275,6 +285,14 @@ def prepare_attack(
     )
     if reaches is not None and selected_distance not in reaches:
         raise ValidationError("Target is outside selected weapon reach")
+    if reaches is not None and not posture_melee_reach_allowed(
+        attacker.posture,
+        close=selected_distance == 0,
+        legacy=not posture_rules(
+            runtime, state, encounter, attacker.actor_id, pending_id=pending.id, declaring=True
+        ),
+    ):
+        raise ValidationError("Crawling permits only Reach C melee attacks")
     physical = physical_defenses(
         runtime,
         state,

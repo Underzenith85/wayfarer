@@ -64,7 +64,7 @@ def cast_in_combat(
     )
     context = CombatContext(play, before)
     prepared, _, context = _prepare_command(before, turn, context)
-    encounter = _prepare_encounter(prepared, turn, context)
+    encounter, context = _prepare_encounter(prepared, turn, context)
     explosion_guard(prepared.resources)
     prepared, encounter = _validate_turn(
         prepared, turn, encounter, context, preserve_concentration=True

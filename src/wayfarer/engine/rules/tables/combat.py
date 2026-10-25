@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Literal
 
+from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.errors import ValidationError
 
 Defense = Literal["dodge", "parry", "block"]
@@ -72,6 +73,65 @@ def step_allowance(move: int) -> int:
     if type(move) is not int or move < 0:
         raise ValidationError("Move must be a nonnegative integer")
     return max(1, (move + 9) // 10)
+
+
+def retreat_posture_allowed(
+    posture: Posture, *, legacy: Literal["basic", "hex"] | None = None
+) -> bool:
+    """B377: sitting/kneeling cannot retreat; lying can roll, keeping its penalty.
+
+    Historical hosts pass their captured old representation explicitly. New
+    callers use the selected source policy rather than those old omissions.
+    """
+    excluded = {
+        None: ("sitting", "kneeling"),
+        "basic": ("kneeling",),
+        "hex": ("sitting", "prone"),
+    }
+    return posture not in excluded[legacy]
+
+
+def posture_defense_modifier(posture: Posture, *, legacy: bool = False) -> int:
+    """B549/B551: one posture penalty to every active defense, never an attack."""
+    penalties = {"prone": -3, "kneeling": -2}
+    if not legacy:
+        penalties.update({"crawling": -3, "sitting": -2})
+    return penalties.get(posture, 0)
+
+
+def posture_melee_modifier(posture: Posture, *, legacy: bool = False) -> int:
+    """B551: melee attacks only; B370 explicitly also applies this to takedown.
+
+    This is not an attribute or skill modifier: ranged attacks and contests
+    such as Feint do not acquire this penalty.
+    """
+    penalties = {"prone": -4, "kneeling": -2}
+    if not legacy:
+        penalties.update({"crouching": -2, "crawling": -4, "sitting": -2})
+    return penalties.get(posture, 0)
+
+
+def posture_melee_reach_allowed(posture: Posture, *, close: bool, legacy: bool = False) -> bool:
+    """B551: a crawling attacker may make only Reach C melee attacks."""
+    return legacy or posture != "crawling" or close
+
+
+def posture_ranged_target_modifier(posture: Posture, location: HitLocation | None) -> int:
+    """B551 Target column, with unresolved exposure lanes explicitly refused."""
+    if posture == "standing":
+        return 0
+    if location == "random":
+        raise ValidationError("Random hit locations against lowered targets require source review")
+    if location == "vitals":
+        raise ValidationError("Vitals against lowered targets require source posture mapping")
+    chosen = location or "torso"
+    if posture in ("crouching", "kneeling", "sitting"):
+        return -2 if chosen in ("torso", "groin", "left-leg", "right-leg") else 0
+    if chosen in ("left-arm", "right-arm", "left-hand", "right-hand", "skull"):
+        return 0
+    raise ValidationError(
+        "Crawling or lying target exposure requires supported height, elevation and head facts"
+    )
 
 
 def posture_move_allowance(move: int, posture: Posture) -> int:

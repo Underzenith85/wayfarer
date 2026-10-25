@@ -13,6 +13,9 @@ from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.simulation.actions import CheckRule, PlayState
 from wayfarer.engine.simulation.actors import fatigue_ready
 from wayfarer.engine.simulation.campaign.activities import ActivityActor
+from wayfarer.engine.simulation.campaign.default_knowledge_projection import (
+    for_check as default_knowledge_context,
+)
 from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.equipment.repairs import tasks
@@ -33,6 +36,7 @@ from wayfarer.orchestration.task_records import (
     LongTaskBinding,
     append_record,
 )
+from wayfarer.orchestration.task_skill_context import enabled as skill_context_enabled
 
 PROFILE = "gurps-basic-set-4e-2004"
 
@@ -215,7 +219,21 @@ def activity_actor(
             package_id=definition.source_id,
             package_version=PROFILE,
         )
-        level = play.engine._target(state, actor_id, build, rule)[0].value
+        level = play.engine._target(
+            state,
+            actor_id,
+            build,
+            rule,
+            default_context=default_knowledge_context(
+                play.engine.reviewer.compiler,
+                state,
+                actor_id,
+                build,
+                acquisition=skill_context_enabled(),
+                enabled=play.rules_context.correct_default_knowledge,
+                required=play.rules_context.require_default_knowledge,
+            ),
+        )[0].value
     if not level.is_finite() or level != level.to_integral_value():
         raise ValidationError("Task target must be a finite whole number")
     fp = next(pool for pool in state.resources.pools if pool.id == "fp:" + actor_id)

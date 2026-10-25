@@ -89,6 +89,7 @@ def select_default(
         preview=True,
         assessment_only=True,
         default_override=plan,
+        preview_method=command.repair_time_method,
         selection_modifier=METHODS[command.repair_time_method][1]
         if command.repair_time_method is not None
         else 0,

@@ -8,9 +8,11 @@ from test_armoury_tools import choose, observe
 from test_issue_818_armoury_acceptance import begin
 
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
 from wayfarer.engine.simulation.equipment.repairs import tasks
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, EndEncounter
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.play import PlayService
 
 
@@ -27,6 +29,18 @@ async def test_fine_tool_quality_restores_actual_canonical_firearm_use(
     from wayfarer.orchestration.combat import StartEncounter
 
     cid, play = await fixture(tmp_path, backend, "firearm", "skill:engineer-small-arms")
+    await DefaultKnowledgeService(play).execute(
+        cid,
+        AdoptDefaultKnowledge(
+            id="pistol-society-knowledge",
+            actor_id="gm",
+            expected_revision=await revision(play, cid),
+            performer_id="b",
+            known_skill_ids=("skill:guns-pistol",),
+            reason="The GM establishes Pistol familiarity for this repaired-firearm firing scenario",
+        ),
+        principal_id="gm",
+    )
     current_encounter = "broken-fight"
 
     async def turn(

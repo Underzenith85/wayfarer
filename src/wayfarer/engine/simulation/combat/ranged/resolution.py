@@ -77,6 +77,9 @@ from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.special import impact_cover, living_cover_dr
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    target_modifier as posture_target_modifier,
+)
 from wayfarer.engine.simulation.combat.special_melee import targeted_attack_penalty
 from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload, separation
 from wayfarer.engine.simulation.combat.thrown.flight import position
@@ -85,6 +88,7 @@ from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.combat.visibility import external_defense_penalty, optical_bonus
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.equipment.silver import (
     attack_construction,
     silver_wounding_multiplier,
@@ -216,7 +220,9 @@ def _resolve_overpenetration(
             if item.owner_id == secondary_id
             and item.equipped
             and (item.condition is None or not item.condition.disabled)
-            for armor in (entries[item.definition_id].armor,)
+            for armor in (
+                projected_profile(state.resources, item, entries[item.definition_id]).armor,
+            )
             if armor is not None
             and (
                 (location or "torso") in armor.locations
@@ -573,6 +579,19 @@ def resolve(
         ),
         None,
     )
+    attack_target += posture_target_modifier(
+        runtime,
+        state,
+        encounter,
+        actor.actor_id,
+        aim_target_id,
+        profile_id=equipment.profile_id,
+        location=pending.hit_location,
+        pending_id=pending.id,
+        object_target=pending.target_item_id is not None,
+        area_target=pending.area_aim_point is not None or pending.suppression_zone_id is not None,
+        captured=selected_attack is not None or pending.attack_roll is not None,
+    )
     attack_target += targeted_attack_penalty(
         pending.hit_location,
         armor_chink=pending.armor_chink,
@@ -629,6 +648,7 @@ def resolve(
         ranged=True,
         rule_id="gurps.combat.ranged_attack",
     )
+    spec = runtime.attack_spec(pending.id, spec)
     if prepare_only:
         return spec
     state = state.model_copy(
@@ -640,8 +660,8 @@ def resolve(
         or selected_attack
         or success_roll(
             equipment.profile_id,
-            attack_target,
-            check_modifiers(state.resources, actor.actor_id, "dx"),
+            spec.target,
+            spec.modifiers,
             rng=runtime.rng,
         )
     )
@@ -1943,7 +1963,7 @@ def _damage_armor_dr(
             if i.owner_id == target_id
             and i.equipped
             and (i.condition is None or not i.condition.disabled)
-            for armor in (entries[i.definition_id].armor,)
+            for armor in (projected_profile(state.resources, i, entries[i.definition_id]).armor,)
             if armor is not None
             and (
                 (location or "torso") in armor.locations

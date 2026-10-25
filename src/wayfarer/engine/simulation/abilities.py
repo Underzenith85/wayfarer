@@ -131,6 +131,7 @@ class AbilityContext:
     held_item_ids: tuple[str, ...] = ()
     power_id: str | None = None
     target_psi_static: bool | None = None
+    target_living_or_sapient: bool = True
 
 
 def validate_target(
@@ -189,6 +190,36 @@ def _require_available_power(
         )
     ):
         raise ValidationError("Psionic power is suppressed by active Antipsi")
+
+
+def mind_reading_attacker(
+    resources: ResourceState,
+    command: AbilityCommand,
+    context: AbilityContext,
+    old: AbilityEffect | None,
+) -> Contestant:
+    """The native B69 target, shared by admission and the actual contest."""
+    channel = context.channel
+    assert channel is not None
+    attempts = [
+        (at, e)
+        for at, e in history(resources)
+        if e.actor_id == command.actor_id
+        and e.ability_id == command.ability_id
+        and e.target_id == channel.target_id
+        and e.failed
+    ]
+    if any(e.critical_failure and at + 86400 > resources.game_time for at, e in attempts):
+        raise ConflictError("Mind Reading retry blocked for 24 hours")
+    penalty = -2 * sum(at + 3600 > resources.game_time for at, _ in attempts)
+    return Contestant(
+        command.actor_id,
+        context.iq
+        - (old.activation_shock if old else context.shock)
+        + range_penalty(channel.distance_yards)
+        + penalty,
+        check_modifiers(resources, command.actor_id, "iq"),
+    )
 
 
 def apply_ability(
@@ -423,7 +454,7 @@ def apply_ability(
                 check_modifiers(resources, target_id, "will", defensive=True),
             ),
             rng=rng,
-            rule_of_16=True,
+            rule_of_16=context.target_living_or_sapient,
         )
         failed, critical = not trace.affected, trace.attacker.outcome is Outcome.CRITICAL_FAILURE
         checks.extend((trace.attacker, trace.resister))
@@ -448,27 +479,9 @@ def apply_ability(
             )
     elif spec.kind == "mind-reading":
         assert channel is not None
-        attempts = [
-            (at, e)
-            for at, e in history(resources)
-            if e.actor_id == command.actor_id
-            and e.ability_id == command.ability_id
-            and e.target_id == target_id
-            and e.failed
-        ]
-        if any(e.critical_failure and at + 86400 > resources.game_time for at, e in attempts):
-            raise ConflictError("Mind Reading retry blocked for 24 hours")
-        penalty = -2 * sum(at + 3600 > resources.game_time for at, _ in attempts)
         trace = resistance_roll(
             PROFILE,
-            Contestant(
-                command.actor_id,
-                context.iq
-                - (old.activation_shock if old else context.shock)
-                + range_penalty(channel.distance_yards)
-                + penalty,
-                check_modifiers(resources, command.actor_id, "iq"),
-            ),
+            mind_reading_attacker(resources, command, context, old),
             Contestant(
                 target_id,
                 context.target_will
@@ -476,7 +489,7 @@ def apply_ability(
                 check_modifiers(resources, target_id, "will", defensive=True),
             ),
             rng=rng,
-            rule_of_16=True,
+            rule_of_16=context.target_living_or_sapient,
         )
         failed, critical = not trace.affected, trace.attacker.outcome is Outcome.CRITICAL_FAILURE
         checks.extend((trace.attacker, trace.resister))

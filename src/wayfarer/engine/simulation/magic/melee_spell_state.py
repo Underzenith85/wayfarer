@@ -77,6 +77,9 @@ class MeleeSpellContact(Record):
     carrier_item_id: Id | None
     mode_id: str | None
     energy: int = Field(strict=True, ge=1, le=3)
+    staff_form_generation: Literal[1] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class MeleeSpellContactResult(Record):

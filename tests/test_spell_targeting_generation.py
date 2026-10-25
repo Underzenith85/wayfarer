@@ -3,8 +3,10 @@
 from pathlib import Path
 
 import pytest
-from support.runtime import build_play, seed_campaign
+from support.runtime import seed_campaign
 from test_spell_bindings import command as spell_command
+from test_spell_missile_generation import fixture_play
+from test_spell_missile_generation import pg_schemas as pg_schemas
 
 from scripts.replay_fixtures import FIXTURES, ReplayFixture, engine_for
 from wayfarer import contracts, validation
@@ -16,12 +18,12 @@ from wayfarer.persistence.replay import command_text
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_old_retry_and_new_capture_keep_their_recorded_generation(
-    tmp_path: Path, backend: str
+    tmp_path: Path, backend: str, pg_schemas: list[str]
 ) -> None:
     fixture = ReplayFixture.model_validate_json((FIXTURES / "spell.json").read_text())
     engine = await engine_for("spell", tmp_path / "engine")
     initial = contracts.campaign(validation.decode(fixture.initial_json))
-    play = build_play(tmp_path, engine, backend=backend)
+    play = await fixture_play(tmp_path, engine, backend, pg_schemas)
     await seed_campaign(play.store, initial)
     before = initial
     for entry in fixture.commands:

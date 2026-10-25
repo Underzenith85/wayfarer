@@ -6,20 +6,25 @@ These commands cannot prescribe their own bonuses, targets or inventory items.
 
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Literal
+from dataclasses import asdict
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import CheckTrace, Outcome
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
+from wayfarer.engine.rules.types.hazard_care import HazardCare as HazardCare
+from wayfarer.engine.rules.types.hazard_care import captured, diagnosis_target, lifesaving_target
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge_fallbacks import require_skill
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.resources import Command, Consume, ResourceEvent
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
+from wayfarer.orchestration.ability_boundary import require_boundary
+from wayfarer.orchestration.hazard_care_generations import capture
+from wayfarer.orchestration.hazard_care_generations import payload as care_payload
 from wayfarer.orchestration.medical import _build
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
@@ -28,17 +33,6 @@ from wayfarer.orchestration.recovery import guard
 
 class HazardCareCommand(Command):
     treatment_id: str
-
-
-@dataclass(frozen=True)
-class HazardCare:
-    kind: Literal["lifesaving", "diagnosis", "antibiotics"]
-    target_id: str
-    schedule_id: str
-    item_id: str | None = None
-    technology_level: int = 0
-    known_disease: bool = True
-    safe_landing: bool = False
 
 
 class HazardCareResult(Record):
@@ -56,15 +50,23 @@ class HazardCareService:
         self.play, self.resolver = play, resolver
 
     def plan(
-        self, play: PlayService, command: HazardCareCommand, *, principal_id: str
+        self,
+        play: PlayService,
+        command: HazardCareCommand,
+        *,
+        principal_id: str,
+        care: HazardCare | None = None,
+        minimum: bool = False,
+        diagnosis_minimum: bool = False,
     ) -> CommandPlan[HazardCareResult]:
         """What a hazard treatment writes; the pipeline decides whether it runs."""
         payload = json.dumps({"hazard-care": command.model_dump(mode="json")}, sort_keys=True)
+        payload = care_payload(payload, care, current=minimum, diagnosis_minimum=diagnosis_minimum)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             synchronous(before, command.actor_id)
-            context = self.resolver(play, before, command.actor_id, command.treatment_id)
+            context = care or self.resolver(play, before, command.actor_id, command.treatment_id)
             actors = {a.actor_id: a for a in before.actors}
             locations = {e.id: e.location_id for e in before.world.entities}
             if (
@@ -105,10 +107,8 @@ class HazardCareService:
                 raise ValidationError("Care requires exact Basic Set statistics")
 
             def skill(key: str, default: int) -> int:
-                return int(
-                    next(
-                        (v.value for v in build.sheet.values if v.target == "skill:" + key), default
-                    )
+                return require_skill(
+                    play.rules_context, before, command.actor_id, build, key, default
                 )
 
             resources = before.resources
@@ -132,12 +132,10 @@ class HazardCareService:
                     raise ConflictError("Critical failure requires breaking off this rescue")
                 victim = _build(play, before, context.target_id).statistics
                 assert victim is not None
-                check = success_roll(
-                    stats.profile_id,
-                    max(1, skill("swimming", stats.ht - 4) - 5 + stats.st - victim.st),
-                    check_modifiers(resources, command.actor_id, "ht"),
-                    rng=play.rng,
-                )
+                target = skill("swimming", stats.ht - 4) - 5 + stats.st - victim.st
+                modifiers = check_modifiers(resources, command.actor_id, "ht")
+                target = lifesaving_target(target, sum(m.value for m in modifiers), current=minimum)
+                check = success_roll(stats.profile_id, target, modifiers, rng=play.rng)
                 success = check.outcome.succeeded
                 if success:
                     schedule = schedule.model_copy(
@@ -170,12 +168,13 @@ class HazardCareService:
                 attempt = f"diagnosis:{command.actor_id}:{schedule.id}:{schedule.cycle}"
                 if any(e.id == attempt for e in resources.events):
                     raise ConflictError("Diagnosis already attempted for these symptoms")
-                check = success_roll(
-                    stats.profile_id,
-                    max(1, skill("diagnosis", stats.iq - 6)),
-                    check_modifiers(resources, command.actor_id, "iq"),
-                    rng=play.rng,
+                modifiers = check_modifiers(resources, command.actor_id, "iq")
+                target = diagnosis_target(
+                    skill("diagnosis", stats.iq - 6),
+                    sum(m.value for m in modifiers),
+                    current=diagnosis_minimum,
                 )
+                check = success_roll(stats.profile_id, target, modifiers, rng=play.rng)
                 success = check.outcome.succeeded and context.known_disease
                 if success:
                     schedule = schedule.model_copy(
@@ -296,10 +295,36 @@ class HazardCareService:
         self, cid: str, command: HazardCareCommand, *, principal_id: str
     ) -> HazardCareResult:
         command = HazardCareCommand.model_validate(command)
-        play = self.play.for_campaign(await self.play.store.read(cid))
+        campaign = await self.play.store.read(cid)
+        play = self.play.for_campaign(campaign)
+        ActsAs(command.actor_id, "Care actor does not match authenticated actor")(principal_id)
+        public = json.dumps({"hazard-care": command.model_dump(mode="json")}, sort_keys=True)
+        admission = await capture(play, cid, command.id, public)
+        care = admission.context
+        if admission.current and not admission.saved:
+            require_boundary(campaign, None)
+            state = play._load(campaign)
+            if state.revision != command.expected_revision:
+                raise ConflictError("Hazard care revision changed")
+            if not any(a.actor_id == command.actor_id for a in state.actors):
+                raise ValidationError("Unknown caregiver")
+            if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
+                raise ValidationError("Care requires exact Basic Set statistics")
+            care = captured(
+                asdict(self.resolver(play, state, command.actor_id, command.treatment_id))
+            )
         return await submit(
             play,
             cid,
-            self.plan(play, command, principal_id=principal_id),
+            self.plan(
+                play,
+                command,
+                principal_id=principal_id,
+                care=care,
+                minimum=admission.current,
+                diagnosis_minimum=admission.diagnosis_minimum
+                and care is not None
+                and care.kind == "diagnosis",
+            ),
             principal_id=principal_id,
         )

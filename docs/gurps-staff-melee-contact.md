@@ -34,8 +34,9 @@ Reexecution compares all values and list order, allowing only JSON object key
 ordering; retry and persisted history remain exact.
 
 Remaining boundaries include hand delivery, transformed/nonhuman targets,
-heavy barehanded-parry knockback, contextual B557 continuation and owner Luck
-damage staging. This bounded consumer does not close the whole Melee/Staff issue.
+contextual B557 continuation and owner Luck damage staging. The separate
+[heavy barehanded Parry consumer](gurps-staff-heavy-parry.md) now covers the
+source-fixed one-yard/DX consequence in its documented standing-human geometry. This bounded consumer does not close the whole Melee/Staff issue.
 
 The expanded named host suite is `tests/test_staff_melee_contact.py`. It also
 proves physical maximum, double and triple outcomes leave magical dice unchanged,

@@ -51,6 +51,7 @@ async def fixture(
     tl: int = 4,
     hp: int = 0,
     additional_purchases: tuple[Purchase, ...] = (),
+    alternative_tools: tuple[EquipmentProfile, ...] = (),
 ) -> tuple[str, PlayService]:
     canonical_skills = {
         d.id: d
@@ -145,7 +146,7 @@ async def fixture(
         free_defender_hand=True,
         extra_definitions=definitions,
         extra_purchases=purchases + additional_purchases,
-        extra_equipment=(entry, tool, parts, *ammunition),
+        extra_equipment=(entry, tool, parts, *ammunition, *alternative_tools),
         preserve_extra_equipment=True,
         extra_items=(
             Item(
@@ -156,6 +157,10 @@ async def fixture(
             ),
             Item(id="tool-b", owner_id="b", definition_id=tool.definition_id),
             Item(id="parts-b", owner_id="b", definition_id=parts.definition_id, quantity=30),
+            *(
+                Item(id=f"alternative-tool-{index}", owner_id="b", definition_id=e.definition_id)
+                for index, e in enumerate(alternative_tools)
+            ),
             *(
                 Item(id="ammo-b", owner_id="b", definition_id=e.definition_id, quantity=1)
                 for e in ammunition

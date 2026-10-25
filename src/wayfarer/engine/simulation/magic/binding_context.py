@@ -11,6 +11,9 @@ from wayfarer.engine.rules.magic.protocols import MagicItemBinding, effective_it
 from wayfarer.engine.rules.magic.water import package as water_package
 from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.magic.physician_training import (
+    correct as trained_physician_required,
+)
 from wayfarer.engine.simulation.magic.rituals import require_ordinary_ritual
 from wayfarer.engine.simulation.magic.spell_state import latest
 from wayfarer.engine.simulation.magic.spells import (
@@ -44,7 +47,12 @@ class SpellEnvironment(Record):
 
 
 def approved_context(
-    runtime: RulesContext, state: PlayState, command: SpellCommand, environment: SpellEnvironment
+    runtime: RulesContext,
+    state: PlayState,
+    command: SpellCommand,
+    environment: SpellEnvironment,
+    *,
+    physician_training: bool = False,
 ) -> SpellContext:
     compiler = runtime.reviewer.compiler
     if compiler.statistics_profile != PROFILE:
@@ -121,6 +129,9 @@ def approved_context(
         require_ordinary_ritual(
             runtime, state, actor.actor_id, build, skill - 5 * int(environment.mana == "low")
         )
+    require_physician_training = trained_physician_required(
+        state.resources, command, fresh=physician_training
+    )
     return SpellContext(
         profile_id=PROFILE,
         build_revision=build.revision,
@@ -134,6 +145,7 @@ def approved_context(
         physician_skill=values.get("skill:physician", 0)
         if compiler.definitions.get("skill:physician")
         == next(d for d in medical_definitions() if d.id == "skill:physician")
+        and (not require_physician_training or purchases.get("skill:physician", 0) >= 1)
         else 0,
         unavailable=any(
             condition != "restrained" or not ordinary_ritual for condition in actor.conditions

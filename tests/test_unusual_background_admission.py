@@ -22,7 +22,6 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
     RulesPackage,
 )
-from wayfarer.engine.rules.skills import gurps_skills
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.mundane.complete import SPEC_BY_ID
 from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
@@ -53,9 +52,14 @@ def decision(cost: int = 10, *, allowed: bool = True) -> UnusualBackgroundDecisi
     )
 
 
-def configured(selected: UnusualBackgroundDecision) -> tuple[RulesPackage, PowerReviewer]:
+def configured(
+    selected: UnusualBackgroundDecision, *, base: RulesPackage | None = None
+) -> tuple[RulesPackage, PowerReviewer]:
     package = bind_unusual_background(
-        combined_package(), selected, package_id="package:b96", version="1"
+        combined_package() if base is None else base,
+        selected,
+        package_id="package:b96",
+        version="1",
     )
     policy = replace(runtime_compiler().policy, point_budget=1000, allow_supernatural=True)
     compiler = CharacterCompiler(
@@ -374,22 +378,6 @@ def test_admission_block_cannot_be_overridden_as_campaign_suitability() -> None:
             approver_id="gm",
             reason="Attempt admission override",
         )
-
-
-@pytest.mark.parametrize("allowed", [False, True])
-def test_skill_admission_is_explicitly_unsupported_including_defaults(allowed: bool) -> None:
-    base = combined_package()
-    package = replace(base, definitions=base.definitions + gurps_skills.definitions(PROFILE))
-    selected = UnusualBackgroundDecision(
-        id="rare-stealth",
-        gm_id="gm",
-        description="A skill admission needs default gating",
-        point_cost=10,
-        benefits=("skill:stealth",),
-        allowed=allowed,
-    )
-    with pytest.raises(ValidationError, match="existing implemented trait rows"):
-        bind_unusual_background(package, selected, package_id="skill-background", version="1")
 
 
 @pytest.mark.parametrize("price,allowed", [(10, True), (0, True), (50, False)])

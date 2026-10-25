@@ -20,14 +20,31 @@ occupancy, step budget and authored elevation transitions. Square steps cannot
 cross blocked cells or hostile intervening occupants. This retains ordinary
 successful interposition injury, the friend's failed-interposition defense and
 exact command retry behavior. Focused host regressions exercise blocked versus
-legal two-yard paths on both map types and both persistence stores.
+legal two-yard paths on both map types and both persistence stores. The separate
+[current-Step consumer](gurps-interposition-current-step.md) now derives a
+ground protector's Step from current injury/fatigue/load-adjusted Move, preserving
+historical captured-allowance commands. Retained grips now require release
+before actual translation; a protector already sharing the friend's position
+can still interpose without moving. The regression creates real grips through
+unarmed commands in a four-actor campaign.
 
 This bounded correction does not certify all of issue #878. The preceding
 Acrobatics/Aerobatics reaction now uses the B421 temporary-attribute exemption,
-with ordinary skill and attack penalties retained; explicit B428 skill-condition
-consumers remain separate from that correction;
+with ordinary skill and attack penalties retained. The separate
+[current-condition consumer](gurps-acrobatic-condition-checks.md) now applies
+B361 direct skill aftermath to the actual preceding check; explicit B428
+irritant skill-condition producers remain unsupported;
 concealing aerial/swimming drops and specialized interpositions retain the
 consumer boundaries above.
+
+The separate [retreat-posture correction](gurps-retreat-postures.md) now rejects
+sitting and kneeling in admitted Basic/hex retreat consumers, permits rolling
+while prone, retains the existing prone defense penalty, and joins current
+migration feasibility. Captured historical commands keep their former policies.
+Square-map retreat still requires its own destination contract. The separate
+[shared defense-posture table](gurps-defense-postures.md) supplies sitting and
+crawling penalties through independent generic capture, including composed and
+spell callers outside the ordinary combat envelope.
 
 The selected B377 Active Defense Options ledger row is partial, owned by #878.
 Its named evidence records the actual Acrobatic, Sacrificial, ground Drop and

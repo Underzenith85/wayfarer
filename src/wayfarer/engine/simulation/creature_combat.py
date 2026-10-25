@@ -71,6 +71,9 @@ class ResolveNaturalAttack(Command):
     defense_score: int | None = Field(default=None, ge=1, le=100)
     target_ht: int = Field(ge=1, le=100)
     target_will: int | None = Field(default=None, ge=1, le=100)
+    target_living_or_sapient: bool | None = Field(
+        default=None, strict=True, exclude_if=lambda value: value is None
+    )
     target_dr: int = Field(default=0, ge=0, le=1000)
     vision_contact: bool = False
     mounted_transport_id: Id | None = None
@@ -337,6 +340,19 @@ def _append_event(
     )
 
 
+def _special_target_scope(
+    command: ResolveNaturalAttack, defender: Creature | None, *, historical: bool
+) -> bool:
+    scope = command.target_living_or_sapient
+    if scope is None:
+        if historical:
+            return True
+        raise ValidationError("Malediction requires authoritative living or sapient target scope")
+    if not scope and defender is not None and defender.statistics.iq >= 6:
+        raise ValidationError("Malediction target scope contradicts compiled sapience")
+    return scope
+
+
 def _resolve_special_attack(
     state: ResourceState,
     command: ResolveNaturalAttack,
@@ -344,6 +360,8 @@ def _resolve_special_attack(
     attack: CreatureAttack,
     separation: int,
     rng: RandomSource,
+    *,
+    historical_scope: bool = False,
 ) -> tuple[ResourceState, NaturalAttackOutcome]:
     if command.maneuver != "concentrate":
         raise ValidationError("Malediction creature attacks require Concentrate")
@@ -374,7 +392,7 @@ def _resolve_special_attack(
             ),
         ),
         Contestant(command.target_id, command.target_will),
-        rule_of_16=True,
+        rule_of_16=_special_target_scope(command, defender, historical=historical_scope),
         rng=rng,
     )
     dice: tuple[int, ...] = ()
@@ -419,6 +437,7 @@ def resolve_natural_attack(
     *,
     rng: RandomSource,
     system: bool = False,
+    historical_scope: bool = False,
 ) -> tuple[ResourceState, NaturalAttackOutcome]:
     if not system:
         raise ValidationError("Natural attack resolution requires engine authority")
@@ -465,7 +484,9 @@ def resolve_natural_attack(
     ):
         raise ValidationError("Target facts disagree with the compiled creature")
     if selected.effect is not None:
-        return _resolve_special_attack(state, command, creature, selected, separation, rng)
+        return _resolve_special_attack(
+            state, command, creature, selected, separation, rng, historical_scope=historical_scope
+        )
     attack_target = _attack_level(creature)
     if command.maneuver == "all-out-attack":
         attack_target += 4
@@ -757,6 +778,7 @@ def apply_creature_combat(
     *,
     rng: RandomSource,
     system: bool = False,
+    historical_scope: bool = False,
 ) -> tuple[ResourceState, CreatureCombatOutcome]:
     """Apply one exact-once creature/swarm command at the resource CAS boundary."""
     if not system:
@@ -767,7 +789,9 @@ def apply_creature_combat(
     if command.expected_revision != state.revision:
         raise ConflictError("Creature combat resource revision changed")
     if isinstance(command, ResolveNaturalAttack):
-        return resolve_natural_attack(state, command, rng=rng, system=True)
+        return resolve_natural_attack(
+            state, command, rng=rng, system=True, historical_scope=historical_scope
+        )
     if isinstance(command, SetSwarmArea):
         updated = _set_swarm_area(state, command)
         return _append_event(updated, command, None, command.swarm_id), None
@@ -790,5 +814,7 @@ def replay_creature_combat(
 ) -> ResourceState:
     state = seed
     for command in commands:
-        state, _ = apply_creature_combat(state, command, rng=rng, system=True)
+        state, _ = apply_creature_combat(
+            state, command, rng=rng, system=True, historical_scope=True
+        )
     return state

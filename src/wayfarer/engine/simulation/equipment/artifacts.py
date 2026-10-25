@@ -30,6 +30,7 @@ from wayfarer.engine.simulation.campaign.world_context import (
     technology_field,
 )
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
+from wayfarer.engine.simulation.equipment.repair_tool_operation import reserved
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.resources import (
     Item,
@@ -384,6 +385,7 @@ def _owned_artifact(
         item is None
         or (item.ground is not None or item.world_ground_location_id is not None)
         or item.container_id is not None
+        or reserved(resources, item.id)
     ):
         raise ValidationError("Artifact must be owned, retrieved, and accessible")
     artifact = next(

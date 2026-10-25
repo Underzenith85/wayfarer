@@ -55,6 +55,7 @@ class AttackCompositionContext(Record):
     target_perceived: bool = True
     vision_contact: bool = True
     resist: bool = True
+    target_living_or_sapient: bool = Field(default=True, exclude_if=lambda value: value)
 
 
 def _ordinary_check(
@@ -94,6 +95,7 @@ def _malediction_checks(
     rng: RandomSource,
     *,
     current_conditions: bool = False,
+    cap_offered_resistance: bool = False,
 ) -> tuple[bool, tuple[CheckTrace, ...]]:
     prepared = prepare_malediction(
         state,
@@ -104,6 +106,7 @@ def _malediction_checks(
         context,
         definitions,
         current_conditions=current_conditions,
+        cap_offered_resistance=cap_offered_resistance,
     )
     return resolve_malediction(prepared, rng=rng)
 

@@ -27,13 +27,16 @@ from wayfarer.engine.simulation.actions import (
     PlayActor,
     PlayState,
     TypedAction,
+    Wait,
 )
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.encounter_context import migrate_unique
+from wayfarer.engine.simulation.campaign.minimum_skill_state import PREFIX as MINIMUM_SKILL_PREFIX
 from wayfarer.engine.simulation.campaign.party import migrate, synchronous
 from wayfarer.engine.simulation.campaign.scenario_references import verify
 from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, SceneEvent
+from wayfarer.engine.simulation.campaign.skill_context_state import PREFIX as SKILL_CONTEXT_PREFIX
 from wayfarer.engine.simulation.campaign.social_policy import parse_graph
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.combat.sensory_state import checkpoint as sensory_checkpoint
@@ -85,14 +88,26 @@ from wayfarer.engine.simulation.traits.size_geometry import checkpoint as size_g
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
+from wayfarer.orchestration.ability_boundary import AbilityAdmission
+from wayfarer.orchestration.action_admission import assess_minimum, require_minimum
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.cyclic_clock import advance as advance_cyclic_clock
+from wayfarer.orchestration.default_knowledge_generations import (
+    correct_default_knowledge,
+    require_default_knowledge,
+)
+from wayfarer.orchestration.defense_posture_generations import correct_defense_postures
 from wayfarer.orchestration.entropy import CommandRandom, SeedSource, token_seed
 from wayfarer.orchestration.great_haste_budget import checkpoint as settle_haste_budget
+from wayfarer.orchestration.noncombat_generations import (
+    minimum_effective_skill,
+    skill_prerequisite_context,
+)
 from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
 from wayfarer.orchestration.npcs import initialize
 from wayfarer.orchestration.objectives import checkpoint as objective_checkpoint
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Seats, Trusted, submit
+from wayfarer.orchestration.ranged_target_posture_generations import correct_ranged_target_postures
 from wayfarer.orchestration.sessions import SessionRegistry
 from wayfarer.orchestration.symptom_generations import correct_symptom_attributes
 from wayfarer.orchestration.task_records import PRIVATE_PREFIXES as TASK_PRIVATE_PREFIXES
@@ -137,6 +152,10 @@ class PlayService:
             rules=self.engine.rules,
             combat=self.engine.combat,
             correct_symptom_attributes=correct_symptom_attributes(),
+            correct_defense_postures=correct_defense_postures(),
+            correct_ranged_target_postures=correct_ranged_target_postures(),
+            correct_default_knowledge=correct_default_knowledge(),
+            require_default_knowledge=require_default_knowledge(),
             clock=self.advance_clock,
         )
 
@@ -257,11 +276,19 @@ class PlayService:
             event.id.startswith(
                 (
                     *TASK_PRIVATE_PREFIXES,
+                    SKILL_CONTEXT_PREFIX,
+                    "skill-default-knowledge:",
+                    "skill-default-policy:",
+                    "skill-default-producer:",
+                    MINIMUM_SKILL_PREFIX,
                     "combat-abandoned-attack:",
+                    "combat-attack-policy:",
+                    "combat-ranged-target-policy:",
                     "unarmed-random:",
                     "combat-sense:",
                     "combat-sense-invalidated:",
                     "ability:",
+                    "ability-offshift:",
                     "spell:",
                     "runtime-spell:",
                     "spell-ritual:",
@@ -285,7 +312,13 @@ class PlayService:
                     "armoury-training:",
                     "armoury-default:",
                     "armoury-tools:",
+                    "corrosion-armor:",
                     "armoury-tool-selection:",
+                    "healing-physician-origin:",
+                    "armoury-tool-operation:",
+                    "hazard-care:",
+                    "care-minimum:",
+                    "toxin-drowsiness:",
                     "water-parcels:",
                     "water-collection:",
                     "water-inventory:",
@@ -610,9 +643,23 @@ class PlayService:
         ActsAs(command.actor_id)(principal_id)
         state = self._load(await self.store.read(cid))
         _require_analysis_free(state, command)
-        return self.engine.assess(state, command)
+        return assess_minimum(
+            self,
+            state,
+            command,
+            self.engine.assess(state, command),
+            enabled=True,
+            correct_skill_context=True,
+        )
 
-    def plan(self, command: TypedAction, checkpoint: Campaign) -> CommandPlan[ActionResult]:
+    def plan(
+        self,
+        command: TypedAction,
+        checkpoint: Campaign,
+        *,
+        minimum_effective_skill: bool = False,
+        correct_skill_context: bool = False,
+    ) -> CommandPlan[ActionResult]:
         """What a typed action writes; the pipeline decides whether it runs.
 
         The checkpoint is read before the pipeline looks for a receipt. If an
@@ -621,7 +668,12 @@ class PlayService:
         revision after a receipt miss.
         """
         payload = json.dumps(
-            {"operation": "typed-action", "command": command.model_dump(mode="json")},
+            {
+                "operation": "typed-action",
+                "command": command.model_dump(mode="json"),
+                **({"minimum_effective_skill_generation": 1} if minimum_effective_skill else {}),
+                **({"skill_prerequisite_context_generation": 1} if correct_skill_context else {}),
+            },
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -629,18 +681,35 @@ class PlayService:
         def assess() -> ActionResult | None:
             state = self._load(checkpoint)
             _require_analysis_free(state, command)
-            feasible = self.engine.assess(state, command)
+            feasible = assess_minimum(
+                self,
+                state,
+                command,
+                self.engine.assess(state, command),
+                enabled=minimum_effective_skill,
+                correct_skill_context=correct_skill_context,
+            )
             return None if feasible.status == "feasible" else feasible
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = self._load(campaign)
             _require_analysis_free(current, command)
             synchronous(current, command.actor_id, enchanting_rest=True)
+            require_minimum(
+                self,
+                current,
+                command,
+                enabled=minimum_effective_skill,
+                correct_skill_context=correct_skill_context,
+            )
             state, resolved_events = self.engine.resolve(
                 current,
                 command,
                 rng=self.rng,
                 correct_symptom_attributes=correct_symptom_attributes(),
+                correct_skill_context=correct_skill_context,
+                correct_default_knowledge=correct_default_knowledge(),
+                require_default_knowledge=require_default_knowledge(),
                 clock=self.advance_clock,
             )
             result = action_result(resolved_events)
@@ -685,6 +754,7 @@ class PlayService:
             outcome=outcome,
             control=(ActsAs(command.actor_id),),
             assess=assess,
+            ability_admission=AbilityAdmission(command) if isinstance(command, Wait) else None,
             rng=self.rng,
         )
 
@@ -697,10 +767,25 @@ class PlayService:
         authorize: Callable[[Campaign], None] | None = None,
     ) -> ActionResult:
         command = self.propose(value)
+        minimum = (
+            await minimum_effective_skill(self, cid, command.id)
+            if command.kind in ("inspect", "social")
+            else False
+        )
+        skill_context = (
+            await skill_prerequisite_context(self, cid, command.id)
+            if command.kind in ("inspect", "social")
+            else False
+        )
         return await submit(
             self,
             cid,
-            self.plan(command, await self.store.read(cid)),
+            self.plan(
+                command,
+                await self.store.read(cid),
+                minimum_effective_skill=minimum,
+                correct_skill_context=skill_context,
+            ),
             principal_id=principal_id,
             authorize=authorize,
         )

@@ -720,9 +720,9 @@
     },
     {
       "id": "basic-regular-contest-high-skill-levelling",
-      "sha256": "f18e013f078dd1c8b8d5ea86bc9198796d70ecfca2de79de5a952306815f5600",
+      "sha256": "a5902846d6c1dd57a721b7d85fca396e4530705155ff5a5123c852ae71d7e224",
       "status": "reviewed",
-      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "reviewer": "Codex selected-source re-review, 2026-10-24",
       "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
@@ -731,9 +731,9 @@
     },
     {
       "id": "basic-regular-contest-low-skill-levelling",
-      "sha256": "556f501261ca11c38a3f0a498adc56fcc51fd7e449a7183734953a8493c72690",
+      "sha256": "64a281e63c2067568da68cefc0e46f635d669ba886a8f5920c025d130e80e003",
       "status": "reviewed",
-      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "reviewer": "Codex selected-source re-review, 2026-10-24",
       "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
@@ -741,10 +741,10 @@
       "owner": 99
     },
     {
-      "id": "basic-regular-contest-no-levelling-at-14",
-      "sha256": "0f6bdb72fe7d9bb3db56d10bcea975b887bbef2a871a7b318c2bd342afbd6fc2",
+      "id": "basic-regular-contest-levelling-at-14",
+      "sha256": "1932fefb2006c2ba06b6c866e9ac2f726671609a70ad043d40cb84dcab0bc4dd",
       "status": "reviewed",
-      "reviewer": "Codex selected-source audit, 2026-09-13",
+      "reviewer": "Codex selected-source re-review, 2026-10-24",
       "evidence": "docs/gurps-basic-set-source-review.md",
       "tests": [
         "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
@@ -3250,6 +3250,634 @@
         "tests/test_conformance_construction.py::test_encumbrance_never_reduces_dodge_below_one"
       ],
       "owner": 834
+    },
+    {
+      "id": "basic-regular-contest-published-high-example",
+      "sha256": "62ef5597100e5114fe76e6b7c953ebf72a55ee3affd991788c4ab3ca211e49cc",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source re-review, 2026-10-24",
+      "evidence": "docs/gurps-basic-set-source-review.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-published-extreme-example",
+      "sha256": "7a6d6ad477c6531e353484c2874331524d1899e2a5e16ccd45adde48d680264a",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source re-review, 2026-10-24",
+      "evidence": "docs/gurps-basic-set-source-review.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-low-boundary-six",
+      "sha256": "652a554769abaecd9bfab4cc61ffbcb6d9387bd1322e609ff923877c4a87b2cf",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source re-review, 2026-10-24",
+      "evidence": "docs/gurps-basic-set-source-review.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-extreme-floor",
+      "sha256": "f23d52a21cf7224a2060b423b47858e8ab4a515b5f82b39e76b73f8ceca5cf9d",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source re-review, 2026-10-24",
+      "evidence": "docs/gurps-basic-set-source-review.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-live-pin-rounds",
+      "sha256": "000d5cd15520e0fb2ed8032f6d60ac68c104f3dd4059dc97087dc09b6d3b9f6c",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-24",
+      "evidence": "docs/gurps-regular-contest-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations",
+        "tests/test_regular_contest_section.py::test_live_pin_matches_source_rounds_and_reexecutes"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-above-low-boundary",
+      "sha256": "c812e71aae48aa5b9e0c8041b4a52916b61154f901caebd1d9f4af0633fbf762",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-24",
+      "evidence": "docs/gurps-regular-contest-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-below-high-boundary",
+      "sha256": "8fd85ec5cc846bde95c23cc7359cb8c796b418bae1cd192531044280d05f898a",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-24",
+      "evidence": "docs/gurps-regular-contest-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-twenty-remains-offset",
+      "sha256": "9d77d0904c9978e0fc02d7f0435b4a9237cff518ad520d031d8692bbc0c939b9",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-24",
+      "evidence": "docs/gurps-regular-contest-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-reversed-extreme-floor",
+      "sha256": "c5af36a38addd68de103847ce677a7aab471af3b78692075268b611c17146747",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-24",
+      "evidence": "docs/gurps-regular-contest-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-effective-score-extremes",
+      "sha256": "6d9e94d8be8fbcbdc361e1a6c638de00e6c2371cbc53c08637107d975b6db50e",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-24",
+      "evidence": "docs/gurps-regular-contest-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-printed-sixteen",
+      "sha256": "e509e7a7d21a6259c2ef9c70bf34e16f25baeb9014c68dd3f0ab601ce439b6f3",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-printed-seventeen",
+      "sha256": "2231ea6aaa9ebd4f4caa19ad095ce81e0b1d35a7e0e6642bd25329f72636fd55",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-printed-eighteen",
+      "sha256": "81c10c178aa2204fdaa56db6711cf635ff96a686556d162ba2f0730fd977afd0",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-printed-nineteen",
+      "sha256": "28f20316a0b8231a4247a868f3b66b2d565b1d4b4736cd49f36d6509053745e6",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-live-waiver",
+      "sha256": "df0fa5f6c1bb13dd2d0746f1ea4427b9f63222484d5fc94300d84cca0251577b",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_rule_of_16_waiver.py::test_waived_resistance_retains_offered_cap_and_reexecutes"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-ability-burning-living",
+      "sha256": "f995523a83687530f036a86d7606d7197461e64840972335bc6aa4ab0e1e2da7",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-ability-burning-neither",
+      "sha256": "89e9cb7b90d041facf5c4c4c1efec7c2e49cc1bf0509a6f37c9615379e6650c1",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-ability-burning-sapient",
+      "sha256": "522952a83b328f384009516c6c7836f7e2700bce1d8dd0b54e0ad3b08a48fa36",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-ability-mind-neither",
+      "sha256": "38cb0ec9a41bd2bdb7bcd38011e88785cb0040a0a73364c1fe7f8d65fe69483e",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-ability-mind-living",
+      "sha256": "d0818c15e7c2f8d647417f08e74c0ee599c6e971ea5e132a4926cd76d45cbbea",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-creature-scope",
+      "sha256": "031acc0676dd16a70603ab480bc406ef63277ccda2679dcc828b3d95ff317000",
+      "status": "reviewed",
+      "reviewer": "Codex selected-source closure review, 2026-10-25",
+      "evidence": "docs/gurps-rule-of-16-section.md",
+      "tests": [
+        "tests/test_creature_rule_of_16_scope.py::test_creature_scope_source_case_and_historical_replay"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b017-load-table-st-01",
+      "sha256": "967051cca0694d25a0b47db79b61207dd6aef8edc4f9db9e981da9d7ab8ab940",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-02",
+      "sha256": "940bddbfe4f78986790a91413e7bbd665e8da740d94d9b43e2b3bfa7fad9a279",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-03",
+      "sha256": "46a798a886be5ede0bae7e6685fd17efa0fa8c8e01f428e2d303ac6d70926a95",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-04",
+      "sha256": "fcd15731ff9ac134ed7026f38c6f0a89a670964ed9c4a2a390e61ac00e188cb6",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-05",
+      "sha256": "da8c6c791756c010e9899483dd1b1e42584f6621513d63b3e35c9b58b13cde50",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-06",
+      "sha256": "bdb1929063130da48b1974590b79b94910e5b99d87ede6693d769e04b3453d6c",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-07",
+      "sha256": "832b1a63b18cd588231b33a755c990ce47bb7e082a9ff9b75cbe1306a2117b06",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-08",
+      "sha256": "c77b1d51cca4a28dfcac5beb59ba742425d9ca71c669cddd687972da2dfb648e",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-09",
+      "sha256": "0309cd47fb7440567b9a9b44edd37170079a7d997984094fb7ca705edba1c8b2",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-10",
+      "sha256": "066fc16537d56cda8bf9e449033481a32b6b9773a2a3b3033db35ed71ed97ee0",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-11",
+      "sha256": "adbf5a583f364b2047cae41359230347290c52c443291fa59db22b306a5644d9",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-12",
+      "sha256": "2480a5b75fa46c044125029336b0059917d20ca7246316b56249e0360c817900",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-13",
+      "sha256": "f5244126f3cbdc39cca5eff5e409551a916dd07f48c055c7a4a00337b29a6168",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-14",
+      "sha256": "de22013f31f037aefb4753372ec20f86f70386219933df61109c06db742a46f4",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-15",
+      "sha256": "5ee6959230b5e94bfadf291809df294494eeab0b9c98ae2c62f5f329cafeae10",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-16",
+      "sha256": "ca078b2910c374bb34b4a7c17abeafe1035d9d0547fd4211f482814cca6e08cf",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-17",
+      "sha256": "b14ccdbef13e9c1b5f5506ef5431ecac808c6cb8a770f4c53f68c9884167d71d",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-18",
+      "sha256": "57d0b26bd68b633e609c21b6e6c3b88ee5d9738dd8b9d849cb1da1b5da11aa94",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-19",
+      "sha256": "8d1a5c7e50dfda3de846b5e3a9dea7da790c679910bce8007881788532bad666",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-load-table-st-20",
+      "sha256": "6e3efe856c52eecd99334d550fc2213b0e0a2de4527d703772701ccdd9e1f4a1",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-native-load-level-0",
+      "sha256": "61c9a265969c47b2fe34772299d9a34a34c56e6ff8f7fd376798fc69a47c67bc",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-native-load-level-1",
+      "sha256": "0ed3e4e6603ef65139364f3b1a168cc3c03fbdfe90384e0a90dbfc7b02fe966f",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-native-load-level-2",
+      "sha256": "4c2ad973aefdbbac78c3774747aec361c954df2ec03a020944c5d465473612ad",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-native-load-level-3",
+      "sha256": "0aa7b702a1093ee8a0e86e0f9963643dacc227973dffe17dcd23d79a52b55077",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-native-load-level-4",
+      "sha256": "71d76a9e4a69aad549a8e89428ff4b87e1cde476430a0d94ca8b97acaa245fac",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-move-fractions",
+      "sha256": "4afd26509cc36464bd87e03656e5b884c1a1152fd9f90a406c399d8efccba02f",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_loaded_movement_fraction_minimum_and_zero"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-move-dodge-minimum",
+      "sha256": "04e6ea37b5d29cae42b73317a6d6add18043c56a5c96c4536ac582ef1864f5e0",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_loaded_movement_fraction_minimum_and_zero"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-zero-move",
+      "sha256": "d50d752ed3e6bfee55e539e3bf95ced18a939d6e7e0711bf57dbb9575adc6478",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_loaded_movement_fraction_minimum_and_zero"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b017-native-ownership",
+      "sha256": "6af698f49d271c4ce15b5a18b7f79adfe1dcb6a3562647645535e669c33caa13",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B17 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b017-load-table.md",
+      "tests": [
+        "tests/test_b017_load_table.py::test_native_resource_ownership_retry_and_recorded_reexecution"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-b344-native-lockpicking-iq-10",
+      "sha256": "7acb26f05b06ee1ea4df7471d9795a74c3c5f696f9399b99cef5256e015ab735",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B344 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b344-default-rolls-evidence.md",
+      "tests": [
+        "tests/test_default_roll_source_examples.py::test_literal_lockpicking_default_reaches_native_success_roll_and_seed_replay"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "basic-b344-native-lockpicking-iq-25",
+      "sha256": "eeadc04f6b3a9191b5e3fcfb6b0401a7a4a28fe08cc62d34c1337a963e99929c",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B344 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b344-default-rolls-evidence.md",
+      "tests": [
+        "tests/test_default_roll_source_examples.py::test_literal_lockpicking_default_reaches_native_success_roll_and_seed_replay"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "basic-b344-native-interrogation-source-14",
+      "sha256": "83e88d1e33b00cef906f0521a099a564db21f069e76adacd3dd5a361a666b14d",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B344 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b344-default-rolls-evidence.md",
+      "tests": [
+        "tests/test_default_roll_current_examples.py::test_literal_best_default_and_uncapped_learned_source_reach_current_native_roll"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "basic-b344-native-interrogation-source-24",
+      "sha256": "9774ea83a1b3a0fdcf939f5876c6022f1d20e674532aa2d150d4f707bdec4104",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B344 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b344-default-rolls-evidence.md",
+      "tests": [
+        "tests/test_default_roll_current_examples.py::test_literal_best_default_and_uncapped_learned_source_reach_current_native_roll"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "basic-b344-native-alchemy-no-default",
+      "sha256": "55562153fa42d94ae859a8d88377670c6dbe85b4bd93638637db14fe3be6495b",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B344 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b344-default-rolls-evidence.md",
+      "tests": [
+        "tests/test_default_roll_current_examples.py::test_true_alchemy_no_default_is_not_created_by_positive_gm_fact_at_ordinary_host"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "basic-b344-native-karate-no-default",
+      "sha256": "0813bbe2a957d82011eef40194ee342c168915ad7ea087ec8cad67e47d6d3ab3",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B344 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b344-default-rolls-evidence.md",
+      "tests": [
+        "tests/test_default_knowledge_current_no_default.py::test_real_karate_punch_has_no_untrained_default_even_with_gm_knowledge"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "basic-b344-native-spell-no-default",
+      "sha256": "f8075dea4d8576cdca332771e1a4880a27be2563737ae9d6cb04e1e759505709",
+      "status": "reviewed",
+      "reviewer": "Codex independent selected-source B344 comparison and native oracle review, 2026-10-25",
+      "evidence": "docs/gurps-b344-default-rolls-evidence.md",
+      "tests": [
+        "tests/test_default_knowledge_current_no_default.py::test_native_light_requires_spell_training_not_magery_or_society_metadata"
+      ],
+      "owner": 98
     }
   ]
 }

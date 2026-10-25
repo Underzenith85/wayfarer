@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.tables.combat import posture_melee_reach_allowed
 from wayfarer.engine.rules.tables.unarmed import UNARMED_SKILLS
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import catalog, fatigue_ready, movement
+from wayfarer.engine.simulation.combat.attack_policy import posture_rules
 from wayfarer.engine.simulation.combat.commands import TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
@@ -23,10 +25,10 @@ from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.special_melee import actor_reaches
 from wayfarer.engine.simulation.combat.tactical import attack_geometry, occupants, pose, sight
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
+    attack_skill_value,
     encumbrance_level,
     fighter,
     free_hands,
-    skill_value,
 )
 from wayfarer.engine.simulation.combat.unarmed.random_strike import pending_id, random_strike
 from wayfarer.engine.simulation.combat.unarmed.records import require_basic
@@ -64,7 +66,7 @@ def declare_unarmed_wait(
     skills = UNARMED_SKILLS[declared.action]
     if declared.skill not in skills:
         raise ValidationError("Skill does not support this unarmed action")
-    skill_value(runtime, state, actor_id, declared.skill)
+    attack_skill_value(runtime, state, actor_id, declared.action, declared.skill)
     actor = fighter(encounter, actor_id)
     if declared.action == "kick":
         if declared.hands or actor.posture != "standing":
@@ -206,10 +208,16 @@ def validate_action(
         legal_distance = set(unarmed_reach)
         if distance not in legal_distance:
             raise ValidationError("Unarmed attack is out of reach")
+        if not posture_melee_reach_allowed(
+            actor.posture,
+            close=distance == 0,
+            legacy=not posture_rules(runtime, state, encounter, actor.actor_id, declaring=True),
+        ):
+            raise ValidationError("Crawling permits only Reach C melee attacks")
         skills = UNARMED_SKILLS[command.action]
         if command.skill not in skills:
             raise ValidationError("Skill does not support this unarmed action")
-        skill_value(runtime, state, actor.actor_id, command.skill)
+        attack_skill_value(runtime, state, actor.actor_id, command.action, command.skill)
         if command.skill in ("skill:judo", "skill:karate"):
             encumbrance_level(runtime, state, actor.actor_id)
         if (

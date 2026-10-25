@@ -9,6 +9,10 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.physical import hiking_miles
 from wayfarer.engine.rules.types.location import disabled_locations
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge_fallbacks import (
+    optional_skill,
+    require_skill,
+)
 from wayfarer.engine.simulation.campaign.party import group_for
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
@@ -19,6 +23,19 @@ from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
 
+def require_hiking_defaults(runtime: RulesContext, state: PlayState, actor_id: str) -> None:
+    """Admit every new daily contributor before the first hiker's health or skill dice."""
+    for member in group_for(state, actor_id).actor_ids:
+        if any(
+            e.id == f"hiking-day:{member}:{state.resources.game_time // 86400}"
+            for e in state.resources.events
+        ):
+            continue
+        build = runtime.approved_build(state, member)
+        assert build.statistics is not None
+        require_skill(runtime, state, member, build, "hiking", build.statistics.ht - 5)
+
+
 def group_hiking(
     runtime: RulesContext,
     state: PlayState,
@@ -27,12 +44,11 @@ def group_hiking(
     terrain: str,
     bad_weather: bool,
 ) -> tuple[PlayState, Decimal, tuple[CheckTrace, ...], tuple[tuple[str, int, int], ...]]:
+    require_hiking_defaults(runtime, state, actor_id)
     group = group_for(state, actor_id)
     members = tuple(sorted(group.actor_ids))
     leader = runtime.approved_build(state, actor_id)
-    leadership = int(
-        next((v.value for v in leader.sheet.values if v.target == "skill:leadership"), 0)
-    )
+    leadership = optional_skill(runtime, state, actor_id, leader, "leadership", 0) or 0
     skills: list[int] = []
     moves: list[int] = []
     costs: list[tuple[str, int, int]] = []

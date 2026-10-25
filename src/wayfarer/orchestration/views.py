@@ -13,6 +13,9 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.default_knowledge_projection import (
+    project as project_default_knowledge,
+)
 from wayfarer.engine.simulation.combat.engine import hex_template
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.fright_state import projection as fright_projection
@@ -240,7 +243,10 @@ def player_detail(
         }
         for a in state.actors
         if a.actor_id in member.actor_ids
-        if (build := compiler.compile(a.proposal.draft).build) is not None
+        if (approved := compiler.compile(a.proposal.draft).build) is not None
+        for build in (
+            project_default_knowledge(compiler, state, a.actor_id, approved, required=True),
+        )
     )
     projection["equipment"] = tuple(
         {

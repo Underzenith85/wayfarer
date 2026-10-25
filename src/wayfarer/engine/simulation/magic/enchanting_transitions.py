@@ -25,7 +25,10 @@ from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic import haste_manufacture as manufacture
 from wayfarer.engine.simulation.magic.backfires import refund_later
-from wayfarer.engine.simulation.magic.concentration import require_no_held_melee
+from wayfarer.engine.simulation.magic.concentration import (
+    require_idle_concentration,
+    require_no_held_melee,
+)
 from wayfarer.engine.simulation.magic.enchanting import (
     EnchantingRules,
     EnchantmentInterruption,
@@ -49,6 +52,7 @@ from wayfarer.engine.simulation.magic.enchanting_calendar import (
     enchanting_work_active as enchanting_work_active,
 )
 from wayfarer.engine.simulation.magic.enchanting_calendar import (
+    interrupt_work_rest,
     next_shift_at,
     record_rest,
     require_pending_cast_time,
@@ -474,6 +478,7 @@ def _begin(
     recipe: EnchantmentRecipe,
     *,
     correct_energy: bool,
+    work_admission: bool,
 ) -> tuple[PlayState, EnchantmentProject, EnchantmentOutcome]:
     if project.status not in ("active", "interrupted") or project.active_work is not None:
         raise ConflictError("Enchantment project is not available for work")
@@ -494,6 +499,8 @@ def _begin(
         ):
             raise ConflictError("Enchanter is concentrating on a Melee spell")
         require_no_held_melee(state.resources, actor_id)
+        if work_admission:
+            require_idle_concentration(state.resources, actor_id)
     if busy_actor_ids(state.resources.enchantment_projects) & set(project.enchanter_ids):
         raise ConflictError("An enchanter already has active project work")
     _validate_bindings(runtime, state, recipe, project.target_item_id, project.enchanter_ids)
@@ -557,6 +564,10 @@ def _begin(
     project = project.model_copy(
         update={"status": "active", "active_work": work, "delay_seconds": 0}
     )
+    if work_admission:
+        state = state.model_copy(
+            update={"resources": interrupt_work_rest(state.resources, project)}
+        )
     return (
         state,
         project,
@@ -1053,6 +1064,7 @@ def apply_enchantment(
     correct_energy: bool = True,
     haste_manufacture: bool = False,
     manufacture_generation: int = 1,
+    work_admission: bool = False,
 ) -> tuple[PlayState, EnchantmentOutcome]:
     """Apply one project command; persisted receipts suppress repeated costs and rolls."""
     if not system:
@@ -1113,7 +1125,13 @@ def apply_enchantment(
         manufacture.context(runtime, state, project.id, kind=command.kind)
         if isinstance(command, BeginEnchanting):
             state, project, outcome = _begin(
-                runtime, state, command, project, recipe, correct_energy=correct_energy
+                runtime,
+                state,
+                command,
+                project,
+                recipe,
+                correct_energy=correct_energy,
+                work_admission=work_admission,
             )
         elif isinstance(command, InterruptEnchanting):
             state, project, outcome = _interrupt(runtime, state, command, project, recipe)

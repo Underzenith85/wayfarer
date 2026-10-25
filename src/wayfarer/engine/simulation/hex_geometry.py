@@ -16,6 +16,7 @@ from pydantic.config import JsonDict
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.tables.combat import (
     posture_move_allowance,
+    retreat_posture_allowed,
 )
 from wayfarer.engine.rules.tables.combat import (
     step_allowance as basic_step_allowance,
@@ -385,6 +386,7 @@ def can_retreat(
     *,
     context: RetreatContext,
     occupants: tuple[Occupant, ...] = (),
+    correct_postures: bool = True,
 ) -> bool:
     """One-hex retreat eligibility (B377, B391); no defense bonus or turn mutation."""
     battlefield.cell(attacker)
@@ -396,7 +398,10 @@ def can_retreat(
         or context.grappled
         or not context.maneuver_allows_retreat
         or context.moved_more_than_basic_move
-        or defender.posture in ("sitting", "lying")
+        or not retreat_posture_allowed(
+            "prone" if defender.posture == "lying" else defender.posture,
+            legacy=None if correct_postures else "hex",
+        )
         or distance(defender.position, destination) != 1
         or distance(attacker, destination) <= distance(attacker, defender.position)
         or any(entry.position == destination for entry in occupants)

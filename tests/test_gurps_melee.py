@@ -90,6 +90,7 @@ async def setup(
     parry: Parry | None = None,
     unarmed_fixture: bool = False,
     third_actor: bool = False,
+    fourth_actor: bool = False,
     durability: ObjectProfile | None = None,
     object_hp: int | None = None,
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
@@ -486,13 +487,17 @@ async def setup(
         compiler, PowerPolicy(id="power", version=1, automatic_approval=True), frozenset({"gm"})
     )
     test_world = runtime_world or world()
-    if third_actor:
+    if third_actor or fourth_actor:
         test_world = replace(
             test_world,
             entities=test_world.entities
-            + (replace(next(e for e in test_world.entities if e.id == "b"), id="c"),),
+            + tuple(
+                replace(next(e for e in test_world.entities if e.id == "b"), id=actor)
+                for actor in (*(("c",) if third_actor else ()), *(("d",) if fourth_actor else ()))
+                if actor not in {entity.id for entity in test_world.entities}
+            ),
         )
-    actor_ids = ("a", "b", "c") if third_actor else ("a", "b")
+    actor_ids = ("a", "b", *(("c",) if third_actor else ()), *(("d",) if fourth_actor else ()))
     resources = ResourceEngine(
         test_world, catalog, rules, policy, tuple(e.inventory_spec() for e in equipment.entries)
     )
@@ -729,6 +734,11 @@ async def setup(
                     *(
                         (Placement(actor_id="c", position=GridPoint(x=2, y=0), facing="west"),)
                         if third_actor
+                        else ()
+                    ),
+                    *(
+                        (Placement(actor_id="d", position=GridPoint(x=3, y=0), facing="west"),)
+                        if fourth_actor
                         else ()
                     ),
                 ),

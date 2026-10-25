@@ -7,6 +7,13 @@ from collections.abc import Callable
 from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import exertion, injury_turn, movement
+from wayfarer.engine.simulation.combat.attack_policy import (
+    bind_pending,
+    initiating_policy,
+    uses_basic_set_attacks,
+)
+from wayfarer.engine.simulation.combat.attack_preparation import project_refund
+from wayfarer.engine.simulation.combat.attack_targets import require_pending_minimum
 from wayfarer.engine.simulation.combat.commands import TakeCombatTurn, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.entangle_transitions import escape_binding
@@ -35,6 +42,12 @@ from wayfarer.engine.simulation.combat.ranged.situation import validate_command
 from wayfarer.engine.simulation.combat.ranged.spraying import (
     prepare_spraying_fire,
     prepare_suppression_fire,
+)
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    bind_pending as bind_ranged_pending,
+)
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    initiating as initiating_ranged_policy,
 )
 from wayfarer.engine.simulation.combat.shield_rush import validate_declaration
 from wayfarer.engine.simulation.combat.thrown.flight import retrieve
@@ -307,6 +320,39 @@ def _preview_turn(
     engine = context.engine
     resources = state.resources
     if not forced and not (hp.injury and hp.injury.stunned):
+        pure = initiating_policy(
+            play.rules_context, state, encounter, command.actor_id
+        ).minimum or (
+            command.maneuver in ATTACK_MANEUVERS
+            and uses_basic_set_attacks(play.rules_context)
+            and isinstance(
+                mode(
+                    play.rules_context,
+                    state,
+                    command.actor_id,
+                    command.item_id or "",
+                    command.mode_id,
+                ),
+                RangedMode,
+            )
+            and initiating_ranged_policy(play.rules_context, state, encounter, command.actor_id)
+        )
+        state = project_refund(
+            state,
+            command.actor_id,
+            starting=pure
+            and not context.resuming
+            and not context.reaction
+            and first_opportunity(encounter),
+        )
+        resources = state.resources
+        actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+        encounter = engine._replace(
+            encounter,
+            actor.model_copy(
+                update={"movement_allowance": movement(play.rules_context, state, command.actor_id)}
+            ),
+        )
         preview, preview_resources, preview_result = engine.take_turn(
             encounter,
             actor_id=command.actor_id,
@@ -369,8 +415,16 @@ def _preview_turn(
                     if preview.pending_defense.suppression_zone_id is not None
                     else command.shots
                 ),
+                preview=pure,
             )
-            prepare_spraying_fire(play.rules_context, state, preview, command)
+            preview = prepare_spraying_fire(play.rules_context, state, preview, command)
+            candidate = bind_pending(
+                play.rules_context,
+                state.model_copy(update={"resources": preview_resources}),
+                preview,
+            )
+            candidate = bind_ranged_pending(play.rules_context, candidate, preview)
+            require_pending_minimum(play.rules_context, candidate, preview)
         if command.maneuver == "aim" and preview_result.code != "combat.wait_triggered":
             observe(play.rules_context, state, preview, command)
     return None

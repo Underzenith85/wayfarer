@@ -16,6 +16,7 @@ from pydantic.json_schema import SkipJsonSchema
 from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.rules.magic.protocols import MagicItemInstance
 from wayfarer.engine.rules.types.affliction import AfflictionEffect
+from wayfarer.engine.rules.types.care_minimum import enabled as care_minimum_enabled
 from wayfarer.engine.rules.types.creature import Creature, Swarm
 from wayfarer.engine.rules.types.cyclic_runtime import RuntimeCyclicAttack, RuntimeCyclicExposure
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
@@ -307,7 +308,13 @@ class ResourceState(Record):
             if task.status == "interrupted" and (
                 task.interrupted_at is None or not task.start <= task.interrupted_at < task.due
             ):
-                raise ValueError("Interrupted recovery requires its interruption time")
+                if not (
+                    task.settled
+                    and task.interrupted_at is not None
+                    and task.due <= task.interrupted_at <= self.game_time
+                    and care_minimum_enabled(task, self.events, self.game_time)
+                ):
+                    raise ValueError("Interrupted recovery requires its interruption time")
             if task.status == "completed" and (not task.settled or task.due > self.game_time):
                 raise ValueError("Completed recovery must be due and settled")
         return self

@@ -78,13 +78,18 @@ def analyze(effect: str, *context: str) -> Task:
 
 
 def contest(
-    dispatch: str, effect: str, unit: str, modifiers: frozenset[str], *context: str
+    dispatch: str,
+    effect: str,
+    unit: str,
+    modifiers: frozenset[str],
+    *context: str,
+    resolution: R = R.QUICK_CONTEST,
 ) -> Task:
     return task(
         dispatch,
         effect,
         unit,
-        resolution=R.QUICK_CONTEST,
+        resolution=resolution,
         policy=P.UNKNOWN_UNTIL_LATER,
         context=context,
         modifiers=modifiers,
@@ -118,7 +123,14 @@ _ROWS: Final = (
     (
         "skill:gambling",
         "Gambling",
-        contest(SOCIAL, "win-game-of-chance", "gambling-margin", DECEPTION, "game-and-stakes"),
+        contest(
+            SOCIAL,
+            "win-game-of-chance",
+            "gambling-margin",
+            DECEPTION,
+            "game-and-stakes",
+            resolution=R.REGULAR_CONTEST,
+        ),
     ),
     ("skill:hidden-lore", "Hidden Lore", recall("recall-secret-lore", "hidden-lore-question")),
     ("skill:history", "History", recall("interpret-historical-evidence", "historical-question")),

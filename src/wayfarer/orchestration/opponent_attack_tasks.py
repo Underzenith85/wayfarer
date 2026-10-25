@@ -7,6 +7,10 @@ from wayfarer.engine.simulation.combat.attack_visibility import (
     secret_source,
 )
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
+from wayfarer.engine.simulation.combat.defense_options import require_current_skill
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    require_owner_damage as require_ranged_owner_damage,
+)
 from wayfarer.engine.simulation.traits.composed_phases import ComposedAttackChoice
 from wayfarer.engine.simulation.traits.composed_records import ResistComposedAttack
 from wayfarer.engine.simulation.traits.composed_resolution import resolve as resolve_composed
@@ -50,6 +54,10 @@ def open_opponent_attack(
         and secret_source(state.resources, command.encounter_id, command.attack_id) is not None
     ):
         raise ValidationError("Recorded secret attack visibility cannot become public")
+    if command.prepare_owner_damage:
+        require_ranged_owner_damage(
+            play.rules_context, state, encounter_for(state, command.encounter_id)
+        )
     state = play.checkpoint(state)
     preparation = prepare_opponent_attack(
         play.rules_context,
@@ -170,6 +178,7 @@ def choose_opponent_attack(
         raise ValidationError("Ordinary attacks require a defense response")
     encounter = encounter_for(state, pending.preparation.encounter_id)
     validate_opponent_attack(play.rules_context, state, encounter, pending.preparation)
+    require_current_skill(play.rules_context, state, encounter, response)
     saved, clock, original, selected, receipt = select_opponent_roll(
         play, state, command, saved, clock, pending
     )

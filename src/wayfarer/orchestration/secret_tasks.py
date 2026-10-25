@@ -5,12 +5,19 @@ from pydantic import TypeAdapter
 from wayfarer.engine.rules.checks import CheckTrace, evaluate_success
 from wayfarer.engine.simulation.action_engine.engine import TaskCheckPreparation
 from wayfarer.engine.simulation.actions import Inspect, PlayState, Social
+from wayfarer.engine.simulation.campaign.default_knowledge import adopted
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.traits.luck import LuckCommand, LuckRoll, apply_luck, luck_cooldown
 from wayfarer.errors import ConflictError
+from wayfarer.orchestration.action_admission import require_prepared_minimum
+from wayfarer.orchestration.default_knowledge_generations import (
+    correct_default_knowledge,
+    require_default_knowledge,
+)
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.real_play_clock import RealPlayClock, spend_real_play_cooldown
 from wayfarer.orchestration.task_context import approved, ready
+from wayfarer.orchestration.task_minimum import enabled as minimum_enabled
 from wayfarer.orchestration.task_records import (
     ChooseSecretTaskCheck,
     PrepareSecretTaskCheck,
@@ -19,6 +26,7 @@ from wayfarer.orchestration.task_records import (
     TaskSnapshot,
     identity,
 )
+from wayfarer.orchestration.task_skill_context import enabled as skill_context_enabled
 
 PREPARATION: TypeAdapter[TaskCheckPreparation] = TypeAdapter(TaskCheckPreparation)
 
@@ -37,6 +45,15 @@ def open_secret(
         prepared_elapsed_microseconds=clock.elapsed_microseconds,
         ordinary=ordinary,
         preparation_json=PREPARATION.dump_json(prepared).decode(),
+        skill_context_generation=1 if skill_context_enabled() else None,
+        default_knowledge_generation=(
+            2
+            if require_default_knowledge()
+            else 1
+            if correct_default_knowledge() and adopted(state, command.actor_id)
+            else None
+        ),
+        minimum_skill_generation=1 if minimum_enabled() else None,
     )
     if saved.pending is not None or any(roll.id == pending.id for roll in saved.luck.rolls):
         raise ConflictError("Another task choice is pending or its identity was already used")
@@ -114,9 +131,18 @@ def choose_secret(
         update={"id": command.id, "expected_revision": state.revision}
     )
     prepared = PREPARATION.validate_json(pending.preparation_json)
-    current = play.engine.prepare_task_check(state, ordinary, fatigue_already_paid=True)
+    current = play.engine.prepare_task_check(
+        state,
+        ordinary,
+        fatigue_already_paid=True,
+        correct_skill_context=pending.skill_context_generation == 1,
+        correct_default_knowledge=pending.default_knowledge_generation is not None,
+        require_default_knowledge=pending.default_knowledge_generation == 2,
+    )
     if current != prepared:
         raise ConflictError("Secret task context changed before its dice; cancel and prepare again")
+    if pending.minimum_skill_generation == 1:
+        require_prepared_minimum(prepared)
     receipt = None
     if command.choice == "use-luck":
         build = approved(play, state, command.actor_id)

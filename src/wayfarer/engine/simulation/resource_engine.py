@@ -425,7 +425,11 @@ class ResourceEngine:
             (
                 feature.duration_seconds or 0
                 for feature in spec.general
-                if feature.kind in {"communication", "fuel", "light", "recording", "sensor"}
+                if (
+                    feature.kind in {"communication", "fuel", "light", "recording", "sensor"}
+                    or feature.kind == "tool"
+                    and item.charges is not None
+                )
                 and feature.consumable_definition_id is None
             ),
             default=0,

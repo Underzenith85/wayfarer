@@ -27,7 +27,10 @@ covered by resulting-state, eligibility, conservation and replay evidence.
 The explicit [recorded parts assessment](gurps-armoury-parts.md) admits
 source-sufficient rolled stock for major repairs. The private [selected-time](gurps-armoury-selected-time.md) and
 [verified-default](gurps-armoury-defaults.md) paths now bind their source-defined
-choices to real repairs. Alternative/operating toolkit variants remain unverified
-in #977, as recorded in the source review.
+choices to real repairs. The [physical-tool path](gurps-armoury-tool-quality.md)
+now accepts explicitly selected alternatives with an exact pinned skill feature,
+including authenticated improvised physical kits at the technological-task -5.
+Absent kits and broader alternative/operating variants remain unverified in #977, as
+recorded in the source review.
 Familiarity acquisition remains separate unimplemented work.
 No source/certification status or frozen request contract is promoted.

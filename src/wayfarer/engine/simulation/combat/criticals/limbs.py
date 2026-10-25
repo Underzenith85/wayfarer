@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode, WeaponMode
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.health.injury import (
     DisableLocation,
     Wound,
@@ -157,7 +158,7 @@ def resolve_limb(
         if number == 6:
             damage //= 2
         armor = tuple(
-            entries[i.definition_id].armor
+            projected_profile(state.resources, i, entries[i.definition_id]).armor
             for i in state.resources.items
             if i.owner_id == actor_id
             and i.equipped

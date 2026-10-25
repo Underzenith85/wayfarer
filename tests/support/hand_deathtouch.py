@@ -23,12 +23,13 @@ from wayfarer.engine.rules.skills.mundane.melee import definitions as melee_defi
 from wayfarer.engine.rules.skills.mundane.ranged import definitions as ranged_definitions
 from wayfarer.engine.rules.types.location import HumanBody
 from wayfarer.engine.rules.types.object import ObjectCondition
+from wayfarer.engine.rules.types.skill import Difficulty
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.battlefield import Battlefield
 from wayfarer.engine.simulation.combat.profiles import CombatRules
-from wayfarer.engine.simulation.equipment.basic.armor import ARMOR
+from wayfarer.engine.simulation.equipment.basic.armor import ARMOR, SHIELDS
 from wayfarer.engine.simulation.equipment.basic.melee import WEAPONS
 from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog
 from wayfarer.engine.simulation.magic.melee_spell_state import ObserveMeleeMana
@@ -58,24 +59,34 @@ async def fixture(
     path: Path,
     backend: str,
     *,
-    defender: Literal["unarmed", "staff", "armor", "knife"] = "unarmed",
+    defender: Literal["unarmed", "staff", "armor", "knife", "shield"] = "unarmed",
     spectator: bool = False,
     spell_skill: int = 16,
     missing_prerequisite: str | None = None,
     magery: int = 2,
+    striking_skill: Literal["skill:brawling", "skill:boxing", "skill:karate"] = "skill:brawling",
+    striking_points: int = 8,
+    purchase_striking: bool = True,
+    altered_striking: bool = False,
+    caster_load: bool = False,
 ) -> tuple[str, PlayService, Campaign]:
     body = body_package()
     staff = next(e for e in WEAPONS if e.definition_id == "equipment:quarterstaff")
     armor = next(e for e in ARMOR if e.definition_id == "equipment:leather-armor")
     knife = next(e for e in WEAPONS if e.definition_id == "equipment:large-knife")
-    profiles = (staff, armor) + ((knife,) if defender == "knife" else ())
+    shield = next(e for e in SHIELDS if e.definition_id == "equipment:medium-shield")
+    profiles = (
+        (staff, armor)
+        + ((knife,) if defender == "knife" else ())
+        + ((shield,) if defender == "shield" else ())
+    )
     equipment = EquipmentCatalog(profile_id=PROFILE, entries=profiles)
     definitions = (
         tuple(body.definitions)
         + tuple(
             d
             for d in melee_definitions()
-            if d.id in ("skill:brawling", "skill:staff", "skill:two-handed-sword")
+            if d.id in ("skill:brawling", "skill:staff", "skill:two-handed-sword", striking_skill)
         )
         + tuple(
             RuleDefinition(
@@ -103,6 +114,24 @@ async def fixture(
                 int(knife.price or 0),
                 ImplementationStatus.IMPLEMENTED,
             ),
+        )
+    if defender == "shield":
+        definitions += tuple(d for d in melee_definitions() if d.id == "skill:shield-standard") + (
+            RuleDefinition(
+                shield.definition_id,
+                DefinitionKind.EQUIPMENT,
+                "Medium Shield",
+                "sjg:basic-set-characters-4e-2004",
+                int(shield.price or 0),
+                ImplementationStatus.IMPLEMENTED,
+            ),
+        )
+    if altered_striking:
+        definitions = tuple(
+            replace(d, skill=replace(d.skill, difficulty=Difficulty.EASY))
+            if d.id == striking_skill and d.skill is not None
+            else d
+            for d in definitions
         )
     package = profile_package(PROFILE, *definitions)
     package = replace(
@@ -158,7 +187,11 @@ async def fixture(
         Purchase(definition_id="trait:magery-0"),
         Purchase(definition_id="trait:magery", amount=magery),
         *(Purchase(definition_id="spell:" + key) for key in CHAIN if key != missing_prerequisite),
-        Purchase(definition_id="skill:brawling", amount=8),
+        *(
+            (Purchase(definition_id=striking_skill, amount=striking_points),)
+            if purchase_striking
+            else ()
+        ),
     )
     caster = caster.model_copy(
         update={
@@ -187,10 +220,12 @@ async def fixture(
             if defender == "staff"
             else (Purchase(definition_id="skill:knife", amount=8),)
             if defender == "knife"
+            else (Purchase(definition_id="skill:shield-standard", amount=8),)
+            if defender == "shield"
             else ()
         ),
     )
-    items = (
+    items: tuple[Item, ...] = (
         ()
         if defender == "unarmed"
         else (
@@ -201,6 +236,8 @@ async def fixture(
                 if defender == "staff"
                 else knife.definition_id
                 if defender == "knife"
+                else shield.definition_id
+                if defender == "shield"
                 else armor.definition_id,
                 equipped=True,
                 ready=True,
@@ -208,10 +245,17 @@ async def fixture(
                 if defender == "staff" and staff.durability
                 else ObjectCondition(hp=knife.durability.hp)
                 if defender == "knife" and knife.durability
+                else ObjectCondition(hp=shield.durability.hp)
+                if defender == "shield" and shield.durability
                 else None,
             ),
         )
     )
+    if caster_load:
+        items += tuple(
+            Item(id="caster-load-" + str(index), owner_id="a", definition_id=armor.definition_id)
+            for index in range(3)
+        )
     initial = campaign(engine)
     state = play.initial_state(
         initial,
@@ -238,7 +282,7 @@ async def fixture(
                 )
                 if defender == "staff"
                 else (("defender-implement", "right-hand"),)
-                if defender == "knife"
+                if defender in ("knife", "shield")
                 else (),
             ),
         ),

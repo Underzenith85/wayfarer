@@ -4,9 +4,12 @@ import hashlib
 from pathlib import Path
 
 import pytest
+from test_default_knowledge_hosts import adopt as establish_society_knowledge
 from test_spell_bindings import command, idle, setup, start_fight
 
+from wayfarer.engine.character.compiler import CharacterDraft
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.campaign.default_knowledge import known_skills
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.maneuvers import WaitTrigger
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
@@ -98,11 +101,20 @@ async def test_held_fireball_injury_checks_will_and_hits_caster(
     assert play.checkpoint(after, before=before, run_npcs=False) == after
 
 
-async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path: Path) -> None:
-    cid, play = await setup(tmp_path, combat=True, execution_version=2)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_wait_releases_held_missile_then_resumes_interrupted_move(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play = await setup(tmp_path, combat=True, execution_version=2, backend=backend)
     combat = await start_fight(cid, play)
+    await establish_society_knowledge(play, cid, ("skill:innate-attack-projectile",))
+    assert "skill:innate-attack-projectile" in known_skills(
+        play._load(await play.store.read(cid)), "a"
+    )
     service = SpellService(play)
-    start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    start = command(play._load(await play.store.read(cid)).revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
@@ -111,7 +123,7 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
         TakeCombatTurn(
             id="wait",
             actor_id="a",
-            expected_revision=3,
+            expected_revision=play._load(await play.store.read(cid)).revision,
             encounter_id="fight",
             maneuver="wait",
             wait_trigger=WaitTrigger(
@@ -128,7 +140,7 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
         TakeCombatTurn(
             id="move",
             actor_id="b",
-            expected_revision=4,
+            expected_revision=play._load(await play.store.read(cid)).revision,
             encounter_id="fight",
             maneuver="move",
             destination=GridPoint(x=3, y=1),
@@ -139,14 +151,24 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
     play.rng = RecordedDice([1, 2, 2])
     await service.execute(
         cid,
-        start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 5}),
+        start.model_copy(
+            update={
+                "id": "release",
+                "kind": "release",
+                "expected_revision": play._load(await play.store.read(cid)).revision,
+            }
+        ),
         principal_id="a",
     )
     play.rng = RecordedDice([4])
     await combat.execute(
         cid,
         ChooseDefense(
-            id="defense", actor_id="b", expected_revision=6, encounter_id="fight", defense="none"
+            id="defense",
+            actor_id="b",
+            expected_revision=play._load(await play.store.read(cid)).revision,
+            encounter_id="fight",
+            defense="none",
         ),
         principal_id="b",
     )
@@ -154,10 +176,16 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
     assert saved.encounters[0].wait_interrupt and saved.encounters[0].wait_interrupt.ready
     await combat.execute(
         cid,
-        ResumeInterruptedTurn(id="resume", actor_id="b", expected_revision=7, encounter_id="fight"),
+        ResumeInterruptedTurn(
+            id="resume",
+            actor_id="b",
+            expected_revision=play._load(await play.store.read(cid)).revision,
+            encounter_id="fight",
+        ),
         principal_id="b",
     )
     saved = play._load(await play.store.read(cid))
+    assert saved.revision == 9
     assert next(
         p.position for p in saved.encounters[0].participants if p.actor_id == "b"
     ) == GridPoint(x=3, y=1)
@@ -270,13 +298,21 @@ async def test_gm_backfire_retarget_is_atomic_authorized_and_replayable(
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_failed_consciousness_on_release_commits_without_cost_or_reroll(
     tmp_path: Path,
+    backend: str,
 ) -> None:
-    cid, play = await setup(tmp_path, combat=True, execution_version=2, caster_hp=1)
+    cid, play = await setup(
+        tmp_path, combat=True, execution_version=2, backend=backend, caster_hp=1
+    )
     await start_fight(cid, play)
+    await establish_society_knowledge(play, cid, ("skill:innate-attack-projectile",))
+    assert "skill:innate-attack-projectile" in known_skills(
+        play._load(await play.store.read(cid)), "a"
+    )
     service = SpellService(play)
-    start = command(1).model_copy(
+    start = command(play._load(await play.store.read(cid)).revision).model_copy(
         update={"spell_id": "fireball", "channel_id": "fireball", "hp_energy": 1}
     )
     play.rng = RecordedDice([3, 3, 3])
@@ -284,11 +320,17 @@ async def test_failed_consciousness_on_release_commits_without_cost_or_reroll(
     await idle(cid, play, "b")
     play.rng = RecordedDice([6, 6, 6, 4])
     release = start.model_copy(
-        update={"id": "release", "kind": "release", "expected_revision": 3, "hp_energy": 0}
+        update={
+            "id": "release",
+            "kind": "release",
+            "expected_revision": play._load(await play.store.read(cid)).revision,
+            "hp_energy": 0,
+        }
     )
     result = await service.execute(cid, release, principal_id="a")
     assert result.outcome == "interrupted" and result.energy_spent == 0
     saved = play._load(await play.store.read(cid))
+    assert saved.revision == 5
     hp = next(p for p in saved.resources.pools if p.id == "hp:a")
     assert hp.current == -4 and hp.injury and hp.injury.unconscious
     assert saved.encounters[0].status == "completed"
@@ -321,41 +363,89 @@ async def test_expansion_refund_waits_until_next_caster_turn(tmp_path: Path) -> 
     "table,expected",
     [([1, 1, 1], 6), ([2, 2, 2], 6), ([1, 2, 2], 4), ([3, 3, 2], 2), ([4, 4, 4], 2)],
 )
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_fireball_body_criticals_execute_damage(
-    tmp_path: Path, table: list[int], expected: int
+    tmp_path: Path, backend: str, table: list[int], expected: int
 ) -> None:
-    cid, play = await setup(tmp_path, combat=True, execution_version=2)
+    cid, play = await setup(tmp_path, combat=True, execution_version=2, backend=backend)
     combat = await start_fight(cid, play)
+    await establish_society_knowledge(play, cid, ("skill:innate-attack-projectile",))
+    assert "skill:innate-attack-projectile" in known_skills(
+        play._load(await play.store.read(cid)), "a"
+    )
     service = SpellService(play)
-    start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    start = command(play._load(await play.store.read(cid)).revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
     play.rng = RecordedDice([1, 1, 1])
     await service.execute(
         cid,
-        start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 3}),
+        start.model_copy(
+            update={
+                "id": "release",
+                "kind": "release",
+                "expected_revision": play._load(await play.store.read(cid)).revision,
+            }
+        ),
         principal_id="a",
     )
     play.rng = RecordedDice(table + ([] if sum(table) == 6 else [2]) + [3, 3, 3])
     result = await combat.execute(
         cid,
         ChooseDefense(
-            id="hit", actor_id="b", expected_revision=4, encounter_id="fight", defense="none"
+            id="hit",
+            actor_id="b",
+            expected_revision=play._load(await play.store.read(cid)).revision,
+            encounter_id="fight",
+            defense="none",
         ),
         principal_id="b",
     )
     assert result.injury and result.injury.injury == expected
+    assert play._load(await play.store.read(cid)).revision == 6
     assert result.injury.adjudication_required is None
 
 
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_fireball_aim_and_hit_location_use_persisted_ranged_state(
     tmp_path: Path,
+    backend: str,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    cid, play = await setup(tmp_path, combat=True, execution_version=2, human_targets=True)
+    import test_spell_bindings
+
+    original_draft = test_spell_bindings.draft
+
+    def lawful_draft() -> CharacterDraft:
+        # DX11 default7 + persisted Aim1 - face5 gives the lawful B345 floor3.
+        draft = original_draft()
+        return draft.model_copy(
+            update={
+                "purchases": tuple(
+                    purchase.model_copy(update={"amount": 11})
+                    if purchase.definition_id == "attribute:dx"
+                    else purchase
+                    for purchase in draft.purchases
+                )
+            }
+        )
+
+    monkeypatch.setattr(test_spell_bindings, "draft", lawful_draft)
+    cid, play = await setup(
+        tmp_path, combat=True, execution_version=2, backend=backend, human_targets=True
+    )
     combat = await start_fight(cid, play)
+    await establish_society_knowledge(play, cid, ("skill:innate-attack-projectile",))
+    assert "skill:innate-attack-projectile" in known_skills(
+        play._load(await play.store.read(cid)), "a"
+    )
     service = SpellService(play)
-    start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    start = command(play._load(await play.store.read(cid)).revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
@@ -365,7 +455,7 @@ async def test_fireball_aim_and_hit_location_use_persisted_ranged_state(
         TakeCombatTurn(
             id="aim",
             actor_id="a",
-            expected_revision=3,
+            expected_revision=play._load(await play.store.read(cid)).revision,
             encounter_id="fight",
             maneuver="aim",
             item_id=spell_item,
@@ -381,13 +471,14 @@ async def test_fireball_aim_and_hit_location_use_persisted_ranged_state(
             update={
                 "id": "release",
                 "kind": "release",
-                "expected_revision": 5,
+                "expected_revision": play._load(await play.store.read(cid)).revision,
                 "hit_location": "face",
             }
         ),
         principal_id="a",
     )
     saved = play._load(await play.store.read(cid))
+    assert saved.revision == 7
     pending = saved.encounters[0].pending_defense
     assert pending and pending.spell_aim_bonus == 1 and pending.hit_location == "face"
     play.rng = RecordedDice([3, 3, 2, 4, 3, 3, 3])
@@ -396,14 +487,15 @@ async def test_fireball_aim_and_hit_location_use_persisted_ranged_state(
         ChooseDefense(
             id="impact",
             actor_id="b",
-            expected_revision=6,
+            expected_revision=play._load(await play.store.read(cid)).revision,
             encounter_id="fight",
             defense="none",
         ),
         principal_id="b",
     )
-    assert result.injury and result.injury.attack.effective_target == 2
+    assert result.injury and result.injury.attack.effective_target == 3
     assert result.injury.injury == 4
+    assert play._load(await play.store.read(cid)).revision == 8
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 

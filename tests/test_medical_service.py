@@ -1,23 +1,31 @@
 """Real SQLite CAS/restart evidence for profile-selected recovery and shared time."""
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from support.runtime import seed_campaign
+from support.runtime import build_play, seed_campaign
 from test_actions import campaign, world
 from test_statistics import gurps_draft, profile_compiler
 
+from wayfarer.engine.character.compiler import CharacterCompiler
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.catalog import PackagePin, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.skills.mundane.medicine import definitions as medical_definitions
+from wayfarer.engine.rules.skills.mundane.physical_outdoors import (
+    definitions as physical_definitions,
+)
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Move, Wait
+from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
 from wayfarer.engine.simulation.health.medical.commands import BeginRecovery, FinishRecovery
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.medical import CareEnvironment, MedicalService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -26,13 +34,37 @@ PROFILE = "gurps-basic-set-4e-2004"
 
 
 async def setup(
-    tmp_path: Path, *, stunned: bool = False
+    tmp_path: Path,
+    *,
+    stunned: bool = False,
+    backend: str = "sqlite",
+    society_known_physical_skills: tuple[str, ...] = (),
+    society_known_medical_skills: tuple[str, ...] = (),
+    pinned_skill_ids: tuple[str, ...] = (),
+    technology_level: int | None = None,
 ) -> tuple[str, PlayService, MedicalService]:
     compiler = profile_compiler(PROFILE)
     # An internal fixture binds the exact mechanics without changing registry gates.
     from test_statistics import profile_package
 
-    catalog = RulesCatalog((profile_package(PROFILE),))
+    package = profile_package(PROFILE)
+    known_ids = society_known_physical_skills + society_known_medical_skills
+    selected_ids = set(known_ids + pinned_skill_ids)
+    if selected_ids:
+        skills = tuple(
+            d for d in physical_definitions() + medical_definitions() if d.id in selected_ids
+        )
+        assert {d.id for d in skills} == selected_ids
+        package = profile_package(PROFILE, *skills)
+        compiler = CharacterCompiler(
+            RulesCatalog((package,)),
+            replace(
+                compiler.rules, packages=(PackagePin(package.id, package.version, package.digest),)
+            ),
+            replace(compiler.policy, technology_level=technology_level),
+            statistics_profile=PROFILE,
+        )
+    catalog = RulesCatalog((package,))
     engine = ActionEngine(
         PowerReviewer(compiler, PowerPolicy(id="test", version=1), frozenset({"gm"})),
         ResourceEngine(world(), catalog, compiler.rules, compiler.policy, ()),
@@ -41,6 +73,8 @@ async def setup(
     play = PlayService(
         AsyncSQLiteStore(tmp_path / "medical.sqlite", 10), engine, rng=RecordedDice([])
     )
+    if backend != "sqlite":
+        play = build_play(tmp_path, engine, backend=backend, rng=RecordedDice([]))
     initial = campaign(engine)
     state = play.initial_state(
         initial,
@@ -71,6 +105,19 @@ async def setup(
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
     await seed_campaign(play.store, initial)
+    if known_ids:
+        await DefaultKnowledgeService(play).execute(
+            initial["id"],
+            AdoptDefaultKnowledge(
+                id="physical-society-knowledge",
+                actor_id="gm",
+                expected_revision=0,
+                performer_id="a",
+                known_skill_ids=known_ids,
+                reason="The GM establishes these named skills for this explicit physical or care scenario",
+            ),
+            principal_id="gm",
+        )
     return (
         initial["id"],
         play,

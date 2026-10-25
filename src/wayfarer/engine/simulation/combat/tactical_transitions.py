@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wayfarer.engine.rules.tables.combat import maneuver_move_allowance
+from wayfarer.engine.rules.tables.combat import maneuver_move_allowance, retreat_posture_allowed
 from wayfarer.engine.simulation.combat.defense_options import prepare_options
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.combat.generations import retreat_postures_enabled
 from wayfarer.engine.simulation.combat.incoming import incoming_ranged
 from wayfarer.engine.simulation.combat.interposition import prepare_interposition
 from wayfarer.engine.simulation.combat.spatial import (
@@ -51,6 +52,16 @@ if TYPE_CHECKING:
         MigrateEncounterHex,
     )
     from wayfarer.engine.simulation.rules_context import RulesContext
+
+
+def _correct_retreat_postures(runtime: RulesContext) -> bool:
+    rules = runtime.rules.combat
+    return bool(
+        retreat_postures_enabled()
+        and rules is not None
+        and rules.gurps_equipment is not None
+        and rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
+    )
 
 
 def migrate(
@@ -190,6 +201,7 @@ def _validate_basic_escalation(
                     destination,
                     context=retreat_context,
                     occupants=occupied,
+                    correct_postures=retreat_postures_enabled(),
                 ):
                     feasible = True
                     break
@@ -381,6 +393,7 @@ def _hex_retreat_feasible(
             destination,
             context=context,
             occupants=occupied,
+            correct_postures=retreat_postures_enabled(),
         ):
             return True
     return False
@@ -426,7 +439,9 @@ def _prepare_defense_geometry(
                 command.defense == "none"
                 or command.second_defense is not None
                 or target.retreat_used
-                or target.posture in ("kneeling",)
+                or not retreat_posture_allowed(
+                    target.posture, legacy=None if _correct_retreat_postures(runtime) else "basic"
+                )
                 or bool(hp.injury and hp.injury.stunned)
                 or target.grappled
                 or target.pinned
@@ -508,6 +523,7 @@ def _prepare_defense_geometry(
             command.retreat,
             context=context,
             occupants=occupants(encounter),
+            correct_postures=_correct_retreat_postures(runtime),
         ):
             raise ValidationError("Retreat is unavailable")
         bonus += 3 if command.defense == "dodge" else 1

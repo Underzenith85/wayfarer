@@ -7,7 +7,7 @@ from support.runtime import build_play, open_store, seed_campaign
 from test_actions import world
 from test_gurps_melee import setup
 
-from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.spatial import Placement
@@ -60,6 +60,7 @@ async def test_interposition_cannot_teleport_through_terrain(
         "gurps-basic-set-4e-2004",
         human=True,
         third_actor=True,
+        extra_purchases=(Purchase(definition_id="secondary:basic-move", amount=11),),
         battlefield=board,
         placements=placements,
         aware_of=("a", "b", "c"),
@@ -70,32 +71,7 @@ async def test_interposition_cannot_teleport_through_terrain(
         store = open_store(tmp_path, backend=backend)
         await seed_campaign(store, checkpoint)
         play = build_play(tmp_path, play.engine, store=store)
-    seed = play._load(await play.store.read(cid))
-    encounter = seed.encounters[0]
-    encounter = encounter.model_copy(
-        update={
-            "participants": tuple(
-                p.model_copy(update={"movement_allowance": 11}) if p.actor_id == "c" else p
-                for p in encounter.participants
-            )
-        }
-    )
-    updated = seed.model_copy(
-        update={
-            "encounters": (encounter,),
-            "revision": seed.revision + 1,
-            "resources": seed.resources.model_copy(update={"revision": seed.revision + 1}),
-        }
-    )
-
-    def install(campaign: Campaign) -> CommandReceipt:
-        campaign["play_json"] = updated.model_dump_json()
-        campaign["revision"] = updated.revision
-        return CommandReceipt(action="combat", outcome="movement-fixture")
-
-    await play.store.commit_turn(
-        cid, "movement-fixture", seed.revision, "movement-fixture", install
-    )
+    updated = play._load(await play.store.read(cid))
     play.rng = RecordedDice([3, 3, 3])
     await CombatService(play).execute(
         cid,

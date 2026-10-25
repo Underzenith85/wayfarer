@@ -177,7 +177,7 @@ async def test_absent_unrecoverable_wrong_family_and_tampered_missile_records(
         assert not (await recorded_generations(play, state, spell_command(0))).missile_attack
     with replay_inputs(replace(record, command_input=None)):
         assert await recorded_generations(play, state, spell_command(0)) == SpellGenerations(
-            False, False, False, False, False
+            False, False, False, False, False, physician_training=False
         )
     payload = json.loads(command_text(record))
     payload.update(operation="combat", missile_attack_generation=1)

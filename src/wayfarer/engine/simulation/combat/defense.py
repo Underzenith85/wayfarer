@@ -12,6 +12,7 @@ from wayfarer.engine.simulation.combat.encounter import (
     DefenseChoice,
     Encounter,
 )
+from wayfarer.engine.simulation.combat.ranged.spray_sequence import following as following_spray
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -96,28 +97,9 @@ def choose_defense(
         and pending.spray_targets
         and not encounter.blocked_reason
     ):
-        spray_following, *spray_remaining = pending.spray_targets
-        encounter = encounter.model_copy(
-            update={
-                "pending_defense": pending.model_copy(
-                    update={
-                        "id": "spray:" + hashlib.sha256(pending.id.encode()).hexdigest(),
-                        "defender_id": spray_following.target_id,
-                        "shots": spray_following.shots,
-                        "hit_location": spray_following.hit_location,
-                        "target_item_id": None,
-                        "spray_targets": tuple(spray_remaining),
-                        "spray_recoil_penalty": spray_following.recoil_penalty,
-                        "traversal_shots": spray_following.traversal_shots,
-                        "post_attack_destination": None,
-                        "post_attack_square_facing": None,
-                        "post_attack_hex_path": (),
-                        "post_attack_facing": None,
-                        "post_attack_posture": None,
-                    }
-                )
-            }
-        )
+        next_pending = following_spray(pending)
+        assert next_pending is not None
+        encounter = encounter.model_copy(update={"pending_defense": next_pending})
     elif (
         engine.rules.gurps_equipment is not None
         and attacker.maneuver_state.attacks_remaining

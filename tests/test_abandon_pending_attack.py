@@ -10,6 +10,7 @@ from support.missile_timing import missile_spell_service
 from support.runtime import build_play, seed_campaign
 from test_blindness_combat_consumers import Context, blind, prepare, sense
 from test_combat_sensory_authority import change
+from test_default_knowledge_hosts import adopt as establish_society_knowledge
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_unarmed import state_of
@@ -399,8 +400,11 @@ async def test_held_fireball_abandonment_preserves_paid_energy_and_held_effect(
 
     cid, play = await spell_setup(tmp_path, combat=True, backend=backend, execution_version=2)
     await start_fight(cid, play)
+    await establish_society_knowledge(play, cid, ("skill:innate-attack-projectile",))
     before_cast = await state_of(cid, play)
-    start = spell_command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    start = spell_command(before_cast.revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     play.rng = RecordedDice((3, 3, 3))
     cast = await missile_spell_service(play, missile_attack=missile_attack).execute(
         cid, start, principal_id="a"

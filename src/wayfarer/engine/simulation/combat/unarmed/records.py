@@ -13,6 +13,7 @@ from pydantic import Field, model_validator
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.engine.rules.gurps_checks import Contestant, quick_contest, regular_contest_round
 from wayfarer.engine.rules.types.location import Hand
+from wayfarer.engine.simulation.combat.generations import regular_contest_extreme_scores_enabled
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
@@ -198,6 +199,7 @@ def contest(
             Contestant(actor_id, first, first_modifiers),
             Contestant(target_id, second, second_modifiers),
             rng=rng,
+            source_extremes=regular_contest_extreme_scores_enabled(),
         )
         decided = a.outcome.succeeded != b.outcome.succeeded
         return decided and a.outcome.succeeded, (a, b), decided

@@ -33,7 +33,7 @@ from wayfarer.orchestration.tasks import TaskService, real_play_clock
 async def test_exact_microsecond_cooldown_and_unrolled_secret_declaration(
     tmp_path: Path, points: int, seconds: int, secret: bool
 ) -> None:
-    cid, play = await fixture(tmp_path, points=points, dr=10)
+    cid, play = await fixture(tmp_path, points=points, dr=10, society_knows_beam=True)
     origin = real_play_clock(play._load(await play.store.read(cid))).observed_at_us
     assert origin is not None
     now = [origin + 900001]
@@ -89,7 +89,7 @@ async def test_exact_microsecond_cooldown_and_unrolled_secret_declaration(
 
 
 async def test_pause_resume_keeps_damage_original_and_cooldown_anchor(tmp_path: Path) -> None:
-    cid, play = await fixture(tmp_path)
+    cid, play = await fixture(tmp_path, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2, 1, 2))
     await begin(play, cid)
     pending = snapshot(play._load(await play.store.read(cid))).pending
@@ -112,7 +112,7 @@ async def test_pause_resume_keeps_damage_original_and_cooldown_anchor(tmp_path: 
 async def test_current_control_stale_revision_and_retry_recheck(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play = await fixture(tmp_path, backend)
+    cid, play = await fixture(tmp_path, backend, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2, 1, 1))
     await begin(play, cid)
     state = play._load(await play.store.read(cid))
@@ -155,7 +155,7 @@ async def test_current_control_stale_revision_and_retry_recheck(
 async def test_lost_attacker_approval_preserves_delivered_original_for_gm_acceptance(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play = await fixture(tmp_path, backend)
+    cid, play = await fixture(tmp_path, backend, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2, 1, 2))
     await begin(play, cid)
     await change(
@@ -193,7 +193,7 @@ async def test_lost_attacker_approval_preserves_delivered_original_for_gm_accept
 async def test_changed_target_hp_resumes_original_without_restoring_prior_hp(
     tmp_path: Path,
 ) -> None:
-    cid, play = await fixture(tmp_path)
+    cid, play = await fixture(tmp_path, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2, 1, 1))
     await begin(play, cid)
 
@@ -230,7 +230,7 @@ async def test_changed_target_hp_resumes_original_without_restoring_prior_hp(
 async def test_critical_delivery_is_fixed_and_maximum_damage_has_no_luck_roll(
     tmp_path: Path, table: tuple[int, int, int], dice: tuple[int, ...], expected: int
 ) -> None:
-    cid, play = await fixture(tmp_path)
+    cid, play = await fixture(tmp_path, society_knows_beam=True)
     play.rng = RecordedDice((1, 1, 1) + table + dice + ((2, 2, 2) if not dice else ()))
     await begin(play, cid)
     if dice:
@@ -256,6 +256,7 @@ async def test_selected_damage_drives_actual_cyclic_and_multiple_symptom_debts(
     cid, play = await fixture(
         tmp_path,
         backend,
+        society_knows_beam=True,
         modifiers=(cyclic_selection(),) + EFFECTS,
         cyclic_policy=CyclicPolicy(condition="wash"),
     )
@@ -287,7 +288,7 @@ async def test_selected_damage_drives_actual_cyclic_and_multiple_symptom_debts(
 async def test_selected_fatigue_damage_uses_current_signed_fp_and_hp_ledger(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play = await fixture(tmp_path, backend, kind="fat")
+    cid, play = await fixture(tmp_path, backend, kind="fat", society_knows_beam=True)
     await change(
         play,
         cid,
@@ -378,7 +379,7 @@ async def test_combined_phase_keeps_attack_target_after_dx_loss_and_restart(
 async def test_failed_candidate_commit_leaves_original_clock_events_and_hp_intact(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play = await fixture(tmp_path, backend)
+    cid, play = await fixture(tmp_path, backend, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2, 1, 1))
     await begin(play, cid)
     before = await play.store.read(cid)
@@ -406,7 +407,7 @@ async def test_failed_candidate_commit_leaves_original_clock_events_and_hp_intac
 async def test_damage_preparation_does_not_disclose_current_luck_eligibility(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play = await fixture(tmp_path, backend, with_luck=False)
+    cid, play = await fixture(tmp_path, backend, with_luck=False, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2, 1, 2))
     await begin(play, cid)
     before = await play.store.read(cid)

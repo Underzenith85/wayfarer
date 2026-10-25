@@ -80,6 +80,14 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "maneuver-budget",
             "acrobatic-trait-bonuses",
             "acrobatic-reaction-attributes",
+            "acrobatic-condition-checks",
+            "acrobatic-skill-minimum",
+            "interposition-current-step",
+            "staff-heavy-bare-parry",
+            "retreat-postures",
+            "hand-melee-striking-skills",
+            "melee-attack-postures",
+            "voluntary-attack-minimum",
             "ground-dive-step",
             "secondary-object-blasts",
             "missile-interposition",
@@ -87,6 +95,10 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "rooted-dodge-health-trait-composition",
             "rooted-dodge-haste-composition",
             "hand-melee-spell-contact",
+            "karate-kicking-technique",
+            "staff-form-contact",
+            "regular-contest-extreme-scores",
+            "repair-operating-tools",
         }
     )
 

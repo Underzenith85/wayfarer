@@ -11,6 +11,7 @@ from test_basic_combat import start_basic
 from test_combat_sensory_authority import change
 from test_composed_attack_host import declare
 from test_composed_attacks import pick
+from test_default_knowledge_hosts import adopt as adopt_society_knowledge
 from test_gurps_melee import setup
 from trait_support import options
 
@@ -18,6 +19,7 @@ from scripts.replay_fixtures import FixtureExecutor
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.gurps_characters import source
+from wayfarer.engine.rules.skills.mundane.ranged import definitions as ranged_definitions
 from wayfarer.engine.rules.traits.attack_defense import RUNTIME_HOOKS, package
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.modifiers import ModifierSelection
@@ -50,6 +52,7 @@ async def fixture(
     *,
     points: int = 15,
     with_luck: bool = True,
+    society_knows_beam: bool = False,
     modifiers: tuple[ModifierSelection, ...] = (),
     dr: int = 0,
     kind: str = "burn",
@@ -68,7 +71,13 @@ async def fixture(
         allow_supernatural=True,
         scene_bound=True,
         start_encounter=False,
-        extra_definitions=package().definitions + (luck,),
+        extra_definitions=package().definitions
+        + (luck,)
+        + (
+            tuple(d for d in ranged_definitions() if d.id == "skill:innate-attack-beam")
+            if society_knows_beam
+            else ()
+        ),
         trait_runtime_hooks=RUNTIME_HOOKS | SUPPORTED_HOOKS,
         extra_purchases=(
             Purchase(
@@ -109,6 +118,10 @@ async def fixture(
             }
         ),
     )
+    if society_knows_beam:
+        await adopt_society_knowledge(
+            play, cid, ("skill:innate-attack-beam",), command_id="owner-beam-known"
+        )
     state = play._load(await play.store.read(cid))
     bound = await ComposedAttackService(play).execute(
         cid,
@@ -188,7 +201,11 @@ async def test_damage_luck_changes_actual_armor_hp_shock_stun_and_posture(
     tmp_path: Path, backend: str
 ) -> None:
     cid, play = await fixture(
-        tmp_path, backend, modifiers=(pick("enhancement:armor-divisor", option="2"),), dr=5
+        tmp_path,
+        backend,
+        society_knows_beam=True,
+        modifiers=(pick("enhancement:armor-divisor", option="2"),),
+        dr=5,
     )
     before = play._load(await play.store.read(cid))
     play.rng = RecordedDice((2, 2, 2, 1, 1))
@@ -248,7 +265,7 @@ async def test_damage_luck_changes_actual_armor_hp_shock_stun_and_posture(
 async def test_authority_secret_visibility_gate_and_original_acceptance(
     tmp_path: Path, secret: bool
 ) -> None:
-    cid, play = await fixture(tmp_path)
+    cid, play = await fixture(tmp_path, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2) + (() if secret else (1, 2)))
     with pytest.raises((AuthorizationError, ValidationError)):
         await begin(play, cid, secret=secret, principal="alice")
@@ -295,7 +312,7 @@ async def test_authority_secret_visibility_gate_and_original_acceptance(
 async def test_rollback_competing_independent_stores_and_post_commit_refusal(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play = await fixture(tmp_path, backend)
+    cid, play = await fixture(tmp_path, backend, society_knows_beam=True)
     play.rng = RecordedDice((2, 2, 2, 1, 1))
     await begin(play, cid)
     before = await play.store.read(cid)
@@ -346,7 +363,7 @@ async def test_rollback_competing_independent_stores_and_post_commit_refusal(
 async def test_complete_event_folding_and_seed_only_reexecution(
     tmp_path: Path, backend: str, secret: bool
 ) -> None:
-    cid, play = await fixture(tmp_path, backend)
+    cid, play = await fixture(tmp_path, backend, society_knows_beam=True)
     initial = await play.store.read(cid)
     count = len(await play.store.history(cid))
     play.rng = secrets

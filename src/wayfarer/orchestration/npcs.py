@@ -32,6 +32,10 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Trusted, submit
 from wayfarer.orchestration.provider_contracts import ProviderRequest
 from wayfarer.orchestration.reaction_records import NPCReactionSource, PrepareReaction
+from wayfarer.orchestration.social_generations import (
+    interrogation_quick_contest_enabled,
+    regular_contest_extremes_enabled,
+)
 from wayfarer.persistence.events import CommandOrigin
 
 if TYPE_CHECKING:
@@ -299,7 +303,13 @@ def social_occurrence(
         raise ValidationError("Authored social triggers require an exact GURPS profile")
     target, will, ht = 10, trigger.npc_will, trigger.npc_ht
     social_specialties = play.engine.reviewer.compiler.social_skill_specialties
-    context = SocialContext(profile_id, target, campaign_specialties=social_specialties)
+    context = SocialContext(
+        profile_id,
+        target,
+        campaign_specialties=social_specialties,
+        regular_contest_extremes=regular_contest_extremes_enabled(),
+        interrogation_quick_contest=interrogation_quick_contest_enabled(),
+    )
     if trigger.kind in ("fright", "self-control"):
         if not any(a.actor_id == trigger.subject_id for a in state.actors):
             raise ValidationError("Social trigger subject requires an approved build")
@@ -328,6 +338,7 @@ def social_occurrence(
             context.trait_base = definition.point_cost
             context.trait_levels = purchase.amount
             context.self_control_modifier = trigger.modifier
+            context.self_control_trait_id = purchase.definition_id
     elif trigger.kind == "influence":
         if not any(a.actor_id == actor_id for a in state.actors):
             raise ValidationError("Influence initiator requires an approved build")

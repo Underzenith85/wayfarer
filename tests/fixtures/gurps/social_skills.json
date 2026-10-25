@@ -178,7 +178,7 @@
       "reference": "B202",
       "attribute": "attribute:iq",
       "difficulty": "average",
-      "resolution": "regular-contest",
+      "resolution": "quick-contest",
       "required_conditions": [
         "subject-restrained",
         "shared-language"
@@ -688,7 +688,7 @@
       }
     },
     {
-      "name": "interrogation-takes-two-rounds-to-decide",
+      "name": "interrogation-both-succeed-better-margin-answers",
       "procedure": "skill:interrogation",
       "skill": 12,
       "resistance": 10,
@@ -697,24 +697,17 @@
         "shared-language"
       ],
       "dice": [
-        4,
-        4,
         3,
         3,
         3,
         3,
         3,
-        3,
-        3,
-        5,
-        5,
-        5
+        3
       ],
       "expected": {
         "verdict": "success",
         "effect": "interrogation-answered",
         "effective_skill": 12,
-        "rounds": 2,
         "requires_adjudication": false
       }
     },

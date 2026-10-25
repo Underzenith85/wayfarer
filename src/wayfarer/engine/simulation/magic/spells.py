@@ -284,7 +284,7 @@ class SpellContext(Record):
     execution_version: Literal[1, 2] = 1
     iq: int = Field(default=10, ge=1)
     build_revision: Id
-    skill: int = Field(ge=1, le=100)
+    skill: int = Field(ge=1)
     magery: int = Field(default=0, ge=-1, le=100)
     learned: tuple[str, ...] = ()
     mana: Literal["none", "low", "normal", "high", "very-high"] = "normal"
@@ -357,7 +357,12 @@ def casting_seconds(seconds: int, skill: int, *, missile: bool = False) -> int:
         return seconds * 2
     if missile or skill < 20:
         return seconds
-    divisor = 1 << (1 + (skill - 20) // 5)
+    halvings = 1 + (skill - 20) // 5
+    # Further halvings cannot lower the one-second floor. Item Power and
+    # trusted skill values have no source-defined upper bound.
+    if halvings >= seconds.bit_length():
+        return 1
+    divisor = 1 << halvings
     return max(1, (seconds + divisor - 1) // divisor)
 
 

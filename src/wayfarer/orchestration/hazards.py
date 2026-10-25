@@ -6,7 +6,6 @@ import hashlib
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from decimal import Decimal
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.statistics import encumbrance
@@ -21,6 +20,7 @@ from wayfarer.engine.rules.types.hazard import (
     HazardSpec,
 )
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge_fallbacks import require_skill
 from wayfarer.engine.simulation.health.hazard_damage import PREREQUISITE_PREFIX
 from wayfarer.engine.simulation.health.hazard_visibility import PREFIX as SECRET_HAZARD_PREFIX
 from wayfarer.engine.simulation.health.hazard_visibility import private_hazard_result
@@ -36,6 +36,11 @@ from wayfarer.orchestration.medical import _build, _value
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Control, Controls, Trusted, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.swim_hazard_resume import (
+    NativeSwimResume,
+    capture_swim_resume,
+    require_swim_resume,
+)
 
 
 @dataclass(frozen=True)
@@ -73,13 +78,19 @@ def _outside_controls(
     return result + (Trusted(gm_ids),) if member.role == "gm" else result
 
 
-def _hazard_payload(command: HazardCommand, resume: NaturalHazardResume | None) -> str:
+def _hazard_payload(
+    command: HazardCommand,
+    resume: NaturalHazardResume | None,
+    swim_resume: NativeSwimResume | None,
+) -> str:
     content: dict[str, object] = {
         "operation": "gurps-hazard",
         "command": command.model_dump(mode="json"),
     }
     if resume is not None:
         content["outside_resume"] = resume.model_dump(mode="json")
+    if swim_resume is not None:
+        content["swim_resume"] = swim_resume.model_dump(mode="json")
     return json.dumps(content, sort_keys=True)
 
 
@@ -120,15 +131,17 @@ class HazardService:
         *,
         principal_id: str,
         resume: NaturalHazardResume | None = None,
+        swim_resume: NativeSwimResume | None = None,
     ) -> CommandPlan[HazardResult]:
         """What a hazard exposure writes; the pipeline decides whether it runs."""
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Hazards require exact Basic Set profile")
-        payload = _hazard_payload(command, resume)
+        payload = _hazard_payload(command, resume, swim_resume)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             require_hazard_resume(before, command, resume)
+            require_swim_resume(before, command, swim_resume)
             for control in _outside_controls(
                 before, command.actor_id, principal_id, play.engine.reviewer.gm_ids
             ):
@@ -255,15 +268,14 @@ class HazardService:
                             raise ValidationError("Unsupported overloaded swimming")
                         swimming = max(
                             1,
-                            int(
-                                next(
-                                    (
-                                        v.value
-                                        for v in build.sheet.values
-                                        if v.target == "skill:swimming"
-                                    ),
-                                    Decimal(ht - 4),
-                                )
+                            require_skill(
+                                play.rules_context,
+                                before,
+                                command.actor_id,
+                                build,
+                                "swimming",
+                                ht - 4,
+                                fresh=True,
                             )
                             - 2 * int(load),
                         )
@@ -337,7 +349,10 @@ class HazardService:
         play = self.play.for_campaign(campaign)
         state = play._load(campaign)
         resume = await capture_hazard_resume(play, cid, command, state)
-        plan = self.plan(play, command, principal_id=principal_id, resume=resume)
+        swim_resume = await capture_swim_resume(play, cid, command, state)
+        plan = self.plan(
+            play, command, principal_id=principal_id, resume=resume, swim_resume=swim_resume
+        )
         plan = replace(
             plan,
             control=plan.control

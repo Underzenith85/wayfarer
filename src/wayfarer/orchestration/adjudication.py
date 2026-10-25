@@ -21,10 +21,29 @@ from wayfarer.engine.simulation.actions import (
     Social,
 )
 from wayfarer.engine.simulation.campaign.adjudication import Ruling, expire_rulings
+from wayfarer.engine.simulation.campaign.default_knowledge import adopted
+from wayfarer.engine.simulation.campaign.default_knowledge_producers import (
+    enabled as captured_default_knowledge,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_producers import (
+    mark as mark_default_knowledge,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_producers import (
+    required as required_default_knowledge,
+)
+from wayfarer.engine.simulation.campaign.minimum_skill_state import enabled as captured_minimum
+from wayfarer.engine.simulation.campaign.minimum_skill_state import mark as mark_minimum
 from wayfarer.engine.simulation.campaign.party import synchronous
+from wayfarer.engine.simulation.campaign.skill_context_state import (
+    enabled as captured_skill_context,
+)
+from wayfarer.engine.simulation.campaign.skill_context_state import mark as mark_skill_context
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
+from wayfarer.orchestration.action_admission import require_minimum
+from wayfarer.orchestration.noncombat_generations import minimum_effective_skill as current_minimum
+from wayfarer.orchestration.noncombat_generations import skill_prerequisite_context
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
@@ -67,7 +86,22 @@ class AdjudicationService:
             command = RULING_ADAPTER.validate_python(value)
         except SchemaError as exc:
             raise ValidationError("Invalid ruling command") from exc
-        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)
+        context = (
+            await skill_prerequisite_context(self.play, cid, command.id)
+            if isinstance(command, RequestRuling)
+            else False
+        )
+        minimum = (
+            await current_minimum(self.play, cid, command.id)
+            if isinstance(command, RequestRuling)
+            else False
+        )
+        return await submit(
+            self.play,
+            cid,
+            self.plan(command, correct_skill_context=context, minimum_effective_skill=minimum),
+            principal_id=principal_id,
+        )
 
     async def evaluate(
         self, cid: str, ruling_id: str, *, command_id: str, expected_revision: int
@@ -89,7 +123,14 @@ class AdjudicationService:
             raise ValidationError("Missing policy decision")
         return result
 
-    def _request(self, state: PlayState, command: RequestRuling) -> PlayState:
+    def _request(
+        self,
+        state: PlayState,
+        command: RequestRuling,
+        *,
+        correct_skill_context: bool = False,
+        minimum_effective_skill: bool = False,
+    ) -> PlayState:
         policy = self.play.engine.rules.adjudication
         if policy is None:
             raise ValidationError("Campaign adjudication is not configured")
@@ -115,6 +156,17 @@ class AdjudicationService:
         reframed = action.model_copy(update={"approach": "diplomacy"})
         if self.play.engine.assess(state, reframed).status != "feasible":
             raise ValidationError("Ruling alternatives are not feasible")
+        if self.play.rules_context.correct_default_knowledge and (
+            self.play.rules_context.require_default_knowledge or adopted(state, command.actor_id)
+        ):
+            self.play.engine.prepare_task_check(
+                state,
+                reframed,
+                correct_symptom_attributes=self.play.rules_context.correct_symptom_attributes,
+                correct_skill_context=correct_skill_context,
+                correct_default_knowledge=True,
+                require_default_knowledge=self.play.rules_context.require_default_knowledge,
+            )
         ruling = Ruling(
             id=command.id,
             campaign_id=state.campaign_id,
@@ -128,7 +180,40 @@ class AdjudicationService:
             expires_at=state.resources.game_time + policy.lifetime_ticks,
             alternatives=alternatives,
         )
-        return state.model_copy(update={"rulings": state.rulings + (ruling,)})
+        state = state.model_copy(
+            update={
+                "resources": mark_default_knowledge(
+                    state.resources,
+                    "ruling",
+                    command.id,
+                    command.actor_id,
+                    enabled=self.play.rules_context.correct_default_knowledge
+                    and (
+                        self.play.rules_context.require_default_knowledge
+                        or adopted(state, command.actor_id)
+                    ),
+                    required=self.play.rules_context.require_default_knowledge,
+                )
+            }
+        )
+        return state.model_copy(
+            update={
+                "rulings": state.rulings + (ruling,),
+                "resources": mark_skill_context(
+                    mark_minimum(
+                        state.resources,
+                        "ruling",
+                        command.id,
+                        command.actor_id,
+                        enabled=minimum_effective_skill,
+                    ),
+                    "ruling",
+                    command.id,
+                    command.actor_id,
+                    enabled=correct_skill_context,
+                ),
+            }
+        )
 
     @staticmethod
     def _lookup(state: PlayState, ruling_id: str) -> Ruling:
@@ -204,12 +289,37 @@ class AdjudicationService:
         )
 
         synchronous(state, command.actor_id)
+        require_minimum(
+            self.play,
+            state,
+            reframed,
+            enabled=captured_minimum(state.resources, "ruling", ruling.id, ruling.actor_id),
+            correct_skill_context=captured_skill_context(
+                state.resources, "ruling", ruling.id, ruling.actor_id
+            ),
+            correct_default_knowledge=captured_default_knowledge(
+                state.resources, "ruling", ruling.id, ruling.actor_id
+            ),
+            require_default_knowledge=required_default_knowledge(
+                state.resources, "ruling", ruling.id, ruling.actor_id
+            ),
+            ruling_id=ruling.id,
+        )
         updated, resolved_events = self.play.engine.resolve(
             state,
             reframed,
             rng=self.play.rng,
             ruling_id=ruling.id,
             correct_symptom_attributes=self.play.rules_context.correct_symptom_attributes,
+            correct_skill_context=captured_skill_context(
+                state.resources, "ruling", ruling.id, ruling.actor_id
+            ),
+            correct_default_knowledge=captured_default_knowledge(
+                state.resources, "ruling", ruling.id, ruling.actor_id
+            ),
+            require_default_knowledge=required_default_knowledge(
+                state.resources, "ruling", ruling.id, ruling.actor_id
+            ),
             clock=self.play.advance_clock,
         )
         result = action_result(resolved_events)
@@ -217,10 +327,21 @@ class AdjudicationService:
             raise ValidationError("Approved action is no longer feasible")
         return updated, result
 
-    def plan(self, command: RulingCommand | EvaluateRuling) -> CommandPlan[Ruling | ActionResult]:
+    def plan(
+        self,
+        command: RulingCommand | EvaluateRuling,
+        *,
+        correct_skill_context: bool = False,
+        minimum_effective_skill: bool = False,
+    ) -> CommandPlan[Ruling | ActionResult]:
         """What a ruling command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
-            {"operation": "adjudication", "command": command.model_dump(mode="json")},
+            {
+                "operation": "adjudication",
+                "command": command.model_dump(mode="json"),
+                **({"skill_prerequisite_context_generation": 1} if correct_skill_context else {}),
+                **({"minimum_effective_skill_generation": 1} if minimum_effective_skill else {}),
+            },
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -232,7 +353,12 @@ class AdjudicationService:
                 updated, result = self._execute(state, command)
             else:
                 updated = (
-                    self._request(state, command)
+                    self._request(
+                        state,
+                        command,
+                        correct_skill_context=correct_skill_context,
+                        minimum_effective_skill=minimum_effective_skill,
+                    )
                     if isinstance(command, RequestRuling)
                     else self._decide(state, command)
                 )
@@ -240,7 +366,7 @@ class AdjudicationService:
                 updated = updated.model_copy(
                     update={
                         "revision": revision,
-                        "resources": state.resources.model_copy(update={"revision": revision}),
+                        "resources": updated.resources.model_copy(update={"revision": revision}),
                         "rulings": expire_rulings(
                             updated.rulings, revision, state.resources.game_time
                         ),

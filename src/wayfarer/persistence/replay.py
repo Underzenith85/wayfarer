@@ -62,6 +62,14 @@ def unavailable_reason(record: CommandRecord) -> str | None:
             and "social_source" not in payload
         ):
             return "legacy social command has no captured resolver source"
+        environments = {
+            "gurps-drinking": "drinking_environment",
+            "gurps-survival": "survival_environment",
+        }
+        if isinstance(payload, dict) and isinstance(payload.get("operation"), str):
+            required_environment = environments.get(payload["operation"])
+            if required_environment is not None and required_environment not in payload:
+                return "legacy condition command has no captured trusted environment"
         return None
     try:
         command_text(record)

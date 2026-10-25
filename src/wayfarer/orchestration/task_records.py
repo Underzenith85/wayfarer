@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import Annotated, Literal
 
-from pydantic import Field, TypeAdapter
+from pydantic import Field, TypeAdapter, field_validator
 
 from wayfarer import validation
 from wayfarer.engine.rules.checks import CheckTrace
@@ -59,6 +59,8 @@ PRIVATE_PREFIXES = (
     CLOCK_PREFIX,
     "campaign-long-task-v2:",
     "campaign-long-task-rest-v2:",
+    "campaign-long-task-unavailable-v1:",
+    "campaign-long-task-spent-v1:",
     "campaign-activity:",
     "outside-prerequisite:",
     "outside-secret-hazard:",
@@ -170,6 +172,43 @@ class SecretTaskPending(Record):
     prepared_elapsed_microseconds: int = Field(ge=0)
     ordinary: Inspect | Social
     preparation_json: str
+    skill_context_generation: Literal[1] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    minimum_skill_generation: Literal[1] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    default_knowledge_generation: Literal[1, 2] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @field_validator("default_knowledge_generation", mode="before")
+    @classmethod
+    def exact_default_generation(cls, value: object) -> int | None:
+        if value is None:
+            return None
+        if type(value) is not int or value not in (1, 2):
+            raise ValueError("Unsupported secret task default knowledge generation")
+        return value
+
+    @field_validator("skill_context_generation", mode="before")
+    @classmethod
+    def exact_context_generation(cls, value: object) -> int | None:
+        if value is None:
+            return None
+        if type(value) is not int or value != 1:
+            raise ValueError("Unsupported secret task skill-context generation")
+        return value
+
+    @field_validator("minimum_skill_generation", mode="before")
+    @classmethod
+    def exact_minimum_generation(cls, value: object) -> int | None:
+        if value is None:
+            return None
+        if type(value) is not int or value != 1:
+            raise ValueError("Unsupported secret task minimum-skill generation")
+        return value
 
 
 class TaskSnapshot(Record):

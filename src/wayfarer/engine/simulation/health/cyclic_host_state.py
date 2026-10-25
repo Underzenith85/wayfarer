@@ -63,6 +63,7 @@ class CyclicBinding(Record):
     bypass_dr: bool = False
     disease: bool = False
     location: HumanLocation | None = Field(default=None, exclude_if=lambda value: value is None)
+    corrosion_dr_erosion: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 def binding(state: ResourceState, occurrence_id: str) -> CyclicBinding | None:
@@ -82,10 +83,19 @@ def bind_occurrence(
     bypass_dr: bool = False,
     disease: bool = False,
     location: HumanLocation | None = None,
+    corrosion_dr_erosion: bool = False,
 ) -> ResourceState:
     attack = next((a for a in state.cyclic_attacks if a.id == occurrence_id), None)
     if attack is None or attack.attack_id != source_id or attack.stop_condition != policy.condition:
         raise ValidationError("Cyclic binding must match its approved source and stopping policy")
+    if corrosion_dr_erosion and (
+        attack.damage_type != "cor"
+        or attack.armor_divisor != 1
+        or bypass_dr
+        or disease
+        or location not in (None, "torso")
+    ):
+        raise ValidationError("Corrosion Cyclic binding requires ordinary external torso damage")
     value = CyclicBinding(
         occurrence_id=occurrence_id,
         source_id=source_id,
@@ -95,6 +105,7 @@ def bind_occurrence(
         bypass_dr=bypass_dr,
         disease=disease,
         location=None if disease else location,
+        corrosion_dr_erosion=corrosion_dr_erosion,
     )
     prior = binding(state, occurrence_id)
     if prior is not None:

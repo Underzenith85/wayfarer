@@ -242,6 +242,34 @@ def test_equipment_quality_and_ultratech_drug_source_math() -> None:
         UltraTechDrug(id="bad", absolute_point_value=1, duration="very-long")
 
 
+@pytest.mark.parametrize("technological", [False, True])
+@pytest.mark.parametrize(
+    "grade,ordinary,technical",
+    [
+        ("none", -5, -10),
+        ("improvised", -2, -5),
+        ("basic", -5, -5),
+        ("good", -4, -4),
+        ("fine", -3, -3),
+        ("best", -1, -1),
+    ],
+)
+def test_b345_deficiencies_apply_only_to_basic_or_better(
+    grade: str, ordinary: int, technical: int, technological: bool
+) -> None:
+    value = EquipmentQuality.model_validate(
+        {
+            "grade": grade,
+            "technological_task": technological,
+            "technology_level": 9,
+            "missing_important_items": 2,
+            "damage_penalty": 3,
+        }
+    )
+    assert value.modifier == (technical if technological else ordinary)
+    assert EquipmentQuality.model_validate_json(value.model_dump_json()).modifier == value.modifier
+
+
 def test_split_dr_selects_the_authored_damage_type() -> None:
     mail = Armor(
         locations=("torso",),

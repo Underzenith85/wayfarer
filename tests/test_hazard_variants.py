@@ -4,7 +4,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-from support.runtime import seed_campaign
+from support.runtime import build_play, seed_campaign
 from test_medical_service import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -12,6 +12,7 @@ from wayfarer.engine.rules.environment import ambient_spec, poison_spec
 from wayfarer.engine.rules.physical import contagion_modifier, falling_damage, falling_injury
 from wayfarer.engine.rules.types.hazard import HazardProtection, HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState, Wait
+from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
 from wayfarer.engine.simulation.health.condition_checks import (
     check_modifiers,
     require_hazard_capacity,
@@ -24,14 +25,25 @@ from wayfarer.engine.simulation.health.medical.commands import (
 )
 from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.hazard_care import HazardCare, HazardCareCommand, HazardCareService
 from wayfarer.orchestration.hazards import HazardContext, HazardService
 from wayfarer.orchestration.physical import PhysicalCommand, PhysicalRoute, PhysicalService
+from wayfarer.orchestration.pipeline import submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
-async def seed(play: PlayService, cid: str, state: PlayState, path: Path) -> None:
+async def seed(
+    play: PlayService, cid: str, state: PlayState, path: Path, *, backend: str | None = None
+) -> None:
+    if backend is not None:
+        from test_combat_sensory_authority import change
+
+        # Trusted hazard-fixture transition preserves the actual preceding GM fact
+        # and original genesis on either backend; it is not a public exposure API.
+        await change(play, cid, lambda _: state)
+        return
     campaign = await play.store.read(cid)
     campaign["play_json"] = state.model_dump_json()
     play.store = AsyncSQLiteStore(path, 10)
@@ -55,47 +67,70 @@ def schedule(spec: HazardSpec, *, stage: str = "cycles") -> HazardSchedule:
     )
 
 
-async def test_long_climb_checks_at_start_and_five_minutes_and_replays(tmp_path: Path) -> None:
-    cid, play, _ = await setup(tmp_path)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_long_climb_checks_at_start_and_five_minutes_and_replays(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play, _ = await setup(
+        tmp_path, backend=backend, society_known_physical_skills=("skill:climbing",)
+    )
     route = PhysicalRoute(
-        id="wall", scene_id="dock", kind="climb", surface="wall", distance=Decimal(40)
+        id="mountain", scene_id="dock", kind="climb", surface="mountain", distance=Decimal(100)
     )
     service = PhysicalService(play, lambda *_: route)
     play.rng = RecordedDice([1, 1, 1, 1, 1, 1])
     first = PhysicalCommand(
-        id="climb-1", actor_id="a", expected_revision=0, kind="climb", route_id="wall"
+        id="climb-1",
+        actor_id="a",
+        expected_revision=(await play.store.read(cid))["revision"],
+        kind="climb",
+        route_id="mountain",
     )
     result = await service.execute(cid, first, principal_id="a")
-    assert result.progress == "20" and not result.completed and result.seconds == 300
+    # B349: an ordinary mountain is +0 and10ft/min; DX10 defaults to skill5.
+    assert result.checks[0].effective_target == 5
+    assert result.progress == "50" and not result.completed and result.seconds == 300
     result = await service.execute(
         cid,
-        first.model_copy(update={"id": "climb-2", "expected_revision": 1}),
+        first.model_copy(
+            update={"id": "climb-2", "expected_revision": (await play.store.read(cid))["revision"]}
+        ),
         principal_id="a",
     )
-    assert result.progress == "40" and result.completed and result.elapsed == 600
+    assert result.progress == "100" and result.completed and result.elapsed == 600
     play.rng = RecordedDice([])
-    assert (await service.execute(cid, first, principal_id="a")).progress == "20"
+    assert (await service.execute(cid, first, principal_id="a")).progress == "50"
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
-async def test_failed_initial_climb_does_not_fall_from_top(tmp_path: Path) -> None:
-    cid, play, _ = await setup(tmp_path)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_failed_initial_climb_does_not_fall_from_top(tmp_path: Path, backend: str) -> None:
+    cid, play, _ = await setup(
+        tmp_path, backend=backend, society_known_physical_skills=("skill:climbing",)
+    )
     play.rng = RecordedDice([5, 5, 5])
     route = PhysicalRoute(
-        id="wall", scene_id="dock", kind="climb", surface="wall", distance=Decimal(40)
+        id="mountain", scene_id="dock", kind="climb", surface="mountain", distance=Decimal(100)
     )
     result = await PhysicalService(play, lambda *_: route).execute(
         cid,
         PhysicalCommand(
-            id="fall", actor_id="a", expected_revision=0, kind="climb", route_id="wall"
+            id="fall",
+            actor_id="a",
+            expected_revision=(await play.store.read(cid))["revision"],
+            kind="climb",
+            route_id="mountain",
         ),
         principal_id="a",
     )
     assert not result.succeeded and result.injury == 0 and result.elapsed == 0
 
 
-async def test_hiking_roll_is_daily_across_routes(tmp_path: Path) -> None:
-    cid, play, _ = await setup(tmp_path)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_hiking_roll_is_daily_across_routes(tmp_path: Path, backend: str) -> None:
+    cid, play, _ = await setup(
+        tmp_path, backend=backend, society_known_physical_skills=("skill:hiking",)
+    )
     play.rng = RecordedDice([1, 1, 1])
     route = PhysicalRoute(
         id="road", scene_id="dock", kind="hike", seconds=3600, distance=Decimal(100)
@@ -105,7 +140,11 @@ async def test_hiking_roll_is_daily_across_routes(tmp_path: Path) -> None:
         result = await service.execute(
             cid,
             PhysicalCommand(
-                id=f"hike-{rev}", actor_id="a", expected_revision=rev, kind="hike", route_id="road"
+                id=f"hike-{rev}",
+                actor_id="a",
+                expected_revision=(await play.store.read(cid))["revision"],
+                kind="hike",
+                route_id="road",
             ),
             principal_id="a",
         )
@@ -115,8 +154,13 @@ async def test_hiking_roll_is_daily_across_routes(tmp_path: Path) -> None:
     assert len([e for e in state.resources.events if e.id.startswith("hiking-day:")]) == 1
 
 
-async def test_swimming_minute_fatigue_survives_split_commands(tmp_path: Path) -> None:
-    cid, play, _ = await setup(tmp_path)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_swimming_minute_fatigue_survives_split_commands(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play, _ = await setup(
+        tmp_path, backend=backend, society_known_physical_skills=("skill:swimming",)
+    )
     route = PhysicalRoute(
         id="water", scene_id="dock", kind="swim", seconds=30, distance=Decimal(100)
     )
@@ -126,7 +170,11 @@ async def test_swimming_minute_fatigue_survives_split_commands(tmp_path: Path) -
         result = await service.execute(
             cid,
             PhysicalCommand(
-                id=f"swim-{rev}", actor_id="a", expected_revision=rev, kind="swim", route_id="water"
+                id=f"swim-{rev}",
+                actor_id="a",
+                expected_revision=(await play.store.read(cid))["revision"],
+                kind="swim",
+                route_id="water",
             ),
             principal_id="a",
         )
@@ -247,8 +295,16 @@ async def test_disease_transmission_incubation_and_cycle_are_separate(tmp_path: 
     assert result.hp_lost == 1 and state.illnesses[0].hp_debt == 1
 
 
-async def test_diagnosis_durable_and_failed_attempt_cannot_reroll(tmp_path: Path) -> None:
-    cid, play, _ = await setup(tmp_path)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_diagnosis_durable_and_failed_attempt_cannot_reroll(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play, _ = await setup(
+        tmp_path,
+        backend=backend,
+        society_known_medical_skills=("skill:diagnosis",),
+        technology_level=8,
+    )
     spec = HazardSpec(
         id="flu", scene_id="dock", kind="disease", interval=86400, cycles=6, reference="B443"
     )
@@ -261,18 +317,29 @@ async def test_diagnosis_durable_and_failed_attempt_cannot_reroll(tmp_path: Path
             update={"resources": before.resources.model_copy(update={"hazards": (hazard,)})}
         ),
         tmp_path / "diagnosis.sqlite",
+        backend=backend,
     )
     service = HazardCareService(play, lambda *_: HazardCare("diagnosis", "a", "exposure"))
     play.rng = RecordedDice([1, 1, 1])
-    cmd = HazardCareCommand(id="diagnose", actor_id="a", expected_revision=0, treatment_id="exam")
+    cmd = HazardCareCommand(
+        id="diagnose",
+        actor_id="a",
+        expected_revision=(await play.store.read(cid))["revision"],
+        treatment_id="exam",
+    )
     result = await service.execute(cid, cmd, principal_id="a")
-    assert result.succeeded
+    assert result.succeeded and result.check and result.check.effective_target == 4
     play.rng = RecordedDice([])
     assert await service.execute(cid, cmd, principal_id="a") == result
     with pytest.raises(ConflictError, match="already attempted"):
         await service.execute(
             cid,
-            cmd.model_copy(update={"id": "retry", "expected_revision": 1}),
+            cmd.model_copy(
+                update={
+                    "id": "retry",
+                    "expected_revision": (await play.store.read(cid))["revision"],
+                }
+            ),
             principal_id="a",
         )
     assert await play.store.read(cid) == await play.store.replay(cid)
@@ -309,7 +376,14 @@ async def test_rescued_drowning_retains_deadline_and_uses_medical_task(tmp_path:
     assert next(p.current for p in state.pools if p.id == "hp:a") == 5
 
 
-async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, PlayService]:
+async def travel_setup(
+    tmp_path: Path,
+    *,
+    group: bool = False,
+    backend: str = "sqlite",
+    society_known_skills: tuple[tuple[str, str], ...] = (),
+    rescuer_ht: int = 10,
+) -> tuple[str, PlayService]:
     from test_actions import campaign, world
     from test_statistics import gurps_draft
 
@@ -318,9 +392,10 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
     from wayfarer.engine.simulation.actions import ActorSetup
     from wayfarer.engine.simulation.campaign.scenes import Scene, SceneExit, SceneRules
     from wayfarer.engine.simulation.resources import Owner, ResourceState
-    from wayfarer.orchestration.play import PlayService
 
-    _, original, _ = await setup(tmp_path)
+    _, original, _ = await setup(
+        tmp_path, pinned_skill_ids=tuple(sorted({key for _, key in society_known_skills}))
+    )
     rules = SceneRules(
         id="travel",
         version=1,
@@ -340,9 +415,7 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
         original.engine.resources,
         original.engine.rules.model_copy(update={"scenes": rules}),
     )
-    play = PlayService(
-        AsyncSQLiteStore(tmp_path / "travel.sqlite", 10), engine, rng=RecordedDice([])
-    )
+    play = build_play(tmp_path / "travel", engine, backend=backend, rng=RecordedDice([]))
     initial = campaign(engine)
     members = ("a", "b") if group else ("a",)
     state = play.initial_state(
@@ -351,7 +424,20 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
         ResourceState(owners=tuple(Owner(actor_id=m, capacity=100) for m in members)),
         tuple(
             ActorSetup(
-                actor_id=m, proposal=CharacterProposal(draft=gurps_draft()), aware_of=("alley",)
+                actor_id=m,
+                proposal=CharacterProposal(
+                    draft=gurps_draft().model_copy(
+                        update={
+                            "purchases": tuple(
+                                p.model_copy(update={"amount": rescuer_ht})
+                                if m == "a" and p.definition_id == "attribute:ht"
+                                else p
+                                for p in gurps_draft().purchases
+                            )
+                        }
+                    )
+                ),
+                aware_of=("alley",),
             )
             for m in members
         ),
@@ -359,18 +445,36 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
     await seed_campaign(play.store, initial)
+    for actor_id, key in society_known_skills:
+        await DefaultKnowledgeService(play).execute(
+            initial["id"],
+            AdoptDefaultKnowledge(
+                id="travel-society-knowledge:" + actor_id,
+                actor_id="gm",
+                expected_revision=(await play.store.read(initial["id"]))["revision"],
+                performer_id=actor_id,
+                known_skill_ids=(key,),
+                reason="The GM confirms this named skill for this actor's explicit travel scenario",
+            ),
+            principal_id="gm",
+        )
     return initial["id"], play
 
 
-async def test_completed_climb_uses_scene_exit_without_extra_time(tmp_path: Path) -> None:
-    cid, play = await travel_setup(tmp_path)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_completed_climb_uses_scene_exit_without_extra_time(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play = await travel_setup(
+        tmp_path, backend=backend, society_known_skills=(("a", "skill:climbing"),)
+    )
     play.rng = RecordedDice([1, 1, 1, 1, 1, 1])
     route = PhysicalRoute(
-        id="wall",
+        id="mountain",
         scene_id="dock",
         kind="climb",
-        surface="wall",
-        distance=Decimal(40),
+        surface="mountain",
+        distance=Decimal(100),
         exit_id="path",
         destination_id="alley-scene",
     )
@@ -381,9 +485,9 @@ async def test_completed_climb_uses_scene_exit_without_extra_time(tmp_path: Path
             PhysicalCommand(
                 id=f"climb-{rev}",
                 actor_id="a",
-                expected_revision=rev,
+                expected_revision=(await play.store.read(cid))["revision"],
                 kind="climb",
-                route_id="wall",
+                route_id="mountain",
             ),
             principal_id="a",
         )
@@ -399,8 +503,16 @@ async def test_completed_climb_uses_scene_exit_without_extra_time(tmp_path: Path
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
-async def test_full_day_group_hike_moves_together_and_preserves_clocks(tmp_path: Path) -> None:
-    cid, play = await travel_setup(tmp_path, group=True)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_full_day_group_hike_moves_together_and_preserves_clocks(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play = await travel_setup(
+        tmp_path,
+        group=True,
+        backend=backend,
+        society_known_skills=(("a", "skill:hiking"), ("b", "skill:hiking")),
+    )
     play.rng = RecordedDice([1, 1, 1, 1, 1, 1])
     route = PhysicalRoute(
         id="road",
@@ -414,7 +526,13 @@ async def test_full_day_group_hike_moves_together_and_preserves_clocks(tmp_path:
     )
     result = await PhysicalService(play, lambda *_: route).execute(
         cid,
-        PhysicalCommand(id="hike", actor_id="a", expected_revision=0, kind="hike", route_id="road"),
+        PhysicalCommand(
+            id="hike",
+            actor_id="a",
+            expected_revision=(await play.store.read(cid))["revision"],
+            kind="hike",
+            route_id="road",
+        ),
         principal_id="a",
     )
     assert result.completed and Decimal(result.progress) == 60 and result.fp_lost == 0
@@ -425,8 +543,18 @@ async def test_full_day_group_hike_moves_together_and_preserves_clocks(tmp_path:
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
-async def test_lifesaving_check_and_durable_rescue(tmp_path: Path) -> None:
-    cid, play = await travel_setup(tmp_path, group=True)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+@pytest.mark.parametrize("current", [False, True])
+async def test_lifesaving_check_and_durable_rescue(
+    tmp_path: Path, backend: str, current: bool
+) -> None:
+    cid, play = await travel_setup(
+        tmp_path,
+        group=True,
+        backend=backend,
+        rescuer_ht=12 if current else 10,
+        society_known_skills=(("a", "skill:swimming"),),
+    )
     before = play._load(await play.store.read(cid))
     spec = HazardSpec(
         id="water", scene_id="dock", kind="drowning", interval=5, cycles=1000, reference="B354"
@@ -439,14 +567,28 @@ async def test_lifesaving_check_and_durable_rescue(tmp_path: Path) -> None:
             update={"resources": before.resources.model_copy(update={"hazards": (hazard,)})}
         ),
         tmp_path / "rescue.sqlite",
+        backend=backend,
     )
     play.rng = RecordedDice([1, 1, 1])
     service = HazardCareService(
         play, lambda *_: HazardCare("lifesaving", "b", "exposure", safe_landing=True)
     )
-    command = HazardCareCommand(id="save", actor_id="a", expected_revision=0, treatment_id="bank")
-    result = await service.execute(cid, command, principal_id="a")
-    assert result.succeeded and result.check is not None and result.check.effective_target == 1
+    command = HazardCareCommand(
+        id="save",
+        actor_id="a",
+        expected_revision=(await play.store.read(cid))["revision"],
+        treatment_id="bank",
+    )
+    if current:
+        result = await service.execute(cid, command, principal_id="a")
+    else:
+        # Actual old producer, not a lawful current target1 success: the new
+        # independent floor is absent while current B173 knowledge still applies.
+        result = await submit(
+            play, cid, service.plan(play, command, principal_id="a"), principal_id="a"
+        )
+    assert result.succeeded and result.check is not None
+    assert result.check.effective_target == (3 if current else 1)
     assert play._load(await play.store.read(cid)).resources.hazards[0].stage == "rescued"
     play.rng = RecordedDice([])
     assert await service.execute(cid, command, principal_id="a") == result

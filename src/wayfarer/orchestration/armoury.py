@@ -7,6 +7,7 @@ from typing import overload
 from pydantic import TypeAdapter
 
 from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.engine.simulation.combat.generations import combat_generation
 from wayfarer.engine.simulation.equipment.armoury_context import (
     PREFIX,
     ArmouryFamiliarity,
@@ -53,6 +54,7 @@ from wayfarer.engine.simulation.equipment.tool_context import (
     declare as declare_tools,
 )
 from wayfarer.engine.simulation.equipment.tool_selection import select as select_tools
+from wayfarer.orchestration.armoury_generations import capture, stamp
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
@@ -125,23 +127,27 @@ class ArmouryService:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         initial = play._load(campaign)
+        source_operating_tools = await capture(play.store, cid, command.id, principal_id)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
-            if isinstance(command, DeclareRepairTools):
-                updated, _ = declare_tools(play.rules_context, before, command)
-            elif isinstance(command, SelectRepairTools):
-                updated, _ = select_tools(play.rules_context, before, command)
-            elif isinstance(command, DeclareArmouryTraining):
-                updated, _ = declare_training(play.rules_context, before, command)
-            elif isinstance(command, SelectRepairDefault):
-                updated, _ = select_default(play.rules_context, before, command)
-            elif isinstance(command, SelectRepairTime):
-                updated, _ = select(play.rules_context, before, command)
-            elif isinstance(command, AssessRepairParts):
-                updated, _ = assess(play.rules_context, before, command)
-            else:
-                updated, _ = declare(play.rules_context, before, command)
+            with combat_generation(
+                frozenset({"repair-operating-tools"}) if source_operating_tools else frozenset()
+            ):
+                if isinstance(command, DeclareRepairTools):
+                    updated, _ = declare_tools(play.rules_context, before, command)
+                elif isinstance(command, SelectRepairTools):
+                    updated, _ = select_tools(play.rules_context, before, command)
+                elif isinstance(command, DeclareArmouryTraining):
+                    updated, _ = declare_training(play.rules_context, before, command)
+                elif isinstance(command, SelectRepairDefault):
+                    updated, _ = select_default(play.rules_context, before, command)
+                elif isinstance(command, SelectRepairTime):
+                    updated, _ = select(play.rules_context, before, command)
+                elif isinstance(command, AssessRepairParts):
+                    updated, _ = assess(play.rules_context, before, command)
+                else:
+                    updated, _ = declare(play.rules_context, before, command)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             return CommandReceipt(
@@ -199,6 +205,7 @@ class ArmouryService:
             },
             sort_keys=True,
         )
+        payload = stamp(payload) if source_operating_tools else payload
         plan: CommandPlan[ArmouryOutcome] = CommandPlan(
             command_id=command.id,
             expected_revision=command.expected_revision,

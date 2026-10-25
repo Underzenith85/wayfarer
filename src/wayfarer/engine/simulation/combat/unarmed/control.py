@@ -6,8 +6,10 @@ import hashlib
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.tables.combat import posture_melee_modifier
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.combat.attack_policy import posture_rules
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.unarmed.choke import start_choke
@@ -163,7 +165,10 @@ def control(
             actor.actor_id,
             target.actor_id,
             score(actor.actor_id)
-            - (4 if actor.posture == "prone" else 2 if actor.posture == "kneeling" else 0),
+            + posture_melee_modifier(
+                actor.posture,
+                legacy=not posture_rules(runtime, state, encounter, actor.actor_id, declaring=True),
+            ),
             score(target.actor_id),
             first_modifiers=check_modifiers(state.resources, actor.actor_id, "st"),
             second_modifiers=check_modifiers(state.resources, target.actor_id, "st"),

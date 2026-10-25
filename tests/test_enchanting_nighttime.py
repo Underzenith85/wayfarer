@@ -31,6 +31,7 @@ from wayfarer.engine.simulation.magic.staff_state import DeclareStaffConstructio
 from wayfarer.errors import AuthorizationError, ConflictError
 from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
+from wayfarer.orchestration.pipeline import submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.persistence.replay import verify_commands
@@ -188,18 +189,21 @@ async def test_night_light_and_wait_preserve_staff_work_and_reexecute(
     assert project.energy_completed == 0
     start = light("start-light", before.revision)
     saved = await play.store.read(cid)
-    # Other timed services retain their original admission until their complete
-    # intervals are joined; this repair does not open unchecked travel/checks.
+    # Historical unmarked noncombat inputs retain their original admission.
+    # Fresh timed encounters have separate full-interval acceptance evidence.
     with pytest.raises(ConflictError, match="committed to enchanting"):
-        await NoncombatService(play).execute(
+        await submit(
+            play,
             cid,
-            NoncombatCommand(
-                id="unjoined-approach",
-                actor_id="a",
-                expected_revision=before.revision,
-                kind="approach_noncombat",
-                encounter_id="unjoined-encounter",
-                selection_id="unjoined-check",
+            NoncombatService(play).plan(
+                NoncombatCommand(
+                    id="unjoined-approach",
+                    actor_id="a",
+                    expected_revision=before.revision,
+                    kind="approach_noncombat",
+                    encounter_id="unjoined-encounter",
+                    selection_id="unjoined-check",
+                )
             ),
             principal_id="a",
         )

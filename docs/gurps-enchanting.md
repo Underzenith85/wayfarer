@@ -140,13 +140,31 @@ The supported Enchant, Staff and Power baseline has construction and actual
 project/item-use evidence; see [named-spell acceptance](gurps-enchantment-baseline.md).
 A separate manufactured Staff/Deathtouch contact candidate is awaiting its own
 full CI and merge verification; it is not credited here as merged evidence. Mapless proximity needs explicit trusted distances; no area is silently assumed empty.
-Created Power above 100 still exceeds the completed-item schema's existing bound;
-that is not a printed source cap, and such settlement remains unverified.
+Item Power no longer has the artificial schema maximum of 100 (#1010).
+Completed bindings and the trusted casting context retain the positive integer
+rating, including extra ceremonial energy and the critical-success 2d bonus.
+Normal and low mana still use the existing adjustments; the temporary low-mana
+penalty does not reduce permanent Power. High Power still grants no personal
+high-skill discount to item casting time or energy.
+`tests/test_enchantment_high_power.py` covers boundary ratings 100/101,
+critical crossings, and ordinary enchanters whose extra Slow and Sure mage-days
+raise Power above 100. Actual manufacture and subsequent charged Light casting
+exercise both methods, GM/stale admission, concurrent retries, restart, checkpoint
+round trips and original-genesis seeded replay on each configured backend.
+Strict positive integer validation remains; historical values through 100 retain
+their serialized representation. This does not extend the separate Power
+energy-reduction level or certify other enchantment continuations.
 Grouped project-time progression and concurrent spellcasting during active
-enchanting concentration still need their source consumers. Nighttime admission
-for timed noncombat encounters, scene travel, physical procedures, combat and
-ceremonial casting also remains under #785: those separate paths retain the
-conservative project-busy refusal until their full intervals are joined.
+enchanting concentration still need their source consumers. Fresh timed
+noncombat approaches now join the B481 rest calendar under #1013: the complete
+authored interval must fit between shifts, and exact next-shift completion is
+permitted. The same private captured generation retains the approved skill's
+acquisition/TL context when recomputing its live target. See
+[the actual noncombat consumer](gurps-enchanting-noncombat.md) for state, cost,
+clock, history and seeded replay evidence. The [Lift and Jump consumers](gurps-enchanting-physical.md)
+now use the same full-interval admission with trusted route capture. Scene
+travel, other physical procedures, combat and ceremonial casting retain their
+conservative project-busy refusal until their complete intervals are joined.
 Quick and Dirty
 perversions require explicit director resolution. Power's outward zero-cast-cost
 and missile/duplicate-Power compositions remain unverified; source-clear upkeep

@@ -36,9 +36,12 @@ from wayfarer.orchestration.symptom_generations import (
     symptom_generation,
 )
 from wayfarer.persistence.command_inputs import (
+    DEFAULT_KNOWLEDGE_KEY,
+    DEFENSE_POSTURE_KEY,
     ORIGINAL_INPUT,
+    RANGED_TARGET_POSTURE_KEY,
     REACTION_KEY,
-    REACTION_WRAPPED,
+    REACTION_ORIGINAL,
 )
 from wayfarer.persistence.events import payload_digest
 from wayfarer.persistence.replay import command_text
@@ -76,13 +79,26 @@ async def test_ability_opaque_inputs_retry_and_replay_without_losing_authority(
     raw = command_text(record)
     assert raw.startswith("a:") is legacy
     if not legacy:
-        reaction = {REACTION_KEY: 1, REACTION_WRAPPED: "a:" + value.model_dump_json()}
+        ability = {
+            "operation": "ability",
+            "principal_id": "a",
+            "command": value.model_dump(mode="json"),
+            "ability_rule16_generation": 1,
+        }
+        reaction = {
+            **ability,
+            REACTION_KEY: 4,
+            REACTION_ORIGINAL: json.dumps(ability, sort_keys=True, separators=(",", ":")),
+        }
         assert json.loads(raw) == {
             **reaction,
-            KEY: 1,
+            KEY: 3,
+            DEFENSE_POSTURE_KEY: 1,
+            RANGED_TARGET_POSTURE_KEY: 1,
+            DEFAULT_KNOWLEDGE_KEY: 2,
             ORIGINAL_INPUT: json.dumps(reaction, sort_keys=True, separators=(",", ":")),
         }
-        assert replay_payload(raw) == "a:" + value.model_dump_json()
+        assert replay_payload(raw) == ability
     clone = build_play(tmp_path / "clone", original.engine, backend=backend)
     await seed_campaign(clone.store, initial)
     with replay_inputs(record):
@@ -100,8 +116,14 @@ async def test_ability_opaque_inputs_retry_and_replay_without_losing_authority(
         )
     with pytest.raises(AuthorizationError):
         await AbilityService(clone).execute(cid, value, principal_id="b")
-    with pytest.raises(ValidationError, match="No replay handler"):
-        await execute_recorded(clone, record)
+    registered = build_play(tmp_path / "registered", original.engine, backend=backend)
+    await seed_campaign(registered.store, initial)
+    await execute_recorded(registered, record)
+    assert (
+        await registered.store.read(cid) == record.state_after == await registered.store.replay(cid)
+    )
+    routed = (await registered.store.history(cid))[-1]
+    assert command_text(routed) == raw and routed.payload_hash == record.payload_hash
     assert await clone.store.read(cid) == record.state_after
 
 
@@ -172,7 +194,7 @@ async def test_resource_raw_command_retains_explicit_service_replay(
     value = Consume(id="consume", actor_id="a", expected_revision=0, item_id="arrows", quantity=3)
     expected = await source.execute(cid, value, principal_id="a")
     record = (await source.store.history(cid))[-1]
-    assert json.loads(command_text(record))[KEY] == 1
+    assert json.loads(command_text(record))[KEY] == 3
     decoded = replay_payload(command_text(record))
     assert Consume.model_validate(decoded) == value
     clone = ResourceService(open_store(tmp_path / "clone", backend=backend), engine)
@@ -227,7 +249,7 @@ async def test_indexed_capture_preserves_opaque_array_and_object_identity(
         command_text(replace(record, command_input="corrupted"))
 
 
-@pytest.mark.parametrize("bad", [None, 0, 2, True, "1"])
+@pytest.mark.parametrize("bad", [None, 0, 4, True, "1"])
 def test_decoded_replay_rejects_explicit_bad_generation(bad: object) -> None:
     with pytest.raises(ValidationError, match="Unsupported recorded Symptoms"):
         replay_payload(json.dumps({KEY: bad, "id": "command"}))

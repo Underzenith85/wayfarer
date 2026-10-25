@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.character.traits.mastery import trained_by_master
+from wayfarer.engine.rules.tables.combat import posture_defense_modifier
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import Encounter
@@ -138,7 +139,13 @@ def unarmed_defense(
 
     penalty = (
         (-4 if hp.injury.stunned or fright_stunned(state.resources, actor_id) else 0)
-        + (-3 if actor.posture == "prone" else -2 if actor.posture == "kneeling" else 0)
+        + posture_defense_modifier(
+            actor.posture,
+            legacy=not (
+                runtime.correct_defense_postures
+                and compiled.statistics.profile_id == "gurps-basic-set-4e-2004"
+            ),
+        )
         + (-2 if actor.grappled else 0)
     )
     penalty += sensory_penalty

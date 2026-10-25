@@ -1,0 +1,63 @@
+{
+  "checkpoint": "Diagnosis minimum, accepted 2026-10-25",
+  "source_digest": "499dec2d07acfaa990a602413f935cbf73bbcc463cce3a26f9f032ebe1d292e8",
+  "source_configuration_snapshot": {
+    "checkout_digest": "499dec2d07acfaa990a602413f935cbf73bbcc463cce3a26f9f032ebe1d292e8",
+    "configuration_docs_contracts_digest": "2525c442cbbeffa1e80c035d4287b0529e26c7af799542f26081d8df24066f77"
+  },
+  "execution": {
+    "ordinary_tests": 5682,
+    "architecture_subtests": 16077,
+    "selected_modules": 264,
+    "databases": [
+      "SQLite",
+      "PostgreSQL"
+    ],
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "static_gates_passed": 16,
+    "kind": "local-selected-two-phase-whole-module-no-cov",
+    "repository_ci_or_branch_coverage_credit": false
+  },
+  "certification": {
+    "verified_execution_obligations": [
+      "capability:gurps.character.skill_defaults",
+      "capability:gurps.character.skill_difficulty",
+      "capability:gurps.character.specialties",
+      "capability:gurps.character.techniques",
+      "capability:gurps.check.critical",
+      "capability:gurps.check.margin",
+      "capability:gurps.check.quick_contest",
+      "capability:gurps.check.regular_contest",
+      "capability:gurps.check.resistance",
+      "section:campaigns:b344:default-rolls",
+      "section:campaigns:b348:repeated-attempts",
+      "section:campaigns:b349:regular-contests",
+      "section:campaigns:b349:the-rule-of-16",
+      "section:characters:b017:basic-lift-and-encumbrance-table"
+    ],
+    "verified_capabilities": 9,
+    "required_capabilities": 73,
+    "full_certification": false,
+    "remaining_blocker_records": 1991,
+    "distinct_blocker_identifiers": 1884
+  },
+  "local_evidence": {
+    "artifacts/compliance/diagnosis-minimum-checkpoint/pytest.xml": "b2365ebd4ab1fae4953008cac85ba8ab7190c5581c8e6f0de63018c0ebd0cf81",
+    "artifacts/compliance/diagnosis-minimum-checkpoint/aggregate-summary.json": "2b691a94d3fac589dfdce42b3fffa145810cfee95fe9cb16b42ec67ac616e3f8",
+    "artifacts/compliance/diagnosis-minimum-checkpoint/basic-set.json": "03a0dea4c0fc8b3adf227f1a3da1b08f438394799b51acfba36d1cc8c2321614",
+    "artifacts/compliance/diagnosis-minimum-checkpoint/phase-plan.json": "34e748d518ee46f98a4e1b1f7886f113daef0caa240f4353375e078553633b59",
+    "artifacts/compliance/diagnosis-minimum-checkpoint/static-gates/checks.json": "b77d6095ffae0d849b7291d621fbf2601435237d169519d873628c879884a97b"
+  },
+  "excluded_pending": [
+    "B348 Quick Contests code/evidence candidate",
+    "IQ technological learning",
+    "Great Healing and natural Physician benefits",
+    "Staff critical continuation",
+    "paid Fireball manufacture",
+    "enchantment perversion",
+    "graded good-quality tools"
+  ],
+  "publication": "Checkpoint evidence retained locally; raw generated reports and source PDFs excluded from Git"
+}

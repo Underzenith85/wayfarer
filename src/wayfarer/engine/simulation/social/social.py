@@ -111,6 +111,7 @@ class SocialContext:
         standing: Standing | None = None,
         audience: Audience = DEFAULT_AUDIENCE,
         self_control_modifier: int = 0,
+        self_control_trait_id: str | None = None,
         influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
         procedure_id: str | None = None,
         # A procedure without an explicit approved level fails closed rather than
@@ -123,6 +124,8 @@ class SocialContext:
         campaign_specialties: CampaignSocialSpecialties | None = None,
         coercion: InterrogationCoercion | None = None,
         callous: bool = False,
+        regular_contest_extremes: bool = False,
+        interrogation_quick_contest: bool = False,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
@@ -131,6 +134,7 @@ class SocialContext:
         self.trait_options, self.trait_rules = trait_options, trait_rules
         self.standing, self.audience = standing, audience
         self.self_control_modifier = self_control_modifier
+        self.self_control_trait_id = self_control_trait_id
         self.influence_conditions = influence_conditions
         # #345 whole-entry social skill procedures. `conditions` are named facts
         # about the situation; the procedure owns every integer they are worth.
@@ -139,6 +143,8 @@ class SocialContext:
         self.medium_id, self.media = medium_id, media
         self.campaign_specialties = campaign_specialties
         self.coercion, self.callous = coercion, callous
+        self.regular_contest_extremes = regular_contest_extremes
+        self.interrogation_quick_contest = interrogation_quick_contest
 
     def bind_trait_modifiers(self, modifiers: tuple[ReactionModifier, ...]) -> None:
         """Attach server-derived trait modifiers; a resolver never supplies them."""
@@ -282,6 +288,20 @@ def _apply_interrogation_coercion(
     )
 
 
+def _project_skill_outcome(context: SocialContext, outcome: SocialOutcome) -> SocialOutcome:
+    if context.procedure_id != "skill:interrogation" or not context.interrogation_quick_contest:
+        return outcome
+    # B202 all rolls and truthful/lie classification belong to the GM. Public
+    # receipts must not reveal whether an answer is truthful or a believable lie.
+    return outcome.model_copy(
+        update={
+            "outcome": "interrogation-resolved",
+            "requires_adjudication": True,
+            "adjudication": ("interrogation-gm-roleplay",),
+        }
+    )
+
+
 def _social_identity(command: SocialCommand) -> tuple[str, str, str]:
     """The existing receipt digest and collision-safe/legacy trigger identities."""
     digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
@@ -392,6 +412,7 @@ def apply_social(
     system: bool = False,
     correct_reactions: bool = False,
     recognition_sources: tuple[SocialCommand, ...] = (),
+    self_control_modifiers: tuple[Modifier, ...] = (),
 ) -> tuple[ResourceState, SocialOutcome]:
     if not system:
         raise ValidationError("Social checks require authoritative trigger context")
@@ -533,6 +554,8 @@ def apply_social(
                 context.callous,
             ),
             rng=rng,
+            source_extremes=context.regular_contest_extremes,
+            source_questions=context.interrogation_quick_contest,
             campaign_specialties=context.campaign_specialties,
         )
         outcome = SocialOutcome(
@@ -545,6 +568,7 @@ def apply_social(
             media=media,
         )
         details = _social_skill_details(skill, recognition, media)
+        outcome = _project_skill_outcome(context, outcome)
     elif command.kind == "fright":
         fright = fright_roll(
             context.profile_id,
@@ -597,15 +621,18 @@ def apply_social(
             context.trait_rules,
             rng=rng,
             modifiers=(
-                Modifier(
-                    context.self_control_modifier,
-                    "Self-control situation",
-                    command.trigger_id,
-                    "Basic Set Characters 4e B121",
-                ),
+                (
+                    Modifier(
+                        context.self_control_modifier,
+                        "Self-control situation",
+                        command.trigger_id,
+                        "Basic Set Characters 4e B121",
+                    ),
+                )
+                if context.self_control_modifier
+                else ()
             )
-            if context.self_control_modifier
-            else (),
+            + self_control_modifiers,
         )
         outcome = SocialOutcome(
             kind=command.kind, outcome="resisted" if control.outcome.succeeded else "triggered"
@@ -657,7 +684,20 @@ def _disclosure_response(
     *,
     correct_reactions: bool,
 ) -> SocialOutcome:
-    """Keep explicit preceding-skill policies distinct from the final NPC band."""
+    """Keep private skill classification separate from the player projection."""
+    if (
+        command.kind == "skill"
+        and context.procedure_id == "skill:interrogation"
+        and context.interrogation_quick_contest
+    ):
+        _, event_id, _ = _social_identity(command)
+        event = next(value for value in state.events if value.id == event_id)
+        effect_id = json.loads(event.kind)["private"]["effect"]["id"]
+        return (
+            outcome.model_copy(update={"outcome": effect_id})
+            if effect_id == "interrogation-answered"
+            else outcome
+        )
     if (
         not correct_reactions
         or command.kind != "skill"
@@ -686,6 +726,7 @@ def apply_interaction(
     system: bool = False,
     correct_reactions: bool = False,
     recognition_sources: tuple[SocialCommand, ...] = (),
+    self_control_modifiers: tuple[Modifier, ...] = (),
 ) -> tuple[ResourceState, World, SocialOutcome]:
     """Resolve once and disclose only a configured fact the subject knows.
 
@@ -706,6 +747,7 @@ def apply_interaction(
         system=True,
         correct_reactions=correct_reactions,
         recognition_sources=recognition_sources,
+        self_control_modifiers=self_control_modifiers,
     )
     if not replay:
         response = _disclosure_response(

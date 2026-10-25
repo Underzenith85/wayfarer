@@ -44,7 +44,7 @@ from wayfarer.orchestration.tactical_view.basic_choices import basic_choices
 async def test_independent_service_race_commits_one_spent_attack(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play, source = await fixture(tmp_path, backend)
+    cid, play, source = await fixture(tmp_path, backend, society_knows_beam=True)
     before = play._load(await play.store.read(cid))
     command = UseComposedAttack(
         id="race",
@@ -82,7 +82,7 @@ async def test_independent_service_race_commits_one_spent_attack(
 async def test_current_membership_is_rechecked_before_locked_use_and_exact_retry(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play, source = await fixture(tmp_path, backend)
+    cid, play, source = await fixture(tmp_path, backend, society_knows_beam=True)
     before = play._load(await play.store.read(cid))
     command = UseComposedAttack(
         id="planned",
@@ -173,7 +173,13 @@ async def test_seed_only_reexecution_preserves_complete_host_state(
     tmp_path: Path, backend: str, operation: str
 ) -> None:
     modifiers = (pick("enhancement:malediction", option="1"),) if operation == "resist" else ()
-    cid, play, source = await fixture(tmp_path / "original", backend, modifiers=modifiers)
+    cid, play, source = await fixture(
+        tmp_path / "original",
+        backend,
+        modifiers=modifiers,
+        society_knows_beam=operation
+        in ("aim", "declare", "defend", "abandon", "continue-critical"),
+    )
     principal = "alice"
     command: ComposedCommand | ChooseDefense
     if operation in ("defend", "resist", "abandon", "continue-critical"):
@@ -299,7 +305,7 @@ def test_legacy_pending_snapshot_and_frozen_commands_have_no_new_public_vocabula
 
 
 async def test_pending_pointer_and_campaign_mismatch_fail_before_resolution(tmp_path: Path) -> None:
-    cid, play, source = await fixture(tmp_path)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True)
     await declare(play, cid, source)
     state = play._load(await play.store.read(cid))
     encounter = state.encounters[0]
@@ -328,7 +334,7 @@ async def test_current_symptom_projection_is_applied_once_and_defenses_keep_exem
 ) -> None:
     from test_symptom_attribute_consumers import attribute_penalty
 
-    cid, play, source = await fixture(tmp_path)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True)
     await change(
         play,
         cid,
@@ -343,11 +349,18 @@ async def test_current_symptom_projection_is_applied_once_and_defenses_keep_exem
     assert result.injury.injury == 0 and play.rng.exhausted()
 
 
-async def test_b379_corrosion_rejects_binding_before_private_mutation(tmp_path: Path) -> None:
-    cid, play, _ = await fixture(tmp_path, kind="cor", bind_source=False)
+async def test_b379_corrosion_rejects_unsupported_binding_before_private_mutation(
+    tmp_path: Path,
+) -> None:
+    cid, play, _ = await fixture(
+        tmp_path,
+        kind="cor",
+        bind_source=False,
+        modifiers=(pick("enhancement:armor-divisor", option="2"),),
+    )
     before = await play.store.read(cid)
     state = play._load(before)
-    with pytest.raises(ValidationError, match="B379 persistent DR degradation"):
+    with pytest.raises(ValidationError, match="only the ordinary and Cyclic"):
         await ComposedAttackService(play).execute(
             cid,
             BindComposedSource(
@@ -379,6 +392,7 @@ async def test_real_critical_self_hit_binds_current_limb_cyclic_debt(
         levels=1,
         dr=1,
         cyclic_policy=CyclicPolicy(condition="wash"),
+        society_knows_beam=True,
     )
     await declare(play, cid, source)
     # B556 ranged table5 rerolls once to6; right-arm self-hit basic5/2 ->2; DR1 ->1HP.
@@ -425,6 +439,7 @@ async def test_new_cyclic_delivery_has_source_bound_initial_damage_and_recovery_
         levels=1,
         dr=1,
         cyclic_policy=CyclicPolicy(condition="wash"),
+        society_knows_beam=True,
     )
     await declare(play, cid, source)
     play.rng = RecordedDice((2, 2, 2, 3))
@@ -471,6 +486,7 @@ async def test_b61_ordinary_toxic_machine_immunity_stops_initial_damage_and_cycl
         modifiers=(cyclic("tox"),),
         levels=1,
         cyclic_policy=CyclicPolicy(condition="wash"),
+        society_knows_beam=True,
     )
 
     def machine(state: PlayState) -> PlayState:
@@ -506,7 +522,11 @@ async def test_b61_ordinary_toxic_machine_immunity_stops_initial_damage_and_cycl
 
 async def test_changed_worn_protection_is_recomputed_after_declaration(tmp_path: Path) -> None:
     cid, play, source = await fixture(
-        tmp_path, dr=4, armor=True, modifiers=(pick("enhancement:armor-divisor", option="2"),)
+        tmp_path,
+        dr=4,
+        armor=True,
+        modifiers=(pick("enhancement:armor-divisor", option="2"),),
+        society_knows_beam=True,
     )
     await declare(play, cid, source)
     await change(
@@ -545,7 +565,9 @@ async def test_fatigue_critical_consequences_change_real_pools_without_fake_hp_d
     from test_composed_attack_host import table_dice
 
     levels = 2 if row == 8 else 1
-    cid, play, source = await fixture(tmp_path, kind="fat", dr=1, levels=levels)
+    cid, play, source = await fixture(
+        tmp_path, kind="fat", dr=1, levels=levels, society_knows_beam=True
+    )
     await declare(play, cid, source)
     play.rng = RecordedDice((1, 1, 1) + table_dice(row) + dice)
     await defense(play, cid)
@@ -560,7 +582,7 @@ async def test_fatigue_critical_consequences_change_real_pools_without_fake_hp_d
 async def test_critical_drop_applies_even_when_dr_prevents_all_damage(tmp_path: Path) -> None:
     from test_composed_attack_host import table_dice
 
-    cid, play, source = await fixture(tmp_path, levels=1, dr=20)
+    cid, play, source = await fixture(tmp_path, levels=1, dr=20, society_knows_beam=True)
     await declare(play, cid, source)
     play.rng = RecordedDice((1, 1, 1) + table_dice(12) + (3,))
     _, result = await defense(play, cid)

@@ -11,7 +11,7 @@ addition to the admitted ability's own cost. Background narrative alone does
 not create a purchased advantage.
 
 This implementation supports one explicit, fixed-price campaign decision over
-one or more existing, implemented trait definitions. The trusted host
+one or more existing, implemented trait, skill or technique definitions. The trusted host
 uses `bind_unusual_background` with `UnusualBackgroundDecision` to create a new
 rules-package identity/version. The record carries the authoring GM, narrative,
 exact admitted definition IDs, fixed nonnegative price, allowed/forbidden
@@ -27,6 +27,13 @@ record. It is not a player draft option or an inferred physiological effect.
   any configured tangible benefit in the build is blocked and cannot be
   overridden. Client-selected prices, levels, modifiers, unknown benefits, and
   unbound generic backgrounds fail closed.
+- Skills and techniques retain their normal point cost and all existing acquisition
+  prerequisites. A paid decision adds the background to both purchase and skill
+  acquisition prerequisites, so attribute defaults and skill-to-skill defaults
+  require the same purchased background. A forbidden skill is unavailable to
+  both investment and defaults. A legal default unlocked by the surcharge is a
+  tangible benefit and still requires recorded GM approval; a skill with no
+  default needs an actual purchase. Unrelated skills keep their normal defaults.
 - The background prerequisite applies to exactly the GM-selected benefits.
   Package validation rejects added admission links to other abilities, including
   zero-cost and forbidden decisions. Binding a new decision also rejects an
@@ -64,7 +71,14 @@ The unconfigured global catalog now reports this row unsupported. A bound
 campaign package provides the supported construction; a generic hook or family
 label is not evidence that arbitrary variable constructions work. Conditional
 costs, stacked independent backgrounds, cross-package benefits, new abilities,
-skill/default/technique admission, and unimplemented benefit mechanics are not
-inferred or promoted. Skill bindings reject before package construction because
-their default availability needs its own authoritative admission mechanism. No universal
+and unimplemented benefit mechanics are not
+inferred or promoted. `tests/test_background_skill_admission.py` exercises paid,
+common and forbidden skill/technique decisions, attribute and skill defaults,
+trained-parent technique defaults, AND/OR acquisition requirements, GM approval,
+approval serialization, price migrations, and rejection of detached or weakened
+acquisition prerequisites. Durable host tests cover approval retry, restart,
+event replay and actual activation of an admitted skill default. The private
+[Karate Kicking consumer](gurps-karate-kicking.md) also enforces a named technique
+decision in actual kick declarations and scoring, while retaining the separate
+ordinary DX kick. No universal
 Basic Set certification claim or public schema/version change is made.

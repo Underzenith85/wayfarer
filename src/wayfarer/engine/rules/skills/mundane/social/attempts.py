@@ -219,6 +219,39 @@ def _influence_verdict(trace: InfluenceTrace, actor_id: str) -> Verdict:
     return Verdict.TIE if trace.contest.winner is None else Verdict.FAILURE
 
 
+def _question_procedure(entry: SocialProcedure, source_questions: bool) -> SocialProcedure:
+    if entry.id != "skill:interrogation" or source_questions:
+        return entry
+    # Captured historical questions retain the former Regular Contest semantics.
+    return replace(
+        entry,
+        resolution=Resolution.REGULAR_CONTEST,
+        effects=(
+            (Verdict.SUCCESS, Effect("interrogation-answered")),
+            (Verdict.FAILURE, Effect("interrogation-withstood")),
+        ),
+    )
+
+
+def _contest_verdict(entry: SocialProcedure, contest: QuickContestTrace, actor_id: str) -> Verdict:
+    if entry.id != "skill:interrogation":
+        return _quick_verdict(contest, actor_id)
+    # B202 depends on the contest winner, with no additional critical outcome.
+    if contest.winner == actor_id:
+        return Verdict.SUCCESS
+    return Verdict.TIE if contest.winner is None else Verdict.FAILURE
+
+
+def _contest_effect(entry: SocialProcedure, contest: QuickContestTrace, verdict: Verdict) -> Effect:
+    if (
+        entry.id == "skill:interrogation"
+        and verdict is Verdict.FAILURE
+        and contest.victory_margin > 5
+    ):
+        return Effect("interrogation-believable-lie", requires_adjudication=True)
+    return entry.effect(verdict)
+
+
 def resolve(
     profile_id: str,
     identifier: str,
@@ -226,13 +259,17 @@ def resolve(
     *,
     rng: RandomSource,
     campaign_specialties: CampaignSocialSpecialties | None = None,
+    source_extremes: bool = True,
+    source_questions: bool = True,
 ) -> SocialSkillTrace:
     """Run one attempt at a social skill procedure and record what decided it.
 
     Dice are drawn only from the caller's server-owned source, in the order the
     declared resolution consumes them, so a recorded receipt replays exactly.
     """
-    entry = require_procedure(profile_id, identifier, campaign_specialties)
+    entry = _question_procedure(
+        require_procedure(profile_id, identifier, campaign_specialties), source_questions
+    )
     _validate_context(entry, context)
     modifiers = derived_modifiers(entry, context)
     # B198: a gesture is only as clear as the less fluent of the two parties.
@@ -256,7 +293,7 @@ def resolve(
         )
     if entry.resolution is Resolution.QUICK_CONTEST:
         contest = quick_contest(profile_id, actor, subject, rng=rng)
-        verdict = _quick_verdict(contest, context.actor_id)
+        verdict = _contest_verdict(entry, contest, context.actor_id)
         return SocialSkillTrace(
             entry.id,
             entry.reference,
@@ -264,11 +301,13 @@ def resolve(
             base,
             modifiers,
             verdict,
-            entry.effect(verdict),
+            _contest_effect(entry, contest, verdict),
             contest=contest,
         )
     if entry.resolution is Resolution.REGULAR_CONTEST:
-        rounds = regular_contest(profile_id, actor, subject, rng=rng)
+        rounds = regular_contest(
+            profile_id, actor, subject, rng=rng, source_extremes=source_extremes
+        )
         verdict = Verdict.SUCCESS if rounds.winner == context.actor_id else Verdict.FAILURE
         return SocialSkillTrace(
             entry.id,

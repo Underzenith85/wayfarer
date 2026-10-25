@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import NoReturn
 
+import pytest
 from test_combat import setup as combat_setup
 from test_combat import start
 from test_medical_service import setup as medical_setup
@@ -50,8 +51,13 @@ def guarded(play: PlayService) -> NoTransaction:
     )
 
 
-async def test_physical_step_preserves_check_order_without_committing(tmp_path: Path) -> None:
-    cid, play, _ = await medical_setup(tmp_path)
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_physical_step_preserves_check_order_without_committing(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play, _ = await medical_setup(
+        tmp_path, backend=backend, society_known_physical_skills=("skill:swimming",)
+    )
     campaign = await play.store.read(cid)
     before = play._load(campaign)
     encoded = before.model_dump_json()
@@ -59,7 +65,7 @@ async def test_physical_step_preserves_check_order_without_committing(tmp_path: 
     assert scene is not None
     route = PhysicalRoute(id="swim", scene_id=scene, kind="swim", seconds=60)
     command = PhysicalCommand(
-        id="swim", actor_id="a", expected_revision=0, kind="swim", route_id="swim"
+        id="swim", actor_id="a", expected_revision=before.revision, kind="swim", route_id="swim"
     )
     dice = RecordedDice([1, 2, 3, 4, 3, 2])
     play.rng = dice
@@ -67,7 +73,7 @@ async def test_physical_step_preserves_check_order_without_committing(tmp_path: 
     updated, result = reduce_physical(before, command, context)
     assert before.model_dump_json() == encoded
     assert await play.store.read(cid) == campaign
-    assert updated.revision == 1 and updated.resources.game_time == 60
+    assert updated.revision == before.revision + 1 and updated.resources.game_time == 60
     assert result.succeeded and result.fp_lost == 0
     assert [check.dice for check in result.checks] == [(1, 2, 3), (4, 3, 2)]
     assert dice.exhausted()

@@ -219,7 +219,7 @@ def open_opponent_fragment(
             raise ValidationError("Blast source requires trusted director authority")
         state = play.checkpoint(state)
         state, _, context = _prepare_command(state, resolution, CombatContext(play, state))
-        encounter = _prepare_encounter(state, resolution, context)
+        encounter, context = _prepare_encounter(state, resolution, context)
         result = prepare_blast_fragments(
             play.rules_context,
             state,

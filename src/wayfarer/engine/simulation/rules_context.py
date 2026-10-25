@@ -9,6 +9,7 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.simulation.actions import ActionRules, PlayState
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine, hex_template
 from wayfarer.engine.simulation.health.symptom_state import projected_build
@@ -29,9 +30,19 @@ class RulesContext:
     rules: ActionRules
     combat: CombatEngine | None
     correct_symptom_attributes: bool = True
+    correct_defense_postures: bool = True
+    correct_ranged_target_postures: bool = False
+    correct_default_knowledge: bool = False
+    require_default_knowledge: bool = False
     clock: PlayClock | None = None
     # Scoped to calculations for one already-launched attack, never approval/control.
     attack_source: tuple[str, ValidatedBuild] | None = None
+    # Captured only within one response transaction, before reaction-option dice.
+    response_attack: tuple[str, AttackRollSpec] | None = None
+
+    def attack_spec(self, pending_id: str, current: AttackRollSpec) -> AttackRollSpec:
+        captured = self.response_attack
+        return captured[1] if captured is not None and captured[0] == pending_id else current
 
     def advance(
         self, state: PlayState, command: Advance, *, rng: RandomSource | None = None

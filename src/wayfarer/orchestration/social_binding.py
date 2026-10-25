@@ -5,15 +5,64 @@ from wayfarer.engine.character.traits.social import (
     reaction_modifiers,
     skill_conditions,
 )
+from wayfarer.engine.rules.catalog import ImplementationStatus
+from wayfarer.engine.rules.checks import Modifier
 from wayfarer.engine.rules.skills.mundane.social.inventory import Resolution, require_procedure
 from wayfarer.engine.rules.traits.mundane.runtime import Check
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
 from wayfarer.engine.simulation.campaign.propaganda import bind_media
+from wayfarer.engine.simulation.health.self_control_conditions import (
+    modifiers as condition_modifiers,
+)
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.social_generations import condition_self_control_enabled
+
+
+def bind_self_control(
+    play: PlayService, state: PlayState, command: SocialCommand, context: SocialContext
+) -> tuple[Modifier, ...]:
+    if command.kind != "self-control" or not condition_self_control_enabled():
+        return ()
+    approved = play.rules_context.approved_build(state, command.subject_id)
+    compiler = play.engine.reviewer.compiler
+    if context.self_control_trait_id is None:
+        matches = tuple(
+            purchase.definition_id
+            for purchase in approved.trait_purchases
+            if purchase.trait == context.trait_options
+            and purchase.amount == context.trait_levels
+            and (definition := compiler.definitions.get(purchase.definition_id)) is not None
+            and definition.trait_rules == context.trait_rules
+            and definition.point_cost == context.trait_base
+        )
+        if len(matches) != 1:
+            raise ValidationError("Self-control requires one identified approved disadvantage")
+        context.self_control_trait_id = matches[0]
+    purchase = next(
+        (p for p in approved.trait_purchases if p.definition_id == context.self_control_trait_id),
+        None,
+    )
+    definition = compiler.definitions.get(context.self_control_trait_id)
+    if (
+        purchase is None
+        or purchase.trait is None
+        or definition is None
+        or definition.status is not ImplementationStatus.IMPLEMENTED
+        or definition.point_cost is None
+        or definition.point_cost >= 0
+        or definition.trait_rules is None
+        or not definition.trait_rules.self_control
+        or not definition.trait_rules.runtime_hooks
+        or not set(definition.trait_rules.runtime_hooks) <= compiler.trait_runtime_hooks
+    ):
+        raise ValidationError("Self-control requires an implemented approved disadvantage")
+    context.trait_base, context.trait_levels = definition.point_cost, purchase.amount
+    context.trait_rules, context.trait_options = definition.trait_rules, purchase.trait
+    return condition_modifiers(state.resources, command.subject_id, purchase.definition_id)
 
 
 def bind_trait_modifiers(

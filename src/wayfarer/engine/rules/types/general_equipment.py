@@ -28,6 +28,10 @@ class EquipmentQuality(Record):
             "fine": 2,
             "best": max(2, self.technology_level // 2),
         }[self.grade]
+        # B345 applies missing-item and damage penalties only to basic or
+        # better equipment. Improvisation already uses its own equipment tier.
+        if self.grade in ("none", "improvised"):
+            return quality
         return quality - self.missing_important_items - self.damage_penalty
 
     @property

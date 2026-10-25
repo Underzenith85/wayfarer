@@ -2,7 +2,6 @@
 
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.traits.physiology import physiology_traits
@@ -17,14 +16,16 @@ from wayfarer.engine.simulation.health.survival import (
     settle_survival,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
+from wayfarer.orchestration.ability_boundary import require_boundary
+from wayfarer.orchestration.condition_environments import recorded_environment
 from wayfarer.orchestration.medical import _build, _value
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, submit
 from wayfarer.orchestration.play import PlayService
 
 
-@dataclass(frozen=True)
-class SurvivalEnvironment:
+class SurvivalEnvironment(Record):
     meal_item_ids: tuple[str, ...] = ()
     water_item_ids: tuple[str, ...] = ()
 
@@ -43,16 +44,21 @@ class SurvivalService:
         play: PlayService,
         command: BeginSurvival | SettleSurvival,
         member: CampaignMember,
+        *,
+        environment: SurvivalEnvironment | None = None,
     ) -> CommandPlan[SurvivalResult]:
+        source: dict[str, object] = {}
+        if environment is not None:
+            source["survival_environment"] = environment.model_dump(mode="json")
         payload = json.dumps(
-            {"operation": "gurps-survival", "command": command.model_dump(mode="json")},
+            {"operation": "gurps-survival", "command": command.model_dump(mode="json"), **source},
             sort_keys=True,
         )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             build = _build(play, before, command.actor_id)
-            env = self.environment(play, before, command.actor_id)
+            env = environment or self.environment(play, before, command.actor_id)
             physiology = physiology_traits(build, play.engine.reviewer.compiler.definitions)
             context = SurvivalContext(
                 profile_id="gurps-basic-set-4e-2004",
@@ -102,4 +108,20 @@ class SurvivalService:
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Survival requires the exact Basic Set profile")
         member = member_for(play._load(await play.store.read(cid)), principal_id)
-        return await submit(play, cid, self.plan(play, command, member), principal_id=principal_id)
+        Controls(member, command.actor_id)(principal_id)
+        saved, raw = await recorded_environment(play, cid, command.id, "survival_environment")
+        if not saved:
+            require_boundary(await play.store.read(cid), None)
+        environment = (
+            SurvivalEnvironment.model_validate_json(json.dumps(raw))
+            if raw is not None
+            else None
+            if saved
+            else self.environment(play, play._load(await play.store.read(cid)), command.actor_id)
+        )
+        return await submit(
+            play,
+            cid,
+            self.plan(play, command, member, environment=environment),
+            principal_id=principal_id,
+        )

@@ -42,6 +42,9 @@ class ComposedSource(Record):
     contagion_vector: Literal["blood", "contact", "digestive", "respiratory"] | None = None
     incubation_seconds: int = Field(ge=1)
     cyclic_policy: CyclicPolicy | None = None
+    corrosion_dr_erosion: bool = Field(default=False, exclude_if=lambda value: not value)
+    corrosion_critical_hits: bool = Field(default=False, exclude_if=lambda value: not value)
+    malediction_waiver_cap: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class ComposedPending(Record):

@@ -31,6 +31,9 @@ from wayfarer.engine.simulation.combat.ranged.resolution import (
 from wayfarer.engine.simulation.combat.ranged.resolution import (
     resolve as resolve_ranged,
 )
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    require_owner_damage as require_ranged_owner_damage,
+)
 from wayfarer.engine.simulation.combat.settlement import reconcile_equipment
 from wayfarer.engine.simulation.combat.thrown.items import validate_catch
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
@@ -332,6 +335,7 @@ def open_inventory_damage(
     ):
         raise ValidationError("This owner damage route requires an inventory weapon attack")
     context = CombatContext(play, state, selected_attack=selected_attack)
+    require_ranged_owner_damage(context.attack_runtime, state, encounter)
     weapon = (
         None
         if pending.spell_cast_id
@@ -348,7 +352,7 @@ def open_inventory_damage(
     state, prepared_response, context = _prepare_command(state, response, context)
     assert isinstance(prepared_response, ChooseDefense)
     response = prepared_response
-    encounter = _prepare_encounter(state, response, context)
+    encounter, context = _prepare_encounter(state, response, context)
     pending = encounter.pending_defense
     if (
         pending is None

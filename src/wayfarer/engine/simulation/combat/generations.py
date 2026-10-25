@@ -58,3 +58,51 @@ def rooted_dodge_haste_composition() -> bool:
 
 def hand_melee_spell_contact_enabled() -> bool:
     return "hand-melee-spell-contact" in _current.get()
+
+
+def karate_kicking_technique_enabled() -> bool:
+    return "karate-kicking-technique" in _current.get()
+
+
+def acrobatic_condition_checks_enabled() -> bool:
+    return "acrobatic-condition-checks" in _current.get()
+
+
+def staff_form_contact_enabled() -> bool:
+    return "staff-form-contact" in _current.get()
+
+
+def regular_contest_extreme_scores_enabled() -> bool:
+    return "regular-contest-extreme-scores" in _current.get()
+
+
+def interposition_current_step_enabled() -> bool:
+    return "interposition-current-step" in _current.get()
+
+
+def staff_heavy_bare_parry_enabled() -> bool:
+    return "staff-heavy-bare-parry" in _current.get()
+
+
+def retreat_postures_enabled() -> bool:
+    return "retreat-postures" in _current.get()
+
+
+def hand_melee_striking_skills_enabled() -> bool:
+    return "hand-melee-striking-skills" in _current.get()
+
+
+def melee_attack_postures_enabled() -> bool:
+    return "melee-attack-postures" in _current.get()
+
+
+def voluntary_attack_minimum_enabled() -> bool:
+    return "voluntary-attack-minimum" in _current.get()
+
+
+def acrobatic_skill_minimum_enabled() -> bool:
+    return "acrobatic-skill-minimum" in _current.get()
+
+
+def repair_operating_tools_enabled() -> bool:
+    return "repair-operating-tools" in _current.get()

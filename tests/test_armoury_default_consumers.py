@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from support.armoury_defaults import declare, fixture, revision, select, wait
+from test_default_knowledge_hosts import adopt as establish_society_knowledge
 from test_issue_818_armoury_acceptance import begin
 
 from wayfarer.engine.rules.checks import RecordedDice
@@ -26,6 +27,7 @@ async def test_canonical_firearm_broken_ready_then_repaired_actual_shot(
     from wayfarer.orchestration.combat import StartEncounter
 
     cid, play = await fixture(tmp_path, backend, "firearm", "skill:engineer-small-arms")
+    await establish_society_knowledge(play, cid, ("skill:guns-pistol",), actor_id="b")
     current_encounter = "broken-fight"
 
     async def turn(

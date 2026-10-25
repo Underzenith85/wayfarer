@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.combat.unarmed.damage_records import ArmedParryD
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, skill_value
 from wayfarer.engine.simulation.combat.unarmed.records import BASIC, PendingUnarmed
 from wayfarer.engine.simulation.equipment.catalog import DamageType, MeleeMode
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.hit_locations import armor_resistance
 from wayfarer.engine.simulation.health.injury import (
@@ -50,7 +51,7 @@ def armor_dr(
             e.armor
             for i in state.resources.items
             if i.owner_id == actor_id and i.equipped
-            for e in (entries[i.definition_id],)
+            for e in (projected_profile(state.resources, i, entries[i.definition_id]),)
             if e.armor
         ),
         location,

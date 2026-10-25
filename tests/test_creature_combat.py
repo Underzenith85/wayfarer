@@ -365,6 +365,7 @@ def test_basilisk_death_gaze_uses_registered_resistance_and_modifier_adapters() 
         maneuver="concentrate",
         motivation="predatory",
         target_will=10,
+        target_living_or_sapient=True,
         target_dr=99,
         vision_contact=True,
     )

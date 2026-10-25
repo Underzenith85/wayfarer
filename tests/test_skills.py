@@ -4,6 +4,7 @@ Generic test-only definitions exercise mechanics, not claims of catalog coverage
 """
 
 import json
+from collections.abc import Callable
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
@@ -13,6 +14,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from wayfarer.certification.executable_evidence import provenance
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
 from wayfarer.engine.character.skills import (
     BASIC,
@@ -118,7 +120,9 @@ def cases() -> list[dict[str, object]]:
 
 
 @pytest.mark.parametrize("case", cases(), ids=lambda c: str(c["id"]))
-def test_source_referenced_golden_cases(case: dict[str, object]) -> None:
+def test_source_referenced_golden_cases(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     inputs = case["input"]
     expected = case["expected"]
     assert isinstance(inputs, dict) and isinstance(expected, dict)
@@ -146,6 +150,9 @@ def test_source_referenced_golden_cases(case: dict[str, object]) -> None:
                 assert result_.default_from == expected["default_from"]
             if "credit" in expected:
                 assert result_.default_credit == expected["credit"]
+    if case["profile"] == BASIC:
+        for name, value in provenance(Path(__file__).resolve().parents[1], case).items():
+            record_property(name, value)
 
 
 def test_default_chains_require_training_at_every_link() -> None:

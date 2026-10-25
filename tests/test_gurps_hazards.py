@@ -280,13 +280,25 @@ async def test_no_air_death_deadline_and_drowning_transition(tmp_path: Path) -> 
         ("fall", [2], 1),
     ],
 )
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_physical_routes_execute_on_authoritative_clock(
-    tmp_path: Path, kind: str, dice: list[int], seconds: int
+    tmp_path: Path, kind: str, dice: list[int], seconds: int, backend: str
 ) -> None:
-    cid, play, _ = await setup(tmp_path)
+    needed = {"climb": "skill:climbing", "hike": "skill:hiking", "swim": "skill:swimming"}
+    cid, play, _ = await setup(
+        tmp_path,
+        backend=backend,
+        society_known_physical_skills=(needed[kind],) if kind in needed else (),
+    )
     play.rng = RecordedDice(dice)
     command = PhysicalCommand.model_validate(
-        {"id": kind, "actor_id": "a", "expected_revision": 0, "kind": kind, "route_id": "route"}
+        {
+            "id": kind,
+            "actor_id": "a",
+            "expected_revision": (await play.store.read(cid))["revision"],
+            "kind": kind,
+            "route_id": "route",
+        }
     )
     route = PhysicalRoute(id="route", scene_id="dock", kind=command.kind, seconds=seconds)
     service = PhysicalService(play, lambda *_: route)

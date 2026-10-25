@@ -33,13 +33,16 @@ async def test_origin_is_private_and_does_not_change_receipts(tmp_path: Path, ba
     reaction = {
         "operation": "typed-action",
         "command": command.model_dump(mode="json"),
-        "reaction_semantics_generation": 1,
+        "reaction_semantics_generation": 4,
         "reaction_original_input": original,
     }
     payload = json.dumps(
         {
             **reaction,
-            "symptom_attribute_generation": 1,
+            "symptom_attribute_generation": 3,
+            "defense_posture_generation": 1,
+            "ranged_target_posture_generation": 1,
+            "default_knowledge_generation": 2,
             "symptom_original_input": json.dumps(reaction, sort_keys=True, separators=(",", ":")),
         },
         sort_keys=True,

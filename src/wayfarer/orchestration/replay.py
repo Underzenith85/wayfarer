@@ -2,15 +2,26 @@
 
 import json
 from collections.abc import Awaitable, Callable, Mapping
+from typing import NoReturn
+
+from pydantic import TypeAdapter
 
 from wayfarer import validation
+from wayfarer.engine.rules.types.care_minimum import voluntary as voluntary_care
+from wayfarer.engine.simulation.ability_types import AbilityCommand
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge import (
+    ADAPTER as DEFAULT_KNOWLEDGE_ADAPTER,
+)
 from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.sensory_host import ADAPTER as SENSORY_ADAPTER
 from wayfarer.engine.simulation.equipment.world_ground import WorldGroundCommand
 from wayfarer.engine.simulation.health.cyclic_host_state import ADAPTER as CYCLIC_HOST_ADAPTER
 from wayfarer.engine.simulation.health.hazard_records import HazardCommand
+from wayfarer.engine.simulation.health.medical.commands import BeginRecovery, FinishRecovery
+from wayfarer.engine.simulation.health.survival import BeginSurvival, SettleSurvival
+from wayfarer.engine.simulation.health.toxins import DrinkCommand, ToxinCommand
 from wayfarer.engine.simulation.magic.analyze_magic_state import ADAPTER as ANALYZE_MAGIC_ADAPTER
 from wayfarer.engine.simulation.magic.apportation_state import ADAPTER as APPORTATION_ADAPTER
 from wayfarer.engine.simulation.magic.aura_state import ADAPTER as AURA_ADAPTER
@@ -41,6 +52,14 @@ from wayfarer.engine.simulation.magic.wither_spell_commands import ADAPTER as WI
 from wayfarer.engine.simulation.social.social import SocialCommand
 from wayfarer.engine.simulation.traits.composed_host import ADAPTER as COMPOSED_ADAPTER
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.abilities import AbilityService
+from wayfarer.orchestration.ability_rule16_generations import (
+    legacy_payload as legacy_ability_payload,
+)
+from wayfarer.orchestration.ability_rule16_generations import (
+    principal as ability_principal,
+)
+from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService, EvaluateRuling
 from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
 from wayfarer.orchestration.apportation import ApportationService
 from wayfarer.orchestration.armoury import ADAPTER as ARMOURY_ADAPTER
@@ -52,20 +71,31 @@ from wayfarer.orchestration.combat.unarmed_host import RandomUnarmedService, Ran
 from wayfarer.orchestration.combat_senses import CombatSensesService
 from wayfarer.orchestration.composed_attacks import ComposedAttackService
 from wayfarer.orchestration.cyclic import CyclicService
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.detect_magic import DetectMagicService
+from wayfarer.orchestration.drinking import DrinkingService
+from wayfarer.orchestration.drowsy_toxins import DrowsyToxinService
 from wayfarer.orchestration.enchantments import EnchantmentService
 from wayfarer.orchestration.great_haste import GreatHasteService
 from wayfarer.orchestration.hand_melee_spells import HandMeleeSpellService
 from wayfarer.orchestration.harmful_physiology import HarmfulPhysiologyService
 from wayfarer.orchestration.haste import HasteService
+from wayfarer.orchestration.hazard_care import HazardCare, HazardCareCommand, HazardCareService
+from wayfarer.orchestration.hazard_care_generations import read as read_hazard_care
 from wayfarer.orchestration.hazard_resume import recorded_resume
 from wayfarer.orchestration.hazards import HazardContext, HazardService
 from wayfarer.orchestration.identify_spell import IdentifySpellService
 from wayfarer.orchestration.limb_spells import LimbSpellService
 from wayfarer.orchestration.locks import LockService, LockSpellService
+from wayfarer.orchestration.medical import CareEnvironment, MedicalService
+from wayfarer.orchestration.medical_minimum_generations import read as read_minimum_inputs
+from wayfarer.orchestration.medical_rest_generations import read as read_rest_inputs
 from wayfarer.orchestration.melee_spells import MeleeSpellService
+from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
+from wayfarer.orchestration.npcs import NPCProposal, NPCService
 from wayfarer.orchestration.party import PartyCommand, PartyService
-from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.physical import PhysicalCommand, PhysicalService
+from wayfarer.orchestration.play import ApproveCharacter, PlayService
 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 from wayfarer.orchestration.replay_inputs import replay_inputs
 from wayfarer.orchestration.rooted_feet import RootedFeetService
@@ -77,6 +107,8 @@ from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBa
 from wayfarer.orchestration.spell_rituals import SpellRitualService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.orchestration.staff_casting import StaffCastingService
+from wayfarer.orchestration.survival import SurvivalService
+from wayfarer.orchestration.swim_hazard_resume import recorded_swim_resume
 from wayfarer.orchestration.task_records import ADAPTER as TASK_ADAPTER
 from wayfarer.orchestration.tasks import TaskService
 from wayfarer.orchestration.transformations import TransformationService
@@ -137,9 +169,9 @@ async def _task_host(play: PlayService, record: CommandRecord, encoded: str) -> 
 
 async def _natural_hazard_resume(play: PlayService, record: CommandRecord, encoded: str) -> None:
     command = HazardCommand.model_validate_json(encoded)
-    if (
-        command.kind != "resolve"
-        or recorded_resume(CommandInput(record.payload_hash, record.command_input)) is None
+    if command.kind != "resolve" or (
+        recorded_resume(CommandInput(record.payload_hash, record.command_input)) is None
+        and recorded_swim_resume(CommandInput(record.payload_hash, record.command_input)) is None
     ):
         raise ValidationError("Historical resolver-only hazards retain event-fold replay only")
 
@@ -223,6 +255,14 @@ async def _armoury(play: PlayService, record: CommandRecord, encoded: str) -> No
     await ArmouryService(play).execute(
         record.campaign_id,
         ARMOURY_ADAPTER.validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _default_knowledge(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await DefaultKnowledgeService(play).execute(
+        record.campaign_id,
+        DEFAULT_KNOWLEDGE_ADAPTER.validate_json(encoded),
         principal_id=record.actor_id,
     )
 
@@ -363,7 +403,167 @@ async def _detect_magic(play: PlayService, record: CommandRecord, encoded: str) 
     )
 
 
+async def _noncombat(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await NoncombatService(play).execute(
+        record.campaign_id,
+        NoncombatCommand.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _power_approval(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await play.approve(
+        record.campaign_id,
+        ApproveCharacter.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _adjudication(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    service = AdjudicationService(play)
+    raw = validation.mapping(validation.decode(encoded))
+    if raw.get("kind") == "evaluate_ruling":
+        command = EvaluateRuling.model_validate_json(encoded)
+        if command.actor_id != record.actor_id or command.actor_id != "system:adjudication":
+            raise ValidationError("Recorded policy ruling requires its internal principal")
+        await service.evaluate(
+            record.campaign_id,
+            command.ruling_id,
+            command_id=command.id,
+            expected_revision=command.expected_revision,
+        )
+    else:
+        await service.submit(
+            record.campaign_id, RULING_ADAPTER.validate_json(encoded), principal_id=record.actor_id
+        )
+
+
+async def _physical(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    def unavailable(*_: object) -> NoReturn:
+        raise ValidationError("Physical replay requires its captured trusted route")
+
+    await PhysicalService(play, unavailable).execute(
+        record.campaign_id,
+        PhysicalCommand.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _drowsy_toxin(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    def unavailable(*_: object) -> NoReturn:
+        raise ValidationError("Toxin replay requires its captured trusted exposure")
+
+    await DrowsyToxinService(play, unavailable).execute(
+        record.campaign_id,
+        ToxinCommand.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _drinking(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    def unavailable(*_: object) -> NoReturn:
+        raise ValidationError("Drinking replay requires its captured trusted environment")
+
+    await DrinkingService(play, unavailable).execute(
+        record.campaign_id, DrinkCommand.model_validate_json(encoded), principal_id=record.actor_id
+    )
+
+
+async def _survival(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    def unavailable(*_: object) -> NoReturn:
+        raise ValidationError("Survival replay requires its captured trusted environment")
+
+    kind = validation.mapping(validation.decode(encoded)).get("kind")
+    classes: dict[str, type[BeginSurvival] | type[SettleSurvival]] = {
+        "begin-survival": BeginSurvival,
+        "settle-survival": SettleSurvival,
+    }
+    cls = classes.get(kind) if isinstance(kind, str) else None
+    if cls is None:
+        raise ValidationError("Unknown recorded survival command")
+    await SurvivalService(play, unavailable).execute(
+        record.campaign_id, cls.model_validate_json(encoded), principal_id=record.actor_id
+    )
+
+
+async def _npc_proposal(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await NPCService(play).propose(
+        record.campaign_id,
+        NPCProposal.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _ability(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await AbilityService(play).execute(
+        record.campaign_id,
+        AbilityCommand.model_validate_json(encoded),
+        principal_id=ability_principal(record),
+    )
+
+
+async def _medical_rest(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    captured = read_rest_inputs(
+        CommandInput(record.payload_hash, record.command_input), eligible=True
+    )
+    command: BeginRecovery | FinishRecovery = TypeAdapter(
+        BeginRecovery | FinishRecovery
+    ).validate_json(encoded)
+    if captured.enabled:
+        if isinstance(command, BeginRecovery) and command.kind != "rest":
+            raise ValidationError(
+                "Captured FP-rest replay cannot execute another medical procedure"
+            )
+    elif isinstance(command, BeginRecovery):
+        care = read_minimum_inputs(
+            CommandInput(record.payload_hash, record.command_input),
+            eligible=True,
+            command_id=command.id,
+            actor_id=command.actor_id,
+        )
+        if not care.enabled:
+            raise ValidationError("Unmarked medical start has no captured care environment")
+    else:
+        state = play._load(await play.store.read(record.campaign_id))
+        task = next((t for t in state.resources.recovery_tasks if t.id == command.task_id), None)
+        if task is None or not voluntary_care(task):
+            raise ValidationError("Unmarked medical completion requires an existing voluntary task")
+
+    def unavailable(*_args: object) -> CareEnvironment:
+        raise ValidationError("Medical replay cannot query an unrecorded environment")
+
+    await MedicalService(play, unavailable).execute(
+        record.campaign_id, command, principal_id=record.actor_id
+    )
+
+
+async def _hazard_care(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    admission = read_hazard_care(CommandInput(record.payload_hash, record.command_input))
+    if not admission.current:
+        raise ValidationError("Uncaptured historical hazard care supports event-fold replay only")
+
+    def unavailable(*_args: object) -> HazardCare:
+        raise ValidationError("Hazard care replay cannot query an unrecorded context")
+
+    await HazardCareService(play, unavailable).execute(
+        record.campaign_id,
+        HazardCareCommand.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "gurps-recovery": _medical_rest,
+    "hazard-care": _hazard_care,
+    "ability": _ability,
+    "gurps-drinking": _drinking,
+    "gurps-survival": _survival,
+    "propose_npc": _npc_proposal,
+    "drowsy-toxin": _drowsy_toxin,
+    "gurps-physical": _physical,
+    "noncombat": _noncombat,
+    "power-approval": _power_approval,
+    "adjudication": _adjudication,
     "rooted-feet": _rooted_feet,
     "limb-spell": _limb_spell,
     "wither-spell": _wither_spell,
@@ -374,6 +574,7 @@ _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], A
     "identify-spell": _identify_spell,
     "analyze-magic": _analyze_magic,
     "armoury": _armoury,
+    "default-knowledge": _default_knowledge,
     "great-haste": _great_haste,
     "water": _water,
     "world-equipment": _world_equipment,
@@ -398,7 +599,7 @@ _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], A
 
 
 def _recorded_payload(record: CommandRecord) -> dict[str, object]:
-    decoded = replay_payload(command_text(record))
+    decoded = legacy_ability_payload(record, replay_payload(command_text(record)))
     if not isinstance(decoded, dict):
         raise ValidationError("No replay handler for non-object command input")
     return validation.mapping(decoded)
@@ -419,7 +620,8 @@ async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
         raw = validation.decode(raw)
     command = validation.mapping(raw)
     encoded = json.dumps(command)
-    operation = payload.get("operation")
+    # Historical raw typed producers identify their family through the closed kind.
+    operation = payload.get("operation", command.get("kind"))
     handler = _REGISTERED_FAMILIES.get(operation) if isinstance(operation, str) else None
     with replay_inputs(record):
         if handler is not None:

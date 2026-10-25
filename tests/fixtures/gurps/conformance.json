@@ -55,8 +55,20 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B494, Reaction Rolls; B498, Awarding Bonus Character Points",
-      "input": {"reaction_roll": [1, 1, 1], "modifier": 2, "award_points": 3},
-      "expected": {"reaction_total": 5, "reaction": "bad", "award_entries": 1},
+      "input": {
+        "reaction_roll": [
+          1,
+          1,
+          1
+        ],
+        "modifier": 2,
+        "award_points": 3
+      },
+      "expected": {
+        "reaction_total": 5,
+        "reaction": "bad",
+        "award_entries": 1
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "boundary",
@@ -68,8 +80,16 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B495-496, PC Knowledge and NPC Knowledge",
-      "input": {"fact_recipients": ["actor:a"], "other_actor": "actor:b"},
-      "expected": {"actor_a_knows": true, "actor_b_knows": false},
+      "input": {
+        "fact_recipients": [
+          "actor:a"
+        ],
+        "other_actor": "actor:b"
+      },
+      "expected": {
+        "actor_a_knows": true,
+        "actor_b_knows": false
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "boundary",
@@ -81,8 +101,12 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B499, Time Use Sheets - Jobs",
-      "input": {"work_hours": 8},
-      "expected": {"study_hours": 2},
+      "input": {
+        "work_hours": 8
+      },
+      "expected": {
+        "study_hours": 2
+      },
       "rounding": "floor",
       "prototype_divergence": null,
       "evidence_kind": "published-example",
@@ -94,8 +118,16 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B503, Traps",
-      "input": {"detection_succeeds": true, "disarm_succeeds": false, "avoidance_succeeds": false},
-      "expected": {"discovered": true, "disarmed": false, "consequence_dispatched": true},
+      "input": {
+        "detection_succeeds": true,
+        "disarm_succeeds": false,
+        "avoidance_succeeds": false
+      },
+      "expected": {
+        "discovered": true,
+        "disarmed": false,
+        "consequence_dispatched": true
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "boundary",
@@ -108,7 +140,12 @@
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B473-B475, New Inventions",
       "input": {
-        "phases": ["concept-design", "prototype", "testing", "production"],
+        "phases": [
+          "concept-design",
+          "prototype",
+          "testing",
+          "production"
+        ],
         "funded": false
       },
       "expected": {
@@ -130,17 +167,40 @@
       "input": {
         "method": "quick-gadgeteer",
         "complexity": "simple",
-        "concept_schedule_dice": [4],
-        "prototype_schedule_dice": [2, 3],
-        "prototype_check_dice": [3, 3, 3],
+        "concept_schedule_dice": [
+          4
+        ],
+        "prototype_schedule_dice": [
+          2,
+          3
+        ],
+        "prototype_check_dice": [
+          3,
+          3,
+          3
+        ],
         "bug_count_die": 4,
-        "bug_table_dice": [[3, 3, 3], [4, 4, 5]],
+        "bug_table_dice": [
+          [
+            3,
+            3,
+            3
+          ],
+          [
+            4,
+            4,
+            5
+          ]
+        ],
         "improvised_parts": 2
       },
       "expected": {
         "concept_seconds": 240,
         "prototype_seconds": 300,
-        "bug_kinds": ["power-hungry", "unreliable"],
+        "bug_kinds": [
+          "power-hungry",
+          "unreliable"
+        ],
         "improvised_parts_consumed": 2,
         "replay_consumes_more": false
       },
@@ -178,8 +238,13 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B506-507, Control Rating and Legality Class",
-      "input": {"control_rating": 4, "legality_class": 3},
-      "expected": {"availability": "licensed"},
+      "input": {
+        "control_rating": 4,
+        "legality_class": 3
+      },
+      "expected": {
+        "availability": "licensed"
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "boundary",
@@ -1150,9 +1215,9 @@
         "first_target": 18,
         "second_target": 16,
         "roll": [
-          5,
-          5,
-          5,
+          4,
+          4,
+          3,
           4,
           4,
           4
@@ -1160,16 +1225,16 @@
       },
       "expected": {
         "rounds": 1,
-        "winner": "second",
+        "winner": "first",
         "adjusted_targets": [
-          14,
-          12
+          12,
+          10
         ]
       },
       "rounding": "none",
       "prototype_divergence": null,
-      "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+      "evidence_kind": "published-rule",
+      "provenance": "Re-reviewed against selected Campaigns fourth printing B349: normalize the lower extreme score to 10; expected values entered from the printed rule, not engine output."
     },
     {
       "id": "basic-regular-contest-low-skill-levelling",
@@ -1185,26 +1250,26 @@
           3,
           3,
           2,
-          3,
-          3,
-          3
+          4,
+          4,
+          4
         ]
       },
       "expected": {
         "rounds": 1,
         "winner": "first",
         "adjusted_targets": [
-          8,
-          6
+          12,
+          10
         ]
       },
       "rounding": "none",
       "prototype_divergence": null,
-      "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+      "evidence_kind": "published-rule",
+      "provenance": "Re-reviewed against selected Campaigns fourth printing B349: normalize the lower extreme score to 10; expected values entered from the printed rule, not engine output."
     },
     {
-      "id": "basic-regular-contest-no-levelling-at-14",
+      "id": "basic-regular-contest-levelling-at-14",
       "capability_id": "gurps.check.regular_contest",
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
@@ -1214,26 +1279,26 @@
         "first_target": 14,
         "second_target": 16,
         "roll": [
-          5,
-          5,
-          5,
-          5,
-          5,
-          5
+          4,
+          4,
+          3,
+          4,
+          4,
+          3
         ]
       },
       "expected": {
         "rounds": 1,
         "winner": "second",
         "adjusted_targets": [
-          14,
-          16
+          10,
+          12
         ]
       },
       "rounding": "none",
       "prototype_divergence": null,
-      "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+      "evidence_kind": "published-rule",
+      "provenance": "Re-reviewed against selected Campaigns fourth printing B349: normalize the lower extreme score to 10; expected values entered from the printed rule, not engine output."
     },
     {
       "id": "basic-resistance-attacker-wins",
@@ -4677,8 +4742,14 @@
       "profile": "gurps-lite-4e-2004",
       "source_id": "sjg:gurps-lite-4e-2004",
       "reference": "Lite 27-29, Ranged Attacks",
-      "input": {"distance_yards": 10, "half_damage_range": 10},
-      "expected": {"range_modifier": -4, "damage_halved": true},
+      "input": {
+        "distance_yards": 10,
+        "half_damage_range": 10
+      },
+      "expected": {
+        "range_modifier": -4,
+        "damage_halved": true
+      },
       "rounding": "floor",
       "evidence_kind": "independent-numeric-case",
       "provenance": "Independent range and half-damage boundary transcribed from GURPS Lite, August 2004.",
@@ -4690,8 +4761,14 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B372-B373, Ranged Attacks",
-      "input": {"distance_yards": 10, "half_damage_range": 10},
-      "expected": {"range_modifier": -4, "damage_halved": true},
+      "input": {
+        "distance_yards": 10,
+        "half_damage_range": 10
+      },
+      "expected": {
+        "range_modifier": -4,
+        "damage_halved": true
+      },
       "rounding": "floor",
       "evidence_kind": "independent-numeric-case",
       "provenance": "Independent range and half-damage boundary from Campaigns, fourth printing.",
@@ -4703,8 +4780,13 @@
       "profile": "gurps-lite-4e-2004",
       "source_id": "sjg:gurps-lite-4e-2004",
       "reference": "Lite 25, Aim",
-      "input": {"accuracy": 2, "aim_seconds": 1},
-      "expected": {"effective_aim_bonus": 2},
+      "input": {
+        "accuracy": 2,
+        "aim_seconds": 1
+      },
+      "expected": {
+        "effective_aim_bonus": 2
+      },
       "rounding": "none",
       "evidence_kind": "independent-numeric-case",
       "provenance": "Independent one-second Aim expectation from GURPS Lite, August 2004.",
@@ -4716,8 +4798,13 @@
       "profile": "gurps-lite-4e-2004",
       "source_id": "sjg:gurps-lite-4e-2004",
       "reference": "Lite 29, Shots",
-      "input": {"loaded_rounds": 6, "shots_fired": 1},
-      "expected": {"remaining_rounds": 5},
+      "input": {
+        "loaded_rounds": 6,
+        "shots_fired": 1
+      },
+      "expected": {
+        "remaining_rounds": 5
+      },
       "rounding": "none",
       "evidence_kind": "state-transition",
       "provenance": "Independent one-shot ammunition transition from GURPS Lite, August 2004.",
@@ -4729,8 +4816,15 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B373/B382, Shots and Reload",
-      "input": {"loaded_rounds": 6, "shots_fired": 1, "retry": true},
-      "expected": {"remaining_rounds": 5, "duplicate_consumption": false},
+      "input": {
+        "loaded_rounds": 6,
+        "shots_fired": 1,
+        "retry": true
+      },
+      "expected": {
+        "remaining_rounds": 5,
+        "duplicate_consumption": false
+      },
       "rounding": "none",
       "evidence_kind": "state-transition",
       "provenance": "Independent reservation and retry boundary from Campaigns, fourth printing.",
@@ -4742,8 +4836,14 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B373, Rapid Fire",
-      "input": {"shots": 6, "recoil": 2, "success_margin": 4},
-      "expected": {"maximum_hits": 3},
+      "input": {
+        "shots": 6,
+        "recoil": 2,
+        "success_margin": 4
+      },
+      "expected": {
+        "maximum_hits": 3
+      },
       "rounding": "floor",
       "evidence_kind": "independent-numeric-case",
       "provenance": "Independent recoil interval expectation from Campaigns, fourth printing.",
@@ -5677,7 +5777,12 @@
       "reference": "B394-397, B430-432, B466-470",
       "input": {
         "locomotion_modes": 10,
-        "required_concerns": ["control-loss", "collision", "occupant-injury", "restart"]
+        "required_concerns": [
+          "control-loss",
+          "collision",
+          "occupant-injury",
+          "restart"
+        ]
       },
       "expected": {
         "verified_modes": 10,
@@ -5695,7 +5800,14 @@
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B396-397, B407-408, B430-432, B469, B483-484",
       "input": {
-        "consumers": ["ramming", "mounted-weapons", "cover", "encounter-pose", "hit-locations", "stress"]
+        "consumers": [
+          "ramming",
+          "mounted-weapons",
+          "cover",
+          "encounter-pose",
+          "hit-locations",
+          "stress"
+        ]
       },
       "expected": {
         "residuals": []
@@ -5713,7 +5825,13 @@
       "reference": "B363-B366",
       "input": {
         "maneuvers": 13,
-        "dimensions": ["movement", "attacks", "defenses", "concentration", "full-turn"]
+        "dimensions": [
+          "movement",
+          "attacks",
+          "defenses",
+          "concentration",
+          "full-turn"
+        ]
       },
       "expected": {
         "complete_rows": 13,
@@ -5734,7 +5852,14 @@
       "reference": "B363, B367-B368",
       "input": {
         "move": 6,
-        "postures": ["standing", "crouching", "kneeling", "crawling", "sitting", "lying"]
+        "postures": [
+          "standing",
+          "crouching",
+          "kneeling",
+          "crawling",
+          "sitting",
+          "lying"
+        ]
       },
       "expected": {
         "step_at_move_11": 2,
@@ -5756,8 +5881,14 @@
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B362-B363",
       "input": {
-        "basic_speeds": ["5.25", "5.25"],
-        "dx": [10, 11]
+        "basic_speeds": [
+          "5.25",
+          "5.25"
+        ],
+        "dx": [
+          10,
+          11
+        ]
       },
       "expected": {
         "first_dx": 11,
@@ -5805,7 +5936,11 @@
         "monthly_pay": 1000,
         "work_seconds": 100,
         "authored_study_fraction": "1/4",
-        "job_roll": [1, 1, 1]
+        "job_roll": [
+          1,
+          1,
+          1
+        ]
       },
       "expected": {
         "income": 1000,
@@ -5828,7 +5963,11 @@
         "initial_reaction": 9,
         "normal_pay": 100,
         "offered_pay": 120,
-        "loyalty_roll": [6, 6, 6]
+        "loyalty_roll": [
+          6,
+          6,
+          6
+        ]
       },
       "expected": {
         "effective_loyalty": 11,
@@ -5854,7 +5993,12 @@
         "interval_seconds": 3600,
         "cycles": 8,
         "resistance_modifier": -2,
-        "dice": [6, 6, 6, 3]
+        "dice": [
+          6,
+          6,
+          6,
+          3
+        ]
       },
       "expected": {
         "delivered": true,
@@ -5874,8 +6018,14 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B439",
-      "input": {"observer_discovered": false, "victim_swallowed": true},
-      "expected": {"observer_substance_id": null, "victim_substance_id": null},
+      "input": {
+        "observer_discovered": false,
+        "victim_swallowed": true
+      },
+      "expected": {
+        "observer_substance_id": null,
+        "victim_substance_id": null
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-visibility-case",
@@ -5888,8 +6038,20 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B441",
-      "input": {"dose": 2, "effective_ht": 6, "dice": [6, 6, 6]},
-      "expected": {"hp_lost": 2, "remaining_cycles": 23, "unconscious_hours": 12},
+      "input": {
+        "dose": 2,
+        "effective_ht": 6,
+        "dice": [
+          6,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "hp_lost": 2,
+        "remaining_cycles": 23,
+        "unconscious_hours": 12
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-overdose-case",
@@ -5902,8 +6064,20 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B440",
-      "input": {"target": 10, "drug_available": false, "dice": [6, 6, 6]},
-      "expected": {"successes": 0, "hp_lost": 1, "natural_healing_blocked": true},
+      "input": {
+        "target": 10,
+        "drug_available": false,
+        "dice": [
+          6,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "successes": 0,
+        "hp_lost": 1,
+        "natural_healing_blocked": true
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-withdrawal-case",
@@ -5916,8 +6090,15 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B396-B398",
-      "input": {"riding_skill": 9, "mount_war_trained": false},
-      "expected": {"weapon_skill_cap": 9, "active_defense_modifier": -3, "mount_attack": false},
+      "input": {
+        "riding_skill": 9,
+        "mount_war_trained": false
+      },
+      "expected": {
+        "weapon_skill_cap": 9,
+        "active_defense_modifier": -3,
+        "mount_attack": false
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-mounted-combat-case",
@@ -5930,8 +6111,16 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B398",
-      "input": {"horizontal_yards": 1, "vertical_yards": 1, "basic_air_move": 3},
-      "expected": {"half_yard_cost": 3, "attack_modifier": 0, "hover_retreat_bonus": 1},
+      "input": {
+        "horizontal_yards": 1,
+        "vertical_yards": 1,
+        "basic_air_move": 3
+      },
+      "expected": {
+        "half_yard_cost": 3,
+        "attack_modifier": 0,
+        "hover_retreat_bonus": 1
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-aerial-movement-case",
@@ -5944,8 +6133,16 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "reference": "B241, Missile Spells; B247, Fireball",
-      "input": {"energy": 1, "aim_seconds": 1, "hit_location": "face"},
-      "expected": {"damage_dice": 1, "accuracy_bonus": 1, "hit_location_penalty": -5},
+      "input": {
+        "energy": 1,
+        "aim_seconds": 1,
+        "hit_location": "face"
+      },
+      "expected": {
+        "damage_dice": 1,
+        "accuracy_bonus": 1,
+        "hit_location_penalty": -5
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-spell-release-case",
@@ -5958,8 +6155,16 @@
       "profile": "gurps-basic-set-4e-2004",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "reference": "B60-B61, Injury Tolerance",
-      "input": {"structure": "diffuse"},
-      "expected": {"points": 100, "no_blood": true, "no_brain": true, "no_vitals": true, "no_neck": false},
+      "input": {
+        "structure": "diffuse"
+      },
+      "expected": {
+        "points": 100,
+        "no_blood": true,
+        "no_brain": true,
+        "no_vitals": true,
+        "no_neck": false
+      },
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-trait-form-case",
@@ -5991,6 +6196,1731 @@
       "evidence_kind": "independent-numeric-case",
       "provenance": "Independent minimum Dodge case inspected in Characters third printing; scope record docs/gurps-conformance-construction-audit.md.",
       "test": "tests/test_conformance_construction.py::test_encumbrance_never_reduces_dodge_below_one"
+    },
+    {
+      "id": "basic-regular-contest-published-high-example",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 19,
+        "second_target": 16,
+        "roll": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          13,
+          10
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Re-reviewed against selected Campaigns fourth printing B349: normalize the lower extreme score to 10; expected values entered from the printed rule, not engine output."
+    },
+    {
+      "id": "basic-regular-contest-published-extreme-example",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 600,
+        "second_target": 500,
+        "roll": [
+          4,
+          4,
+          3,
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          12,
+          10
+        ]
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Re-reviewed against selected Campaigns fourth printing B349: normalize the lower extreme score to 10; expected values entered from the printed rule, not engine output."
+    },
+    {
+      "id": "basic-regular-contest-low-boundary-six",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 6,
+        "second_target": 6,
+        "roll": [
+          3,
+          3,
+          3,
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          10,
+          10
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Re-reviewed against selected Campaigns fourth printing B349: normalize the lower extreme score to 10; expected values entered from the printed rule, not engine output."
+    },
+    {
+      "id": "basic-regular-contest-extreme-floor",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 660,
+        "second_target": 500,
+        "roll": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          13,
+          10
+        ]
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Re-reviewed against selected Campaigns fourth printing B349: normalize the lower extreme score to 10; expected values entered from the printed rule, not engine output."
+    },
+    {
+      "id": "basic-regular-contest-live-pin-rounds",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests; B370, Pin",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 15,
+        "second_target": 15,
+        "roll": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "rounds": 3,
+        "winner": "first",
+        "adjusted_targets": [
+          10,
+          10
+        ],
+        "pinned": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently entered from selected Campaigns fourth printing B349: both scores at least 14 normalize the lower to 10; both failures and both successes continue, and the first split round wins. B370 supplies the actual pin consequence. Scripted numeric input and separately seeded full command reexecution are checked by both database hosts."
+    },
+    {
+      "id": "basic-regular-contest-above-low-boundary",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 7,
+        "second_target": 6,
+        "roll": [
+          2,
+          2,
+          2,
+          3,
+          2,
+          2
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          7,
+          6
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently entered from selected Campaigns fourth printing B349 inclusive <=6/>=14 thresholds, strict >20 scaling, effective-score inputs and floor rounding. Expectations were not generated from the implementation."
+    },
+    {
+      "id": "basic-regular-contest-below-high-boundary",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 14,
+        "second_target": 13,
+        "roll": [
+          4,
+          4,
+          4,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          14,
+          13
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently entered from selected Campaigns fourth printing B349 inclusive <=6/>=14 thresholds, strict >20 scaling, effective-score inputs and floor rounding. Expectations were not generated from the implementation."
+    },
+    {
+      "id": "basic-regular-contest-twenty-remains-offset",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 21,
+        "second_target": 20,
+        "roll": [
+          4,
+          4,
+          3,
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          11,
+          10
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently entered from selected Campaigns fourth printing B349 inclusive <=6/>=14 thresholds, strict >20 scaling, effective-score inputs and floor rounding. Expectations were not generated from the implementation."
+    },
+    {
+      "id": "basic-regular-contest-reversed-extreme-floor",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 500,
+        "second_target": 660,
+        "roll": [
+          4,
+          4,
+          3,
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "second",
+        "adjusted_targets": [
+          10,
+          13
+        ]
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently entered from selected Campaigns fourth printing B349 inclusive <=6/>=14 thresholds, strict >20 scaling, effective-score inputs and floor rounding. Expectations were not generated from the implementation."
+    },
+    {
+      "id": "basic-regular-contest-effective-score-extremes",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / Extreme Scores",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 560,
+        "second_target": 500,
+        "roll": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          3
+        ],
+        "first_modifiers": [
+          {
+            "value": 100,
+            "kind": "situational"
+          }
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          13,
+          10
+        ]
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently entered from selected Campaigns fourth printing B349 inclusive <=6/>=14 thresholds, strict >20 scaling, effective-score inputs and floor rounding. Expectations were not generated from the implementation."
+    },
+    {
+      "id": "basic-rule-of-16-printed-sixteen",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / printed skill-18 example",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 18,
+        "resister_target": 16,
+        "rule_of_16": true,
+        "roll": [
+          4,
+          4,
+          4,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 16,
+        "attacker_margin": 4,
+        "affected": true,
+        "victory_margin": 3
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-printed-seventeen",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / printed skill-18 example",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 18,
+        "resister_target": 17,
+        "rule_of_16": true,
+        "roll": [
+          4,
+          4,
+          4,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 17,
+        "attacker_margin": 5,
+        "affected": true,
+        "victory_margin": 3
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-printed-eighteen",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / printed skill-18 example",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 18,
+        "resister_target": 18,
+        "rule_of_16": true,
+        "roll": [
+          4,
+          4,
+          4,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 18,
+        "attacker_margin": 6,
+        "affected": true,
+        "victory_margin": 3
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-printed-nineteen",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / printed skill-18 example",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 18,
+        "resister_target": 19,
+        "rule_of_16": true,
+        "roll": [
+          4,
+          4,
+          4,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 18,
+        "attacker_margin": 6,
+        "affected": true,
+        "victory_margin": 2
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-live-waiver",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / offered resistance; B106, Malediction",
+      "service": "malediction_waiver",
+      "input": {
+        "attacker_will": 20,
+        "distance_yards": 2,
+        "resister_will": 10,
+        "resist": false,
+        "caster_roll": [
+          4,
+          4,
+          4
+        ],
+        "damage_roll": [
+          2,
+          2
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 16,
+        "attacker_margin": 4,
+        "defender_rolls": 0,
+        "injury": 4,
+        "target_hp": 6
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "source-derived-case",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-ability-burning-living",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / living or sapient scope; B15/B23",
+      "service": "rule16_ability",
+      "input": {
+        "ability_kind": "burning-malediction",
+        "caster_iq": 20,
+        "caster_will": 20,
+        "distance_yards": 2,
+        "resister_iq": 5,
+        "resister_will": 10,
+        "target_structure": "living",
+        "caster_roll": [
+          4,
+          4,
+          4
+        ],
+        "resister_roll": [
+          5,
+          5,
+          5
+        ],
+        "damage_roll": [
+          4
+        ]
+      },
+      "expected": {
+        "pre_cap_target": 18,
+        "attacker_effective_target": 16,
+        "defender_effective_target": 10,
+        "defender_rolls": 1,
+        "injury": 4,
+        "target_hp": 6,
+        "revealed_fact_ids": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "source-derived-case",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-ability-burning-neither",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / living or sapient scope; B15/B23",
+      "service": "rule16_ability",
+      "input": {
+        "ability_kind": "burning-malediction",
+        "caster_iq": 20,
+        "caster_will": 20,
+        "distance_yards": 2,
+        "resister_iq": 5,
+        "resister_will": 10,
+        "target_structure": "unliving",
+        "caster_roll": [
+          4,
+          4,
+          4
+        ],
+        "resister_roll": [
+          5,
+          5,
+          5
+        ],
+        "damage_roll": [
+          4
+        ]
+      },
+      "expected": {
+        "pre_cap_target": 18,
+        "attacker_effective_target": 18,
+        "defender_effective_target": 10,
+        "defender_rolls": 1,
+        "injury": 4,
+        "target_hp": 6,
+        "revealed_fact_ids": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "source-derived-case",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-ability-burning-sapient",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / living or sapient scope; B15/B23",
+      "service": "rule16_ability",
+      "input": {
+        "ability_kind": "burning-malediction",
+        "caster_iq": 20,
+        "caster_will": 20,
+        "distance_yards": 2,
+        "resister_iq": 10,
+        "resister_will": 10,
+        "target_structure": "unliving",
+        "caster_roll": [
+          4,
+          4,
+          4
+        ],
+        "resister_roll": [
+          5,
+          5,
+          5
+        ],
+        "damage_roll": [
+          4
+        ]
+      },
+      "expected": {
+        "pre_cap_target": 18,
+        "attacker_effective_target": 16,
+        "defender_effective_target": 10,
+        "defender_rolls": 1,
+        "injury": 4,
+        "target_hp": 6,
+        "revealed_fact_ids": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "source-derived-case",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-ability-mind-neither",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / living or sapient scope; B15/B23",
+      "service": "rule16_ability",
+      "input": {
+        "ability_kind": "mind-reading",
+        "caster_iq": 20,
+        "caster_will": 20,
+        "distance_yards": 2,
+        "resister_iq": 5,
+        "resister_will": 10,
+        "target_structure": "unliving",
+        "caster_roll": [
+          4,
+          4,
+          4
+        ],
+        "resister_roll": [
+          5,
+          5,
+          5
+        ],
+        "damage_roll": []
+      },
+      "expected": {
+        "pre_cap_target": 20,
+        "attacker_effective_target": 20,
+        "defender_effective_target": 10,
+        "defender_rolls": 1,
+        "injury": 0,
+        "target_hp": 10,
+        "revealed_fact_ids": [
+          "thought"
+        ],
+        "thought_value": "I am hungry"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "source-derived-case",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-ability-mind-living",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / living or sapient scope; B15/B23",
+      "service": "rule16_ability",
+      "input": {
+        "ability_kind": "mind-reading",
+        "caster_iq": 20,
+        "caster_will": 20,
+        "distance_yards": 2,
+        "resister_iq": 5,
+        "resister_will": 10,
+        "target_structure": "living",
+        "caster_roll": [
+          4,
+          4,
+          4
+        ],
+        "resister_roll": [
+          5,
+          5,
+          5
+        ],
+        "damage_roll": []
+      },
+      "expected": {
+        "pre_cap_target": 20,
+        "attacker_effective_target": 16,
+        "defender_effective_target": 10,
+        "defender_rolls": 1,
+        "injury": 0,
+        "target_hp": 10,
+        "revealed_fact_ids": [
+          "thought"
+        ],
+        "thought_value": "I am hungry"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "source-derived-case",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-creature-scope",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / neither living nor sapient",
+      "service": "creature_malediction_scope",
+      "input": {
+        "creature": "basilisk",
+        "attacker_will": 20,
+        "distance_yards": 0,
+        "target_will": 10,
+        "target_living_or_sapient": false,
+        "attacker_roll": [
+          5,
+          6,
+          6
+        ],
+        "resister_roll": [
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 20,
+        "rule_of_16": false,
+        "affected": false,
+        "defender_rolls": 1,
+        "target_hp": 10
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "source-derived-case",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-b017-load-table-st-01",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 1
+      },
+      "expected": {
+        "basic_lift": "0.2",
+        "thresholds": [
+          "0.2",
+          "0.4",
+          "0.6",
+          "1.2",
+          "2"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-02",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 2
+      },
+      "expected": {
+        "basic_lift": "0.8",
+        "thresholds": [
+          "0.8",
+          "1.6",
+          "2.4",
+          "4.8",
+          "8"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-03",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 3
+      },
+      "expected": {
+        "basic_lift": "1.8",
+        "thresholds": [
+          "1.8",
+          "3.6",
+          "5.4",
+          "10.8",
+          "18"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-04",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 4
+      },
+      "expected": {
+        "basic_lift": "3.2",
+        "thresholds": [
+          "3.2",
+          "6.4",
+          "9.6",
+          "19.2",
+          "32"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-05",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 5
+      },
+      "expected": {
+        "basic_lift": "5",
+        "thresholds": [
+          "5",
+          "10",
+          "15",
+          "30",
+          "50"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-06",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 6
+      },
+      "expected": {
+        "basic_lift": "7.2",
+        "thresholds": [
+          "7.2",
+          "14.4",
+          "21.6",
+          "43.2",
+          "72"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-07",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 7
+      },
+      "expected": {
+        "basic_lift": "9.8",
+        "thresholds": [
+          "9.8",
+          "19.6",
+          "29.4",
+          "58.8",
+          "98"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-08",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 8
+      },
+      "expected": {
+        "basic_lift": "13",
+        "thresholds": [
+          "13",
+          "26",
+          "39",
+          "78",
+          "130"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-09",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 9
+      },
+      "expected": {
+        "basic_lift": "16",
+        "thresholds": [
+          "16",
+          "32",
+          "48",
+          "96",
+          "160"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-10",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 10
+      },
+      "expected": {
+        "basic_lift": "20",
+        "thresholds": [
+          "20",
+          "40",
+          "60",
+          "120",
+          "200"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-11",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 11
+      },
+      "expected": {
+        "basic_lift": "24",
+        "thresholds": [
+          "24",
+          "48",
+          "72",
+          "144",
+          "240"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-12",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 12
+      },
+      "expected": {
+        "basic_lift": "29",
+        "thresholds": [
+          "29",
+          "58",
+          "87",
+          "174",
+          "290"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-13",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 13
+      },
+      "expected": {
+        "basic_lift": "34",
+        "thresholds": [
+          "34",
+          "68",
+          "102",
+          "204",
+          "340"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-14",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 14
+      },
+      "expected": {
+        "basic_lift": "39",
+        "thresholds": [
+          "39",
+          "78",
+          "117",
+          "234",
+          "390"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-15",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 15
+      },
+      "expected": {
+        "basic_lift": "45",
+        "thresholds": [
+          "45",
+          "90",
+          "135",
+          "270",
+          "450"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-16",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 16
+      },
+      "expected": {
+        "basic_lift": "51",
+        "thresholds": [
+          "51",
+          "102",
+          "153",
+          "306",
+          "510"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-17",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 17
+      },
+      "expected": {
+        "basic_lift": "58",
+        "thresholds": [
+          "58",
+          "116",
+          "174",
+          "348",
+          "580"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-18",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 18
+      },
+      "expected": {
+        "basic_lift": "65",
+        "thresholds": [
+          "65",
+          "130",
+          "195",
+          "390",
+          "650"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-19",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 19
+      },
+      "expected": {
+        "basic_lift": "72",
+        "thresholds": [
+          "72",
+          "144",
+          "216",
+          "432",
+          "720"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-load-table-st-20",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_table",
+      "input": {
+        "ST": 20
+      },
+      "expected": {
+        "basic_lift": "80",
+        "thresholds": [
+          "80",
+          "160",
+          "240",
+          "480",
+          "800"
+        ]
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-native-load-level-0",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_load",
+      "input": {
+        "weight": "20",
+        "basic_move": 5
+      },
+      "expected": {
+        "level": 0,
+        "move": 5,
+        "dodge": 8
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-native-load-level-1",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_load",
+      "input": {
+        "weight": "40",
+        "basic_move": 5
+      },
+      "expected": {
+        "level": 1,
+        "move": 4,
+        "dodge": 7
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-native-load-level-2",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_load",
+      "input": {
+        "weight": "60",
+        "basic_move": 5
+      },
+      "expected": {
+        "level": 2,
+        "move": 3,
+        "dodge": 6
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-native-load-level-3",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_load",
+      "input": {
+        "weight": "120",
+        "basic_move": 5
+      },
+      "expected": {
+        "level": 3,
+        "move": 2,
+        "dodge": 5
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-native-load-level-4",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_load",
+      "input": {
+        "weight": "200",
+        "basic_move": 5
+      },
+      "expected": {
+        "level": 4,
+        "move": 1,
+        "dodge": 4
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-move-fractions",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_movement",
+      "input": {
+        "basic_move": 7,
+        "weights": [
+          "20",
+          "40",
+          "60",
+          "120",
+          "200"
+        ]
+      },
+      "expected": {
+        "move": [
+          7,
+          5,
+          4,
+          2,
+          1
+        ],
+        "dodge": [
+          8,
+          7,
+          6,
+          5,
+          4
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-move-dodge-minimum",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_movement",
+      "input": {
+        "basic_move": 1,
+        "basic_speed_quarters": 2,
+        "weights": [
+          "20",
+          "40",
+          "60",
+          "120",
+          "200"
+        ]
+      },
+      "expected": {
+        "move": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "dodge": [
+          3,
+          2,
+          1,
+          1,
+          1
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-zero-move",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_movement",
+      "input": {
+        "basic_move": 0,
+        "weights": [
+          "20",
+          "40",
+          "60",
+          "120",
+          "200"
+        ],
+        "basic_speed_quarters": 2,
+        "move_is_unpurchased_default": true
+      },
+      "expected": {
+        "move": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "dodge": [
+          3,
+          2,
+          1,
+          1,
+          1
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-b017-native-ownership",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15/B17, Basic Lift and Encumbrance Table; Characters third printing (February 2008)",
+      "operation": "b017_ownership",
+      "input": {
+        "millipounds": 40001,
+        "transfer_millipounds": 20001
+      },
+      "expected": {
+        "before": [
+          2,
+          3,
+          6
+        ],
+        "after_actor": [
+          0,
+          5,
+          8
+        ],
+        "after_recipient": [
+          1,
+          4,
+          7
+        ],
+        "actor_weight": "20",
+        "recipient_weight": "20.001"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from supplied Characters third printing B15/B17. Literal expected cells/consequences; not generated from engine output.",
+      "statistics_revision": 2
+    },
+    {
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B344, Default Rolls; The Rule of 20; No Default",
+      "service": "native_default_roll",
+      "rounding": "none",
+      "prototype_divergence": null,
+      "id": "basic-b344-native-lockpicking-iq-10",
+      "input": {
+        "skill": "skill:lockpicking",
+        "iq": 10,
+        "paid_points": 0,
+        "gm_society_known": true
+      },
+      "expected": {
+        "base_target": 5,
+        "effective_target": 5,
+        "ordinary_success": true,
+        "total": 5,
+        "success": true,
+        "revealed_fact_ids": [
+          "clue"
+        ],
+        "elapsed_seconds": 1
+      },
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from selected Campaigns fourth printing B344: IQ10 gives Lockpicking5. Native ordinary CheckRule exercises the pinned skill default, 3d success, authored disclosure and captured seed replay; not a claim to the entire lock-opening procedure."
+    },
+    {
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B344, Default Rolls; The Rule of 20; No Default",
+      "service": "native_default_roll",
+      "rounding": "none",
+      "prototype_divergence": null,
+      "id": "basic-b344-native-lockpicking-iq-25",
+      "input": {
+        "skill": "skill:lockpicking",
+        "iq": 25,
+        "paid_points": 0,
+        "gm_society_known": true
+      },
+      "expected": {
+        "base_target": 15,
+        "effective_target": 15,
+        "ordinary_success": true,
+        "total": 5,
+        "success": true,
+        "revealed_fact_ids": [
+          "clue"
+        ],
+        "elapsed_seconds": 1
+      },
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from selected Campaigns fourth printing B344: IQ25 gives Lockpicking15. Native ordinary CheckRule exercises the pinned skill default, 3d success, authored disclosure and captured seed replay; not a claim to the entire lock-opening procedure."
+    },
+    {
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B344, Default Rolls; The Rule of 20; No Default",
+      "service": "native_default_roll",
+      "rounding": "none",
+      "prototype_divergence": null,
+      "id": "basic-b344-native-interrogation-source-14",
+      "input": {
+        "skill": "skill:interrogation",
+        "iq": 12,
+        "intimidation_points": 8,
+        "psychology_points": 8,
+        "paid_points": 0,
+        "gm_society_known": true
+      },
+      "expected": {
+        "base_target": 11,
+        "effective_target": 11,
+        "ordinary_success": true,
+        "total": 5,
+        "success": true,
+        "revealed_fact_ids": [
+          "clue"
+        ],
+        "elapsed_seconds": 1
+      },
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from selected Campaigns fourth printing B344: canonical default candidates IQ12-5, paid Intimidation14-3 and paid Psychology13-4 are7,11,9; best11. The skill-source24-3 control is21 because the Rule of20 caps attributes only. Actual ordinary CheckRule, not the entire Interrogation procedure."
+    },
+    {
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B344, Default Rolls; The Rule of 20; No Default",
+      "service": "native_default_roll",
+      "rounding": "none",
+      "prototype_divergence": null,
+      "id": "basic-b344-native-interrogation-source-24",
+      "input": {
+        "skill": "skill:interrogation",
+        "iq": 12,
+        "intimidation_points": 48,
+        "psychology_points": 8,
+        "paid_points": 0,
+        "gm_society_known": true
+      },
+      "expected": {
+        "base_target": 21,
+        "effective_target": 21,
+        "ordinary_success": true,
+        "total": 5,
+        "success": true,
+        "revealed_fact_ids": [
+          "clue"
+        ],
+        "elapsed_seconds": 1
+      },
+      "evidence_kind": "boundary",
+      "provenance": "Independently entered from selected Campaigns fourth printing B344: canonical default candidates IQ12-5, paid Intimidation14-3 and paid Psychology13-4 are7,11,9; best11. The skill-source24-3 control is21 because the Rule of20 caps attributes only. Actual ordinary CheckRule, not the entire Interrogation procedure."
+    },
+    {
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B344, Default Rolls; The Rule of 20; No Default",
+      "service": "native_default_roll",
+      "rounding": "none",
+      "prototype_divergence": null,
+      "id": "basic-b344-native-alchemy-no-default",
+      "input": {
+        "skill": "skill:alchemy",
+        "paid_points": 0,
+        "gm_society_known": true
+      },
+      "expected": {
+        "status": "rejected",
+        "code": "check.skill_required",
+        "check_absent": true,
+        "revealed_fact_ids": [],
+        "state_unchanged": true,
+        "receipt_absent": true
+      },
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from selected Campaigns fourth printing B344 No Default: Alchemy cannot be attempted without training. Positive authenticated societal knowledge cannot manufacture an edge; ordinary native CheckRule refuses without roll, time or disclosure. No Alchemy crafting procedure claim."
+    },
+    {
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B344, Default Rolls; The Rule of 20; No Default",
+      "service": "native_default_roll",
+      "rounding": "none",
+      "prototype_divergence": null,
+      "id": "basic-b344-native-karate-no-default",
+      "input": {
+        "skill": "skill:karate",
+        "paid_points": 0,
+        "gm_society_known": true
+      },
+      "expected": {
+        "admitted": false,
+        "state_unchanged": true,
+        "dice_exhausted": true
+      },
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from selected Campaigns fourth printing B344 No Default: proper training is required despite genuine GM societal familiarity. Actual TakeUnarmedTurn Karate punch refuses before entropy/state mutation; learned controls use the same production host. No claim to every skill or spell procedure."
+    },
+    {
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B344, Default Rolls; The Rule of 20; No Default",
+      "service": "native_default_roll",
+      "rounding": "none",
+      "prototype_divergence": null,
+      "id": "basic-b344-native-spell-no-default",
+      "input": {
+        "skill": "spell:light",
+        "paid_points": 0,
+        "gm_society_known": true
+      },
+      "expected": {
+        "admitted": false,
+        "state_unchanged": true,
+        "dice_exhausted": true
+      },
+      "evidence_kind": "published-example",
+      "provenance": "Independently entered from selected Campaigns fourth printing B344 No Default: proper training is required despite genuine GM societal familiarity. Actual SpellService Light cast refuses before entropy/state mutation; learned controls use the same production host. No claim to every skill or spell procedure."
     }
   ]
 }

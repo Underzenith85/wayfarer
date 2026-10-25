@@ -27,6 +27,7 @@ from wayfarer.engine.simulation.combat.tactical import move_hex, pose
 from wayfarer.engine.simulation.combat.visibility import combat_visibility, external_defense_penalty
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, Shield
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
@@ -149,7 +150,7 @@ def _torso_dr(runtime: RulesContext, state: PlayState, actor_id: str, revision: 
             if item.owner_id == actor_id
             and item.equipped
             and (item.condition is None or not item.condition.disabled)
-            for entry in (entries[item.definition_id],)
+            for entry in (projected_profile(state.resources, item, entries[item.definition_id]),)
             if entry.armor is not None and "torso" in entry.armor.locations
         ),
         default=0,

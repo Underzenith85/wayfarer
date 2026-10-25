@@ -20,8 +20,36 @@ from wayfarer.persistence.command_inputs import combat_intent, intent_input, rep
 from wayfarer.persistence.events import CommandInput, payload_digest
 
 KEY = "task_combat_protocol_features"
-ACTIVE = frozenset({"grenade-fuse", "missile-interposition", "acrobatic-reaction-attributes"})
-BEGIN_ACTIVE = frozenset({"missile-interposition"})
+ACTIVE = frozenset(
+    {
+        "grenade-fuse",
+        "missile-interposition",
+        "acrobatic-trait-bonuses",
+        "acrobatic-reaction-attributes",
+        "acrobatic-condition-checks",
+        "acrobatic-skill-minimum",
+        "interposition-current-step",
+        "staff-heavy-bare-parry",
+        "retreat-postures",
+        "hand-melee-striking-skills",
+        "melee-attack-postures",
+        "voluntary-attack-minimum",
+        "karate-kicking-technique",
+        "staff-form-contact",
+        "regular-contest-extreme-scores",
+    }
+)
+BEGIN_ACTIVE = frozenset(
+    {
+        "missile-interposition",
+        "karate-kicking-technique",
+        "staff-form-contact",
+        "hand-melee-striking-skills",
+        "melee-attack-postures",
+        "voluntary-attack-minimum",
+        "regular-contest-extreme-scores",
+    }
+)
 FRAGMENT_ACTIVE = frozenset({"ground-dive-step", "secondary-object-blasts"})
 FRAGMENT_MODELS = (PrepareOpponentFragment, ChooseOpponentFragment, AmendFragmentResponses)
 

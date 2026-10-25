@@ -119,7 +119,7 @@ def open_owner_damage(
         )
         assert isinstance(prepared_response, ChooseDefense)
         response = prepared_response
-        encounter = _prepare_encounter(state, response, context)
+        encounter, context = _prepare_encounter(state, response, context)
     else:
         encounter = encounter_for(state, response.encounter_id)
     state, encounter, delivery = prepare_delivery(
@@ -133,6 +133,20 @@ def open_owner_damage(
             "encounters": tuple(encounter if e.id == encounter.id else e for e in state.encounters)
         }
     )
+    if delivery.current.source.corrosion_dr_erosion and encounter.blocked_reason:
+        resolved = finish_delivery(play.rules_context, state, encounter, delivery)
+        state, outcome = _finish(play, state, resolved, delivery, secret=command.secret)
+        return (
+            state,
+            saved,
+            TaskResult(
+                command_id=command.id,
+                actor_id=delivery.current.source.actor_id,
+                status="completed",
+                secret=command.secret,
+                damage_json=outcome.model_dump_json(),
+            ),
+        )
     args = owner_damage_arguments(play.rules_context, state, encounter, delivery)
     preparation = prepare_owner_damage(
         state.resources,

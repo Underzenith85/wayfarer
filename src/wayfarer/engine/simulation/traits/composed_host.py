@@ -14,6 +14,14 @@ from wayfarer.engine.rules.types.recovery import require_settled
 from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, exertion, injury_turn, movement
+from wayfarer.engine.simulation.campaign.default_knowledge import known_skills
+from wayfarer.engine.simulation.campaign.default_knowledge_policy import (
+    active as default_knowledge_active,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_policy import (
+    bind as bind_default_knowledge,
+)
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.encounter import (
     CombatResult,
     Encounter,
@@ -25,6 +33,13 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_effects import worn_stress
 from wayfarer.engine.simulation.combat.physical_defenses import physical_defenses
 from wayfarer.engine.simulation.combat.ranged.situation import situation
+from wayfarer.engine.simulation.combat.ranged_target_policy import bind as bind_ranged_target_policy
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    enabled as ranged_postures_enabled,
+)
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    target_modifier as posture_target_modifier,
+)
 from wayfarer.engine.simulation.combat.sensory_state import evidence
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext, CoverSpatialFact
 from wayfarer.engine.simulation.combat.tactical import pose
@@ -35,6 +50,8 @@ from wayfarer.engine.simulation.combat.visibility import (
     visible_actors,
 )
 from wayfarer.engine.simulation.combat.vocabulary import Maneuver
+from wayfarer.engine.simulation.equipment.corrosion import protection as corrosion_protection
+from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fright import maneuver_allowed
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.recovery_guard import guard
@@ -77,16 +94,36 @@ from wayfarer.engine.simulation.traits.composed_sources import (
     raw_build,
 )
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_action
+from wayfarer.engine.simulation.traits.malediction_scope import (
+    require_injury_anatomy,
+    target_cap_scope,
+)
 from wayfarer.engine.simulation.traits.size_forms import size_delta
 from wayfarer.errors import ConflictError, ValidationError
 
 
 def attack_target(
-    runtime: RulesContext, state: PlayState, encounter: Encounter, current: CurrentAttack
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    current: CurrentAttack,
+    *,
+    declaring: bool = False,
 ) -> int:
+    pending = encounter.pending_defense
+    captured = runtime.response_attack
+    if pending is not None and captured is not None and captured[0] == pending.id:
+        return captured[1].target
     source = current.source
     attacker = build(runtime, state, source.actor_id)
     assert attacker.statistics is not None
+    target_skill = "skill:innate-attack-" + source.specialty
+    if (
+        default_knowledge_active(runtime, state, source.actor_id)
+        and target_skill not in {p.definition_id for p in attacker.purchases}
+        and target_skill not in known_skills(state, source.actor_id)
+    ):
+        raise ValidationError("Untrained Innate Attack requires GM society knowledge")
     trained = {
         v.target: int(v.value)
         for v in attacker.sheet.values
@@ -100,14 +137,68 @@ def attack_target(
     target = skill + range_penalty(current.context.distance_yards + current.speed)
     target += current.size + size_delta(state.resources, current.context.target_id)
     target += current.visibility_penalty
+    target += posture_target_modifier(
+        runtime,
+        state,
+        encounter,
+        source.actor_id,
+        current.context.target_id,
+        profile_id=attacker.statistics.profile_id,
+        pending_id=pending.id if pending is not None else None,
+        declaring=declaring,
+    )
     if current.context.aim_seconds:
         target += source.profile.accuracy + max(0, current.context.aim_seconds - 1)
     if hp.injury is not None:
         target -= hp.injury.shock
         target += hp.injury.physical_traits.darkness(encounter.darkness_penalty)
-    if target < 3:
+    if target < 3 and not ranged_postures_enabled(
+        runtime,
+        state,
+        encounter,
+        source.actor_id,
+        pending_id=pending.id if pending is not None else None,
+        declaring=declaring,
+    ):
         raise ValidationError("Composed attack effective skill is below three")
     return target
+
+
+def attack_spec(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    current: CurrentAttack,
+    *,
+    declaring: bool = False,
+) -> AttackRollSpec:
+    pending = encounter.pending_defense
+    current_policy = ranged_postures_enabled(
+        runtime,
+        state,
+        encounter,
+        current.source.actor_id,
+        pending_id=pending.id if pending is not None else None,
+        declaring=declaring,
+    )
+    if current_policy and pending is not None and pending.attack_roll is not None:
+        original = pending.attack_roll
+        return AttackRollSpec(
+            profile_id=original.rules_package,
+            target=original.base_target,
+            modifiers=original.modifiers,
+            ranged=True,
+            rule_id=original.rule_id,
+        )
+    spec = AttackRollSpec(
+        profile_id="gurps-basic-set-4e-2004",
+        target=attack_target(runtime, state, encounter, current, declaring=declaring),
+        modifiers=check_modifiers(state.resources, current.source.actor_id, "dx"),
+        ranged=True,
+    )
+    if current_policy:
+        spec.require_voluntary()
+    return spec
 
 
 def _require_subjects(
@@ -128,7 +219,10 @@ def _require_subjects(
             raise ConflictError(
                 "Composed attack participant is incapacitated; retire the pending use"
             )
-    return raw_build(runtime, state, target_id)
+    compiled = raw_build(runtime, state, target_id)
+    if source.malediction_waiver_cap:
+        require_injury_anatomy(runtime, state, compiled, target_id)
+    return compiled
 
 
 def _require_perception(
@@ -252,6 +346,10 @@ def current_attack(
     participant = next(p for p in encounter.participants if p.actor_id == source.actor_id)
     aim = participant.maneuver_state
     profile = source.profile
+    if source.damage_type == "cor":
+        if not source.corrosion_dr_erosion or scene.distance >= profile.half_damage_range:
+            raise ValidationError("Corrosion requires its bounded ordinary captured delivery")
+        corrosion_protection(runtime, state, target_id)
     vision_contact = _vision_contact(runtime, state, encounter, source, target_id)
     sensory = combat_visibility(encounter, source.actor_id, target_id, state=state)
     context = AttackCompositionContext(
@@ -271,6 +369,11 @@ def current_attack(
         contagion_vector=source.contagion_vector,
         incubation_seconds=source.incubation_seconds,
         defender_attack_awareness="current authoritative perception" if sensory.defenses else None,
+        target_living_or_sapient=(
+            target_cap_scope(runtime, state, target, target_id)
+            if source.malediction_waiver_cap
+            else True
+        ),
     )
     natural = attack_defense_traits(
         target, runtime.reviewer.compiler.definitions
@@ -298,7 +401,7 @@ def preflight_pending(
         raise ValidationError("Composed pending campaign changed")
     current = current_attack(runtime, state, encounter, binding.source, binding.target_id)
     if binding.stage == "defense":
-        attack_target(runtime, state, encounter, current)
+        attack_spec(runtime, state, encounter, current)
     return current
 
 
@@ -367,7 +470,7 @@ def declare(
     )
     require_innate_action(state.resources, encounter, command.actor_id, source_id=source.id)
     if maneuver == "attack":
-        attack_target(runtime, state, encounter, current)
+        attack_spec(runtime, state, encounter, current, declaring=True)
     if maneuver == "aim" and source.profile.malediction_range != "none":
         raise ValidationError("Malediction cannot Aim")
     if not maneuver_allowed(state.resources, command.actor_id, maneuver):
@@ -512,6 +615,17 @@ def declare(
     )
     encounter = encounter.model_copy(update={"pending_defense": pending})
     if maneuver == "attack":
+        state = bind_default_knowledge(runtime, state, encounter)
+        state = bind_ranged_target_policy(
+            runtime,
+            state,
+            encounter,
+            command.actor_id,
+            pending.id,
+            profile_id=current.attacker.statistics.profile_id
+            if current.attacker.statistics
+            else "",
+        )
         sensory = combat_visibility(encounter, command.actor_id, command.target_id, state=state)
         physical = physical_defenses(runtime, state, encounter, pending, None)
         pending = pending.model_copy(

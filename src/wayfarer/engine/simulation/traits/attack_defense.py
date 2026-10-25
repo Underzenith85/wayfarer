@@ -6,7 +6,7 @@ import hashlib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
@@ -22,6 +22,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.cyclic import cyclic_profile
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
 from wayfarer.engine.rules.types.affliction import AfflictionCondition, AfflictionEffect
+from wayfarer.engine.rules.types.critical_hit import CorrosionCritical
 from wayfarer.engine.rules.types.cyclic import require_cyclic_settled
 from wayfarer.engine.rules.types.cyclic_runtime import create_attack as create_cyclic_attack
 from wayfarer.engine.rules.types.location import HumanLocation
@@ -30,6 +31,7 @@ from wayfarer.engine.simulation.combat.special_damage import (
     resolve_affliction_penetration,
 )
 from wayfarer.engine.simulation.equipment.catalog import DamageType
+from wayfarer.engine.simulation.equipment.corrosion_state import CorrosionProtection
 from wayfarer.engine.simulation.health.cyclic import save as save_cyclic
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, FatigueResult, apply_fatigue
 from wayfarer.engine.simulation.health.healing import restore_hp
@@ -73,6 +75,12 @@ class TraitAttackConsequences:
     held_item_locations: tuple[tuple[str, HumanLocation], ...] = ()
     cyclic_resistance_ht: int | None = None
     cyclic_resistance_modifiers: tuple[Modifier, ...] = ()
+    corrosion_critical: Annotated[
+        CorrosionCritical | None, Field(exclude_if=lambda value: value is None)
+    ] = None
+    corrosion: Annotated[
+        CorrosionProtection | None, Field(exclude_if=lambda value: value is None)
+    ] = None
 
 
 class AttackChannel(Record):
@@ -109,7 +117,15 @@ class TraitAttackCommand(Command):
 
 
 class TraitAttackOutcome(Record):
-    outcome: Literal["injured", "applied", "resisted", "missed", "defended", "unaffected"]
+    outcome: Literal[
+        "injured",
+        "applied",
+        "resisted",
+        "missed",
+        "defended",
+        "unaffected",
+        "awaiting-adjudication",
+    ]
     attacker_id: str
     target_id: str
     definition_id: str
@@ -640,6 +656,7 @@ def _roll_composed_damage(
         or (check and check.outcome.succeeded)
     ):
         return channel, ()
+    _require_corrosion_critical(consequences)
     maximum = consequences is not None and consequences.maximum_damage
     dice = (
         ()
@@ -656,6 +673,21 @@ def _roll_composed_damage(
     if profile.malediction_range == "none" and channel.distance_yards >= profile.half_damage_range:
         basic //= 2
     return channel.model_copy(update={"basic_damage": basic}), dice
+
+
+def _require_corrosion_critical(consequences: TraitAttackConsequences | None) -> None:
+    if consequences is None or consequences.corrosion_critical is None:
+        return
+    effects = consequences.corrosion_critical.effects
+    if (
+        consequences.corrosion is None
+        or consequences.maximum_damage != effects.maximum_damage
+        or consequences.basic_multiplier != effects.basic_multiplier
+        or consequences.halve_dr != effects.halve_dr
+        or consequences.force_major_wound != effects.force_major_wound
+        or consequences.double_shock != effects.double_shock
+    ):
+        raise ValidationError("Corrosion critical packet differs from its captured body table")
 
 
 def prepare_owner_damage(
@@ -970,6 +1002,8 @@ def apply_trait_attack(
             force_major_wound=bool(consequences and consequences.force_major_wound),
             double_shock=bool(consequences and consequences.double_shock),
             halve_dr=consequences.halve_dr if consequences else None,
+            corrosion=consequences.corrosion if consequences else None,
+            corrosion_critical=consequences.corrosion_critical if consequences else None,
         )
         state, healed = _heal_attacker(
             state,

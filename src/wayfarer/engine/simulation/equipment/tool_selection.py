@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.equipment.tool_context import (
     SELECTION_PREFIX,
     RepairToolSelection,
     SelectRepairTools,
+    matches_repair_binding,
     observation,
     record,
     require_observation,
@@ -61,7 +62,8 @@ def select(
             "Repair tool selection requires an authenticated physical observation"
         )
     tool = require_observation(runtime, state, command.actor_id, value, starting=True)
-    if tool.definition_id != profile.repair_tools_definition:
+    tool_entry = next(e for e in catalog(runtime).entries if e.definition_id == tool.definition_id)
+    if not matches_repair_binding(entry, tool_entry):
         raise ValidationError("Selected repair kit does not match the pinned item binding")
     plan = RepairToolSelection(
         command_id=command.id,

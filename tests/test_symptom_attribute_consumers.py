@@ -25,6 +25,10 @@ from wayfarer.engine.rules.types.skill import (
 from wayfarer.engine.rules.types.symptoms import SymptomDebt, SymptomEffect, SymptomSpec
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.campaign.default_knowledge import (
+    AdoptDefaultKnowledge,
+    known_skills,
+)
 from wayfarer.engine.simulation.campaign.npcs import NPCSocialTrigger
 from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
 from wayfarer.engine.simulation.combat.melee.values import standard_defense_value
@@ -39,6 +43,7 @@ from wayfarer.engine.simulation.traits.composed_attacks import (
 )
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.npcs import social_occurrence
 from wayfarer.orchestration.play import PlayService
 
@@ -105,6 +110,30 @@ async def test_all_canonical_governing_attributes_and_defaults(
         else (),
     )
     state = play._load(await play.store.read(cid))
+    if not trained:
+        # These authored IDs are numeric probes, not book-skill certification.
+        # Unknown untrained probes stay unavailable until this actor's GM fact.
+        probe_ids = frozenset(definition.id for definition in definitions)
+        for defensive_mode in (False, True):
+            unknown = build(play.rules_context, state, "a", defensive=defensive_mode)
+            assert probe_ids.isdisjoint(value.target for value in unknown.sheet.values)
+        await DefaultKnowledgeService(play).execute(
+            cid,
+            AdoptDefaultKnowledge(
+                id="probe-society-knowledge",
+                actor_id="gm",
+                performer_id="a",
+                expected_revision=state.revision,
+                known_skill_ids=tuple(definition.id for definition in definitions),
+                reason="GM explicitly permits these pinned numeric probes for this performer",
+            ),
+            principal_id="gm",
+        )
+        state = play._load(await play.store.read(cid))
+        assert probe_ids <= known_skills(state, "a")
+        assert probe_ids.isdisjoint(known_skills(state, "b"))
+        other = build(play.rules_context, state, "b")
+        assert probe_ids.isdisjoint(value.target for value in other.sheet.values)
     original = build(play.rules_context, state, "a")
     for attribute in ("st", "dx", "iq", "ht"):
         state = penalize(state, "a", attribute)

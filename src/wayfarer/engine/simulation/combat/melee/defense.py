@@ -6,12 +6,16 @@ from decimal import Decimal
 
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import build, exertion
+from wayfarer.engine.simulation.actors import exertion
 from wayfarer.engine.simulation.combat.close_combat import validate_defense
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.equipment_effects import defense_stress, worn_stress
-from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
+from wayfarer.engine.simulation.combat.melee.heavy_bare_parry import (
+    exceeds_lift,
+    require_heavy_bare_parry,
+)
+from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.melee.values import defense_selection, score_defense
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.vocabulary import Defense
@@ -31,13 +35,8 @@ def bare_melee_defense(
     """B376 one-hand weapon parry for the scoped held-Melee consumer."""
     pending = encounter.pending_defense
     assert pending is not None
-    compiled = build(runtime, state, participant.actor_id, defensive=True)
-    assert compiled.statistics is not None
-    incoming_weight = heavy_parry_weight(
-        runtime, state, participant, pending.weapon_id, incoming.id
-    )
-    if incoming_weight is not None and incoming_weight > compiled.statistics.basic_lift * 1000:
-        raise ValidationError("Held Melee contact does not yet support heavy barehanded parries")
+    if exceeds_lift(runtime, state, encounter, participant, incoming):
+        require_heavy_bare_parry(runtime, state, encounter, participant)
     value, used = unarmed_defense(
         runtime,
         state,

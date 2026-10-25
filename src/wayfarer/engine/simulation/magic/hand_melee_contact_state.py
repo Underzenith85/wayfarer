@@ -30,6 +30,18 @@ class HandContact(Record):
     mana_event_id: Id
     mana_event_digest: str
     energy: int = Field(strict=True, ge=1, le=3)
+    striking_generation: Literal[1] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @field_validator("striking_generation", mode="before")
+    @classmethod
+    def exact_striking_generation(cls, value: object) -> Literal[1] | None:
+        if value is None:
+            return None
+        if type(value) is not int or value != 1:
+            raise ValueError("Hand striking generation must be exact integer 1")
+        return 1
 
     @field_validator("generation", mode="before")
     @classmethod

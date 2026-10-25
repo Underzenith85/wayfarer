@@ -10,7 +10,8 @@ from wayfarer.engine.rules.skills.technology_level import technology_level_penal
 from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
-from wayfarer.engine.simulation.equipment import repair_time, tool_context
+from wayfarer.engine.simulation.combat.generations import repair_operating_tools_enabled
+from wayfarer.engine.simulation.equipment import repair_time, repair_tool_operation, tool_context
 from wayfarer.engine.simulation.equipment.armoury_context import repair_familiarity_modifier
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile, MeleeMode, RangedMode
 from wayfarer.engine.simulation.equipment.repair_default_resolver import current as default_current
@@ -138,10 +139,15 @@ def repair(
     selection_modifier: int = 0,
     default_override: RepairDefaultSelection | None = None,
     preview_context_id: str | None = None,
+    operating_tools_policy: bool | None = None,
+    preview_method: repair_time.Method | None = None,
 ) -> tuple[PlayState, RepairTask]:
-    if (assessment_only or selection_modifier or preview_context_id is not None) and (
-        stage != "start" or not preview
-    ):
+    if (
+        assessment_only
+        or selection_modifier
+        or preview_context_id is not None
+        or preview_method is not None
+    ) and (stage != "start" or not preview):
         raise ValidationError("Parts assessment requires a pure start eligibility check")
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Repairs require the exact Basic Set profile")
@@ -153,6 +159,7 @@ def repair(
         if task.status != "pending":
             raise ConflictError("Repair attempt is already settled")
         if stage == "cancel":
+            resources = repair_tool_operation.settle(resources, task, (), verify_profile=False)
             task = task.model_copy(update={"status": "cancelled"})
             return state.model_copy(update={"resources": record(resources, task, command_id)}), task
     elif task_id is not None:
@@ -227,7 +234,12 @@ def repair(
                 and i.owner_id == actor_id
                 and not i.ground
                 and available_here(state, actor_id, i)
-                and i.definition_id == profile.repair_tools_definition
+                and i.definition_id
+                == (
+                    tool_plan.observation.definition_id
+                    if tool_plan
+                    else profile.repair_tools_definition
+                )
                 and (i.condition is None or not i.condition.disabled)
             ),
             None,
@@ -236,6 +248,15 @@ def repair(
             raise ValidationError("The required repair equipment is unavailable")
         tool_entry = next(
             e for e in catalog(runtime).entries if e.definition_id == tool.definition_id
+        )
+        repair_tool_operation.require_selection(
+            tool_entry,
+            tool,
+            tool_plan is not None,
+            skill_id=profile.repair_skill_id,
+            source_policy=repair_operating_tools_enabled()
+            if operating_tools_policy is None
+            else operating_tools_policy,
         )
         skill += _repair_difficulty(entry, item.condition.hp) + (
             tool_plan.observation.modifier
@@ -255,7 +276,27 @@ def repair(
             assessment_only and preview_context_id is None,
         )
         skill += repair_time.modifier(time_plan)
-        _repair_modifiers(state, actor_id, skill + selection_modifier)
+        work_duration = repair_time.duration(time_plan, proposed=preview_method)
+        preview_adjustment = (
+            repair_time.METHODS[preview_method][1]
+            if preview_method is not None
+            else selection_modifier
+        )
+        _repair_modifiers(state, actor_id, skill + preview_adjustment)
+        operation = (
+            repair_tool_operation.prepare(
+                tool_entry,
+                tool,
+                actor_id,
+                command_id,
+                item_id,
+                resources.game_time,
+                work_duration,
+                profile.repair_skill_id,
+            )
+            if tool_plan is not None
+            else None
+        )
         parts_die = None
         quantity = 0
         if item.condition.hp <= 0:
@@ -269,13 +310,14 @@ def repair(
                 preview=preview,
                 assessment_only=assessment_only,
             )
+        resources = repair_tool_operation.record(resources, operation, preview)
         task = RepairTask(
             id=command_id,
             actor_id=actor_id,
             item_id=item_id,
             tool_id=tool.id,
             start=resources.game_time,
-            due=resources.game_time + repair_time.duration(time_plan),
+            due=resources.game_time + work_duration,
             time_plan=time_plan,
             skill=skill,
             condition=item.condition,
@@ -310,8 +352,10 @@ def repair(
         )
         repair_time.finish_plan(task.time_plan, actor_id, item, entry)
         modifiers = _repair_modifiers(state, actor_id, task.skill)
+        settled = repair_tool_operation.settle(resources, task, catalog(runtime).entries)
         if preview:
             return state, task
+        resources = settled
         check = success_roll(
             profile.profile_id,
             task.skill,

@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from support.runtime import build_play
+from test_default_knowledge_hosts import adopt as establish_society_knowledge
 from test_opponent_attack_host import begin as begin_attack
 from test_opponent_attack_routes import enroll, luck_source, revoke_attacker
 from test_owner_damage_host import begin
@@ -14,6 +15,7 @@ from test_spell_bindings import setup as spell_setup
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
+from wayfarer.engine.simulation.campaign.default_knowledge import known_skills
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, StartEncounter
 from wayfarer.engine.simulation.combat.spatial import Placement
@@ -75,11 +77,26 @@ async def fixture(
             ),
             principal_id="gm",
         )
+    if distance == 1 and not legacy_release:
+        await establish_society_knowledge(original, cid, ("skill:innate-attack-projectile",))
+        assert "skill:innate-attack-projectile" in known_skills(
+            original._load(await original.store.read(cid)), "a"
+        )
     original.rng = RecordedDice((3, 3, 3))
-    start = spell_command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    start = spell_command(original._load(await original.store.read(cid)).revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     await SpellService(original).execute(cid, start, principal_id="a")
     await idle(cid, original, "b")
-    release = start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 3})
+    release = start.model_copy(
+        update={
+            "id": "release",
+            "kind": "release",
+            "expected_revision": original._load(await original.store.read(cid)).revision,
+        }
+    )
+    if legacy_release:
+        assert start.expected_revision == 1 and release.expected_revision == 3
     original.rng = RecordedDice(() if legacy_release else attack)
     if legacy_release:
         state = original._load(await original.store.read(cid))
@@ -98,6 +115,9 @@ async def fixture(
         )
     else:
         await SpellService(original).execute(cid, release, principal_id="a")
+    assert original._load(await original.store.read(cid)).revision == (
+        5 if distance == 1 and not legacy_release else 4
+    )
     return cid, await enroll(path, backend, cid, original)
 
 

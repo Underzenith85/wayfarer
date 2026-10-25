@@ -75,6 +75,7 @@ class CareContext:
     physiology: PhysiologyTraits = NO_PHYSIOLOGY_TRAITS
     unhealing_condition: bool = False
     recover_energy_interval: Literal[120, 300] | None = None
+    minimum_skill_admission: bool = False
 
 
 class RecoveryResult(Record):

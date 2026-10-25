@@ -2,7 +2,6 @@
 
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.traits import mundane_trait_effects
@@ -13,13 +12,15 @@ from wayfarer.engine.simulation.health.toxins import (
     apply_drinking,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
+from wayfarer.orchestration.ability_boundary import require_boundary
+from wayfarer.orchestration.condition_environments import recorded_environment
 from wayfarer.orchestration.medical import _build, _value
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
 
 
-@dataclass(frozen=True)
-class DrinkingEnvironment:
+class DrinkingEnvironment(Record):
     recently_ate: bool = False
     empty_stomach: bool = False
 
@@ -33,9 +34,18 @@ class DrinkingService:
     def __init__(self, play: PlayService, environment: EnvironmentResolver) -> None:
         self.play, self.environment = play, environment
 
-    def plan(self, play: PlayService, command: DrinkCommand) -> CommandPlan[IntoxicationResult]:
+    def plan(
+        self,
+        play: PlayService,
+        command: DrinkCommand,
+        *,
+        environment: DrinkingEnvironment | None = None,
+    ) -> CommandPlan[IntoxicationResult]:
+        source: dict[str, object] = {}
+        if environment is not None:
+            source["drinking_environment"] = environment.model_dump(mode="json")
         payload = json.dumps(
-            {"operation": "gurps-drinking", "command": command.model_dump(mode="json")},
+            {"operation": "gurps-drinking", "command": command.model_dump(mode="json"), **source},
             sort_keys=True,
         )
 
@@ -47,7 +57,7 @@ class DrinkingService:
             tolerance = 2 * int("trait:advantage:alcohol-tolerance" in identifiers) - 2 * int(
                 "trait:disadvantage:alcohol-intolerance" in identifiers
             )
-            env = self.environment(play, before, command.actor_id)
+            env = environment or self.environment(play, before, command.actor_id)
             carousing = next(
                 (
                     int(value.value)
@@ -102,4 +112,17 @@ class DrinkingService:
         play = self.play.for_campaign(await self.play.store.read(cid))
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Drinking requires the exact Basic Set profile")
-        return await submit(play, cid, self.plan(play, command), principal_id=principal_id)
+        ActsAs(command.actor_id)(principal_id)
+        saved, raw = await recorded_environment(play, cid, command.id, "drinking_environment")
+        if not saved:
+            require_boundary(await play.store.read(cid), None)
+        environment = (
+            DrinkingEnvironment.model_validate_json(json.dumps(raw))
+            if raw is not None
+            else None
+            if saved
+            else self.environment(play, play._load(await play.store.read(cid)), command.actor_id)
+        )
+        return await submit(
+            play, cid, self.plan(play, command, environment=environment), principal_id=principal_id
+        )

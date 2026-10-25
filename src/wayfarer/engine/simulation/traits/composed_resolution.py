@@ -13,6 +13,7 @@ from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.types.critical_hit import CorrosionCritical
 from wayfarer.engine.simulation.abilities import damage_resistance, interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, injury_turn
@@ -27,7 +28,15 @@ from wayfarer.engine.simulation.combat.melee.defense import (
     validate_defense_choices,
 )
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    enabled as ranged_postures_enabled,
+)
 from wayfarer.engine.simulation.combat.visibility import external_defense_penalty
+from wayfarer.engine.simulation.equipment.corrosion import protection as corrosion_protection
+from wayfarer.engine.simulation.equipment.corrosion_state import (
+    CorrosionProtection,
+    projected_profile,
+)
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.cyclic_host_state import bind_occurrence
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
@@ -47,6 +56,7 @@ from wayfarer.engine.simulation.traits.composed_attacks import _malediction_chec
 from wayfarer.engine.simulation.traits.composed_host import (
     CurrentAttack,
     ResistComposedAttack,
+    attack_spec,
     attack_target,
     preflight_pending,
 )
@@ -73,6 +83,8 @@ from wayfarer.engine.simulation.traits.innate_criticals import (
     critical_dodge_failure,
     drop_all_held,
     drop_held_items,
+    load_innate_critical,
+    pause_corrosion_critical,
     resolve_innate_miss,
 )
 from wayfarer.engine.simulation.traits.malediction_checks import (
@@ -102,9 +114,29 @@ class ResolvedAttack:
     outcome: TraitAttackOutcome
 
 
+def _capture_posture_spec(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, current: CurrentAttack
+) -> RulesContext:
+    pending = encounter.pending_defense
+    if (
+        pending is None
+        or current.source.profile.malediction_range != "none"
+        or not ranged_postures_enabled(
+            runtime, state, encounter, current.source.actor_id, pending_id=pending.id
+        )
+    ):
+        return runtime
+    spec = attack_spec(runtime, state, encounter, current)
+    return replace(runtime, response_attack=(pending.id, spec))
+
+
 def _roll(
     runtime: RulesContext, state: PlayState, encounter: Encounter, current: CurrentAttack
 ) -> CheckTrace:
+    pending = encounter.pending_defense
+    captured = runtime.response_attack
+    if pending is not None and captured is not None and captured[0] == pending.id:
+        return captured[1].roll(runtime.rng)
     target = attack_target(runtime, state, encounter, current)
     return classify_ranged_check(
         success_roll(
@@ -147,7 +179,9 @@ def critical_context(
                 if item.owner_id == source.actor_id
                 and item.equipped
                 and (item.condition is None or not item.condition.disabled)
-                for entry in (entries[item.definition_id],)
+                for entry in (
+                    projected_profile(state.resources, item, entries[item.definition_id]),
+                )
                 if entry.armor and (limb in entry.armor.locations or broad in entry.armor.locations)
             ),
             default=0,
@@ -313,6 +347,7 @@ def _resisted_delivery(
             runtime.reviewer.compiler.definitions,
             runtime.rng,
             current_conditions=True,
+            cap_offered_resistance=source.malediction_waiver_cap,
         )
     return hit, checks
 
@@ -374,7 +409,7 @@ def _delivery(
         # Gear stress can change current armor; resolve it at impact, not declaration.
         current = (
             _current_impact(runtime, state, binding, current)
-            if selected_attack is not None
+            if selected_attack is not None or runtime.response_attack is not None
             else preflight_pending(runtime, state, encounter)
         )
         target = next(p for p in encounter.participants if p.actor_id == binding.target_id)
@@ -402,7 +437,33 @@ def _delivery(
             state = state.model_copy(update={"resources": resources})
         defended = defense is not None and defense.outcome.succeeded
         checks = (attack,) + (() if defense is None else (defense,))
-        if attack.outcome is Outcome.CRITICAL_SUCCESS:
+        if source.corrosion_dr_erosion and (
+            attack.outcome is Outcome.CRITICAL_FAILURE
+            or (not source.corrosion_critical_hits and attack.outcome is Outcome.CRITICAL_SUCCESS)
+        ):
+            hit_table = (
+                draw_dice(runtime.rng) if attack.outcome is Outcome.CRITICAL_SUCCESS else None
+            )
+            if hit_table is not None and sum(hit_table) in (9, 10, 11):
+                # B556's normal-damage rows change no corrosion damage arithmetic.
+                critical_table = hit_table
+            else:
+                context = critical_context(runtime, state, encounter, binding, current)
+                resources, encounter, paused = pause_corrosion_critical(
+                    state.resources,
+                    encounter,
+                    context,
+                    attack,
+                    rng=runtime.rng,
+                    system=True,
+                    captured_hit_table=hit_table,
+                )
+                state = state.model_copy(update={"resources": resources})
+                critical_id = paused.critical_id
+                capture = load_innate_critical(resources, critical_id)
+                assert capture is not None
+                critical_table = tuple(die for table in capture.table_rolls for die in table)
+        elif attack.outcome is Outcome.CRITICAL_SUCCESS:
             table = draw_dice(runtime.rng)
             critical_table = table
             effects = body_hit_effects(table)
@@ -488,6 +549,7 @@ def prepare_delivery(
         raise ConflictError("The recorded critical requires its typed continuation")
     if selected_attack is None:
         current = preflight_pending(runtime, state, encounter)
+        runtime = _capture_posture_spec(runtime, state, encounter, current)
     else:
         if isinstance(command, ResistComposedAttack) != (selected_attack.malediction is not None):
             raise ValidationError(
@@ -523,6 +585,40 @@ def prepare_delivery(
         critical_id=delivery.critical_id,
     )
     return delivery.state, delivery.encounter, prepared
+
+
+def _corrosion_impact(
+    runtime: RulesContext, state: PlayState, delivery: ComposedDelivery
+) -> CorrosionProtection | None:
+    source = delivery.current.source
+    if source.damage_type != "cor":
+        return None
+    if (
+        not source.corrosion_dr_erosion
+        or (not source.corrosion_critical_hits and delivery.effects != InnateHitEffects())
+        or source.profile.armor_divisor != 1
+        or delivery.current.context.distance_yards >= source.profile.half_damage_range
+        or delivery.binding.stage != "defense"
+    ):
+        raise ValidationError("Corrosion requires its bounded external captured delivery")
+    return corrosion_protection(runtime, state, delivery.binding.target_id)
+
+
+def _corrosion_critical(delivery: ComposedDelivery) -> CorrosionCritical | None:
+    source = delivery.current.source
+    if (
+        not source.corrosion_critical_hits
+        or delivery.checks[0].outcome is not Outcome.CRITICAL_SUCCESS
+    ):
+        return None
+    if len(delivery.critical_table) != 3:
+        raise ValidationError("Corrosion critical requires its captured native body table")
+    critical = CorrosionCritical(
+        table=(delivery.critical_table[0], delivery.critical_table[1], delivery.critical_table[2])
+    )
+    if delivery.effects != critical.effects:
+        raise ValidationError("Corrosion critical effects differ from their captured table")
+    return critical
 
 
 def owner_damage_arguments(
@@ -582,6 +678,8 @@ def owner_damage_arguments(
         target_ht=target_build.statistics.ht,
         consequences=TraitAttackConsequences(
             resistance=current.resistance,
+            corrosion=_corrosion_impact(runtime, state, delivery),
+            corrosion_critical=_corrosion_critical(delivery),
             immune_to_damage=source.damage_type in ("tox", "fat")
             and bool(
                 next(
@@ -601,6 +699,81 @@ def owner_damage_arguments(
             cyclic_resistance_modifiers=cyclic_modifiers,
         ),
     )
+
+
+def _paused_corrosion_resolution(
+    state: PlayState, encounter: Encounter, delivery: ComposedDelivery
+) -> ResolvedAttack:
+    pending = encounter.pending_defense
+    assert pending is not None and delivery.critical_id is not None and encounter.blocked_reason
+    attack = delivery.checks[0]
+    source = delivery.current.source
+    hp = next(p for p in state.resources.pools if p.id == "hp:" + delivery.binding.target_id)
+    assert hp.injury is not None
+    trace = InjuryTrace(
+        attack=attack,
+        defense=delivery.defense,
+        attack_value=DerivedValue(
+            "attack:innate-" + source.specialty, Decimal(attack.effective_target), ()
+        ),
+        defense_value=delivery.value,
+        damage_dice=(),
+        basic_damage=0,
+        resistance=delivery.current.resistance,
+        injury=0,
+        hp_before=hp.current,
+        hp_after=hp.current,
+        incapacitated=hp.injury.incapacitated,
+        profile_id=PROFILE,
+        rules_version=attack.rules_version,
+        critical_table=delivery.critical_table,
+        adjudication_required=encounter.blocked_reason,
+    )
+    outcome = TraitAttackOutcome(
+        outcome="awaiting-adjudication",
+        attacker_id=source.actor_id,
+        target_id=delivery.binding.target_id,
+        definition_id=source.purchase_id,
+        checks=delivery.checks,
+        modifier_profile=source.profile,
+    )
+    record = ComposedResolution(
+        command_id=delivery.command.id,
+        binding_id=delivery.binding.id,
+        selected=delivery.selected,
+        outcome=outcome,
+        trace=trace,
+        critical_id=delivery.critical_id,
+    )
+    state = state.model_copy(
+        update={
+            "resources": state.resources.model_copy(
+                update={
+                    "events": state.resources.events
+                    + (
+                        ResourceEvent(
+                            id=identity(RESOLUTION_PREFIX, delivery.command.id),
+                            at=state.resources.game_time,
+                            target_id=delivery.binding.target_id,
+                            kind=record.model_dump_json(),
+                        ),
+                    ),
+                }
+            )
+        }
+    )
+    encounter = encounter.model_copy(
+        update={"pending_defense": pending.model_copy(update={"attack_roll": attack})}
+    )
+    result = CombatResult(
+        encounter_id=encounter.id,
+        code="combat.resolved",
+        round=encounter.round,
+        current_actor_id=encounter.current_actor_id,
+        injury=trace,
+        available=(),
+    )
+    return ResolvedAttack(state, encounter, result, outcome)
 
 
 def finish_delivery(
@@ -624,6 +797,8 @@ def finish_delivery(
     critical_table, critical_id = delivery.critical_table, delivery.critical_id
     target_build = build(runtime, state, binding.target_id)
     assert target_build.statistics is not None
+    if source.corrosion_dr_erosion and encounter.blocked_reason:
+        return _paused_corrosion_resolution(state, encounter, delivery)
     arguments = owner_damage_arguments(runtime, state, encounter, delivery)
     resources, outcome = apply_trait_attack(
         state.resources,
@@ -693,6 +868,7 @@ def finish_delivery(
             source_revision=source.source_revision,
             policy=source.cyclic_policy,
             bypass_dr=binding.stage == "resistance",
+            corrosion_dr_erosion=source.corrosion_dr_erosion,
         )
     state = state.model_copy(update={"resources": resources})
     hp = next(p for p in resources.pools if p.id == "hp:" + binding.target_id)

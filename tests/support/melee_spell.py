@@ -22,6 +22,7 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.magic.body_control import package as body_package
 from wayfarer.engine.rules.magic.enchantment import package as enchantment_package
+from wayfarer.engine.rules.magic.protocols import StaffForm
 from wayfarer.engine.rules.skills.mundane.melee import definitions as melee_definitions
 from wayfarer.engine.rules.types.object import ObjectCondition
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
@@ -73,6 +74,9 @@ async def fixture(
     defender_item: Literal["staff", "shield"] | None = None,
     defender_armor: bool = False,
     victim_mode: Literal["dead", "diffuse"] | None = None,
+    staff_definition: Literal["quarterstaff", "baton", "short-staff"] = "quarterstaff",
+    construction_form: StaffForm | None = None,
+    defender_st: int = 10,
 ) -> tuple[str, PlayService, Campaign]:
     base_id, original = await blueprint(path / "blueprint", backend, 1)
     foundation = original._load(await original.store.read(base_id))
@@ -90,6 +94,8 @@ async def fixture(
                     in (
                         "skill:staff",
                         "skill:two-handed-sword",
+                        "skill:shortsword",
+                        "skill:smallsword",
                         "skill:shield",
                         "skill:shield-standard",
                         "skill:shield-buckler",
@@ -99,12 +105,13 @@ async def fixture(
             )
         }
     )
-    definitions["equipment:quarterstaff"] = RuleDefinition(
-        "equipment:quarterstaff",
+    staff_id = "equipment:" + staff_definition
+    definitions[staff_id] = RuleDefinition(
+        staff_id,
         DefinitionKind.EQUIPMENT,
-        "Quarterstaff",
+        staff_definition.replace("-", " ").title(),
         "sjg:basic-set-characters-4e-2004",
-        10,
+        10 if staff_definition == "quarterstaff" else 20,
         ImplementationStatus.IMPLEMENTED,
     )
     shield = next(p for p in SHIELDS if p.definition_id == "equipment:medium-shield")
@@ -141,7 +148,7 @@ async def fixture(
     policy = replace(
         base.policy,
         allowed_equipment=base.policy.allowed_equipment
-        | {"equipment:quarterstaff", shield.definition_id, armor.definition_id},
+        | {staff_id, shield.definition_id, armor.definition_id},
         point_budget=1000,
     )
     compiler = CharacterCompiler(
@@ -149,7 +156,7 @@ async def fixture(
     )
     combat = original.engine.rules.combat
     assert combat is not None and combat.gurps_equipment is not None
-    staff = next(p for p in WEAPONS if p.definition_id == "equipment:quarterstaff")
+    staff = next(p for p in WEAPONS if p.definition_id == staff_id)
     workspace = combat.gurps_equipment.entries[1]
     profiles = EquipmentCatalog(
         profile_id="gurps-basic-set-4e-2004", entries=(staff, workspace, shield, armor)
@@ -198,7 +205,13 @@ async def fixture(
             "purchases": original_draft.purchases
             + (
                 Purchase(definition_id="spell:staff", amount=4),
-                Purchase(definition_id="skill:staff", amount=8),
+                Purchase(
+                    definition_id="skill:"
+                    + {"quarterstaff": "staff", "baton": "shortsword", "short-staff": "smallsword"}[
+                        staff_definition
+                    ],
+                    amount=8,
+                ),
                 *(Purchase(definition_id="spell:" + key) for key in CHAIN),
             )
         }
@@ -261,10 +274,23 @@ async def fixture(
                         }
                     )
                     if a.actor_id == "b" and defender_item == "shield"
+                    else draft.model_copy(
+                        update={
+                            "purchases": tuple(
+                                p.model_copy(update={"amount": defender_st})
+                                if p.definition_id == "attribute:st"
+                                else p
+                                for p in draft.purchases
+                            )
+                        }
+                    )
+                    if a.actor_id == "b"
                     else draft
                 ),
                 body=a.body,
                 held_item_hands=(("real-staff", "right-hand"), ("real-staff", "left-hand"))
+                if a.actor_id == "a" and staff_definition == "quarterstaff"
+                else (("real-staff", "right-hand"),)
                 if a.actor_id == "a"
                 else (("defender-implement", "left-hand"),)
                 if defender_item == "shield"
@@ -315,10 +341,11 @@ async def fixture(
             construction=StaffConstruction(
                 item_id="real-staff",
                 definition_id=staff.definition_id,
-                form="full-staff",
+                form=construction_form
+                or ("full-staff" if staff_definition == "quarterstaff" else "short-staff"),
                 material="wood",
                 once_living=True,
-                length_yards=Fraction(2),
+                length_yards=Fraction(2 if staff_definition == "quarterstaff" else 1),
             ),
         ),
         principal_id="gm",

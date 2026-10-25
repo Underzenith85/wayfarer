@@ -19,12 +19,36 @@ from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.errors import AuthorizationError, ValidationError
+from wayfarer.orchestration.ability_boundary import AbilityAdmission, require_boundary
 from wayfarer.orchestration.clock import CommandInstant
+from wayfarer.orchestration.default_knowledge_generations import (
+    capture as capture_default_knowledge,
+)
+from wayfarer.orchestration.default_knowledge_generations import (
+    default_knowledge_scope,
+    required_from_payload,
+)
+from wayfarer.orchestration.defense_posture_generations import capture as capture_defense_postures
+from wayfarer.orchestration.defense_posture_generations import defense_posture_scope
 from wayfarer.orchestration.entropy import CommandBoundary, commit_command
 from wayfarer.orchestration.membership import member_for, require_control
+from wayfarer.orchestration.ranged_target_posture_generations import (
+    capture as capture_ranged_target_postures,
+)
+from wayfarer.orchestration.ranged_target_posture_generations import ranged_target_posture_scope
 from wayfarer.orchestration.social_generations import capture as capture_social
-from wayfarer.orchestration.social_generations import social_generation
-from wayfarer.orchestration.symptom_generations import capture, symptom_generation
+from wayfarer.orchestration.social_generations import (
+    extreme_scores_from_payload,
+    questions_from_payload,
+    self_control_from_payload,
+    social_generation,
+)
+from wayfarer.orchestration.symptom_generations import (
+    capture,
+    condition_attributes_from_payload,
+    drowsiness_from_payload,
+    symptom_generation,
+)
 from wayfarer.orchestration.task_records import has_task_records, require_task_boundary
 from wayfarer.persistence.events import CommandOrigin
 
@@ -128,6 +152,7 @@ class CommandPlan[T]:
     origin: CommandOrigin | None = None
     pending_task_id: str | None = None
     task_clock_only: bool = False
+    ability_admission: AbilityAdmission | None = None
 
 
 def authorized(
@@ -174,14 +199,50 @@ async def submit[T](
     social_payload, correct_reactions = await capture_social(
         play.store, cid, plan.command_id, plan.payload
     )
+    correct_extremes = extreme_scores_from_payload(social_payload)
+    correct_self_control = self_control_from_payload(social_payload)
+    correct_questions = questions_from_payload(social_payload)
     payload, correct_attributes = await capture(play.store, cid, plan.command_id, social_payload)
+    correct_conditions = condition_attributes_from_payload(payload)
+    correct_drowsiness = drowsiness_from_payload(payload)
+    payload, correct_postures = await capture_defense_postures(
+        play.store, cid, plan.command_id, payload
+    )
+    payload, correct_ranged_targets = await capture_ranged_target_postures(
+        play.store, cid, plan.command_id, payload
+    )
+    payload, correct_knowledge = await capture_default_knowledge(
+        play.store, cid, plan.command_id, payload
+    )
+    required_knowledge = required_from_payload(payload)
     plan = replace(plan, payload=payload)
     duplicate = await play.store.duplicate(cid, plan.command_id, plan.payload)
     if duplicate is not None:
         authorized(plan, principal_id, _control_state(await play.store.read(cid), plan))
         return await (plan.replayed or plan.outcome)(duplicate)
+    require_boundary(
+        await play.store.read(cid),
+        plan.ability_admission,
+        command_id=plan.command_id,
+        revision=plan.expected_revision,
+    )
     if plan.assess is not None:
-        with symptom_generation(correct_attributes), social_generation(correct_reactions):
+        with (
+            symptom_generation(
+                correct_attributes,
+                condition_attributes=correct_conditions,
+                deduplicate_drowsiness=correct_drowsiness,
+            ),
+            social_generation(
+                correct_reactions,
+                extreme_scores=correct_extremes,
+                self_control=correct_self_control,
+                source_questions=correct_questions,
+            ),
+            defense_posture_scope(correct_postures),
+            ranged_target_posture_scope(correct_ranged_targets),
+            default_knowledge_scope(correct_knowledge, required=required_knowledge),
+        ):
             settled = plan.assess()
         if settled is not None:
             return settled
@@ -190,6 +251,12 @@ async def submit[T](
         authorized(plan, principal_id, _control_state(campaign, plan))
         if authorize is not None:
             authorize(campaign)
+        require_boundary(
+            campaign,
+            plan.ability_admission,
+            command_id=plan.command_id,
+            revision=plan.expected_revision,
+        )
         raw = campaign.get("play_json")
         if raw is not None and has_task_records(raw):
             require_task_boundary(
@@ -197,7 +264,22 @@ async def submit[T](
                 plan.pending_task_id,
                 clock_only=plan.task_clock_only,
             )
-        with symptom_generation(correct_attributes), social_generation(correct_reactions):
+        with (
+            symptom_generation(
+                correct_attributes,
+                condition_attributes=correct_conditions,
+                deduplicate_drowsiness=correct_drowsiness,
+            ),
+            social_generation(
+                correct_reactions,
+                extreme_scores=correct_extremes,
+                self_control=correct_self_control,
+                source_questions=correct_questions,
+            ),
+            defense_posture_scope(correct_postures),
+            ranged_target_posture_scope(correct_ranged_targets),
+            default_knowledge_scope(correct_knowledge, required=required_knowledge),
+        ):
             return plan.resolve(campaign)
 
     committed = await commit_command(

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.character.compiler import ValidatedBuild, pool_limits
 from wayfarer.engine.character.power import PowerReviewer
+from wayfarer.engine.character.skills import DefaultContext
 from wayfarer.engine.character.traits.background import background_traits
 from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import SKILLS
@@ -56,9 +57,12 @@ from wayfarer.engine.simulation.actions import (
     Wait,
 )
 from wayfarer.engine.simulation.campaign.access import validate_members
-from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
+from wayfarer.engine.simulation.campaign.adjudication import Ruling, expire_rulings
 from wayfarer.engine.simulation.campaign.administration import validate_administration
 from wayfarer.engine.simulation.campaign.advancement import validate_ledgers
+from wayfarer.engine.simulation.campaign.default_knowledge_projection import (
+    for_check as default_knowledge_context,
+)
 from wayfarer.engine.simulation.campaign.development import validate_development
 from wayfarer.engine.simulation.campaign.economics import validate_economics
 from wayfarer.engine.simulation.campaign.encounter_context import activity_for, validate_contexts
@@ -661,6 +665,10 @@ class ActionEngine:
         *,
         correct_symptom_attributes: bool = True,
         fatigue_already_paid: bool = False,
+        correct_skill_context: bool = False,
+        correct_default_knowledge: bool = False,
+        require_default_knowledge: bool = False,
+        ruling_id: str | None = None,
     ) -> TaskCheckPreparation:
         """Prepare a feasible ordinary check without rolling or committing effects.
 
@@ -678,8 +686,46 @@ class ActionEngine:
         feasible = self.assess(state, command, _fatigue_already_paid=fatigue_already_paid)
         if feasible.status != "feasible":
             raise ValidationError(f"Cannot prepare ordinary task check: {feasible.code}")
+        _, extra_modifiers = self._ruling_context(state, command, ruling_id)
         return self._prepare_task_check(
-            state, command, correct_symptom_attributes=correct_symptom_attributes
+            state,
+            command,
+            correct_symptom_attributes=correct_symptom_attributes,
+            correct_skill_context=correct_skill_context,
+            correct_default_knowledge=correct_default_knowledge,
+            require_default_knowledge=require_default_knowledge,
+            extra_modifiers=extra_modifiers,
+        )
+
+    def _ruling_context(
+        self, state: PlayState, command: TypedAction, ruling_id: str | None
+    ) -> tuple[Ruling | None, tuple[Modifier, ...]]:
+        """Read the approved canonical alternative for both admission and resolution."""
+        if ruling_id is None:
+            return None, ()
+        self.validate(state)
+        ruling = next((r for r in state.rulings if r.id == ruling_id), None)
+        if (
+            ruling is None
+            or ruling.current_status(state.revision, state.resources.game_time) != "approved"
+        ):
+            raise ConflictError("Ruling is not approved at the current revision")
+        original = ACTION_ADAPTER.validate_json(ruling.original_action_json)
+        if not isinstance(original, Social):
+            raise ValidationError("Unsupported ruling action")
+        expected = original.model_copy(
+            update={"approach": "diplomacy", "id": command.id, "expected_revision": state.revision}
+        )
+        if command != expected:
+            raise ValidationError("Command does not match the approved ruling")
+        selected = next(a for a in ruling.alternatives if a.id == ruling.selected_id)
+        return ruling, (
+            Modifier(
+                selected.modifier,
+                f"ruling:{ruling.id}:{selected.id}",
+                ruling.policy_digest,
+                ruling.configuration_digest,
+            ),
         )
 
     def _prepare_task_check(
@@ -689,6 +735,9 @@ class ActionEngine:
         *,
         correct_symptom_attributes: bool,
         extra_modifiers: tuple[Modifier, ...] = (),
+        correct_skill_context: bool = False,
+        correct_default_knowledge: bool = False,
+        require_default_knowledge: bool = False,
     ) -> TaskCheckPreparation:
         assert command.target_id is not None
         rule = self.checks[(command.kind, command.target_id)]
@@ -706,7 +755,21 @@ class ActionEngine:
             self.reviewer.compiler.definitions,
             correct_attributes=correct_symptom_attributes,
         )
-        derived, dependencies = self._target(state, actor.actor_id, build, rule)
+        derived, dependencies = self._target(
+            state,
+            actor.actor_id,
+            build,
+            rule,
+            default_context=default_knowledge_context(
+                self.reviewer.compiler,
+                state,
+                actor.actor_id,
+                build,
+                acquisition=correct_skill_context,
+                enabled=correct_default_knowledge,
+                required=require_default_knowledge,
+            ),
+        )
         if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():
             raise ValidationError("Check target must be a finite integer")
         darkness = lighting_penalty(state, rule.target_id, rule.darkness_penalty)
@@ -747,11 +810,17 @@ class ActionEngine:
         )
 
     def _target(
-        self, state: PlayState, actor_id: str, build: ValidatedBuild, rule: CheckRule
+        self,
+        state: PlayState,
+        actor_id: str,
+        build: ValidatedBuild,
+        rule: CheckRule,
+        *,
+        default_context: DefaultContext | None = None,
     ) -> tuple[DerivedValue, tuple[DerivedValue, ...]]:
         values = {v.target: v.value for v in build.sheet.values}
         if self.reviewer.compiler.skills is not None:
-            return self._gurps_target(state, actor_id, build, rule)
+            return self._gurps_target(state, actor_id, build, rule, default_context=default_context)
         definition = self.reviewer.compiler.definitions[rule.definition_id]
         attribute, _ = SKILLS[definition.name]
         attribute_id = f"attribute:{attribute.lower()}"
@@ -778,7 +847,13 @@ class ActionEngine:
         return skill, (attribute_value,)
 
     def _gurps_target(
-        self, state: PlayState, actor_id: str, build: ValidatedBuild, rule: CheckRule
+        self,
+        state: PlayState,
+        actor_id: str,
+        build: ValidatedBuild,
+        rule: CheckRule,
+        *,
+        default_context: DefaultContext | None = None,
     ) -> tuple[DerivedValue, tuple[DerivedValue, ...]]:
         compiler = self.reviewer.compiler
         assert compiler.skills is not None
@@ -816,7 +891,10 @@ class ActionEngine:
             },
             {key: value.value for key, value in attributes.items()},
             adjust,
+            default_context,
         )
+        if rule.definition_id not in derived:
+            raise ValidationError("Skill has no lawful trained or GM-known default level")
         return derived[rule.definition_id], tuple(attributes.values())
 
     def resolve(
@@ -828,6 +906,9 @@ class ActionEngine:
         ruling_id: str | None = None,
         advance_time: bool = True,
         correct_symptom_attributes: bool = True,
+        correct_skill_context: bool = False,
+        correct_default_knowledge: bool = False,
+        require_default_knowledge: bool = False,
         clock: PlayClock | None = None,
     ) -> tuple[PlayState, list[EngineEvent]]:
         updated, result = self._resolve_action(
@@ -837,6 +918,9 @@ class ActionEngine:
             ruling_id=ruling_id,
             advance_time=advance_time,
             correct_symptom_attributes=correct_symptom_attributes,
+            correct_skill_context=correct_skill_context,
+            correct_default_knowledge=correct_default_knowledge,
+            require_default_knowledge=require_default_knowledge,
             clock=clock,
         )
         return self._resolved_events(state, updated, command.actor_id, result)
@@ -941,6 +1025,9 @@ class ActionEngine:
         ruling_id: str | None = None,
         advance_time: bool = True,
         correct_symptom_attributes: bool = True,
+        correct_skill_context: bool = False,
+        correct_default_knowledge: bool = False,
+        require_default_knowledge: bool = False,
         clock: PlayClock | None = None,
         prepared_task: tuple[TaskCheckPreparation, CheckTrace] | None = None,
         task_fatigue_paid: bool = False,
@@ -948,39 +1035,7 @@ class ActionEngine:
 
         if prepared_task is None:
             _require_ready_action(state, command)
-        ruling = None
-        extra_modifiers: tuple[Modifier, ...] = ()
-        if ruling_id is not None:
-            # Consent is loaded from canonical state, never accepted as an input
-            # approval object. The ordinary engine gates still apply below.
-            self.validate(state)
-            ruling = next((r for r in state.rulings if r.id == ruling_id), None)
-            if (
-                ruling is None
-                or ruling.current_status(state.revision, state.resources.game_time) != "approved"
-            ):
-                raise ConflictError("Ruling is not approved at the current revision")
-            original = ACTION_ADAPTER.validate_json(ruling.original_action_json)
-            if not isinstance(original, Social):
-                raise ValidationError("Unsupported ruling action")
-            expected = original.model_copy(
-                update={
-                    "approach": "diplomacy",
-                    "id": command.id,
-                    "expected_revision": state.revision,
-                }
-            )
-            if command != expected:
-                raise ValidationError("Command does not match the approved ruling")
-            selected = next(a for a in ruling.alternatives if a.id == ruling.selected_id)
-            extra_modifiers = (
-                Modifier(
-                    selected.modifier,
-                    f"ruling:{ruling.id}:{selected.id}",
-                    ruling.policy_digest,
-                    ruling.configuration_digest,
-                ),
-            )
+        ruling, extra_modifiers = self._ruling_context(state, command, ruling_id)
         duration = 0
         if prepared_task is None:
             feasible = self.assess(state, command)
@@ -1039,6 +1094,9 @@ class ActionEngine:
                     command,
                     correct_symptom_attributes=correct_symptom_attributes,
                     extra_modifiers=extra_modifiers,
+                    correct_skill_context=correct_skill_context,
+                    correct_default_knowledge=correct_default_knowledge,
+                    require_default_knowledge=require_default_knowledge,
                 )
                 trace = prepared.check(rng=rng)
             else:

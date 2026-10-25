@@ -13115,7 +13115,6 @@
             "type": "string"
           },
           "power": {
-            "maximum": 100,
             "minimum": 1,
             "title": "Power",
             "type": "integer"
@@ -13170,7 +13169,6 @@
             "type": "string"
           },
           "power": {
-            "maximum": 100,
             "minimum": 1,
             "title": "Power",
             "type": "integer"

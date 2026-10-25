@@ -169,6 +169,7 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                             stage=command.stage,
                             task_id=command.task_id,
                             preview=True,
+                            operating_tools_policy=True,
                         )
                     choices.append(
                         EquipmentChoice(

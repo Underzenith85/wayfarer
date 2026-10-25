@@ -20,6 +20,7 @@ from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.mundane import candidate_package
 from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
 from wayfarer.engine.rules.types.object import ObjectCondition
+from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
 from wayfarer.engine.simulation.combat.commands import TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.combat.spatial import Placement
@@ -27,6 +28,7 @@ from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.resources import Item
 from wayfarer.engine.world import Fact
 from wayfarer.orchestration.combat import CombatService
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.opponent_attack_records import BeginOpponentAttack
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.task_records import SetRealPlayClock, TaskResult
@@ -247,14 +249,33 @@ async def test_held_missile_keeps_casting_energy_and_selected_hit_ends_one_fireb
         trait_runtime_hooks=SUPPORTED_HOOKS,
     )
     await start_fight(cid, original)
+    state = original._load(await original.store.read(cid))
+    await DefaultKnowledgeService(original).execute(
+        cid,
+        AdoptDefaultKnowledge(
+            id="projectile-society-knowledge",
+            actor_id="gm",
+            expected_revision=state.revision,
+            performer_id="a",
+            known_skill_ids=("skill:innate-attack-projectile",),
+            reason="The GM establishes Projectile familiarity for this fresh held-missile scenario",
+        ),
+        principal_id="gm",
+    )
     original.rng = RecordedDice((3, 3, 3))
-    start = spell_command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    state = original._load(await original.store.read(cid))
+    start = spell_command(state.revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     await SpellService(original).execute(cid, start, principal_id="a")
     await idle(cid, original, "b")
     original.rng = RecordedDice((1, 1, 1))
+    state = original._load(await original.store.read(cid))
     await SpellService(original).execute(
         cid,
-        start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 3}),
+        start.model_copy(
+            update={"id": "release", "kind": "release", "expected_revision": state.revision}
+        ),
         principal_id="a",
     )
     play = await enroll(tmp_path, backend, cid, original)

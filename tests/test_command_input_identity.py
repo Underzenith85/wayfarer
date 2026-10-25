@@ -104,7 +104,7 @@ async def test_duplicate_validates_stored_digest_and_explicit_metadata_even_on_e
     if corruption == "bytes":
         broken["principal_id"] = "bob"
     elif corruption == "future":
-        broken[KEY] = 2
+        broken[KEY] = 4
         expected = "Unsupported recorded Symptoms"
     elif corruption == "intent":
         broken[ORIGINAL_INPUT] = raw.replace('"alice"', '"bob"')
@@ -139,7 +139,7 @@ async def test_requested_future_metadata_cannot_match_known_intent(
     await seed_campaign(store, initial)
     raw = json.dumps(intent())
     await store.commit_turn(cid, "same", 0, stamp(raw), advance, actor_id="a")
-    for value in (None, 0, 2, True, "1"):
+    for value in (None, 0, 4, True, "1"):
         requested = intent() | {KEY: value}
         with pytest.raises(ValidationError, match="Unsupported recorded Symptoms"):
             await store.duplicate(cid, "same", json.dumps(requested))

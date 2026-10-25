@@ -99,7 +99,7 @@ async def test_changed_approved_target_finishes_with_live_ht_hp_fp_and_posture(
     original: tuple[int, ...]
     rerolls: tuple[int, ...]
     if route == "composed":
-        cid, play = await composed_fixture(tmp_path, backend)
+        cid, play = await composed_fixture(tmp_path, backend, society_knows_beam=True)
         original = (2, 2, 2, 1, 1)
         rerolls = (2, 2, 3, 3)
     elif route == "missile":
@@ -229,7 +229,7 @@ async def test_original_acceptance_uses_current_armor_without_reroll_or_luck(
     from wayfarer.engine.simulation.resources import Item
 
     if route == "composed":
-        cid, play = await composed_fixture(tmp_path, "sqlite")
+        cid, play = await composed_fixture(tmp_path, "sqlite", society_knows_beam=True)
     else:
         cid, play = await inventory_fixture(tmp_path, "sqlite", ranged=route == "ranged")
         await turn(

@@ -27,6 +27,12 @@ from wayfarer.engine.rules.checks import (
 )
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.modifiers import AttackProfile
+from wayfarer.engine.rules.types.critical_hit import (
+    InnateHitEffects as InnateHitEffects,
+)
+from wayfarer.engine.rules.types.critical_hit import (
+    body_hit_effects as body_hit_effects,
+)
 from wayfarer.engine.rules.types.cyclic_runtime import create_attack as create_cyclic_attack
 from wayfarer.engine.rules.types.location import Hand, HumanLocation
 from wayfarer.engine.simulation.combat.critical import Digest, TableRoll
@@ -63,30 +69,6 @@ def classify_ranged_check(check: CheckTrace) -> CheckTrace:
     if check.outcome is Outcome.CRITICAL_FAILURE and check.total < 17:
         return replace(check, outcome=Outcome.FAILURE)
     return check
-
-
-class InnateHitEffects(Record):
-    basic_multiplier: Literal[1, 2, 3] = 1
-    maximum_damage: bool = False
-    halve_dr: Literal["down"] | None = None
-    force_major_wound: bool = False
-    double_shock: bool = False
-    drop_all_held: bool = False
-
-
-def body_hit_effects(table: TableRoll) -> InnateHitEffects:
-    """B556 ordinary body table; the host supports torso, not head/limb targeting."""
-    if len(table) != 3 or any(type(d) is not int or not 1 <= d <= 6 for d in table):
-        raise ValidationError("Critical table requires three captured six-sided dice")
-    row = sum(table)
-    return InnateHitEffects(
-        basic_multiplier=3 if row in (3, 18) else 2 if row in (5, 16) else 1,
-        maximum_damage=row in (6, 15),
-        halve_dr="down" if row in (4, 17) else None,
-        force_major_wound=row in (7, 13, 14),
-        double_shock=row == 8,
-        drop_all_held=row == 12,
-    )
 
 
 def _fighter(encounter: Encounter, actor_id: str) -> Combatant:
@@ -279,6 +261,9 @@ class InnateCriticalCapture(Record):
     attack: CheckTrace
     table_rolls: tuple[TableRoll, ...] = Field(min_length=1, max_length=3)
     effective_row: int = Field(ge=3, le=18)
+    critical_kind: Literal["hit", "miss"] = Field(
+        default="miss", exclude_if=lambda value: value == "miss"
+    )
     selected_printing: Literal["characters-third/campaigns-fourth"] = (
         "characters-third/campaigns-fourth"
     )
@@ -699,6 +684,87 @@ def _self_hit_effects(
             restriction_id=cyclic_id,
         )
     return resources, result.model_copy(update={"cyclic_attack_id": cyclic_id})
+
+
+def pause_corrosion_critical(
+    resources: ResourceState,
+    encounter: Encounter,
+    context: InnateCriticalContext,
+    attack: CheckTrace,
+    *,
+    rng: RandomSource,
+    system: bool = False,
+    captured_hit_table: TableRoll | None = None,
+) -> tuple[ResourceState, Encounter, InnateCriticalOutcome]:
+    """Retain native critical chronology while its corrosion effect needs a GM policy.
+
+    No damage is invented or discarded, and the existing typed continuation applies
+    only an explicitly recorded campaign ruling, never a claimed printed effect.
+    """
+    if not system or context.source.damage_type != "cor" or context.source.source_kind != "natural":
+        raise ValidationError("Corrosion critical pause requires its actual natural source")
+    if attack.outcome not in (Outcome.CRITICAL_SUCCESS, Outcome.CRITICAL_FAILURE):
+        raise ValidationError("Corrosion critical pause requires the drawn native critical")
+    prior = load_innate_critical(resources, context.id)
+    if prior is not None:
+        if prior.context != context or prior.attack != attack:
+            raise ConflictError("Committed corrosion critical context cannot change")
+        return resources, encounter, innate_critical_outcome(resources, context.id)
+    _bindings(encounter, context)
+    if context.created_at != resources.game_time:
+        raise ConflictError("Corrosion critical must preserve its current chronology")
+    actor = _fighter(encounter, context.attacker_id)
+    if (
+        set(context.held_item_ids) != {i for i, _ in actor.hand_bindings}
+        or context.hand_bindings != actor.hand_bindings
+    ):
+        raise ConflictError("Corrosion critical must capture current actual held objects")
+    items = tuple(i for i in resources.items if i.id in context.held_item_ids)
+    if {i.id for i in items} != set(context.held_item_ids) or any(
+        i.owner_id != context.attacker_id for i in items
+    ):
+        raise ValidationError("Corrosion critical held objects have no current physical identity")
+    hit = attack.outcome is Outcome.CRITICAL_SUCCESS
+    if captured_hit_table is not None and (
+        not hit
+        or len(captured_hit_table) != 3
+        or any(type(die) is not int or not 1 <= die <= 6 for die in captured_hit_table)
+    ):
+        raise ValidationError("Captured corrosion hit table must be its actual three dice")
+    table: tuple[TableRoll, ...] = (
+        captured_hit_table if captured_hit_table is not None else draw_dice(rng),
+    )
+    # B556: ranged critical misses reroll an initial self-hit row exactly once.
+    if not hit and sum(table[0]) in (5, 6):
+        table += (draw_dice(rng),)
+    hp = _hp(resources, context.attacker_id)
+    assert hp.injury is not None
+    capture = InnateCriticalCapture(
+        context=context,
+        attack=attack,
+        table_rolls=table,
+        effective_row=sum(table[-1]),
+        critical_kind="hit" if hit else "miss",
+        encounter_round=encounter.round,
+        encounter_turn=encounter.turn_index,
+        subject_hp=hp,
+        subject_fp=next((p for p in resources.pools if p.id == "fp:" + context.attacker_id), None),
+        items=items,
+    )
+    outcome = InnateCriticalOutcome(
+        critical_id=context.id,
+        context_digest=capture.digest,
+        status="awaiting-adjudication",
+        reason="corrosion-critical-effect-requires-explicit-campaign-policy",
+        subject_turn=hp.injury.turn,
+    )
+    resources = _append(resources, "innate-critical:" + context.id, context.attacker_id, capture)
+    resources = _append(resources, "innate-critical-outcome:" + context.id, context.id, outcome)
+    return (
+        resources,
+        encounter.model_copy(update={"blocked_reason": "innate-critical:" + context.id}),
+        outcome,
+    )
 
 
 def resolve_innate_miss(

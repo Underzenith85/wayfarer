@@ -15,6 +15,7 @@ from wayfarer.engine.simulation.combat.critical import (
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
@@ -86,8 +87,10 @@ def capture_critical(
         if i.owner_id == actor_id
         and i.equipped
         and (i.condition is None or not i.condition.disabled)
-        for e in equipment.entries
-        if e.definition_id == i.definition_id and e.armor is not None
+        for pinned in equipment.entries
+        if pinned.definition_id == i.definition_id
+        for e in (projected_profile(state.resources, i, pinned),)
+        if e.armor is not None
     )
     dr_bonus = 0
     if runtime.rules.abilities is not None:

@@ -64,7 +64,13 @@ def source_history(resources: ResourceState) -> tuple[ComposedSource, ...]:
 
 
 def bind(
-    runtime: RulesContext, state: PlayState, command: BindComposedSource, principal_id: str
+    runtime: RulesContext,
+    state: PlayState,
+    command: BindComposedSource,
+    principal_id: str,
+    *,
+    corrosion_critical_hits: bool = False,
+    malediction_waiver_cap: bool = False,
 ) -> tuple[PlayState, ComposedSource]:
     compiled = raw_build(runtime, state, command.actor_id)
     purchase = next(
@@ -78,15 +84,20 @@ def bind(
         raise ValidationError(
             "Legacy Innate Attack modifiers require a separately supported source consumer"
         )
-    if damage_type == "cor":
-        raise ValidationError(
-            "Corrosion requires the unsupported B379 persistent DR degradation consumer"
-        )
+    if damage_type == "cor" and any(
+        selection.definition_id != "modifier:enhancement:cyclic" or selection.limited_by is not None
+        for selection in purchase.trait.attack_modifiers
+    ):
+        raise ValidationError("Corrosion supports only the ordinary and Cyclic damage source")
     if damage_type in ("cr", "cut"):
         raise ValidationError(
             "Crushing and cutting require the unsupported B378 knockback continuation consumer"
         )
     profile = cyclic_profile(purchase.trait.attack_modifiers, damage_type)
+    if damage_type == "cor" and profile.contagious != "none":
+        raise ValidationError(
+            "Contagious corrosion requires a separately reviewed delivery consumer"
+        )
     if command.emitter_limb is not None and command.specialty not in ("beam", "projectile"):
         raise ValidationError("Breath and Gaze do not establish an emitting arm")
     if profile.cyclic_interval_seconds is not None:
@@ -118,6 +129,9 @@ def bind(
         contagion_vector=command.contagion_vector,
         incubation_seconds=command.incubation_seconds,
         cyclic_policy=command.cyclic_policy,
+        corrosion_dr_erosion=damage_type == "cor",
+        corrosion_critical_hits=damage_type == "cor" and corrosion_critical_hits,
+        malediction_waiver_cap=profile.malediction_range != "none" and malediction_waiver_cap,
     )
     event = ResourceEvent(
         id=identity(SOURCE_PREFIX, command.id),

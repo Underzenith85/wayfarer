@@ -273,7 +273,7 @@ def cast_with_step(
     )
     context = CombatContext(play, before)
     state, _, context = _prepare_command(before, turn, context)
-    encounter = _prepare_encounter(state, turn, context)
+    encounter, context = _prepare_encounter(state, turn, context)
     explosion_guard(state.resources)
     _origin_guard(state, encounter, command)
     with initial_binding(

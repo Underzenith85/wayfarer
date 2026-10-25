@@ -194,3 +194,14 @@ continuations, current limb armor, authority, rollback, shared cooldown, races,
 second-attack cancellation and secret/public seeded replay. Collision,
 shield-rush, other spell and source-specific object-follow-up Luck contracts
 remain separate work; this slice does not complete #867.
+
+
+## Current Karate Kicking consumer
+
+The private [Karate Kicking generation](gurps-karate-kicking.md) now uses the
+canonical B232 compiled technique in actual Karate kick scoring. Purchased
+improvements are used once; current attack penalties and parent-derived damage
+remain separate. The path respects exact campaign background admission, while
+ordinary DX kicks and catalogs without that technique retain their existing
+routes. Recorded feature absence preserves prior validation/scoring and replay.
+This bounded consumer does not establish other technique variants.

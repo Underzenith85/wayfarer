@@ -27,6 +27,7 @@ from wayfarer.engine.simulation.actions import (
     Wait,
 )
 from wayfarer.engine.simulation.events import action_result
+from wayfarer.engine.simulation.health.condition_generations import condition_generation
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import Owner, Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
@@ -276,7 +277,10 @@ def gurps_state() -> tuple[ActionEngine, PlayState]:
 
 
 @pytest.mark.parametrize("correct_attributes", [False, True])
-def test_gurps_defaults_darkness_and_symptoms_keep_exact_targets(correct_attributes: bool) -> None:
+@pytest.mark.parametrize("current_conditions", [False, True])
+def test_gurps_defaults_darkness_and_symptoms_keep_exact_targets(
+    correct_attributes: bool, current_conditions: bool
+) -> None:
     reducer, state = gurps_state()
     state = penalize(state, "a", "iq")
     state = state.model_copy(
@@ -301,35 +305,38 @@ def test_gurps_defaults_darkness_and_symptoms_keep_exact_targets(correct_attribu
         }
     )
     cases: tuple[tuple[Literal["inspect", "social"], int, int], ...] = (
-        ("inspect", 5, 3),
+        ("inspect", 5, 2 if current_conditions else 3),
         ("social", 6, 5),
     )
     for kind, base_target, target in cases:
         command = ordinary_command(kind)
-        preparation = reducer.prepare_task_check(
-            state, command, correct_symptom_attributes=correct_attributes
-        )
-        selected = preparation.check(rng=RecordedDice((2, 2, 2)))
-        assert preparation.target == base_target and selected.effective_target == target
-        if kind == "inspect":
-            assert [(m.reason, m.value) for m in preparation.modifiers] == [
-                ("inspect", 0),
-                ("inspect:darkness", -2),
-            ]
-        else:
-            assert [(m.reason, m.value) for m in preparation.modifiers] == [
-                ("social", 0),
-                ("Symptoms coughing", -1),
-            ]
-        _, ordinary_events = reducer.resolve(
-            state,
-            command,
-            rng=RecordedDice((2, 2, 2)),
-            advance_time=False,
-            correct_symptom_attributes=correct_attributes,
-        )
-        _, prepared_events = reducer.resolve_prepared_task(state, command, preparation, selected)
-        assert prepared_events == ordinary_events
+        with condition_generation(current_conditions):
+            preparation = reducer.prepare_task_check(
+                state, command, correct_symptom_attributes=correct_attributes
+            )
+            selected = preparation.check(rng=RecordedDice((2, 2, 2)))
+            assert preparation.target == base_target and selected.effective_target == target
+            if kind == "inspect":
+                assert [(m.reason, m.value) for m in preparation.modifiers] == [
+                    ("inspect", 0),
+                    ("inspect:darkness", -2),
+                ] + ([("Symptoms coughing", -1)] if current_conditions else [])
+            else:
+                assert [(m.reason, m.value) for m in preparation.modifiers] == [
+                    ("social", 0),
+                    ("Symptoms coughing", -1),
+                ]
+            _, ordinary_events = reducer.resolve(
+                state,
+                command,
+                rng=RecordedDice((2, 2, 2)),
+                advance_time=False,
+                correct_symptom_attributes=correct_attributes,
+            )
+            _, prepared_events = reducer.resolve_prepared_task(
+                state, command, preparation, selected
+            )
+            assert prepared_events == ordinary_events
 
 
 def test_prepared_completion_rejects_mismatched_context_and_forged_scoring() -> None:

@@ -84,7 +84,7 @@ def open_unarmed_damage(
     state, prepared_response, context = _prepare_command(state, response, context)
     assert isinstance(prepared_response, ChooseDefense)
     response = prepared_response
-    encounter = _prepare_encounter(state, response, context)
+    encounter, context = _prepare_encounter(state, response, context)
     original = encounter.pending_unarmed
     if original is None:
         raise ConflictError("Unarmed delivery is no longer pending")

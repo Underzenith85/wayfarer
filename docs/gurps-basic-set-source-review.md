@@ -51,3 +51,43 @@ Quick Contest rule for two failures. Independent re-review changes that
 expectation to `false`; the ordinary contest still records its margin-of-failure
 winner. The fixture review fingerprint now covers the corrected expectation
 and provenance. This correction does not promote any other source or mechanic.
+
+## Regular Contest extreme-score correction (2026-10-24)
+
+Re-review of the exact uploaded *Campaigns* fourth printing, B349, found that
+the previous high/low Regular Contest expectations disagreed with the selected
+source. The printed thresholds are inclusive: both scores at most 6, or both
+at least 14. In either case the lower becomes 10 and the same offset applies
+to the higher. If both exceed 20, the lower becomes 10 and the higher is
+multiplied by 10/lower, rounding down. Independently entered examples include
+5 versus 3 becoming 12 versus 10, 19 versus 16 becoming 13 versus 10, and
+600 versus 500 becoming 12 versus 10. A 660-versus-500 case checks floor rounding.
+
+The old fixture named `basic-regular-contest-no-levelling-at-14` encoded the
+wrong exclusive threshold. It is replaced by `basic-regular-contest-levelling-at-14`,
+and the other affected fixture expectations, input dice and review fingerprints
+are explicitly corrected. All Basic Set Regular Contest fixtures remain required
+by the execution binding; adding cases does not bypass execution or source checks.
+
+The shared scorer now records separate adjustments for each contestant, without
+changing the durable trace shape. Recorded legacy adjustment reasons preserve
+historical receipt replay; mixed, changed or otherwise inconsistent receipts
+refuse replay. Fresh pin commands capture the private
+`regular-contest-extreme-scores` feature; historical absence retains old pin
+scoring. Real pin tests exercise resulting pin state, authority, stale revision,
+restart retry and seeded command replay on both database backends. Lite source
+behavior is unchanged; this source review covers only the selected Basic Set.
+
+Immediate Interrogation also records the decision in its private captured social
+context: new sources opt into the corrected rule and omitted historical fields
+retain old scoring. Tests reexecute both captures on SQLite and PostgreSQL.
+The callback-supplied context is copied rather than changed. Automatic NPC Interrogation, including a pending director choice resolved by
+Wait or an ordinary task clock, also captures the decision. Private social
+semantics version 2 enables the B349 correction; omitted versions and version 1
+retain their prior reaction and contest behavior. The central command pipeline
+restores both decisions during replay, rather than inferring them from a current
+profile. Tests preserve versions 0/1/2, actual disclosure, NPC action budgets,
+authority, exact retries and seeded reexecution on both stores. Generic
+mundane procedure APIs use the corrected fresh service and preserve old receipts
+through their recorded adjustment reason; they have no additional persisted
+command dispatcher importing their `attempt` entry point.

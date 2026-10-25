@@ -121,9 +121,9 @@ async def test_selected_caster_check_controls_real_resistance_and_injury(
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 @pytest.mark.parametrize(
-    "resist,target,following,damage", [(True, 16, (2, 2, 3), 0), (False, 18, (2, 2), 4)]
+    "resist,target,following,damage", [(True, 16, (2, 2, 3), 0), (False, 16, (2, 2), 4)]
 )
-async def test_rule_of_16_is_captured_only_for_declared_resistance(
+async def test_rule_of_16_is_captured_for_offered_resistance(
     tmp_path: Path,
     backend: str,
     resist: bool,

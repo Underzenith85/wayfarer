@@ -14,6 +14,7 @@ from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
@@ -139,7 +140,7 @@ def resolve_flight(
                     if i.owner_id == target.actor_id
                     and i.equipped
                     and (i.condition is None or not i.condition.disabled)
-                    for e in (entries[i.definition_id],)
+                    for e in (projected_profile(state.resources, i, entries[i.definition_id]),)
                     if e.armor and "torso" in e.armor.locations
                 ),
                 default=0,

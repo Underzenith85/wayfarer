@@ -148,6 +148,7 @@ def prepare(
     overpenetration_target_id: str | None = None,
     area_aim_point: GroundPosition | None = None,
     scatter_squared: bool = False,
+    preview: bool = False,
 ) -> Encounter:
 
     pending = encounter.pending_defense
@@ -196,8 +197,14 @@ def prepare(
         if participant.actor_id not in (actor.actor_id, target.actor_id)
         and pair(participant.actor_id, target.actor_id) in encounter.close_pairs
     )
-    selectors = draw_dice(runtime.rng, len(bystanders)) if bystanders else ()
-    stray_order = stray_target_order(bystanders, selectors) if bystanders else ()
+    selectors = draw_dice(runtime.rng, len(bystanders)) if bystanders and not preview else ()
+    stray_order = (
+        tuple(sorted(bystanders))
+        if preview
+        else stray_target_order(bystanders, selectors)
+        if bystanders
+        else ()
+    )
     geometry = encounter
     if target_item_id:
         geometry = target_geometry(runtime, state, encounter, target_item_id)

@@ -16,11 +16,16 @@ from wayfarer.engine.character.traits.mastery import damage_bonus
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.tables.combat import minimum_strength_penalty, strong_damage_bonus
+from wayfarer.engine.rules.tables.combat import (
+    minimum_strength_penalty,
+    posture_melee_modifier,
+    strong_damage_bonus,
+)
 from wayfarer.engine.rules.types.location import Hand, HumanLocation
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
+from wayfarer.engine.simulation.combat.attack_policy import posture_rules
 from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.critical import IncomingWound
 from wayfarer.engine.simulation.combat.criticals.context import capture_critical
@@ -38,6 +43,10 @@ from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee.electrical import (
     electrical_armor,
     resolve_cattle_prod,
+)
+from wayfarer.engine.simulation.combat.melee.heavy_bare_parry import (
+    exceeds_lift,
+    settle_heavy_bare_parry,
 )
 from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_parry
 from wayfarer.engine.simulation.combat.melee.modes import mode
@@ -59,6 +68,7 @@ from wayfarer.engine.simulation.combat.unarmed.records import striking_bonus
 from wayfarer.engine.simulation.combat.visibility import external_defense_penalty, melee_eye_penalty
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import Armor, MeleeMode, RangedMode
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.equipment.silver import (
     attack_construction,
     silver_wounding_multiplier,
@@ -271,6 +281,7 @@ def resolve_melee(
     prepare_only: Literal[False] = False,
     prepare_damage: Literal[False] = False,
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> tuple[PlayState, Encounter, InjuryTrace]: ...
 
 
@@ -291,6 +302,7 @@ def resolve_melee(
     prepare_only: Literal[True],
     prepare_damage: Literal[False] = False,
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> AttackRollSpec: ...
 
 
@@ -311,6 +323,7 @@ def resolve_melee(
     prepare_only: Literal[False] = False,
     prepare_damage: Literal[True],
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> MeleeDamageStage: ...
 
 
@@ -330,6 +343,7 @@ def resolve_melee(
     prepare_only: bool = False,
     prepare_damage: bool = False,
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> tuple[PlayState, Encounter, InjuryTrace] | AttackRollSpec | MeleeDamageStage:
     pending = encounter.pending_defense
     assert pending is not None
@@ -338,7 +352,7 @@ def resolve_melee(
     _require_rooted_dodge_context(state, pending, selected, second_defense)
     contact = _current_contact(runtime, state, pending.id)
     if contact is not None:
-        if prepare_only or prepare_damage or secret_damage:
+        if (prepare_only and not admission_only) or prepare_damage or secret_damage:
             raise ValidationError("Held Melee contact does not yet support Luck damage choices")
         if second_defense is not None:
             raise ValidationError("Held Melee contact requires one actual active defense")
@@ -401,6 +415,14 @@ def resolve_melee(
         incoming_mode_id=pending.mode_id,
         parry_mode_id=parry_mode_id,
     )
+    heavy_bare_parry = (
+        contact is not None
+        and selected == "parry"
+        and defense_item in ("left-hand", "right-hand")
+        and exceeds_lift(runtime, state, encounter, defender, weapon)
+    )
+    if heavy_bare_parry:
+        defense_derived = None
     critical_parry_mode = parry_mode_id
     second_derived = None
     second_item = None
@@ -451,8 +473,11 @@ def resolve_melee(
             runtime, state, pending.defender_id, pending.target_item_id
         )
     attack_target -= 4 if attacker.grappled else 0
-    attack_target -= (
-        4 if attacker.posture == "prone" else 2 if attacker.posture == "kneeling" else 0
+    attack_target += posture_melee_modifier(
+        attacker.posture,
+        legacy=not posture_rules(
+            runtime, state, encounter, attacker.actor_id, pending_id=pending.id
+        ),
     )
     attack_target -= 2 * bool(pending.stray_target_order)
 
@@ -529,6 +554,7 @@ def resolve_melee(
             else ()
         ),
     )
+    spec = runtime.attack_spec(pending.id, spec)
     if prepare_only:
         return spec
     attack = pending.attack_roll or selected_attack or spec.roll(runtime.rng)
@@ -565,6 +591,9 @@ def resolve_melee(
         except ValidationError:
             near_miss = False
     hit = attack.outcome.succeeded or near_miss
+    if heavy_bare_parry and hit and attack.outcome is not Outcome.CRITICAL_SUCCESS:
+        assert defense_item is not None
+        defender = defender.model_copy(update={"parries": defender.parries + (defense_item,)})
     critical_dice: tuple[int, ...] = ()
     critical_tables: tuple[tuple[int, ...], ...] = ()
     critical = 0
@@ -987,6 +1016,7 @@ def resolve_melee(
         location_dice=location_dice,
         vulnerability_multiplier=vulnerability_multiplier,
         contact_defense=selected if contact is not None else "none",
+        heavy_bare_parry=heavy_bare_parry and attack.outcome is not Outcome.CRITICAL_SUCCESS,
     )
     if prepare_damage:
         original = (
@@ -1126,7 +1156,7 @@ def finish_melee_damage(
         if i.owner_id == pending.defender_id
         and i.equipped
         and (i.condition is None or not i.condition.disabled)
-        for e in (entries[i.definition_id],)
+        for e in (projected_profile(state.resources, i, entries[i.definition_id]),)
         if e.armor
         and (
             (location or "torso") in e.armor.locations
@@ -1371,6 +1401,15 @@ def finish_melee_damage(
             incoming=incoming,
             defender_mode_id=critical_parry_mode,
         )
+    state, encounter, bare_checks = settle_heavy_bare_parry(
+        runtime,
+        state,
+        encounter,
+        incoming=weapon,
+        enabled=inputs.heavy_bare_parry and hit,
+        admitted_basic_lift=defend_build.statistics.basic_lift,
+    )
+    effect_dice += tuple(d for check in bare_checks for d in check.dice)
     trace = InjuryTrace(
         attack=attack,
         defense=defense,
@@ -1399,7 +1438,7 @@ def finish_melee_damage(
         state,
         encounter,
         defender.actor_id,
-        defended=defense is not None,
+        defended=defense is not None or inputs.heavy_bare_parry,
         injured=injury > 0 or magical_injury > 0,
     )
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)

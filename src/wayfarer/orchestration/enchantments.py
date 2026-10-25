@@ -8,6 +8,8 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.magic import haste_wearable_construction as wearables
 from wayfarer.engine.simulation.magic.enchanting_transitions import (
     COMMAND_ADAPTER,
+    AdvanceEnchanting,
+    BeginEnchanting,
     CreateEnchantment,
     EnchantmentOutcome,
     TypedEnchantmentCommand,
@@ -29,10 +31,13 @@ from wayfarer.engine.simulation.magic.staff_state import (
     identifier,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.ability_boundary import AbilityAdmission
 from wayfarer.orchestration.enchantment_generations import (
+    WORK_ADMISSION_KEY,
     current_energy,
     current_haste_generation,
     current_settlement,
+    current_work_admission,
 )
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
@@ -56,11 +61,14 @@ class EnchantmentService:
         correct_energy: bool = True,
         haste_manufacture: bool = False,
         manufacture_generation: int = 1,
+        work_admission: bool = False,
     ) -> CommandPlan[
         EnchantmentOutcome | StaffConstruction | HasteManufacture | wearables.WearableConstruction
     ]:
         if play.engine.reviewer.compiler.statistics_profile != "gurps-basic-set-4e-2004":
             raise ValidationError("Enchanting requires the exact Basic Set profile")
+        if work_admission and not isinstance(command, BeginEnchanting):
+            raise ValidationError("Work admission belongs only to beginning enchanting work")
         if type(manufacture_generation) is not int or manufacture_generation not in (1, 2):
             raise ValidationError("Unsupported Haste manufacture generation")
         payload = json.dumps(
@@ -85,6 +93,7 @@ class EnchantmentService:
                 else command_payload(command),
                 **({"enchantment_settlement_generation": 1} if correct_settlement else {}),
                 **({"enchantment_energy_generation": 1} if correct_energy else {}),
+                **({WORK_ADMISSION_KEY: 1} if work_admission else {}),
                 **(
                     {"haste_manufacture_generation": manufacture_generation}
                     if haste_manufacture and isinstance(command, CreateEnchantment)
@@ -131,6 +140,7 @@ class EnchantmentService:
                     correct_energy=correct_energy,
                     haste_manufacture=haste_manufacture,
                     manufacture_generation=manufacture_generation,
+                    work_admission=work_admission,
                 )
                 result = receipt.status
             play.commit(campaign, play.checkpoint(updated, before=before))
@@ -176,6 +186,9 @@ class EnchantmentService:
             resolve=resolve,
             actor_id=principal_id,
             outcome=outcome,
+            ability_admission=AbilityAdmission(command)
+            if isinstance(command, AdvanceEnchanting)
+            else None,
             control=(Seats(state), Trusted(play.engine.reviewer.gm_ids)),
             rng=play.rng,
         )
@@ -223,6 +236,9 @@ class EnchantmentService:
                 correct_energy=await current_energy(play, cid, command.id),
                 haste_manufacture=generation != 0,
                 manufacture_generation=generation or 1,
+                work_admission=await current_work_admission(
+                    play, cid, command.id, eligible=isinstance(command, BeginEnchanting)
+                ),
             ),
             principal_id=principal_id,
         )

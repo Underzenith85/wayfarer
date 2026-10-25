@@ -20,10 +20,12 @@ from test_gurps_melee import setup
 from test_gurps_ranged import scene, weapon
 from test_symptoms import heal, hit
 
+from wayfarer.engine.character.compiler import CharacterDraft
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.types.location import LastingInjury
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.commands import BasicMove
 from wayfarer.engine.simulation.combat.maneuvers import WaitTrigger
@@ -35,6 +37,7 @@ from wayfarer.engine.world import Fact
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.combat_senses import CombatSensesService
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.play import PlayService
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -730,17 +733,51 @@ async def test_competing_blind_defenses_commit_one_command_under_cas(
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 @pytest.mark.parametrize("missile_attack", [False, True])
 async def test_fireball_release_needs_nonvisual_location_and_uses_blind_attack_penalty(
-    tmp_path: Path, backend: str, missile_attack: bool
+    tmp_path: Path, backend: str, missile_attack: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    import test_spell_bindings
     from test_spell_bindings import command, idle, start_fight
     from test_spell_bindings import setup as spell_setup
 
+    original_draft = test_spell_bindings.draft
+
+    def lawful_draft() -> CharacterDraft:
+        # Author DX11 in the proposal before its normal approval/compilation.
+        draft = original_draft()
+        return draft.model_copy(
+            update={
+                "purchases": tuple(
+                    purchase.model_copy(update={"amount": 11})
+                    if purchase.definition_id == "attribute:dx"
+                    else purchase
+                    for purchase in draft.purchases
+                )
+            }
+        )
+
+    monkeypatch.setattr(test_spell_bindings, "draft", lawful_draft)
     cid, play = await spell_setup(
         tmp_path, combat=True, execution_version=2, human_targets=True, backend=backend
     )
     await start_fight(cid, play)
+    state = play._load(await play.store.read(cid))
+    await DefaultKnowledgeService(play).execute(
+        cid,
+        AdoptDefaultKnowledge(
+            id="projectile-society-knowledge",
+            actor_id="gm",
+            expected_revision=state.revision,
+            performer_id="a",
+            known_skill_ids=("skill:innate-attack-projectile",),
+            reason="The GM establishes Projectile familiarity for this fresh blind-casting scenario",
+        ),
+        principal_id="gm",
+    )
     service = missile_spell_service(play, missile_attack=missile_attack)
-    start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    state = play._load(await play.store.read(cid))
+    start = command(state.revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     play.rng = RecordedDice((3, 3, 3))
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
@@ -771,10 +808,65 @@ async def test_fireball_release_needs_nonvisual_location_and_uses_blind_attack_p
     assert (pending.attack_roll is not None) is missile_attack
     play.rng = RecordedDice(() if missile_attack else (2, 2, 2))
     result = await defend(cid, play, "b")
-    # Innate Attack projectile DX default is 6; B394 certainty costs four.
-    assert result.injury is not None and result.injury.attack.effective_target == 2
+    # DX11 gives default7; B394 certainty costs four, leaving lawful skill3.
+    assert result.injury is not None and result.injury.attack.effective_target == 3
     assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
     assert await play.store.read(cid) == await play.store.replay(cid)
+
+
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+@pytest.mark.parametrize("missile_attack", [False, True])
+async def test_blind_fireball_default_two_refuses_release_before_original_entropy(
+    tmp_path: Path, backend: str, missile_attack: bool
+) -> None:
+    from test_spell_bindings import command, idle, start_fight
+    from test_spell_bindings import setup as spell_setup
+
+    from wayfarer.engine.simulation.actors import build
+    from wayfarer.engine.simulation.magic.spells import latest
+
+    cid, play = await spell_setup(
+        tmp_path, combat=True, execution_version=2, human_targets=True, backend=backend
+    )
+    await start_fight(cid, play)
+    state = play._load(await play.store.read(cid))
+    await DefaultKnowledgeService(play).execute(
+        cid,
+        AdoptDefaultKnowledge(
+            id="projectile-society-knowledge",
+            actor_id="gm",
+            expected_revision=state.revision,
+            performer_id="a",
+            known_skill_ids=("skill:innate-attack-projectile",),
+            reason="The GM confirms familiarity without changing this caster's DX10 default",
+        ),
+        principal_id="gm",
+    )
+    service = missile_spell_service(play, missile_attack=missile_attack)
+    state = play._load(await play.store.read(cid))
+    start = command(state.revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
+    play.rng = RecordedDice((3, 3, 3))
+    await service.execute(cid, start, principal_id="a")
+    await idle(cid, play, "b")
+    await change(play, cid, lambda s: blind(s, "a"))
+    await sense(play, cid, "a", exact=True)
+    before = await play.store.read(cid)
+    state = play._load(before)
+    values = {v.target: int(v.value) for v in build(play.rules_context, state, "a").sheet.values}
+    assert values["attribute:dx"] == 10 and values["skill:innate-attack-projectile"] == 6
+    assert latest(state.resources)["cast"].phase == "active"
+    assert state.encounters[0].pending_defense is None
+    release = start.model_copy(
+        update={"id": "blind-release", "kind": "release", "expected_revision": state.revision}
+    )
+    play.rng = RecordedDice(())
+    # Located acute blindness costs four: the genuine known default6 becomes2.
+    # Release preflight refuses before either delivery generation draws an original.
+    with pytest.raises(ValidationError, match="3"):
+        await service.execute(cid, release, principal_id="a")
+    assert await play.store.read(cid) == before and play.rng.exhausted()
 
 
 def test_composed_blind_defender_needs_independent_awareness_before_attack_dice() -> None:

@@ -16,7 +16,7 @@ import hashlib
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from wayfarer.engine.rules.checks import (
     CheckTrace,
@@ -45,8 +45,11 @@ from wayfarer.models import Id, Record
 
 PHASE_PREFIX = "campaign-long-task-v2:"
 REST_PREFIX = "campaign-long-task-rest-v2:"
-PRIVATE_PREFIXES = (PHASE_PREFIX, REST_PREFIX)
+UNAVAILABLE_PREFIX = "campaign-long-task-unavailable-v1:"
+SPENT_PREFIX = "campaign-long-task-spent-v1:"
+PRIVATE_PREFIXES = (PHASE_PREFIX, REST_PREFIX, UNAVAILABLE_PREFIX, SPENT_PREFIX)
 DAY = 86400
+MAX_SUPERVISION_BONUS = 2
 Phase = Literal["supervisor-overtime", "supervision", "overtime", "worker", "complete"]
 
 
@@ -72,6 +75,30 @@ class LongTaskPreparation(Record):
     overtime: CheckTrace | None = None
     fatigue: FatigueResult | None = None
     worker: CheckTrace | None = None
+    minimum_skill_generation: Literal[1] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    supervision_unavailable: bool = Field(default=False, exclude_if=lambda value: not value)
+
+    @field_validator("minimum_skill_generation", mode="before")
+    @classmethod
+    def exact_minimum_generation(cls, value: object) -> int | None:
+        if value is None:
+            return None
+        if type(value) is not int or value != 1:
+            raise ValueError("Unsupported long-task minimum-skill generation")
+        return value
+
+    @model_validator(mode="after")
+    def unavailable_supervision_contract(self) -> LongTaskPreparation:
+        if self.supervision_unavailable and (
+            self.minimum_skill_generation != 1
+            or self.supervisor is None
+            or self.supervision is not None
+            or self.phase in {"supervisor-overtime", "supervision"}
+        ):
+            raise ValueError("Unavailable supervision requires its admitted, unrolled continuation")
+        return self
 
     @model_validator(mode="after")
     def coherent_shift(self) -> LongTaskPreparation:
@@ -86,7 +113,9 @@ class LongTaskPreparation(Record):
         if self.supervisor is not None and self.supervisor.actor_id == self.actor.actor_id:
             raise ValueError("A supervisor coordinates a separate worker instead of working")
         if (self.supervision is not None) != (
-            self.supervisor is not None and self.phase in {"overtime", "worker", "complete"}
+            self.supervisor is not None
+            and not self.supervision_unavailable
+            and self.phase in {"overtime", "worker", "complete"}
         ):
             raise ValueError("Supervision must be selected before the next phase")
         if (self.supervisor_overtime is not None) != (
@@ -167,6 +196,35 @@ class LongTaskTransition(Record):
     outcome: ActivityOutcome | None = None
 
 
+class UnavailableSupervision(Record):
+    before: LongTaskPreparation
+    following: LongTaskPreparation
+    reason: Literal["minimum-skill", "context-unavailable"] = "minimum-skill"
+
+
+def reserve_spent_shift(
+    state: ResourceState, command_id: str, actor_ids: tuple[str, ...], *, started_at: int
+) -> ResourceState:
+    """Retain a real elapsed shift without inventing an original or selected check."""
+    events = state.events
+    for actor_id in actor_ids:
+        identity = SPENT_PREFIX + hashlib.sha256(f"{command_id}:{actor_id}".encode()).hexdigest()
+        value = LongTaskWorkRestriction(
+            command_id=command_id, actor_id=actor_id, starts_at=started_at, ends_at=started_at + DAY
+        )
+        prior = next((e for e in events if e.id == identity), None)
+        if prior is not None:
+            if prior.kind != value.model_dump_json():
+                raise ConflictError("Spent shift identity changed")
+            continue
+        events += (
+            ResourceEvent(
+                id=identity, at=state.game_time, target_id=actor_id, kind=value.model_dump_json()
+            ),
+        )
+    return state.model_copy(update={"events": events})
+
+
 def ensure_long_task_available(
     state: ResourceState, actor_id: str, *, started_at: int, seconds: int
 ) -> None:
@@ -182,10 +240,22 @@ def ensure_long_task_available(
         raise ValidationError("Long-task contributions are whole hours within one day")
     ends_at = started_at + seconds
     for event in state.events:
-        if event.id.startswith(REST_PREFIX):
+        if event.id.startswith((REST_PREFIX, SPENT_PREFIX)):
             rest = LongTaskWorkRestriction.model_validate_json(event.kind)
             if rest.actor_id == actor_id and started_at < rest.ends_at and ends_at > rest.starts_at:
                 raise ValidationError("Worker cannot work during exhausted next day")
+        elif event.id.startswith(UNAVAILABLE_PREFIX):
+            prior = UnavailableSupervision.model_validate_json(event.kind).following
+            participants = {
+                prior.actor.actor_id,
+                prior.supervisor.actor_id if prior.supervisor else prior.actor.actor_id,
+            }
+            if (
+                actor_id in participants
+                and started_at < prior.started_at + DAY
+                and ends_at > prior.started_at
+            ):
+                raise ValidationError("Long-task participant already worked this day")
         elif event.id.startswith(PHASE_PREFIX):
             prior = LongTaskTransition.model_validate_json(event.kind).next_preparation
             participants = {prior.actor.actor_id}
@@ -212,6 +282,7 @@ def prepare_long_task(
     supervisor_modifiers: tuple[Modifier, ...] = (),
     worker_ht_modifiers: tuple[Modifier, ...] = (),
     supervisor_ht_modifiers: tuple[Modifier, ...] = (),
+    minimum_skill_generation: Literal[1] | None = None,
 ) -> LongTaskPreparation:
     """Capture a shift after clock advancement, without rolling or applying effects."""
     if state.game_time != started_at + command.seconds:
@@ -246,11 +317,105 @@ def prepare_long_task(
         worker_ht_modifiers=worker_ht_modifiers,
         supervisor_ht_modifiers=supervisor_ht_modifiers,
         phase=phase,
+        minimum_skill_generation=minimum_skill_generation,
     )
 
 
 def _modifier(value: int, reason: str) -> Modifier:
     return Modifier(value, reason, "sjg:basic-set-campaigns-4e-2004:b346", BASELINE_ID)
+
+
+def _time_modifiers(rule: LongTaskRule) -> tuple[Modifier, ...]:
+    return (
+        (_modifier(rule.time_spent_modifier, "Authored task time spent"),)
+        if rule.time_spent_modifier
+        else ()
+    )
+
+
+def require_long_task_admission(
+    rule: LongTaskRule,
+    actor: ActivityActor,
+    *,
+    supervisor: ActivityActor | None,
+    supervisor_target_id: str | None,
+    worker_modifiers: tuple[Modifier, ...],
+    supervisor_modifiers: tuple[Modifier, ...],
+) -> None:
+    """Reject impossible current intake without predicting a prerequisite roll.
+
+    A separate legal supervisor may still supply the printed maximum +2. This
+    possibility bound does not create a successful supervision check.
+    """
+    maximum = actor.target(rule.target_id) + sum(
+        m.value for m in worker_modifiers + _time_modifiers(rule)
+    )
+    if supervisor is not None:
+        if (
+            supervisor_target_id is None
+            or supervisor.target(supervisor_target_id) + sum(m.value for m in supervisor_modifiers)
+            < 3
+        ):
+            raise ValidationError("Supervision effective skill must be at least 3")
+        maximum += MAX_SUPERVISION_BONUS
+    if maximum < 3:
+        raise ValidationError("Long-task possible effective skill must be at least 3")
+
+
+def minimum_allows_phase(preparation: LongTaskPreparation) -> bool:
+    return (
+        preparation.minimum_skill_generation != 1
+        or preparation.phase not in {"supervision", "worker"}
+        or preparation.check_target >= 3
+    )
+
+
+def skip_unavailable_supervision(
+    state: ResourceState,
+    preparation: LongTaskPreparation,
+    *,
+    reason: Literal["minimum-skill", "context-unavailable"] = "minimum-skill",
+) -> tuple[ResourceState, LongTaskPreparation]:
+    """No roll or bonus; retain the actual supervisor and proceed to owed worker HT."""
+    if (
+        preparation.minimum_skill_generation != 1
+        or preparation.phase != "supervision"
+        or (reason == "minimum-skill" and minimum_allows_phase(preparation))
+    ):
+        raise ValidationError("Only inadmissible unrolled supervision can be skipped")
+    if (
+        state.revision != preparation.resource_revision
+        or state.game_time != preparation.completed_at
+    ):
+        raise ConflictError("Supervision context changed before admission")
+    following = LongTaskPreparation.model_validate(
+        preparation.model_copy(
+            update={
+                "supervision_unavailable": True,
+                "phase": "overtime" if preparation.hours > 8 else "worker",
+            }
+        )
+    )
+    value = UnavailableSupervision(before=preparation, following=following, reason=reason)
+    identity = UNAVAILABLE_PREFIX + hashlib.sha256(preparation.check_id.encode()).hexdigest()
+    prior = next((e for e in state.events if e.id == identity), None)
+    if prior is not None:
+        if prior.kind != value.model_dump_json():
+            raise ConflictError("Unavailable supervision identity changed")
+        return state, following
+    return state.model_copy(
+        update={
+            "events": state.events
+            + (
+                ResourceEvent(
+                    id=identity,
+                    at=state.game_time,
+                    target_id=preparation.check_actor_id,
+                    kind=value.model_dump_json(),
+                ),
+            )
+        }
+    ), following
 
 
 def _check_context(preparation: LongTaskPreparation) -> tuple[int, tuple[Modifier, ...]]:
@@ -285,12 +450,13 @@ def _check_context(preparation: LongTaskPreparation) -> tuple[int, tuple[Modifie
         )
     modifiers: list[Modifier] = list(preparation.worker_modifiers)
     if preparation.supervision is not None and preparation.supervision.outcome.succeeded:
-        bonus = 2 if preparation.supervision.outcome is Outcome.CRITICAL_SUCCESS else 1
-        modifiers.append(_modifier(bonus, "Separate supervisor check"))
-    if preparation.rule.time_spent_modifier:
-        modifiers.append(
-            _modifier(preparation.rule.time_spent_modifier, "Authored task time spent")
+        bonus = (
+            MAX_SUPERVISION_BONUS
+            if preparation.supervision.outcome is Outcome.CRITICAL_SUCCESS
+            else 1
         )
+        modifiers.append(_modifier(bonus, "Separate supervisor check"))
+    modifiers.extend(_time_modifiers(preparation.rule))
     if preparation.overtime is not None and not preparation.overtime.outcome.succeeded:
         modifiers.append(_modifier(min(-2, preparation.overtime.margin), "Failed overtime HT"))
     return preparation.actor.target(preparation.rule.target_id), tuple(modifiers)
@@ -299,6 +465,8 @@ def _check_context(preparation: LongTaskPreparation) -> tuple[int, tuple[Modifie
 def roll_long_task_check(preparation: LongTaskPreparation, *, rng: RandomSource) -> CheckTrace:
     """Draw only the current original; the host persists it before any next roll."""
     preparation = LongTaskPreparation.model_validate(preparation)
+    if not minimum_allows_phase(preparation):
+        raise ValidationError("Long-task effective skill must be at least 3")
     target, modifiers = _check_context(preparation)
     return success_roll(PROFILE, target, modifiers, rng=rng)
 
@@ -308,6 +476,8 @@ def score_long_task_check(
 ) -> CheckTrace:
     """Score the server-selected faces without consuming entropy or rerunning a phase."""
     preparation = LongTaskPreparation.model_validate(preparation)
+    if not minimum_allows_phase(preparation):
+        raise ValidationError("Long-task effective skill must be at least 3")
     target, modifiers = _check_context(preparation)
     return evaluate_success(
         target,

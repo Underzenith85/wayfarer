@@ -5,12 +5,14 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.rules.types.general_equipment import EquipmentQuality
 from wayfarer.engine.rules.types.object import ObjectCondition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import catalog
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile
 from wayfarer.engine.simulation.equipment.repair_defaults import training
 from wayfarer.engine.simulation.equipment.repair_parts import digest
+from wayfarer.engine.simulation.equipment.repair_tool_operation import timed_feature
 from wayfarer.engine.simulation.equipment.worksite import available_here
 from wayfarer.engine.simulation.resources import Command, Item, ResourceEvent, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -19,8 +21,19 @@ from wayfarer.models import Id, Record
 
 OBSERVATION_PREFIX = "armoury-tools:"
 SELECTION_PREFIX = "armoury-tool-selection:"
-Quality = Literal["basic", "good", "fine", "best"]
+Quality = Literal["improvised", "basic", "good", "fine", "best"]
 Damage = Literal["none", "minor", "moderate", "severe"]
+
+
+def _modifier(quality: Quality, missing: int, damage: Damage, tl: int | None) -> int:
+    """Armoury is a technological task under the existing B345 equipment table."""
+    return EquipmentQuality(
+        grade=quality,
+        technological_task=True,
+        missing_important_items=missing,
+        damage_penalty={"none": 0, "minor": 1, "moderate": 2, "severe": 3}[damage],
+        technology_level=tl or 0,
+    ).modifier
 
 
 class DeclareRepairTools(Command):
@@ -59,16 +72,11 @@ class RepairToolObservation(Record):
         if self.quality == "best":
             if self.tool_technology_level is None or self.training_command_id is None:
                 raise ValueError("Best tool observations require explicit TL provenance")
-            quality = max(2, self.tool_technology_level // 2)
         else:
             if self.tool_technology_level is not None or self.training_command_id is not None:
                 raise ValueError("Only best tool observations carry TL provenance")
-            quality = {"basic": 0, "good": 1, "fine": 2}[self.quality]
-        if (
-            self.modifier
-            != quality
-            - self.missing_important_components
-            - {"none": 0, "minor": 1, "moderate": 2, "severe": 3}[self.damage]
+        if self.modifier != _modifier(
+            self.quality, self.missing_important_components, self.damage, self.tool_technology_level
         ):
             raise ValueError("Tool modifier must equal its exact source-derived physical facts")
         return self
@@ -143,13 +151,7 @@ def tool_here(
     features = tuple(f for f in entry.general if f.kind == "tool")
     if len({f.skill_id for f in features}) != len(features):
         raise ValidationError("Observed repair tools have ambiguous skill features")
-    if any(
-        f.modifier != 0 or f.consumable_definition_id is not None or f.duration_seconds is not None
-        for f in features
-    ):
-        raise ValidationError(
-            "Observed tools require a basic pinned profile without operating limits"
-        )
+    timed_feature(entry, tool)
     return tool, entry
 
 
@@ -190,6 +192,16 @@ def require_observation(
     return tool
 
 
+def matches_repair_binding(entry: EquipmentProfile, tool: EquipmentProfile) -> bool:
+    """An alternative kit must explicitly name the exact pinned repair skill."""
+    profile = entry.durability
+    return profile is not None and (
+        tool.definition_id == profile.repair_tools_definition
+        or profile.repair_skill_id is not None
+        and any(f.kind == "tool" and f.skill_id == profile.repair_skill_id for f in tool.general)
+    )
+
+
 def current(
     runtime: RulesContext,
     state: PlayState,
@@ -213,7 +225,8 @@ def current(
     ):
         raise ConflictError("Selected repair tools no longer match current repair equipment")
     tool = require_observation(runtime, state, actor, plan.observation, starting=starting)
-    if entry.durability is None or tool.definition_id != entry.durability.repair_tools_definition:
+    tool_entry = next(e for e in catalog(runtime).entries if e.definition_id == tool.definition_id)
+    if not matches_repair_binding(entry, tool_entry):
         raise ConflictError("Selected tools do not match the pinned repair binding")
     if starting and plan.observation.quality == "best":
         if (
@@ -251,11 +264,6 @@ def declare(
             raise ValidationError("Observed best equipment contradicts its pinned technological TL")
     elif command.tool_technology_level is not None:
         raise ValidationError("A tool TL observation is used only for best equipment")
-    quality = (
-        max(2, command.tool_technology_level // 2)
-        if command.quality == "best" and command.tool_technology_level is not None
-        else {"basic": 0, "good": 1, "fine": 2}[command.quality]
-    )
     value = RepairToolObservation(
         command_id=command.id,
         performer_id=command.performer_id,
@@ -268,9 +276,12 @@ def declare(
         damage=command.damage,
         tool_technology_level=command.tool_technology_level,
         training_command_id=facts.command_id if facts else None,
-        modifier=quality
-        - command.missing_important_components
-        - {"none": 0, "minor": 1, "moderate": 2, "severe": 3}[command.damage],
+        modifier=_modifier(
+            command.quality,
+            command.missing_important_components,
+            command.damage,
+            command.tool_technology_level,
+        ),
     )
     resources = record(
         state.resources, OBSERVATION_PREFIX, value, command.id, command.performer_id

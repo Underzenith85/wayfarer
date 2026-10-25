@@ -14,6 +14,7 @@ from wayfarer.engine.rules.checks import (
     evaluate_success,
 )
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
 
@@ -37,6 +38,14 @@ class AttackRollSpec(Record):
     modifiers: tuple[Modifier, ...] = ()
     ranged: bool = False
     rule_id: str = "gurps.check.success"
+
+    @property
+    def effective_target(self) -> int:
+        return self.target + sum(m.value for m in self.modifiers)
+
+    def require_voluntary(self) -> None:
+        if self.effective_target < 3:
+            raise ValidationError("Voluntary attack requires effective skill at least 3")
 
     def score(self, dice: tuple[int, int, int]) -> CheckTrace:
         return self.roll(RecordedDice(dice))

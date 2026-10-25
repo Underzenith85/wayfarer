@@ -21,6 +21,12 @@ from wayfarer.engine.simulation.combat.objects.combat import (
     target_modifier,
 )
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    enabled as ranged_postures_enabled,
+)
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    target_modifier as posture_target_modifier,
+)
 from wayfarer.engine.simulation.combat.special_melee import targeted_attack_penalty
 from wayfarer.engine.simulation.combat.visibility import adjusted_defense, external_defense_penalty
 from wayfarer.engine.simulation.combat.vocabulary import Defense
@@ -161,6 +167,18 @@ def resolve(
             + pending.spell_aim_bonus
             + range_penalty(distance)
             + object_penalty
+            + posture_target_modifier(
+                runtime,
+                state,
+                encounter,
+                attacker.actor_id,
+                aim_target.actor_id,
+                profile_id=PROFILE,
+                location=pending.hit_location,
+                pending_id=pending.id,
+                object_target=pending.target_item_id is not None,
+                captured=selected_attack is not None or pending.attack_roll is not None,
+            )
             - (actor_hp.injury.shock if actor_hp.injury else 0)
             + targeted_attack_penalty(
                 pending.hit_location,
@@ -174,6 +192,15 @@ def resolve(
         ranged=True,
         rule_id="gurps.combat.ranged_attack",
     )
+    spec = runtime.attack_spec(pending.id, spec)
+    if (
+        selected_attack is None
+        and pending.attack_roll is None
+        and ranged_postures_enabled(
+            runtime, state, encounter, attacker.actor_id, pending_id=pending.id
+        )
+    ):
+        spec.require_voluntary()
     if prepare_only:
         return spec
     attack = (

@@ -29,11 +29,16 @@ from wayfarer.engine.simulation.social.social import (
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.ability_boundary import require_boundary
 from wayfarer.orchestration.pipeline import CommandPlan, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.reaction_records import AuthoredSocialReaction, PrepareReaction
 from wayfarer.orchestration.replay_inputs import recorded_command
-from wayfarer.orchestration.social_binding import bind_skill_conditions, bind_trait_modifiers
+from wayfarer.orchestration.social_binding import (
+    bind_self_control,
+    bind_skill_conditions,
+    bind_trait_modifiers,
+)
 from wayfarer.orchestration.social_generations import correct_social_reactions
 from wayfarer.orchestration.social_replay import (
     CapturedSocialContext,
@@ -111,6 +116,7 @@ def dispatch(
         else:
             bind_trait_modifiers(play, before, command, interaction.context)
     replay = any(receipt.command_id == command.id for receipt in before.resources.receipts)
+    control_modifiers = bind_self_control(play, before, command, interaction.context)
     resources, world, outcome = apply_interaction(
         before.resources,
         before.world,
@@ -120,6 +126,7 @@ def dispatch(
         rng=play.rng,
         system=True,
         correct_reactions=correct_social_reactions(),
+        self_control_modifiers=control_modifiers,
     )
     if outcome.media is not None and not replay:
         before = play.advance_clock(
@@ -363,9 +370,14 @@ class SocialService:
         )
         source = captured_source(saved) if saved is not None else None
         if saved is None:
+            require_boundary(await play.store.read(cid), None)
             interaction = self.resolve(play, state, command)
+            bind_self_control(play, state, command, interaction.context)
             source = CapturedSocialSource(
-                context=CapturedSocialContext.model_validate(vars(interaction.context)),
+                context=CapturedSocialContext.model_validate(
+                    vars(interaction.context)
+                    | {"regular_contest_extremes": True, "interrogation_quick_contest": True}
+                ),
                 disclosure=interaction.disclosure,
             )
         return await submit(

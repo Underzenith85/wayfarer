@@ -4,10 +4,15 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, level
 from wayfarer.engine.simulation.combat.acrobatic_bonuses import modifiers
+from wayfarer.engine.simulation.combat.acrobatic_conditions import condition_modifiers
+from wayfarer.engine.simulation.combat.acrobatic_eligibility import require_skill_roll
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
-from wayfarer.engine.simulation.combat.generations import acrobatic_reaction_attributes_enabled
+from wayfarer.engine.simulation.combat.generations import (
+    acrobatic_reaction_attributes_enabled,
+    acrobatic_skill_minimum_enabled,
+)
 from wayfarer.engine.simulation.combat.incoming import incoming_ranged
 from wayfarer.engine.simulation.magic.rooted_feet_state import active_effect
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -111,6 +116,10 @@ def prepare_options(
                 f"Acrobatic Dodge requires a purchased {skill_id.split(':')[1].title()} skill"
             )
         skill = int(level(compiled, skill_id).value)
+        skill_modifiers = modifiers(compiled, skill_id) + condition_modifiers(
+            state.resources, target.actor_id
+        )
+        require_skill_roll(skill, skill_modifiers)
     if not resolve:
         return encounter
     bonus = (
@@ -124,7 +133,10 @@ def prepare_options(
         target = target.model_copy(update={"drop_attacker_id": pending.attacker_id})
     if command.acrobatic_dodge:
         trace = success_roll(
-            "gurps-basic-set-4e-2004", skill, modifiers(compiled, skill_id), rng=runtime.rng
+            "gurps-basic-set-4e-2004",
+            skill,
+            skill_modifiers,
+            rng=runtime.rng,
         )
         bonus += 2 if trace.outcome.succeeded else -2
         target = target.model_copy(update={"acrobatic_dodge_trace": trace})
@@ -132,3 +144,15 @@ def prepare_options(
         encounter,
         target.model_copy(update={"tactical_defense_bonus": target.tactical_defense_bonus + bonus}),
     )
+
+
+def require_current_skill(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: object
+) -> None:
+    """A newly chosen skill check must be legal before opponent Luck draws."""
+    if (
+        acrobatic_skill_minimum_enabled()
+        and isinstance(command, ChooseDefense)
+        and command.acrobatic_dodge
+    ):
+        prepare_options(runtime, state, encounter, command, resolve=False)

@@ -42,9 +42,7 @@ RESISTANCE_CAPABILITY: Final = "gurps.check.resistance"
 RULE_OF_16_PROFILES: Final = frozenset({"gurps-basic-set-4e-2004"})
 RULE_OF_16_FLOOR: Final = 16
 
-# Regular Contest levelling thresholds: both effective skills above the high
-# threshold are lowered so the higher becomes it; both below the low threshold
-# are raised so the lower becomes it.
+# Historical pre-source-review thresholds, retained for recorded replay only.
 REGULAR_CONTEST_HIGH: Final = 14
 REGULAR_CONTEST_LOW: Final = 6
 DEFAULT_ROUND_LIMIT: Final = 1000
@@ -276,7 +274,7 @@ class RegularContestTrace:
 
 
 def regular_contest_adjustment(first: Contestant, second: Contestant) -> int:
-    """Levelling applied to both contestants so very high or very low skills resolve."""
+    """Historical shared adjustment, retained for unmarked command/receipt replay."""
     high, low = sorted((_effective(first), _effective(second)), reverse=True)
     if low > REGULAR_CONTEST_HIGH:
         return REGULAR_CONTEST_HIGH - high
@@ -285,18 +283,41 @@ def regular_contest_adjustment(first: Contestant, second: Contestant) -> int:
     return 0
 
 
-def _adjustment_modifiers(profile_id: str, adjustment: int) -> tuple[Modifier, ...]:
+def regular_contest_adjustments(first: Contestant, second: Contestant) -> tuple[int, int]:
+    """B349: normalize the lower extreme score to 10, scaling both above 20."""
+    a, b = _effective(first), _effective(second)
+    low, high = min(a, b), max(a, b)
+    if low > 20:
+        # Integer arithmetic preserves floor rounding without floating-point loss.
+        return (a * 10 // low - a, b * 10 // low - b)
+    if high <= 6 or low >= 14:
+        return (10 - low, 10 - low)
+    return (0, 0)
+
+
+def _adjustment_modifiers(
+    profile_id: str, adjustment: int, *, source_extremes: bool = False
+) -> tuple[Modifier, ...]:
     if adjustment == 0:
         return ()
     return (
         Modifier(
             adjustment,
-            "regular-contest-levelling",
+            "regular-contest-extreme-scores" if source_extremes else "regular-contest-levelling",
             profile_id,
             BASELINE_ID,
             ModifierKind.CONTEST_ADJUSTMENT,
         ),
     )
+
+
+def _regular_adjustments(
+    profile_id: str, first: Contestant, second: Contestant, source_extremes: bool
+) -> tuple[int, int]:
+    if source_extremes and profile_id == "gurps-basic-set-4e-2004":
+        return regular_contest_adjustments(first, second)
+    old = regular_contest_adjustment(first, second)
+    return (old, old)
 
 
 def regular_contest_round(
@@ -305,14 +326,28 @@ def regular_contest_round(
     second: Contestant,
     *,
     rng: RandomSource,
+    source_extremes: bool = True,
 ) -> tuple[CheckTrace, CheckTrace]:
-    """One durable round for activities whose elapsed time separates attempts."""
+    """One durable round; unmarked historical hosts explicitly select old levelling."""
     require_capabilities(profile_id, (*SUCCESS_CAPABILITIES, REGULAR_CONTEST_CAPABILITY))
     _validate_pair(first, second)
-    extra = _adjustment_modifiers(profile_id, regular_contest_adjustment(first, second))
+    a, b = _regular_adjustments(profile_id, first, second, source_extremes)
+    current = source_extremes and profile_id == "gurps-basic-set-4e-2004"
     return (
-        _score(profile_id, REGULAR_CONTEST_CAPABILITY, first, draw_dice(rng), extra),
-        _score(profile_id, REGULAR_CONTEST_CAPABILITY, second, draw_dice(rng), extra),
+        _score(
+            profile_id,
+            REGULAR_CONTEST_CAPABILITY,
+            first,
+            draw_dice(rng),
+            _adjustment_modifiers(profile_id, a, source_extremes=current),
+        ),
+        _score(
+            profile_id,
+            REGULAR_CONTEST_CAPABILITY,
+            second,
+            draw_dice(rng),
+            _adjustment_modifiers(profile_id, b, source_extremes=current),
+        ),
     )
 
 
@@ -322,13 +357,17 @@ def _run_regular(
     second: Contestant,
     rng: RandomSource,
     round_limit: int,
+    *,
+    source_extremes: bool = True,
 ) -> RegularContestTrace:
     if round_limit < 1:
         raise ValidationError("Regular contest round limit must be positive")
-    adjustment = regular_contest_adjustment(first, second)
+    adjustment, _ = _regular_adjustments(profile_id, first, second, source_extremes)
     rounds: list[tuple[CheckTrace, CheckTrace]] = []
     while len(rounds) < round_limit:
-        first_trace, second_trace = regular_contest_round(profile_id, first, second, rng=rng)
+        first_trace, second_trace = regular_contest_round(
+            profile_id, first, second, rng=rng, source_extremes=source_extremes
+        )
         rounds.append((first_trace, second_trace))
         if first_trace.outcome.succeeded != second_trace.outcome.succeeded:
             winner = first.id if first_trace.outcome.succeeded else second.id
@@ -345,11 +384,25 @@ def regular_contest(
     *,
     rng: RandomSource,
     round_limit: int = DEFAULT_ROUND_LIMIT,
+    source_extremes: bool = True,
 ) -> RegularContestTrace:
     """Roll repeatedly until exactly one contestant succeeds in a round."""
     require_capabilities(profile_id, (*SUCCESS_CAPABILITIES, REGULAR_CONTEST_CAPABILITY))
     _validate_pair(first, second)
-    return _run_regular(profile_id, first, second, rng, round_limit)
+    return _run_regular(
+        profile_id, first, second, rng, round_limit, source_extremes=source_extremes
+    )
+
+
+def _declared_contestant(identifier: str, check: CheckTrace) -> Contestant:
+    modifiers = check.modifiers
+    if (
+        modifiers
+        and modifiers[-1].reason in ("regular-contest-levelling", "regular-contest-extreme-scores")
+        and modifiers[-1].kind is ModifierKind.CONTEST_ADJUSTMENT
+    ):
+        modifiers = modifiers[:-1]
+    return Contestant(identifier, check.base_target, modifiers)
 
 
 def replay_regular_contest(trace: RegularContestTrace) -> RegularContestTrace:
@@ -357,19 +410,27 @@ def replay_regular_contest(trace: RegularContestTrace) -> RegularContestTrace:
     if not trace.rounds:
         raise ValidationError("Recorded regular contest has no rounds")
     first_round = trace.rounds[0]
-    extra = _adjustment_modifiers(trace.profile_id, trace.adjustment)
-    declared = len(first_round[0].modifiers) - len(extra)
-    first = Contestant(
-        trace.first_id, first_round[0].base_target, first_round[0].modifiers[:declared]
+    source_extremes = any(
+        m.reason == "regular-contest-extreme-scores"
+        for pair in trace.rounds
+        for check in pair
+        for m in check.modifiers
     )
-    declared = len(first_round[1].modifiers) - len(extra)
-    second = Contestant(
-        trace.second_id, first_round[1].base_target, first_round[1].modifiers[:declared]
-    )
+    first = _declared_contestant(trace.first_id, first_round[0])
+    second = _declared_contestant(trace.second_id, first_round[1])
     recorded = RecordedDice(die for pair in trace.rounds for check in pair for die in check.dice)
-    result = _run_regular(trace.profile_id, first, second, recorded, len(trace.rounds))
+    result = _run_regular(
+        trace.profile_id,
+        first,
+        second,
+        recorded,
+        len(trace.rounds),
+        source_extremes=source_extremes,
+    )
     if not recorded.exhausted():
         raise ValidationError("Replay finished before consuming every recorded die")
+    if result != trace:
+        raise ValidationError("Recorded regular contest does not match its replay")
     return result
 
 

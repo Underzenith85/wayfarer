@@ -23,7 +23,7 @@ async def test_direct_damage_inherits_cancelled_attack_secrecy_across_restart(
     tmp_path: Path, backend: str, route: str
 ) -> None:
     if route == "composed":
-        cid, play = await fixture(tmp_path, backend)
+        cid, play = await fixture(tmp_path, backend, society_knows_beam=True)
     else:
         cid, play = await inventory_fixture(tmp_path, backend, ranged=route == "ranged")
         await turn(

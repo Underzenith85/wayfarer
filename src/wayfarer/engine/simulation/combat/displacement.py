@@ -165,7 +165,7 @@ def displace(
     """Move real placements; defer unrepresented collision consequences explicitly."""
     if basic_damage < 0:
         raise ValidationError("Knockback requires nonnegative basic damage")
-    source, target = fighter(encounter, source_id), fighter(encounter, target_id)
+    target = fighter(encounter, target_id)
     if use_immovable:
         require_immovable(runtime, state, encounter, target_id)
     if attack_direction is not None and attack_direction not in (
@@ -244,6 +244,49 @@ def displace(
         )
         checks += (roll,)
         fallen = not roll.outcome.succeeded
+    return apply_displacement(
+        runtime,
+        state,
+        encounter,
+        source_id=source_id,
+        target_id=target_id,
+        yards=yards,
+        fallen=fallen,
+        checks=checks,
+        attack_origin=attack_origin,
+        attack_direction=attack_direction,
+    )
+
+
+def require_clear_step(
+    runtime: RulesContext, encounter: Encounter, *, source_id: str, target_id: str
+) -> None:
+    """Validate a bounded forced yard before its enclosing command draws dice."""
+    source, target = fighter(encounter, source_id), fighter(encounter, target_id)
+    if source.runtime_position is None or target.runtime_position is None:
+        raise ValidationError("Heavy barehand Parry requires a mapped displacement")
+    step = _step(source.runtime_position, target.runtime_position)
+    if not _clear(runtime, encounter, target_id, step):
+        raise ValidationError("Heavy barehand Parry requires a clear knockback destination")
+
+
+def apply_displacement(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    *,
+    source_id: str,
+    target_id: str,
+    yards: int,
+    fallen: bool,
+    checks: tuple[CheckTrace, ...],
+    attack_origin: GridPoint | Hex | None = None,
+    attack_direction: tuple[int, int] | None = None,
+) -> tuple[PlayState, Encounter, DisplacementResult]:
+    """Apply already resolved displacement/balance through canonical placements."""
+    source, target = fighter(encounter, source_id), fighter(encounter, target_id)
+    hp = next(p for p in state.resources.pools if p.id == "hp:" + target_id)
+    assert hp.injury is not None
     current = target.runtime_position
     moved = 0
     adjudication: Literal["collision-or-map-edge", "mapless-direction"] | None = None

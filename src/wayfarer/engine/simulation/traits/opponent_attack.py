@@ -12,6 +12,7 @@ from wayfarer.engine.simulation.combat.attack_roll import (
     AttackRollChoice,
     AttackRollSpec,
 )
+from wayfarer.engine.simulation.combat.attack_targets import require_pending_minimum
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
 from wayfarer.engine.simulation.combat.generations import missile_interposition_enabled
@@ -22,13 +23,14 @@ from wayfarer.engine.simulation.combat.shield_rush import resolve as resolve_rus
 from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.combat.unarmed.resolution import defend as prepare_unarmed
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
-from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.magic.missiles import resolve as resolve_missile
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.composed_host import (
     CurrentAttack,
-    attack_target,
     preflight_pending,
+)
+from wayfarer.engine.simulation.traits.composed_host import (
+    attack_spec as composed_attack_spec,
 )
 from wayfarer.engine.simulation.traits.composed_phases import ComposedAttackChoice
 from wayfarer.engine.simulation.traits.composed_sources import PROFILE, pending_binding, raw_build
@@ -36,6 +38,7 @@ from wayfarer.engine.simulation.traits.malediction_checks import (
     MaledictionPreparation,
     prepare_malediction,
 )
+from wayfarer.engine.simulation.traits.malediction_scope import require_injury_anatomy
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 
@@ -132,6 +135,7 @@ def prepare_opponent_attack(
 ) -> OpponentAttackPreparation:
     if runtime.reviewer.compiler.statistics_profile != PROFILE:
         raise ValidationError("Opponent Luck requires the exact Basic Set profile")
+    require_pending_minimum(runtime, state, encounter)
     if encounter.pending_unarmed is not None:
         if resist is not None:
             raise ValidationError("Unarmed attack is not a Malediction resistance")
@@ -162,6 +166,7 @@ def prepare_opponent_attack(
                 current.context.model_copy(update={"resist": resist}),
                 runtime.reviewer.compiler.definitions,
                 current_conditions=True,
+                cap_offered_resistance=current.source.malediction_waiver_cap,
             )
             return OpponentAttackPreparation(
                 campaign_id=state.campaign_id,
@@ -177,12 +182,7 @@ def prepare_opponent_attack(
                 secret=secret,
                 malediction=prepared,
             )
-        spec = AttackRollSpec(
-            profile_id=PROFILE,
-            target=attack_target(runtime, state, encounter, current),
-            modifiers=check_modifiers(state.resources, current.source.actor_id, "dx"),
-            ranged=True,
-        )
+        spec = composed_attack_spec(runtime, state, encounter, current)
         return OpponentAttackPreparation(
             campaign_id=state.campaign_id,
             encounter_id=encounter.id,
@@ -297,6 +297,18 @@ def _inventory_spec(
     return "melee", resolve_melee(runtime, state, encounter, "none", None, prepare_only=True)
 
 
+def _require_prepared_injury_anatomy(
+    runtime: RulesContext, state: PlayState, prepared: OpponentAttackPreparation
+) -> None:
+    if prepared.current is not None and prepared.current.source.malediction_waiver_cap:
+        require_injury_anatomy(
+            runtime,
+            state,
+            build(runtime, state, prepared.owner_id, defensive=True),
+            prepared.owner_id,
+        )
+
+
 def validate_opponent_attack(
     runtime: RulesContext,
     state: PlayState,
@@ -305,6 +317,7 @@ def validate_opponent_attack(
 ) -> None:
     if prepared.campaign_id != state.campaign_id or prepared.encounter_id != encounter.id:
         raise ConflictError("Opponent attack belongs to another campaign or encounter")
+    _require_prepared_injury_anatomy(runtime, state, prepared)
     if prepared.secret:
         current = prepare_opponent_attack(
             runtime,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import asdict, fields, replace
 from typing import Literal, cast
 
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -12,8 +12,19 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.physiology import physiology_traits
 from wayfarer.engine.rules.magic.healing import RECOVER_ENERGY
 from wayfarer.engine.rules.magic.healing import package as healing_package
+from wayfarer.engine.rules.types.care_environment import CareEnvironment as CareEnvironment
+from wayfarer.engine.rules.types.care_environment import captured as captured_environment
+from wayfarer.engine.rules.types.care_minimum import KINDS as MINIMUM_KINDS
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge import (
+    PROFILE as DEFAULT_KNOWLEDGE_PROFILE,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge import adopted
+from wayfarer.engine.simulation.campaign.default_knowledge_projection import (
+    project as project_default_knowledge,
+)
+from wayfarer.engine.simulation.health.medical import minimum
 from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
@@ -22,33 +33,49 @@ from wayfarer.engine.simulation.health.medical.commands import (
 )
 from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchanting_free
 from wayfarer.engine.simulation.magic.spell_state import active_spells
-from wayfarer.errors import ValidationError
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.ability_boundary import require_boundary
+from wayfarer.orchestration.medical_minimum_generations import capture as capture_minimum
+from wayfarer.orchestration.medical_rest_generations import ENVIRONMENT as REST_ENVIRONMENT
+from wayfarer.orchestration.medical_rest_generations import KEY as REST_KEY
+from wayfarer.orchestration.medical_rest_generations import capture as capture_rest
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.medical_minimum_inputs import stamp as stamp_minimum
 
 
-@dataclass(frozen=True)
-class CareEnvironment:
-    technology_level: int = 8
-    food: bool = False
-    water: bool = False
-    sleep: bool = False
-    physician_id: str | None = None
-    surgical_facility: bool = False
-    anesthetic: bool = True
-    surgical_modifier: int = 0
-    life_support: bool = False
-    sterile: bool = True
-    equipment_quality_modifier: int = 0
-    infection_risk: bool = False
-    infection_modifier: int = 0
-    resuscitation_first_aid_penalty: int = 4
-    drug_item_id: str | None = None
-    drug_form: Literal["pill", "contact", "aerosol", "injection"] | None = None
-    drug_hp: int = 0
-    drug_fp: int = 0
-    mana: Literal["none", "low", "normal", "high", "very-high"] | None = None
+def _rest_command(state: PlayState, command: BeginRecovery | FinishRecovery) -> bool:
+    return (
+        command.kind == "rest"
+        or isinstance(command, FinishRecovery)
+        and any(
+            task.id == command.task_id and task.kind == "rest"
+            for task in state.resources.recovery_tasks
+        )
+    )
+
+
+def _require_rest_interval(state: PlayState, command: BeginRecovery | FinishRecovery) -> None:
+    if not _rest_command(state, command):
+        raise ValidationError("Captured FP-rest consumer cannot execute another medical procedure")
+    if isinstance(command, BeginRecovery):
+        require_enchanting_free(
+            state.resources, command.actor_id, through=state.resources.game_time + command.seconds
+        )
+
+
+def _decode_rest_environment(raw: object) -> CareEnvironment:
+    if not isinstance(raw, dict) or set(raw) != {field.name for field in fields(CareEnvironment)}:
+        raise ValidationError("Recorded FP-rest environment fields are incomplete or unknown")
+    return captured_environment(raw)
+
+
+def _decode_minimum_environment(raw: object) -> CareEnvironment:
+    if not isinstance(raw, dict) or set(raw) != {field.name for field in fields(CareEnvironment)}:
+        raise ValidationError("Recorded medical environment fields are incomplete or unknown")
+    return captured_environment(raw)
 
 
 EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
@@ -61,6 +88,14 @@ def _build(play: PlayService, state: PlayState, actor_id: str) -> ValidatedBuild
     build, _ = play.engine.reviewer.activate(
         actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor_id
     )
+    if play.rules_context.correct_default_knowledge:
+        return project_default_knowledge(
+            play.engine.reviewer.compiler,
+            state,
+            actor_id,
+            build,
+            required=play.rules_context.require_default_knowledge,
+        )
     return build
 
 
@@ -69,6 +104,44 @@ def _value(build: ValidatedBuild, key: str) -> int:
     if value is None or value != int(value):
         raise ValidationError("Required recovery skill or attribute is unavailable")
     return int(value)
+
+
+def _require_presence(state: PlayState, actor_id: str, target_id: str) -> None:
+    entities = {e.id: e for e in state.world.entities}
+    if entities[actor_id].location_id != entities[target_id].location_id:
+        raise ValidationError("Treatment requires the patient's location")
+
+
+def _require_available(state: PlayState, actor_id: str, kind: str) -> None:
+    if kind in {"rest", "natural", "mortal-check"}:
+        return
+    hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
+    fp = next(p for p in state.resources.pools if p.id == f"fp:{actor_id}")
+    if (
+        hp.injury is None
+        or hp.injury.incapacitated
+        or hp.injury.stunned
+        or (
+            fp.fatigue is not None
+            and (fp.fatigue.collapsed or fp.fatigue.unconscious or fp.fatigue.heart_attack)
+        )
+    ):
+        raise ValidationError("Incapacitated characters cannot provide medical care")
+
+
+def _require_default_care(
+    play: PlayService, state: PlayState, actor_id: str, actor: ValidatedBuild, kind: str
+) -> None:
+    # Presence has already been projected under the actor's new policy. The two
+    # direct skill treatments can refuse before asking for any environment facts.
+    selected = {"first-aid": "skill:first-aid", "physician": "skill:physician"}.get(kind)
+    if (
+        play.rules_context.correct_default_knowledge
+        and play.engine.reviewer.compiler.statistics_profile == DEFAULT_KNOWLEDGE_PROFILE
+        and (play.rules_context.require_default_knowledge or adopted(state, actor_id))
+        and selected is not None
+    ):
+        _value(actor, selected)
 
 
 def care_skill(actor: ValidatedBuild, kind: str, env: CareEnvironment) -> tuple[int | None, int]:
@@ -153,15 +226,51 @@ class MedicalService:
         command: BeginRecovery | FinishRecovery,
         *,
         principal_id: str,
+        rest_admission: bool = False,
+        rest_environment: CareEnvironment | None = None,
+        minimum_admission: bool = False,
+        minimum_environment: CareEnvironment | None = None,
     ) -> CommandPlan[RecoveryResult]:
         """What a care command writes; the pipeline decides whether it runs."""
+        if rest_environment is not None and not rest_admission:
+            raise ValidationError("Captured FP-rest facts require their generation")
+        if minimum_admission and (
+            selected != "gurps-basic-set-4e-2004"
+            or not isinstance(command, BeginRecovery)
+            or command.kind not in MINIMUM_KINDS
+        ):
+            raise ValidationError("Medical minimum admission requires its voluntary start")
+        if minimum_admission != (minimum_environment is not None):
+            raise ValidationError("Medical minimum policy requires its captured environment")
+        if rest_admission and (
+            selected != "gurps-basic-set-4e-2004"
+            or isinstance(command, BeginRecovery)
+            and (command.kind != "rest" or rest_environment is None)
+        ):
+            raise ValidationError(
+                "Captured FP-rest admission requires its exact supported producer"
+            )
         payload = json.dumps(
-            {"operation": "gurps-recovery", "command": command.model_dump(mode="json")},
+            {
+                "operation": "gurps-recovery",
+                "command": command.model_dump(mode="json"),
+                **({REST_KEY: 1} if rest_admission else {}),
+                **(
+                    {REST_ENVIRONMENT: asdict(rest_environment)}
+                    if rest_environment is not None
+                    else {}
+                ),
+            },
             sort_keys=True,
         )
+        if minimum_admission:
+            assert minimum_environment is not None
+            payload = stamp_minimum(payload, asdict(minimum_environment))
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
+            if rest_admission:
+                _require_rest_interval(before, command)
             task = next(
                 (
                     t
@@ -211,31 +320,21 @@ class MedicalService:
             actor = _build(play, before, command.actor_id)
             target = _build(play, before, target_id)
             entities = {e.id: e for e in before.world.entities}
-            if entities[command.actor_id].location_id != entities[target_id].location_id:
-                raise ValidationError("Treatment requires the patient's location")
-            if kind not in ("rest", "natural", "mortal-check"):
-                hp = next(p for p in before.resources.pools if p.id == f"hp:{command.actor_id}")
-                fp = next(p for p in before.resources.pools if p.id == f"fp:{command.actor_id}")
-                if (
-                    hp.injury is None
-                    or hp.injury.incapacitated
-                    or hp.injury.stunned
-                    or (
-                        fp.fatigue is not None
-                        and (
-                            fp.fatigue.collapsed
-                            or fp.fatigue.unconscious
-                            or fp.fatigue.heart_attack
-                        )
-                    )
-                ):
-                    raise ValidationError("Incapacitated characters cannot provide medical care")
+            _require_presence(before, command.actor_id, target_id)
+            _require_available(before, command.actor_id, kind)
+            _require_default_care(play, before, command.actor_id, actor, kind)
+            if minimum_admission and kind in {"first-aid", "physician"}:
+                skill, _ = care_skill(actor, kind, CareEnvironment())
+                assert skill is not None
+                minimum.require(before.resources, command.actor_id, skill)
             env = (
                 CareEnvironment(
                     task.technology_level, task.food, task.water, task.sleep, task.physician_id
                 )
                 if task is not None
-                else self.environment(play, before, target_id)
+                else minimum_environment
+                or rest_environment
+                or self.environment(play, before, target_id)
             )
             if (
                 kind == "resuscitate"
@@ -286,6 +385,7 @@ class MedicalService:
                 recover_energy_interval=_recover_energy_interval(
                     play, before, target, target_id, kind, env
                 ),
+                minimum_skill_admission=minimum_admission,
             )
             resources, result = apply_recovery(
                 before.resources, command, context, rng=play.rng, system=True
@@ -327,10 +427,66 @@ class MedicalService:
         profile_id = play.engine.reviewer.compiler.statistics_profile
         if profile_id not in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
             raise ValidationError("Recovery requires an exact GURPS profile")
+        ActsAs(command.actor_id, "Recovery actor does not match authenticated actor")(principal_id)
+        state = play._load(await play.store.read(cid))
+        eligible = profile_id == "gurps-basic-set-4e-2004" and _rest_command(state, command)
+        captured = await capture_rest(play, cid, command.id, eligible=eligible)
+        minimum_inputs = await capture_minimum(
+            play.store,
+            cid,
+            command.id,
+            eligible=profile_id == "gurps-basic-set-4e-2004"
+            and isinstance(command, BeginRecovery)
+            and command.kind in MINIMUM_KINDS,
+            actor_id=command.actor_id,
+        )
+        minimum_environment = None
+        if minimum_inputs.enabled:
+            assert isinstance(command, BeginRecovery)
+            if not minimum_inputs.saved:
+                require_boundary(await play.store.read(cid), None)
+                if state.revision != command.expected_revision:
+                    raise ConflictError("Resource revision changed")
+                actor = _build(play, state, command.actor_id)
+                _build(play, state, command.target_id)
+                _require_presence(state, command.actor_id, command.target_id)
+                _require_available(state, command.actor_id, command.kind)
+                _require_default_care(play, state, command.actor_id, actor, command.kind)
+                if command.kind in {"first-aid", "physician"}:
+                    skill, _ = care_skill(actor, command.kind, CareEnvironment())
+                    assert skill is not None
+                    minimum.require(state.resources, command.actor_id, skill)
+            minimum_environment = _decode_minimum_environment(
+                minimum_inputs.environment
+                if minimum_inputs.saved
+                else asdict(self.environment(play, state, command.target_id))
+            )
+        environment = None
+        if captured.enabled:
+            if not captured.saved:
+                require_boundary(await play.store.read(cid), None)
+                _require_rest_interval(state, command)
+            if isinstance(command, BeginRecovery):
+                environment = (
+                    _decode_rest_environment(captured.environment)
+                    if captured.saved
+                    else _decode_rest_environment(
+                        asdict(self.environment(play, state, command.target_id))
+                    )
+                )
         return await submit(
             play,
             cid,
-            self.plan(play, cast(ProfileId, profile_id), command, principal_id=principal_id),
+            self.plan(
+                play,
+                cast(ProfileId, profile_id),
+                command,
+                principal_id=principal_id,
+                rest_admission=captured.enabled,
+                rest_environment=environment,
+                minimum_admission=minimum_inputs.enabled,
+                minimum_environment=minimum_environment,
+            ),
             principal_id=principal_id,
         )
 

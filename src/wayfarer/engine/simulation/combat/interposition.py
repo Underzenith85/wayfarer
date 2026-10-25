@@ -5,6 +5,7 @@ from decimal import Decimal
 from math import ceil
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import (
@@ -15,7 +16,10 @@ from wayfarer.engine.simulation.combat.encounter import (
     move_basic,
 )
 from wayfarer.engine.simulation.combat.engine import CombatEngine
-from wayfarer.engine.simulation.combat.generations import missile_interposition_enabled
+from wayfarer.engine.simulation.combat.generations import (
+    interposition_current_step_enabled,
+    missile_interposition_enabled,
+)
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.missile_interposition import validate_fireball
 from wayfarer.engine.simulation.combat.spatial import SquareSpatialContext
@@ -91,6 +95,12 @@ def _square_step(
     raise ValidationError("No legal interposition step reaches the friend")
 
 
+def _current_ground_step(protector: Combatant) -> bool:
+    return interposition_current_step_enabled() and not (
+        protector.personal_flight and protector.personal_flight.altitude > 0
+    )
+
+
 def _take_step(
     runtime: RulesContext,
     state: PlayState,
@@ -99,6 +109,17 @@ def _take_step(
     protector: Combatant,
     friend: Combatant,
 ) -> tuple[Encounter, Combatant]:
+    translates = (
+        basic_distance(encounter, protector.actor_id, friend.actor_id) > 0
+        if encounter.spatial_kind == "basic"
+        else protector.position != friend.position
+    )
+    if (
+        _current_ground_step(protector)
+        and translates
+        and any(grip.holder_id == protector.actor_id for grip in encounter.grips)
+    ):
+        raise ValidationError("Release the retained grapple before interposition movement")
     step = max(1, (protector.movement_allowance + 9) // 10)
     if encounter.spatial_kind == "basic":
         yards = basic_distance(encounter, protector.actor_id, friend.actor_id)
@@ -223,6 +244,10 @@ def prepare_interposition(
         or protector.maneuver_state.defense_forbidden
     ):
         raise ValidationError("Protecting actor cannot take the interposition step")
+    if _current_ground_step(protector):
+        protector = protector.model_copy(
+            update={"movement_allowance": movement(runtime, state, protector.actor_id)}
+        )
     encounter, protector = _take_step(runtime, state, encounter, command, protector, friend)
     if encounter.spatial_kind != "basic":
         pair = tuple(sorted((protector.actor_id, friend.actor_id)))

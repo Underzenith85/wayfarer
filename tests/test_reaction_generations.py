@@ -17,6 +17,8 @@ from wayfarer.orchestration.social_generations import (
     _generation,
     capture,
     correct_social_reactions,
+    extreme_scores_from_payload,
+    regular_contest_extremes_enabled,
     replay_payload,
     social_generation,
 )
@@ -33,6 +35,8 @@ async def test_byte_exact_nested_generation_roundtrip(tmp_path: Path) -> None:
     original = '{\n  "operation": "example", "command": {"kind": "example"}\n}'
     encoded, correct = await capture(play.store, cid, "new", original)
     assert correct and json.loads(encoded)[ORIGINAL] == original
+    assert json.loads(encoded)[KEY] == 4
+    assert extreme_scores_from_payload(encoded)
     stored = stamp(encoded)
     assert _generation(record(stored))
     assert generation(record(stored))
@@ -52,7 +56,7 @@ async def test_byte_exact_nested_generation_roundtrip(tmp_path: Path) -> None:
     "value",
     [
         {KEY: True, ORIGINAL: "{}"},
-        {KEY: 2, ORIGINAL: "{}"},
+        {KEY: 5, ORIGINAL: "{}"},
         {KEY: 1, ORIGINAL: "{}", "extra": 1},
         {KEY: 1, ORIGINAL: '{"reaction_semantics_generation":1}'},
         {KEY: 1, WRAPPED: "{}"},
@@ -127,3 +131,27 @@ async def test_early_store_retry_preserves_each_recorded_layer_and_raw_bytes(
         with pytest.raises(ConflictError, match="different input"):
             await store.duplicate(cid, "command", original.replace("  ", " "))
     assert await store.read(cid) == saved and await store.history(cid) == history
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_distinct_social_generations_preserve_exact_original_intent(version: int) -> None:
+    original = '{\n  "operation": "checkpoint"\n}'
+    encoded = stamp(json.dumps({KEY: version, ORIGINAL: original, "operation": "checkpoint"}))
+    assert _generation(record(encoded))
+    assert extreme_scores_from_payload(encoded) == (version == 2)
+    assert replay_payload(encoded) == {"operation": "checkpoint"}
+    assert same_input(record(encoded), original)
+    assert not same_input(record(encoded), original.replace("  ", " "))
+
+
+def test_extreme_score_context_is_independent_and_resets_after_failure() -> None:
+    assert regular_contest_extremes_enabled()
+    with social_generation(True, extreme_scores=True):
+        assert correct_social_reactions() and regular_contest_extremes_enabled()
+        with pytest.raises(RuntimeError), social_generation(True):
+            assert correct_social_reactions() and not regular_contest_extremes_enabled()
+            raise RuntimeError("restore")
+        assert regular_contest_extremes_enabled()
+    with social_generation(False):
+        assert not correct_social_reactions() and not regular_contest_extremes_enabled()
+    assert correct_social_reactions() and regular_contest_extremes_enabled()

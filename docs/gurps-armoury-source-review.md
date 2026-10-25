@@ -67,10 +67,15 @@ visible and unverified; they do not receive source or certification promotion.
   and haste choices to actual deadlines and checks. Unselected tasks retain
   1,800 seconds; a longer wait alone does not earn a bonus.
 - [#977](https://github.com/Underzenith85/wayfarer/issues/977): B345 tooling
-  modifiers can be pinned through existing skill-specific tool
-  features, but choosing among alternative or absent toolkits, deriving a new
-  modifier from runtime damage/missing components, and consuming powered or
-  expendable tooling are not implemented. A toolkit with explicit unsupported
+  modifiers and physical deficiencies are bound through the private
+  [tool-quality path](gurps-armoury-tool-quality.md). Explicit selection now also
+  accepts an owned alternative with a pinned tool feature naming the exact
+  required repair skill. Generic or related skill labels cannot establish that
+  substitution. Authenticated physical improvised kits now use the existing
+  technological-task equipment penalty of -5. B345 limits additional missing-item
+  and damage penalties to basic-or-better equipment; improvised observations
+  retain those physical facts without applying a second deficiency penalty. Absent toolkits, broader alternative qualification and
+  consuming powered or expendable tooling remain unimplemented. A toolkit with explicit unsupported
   operating requirements is rejected rather than treated as free supplies.
 - [#978](https://github.com/Underzenith85/wayfarer/issues/978): the private
   [verified-default path](gurps-armoury-defaults.md) binds current approved

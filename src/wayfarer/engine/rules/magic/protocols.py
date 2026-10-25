@@ -435,7 +435,7 @@ class MagicItemBinding(Record):
     id: Id
     item_id: Id
     spell_id: Id
-    power: int = Field(ge=1, le=100)
+    power: int = Field(ge=1)
     power_reduction: int = Field(default=0, ge=0, le=100)
     requires_magery: bool = False
     always_on: bool = False

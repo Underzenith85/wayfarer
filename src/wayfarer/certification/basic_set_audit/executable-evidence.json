@@ -53,6 +53,790 @@
       "tests": [
         "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations[basic-margin-with-typed-modifiers]"
       ]
+    },
+    {
+      "case_id": "quick-contest-both-fail",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations[quick-contest-both-fail]"
+      ]
+    },
+    {
+      "case_id": "basic-quick-contest-both-fail-tie",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations[basic-quick-contest-both-fail-tie]"
+      ]
+    },
+    {
+      "case_id": "basic-quick-contest-victory-margin-mixed",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations[basic-quick-contest-victory-margin-mixed]"
+      ]
+    },
+    {
+      "case_id": "basic-quick-contest-margin-not-critical",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations[basic-quick-contest-margin-not-critical]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-second-round",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-second-round]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-both-fail-continues",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-both-fail-continues]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-high-skill-levelling",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-high-skill-levelling]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-low-skill-levelling",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-low-skill-levelling]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-levelling-at-14",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-levelling-at-14]"
+      ]
+    },
+    {
+      "case_id": "basic-resistance-attacker-wins",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-resistance-attacker-wins]"
+      ]
+    },
+    {
+      "case_id": "basic-resistance-tie-resists",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-resistance-tie-resists]"
+      ]
+    },
+    {
+      "case_id": "basic-resistance-both-fail",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-resistance-both-fail]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-caps-attacker",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-caps-attacker]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-high-resistance",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-high-resistance]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-below-cap",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-below-cap]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-not-declared",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-not-declared]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-1",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-1]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-2",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-2]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-3",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-3]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-4",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-4]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-7",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-7]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-8",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-8]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-12",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-12]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-easy-20",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-easy-20]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-1",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-1]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-2",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-2]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-3",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-3]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-4",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-4]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-7",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-7]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-8",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-8]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-12",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-12]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-average-20",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-average-20]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-1",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-1]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-2",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-2]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-3",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-3]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-4",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-4]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-7",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-7]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-8",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-8]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-12",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-12]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-hard-20",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-hard-20]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-1",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-1]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-2",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-2]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-3",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-3]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-4",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-4]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-7",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-7]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-8",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-8]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-12",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-12]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-very-hard-20",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-very-hard-20]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-best-attribute",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-best-attribute]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-attribute-cap",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-attribute-cap]"
+      ]
+    },
+    {
+      "case_id": "skill-gurps-basic-set-4e-2004-changed-attribute",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-gurps-basic-set-4e-2004-changed-attribute]"
+      ]
+    },
+    {
+      "case_id": "skill-default",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-default]"
+      ]
+    },
+    {
+      "case_id": "skill-credit",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-credit]"
+      ]
+    },
+    {
+      "case_id": "skill-partial-credit",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-partial-credit]"
+      ]
+    },
+    {
+      "case_id": "skill-required-specialty",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-required-specialty]"
+      ]
+    },
+    {
+      "case_id": "skill-optional-specialty",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-optional-specialty]"
+      ]
+    },
+    {
+      "case_id": "skill-optional-general-default",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-optional-general-default]"
+      ]
+    },
+    {
+      "case_id": "skill-general-optional-default",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-general-optional-default]"
+      ]
+    },
+    {
+      "case_id": "skill-hard-default",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-hard-default]"
+      ]
+    },
+    {
+      "case_id": "skill-hard-first",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-hard-first]"
+      ]
+    },
+    {
+      "case_id": "skill-hard-cap",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-hard-cap]"
+      ]
+    },
+    {
+      "case_id": "skill-hard-over-cap",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-hard-over-cap]"
+      ]
+    },
+    {
+      "case_id": "skill-hard-one-point",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-hard-one-point]"
+      ]
+    },
+    {
+      "case_id": "skill-hard-no-parent",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-hard-no-parent]"
+      ]
+    },
+    {
+      "case_id": "skill-average-first",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-average-first]"
+      ]
+    },
+    {
+      "case_id": "skill-average-cap",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-average-cap]"
+      ]
+    },
+    {
+      "case_id": "skill-average-over-cap",
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases[skill-average-over-cap]"
+      ]
+    },
+    {
+      "case_id": "basic-repeated-single-chance",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy[basic-repeated-single-chance]"
+      ]
+    },
+    {
+      "case_id": "basic-repeated-retry-until-success",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy[basic-repeated-retry-until-success]"
+      ]
+    },
+    {
+      "case_id": "basic-repeated-unknown-until-later",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy[basic-repeated-unknown-until-later]"
+      ]
+    },
+    {
+      "case_id": "basic-repeated-hazardous-failure",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy[basic-repeated-hazardous-failure]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-published-high-example",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-published-high-example]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-published-extreme-example",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-published-extreme-example]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-low-boundary-six",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-low-boundary-six]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-extreme-floor",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-extreme-floor]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-live-pin-rounds",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-live-pin-rounds]",
+        "tests/test_regular_contest_section.py::test_live_pin_matches_source_rounds_and_reexecutes[sqlite]",
+        "tests/test_regular_contest_section.py::test_live_pin_matches_source_rounds_and_reexecutes[postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-above-low-boundary",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-above-low-boundary]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-below-high-boundary",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-below-high-boundary]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-twenty-remains-offset",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-twenty-remains-offset]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-reversed-extreme-floor",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-reversed-extreme-floor]"
+      ]
+    },
+    {
+      "case_id": "basic-regular-contest-effective-score-extremes",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations[basic-regular-contest-effective-score-extremes]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-printed-sixteen",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-printed-sixteen]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-printed-seventeen",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-printed-seventeen]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-printed-eighteen",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-printed-eighteen]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-printed-nineteen",
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations[basic-rule-of-16-printed-nineteen]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-live-waiver",
+      "tests": [
+        "tests/test_rule_of_16_waiver.py::test_waived_resistance_retains_offered_cap_and_reexecutes[sqlite]",
+        "tests/test_rule_of_16_waiver.py::test_waived_resistance_retains_offered_cap_and_reexecutes[postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-ability-burning-living",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-burning-living-sqlite]",
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-burning-living-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-ability-burning-neither",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-burning-neither-sqlite]",
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-burning-neither-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-ability-burning-sapient",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-burning-sapient-sqlite]",
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-burning-sapient-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-ability-mind-neither",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-mind-neither-sqlite]",
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-mind-neither-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-ability-mind-living",
+      "tests": [
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-mind-living-sqlite]",
+        "tests/test_rule_of_16_abilities.py::test_actual_ability_scope_and_original_genesis_replay[basic-rule-of-16-ability-mind-living-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-rule-of-16-creature-scope",
+      "tests": [
+        "tests/test_creature_rule_of_16_scope.py::test_creature_scope_source_case_and_historical_replay"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-01",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-01]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-02",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-02]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-03",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-03]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-04",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-04]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-05",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-05]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-06",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-06]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-07",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-07]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-08",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-08]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-09",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-09]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-10",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-10]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-11",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-11]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-12",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-12]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-13",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-13]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-14",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-14]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-15",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-15]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-16",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-16]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-17",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-17]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-18",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-18]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-19",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-19]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-load-table-st-20",
+      "tests": [
+        "tests/test_b017_load_table.py::test_literal_printed_row_and_all_native_load_boundaries[basic-b017-load-table-st-20]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-native-load-level-0",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level[basic-b017-native-load-level-0]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-native-load-level-1",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level[basic-b017-native-load-level-1]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-native-load-level-2",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level[basic-b017-native-load-level-2]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-native-load-level-3",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level[basic-b017-native-load-level-3]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-native-load-level-4",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_inventory_load_consumes_printed_level[basic-b017-native-load-level-4]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-move-fractions",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_loaded_movement_fraction_minimum_and_zero[basic-b017-move-fractions]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-move-dodge-minimum",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_loaded_movement_fraction_minimum_and_zero[basic-b017-move-dodge-minimum]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-zero-move",
+      "tests": [
+        "tests/test_b017_load_table.py::test_actual_loaded_movement_fraction_minimum_and_zero[basic-b017-zero-move]"
+      ]
+    },
+    {
+      "case_id": "basic-b017-native-ownership",
+      "tests": [
+        "tests/test_b017_load_table.py::test_native_resource_ownership_retry_and_recorded_reexecution[sqlite-basic-b017-native-ownership]",
+        "tests/test_b017_load_table.py::test_native_resource_ownership_retry_and_recorded_reexecution[postgres-basic-b017-native-ownership]"
+      ]
+    },
+    {
+      "case_id": "basic-b344-native-lockpicking-iq-10",
+      "tests": [
+        "tests/test_default_roll_source_examples.py::test_literal_lockpicking_default_reaches_native_success_roll_and_seed_replay[10-5-sqlite]",
+        "tests/test_default_roll_source_examples.py::test_literal_lockpicking_default_reaches_native_success_roll_and_seed_replay[10-5-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b344-native-lockpicking-iq-25",
+      "tests": [
+        "tests/test_default_roll_source_examples.py::test_literal_lockpicking_default_reaches_native_success_roll_and_seed_replay[25-15-sqlite]",
+        "tests/test_default_roll_source_examples.py::test_literal_lockpicking_default_reaches_native_success_roll_and_seed_replay[25-15-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b344-native-interrogation-source-14",
+      "tests": [
+        "tests/test_default_roll_current_examples.py::test_literal_best_default_and_uncapped_learned_source_reach_current_native_roll[8-11-sqlite]",
+        "tests/test_default_roll_current_examples.py::test_literal_best_default_and_uncapped_learned_source_reach_current_native_roll[8-11-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b344-native-interrogation-source-24",
+      "tests": [
+        "tests/test_default_roll_current_examples.py::test_literal_best_default_and_uncapped_learned_source_reach_current_native_roll[48-21-sqlite]",
+        "tests/test_default_roll_current_examples.py::test_literal_best_default_and_uncapped_learned_source_reach_current_native_roll[48-21-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b344-native-alchemy-no-default",
+      "tests": [
+        "tests/test_default_roll_current_examples.py::test_true_alchemy_no_default_is_not_created_by_positive_gm_fact_at_ordinary_host[sqlite]",
+        "tests/test_default_roll_current_examples.py::test_true_alchemy_no_default_is_not_created_by_positive_gm_fact_at_ordinary_host[postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b344-native-karate-no-default",
+      "tests": [
+        "tests/test_default_knowledge_current_no_default.py::test_real_karate_punch_has_no_untrained_default_even_with_gm_knowledge[True-False-sqlite]",
+        "tests/test_default_knowledge_current_no_default.py::test_real_karate_punch_has_no_untrained_default_even_with_gm_knowledge[True-False-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b344-native-spell-no-default",
+      "tests": [
+        "tests/test_default_knowledge_current_no_default.py::test_native_light_requires_spell_training_not_magery_or_society_metadata[True-False-sqlite]",
+        "tests/test_default_knowledge_current_no_default.py::test_native_light_requires_spell_training_not_magery_or_society_metadata[True-False-postgres]"
+      ]
     }
   ],
   "obligations": [
@@ -72,6 +856,217 @@
         "basic-margin-of-success",
         "basic-margin-of-failure",
         "basic-margin-with-typed-modifiers"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.check.quick_contest",
+      "case_ids": [
+        "quick-contest-both-fail",
+        "basic-quick-contest-both-fail-tie",
+        "basic-quick-contest-victory-margin-mixed",
+        "basic-quick-contest-margin-not-critical"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.check.regular_contest",
+      "case_ids": [
+        "basic-regular-contest-second-round",
+        "basic-regular-contest-both-fail-continues",
+        "basic-regular-contest-high-skill-levelling",
+        "basic-regular-contest-low-skill-levelling",
+        "basic-regular-contest-levelling-at-14",
+        "basic-regular-contest-published-high-example",
+        "basic-regular-contest-published-extreme-example",
+        "basic-regular-contest-low-boundary-six",
+        "basic-regular-contest-extreme-floor",
+        "basic-regular-contest-live-pin-rounds",
+        "basic-regular-contest-above-low-boundary",
+        "basic-regular-contest-below-high-boundary",
+        "basic-regular-contest-twenty-remains-offset",
+        "basic-regular-contest-reversed-extreme-floor",
+        "basic-regular-contest-effective-score-extremes"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.check.resistance",
+      "case_ids": [
+        "basic-resistance-attacker-wins",
+        "basic-resistance-tie-resists",
+        "basic-resistance-both-fail",
+        "basic-rule-of-16-caps-attacker",
+        "basic-rule-of-16-high-resistance",
+        "basic-rule-of-16-below-cap",
+        "basic-rule-of-16-not-declared",
+        "basic-rule-of-16-printed-sixteen",
+        "basic-rule-of-16-printed-seventeen",
+        "basic-rule-of-16-printed-eighteen",
+        "basic-rule-of-16-printed-nineteen"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.character.skill_defaults",
+      "case_ids": [
+        "skill-gurps-basic-set-4e-2004-best-attribute",
+        "skill-gurps-basic-set-4e-2004-attribute-cap",
+        "skill-default",
+        "skill-credit",
+        "skill-partial-credit"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.character.skill_difficulty",
+      "case_ids": [
+        "skill-gurps-basic-set-4e-2004-easy-1",
+        "skill-gurps-basic-set-4e-2004-easy-2",
+        "skill-gurps-basic-set-4e-2004-easy-3",
+        "skill-gurps-basic-set-4e-2004-easy-4",
+        "skill-gurps-basic-set-4e-2004-easy-7",
+        "skill-gurps-basic-set-4e-2004-easy-8",
+        "skill-gurps-basic-set-4e-2004-easy-12",
+        "skill-gurps-basic-set-4e-2004-easy-20",
+        "skill-gurps-basic-set-4e-2004-average-1",
+        "skill-gurps-basic-set-4e-2004-average-2",
+        "skill-gurps-basic-set-4e-2004-average-3",
+        "skill-gurps-basic-set-4e-2004-average-4",
+        "skill-gurps-basic-set-4e-2004-average-7",
+        "skill-gurps-basic-set-4e-2004-average-8",
+        "skill-gurps-basic-set-4e-2004-average-12",
+        "skill-gurps-basic-set-4e-2004-average-20",
+        "skill-gurps-basic-set-4e-2004-hard-1",
+        "skill-gurps-basic-set-4e-2004-hard-2",
+        "skill-gurps-basic-set-4e-2004-hard-3",
+        "skill-gurps-basic-set-4e-2004-hard-4",
+        "skill-gurps-basic-set-4e-2004-hard-7",
+        "skill-gurps-basic-set-4e-2004-hard-8",
+        "skill-gurps-basic-set-4e-2004-hard-12",
+        "skill-gurps-basic-set-4e-2004-hard-20",
+        "skill-gurps-basic-set-4e-2004-very-hard-1",
+        "skill-gurps-basic-set-4e-2004-very-hard-2",
+        "skill-gurps-basic-set-4e-2004-very-hard-3",
+        "skill-gurps-basic-set-4e-2004-very-hard-4",
+        "skill-gurps-basic-set-4e-2004-very-hard-7",
+        "skill-gurps-basic-set-4e-2004-very-hard-8",
+        "skill-gurps-basic-set-4e-2004-very-hard-12",
+        "skill-gurps-basic-set-4e-2004-very-hard-20",
+        "skill-gurps-basic-set-4e-2004-changed-attribute"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.character.specialties",
+      "case_ids": [
+        "skill-required-specialty",
+        "skill-optional-specialty",
+        "skill-optional-general-default",
+        "skill-general-optional-default"
+      ]
+    },
+    {
+      "identifier": "capability:gurps.character.techniques",
+      "case_ids": [
+        "skill-hard-default",
+        "skill-hard-first",
+        "skill-hard-cap",
+        "skill-hard-over-cap",
+        "skill-hard-one-point",
+        "skill-hard-no-parent",
+        "skill-average-first",
+        "skill-average-cap",
+        "skill-average-over-cap"
+      ]
+    },
+    {
+      "identifier": "section:campaigns:b348:repeated-attempts",
+      "case_ids": [
+        "basic-repeated-single-chance",
+        "basic-repeated-retry-until-success",
+        "basic-repeated-unknown-until-later",
+        "basic-repeated-hazardous-failure"
+      ]
+    },
+    {
+      "identifier": "section:campaigns:b349:regular-contests",
+      "case_ids": [
+        "basic-regular-contest-second-round",
+        "basic-regular-contest-both-fail-continues",
+        "basic-regular-contest-high-skill-levelling",
+        "basic-regular-contest-low-skill-levelling",
+        "basic-regular-contest-levelling-at-14",
+        "basic-regular-contest-published-high-example",
+        "basic-regular-contest-published-extreme-example",
+        "basic-regular-contest-low-boundary-six",
+        "basic-regular-contest-extreme-floor",
+        "basic-regular-contest-live-pin-rounds",
+        "basic-regular-contest-above-low-boundary",
+        "basic-regular-contest-below-high-boundary",
+        "basic-regular-contest-twenty-remains-offset",
+        "basic-regular-contest-reversed-extreme-floor",
+        "basic-regular-contest-effective-score-extremes"
+      ]
+    },
+    {
+      "identifier": "section:campaigns:b349:the-rule-of-16",
+      "case_ids": [
+        "basic-rule-of-16-caps-attacker",
+        "basic-rule-of-16-high-resistance",
+        "basic-rule-of-16-below-cap",
+        "basic-rule-of-16-not-declared",
+        "basic-rule-of-16-printed-sixteen",
+        "basic-rule-of-16-printed-seventeen",
+        "basic-rule-of-16-printed-eighteen",
+        "basic-rule-of-16-printed-nineteen",
+        "basic-rule-of-16-live-waiver",
+        "basic-rule-of-16-ability-burning-living",
+        "basic-rule-of-16-ability-burning-neither",
+        "basic-rule-of-16-ability-burning-sapient",
+        "basic-rule-of-16-ability-mind-neither",
+        "basic-rule-of-16-ability-mind-living",
+        "basic-rule-of-16-creature-scope"
+      ]
+    },
+    {
+      "identifier": "section:characters:b017:basic-lift-and-encumbrance-table",
+      "case_ids": [
+        "basic-b017-load-table-st-01",
+        "basic-b017-load-table-st-02",
+        "basic-b017-load-table-st-03",
+        "basic-b017-load-table-st-04",
+        "basic-b017-load-table-st-05",
+        "basic-b017-load-table-st-06",
+        "basic-b017-load-table-st-07",
+        "basic-b017-load-table-st-08",
+        "basic-b017-load-table-st-09",
+        "basic-b017-load-table-st-10",
+        "basic-b017-load-table-st-11",
+        "basic-b017-load-table-st-12",
+        "basic-b017-load-table-st-13",
+        "basic-b017-load-table-st-14",
+        "basic-b017-load-table-st-15",
+        "basic-b017-load-table-st-16",
+        "basic-b017-load-table-st-17",
+        "basic-b017-load-table-st-18",
+        "basic-b017-load-table-st-19",
+        "basic-b017-load-table-st-20",
+        "basic-b017-native-load-level-0",
+        "basic-b017-native-load-level-1",
+        "basic-b017-native-load-level-2",
+        "basic-b017-native-load-level-3",
+        "basic-b017-native-load-level-4",
+        "basic-b017-move-fractions",
+        "basic-b017-move-dodge-minimum",
+        "basic-b017-zero-move",
+        "basic-b017-native-ownership"
+      ]
+    },
+    {
+      "identifier": "section:campaigns:b344:default-rolls",
+      "case_ids": [
+        "basic-b344-native-lockpicking-iq-10",
+        "basic-b344-native-lockpicking-iq-25",
+        "basic-b344-native-interrogation-source-14",
+        "basic-b344-native-interrogation-source-24",
+        "basic-b344-native-alchemy-no-default",
+        "basic-b344-native-karate-no-default",
+        "basic-b344-native-spell-no-default"
       ]
     }
   ]

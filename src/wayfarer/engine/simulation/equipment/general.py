@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 from pydantic import Field, TypeAdapter
 
 from wayfarer.engine.rules.types.general_equipment import GeneralEquipmentFeature
+from wayfarer.engine.simulation.equipment.repair_tool_operation import reserved
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import (
     Command,
@@ -190,6 +191,13 @@ def apply_general_equipment(
         raise ValidationError("General equipment must be owned and accessible")
     if item.condition is not None and item.condition.disabled:
         raise ValidationError("Disabled equipment cannot function")
+    references = (
+        (item.id, command.consumable_item_id)
+        if isinstance(command, UseGeneralEquipment)
+        else (item.id,)
+    )
+    if any(reference is not None and reserved(state, reference) for reference in references):
+        raise ConflictError("Equipment is committed to a pending timed repair")
     spec = engine.specs[item.definition_id]
     if not spec.general:
         raise ValidationError("Item has no general-equipment procedure")

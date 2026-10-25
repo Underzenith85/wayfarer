@@ -10,8 +10,15 @@ from wayfarer.engine.character.traits.mastery import trained_by_master
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, exertion, injury_turn
+from wayfarer.engine.simulation.combat.attack_policy import bind_pending, initiating_policy
+from wayfarer.engine.simulation.combat.attack_preparation import project_refund
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeUnarmedTurn
-from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, move_basic
+from wayfarer.engine.simulation.combat.encounter import (
+    Combatant,
+    CombatResult,
+    Encounter,
+    move_basic,
+)
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuver_budget import first_opportunity, last_opportunity
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
@@ -37,6 +44,89 @@ from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
+
+
+def declared_actor(
+    runtime: RulesContext, state: PlayState, actor: Combatant, command: TakeUnarmedTurn
+) -> Combatant:
+    previous = actor.maneuver_state
+    actor = actor.model_copy(
+        update={
+            "last_maneuver": command.maneuver,
+            "maneuver_state": ManeuverState(
+                evaluate_target_id=previous.evaluate_target_id
+                if actor.last_maneuver == "evaluate"
+                else None,
+                evaluate_bonus=previous.evaluate_bonus if actor.last_maneuver == "evaluate" else 0,
+                feint_target_id=previous.feint_target_id
+                if actor.last_maneuver == "feint"
+                else None,
+                feint_penalty=previous.feint_penalty if actor.last_maneuver == "feint" else 0,
+                defense_forbidden=command.maneuver == "all_out_attack",
+                parry_forbidden=command.maneuver == "move_and_attack",
+                attack_bonus=4
+                if command.attack_option == "determined"
+                else -4
+                if command.maneuver == "move_and_attack"
+                else (-3 if trained_by_master(build(runtime, state, command.actor_id)) else -6)
+                if command.attack_option == "rapid-strike"
+                else 0,
+                rapid_strike=command.attack_option == "rapid-strike",
+                attack_cap=9 if command.maneuver == "move_and_attack" else None,
+                strong=command.attack_option == "strong",
+                attacks_remaining=int(command.attack_option in ("double", "rapid-strike")),
+                second_unarmed_attack=UnarmedReaction.model_validate(
+                    followup(command).model_dump(
+                        include={"action", "skill", "hands", "foot", "location", "grip_id"}
+                    )
+                )
+                if command.attack_option in ("double", "rapid-strike")
+                else None,
+            ),
+        }
+    )
+    return actor
+
+
+def preflight_unarmed(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
+) -> None:
+    if (
+        command.action not in ("punch", "kick", "grapple", "arm_lock")
+        or command.attack_option == "feint"
+    ):
+        return
+    actor = fighter(encounter, command.actor_id)
+    hp = next(p for p in state.resources.pools if p.id == "hp:" + command.actor_id)
+    assert hp.injury is not None
+    if actor.forced_do_nothing or hp.injury.stunned:
+        return
+    if not initiating_policy(runtime, state, encounter, actor.actor_id).minimum:
+        return
+    projected = project_refund(
+        state,
+        actor.actor_id,
+        starting=encounter.wait_interrupt is None and first_opportunity(encounter),
+    )
+    validate_action(runtime, projected, encounter, command)
+    candidate = CombatEngine._replace(encounter, declared_actor(runtime, projected, actor, command))
+    candidate = enter_close(runtime, projected, candidate, command)
+    candidate, _ = declare_pending(runtime, projected, candidate, command)
+    projected = bind_pending(runtime, projected, candidate)
+    defend(
+        runtime,
+        projected,
+        candidate,
+        ChooseDefense(
+            id=command.id,
+            actor_id=command.target_id,
+            expected_revision=state.revision,
+            encounter_id=encounter.id,
+            defense="none",
+        ),
+        prepare_only=True,
+        admission_only=True,
+    ).require_voluntary()
 
 
 def execute_unarmed(
@@ -72,6 +162,7 @@ def execute_unarmed(
 
         guard_unarmed_declaration(runtime, state, encounter, command)
         validate_sequence(runtime, state, encounter, command)
+        preflight_unarmed(runtime, state, encounter, command)
         if not reacting:
             fired = interrupt_wait(runtime, state, encounter, command)
             if fired is not None:
@@ -134,44 +225,7 @@ def execute_unarmed(
                     current_actor_id=encounter.current_actor_id,
                 ),
             )
-        previous = actor.maneuver_state
-        actor = actor.model_copy(
-            update={
-                "last_maneuver": command.maneuver,
-                "maneuver_state": ManeuverState(
-                    evaluate_target_id=previous.evaluate_target_id
-                    if actor.last_maneuver == "evaluate"
-                    else None,
-                    evaluate_bonus=previous.evaluate_bonus
-                    if actor.last_maneuver == "evaluate"
-                    else 0,
-                    feint_target_id=previous.feint_target_id
-                    if actor.last_maneuver == "feint"
-                    else None,
-                    feint_penalty=previous.feint_penalty if actor.last_maneuver == "feint" else 0,
-                    defense_forbidden=command.maneuver == "all_out_attack",
-                    parry_forbidden=command.maneuver == "move_and_attack",
-                    attack_bonus=4
-                    if command.attack_option == "determined"
-                    else -4
-                    if command.maneuver == "move_and_attack"
-                    else (-3 if trained_by_master(build(runtime, state, command.actor_id)) else -6)
-                    if command.attack_option == "rapid-strike"
-                    else 0,
-                    rapid_strike=command.attack_option == "rapid-strike",
-                    attack_cap=9 if command.maneuver == "move_and_attack" else None,
-                    strong=command.attack_option == "strong",
-                    attacks_remaining=int(command.attack_option in ("double", "rapid-strike")),
-                    second_unarmed_attack=UnarmedReaction.model_validate(
-                        followup(command).model_dump(
-                            include={"action", "skill", "hands", "foot", "location", "grip_id"}
-                        )
-                    )
-                    if command.attack_option in ("double", "rapid-strike")
-                    else None,
-                ),
-            }
-        )
+        actor = declared_actor(runtime, state, actor, command)
         encounter = CombatEngine._replace(encounter, actor)
         if command.action in ("punch", "kick", "grapple", "arm_lock"):
             encounter = enter_close(runtime, state, encounter, command)

@@ -13,6 +13,15 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.types.recovery import interrupt_tasks
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge_policy import (
+    active as default_knowledge_active,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_policy import (
+    required as default_knowledge_required,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_projection import (
+    project as project_default_knowledge,
+)
 from wayfarer.engine.simulation.combat.entangle import immobilized
 from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, inventory_load
 from wayfarer.engine.simulation.health.drug_state import drug_unconscious
@@ -180,7 +189,7 @@ def build(
         or compiled.statistics.profile_id != runtime.reviewer.compiler.statistics_profile
     ):
         raise ValidationError("Melee requires the campaign's exact statistics profile")
-    return projected_build(
+    projected = projected_build(
         state.resources,
         actor_id,
         compiled,
@@ -188,6 +197,16 @@ def build(
         defensive=defensive,
         correct_attributes=runtime.correct_symptom_attributes,
     )
+    captured = runtime.attack_source is not None and runtime.attack_source[0] == actor_id
+    if not captured and default_knowledge_active(runtime, state, actor_id):
+        return project_default_knowledge(
+            runtime.reviewer.compiler,
+            state,
+            actor_id,
+            projected,
+            required=default_knowledge_required(runtime, state, actor_id),
+        )
+    return projected
 
 
 def level(compiled: ValidatedBuild, target: str) -> DerivedValue:

@@ -85,6 +85,9 @@ class DefaultContext:
     # Presence-only contexts retain minimum-one semantics; higher requirements
     # need an explicit amount and otherwise fail closed.
     purchased_definition_levels: Mapping[str, int] = field(default_factory=dict)
+    # None is construction/legacy behavior, never inferred live societal knowledge.
+    # A supplied set restricts only untrained defaults; paid skills retain training.
+    known_default_skills: frozenset[str] | None = None
 
     @classmethod
     def empty(cls) -> DefaultContext:
@@ -125,6 +128,10 @@ def _validate_purchased_levels(context: DefaultContext) -> None:
         raise SkillError(
             "skill.context", "Purchased levels need selected IDs and positive integers"
         )
+
+
+def _default_known(context: DefaultContext, key: str, paid: int) -> bool:
+    return bool(paid or context.known_default_skills is None or key in context.known_default_skills)
 
 
 def materialize_open_specialty(
@@ -203,9 +210,19 @@ class SkillCompiler:
             spec = definition.skill
             if spec is None:
                 continue
+            # Keep disabled definitions in the reference graph so dependent
+            # skills still validate, but only when the caller explicitly makes
+            # them unavailable for both investment and default resolution.
             if (
                 definition.kind is not DefinitionKind.SKILL
-                or definition.status is not ImplementationStatus.IMPLEMENTED
+                or (
+                    definition.status is not ImplementationStatus.IMPLEMENTED
+                    and not (
+                        definition.status is ImplementationStatus.UNSUPPORTED
+                        and available is not None
+                        and key not in available
+                    )
+                )
                 or "character.gurps-skill" not in definition.hooks
             ):
                 raise SkillError("skill.definition", f"Invalid skill binding: {key}")
@@ -580,6 +597,8 @@ class SkillCompiler:
         def ordinary(key: str) -> SkillLevel | None:
             spec = self.specs[key]
             paid = points.get(key, 0)
+            if not _default_known(context, key, paid):
+                return None
             candidates: list[tuple[int, str, bool, tuple[DefaultCondition, ...]]] = []
             for default in spec.defaults:
                 for target_id in self._default_targets(key, default, context):
@@ -651,6 +670,11 @@ class SkillCompiler:
         def satisfied(requirement: SkillPrerequisite) -> bool:
             return _satisfied_prerequisite(requirement, context, attributes, points, levels)
 
+        def acquired(spec: SkillSpec) -> bool:
+            return all(satisfied(p) for p in spec.prerequisites) and all(
+                any(satisfied(p) for p in group.alternatives) for group in spec.prerequisite_groups
+            )
+
         # Reciprocal defaults are legitimate source data. Start with native and
         # attribute-default anchors, then propagate purchased-skill defaults to
         # a fixed point. Nonpositive modifiers make levels bounded; provenance
@@ -662,11 +686,7 @@ class SkillCompiler:
             changed = False
             for key in ordinary_keys:
                 spec = self.specs[key]
-                prerequisites = all(satisfied(p) for p in spec.prerequisites) and all(
-                    any(satisfied(p) for p in group.alternatives)
-                    for group in spec.prerequisite_groups
-                )
-                if not prerequisites:
+                if not acquired(spec):
                     continue
                 result = ordinary(key)
                 if result is not None and levels.get(key) != result:
@@ -688,6 +708,10 @@ class SkillCompiler:
                 continue
             spec = self.specs[key]
             paid = points.get(key, 0)
+            if not acquired(spec):
+                if paid:
+                    raise SkillError("skill.prerequisite", f"Missing technique prerequisite: {key}")
+                continue
             technique = spec.technique
             assert technique is not None
             parent = levels.get(technique.parent)

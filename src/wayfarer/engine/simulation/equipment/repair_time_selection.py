@@ -36,6 +36,7 @@ def select(
         preview=True,
         assessment_only=True,
         selection_modifier=adjustment,
+        preview_method=command.method,
         default_override=default_override,
     )
     if eligibility.procedure_id is None:

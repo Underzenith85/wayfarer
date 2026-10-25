@@ -145,7 +145,15 @@ class PowerReviewer:
             selected = {p.definition_id for p in build.purchases}
             background = self.compiler.unusual_background
             if UNUSUAL_BACKGROUND_ID in selected:
-                if background is None or not set(background.benefits) & selected:
+                admitted_skills = {
+                    value.target
+                    for value in build.sheet.values
+                    if value.target in self.compiler.definitions
+                    and self.compiler.definitions[value.target].kind is DefinitionKind.SKILL
+                }
+                if background is None or not set(background.benefits) & (
+                    selected | admitted_skills
+                ):
                     findings.append(
                         PowerFinding(
                             code="background.no_benefit",

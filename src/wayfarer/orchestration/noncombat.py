@@ -6,16 +6,24 @@ import json
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.contracts import Campaign, CommandReceipt
-from wayfarer.engine.rules.checks import Modifier, Outcome, success_check
-from wayfarer.engine.simulation.actions import ActionCommand, PlayState
+from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome
+from wayfarer.engine.simulation.action_engine.engine import TaskCheckPreparation
+from wayfarer.engine.simulation.actions import ActionCommand, CheckRule, PlayState
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
 from wayfarer.engine.simulation.health.recovery_guard import guard
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.enchanting import busy_actor_ids as enchanting_actor_ids
+from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchanting_free
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
+from wayfarer.orchestration.noncombat_generations import enchanting_rest as current_enchanting_rest
+from wayfarer.orchestration.noncombat_generations import (
+    minimum_effective_skill as current_minimum_effective_skill,
+)
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 
 if TYPE_CHECKING:
@@ -28,12 +36,120 @@ class NoncombatCommand(ActionCommand):
     selection_id: Id | None = None
 
 
+_REST_ADMISSION = {"approach_noncombat": current_enchanting_rest}
+_MINIMUM_ADMISSION = {"approach_noncombat": current_minimum_effective_skill}
+
+
 class NoncombatService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
+    def _approach_check(
+        self,
+        prepared: TaskCheckPreparation,
+        *,
+        minimum_effective_skill: bool,
+    ) -> CheckTrace:
+        # B345 forbids nondefense attempts below 3 after all task modifiers.
+        if (
+            minimum_effective_skill
+            and prepared.target + sum(m.value for m in prepared.modifiers) < 3
+        ):
+            raise ValidationError("Noncombat effective skill must be at least 3")
+        return prepared.check(rng=self.play.rng)
+
+    def _prepare_check_inputs(
+        self, state: PlayState, actor_id: str, rule: CheckRule, *, correct_skill_context: bool
+    ) -> TaskCheckPreparation:
+        actor = next((a for a in state.actors if a.actor_id == actor_id), None)
+        if actor is None:
+            raise ValidationError("Noncombat actor unavailable")
+        build, _ = self.play.engine.reviewer.activate(
+            actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor_id
+        )
+        if rule.definition_id not in {p.definition_id for p in build.purchases}:
+            raise ValidationError("Approach requires a purchased skill")
+        value, dependencies = self.play.engine._target(
+            state,
+            actor_id,
+            build,
+            rule,
+            default_context=self.play.engine.reviewer.compiler.default_skill_context(
+                build.purchases
+            )
+            if correct_skill_context
+            else None,
+        )
+        modifiers = (
+            Modifier(rule.modifier, rule.id, rule.definition_id, rule.package_version),
+        ) + definition_modifiers(
+            state.resources,
+            actor_id,
+            rule.definition_id,
+            self.play.engine.reviewer.compiler.definitions,
+        )
+        return TaskCheckPreparation(
+            campaign_id=state.campaign_id,
+            actor_id=actor_id,
+            action=rule.action,
+            target_id=rule.target_id,
+            configuration_digest=self.play.engine.digest,
+            target=int(value.value),
+            modifiers=modifiers,
+            rules_package=rule.package_id,
+            rules_version=rule.package_version,
+            derived=value,
+            dependencies=dependencies,
+        )
+
+    def prepare_approach_check(
+        self, state: PlayState, command: NoncombatCommand, *, correct_skill_context: bool
+    ) -> TaskCheckPreparation:
+        """Pure exact inputs shared by queue admission and actual approach scoring."""
+        rules = self.play.engine.rules.noncombat
+        encounter = next(
+            (
+                e
+                for e in state.noncombat
+                if e.id == command.encounter_id and e.actor_id == command.actor_id
+            ),
+            None,
+        )
+        if rules is None or encounter is None or encounter.status != "choice":
+            raise ValidationError("No pending noncombat choice")
+        rule = next((r for r in rules.encounters if r.id == encounter.rule_id), None)
+        approach = (
+            next((a for a in rule.approaches if a.id == command.selection_id), None)
+            if rule
+            else None
+        )
+        if approach is None:
+            raise ValidationError("Unsupported approach")
+        check = next(r for r in self.play.engine.rules.checks if r.id == approach.check_rule_id)
+        return self._prepare_check_inputs(
+            state, command.actor_id, check, correct_skill_context=correct_skill_context
+        )
+
+    @staticmethod
+    def _require_approach_interval(
+        state: PlayState, actor_id: str, duration: int, *, enchanting_rest: bool
+    ) -> None:
+        if enchanting_rest:
+            require_enchanting_free(
+                state.resources, actor_id, through=state.resources.game_time + duration
+            )
+            if actor_id in enchanting_actor_ids(state.resources.enchantment_projects):
+                require_idle_concentration(state.resources, actor_id)
+
     def reduce(
-        self, state: PlayState, command: NoncombatCommand, *, advance_time: bool = True
+        self,
+        state: PlayState,
+        command: NoncombatCommand,
+        *,
+        advance_time: bool = True,
+        enchanting_rest: bool = False,
+        minimum_effective_skill: bool = False,
+        correct_skill_context: bool = False,
     ) -> PlayState:
 
         require_innate_actor_action(state, command.actor_id)
@@ -89,6 +205,9 @@ class NoncombatService:
             check_rule = next(
                 r for r in self.play.engine.rules.checks if r.id == approach.check_rule_id
             )
+            self._require_approach_interval(
+                state, actor.actor_id, check_rule.duration, enchanting_rest=enchanting_rest
+            )
             pools = {p.id: p for p in resources.pools}
             fp = pools[f"fp:{actor.actor_id}"]
             if fp.current < approach.fatigue_cost:
@@ -109,34 +228,15 @@ class NoncombatService:
                 for i in resources.items
             ):
                 raise ValidationError("Check equipment is required")
-            build, _ = self.play.engine.reviewer.activate(
-                actor.proposal,
-                actor.approval,
-                campaign_id=state.campaign_id,
-                actor_id=actor.actor_id,
+            prepared = self._prepare_check_inputs(
+                state,
+                actor.actor_id,
+                check_rule,
+                correct_skill_context=enchanting_rest or correct_skill_context,
             )
-            if check_rule.definition_id not in {p.definition_id for p in build.purchases}:
-                raise ValidationError("Approach requires a purchased skill")
-            value, _ = self.play.engine._target(state, actor.actor_id, build, check_rule)
-            trace = success_check(
-                int(value.value),
-                (
-                    Modifier(
-                        check_rule.modifier,
-                        check_rule.id,
-                        check_rule.definition_id,
-                        check_rule.package_version,
-                    ),
-                )
-                + definition_modifiers(
-                    state.resources,
-                    actor.actor_id,
-                    check_rule.definition_id,
-                    self.play.engine.reviewer.compiler.definitions,
-                ),
-                rng=self.play.rng,
-                rules_package=check_rule.package_id,
-                rules_version=check_rule.package_version,
+            trace = self._approach_check(
+                prepared,
+                minimum_effective_skill=minimum_effective_skill,
             )
             passed = trace.outcome in (Outcome.SUCCESS, Outcome.CRITICAL_SUCCESS)
             progress = encounter.progress + (
@@ -200,17 +300,34 @@ class NoncombatService:
             }
         )
 
-    def plan(self, command: NoncombatCommand) -> CommandPlan[NoncombatEncounter]:
+    def plan(
+        self,
+        command: NoncombatCommand,
+        *,
+        enchanting_rest: bool = False,
+        minimum_effective_skill: bool = False,
+    ) -> CommandPlan[NoncombatEncounter]:
         """What a noncombat command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
-            {"operation": "noncombat", "command": command.model_dump(mode="json")}, sort_keys=True
+            {
+                "operation": "noncombat",
+                "command": command.model_dump(mode="json"),
+                **({"enchanting_rest_generation": 1} if enchanting_rest else {}),
+                **({"minimum_effective_skill_generation": 1} if minimum_effective_skill else {}),
+            },
+            sort_keys=True,
         )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = self.play._load(campaign)
             if command.kind == "approach_noncombat":
-                synchronous(current, command.actor_id)
-            state = self.reduce(current, command)
+                synchronous(current, command.actor_id, enchanting_rest=enchanting_rest)
+            state = self.reduce(
+                current,
+                command,
+                enchanting_rest=enchanting_rest,
+                minimum_effective_skill=minimum_effective_skill,
+            )
             if state.party.groups:
                 state = state.model_copy(
                     update={
@@ -257,4 +374,15 @@ class NoncombatService:
             command = NoncombatCommand.model_validate(value)
         except ValueError as exc:
             raise ValidationError("Invalid noncombat command") from exc
-        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)
+        capture = _REST_ADMISSION.get(command.kind)
+        current = False if capture is None else await capture(self.play, cid, command.id)
+        minimum_capture = _MINIMUM_ADMISSION.get(command.kind)
+        minimum = (
+            False if minimum_capture is None else await minimum_capture(self.play, cid, command.id)
+        )
+        return await submit(
+            self.play,
+            cid,
+            self.plan(command, enchanting_rest=current, minimum_effective_skill=minimum),
+            principal_id=principal_id,
+        )

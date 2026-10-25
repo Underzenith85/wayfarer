@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.attack_roll import AttackRollChoice
+from wayfarer.engine.simulation.combat.attack_roll import AttackRollChoice, AttackRollSpec
 from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -38,15 +38,17 @@ class CombatContext:
     reaction: bool = False
     movement_checkpoint: bool = False
     selected_attack: AttackRollChoice | None = None
+    response_attack: tuple[str, AttackRollSpec] | None = None
 
     @property
     def attack_runtime(self) -> RulesContext:
         selected = self.selected_attack
         if selected is None or selected.attacker_id is None or selected.captured_attacker is None:
-            return self.play.rules_context
+            return replace(self.play.rules_context, response_attack=self.response_attack)
         return replace(
             self.play.rules_context,
             attack_source=(selected.attacker_id, selected.captured_attacker),
+            response_attack=self.response_attack,
         )
 
     @property

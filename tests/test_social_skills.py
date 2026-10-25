@@ -252,7 +252,7 @@ def test_the_fixture_covers_every_bound_row_and_every_resolution_shape() -> None
     covered = {str(case["procedure"]) for case in cases()}
     assert covered == {f"skill:{name}" for name in BOUND}
     shapes = {procedure(str(case["procedure"])).resolution for case in cases()}
-    assert shapes == set(Resolution)
+    assert shapes == set(Resolution) - {Resolution.REGULAR_CONTEST}
     verdicts = {str(expectation(case)["verdict"]) for case in cases()}
     assert verdicts == {verdict.value for verdict in Verdict}
     assert {str(expectation(case)["effect"]) for case in cases()} <= effect_ids()
@@ -705,20 +705,28 @@ async def test_a_procedure_runs_in_a_live_authorized_transaction(tmp_path: Path)
         assert secret not in projection
 
 
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+@pytest.mark.parametrize("known", [False, True])
 async def test_an_authored_trigger_dispatches_a_procedure_from_an_approved_level(
     tmp_path: Path,
+    backend: str,
+    known: bool,
 ) -> None:
     """The scenario names the procedure and the circumstances; the build sets the level."""
     import json as _json
+    import secrets
 
+    from support.runtime import build_play, open_store, seed_campaign
     from test_social_dispatch import prepare
 
     from wayfarer.engine.simulation.actions import Wait
+    from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
     from wayfarer.engine.simulation.campaign.npcs import (
         NPCSocialAction,
         NPCSocialPlan,
         NPCSocialRules,
     )
+    from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 
     rules = NPCSocialRules(
         id="parley",
@@ -747,21 +755,68 @@ async def test_an_authored_trigger_dispatches_a_procedure_from_an_approved_level
         ),
     )
     cid, play = await prepare(tmp_path, rules)
+    if backend == "postgres":
+        store = open_store(tmp_path, backend=backend)
+        await seed_campaign(store, await play.store.read(cid))
+        play = build_play(tmp_path, play.engine, store=store)
+    if known:
+        play.rng = secrets
+        await DefaultKnowledgeService(play).execute(
+            cid,
+            AdoptDefaultKnowledge(
+                id="parley-society-knowledge",
+                actor_id="gm",
+                expected_revision=play._load(await play.store.read(cid)).revision,
+                performer_id="a",
+                known_skill_ids=("skill:diplomacy",),
+                reason="The GM confirms Diplomacy is known in this envoy's society",
+            ),
+            principal_id="gm",
+        )
+    before_wait = play._load(await play.store.read(cid))
+    assert before_wait.resources.game_time == 0
+
     # Diplomacy defaults to IQ-6 = 4 on this build, so the guard's Will of 10
     # wins the contest; the ordinary reaction is then kept when it is better.
-    play.rng = RecordedDice([3, 3, 3, 4, 4, 4, 5, 5, 5])
+    class ObservedDice(RecordedDice):
+        draws = 0
+
+        def randbelow(self, exclusive_upper_bound: int, /) -> int:
+            self.draws += 1
+            return super().randbelow(exclusive_upper_bound)
+
+    play.rng = dice = ObservedDice([3, 3, 3, 4, 4, 4, 5, 5, 5] if known else ())
     await play.execute(
         cid,
-        Wait(id="first", actor_id="a", expected_revision=0, ticks=1),
+        Wait(id="first", actor_id="a", expected_revision=before_wait.revision, ticks=1),
         principal_id="a",
     )
-    state = play._load(await play.store.read(cid))
+    saved = await play.store.read(cid)
+    state = play._load(saved)
+    assert state.resources.game_time == 1 and dice.exhausted()
+    assert await play.store.replay(cid) == saved
+    decisions = [d for d in state.npcs.decisions if d.plan_id == "envoy-parley"]
+    assert len(decisions) == 1 and decisions[0].due == 1
+    if not known:
+        assert decisions[0].status == "rejected" and dice.draws == 0
+        assert not any(
+            e.id.startswith(("social:", "social-key:", "social-recovery:"))
+            for e in state.resources.events
+        )
+        assert state.world.knowledge == before_wait.world.knowledge
+        return
+    assert decisions[0].status == "committed" and dice.draws == 9
     recorded = _json.loads(state.resources.events[-1].kind)
     assert _json.loads(recorded["public"])["kind"] == "skill"
     assert _json.loads(recorded["public"])["outcome"] == "good"
     assert recorded["private"]["effect"]["id"] == "diplomacy-rebuffed"
     assert recorded["private"]["procedure_id"] == "skill:diplomacy"
     assert recorded["private"]["base_skill"] == 4
+
+    assert recorded["private"]["influence"]["contest"]["first"]["total"] == 9
+    assert recorded["private"]["influence"]["contest"]["second"]["total"] == 12
+    assert recorded["private"]["influence"]["fallback"]["total"] == 15
+    assert state.resources.game_time == 1 and play.rng.exhausted()
 
 
 def test_an_approved_voice_purchase_asserts_the_condition_and_nothing_else() -> None:

@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import hashlib
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from pydantic import TypeAdapter
 
+from wayfarer.engine.rules.catalog import ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.skills.gurps_skills import definitions as skill_definitions
+from wayfarer.engine.rules.types.background_admission import UNUSUAL_BACKGROUND_ID
 from wayfarer.engine.rules.types.location import Hand
+from wayfarer.engine.rules.types.skill import PrerequisiteKind, SkillPrerequisite
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready
 from wayfarer.engine.simulation.combat.commands import (
@@ -21,6 +26,7 @@ from wayfarer.engine.simulation.combat.commands import (
 )
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.generations import karate_kicking_technique_enabled
 from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.unarmed.choke import require_choke_turn_settled
@@ -185,6 +191,55 @@ def skill_value(runtime: RulesContext, state: PlayState, actor_id: str, skill: s
     value = next((v for v in compiled.sheet.values if v.target == skill), None)
     if value is None:
         raise ValidationError("Selected unarmed skill has no compiled level")
+    return int(value.value)
+
+
+def _kicking_binding(runtime: RulesContext, identifier: str) -> RuleDefinition:
+    expected = next(d for d in skill_definitions(BASIC) if d.id == identifier)
+    background = runtime.reviewer.compiler.unusual_background
+    if background is None or identifier not in background.benefits:
+        return expected
+    paid = background.allowed and background.point_cost > 0
+    assert expected.skill is not None
+    return replace(
+        expected,
+        status=expected.status if background.allowed else ImplementationStatus.UNSUPPORTED,
+        prerequisites=expected.prerequisites + ((UNUSUAL_BACKGROUND_ID,) if paid else ()),
+        skill=replace(
+            expected.skill,
+            prerequisites=expected.skill.prerequisites
+            + (
+                (
+                    SkillPrerequisite(
+                        UNUSUAL_BACKGROUND_ID, kind=PrerequisiteKind.PURCHASED_DEFINITION
+                    ),
+                )
+                if paid
+                else ()
+            ),
+        ),
+    )
+
+
+def attack_skill_value(
+    runtime: RulesContext, state: PlayState, actor_id: str, action: str, skill: str
+) -> int:
+    """B232 Karate Kicking uses its approved technique, including admission."""
+    if action != "kick" or skill != "skill:karate" or not karate_kicking_technique_enabled():
+        return skill_value(runtime, state, actor_id, skill) - 2 * int(action == "kick")
+    identifier = "skill:kicking-karate"
+    definitions = runtime.reviewer.compiler.definitions
+    if identifier not in definitions:
+        return skill_value(runtime, state, actor_id, skill) - 2
+    for key in (skill, identifier):
+        if definitions.get(key) != _kicking_binding(runtime, key):
+            raise ValidationError("Karate Kicking requires its canonical B232 technique binding")
+    # build() retains an explicitly captured attack source while projecting
+    # current temporary consequences, just as the parent-skill consumer does.
+    compiled = build(runtime, state, actor_id)
+    value = next((v for v in compiled.sheet.values if v.target == identifier), None)
+    if value is None:
+        raise ValidationError("Karate Kicking has no admitted technique level")
     return int(value.value)
 
 

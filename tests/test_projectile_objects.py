@@ -4,12 +4,14 @@ from pathlib import Path
 
 import pytest
 from support.missile_timing import missile_spell_service
+from test_default_knowledge_hosts import adopt as establish_society_knowledge
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.object import ObjectProfile
+from wayfarer.engine.simulation.campaign.default_knowledge import known_skills
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
@@ -118,8 +120,9 @@ async def test_burst_shield_interception_overpenetrates_separately(tmp_path: Pat
 
 @pytest.mark.parametrize("target_object", [False, True])
 @pytest.mark.parametrize("missile_attack", [False, True])
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_fireball_object_target_or_shield_interception(
-    tmp_path: Path, target_object: bool, missile_attack: bool
+    tmp_path: Path, backend: str, target_object: bool, missile_attack: bool
 ) -> None:
     from test_spell_bindings import command, idle, start_fight
     from test_spell_bindings import setup as spell_setup
@@ -136,10 +139,18 @@ async def test_fireball_object_target_or_shield_interception(
         shield=Shield(defense_bonus=1, skill_id="skill:innate-attack-projectile"),
         durability=ObjectProfile(construction="homogenous", hp=12, dr=0, ht=12, size_modifier=-2),
     )
-    cid, play = await spell_setup(tmp_path, combat=True, execution_version=2, equipment=(entry,))
+    cid, play = await spell_setup(
+        tmp_path, combat=True, execution_version=2, equipment=(entry,), backend=backend
+    )
     combat = await start_fight(cid, play)
+    await establish_society_knowledge(play, cid, ("skill:innate-attack-projectile",))
+    assert "skill:innate-attack-projectile" in known_skills(
+        play._load(await play.store.read(cid)), "a"
+    )
     service = missile_spell_service(play, missile_attack=missile_attack)
-    start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    start = command(play._load(await play.store.read(cid)).revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
@@ -150,7 +161,7 @@ async def test_fireball_object_target_or_shield_interception(
             update={
                 "id": "release",
                 "kind": "release",
-                "expected_revision": 3,
+                "expected_revision": play._load(await play.store.read(cid)).revision,
                 "target_item_id": "target-0" if target_object else None,
             }
         ),
@@ -173,13 +184,14 @@ async def test_fireball_object_target_or_shield_interception(
         id="fire-impact",
         actor_id="b",
         encounter_id="fight",
-        expected_revision=4,
+        expected_revision=play._load(await play.store.read(cid)).revision,
         defense="none" if target_object else "dodge",
     )
     result = await combat.execute(cid, choice, principal_id="b")
     assert result.injury
     assert result.injury.injury == (0 if target_object else 3)
     state = play._load(await play.store.read(cid))
+    assert state.revision == 6
     assert state.resources.object_results[-1].item_id == "target-0"
     assert state.resources.object_results[-1].injury == 6
     play.rng = RecordedDice([])

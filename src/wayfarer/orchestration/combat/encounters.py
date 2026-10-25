@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from decimal import Decimal
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import fatigue_ready
 from wayfarer.engine.simulation.campaign.encounter_context import bind_scene, validate_contexts
+from wayfarer.engine.simulation.combat.attack_targets import require_pending_minimum
 from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
     StartBasicEncounter,
@@ -258,7 +260,7 @@ def _validate_sensory_target(
 
 def _prepare_encounter(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
-) -> Encounter:
+) -> tuple[Encounter, CombatContext]:
     play = context.play
     engine = context.engine
     encounter = encounter_for(state, command.encounter_id)
@@ -358,7 +360,16 @@ def _prepare_encounter(
                 isinstance(incoming, RangedMode) and incoming.thrown
             ):
                 raise ValidationError("Explicit parry damage modes require a parryable attack")
+        context = replace(
+            context,
+            response_attack=require_pending_minimum(
+                context.attack_runtime,
+                state,
+                encounter,
+                captured=context.selected_attack is not None,
+            ),
+        )
         encounter = prepare_defense(
             context.attack_runtime, state, encounter, command, resolve_options=True
         )
-    return encounter
+    return encounter, context

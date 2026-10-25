@@ -88,7 +88,10 @@ semantics. Source removal after a valid hit does not erase an existing occurrenc
 Characters third printing B61-62 excludes machines from ordinary fatigue and
 toxic Innate Attack damage. New bound cycles use the current canonical machine
 fact at each deadline, skip damage and resistance draws for an immune body, and
-retain prior injury/debt while the remaining cycles elapse. Becoming living again
+retain prior injury/debt while the remaining cycles elapse. A dead wearer with
+remaining authenticated armor in the bounded corrosion lane still receives rolled
+corrosion packets against that armor: only the item DR ledger changes, with no
+HP/FP injury or new recovery debt. Becoming living again
 restores ordinary future consequences. Pending ordinary toxic contacts likewise
 finish without a roll, infection or debt while the subject is a machine. Contact
 observed on an already-immune machine finishes immediately and does not contribute
@@ -152,12 +155,13 @@ source rule for the interaction or exercise delivery/body-change admission itsel
 
 Selected Campaigns fourth printing B379 also requires corrosion to reduce DR for
 later attacks, exhausting armor before natural DR, with separate recovery of
-living natural DR. The existing canonical injury reducer applies corrosion injury
-but does not yet record that protection loss. Re-querying current protection does
-not supply a missing corrosion-damage ledger. Initial corrosive delivery remains
-an implementation obligation of #764 and its repeated consequence of #761; the
-HP-only corrosion cases are not full corrosion compliance or closure evidence.
-
+living natural DR. The bounded [physical armor corrosion consumer](gurps-corrosion-armor.md)
+now records erosion from a real composed source and its bound Cyclic repeats,
+and supplies reduced armor to later ordinary attacks. This supports one unsplit
+torso-only armor item and no natural or active DR; broader protection allocation,
+natural-DR healing and source-specific armor repair remain unsupported. Historical
+unmarked low-level HP-only corrosion cases retain their previous meaning and are
+not full corrosion compliance or closure evidence.
 
 The source ledger remains partial with completion owner #764 for ordinary corrosion
 DR destruction and the remaining general delivery envelope. The source-defined

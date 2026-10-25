@@ -11,8 +11,11 @@ from test_combat_sensory_authority import change
 from test_gurps_melee import setup as melee_setup
 from test_unarmed import action, defend, state_of
 
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec
 from wayfarer.engine.rules.types.symptoms import SymptomDebt, SymptomEffect, SymptomSpec
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.commands import TakeUnarmedTurn
@@ -32,7 +35,9 @@ Context = Literal["basic", "square", "hex"]
 PROFILE: Final = "gurps-basic-set-4e-2004"
 
 
-async def prepare(path: Path, backend: str, context: Context = "square") -> tuple[str, PlayService]:
+async def prepare(
+    path: Path, backend: str, context: Context = "square", *, trained_kick: bool = False
+) -> tuple[str, PlayService]:
     placements = (
         (
             Placement(actor_id="a", position=Hex(q=0, r=0), hex_facing=0),
@@ -58,6 +63,23 @@ async def prepare(path: Path, backend: str, context: Context = "square") -> tupl
         PROFILE,
         human=True,
         unarmed_fixture=True,
+        extra_definitions=(
+            RuleDefinition(
+                "skill:brawling",
+                DefinitionKind.SKILL,
+                "Brawling",
+                "sjg:basic-set-characters-4e-2004",
+                None,
+                ImplementationStatus.IMPLEMENTED,
+                hooks=("character.gurps-skill", "check.target"),
+                skill=SkillSpec(ControllingAttribute.DX, Difficulty.EASY, "B182"),
+            ),
+        )
+        if trained_kick
+        else (),
+        extra_purchases=(Purchase(definition_id="skill:brawling", amount=16),)
+        if trained_kick
+        else (),
         scene_bound=context == "basic",
         start_encounter=context != "basic",
         aware_of=("a", "b"),
@@ -190,16 +212,16 @@ async def random_command(
 async def test_b394_random_strike_requires_proof_and_replays_full_location(
     tmp_path: Path, backend: str, context: Context
 ) -> None:
-    cid, play = await prepare(tmp_path, backend, context)
+    cid, play = await prepare(tmp_path, backend, context, trained_kick=True)
     await change(play, cid, lambda s: blindness(s, "a", darkness=-7))
-    command = await random_command(cid, play)
+    command = (await random_command(cid, play)).model_copy(update={"skill": "skill:brawling"})
     before = await state_of(cid, play)
     with pytest.raises(ValidationError):
         await RandomUnarmedService(play).execute(cid, command, principal_id="a")
     assert await state_of(cid, play) == before
     assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
     await locate(cid, play, "a")
-    command = await random_command(cid, play)
+    command = (await random_command(cid, play)).model_copy(update={"skill": "skill:brawling"})
     declared = await RandomUnarmedService(play).execute(cid, command, principal_id="a")
     play = PlayService(
         play.store, play.engine, rng=RecordedDice((1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 2, 2, 2))
@@ -214,9 +236,9 @@ async def test_b394_random_strike_requires_proof_and_replays_full_location(
     )
     result = await CombatService(play).execute(cid, defense, principal_id="b")
     assert result.unarmed is not None
-    # DX 10, ordinary kick -2, sudden blindness -10; darkness does not add -7.
-    assert result.unarmed.checks[0].effective_target == -2
-    assert result.unarmed.injury == 2 and result.unarmed.resolved_location is None
+    # Brawling15, ordinary kick-2, sudden blindness-10 => lawful3; no extra darkness-7.
+    assert result.unarmed.checks[0].effective_target == 3
+    assert result.unarmed.injury == 3 and result.unarmed.resolved_location is None
     after = await state_of(cid, play)
     record = random_strike(after, "fight", pending_id(command.id), "a", "b")
     assert (
@@ -224,7 +246,7 @@ async def test_b394_random_strike_requires_proof_and_replays_full_location(
         and record.resolved_location == "face"
         and record.location_dice == (1, 2, 2)
     )
-    assert next(p.current for p in after.resources.pools if p.id == "hp:b") == 8
+    assert next(p.current for p in after.resources.pools if p.id == "hp:b") == 7
     assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
     await change(play, cid, lambda s: blindness(s, "a", active=False))
     play.rng = RecordedDice(())
@@ -487,13 +509,15 @@ async def test_b394_admitted_defense_survives_its_atomic_retreat(
 async def test_random_unarmed_canonical_execute_recorded(tmp_path: Path, backend: str) -> None:
     from wayfarer.orchestration.replay import execute_recorded
 
-    cid, play = await prepare(tmp_path, backend)
+    cid, play = await prepare(tmp_path, backend, trained_kick=True)
     await change(play, cid, lambda s: blindness(s, "a"))
     await locate(cid, play, "a")
     # This uses the command boundary's recorded seed rather than scripted dice.
     play = build_play(tmp_path, play.engine, store=play.store)
     before = await play.store.read(cid)
-    command = await random_command(cid, play, "seeded-random")
+    command = (await random_command(cid, play, "seeded-random")).model_copy(
+        update={"skill": "skill:brawling"}
+    )
     await RandomUnarmedService(play).execute(cid, command, principal_id="a")
     declared = await state_of(cid, play)
     declaration_record = (await play.store.history(cid))[-1]

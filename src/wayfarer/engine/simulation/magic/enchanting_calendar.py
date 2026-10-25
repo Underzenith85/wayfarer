@@ -2,6 +2,7 @@
 
 from pydantic import Field
 
+from wayfarer.engine.rules.types.recovery import interrupt_tasks
 from wayfarer.engine.simulation.magic.enchanting import EnchantmentProject, EnchantmentWork
 from wayfarer.engine.simulation.magic.spell_state import latest
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
@@ -133,5 +134,44 @@ def record_rest(
                     kind=rest.model_dump_json(),
                 ),
             )
+        }
+    )
+
+
+def interrupt_work_rest(resources: ResourceState, project: EnchantmentProject) -> ResourceState:
+    """Actual active work interrupts participant FP rest, not other medical tasks."""
+    if not enchanting_work_active(resources, project):
+        # Scheduling a future shift must preserve valid off-shift recovery.
+        scheduled = resources.model_copy(
+            update={
+                "enchantment_projects": tuple(
+                    project if old.id == project.id else old
+                    for old in resources.enchantment_projects
+                )
+            }
+        )
+        for task in resources.recovery_tasks:
+            if (
+                task.kind == "rest"
+                and task.status == "pending"
+                and task.actor_id in project.enchanter_ids
+            ):
+                require_enchanting_free(
+                    scheduled,
+                    task.actor_id,
+                    start=max(resources.game_time, task.start),
+                    through=task.due,
+                )
+        return resources
+    participants = frozenset(project.enchanter_ids)
+    rest = tuple(
+        task
+        for task in resources.recovery_tasks
+        if task.kind == "rest" and participants & {task.actor_id, task.target_id}
+    )
+    changed = {task.id: task for task in interrupt_tasks(rest, participants, resources.game_time)}
+    return resources.model_copy(
+        update={
+            "recovery_tasks": tuple(changed.get(task.id, task) for task in resources.recovery_tasks)
         }
     )

@@ -4,10 +4,25 @@ from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.rules.types.skill import SkillPrerequisite, SkillSpec
 from wayfarer.models import Id, Record
 
 UNUSUAL_BACKGROUND_ID = "trait:advantage:unusual-background"
 BACKGROUND_ADMISSION_HOOK = "campaign.unusual-background"
+
+
+def background_skill_requirements(skill: SkillSpec | None) -> tuple[SkillPrerequisite, ...]:
+    """Every background link, including links hidden in alternative groups."""
+    if skill is None:
+        return ()
+    return tuple(
+        requirement
+        for requirement in (
+            *skill.prerequisites,
+            *(item for group in skill.prerequisite_groups for item in group.alternatives),
+        )
+        if requirement.target == UNUSUAL_BACKGROUND_ID
+    )
 
 
 class UnusualBackgroundDecision(Record):

@@ -19,8 +19,9 @@ from wayfarer.engine.rules.types.background_admission import (
     BACKGROUND_ADMISSION_HOOK,
     UNUSUAL_BACKGROUND_ID,
     UnusualBackgroundDecision,
+    background_skill_requirements,
 )
-from wayfarer.engine.rules.types.skill import SkillSpec
+from wayfarer.engine.rules.types.skill import PrerequisiteKind, SkillPrerequisite, SkillSpec
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
 
@@ -222,7 +223,10 @@ class RulesCatalog:
         background = definitions.get(UNUSUAL_BACKGROUND_ID)
         paid = decision.allowed and decision.point_cost > 0
         admitted = {
-            row.id for row in package.definitions if UNUSUAL_BACKGROUND_ID in row.prerequisites
+            row.id
+            for row in package.definitions
+            if UNUSUAL_BACKGROUND_ID in row.prerequisites
+            or background_skill_requirements(row.skill)
         }
         if admitted != (set(decision.benefits) if paid else set()):
             raise ValidationError("Background admission must name the exact GM-selected benefits")
@@ -248,7 +252,7 @@ class RulesCatalog:
             definition = definitions.get(identity)
             if (
                 definition is None
-                or definition.kind is not DefinitionKind.TRAIT
+                or definition.kind not in (DefinitionKind.TRAIT, DefinitionKind.SKILL)
                 or (UNUSUAL_BACKGROUND_ID in definition.prerequisites) != paid
                 or (
                     not decision.allowed
@@ -258,6 +262,19 @@ class RulesCatalog:
                 raise ValidationError(
                     "Unusual Background benefits do not match the GM admission rule"
                 )
+            if definition.kind is DefinitionKind.SKILL:
+                requirement = SkillPrerequisite(
+                    UNUSUAL_BACKGROUND_ID, kind=PrerequisiteKind.PURCHASED_DEFINITION
+                )
+                if (
+                    definition.skill is None
+                    or background_skill_requirements(definition.skill)
+                    != ((requirement,) if paid else ())
+                    or (paid and requirement not in definition.skill.prerequisites)
+                ):
+                    raise ValidationError(
+                        "Background skill defaults require the exact admission prerequisite"
+                    )
 
     def package(self, pin: PackagePin) -> RulesPackage:
         package = self._packages.get((pin.id, pin.version))

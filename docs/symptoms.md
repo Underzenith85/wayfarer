@@ -14,6 +14,13 @@ Symptoms attribute penalties affect trained and defaulted governed skills using 
 
 The private `symptom_attribute_generation: 1` marker is independent of the casting and targeting generations. New command inputs select the corrected projections. Historical inputs retain their original bytes, hashes and seeded outcomes; exact committed retries retain their receipts. An indexed lookup on SQLite and PostgreSQL distinguishes an absent command from a legacy command with no retained input, without folding the campaign's entire history. New opaque and array inputs retain their exact inner text in a private wrapper, and object inputs also retain their original text. Duplicate lookup validates the complete stored digest and private metadata before comparing exact intent bytes, including early tactical HTTP and migration lookups. Changed parameters and whitespace remain conflicts. Both stores read the receipt and its resulting checkpoint from one snapshot. Replay removes validated metadata before a raw command reaches its strict adapter; digest validation still uses the complete stored input. The command scope resets after exceptions and is isolated across concurrent tasks. Fright and Resource reexecution require their existing trusted service resolvers; the generic offline replay registry does not yet dispatch those families or Ability commands.
 
+Fresh private generation 2 now also applies [B421 condition propagation and
+defensive exemptions](gurps-condition-attribute-propagation.md) to supported
+coughing, intoxication and drowsiness sources. Coughing's IQ−1 therefore also
+affects ordinary Per, Will and their governed skills; historical generations 0/1
+retain their prior check targets and exact inputs. The supported construction
+names and cumulative lifetime are unchanged.
+
 `tests/test_symptom_attribute_consumers.py` and `tests/test_symptom_attribute_generations.py` inspect actual rolls, outcomes, recovery, authority, retries and historical inputs. Existing indirect ST/Basic Lift equipment consequences are retained; their broader interactions remain unverified and are not covered by a blanket defensive exemption. These residuals remain owned by #763, whose source row remains partial.
 
 ## Personal spellcasting checks
@@ -131,6 +138,12 @@ first two issue criteria. All remain explicitly rejected in approved constructio
 and owned by #763. The previously documented blind-combat and Area-spell residuals
 also remain; Area-spell consumer work is shared with open #785. This change does
 not justify closing #763 or promoting its family to fully supported/certified.
+
+A separate [awake toxin-drowsiness consumer](gurps-drowsy-toxin-checks.md) now
+corrects ordinary DX/IQ check penalties from a trusted, short-lived toxin
+exposure. A separate [supported condition self-control consumer](gurps-condition-self-control.md)
+now applies the B428 penalty and normalizes overlapping survival/toxin drowsiness.
+Neither admits Drowsy Symptoms or supplies the missing toxin periodic sleep contract.
 
 `tests/test_multiple_symptoms_cyclic_runtime.py` verifies zero initial damage and
 DR-absorbed delivery through actual repeat injury, positive and zero-damage

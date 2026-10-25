@@ -30,6 +30,7 @@ async def test_real_approved_delivery_contact_cure_and_independent_secondary_clo
     cid, play, source = await fixture(
         tmp_path,
         backend,
+        society_knows_beam=True,
         modifiers=(cyclic("tox", contagious="mild"),),
         kind="tox",
         levels=1,

@@ -1,13 +1,19 @@
 """Source-qualified charged-hand ordinary punch capture and once-only discharge."""
 
 import hashlib
+from dataclasses import replace
 
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.skills.mundane.melee import definitions as melee_definitions
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.commands import TakeUnarmedTurn
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.generations import hand_melee_spell_contact_enabled
+from wayfarer.engine.simulation.combat.generations import (
+    hand_melee_spell_contact_enabled,
+    hand_melee_striking_skills_enabled,
+)
 from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.magic.deathtouch_effects import apply_deathtouch
@@ -31,6 +37,29 @@ from wayfarer.engine.simulation.magic.melee_spell_admission import admit_target
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError
 
+_LEGACY_SKILLS = ("attribute:dx", "skill:brawling")
+_STRIKING_SKILLS = ("skill:boxing", "skill:karate")
+
+
+def _require_striking_purchase(runtime: RulesContext, compiled: ValidatedBuild, skill: str) -> None:
+    if skill not in _STRIKING_SKILLS:
+        raise ConflictError("Hand striking contact requires Boxing or Karate")
+    expected = next(d for d in melee_definitions() if d.id == skill)
+    actual = runtime.reviewer.compiler.definitions.get(skill)
+    if actual is None or actual.skill is None or expected.skill is None:
+        raise ConflictError("Hand striking contact requires its canonical skill binding")
+    # Campaign acquisition gates (including B96) stay with the compiler. They
+    # cannot replace the canonical attribute, difficulty, defaults or procedure.
+    normalized = replace(
+        actual,
+        prerequisites=expected.prerequisites,
+        skill=replace(actual.skill, prerequisites=expected.skill.prerequisites),
+    )
+    if normalized != expected or not any(p.definition_id == skill for p in compiled.purchases):
+        raise ConflictError("Hand striking contact requires its canonical purchased skill")
+    if not any(v.target == skill for v in compiled.sheet.values):
+        raise ConflictError("Hand striking contact requires its admitted current skill level")
+
 
 def _held(state: PlayState, actor_id: str) -> HandMeleeCast | None:
     found = tuple(
@@ -41,7 +70,7 @@ def _held(state: PlayState, actor_id: str) -> HandMeleeCast | None:
     return found[0] if found else None
 
 
-def _source(runtime: RulesContext, state: PlayState, charge: HandMeleeCast) -> None:
+def _source(runtime: RulesContext, state: PlayState, charge: HandMeleeCast) -> ValidatedBuild:
     compiled = require_productive_hand(
         runtime,
         state,
@@ -58,6 +87,7 @@ def _source(runtime: RulesContext, state: PlayState, charge: HandMeleeCast) -> N
     expected = hand_digest(state, charge.actor_id, charge.carrier.hand, compiled.revision)
     if expected != charge.carrier_digest:
         raise ConflictError("Hand contact accepted carrier identity changed")
+    return compiled
 
 
 def guard_unarmed_declaration(
@@ -72,7 +102,8 @@ def guard_unarmed_declaration(
         or command.maneuver != "attack"
         or command.attack_option is not None
         or command.second_attack is not None
-        or command.skill not in ("attribute:dx", "skill:brawling")
+        or command.skill
+        not in _LEGACY_SKILLS + (_STRIKING_SKILLS if hand_melee_striking_skills_enabled() else ())
         or len(command.hands) != 1
     ):
         raise ConflictError("Charged hand requires one explicit ordinary DX or Brawling punch")
@@ -80,7 +111,9 @@ def guard_unarmed_declaration(
         return
     if not hand_melee_spell_contact_enabled():
         raise ConflictError("Charged hand requires captured hand-contact delivery generation")
-    _source(runtime, state, charge)
+    compiled = _source(runtime, state, charge)
+    if command.skill in _STRIKING_SKILLS:
+        _require_striking_purchase(runtime, compiled, command.skill)
     admit_target(runtime, state, command.target_id)
 
 
@@ -110,7 +143,8 @@ def prepare_contact(
         raise ConflictError("Charged hand requires captured hand-contact delivery generation")
     if (
         pending.action != "punch"
-        or pending.skill not in ("attribute:dx", "skill:brawling")
+        or pending.skill
+        not in _LEGACY_SKILLS + (_STRIKING_SKILLS if hand_melee_striking_skills_enabled() else ())
         or pending.grip_id is not None
         or pending.choke_hold
     ):
@@ -120,7 +154,9 @@ def prepare_contact(
         or encounter.pending_unarmed != pending
     ):
         raise ConflictError("Hand contact actual pending source identity changed")
-    _source(runtime, state, charge)
+    compiled = _source(runtime, state, charge)
+    if pending.skill in _STRIKING_SKILLS:
+        _require_striking_purchase(runtime, compiled, pending.skill)
     admit_target(runtime, state, pending.target_id)
     event = cast_event(state.resources, charge.cast_id)
     return HandContact(
@@ -139,6 +175,7 @@ def prepare_contact(
         mana_event_id=charge.mana_event_id,
         mana_event_digest=charge.mana_event_digest,
         energy=charge.energy,
+        striking_generation=1 if pending.skill in _STRIKING_SKILLS else None,
     )
 
 
@@ -180,7 +217,11 @@ def validate_contact(
     ):
         raise ConflictError("Hand contact actual pending metadata changed")
     charge = _identity(state, encounter, contact)
-    _source(runtime, state, charge)
+    compiled = _source(runtime, state, charge)
+    if contact.striking_generation == 1:
+        _require_striking_purchase(runtime, compiled, pending.skill)
+    elif pending.skill not in _LEGACY_SKILLS:
+        raise ConflictError("Hand striking contact requires captured striking generation")
     if _body_digest(state, contact.attacker_id) != contact.body_digest:
         raise ConflictError("Hand contact current body identity changed")
     admit_target(runtime, state, contact.defender_id)

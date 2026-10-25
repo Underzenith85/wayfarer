@@ -45,6 +45,9 @@ reports the combined state when no profile is selected.
 
 ## Current status
 
+The [progress inventory](gurps-compliance-progress.md) records selected-source
+availability, measured blockers and current bounded implementation owners.
+
 The frozen Basic Set profile is **not certified**. Historical status/path evidence
 still describes catalog and construction coverage, but cannot certify execution.
 Every required capability, executable inventory row and required mechanic source
@@ -56,8 +59,22 @@ Each binding resolves an independently entered source case in `conformance.json`
 to exact passing JUnit node IDs. The behavioral test records the case ID and
 case, profile, baseline and checkout fingerprints after its consequence assertions.
 Missing, failed, skipped, duplicate, stale or status-only evidence fails closed.
-The initial registry binds only the existing source-derived success-roll cases;
-remaining evidence belongs to the bounded audit issues in #742.
+The registry binds the existing source-derived critical-success and margin
+cases, plus every Basic Set Quick Contest, Regular Contest and resistance-roll
+case. Contest evidence covers ties, both-fail outcomes, victory margins, skill
+levelling and Rule of 16 boundaries. Each of those three capability obligations
+requires all its bound cases to pass; a missing, skipped or failed case blocks
+that capability. The four skill capabilities also bind all 51 existing Basic Set
+source cases for difficulty progression, defaults and point-equivalent credit,
+specialties, and technique costs/caps/rejection boundaries. Skill evidence is
+recorded only after checking the published result or exact expected error.
+The B348 Repeated Attempts source-section obligation binds all four existing
+policy cases: single chance, retry until success, unknown outcome and hazardous
+failure. This verifies only `section:campaigns:b348:repeated-attempts`; it does
+not certify the broader `gurps.check.success` capability or its sibling sections.
+Each case records execution provenance after its policy/consequence assertions.
+Missing, skipped, failed or stale case evidence blocks the entire section.
+Remaining evidence belongs to the bounded audit issues in #742.
 
 Run pytest with `--junitxml=artifacts/pytest.xml`, then pass
 `--execution-report artifacts/pytest.xml` to the certification command. Package

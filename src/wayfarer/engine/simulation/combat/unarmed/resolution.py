@@ -10,12 +10,13 @@ from typing import TYPE_CHECKING, Literal, cast, get_args, overload
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
-from wayfarer.engine.rules.tables.combat import strong_damage_bonus
+from wayfarer.engine.rules.tables.combat import posture_melee_modifier, strong_damage_bonus
 from wayfarer.engine.rules.tables.size_forms import height_ratio, reduced_result
 from wayfarer.engine.rules.tables.special_melee import grapple_size_bonus
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, exertion
+from wayfarer.engine.simulation.combat.attack_policy import posture_rules
 from wayfarer.engine.simulation.combat.attack_roll import AttackRollSpec
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -39,6 +40,7 @@ from wayfarer.engine.simulation.combat.unarmed.defense import (
     unarmed_defense,
 )
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
+    attack_skill_value,
     encumbrance_level,
     fighter,
     free_hands,
@@ -209,6 +211,7 @@ def defend(
     prepare_only: Literal[False] = False,
     prepare_damage: Literal[False] = False,
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> tuple[PlayState, Encounter, UnarmedTrace]: ...
 
 
@@ -223,6 +226,7 @@ def defend(
     prepare_only: Literal[True],
     prepare_damage: Literal[False] = False,
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> AttackRollSpec: ...
 
 
@@ -237,6 +241,7 @@ def defend(
     prepare_only: Literal[False] = False,
     prepare_damage: Literal[True],
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> tuple[PlayState, Encounter, UnarmedTrace] | UnarmedDamageStage | ArmedParryDamageStage: ...
 
 
@@ -250,6 +255,7 @@ def defend(
     prepare_only: bool = False,
     prepare_damage: bool = False,
     secret_damage: bool = False,
+    admission_only: bool = False,
 ) -> (
     tuple[PlayState, Encounter, UnarmedTrace]
     | AttackRollSpec
@@ -267,7 +273,9 @@ def defend(
         raise ValidationError("Defense is not authorized for this unarmed attack")
     contact = _current_hand_contact(runtime, state, encounter, pending)
     if contact is not None and (
-        prepare_only or selected_attack is not None or command.second_defense is not None
+        (prepare_only and not admission_only)
+        or selected_attack is not None
+        or command.second_defense is not None
     ):
         raise ValidationError(
             "Charged punch does not yet support attack selection or double defense"
@@ -276,7 +284,10 @@ def defend(
     defense_target = defenses[0][0]
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
-    value = skill_value(runtime, state, actor.actor_id, pending.skill) - hp.injury.shock
+    value = (
+        attack_skill_value(runtime, state, actor.actor_id, pending.action, pending.skill)
+        - hp.injury.shock
+    )
     sensory_penalty, random = _attack_senses(
         state, encounter, pending, hp.injury, attack_captured=selected_attack is not None
     )
@@ -284,8 +295,10 @@ def defend(
     if pending.skill in ("skill:judo", "skill:karate"):
         value -= encumbrance_level(runtime, state, actor.actor_id)
     value -= 4 if actor.grappled else 0
-    value -= 4 if actor.posture == "prone" else 2 if actor.posture == "kneeling" else 0
-    value -= 2 if pending.action == "kick" else 0
+    value += posture_melee_modifier(
+        actor.posture,
+        legacy=not posture_rules(runtime, state, encounter, actor.actor_id, pending_id=pending.id),
+    )
     value -= (
         {"torso": 0, "neck": 2, "left-arm": 1, "right-arm": 1, "left-leg": 1, "right-leg": 1}[
             pending.location
@@ -346,6 +359,7 @@ def defend(
         target=value,
         modifiers=check_modifiers(state.resources, actor.actor_id, "dx"),
     )
+    spec = runtime.attack_spec(pending.id, spec)
     if prepare_only:
         return spec
     attack = selected_attack or spec.roll(runtime.rng)

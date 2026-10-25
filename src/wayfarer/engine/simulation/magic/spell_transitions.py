@@ -12,6 +12,12 @@ from wayfarer.engine.rules.magic.protocols import (
 )
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, injury_turn
+from wayfarer.engine.simulation.campaign.default_knowledge_policy import (
+    active as default_knowledge_active,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_policy import (
+    bind as bind_default_knowledge,
+)
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
@@ -19,6 +25,10 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import target_geometry, target_modifier
+from wayfarer.engine.simulation.combat.ranged_target_policy import bind as bind_ranged_target_policy
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    initiating as initiating_ranged_policy,
+)
 from wayfarer.engine.simulation.combat.sensory_combat import blind_hit_location
 from wayfarer.engine.simulation.combat.visibility import combat_visibility
 from wayfarer.engine.simulation.combat.vocabulary import Defense
@@ -39,6 +49,9 @@ from wayfarer.engine.simulation.magic.item_state import (
     item_power_reduction,
     item_requires_magery,
     usable_item_enchantment,
+)
+from wayfarer.engine.simulation.magic.physician_training import (
+    remember as remember_physician_origin,
 )
 from wayfarer.engine.simulation.magic.spell_state import (
     RuntimeSpellEvent as SpellEvent,
@@ -219,6 +232,7 @@ def approved_context(
     *,
     item_sight: bool = True,
     area_targeting: bool = False,
+    physician_training: bool = False,
 ) -> SpellContext:
     # deferred: Staff joins share the completed spell context without a public schema change.
     from wayfarer.engine.simulation.magic.staff_casting import apply_targeting, existing_context
@@ -327,6 +341,7 @@ def approved_context(
             magic_item=magic_item,
             personal_ritual=channel.ceremonial is None,
         ),
+        physician_training=physician_training,
     )
     if channel.ceremonial:
         ht: list[tuple[str, int]] = []
@@ -673,6 +688,7 @@ class SpellExecutionContext:
     check_symptoms: bool = True
     item_sight: bool = True
     area_targeting: bool = False
+    physician_training: bool = False
 
 
 def _prepare_spell(
@@ -692,6 +708,7 @@ def _prepare_spell(
             before,
             command,
             SpellEnvironment.model_validate(execution.resolver(runtime, before, command)),
+            physician_training=execution.physician_training,
         )
         if execution.resolver
         else approved_context(
@@ -700,6 +717,7 @@ def _prepare_spell(
             command,
             item_sight=execution.item_sight,
             area_targeting=execution.area_targeting,
+            physician_training=execution.physician_training,
         )
     )
     if encounter is not None and context.execution_version == 2 and command.kind == "complete":
@@ -761,39 +779,13 @@ def _prepare_spell(
     return context, encounter
 
 
-def _release_missile(
+def _prepare_missile_release(
     runtime: RulesContext,
     before: PlayState,
-    updated: PlayState,
     command: SpellCommand,
     context: SpellContext,
     encounter: Encounter,
-    turn_started: bool,
-) -> PlayState:
-
-    if context.target_id == command.actor_id:
-        raise ValidationError("Missile release requires another participant")
-    if encounter.wait_interrupt is not None:
-        interrupt = encounter.wait_interrupt
-        if interrupt.declaration.reaction_target_id != context.target_id:
-            raise ValidationError("Missile Wait target differs from its declaration")
-        encounter = encounter.model_copy(
-            update={
-                "turn_index": encounter.turn_order.index(command.actor_id),
-                "wait_interrupt": interrupt.model_copy(update={"reacting": True}),
-            }
-        )
-    elif not turn_started:
-        updated = injury_turn(
-            runtime, updated, command.actor_id, command.id, start=True, do_nothing=False
-        )
-    hp = next(p for p in updated.resources.pools if p.id == "hp:" + command.actor_id)
-    if hp.injury and hp.injury.incapacitated:
-        raise ValidationError("Caster cannot release the missile")
-    updated = updated.model_copy(
-        update={"resources": updated.resources.model_copy(update={"revision": updated.revision})}
-    )
-
+) -> Encounter:
     visibility = combat_visibility(encounter, command.actor_id, context.target_id, state=before)
     location = blind_hit_location(
         before, command.actor_id, command.hit_location, target_item_id=command.target_item_id
@@ -869,6 +861,73 @@ def _release_missile(
                     )
                 }
             )
+    return encounter
+
+
+def _require_missile_release(
+    runtime: RulesContext,
+    before: PlayState,
+    command: SpellCommand,
+    context: SpellContext,
+    encounter: Encounter,
+) -> None:
+    if not initiating_ranged_policy(
+        runtime, before, encounter, command.actor_id
+    ) and not default_knowledge_active(runtime, before, command.actor_id):
+        return
+    prepared = _prepare_missile_release(runtime, before, command, context, encounter)
+    pending = prepared.pending_defense
+    assert pending is not None
+    candidate = bind_default_knowledge(runtime, before, prepared)
+    candidate = bind_ranged_target_policy(
+        runtime,
+        candidate,
+        prepared,
+        command.actor_id,
+        pending.id,
+        profile_id="gurps-basic-set-4e-2004",
+        initiating_state=before,
+    )
+    # deferred: canonical missile resolution reads the spell lifecycle vocabulary.
+    from wayfarer.engine.simulation.magic.missiles import resolve
+
+    resolve(runtime, candidate, prepared, "none", None, None, None, prepare_only=True)
+
+
+def _release_missile(
+    runtime: RulesContext,
+    before: PlayState,
+    updated: PlayState,
+    command: SpellCommand,
+    context: SpellContext,
+    encounter: Encounter,
+    turn_started: bool,
+) -> PlayState:
+
+    if context.target_id == command.actor_id:
+        raise ValidationError("Missile release requires another participant")
+    if encounter.wait_interrupt is not None:
+        interrupt = encounter.wait_interrupt
+        if interrupt.declaration.reaction_target_id != context.target_id:
+            raise ValidationError("Missile Wait target differs from its declaration")
+        encounter = encounter.model_copy(
+            update={
+                "turn_index": encounter.turn_order.index(command.actor_id),
+                "wait_interrupt": interrupt.model_copy(update={"reacting": True}),
+            }
+        )
+    elif not turn_started:
+        updated = injury_turn(
+            runtime, updated, command.actor_id, command.id, start=True, do_nothing=False
+        )
+    hp = next(p for p in updated.resources.pools if p.id == "hp:" + command.actor_id)
+    if hp.injury and hp.injury.incapacitated:
+        raise ValidationError("Caster cannot release the missile")
+    updated = updated.model_copy(
+        update={"resources": updated.resources.model_copy(update={"revision": updated.revision})}
+    )
+
+    encounter = _prepare_missile_release(runtime, before, command, context, encounter)
     updated = updated.model_copy(
         update={
             "encounters": tuple(
@@ -879,6 +938,17 @@ def _release_missile(
     # deferred: the combat missile reducer depends on spell transition source helpers.
     from wayfarer.engine.simulation.combat.missile_interposition import capture_attack
 
+    assert encounter.pending_defense is not None
+    updated = bind_default_knowledge(runtime, updated, encounter, initiating_state=before)
+    updated = bind_ranged_target_policy(
+        runtime,
+        updated,
+        encounter,
+        command.actor_id,
+        encounter.pending_defense.id,
+        profile_id="gurps-basic-set-4e-2004",
+        initiating_state=before,
+    )
     encounter = capture_attack(runtime, updated, encounter)
     return updated.model_copy(
         update={
@@ -894,6 +964,8 @@ def reduce_spell(
 ) -> tuple[PlayState, SpellResult]:
     runtime = execution.runtime
     context, encounter = _prepare_spell(before, command, execution)
+    if command.kind == "release" and command.spell_id == "fireball" and encounter is not None:
+        _require_missile_release(runtime, before, command, context, encounter)
     turn_started = False
     unable_to_handle = False
     casting_resources = before.resources
@@ -960,6 +1032,9 @@ def reduce_spell(
     if command.kind == "start" and not any(
         receipt.command_id == command.id for receipt in before.resources.receipts
     ):
+        resources = remember_physician_origin(
+            resources, command, enabled=execution.physician_training
+        )
         if command.spell_id == "haste":
             # deferred: new private items use the same paid activation ledger.
             from wayfarer.engine.simulation.magic.haste_bindings import remember_item

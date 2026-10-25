@@ -2,7 +2,7 @@
 
 import json
 
-from pydantic import field_serializer
+from pydantic import Field, field_serializer
 
 from wayfarer.engine.rules.skills.mundane.social.attempts import InterrogationCoercion
 from wayfarer.engine.rules.skills.mundane.social.specialties import CampaignSocialSpecialties
@@ -40,6 +40,7 @@ class CapturedSocialContext(Record):
     standing: Standing | None = None
     audience: Audience = DEFAULT_AUDIENCE
     self_control_modifier: int = 0
+    self_control_trait_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS
     procedure_id: str | None = None
     skill_level: int = 0
@@ -50,6 +51,8 @@ class CapturedSocialContext(Record):
     campaign_specialties: CampaignSocialSpecialties | None = None
     coercion: InterrogationCoercion | None = None
     callous: bool = False
+    regular_contest_extremes: bool = Field(default=False, exclude_if=lambda value: not value)
+    interrogation_quick_contest: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @field_serializer("conditions")
     def ordered_conditions(self, value: frozenset[str]) -> tuple[str, ...]:
@@ -71,6 +74,7 @@ class CapturedSocialContext(Record):
             standing=self.standing,
             audience=self.audience,
             self_control_modifier=self.self_control_modifier,
+            self_control_trait_id=self.self_control_trait_id,
             influence_conditions=self.influence_conditions,
             procedure_id=self.procedure_id,
             skill_level=self.skill_level,
@@ -81,6 +85,8 @@ class CapturedSocialContext(Record):
             campaign_specialties=self.campaign_specialties,
             coercion=self.coercion,
             callous=self.callous,
+            regular_contest_extremes=self.regular_contest_extremes,
+            interrogation_quick_contest=self.interrogation_quick_contest,
         )
 
 

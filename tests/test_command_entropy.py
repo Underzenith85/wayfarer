@@ -13,6 +13,7 @@ from test_actions import actor_setup, campaign, engine, resource_seed, world
 from test_tactical import setup as hex_setup
 from test_wave14 import Table
 
+from scripts.replay_fixtures import FixtureExecutor
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice, draw_dice
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM, SeededRandom
@@ -20,16 +21,15 @@ from wayfarer.engine.simulation.actions import Inspect, Wait
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import (
-    CombatContext,
     CombatService,
     TakeCombatTurn,
-    reduce_combat,
 )
 from wayfarer.orchestration.entropy import CommandRandom, commit_command, token_seed
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import CommandEntropy
 from wayfarer.persistence.postgres import AsyncPostgresStore
+from wayfarer.persistence.replay import verify_commands
 from wayfarer.transport.common import RUNTIME_KEY
 
 
@@ -197,7 +197,8 @@ async def test_reference_adventure_seed_replays_checkpoint_and_is_private(tmp_pa
 async def test_hex_combat_reexecutes_from_seed(tmp_path: Path) -> None:
     cid, play = await hex_setup(tmp_path)
     play.rng = secrets
-    before = play._load(await play.store.read(cid))
+    initial = await play.store.read(cid)
+    before = play._load(initial)
     command = TakeCombatTurn(
         id="seeded-attack",
         actor_id="a",
@@ -211,10 +212,17 @@ async def test_hex_combat_reexecutes_from_seed(tmp_path: Path) -> None:
     result = await CombatService(play).execute(cid, command, principal_id="a")
     record = (await played(play.store, cid))[-1]
     assert record.reexecutable and record.entropy_seed
-    replay = PlayService(play.store, play.engine, rng=SeededRandom(record.entropy_seed))
-    state, replayed = reduce_combat(before, command, CombatContext(replay, before))
-    state = replay.checkpoint(state, before=before)
-    assert replayed == result and state == play._load(record.state_after)
+    # Replay the retained command policy as well as its seed and captured time.
+    replayed, checks = await verify_commands(
+        initial,
+        (record,),
+        [event for event in await play.store.stream(cid) if event.command_id == command.id],
+        configuration_digest=before.configuration_digest,
+        execute=FixtureExecutor(play.engine, tmp_path / "hex-command-replay"),
+    )
+    assert len(checks) == 1 and checks[0].folded and checks[0].reexecuted
+    assert replayed == record.state_after
+    assert play._load(replayed).last_combat_result == result
     access = build_runtime(play)
     for principal in ("alice", "bob", "gm", "spectator"):
         events = await access.events(cid, principal_id=principal, after=before.revision)

@@ -296,6 +296,7 @@ class CharacterCompiler:
                     d.id
                     for d in definitions
                     if d.source_id in policy.permitted_sources
+                    and d.status is ImplementationStatus.IMPLEMENTED
                     and (policy.allow_supernatural or "supernatural" not in d.hooks)
                 ),
             )
@@ -338,6 +339,47 @@ class CharacterCompiler:
                 for p in packages
             ):
                 raise ValidationError("Effect provenance does not match its pinned definition")
+
+    def default_skill_context(
+        self, purchases: tuple[Purchase, ...] | tuple[PurchasedEntry, ...]
+    ) -> DefaultContext:
+        """Derive acquisition and default facts from the exact purchased build.
+
+        Live consumers may reuse the character compiler's context without
+        dropping Magery, background admission, TL or campaign-selected defaults.
+        This does not infer physical equipment or biographical facts.
+        """
+        selected = frozenset(p.definition_id for p in purchases)
+        return DefaultContext(
+            technology_levels={
+                p.definition_id: p.technology_level
+                for p in purchases
+                if p.technology_level is not None
+            },
+            equipment_ids=frozenset(),
+            purchased_definition_ids=selected,
+            capabilities=frozenset(
+                ({"flight"} if "advantage:flight" in selected else set())
+                | (
+                    {"aquatic"}
+                    if selected & {"advantage:amphibious", "disadvantage:aquatic"}
+                    else set()
+                )
+                | (
+                    {"literacy"}
+                    if any(
+                        identifier.startswith("trait:language-") and identifier.endswith("-written")
+                        for identifier in selected
+                    )
+                    else set()
+                )
+            ),
+            campaign_technology_level=self.policy.technology_level,
+            purchased_definition_levels={p.definition_id: p.amount for p in purchases},
+            campaign_defaults=frozenset()
+            if self.campaign_skill_specialties is None
+            else self.campaign_skill_specialties.default_selections(),
+        )
 
     def compile(self, value: object, *, dry_run: bool = False) -> Compilation:
         diagnostics: list[Diagnostic] = []
@@ -665,11 +707,6 @@ class CharacterCompiler:
                 return int(adjusted)
 
             try:
-                technology_levels = {
-                    purchase.definition_id: purchase.technology_level
-                    for purchase in draft.purchases
-                    if purchase.technology_level is not None
-                }
                 compiled_skills = self.skills.compile(
                     {
                         p.definition_id: p.amount
@@ -678,35 +715,7 @@ class CharacterCompiler:
                     },
                     skill_attributes,
                     adjust_skill,
-                    DefaultContext(
-                        technology_levels,
-                        frozenset(),
-                        frozenset(selected),
-                        frozenset(
-                            ({"flight"} if "advantage:flight" in selected else set())
-                            | (
-                                {"aquatic"}
-                                if selected & {"advantage:amphibious", "disadvantage:aquatic"}
-                                else set()
-                            )
-                            | (
-                                {"literacy"}
-                                if any(
-                                    identifier.startswith("trait:language-")
-                                    and identifier.endswith("-written")
-                                    for identifier in selected
-                                )
-                                else set()
-                            )
-                        ),
-                        self.policy.technology_level,
-                        purchased_definition_levels={
-                            purchase.definition_id: purchase.amount for purchase in draft.purchases
-                        },
-                        campaign_defaults=frozenset()
-                        if self.campaign_skill_specialties is None
-                        else self.campaign_skill_specialties.default_selections(),
-                    ),
+                    self.default_skill_context(draft.purchases),
                 )
                 bases.update(
                     {

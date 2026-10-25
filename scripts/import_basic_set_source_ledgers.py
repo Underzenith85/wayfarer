@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import re
 import unicodedata
@@ -582,12 +583,23 @@ def write_ledger(output: Path, ledger_type: str, rows: list[LedgerRow]) -> None:
     )
 
 
+def require_selected_sources(characters: Path, campaigns: Path) -> None:
+    """Refuse to label a different artifact with the frozen baseline's identity."""
+    for source_id, path in (("characters-third", characters), ("campaigns-fourth", campaigns)):
+        with path.open("rb") as source:
+            observed = hashlib.file_digest(source, "sha256").hexdigest()
+        if observed != SOURCE_DIGESTS[source_id]:
+            raise ValueError(f"Selected source SHA-256 mismatch for {source_id}: {path}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--characters", type=Path, required=True)
     parser.add_argument("--campaigns", type=Path, required=True)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
+    # Check both artifacts before parsing or creating/replacing any ledger.
+    require_selected_sources(args.characters, args.campaigns)
     output = args.root / "src/wayfarer/certification/basic_set_audit"
     output.mkdir(parents=True, exist_ok=True)
     ledgers = {

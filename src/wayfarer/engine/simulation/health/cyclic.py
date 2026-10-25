@@ -11,6 +11,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.cyclic import CyclicAttack, CyclicOccurrence
 from wayfarer.engine.rules.types.cyclic_runtime import additional_symptoms
 from wayfarer.engine.rules.types.hazard import RecoveryRestriction
+from wayfarer.engine.simulation.equipment.corrosion_state import erode
 from wayfarer.engine.simulation.health.cyclic_host_state import binding
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.hit_locations import effective_dr
@@ -91,9 +92,11 @@ def settle(
         )
     )
     resisted = check is not None and check.outcome.succeeded
-    dice = () if resisted or immune else draw_dice(rng, attack.damage_dice)
+    armor_only = _immune_armor(current)
+    dice = () if resisted or (immune and not armor_only) else draw_dice(rng, attack.damage_dice)
     damage = sum(dice)
     hp_lost = fp_lost = 0
+    state = _erode_immune_armor(state, current, occurrence, damage)
     if not resisted and not immune:
         if attack.damage_type == "fat":
             amount = (
@@ -150,6 +153,7 @@ def settle(
                 shield_item_ids=() if current is None else current.shield_item_ids,
                 dx=None if current is None else current.dx,
                 ignore_dr=host is not None and (host.bypass_dr or host.disease),
+                corrosion=None if current is None else current.corrosion,
             )
             hp_lost = injury.injury
     if attack.symptom_spec is not None and attack.symptom_source_id is not None and not resisted:
@@ -199,6 +203,27 @@ def settle(
             )
         }
     )
+
+
+def _immune_armor(current: CyclicTargetContext | None) -> bool:
+    return (
+        current is not None
+        and current.immune_to_damage
+        and current.corrosion is not None
+        and current.corrosion.item_id is not None
+        and current.corrosion.resistance > 0
+    )
+
+
+def _erode_immune_armor(
+    state: ResourceState, current: CyclicTargetContext | None, occurrence: str, damage: int
+) -> ResourceState:
+    if not _immune_armor(current):
+        return state
+    assert current is not None and current.corrosion is not None
+    # A dead wearer gains no injury or recovery debt; its worn armor remains
+    # exposed to this independently rolled external corrosion packet (B379).
+    return erode(state, current.corrosion, occurrence, damage)
 
 
 def stop(state: ResourceState, command: StopCyclic, *, system: bool = False) -> ResourceState:

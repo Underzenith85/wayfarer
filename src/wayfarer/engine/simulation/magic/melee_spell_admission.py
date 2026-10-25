@@ -1,11 +1,14 @@
 """Current source-approved personal Deathtouch and actual combat contact admission."""
 
 import hashlib
+from typing import Literal
 
 from wayfarer.engine.rules.magic.body_control import package as body_package
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, fatigue_ready
 from wayfarer.engine.simulation.campaign.party import synchronous
+from wayfarer.engine.simulation.combat.generations import staff_form_contact_enabled
+from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.backfires import forgotten, require_settled
 from wayfarer.engine.simulation.magic.concentration import (
@@ -24,6 +27,8 @@ from wayfarer.engine.simulation.magic.melee_spell_state import (
 from wayfarer.engine.simulation.magic.melee_staff_carrier import carrier_digest
 from wayfarer.engine.simulation.magic.rituals import require_ordinary_ritual
 from wayfarer.engine.simulation.magic.spell_state import latest
+from wayfarer.engine.simulation.magic.staff_combat import require_staff_mode
+from wayfarer.engine.simulation.magic.staff_state import require_staff_construction
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.simulation.traits.size_forms import require_native_size
 from wayfarer.errors import ConflictError, ValidationError
@@ -182,6 +187,10 @@ def prepare_contact(
     ):
         raise ConflictError("Held Melee spell carrier changed")
     admit_target(runtime, state, defender_id)
+    form_generation: Literal[1] | None = None
+    if isinstance(charge.carrier, StaffCarrier) and staff_form_contact_enabled():
+        _require_staff_attack(runtime, state, attacker_id, charge.carrier.item_id, mode_id)
+        form_generation = 1
     event = cast_event(state.resources, charge.cast_id)
     return MeleeSpellContact(
         pending_id=pending_id,
@@ -195,6 +204,16 @@ def prepare_contact(
         carrier_item_id=carrier_item_id,
         mode_id=mode_id,
         energy=charge.energy,
+        staff_form_generation=form_generation,
+    )
+
+
+def _require_staff_attack(
+    runtime: RulesContext, state: PlayState, actor_id: str, item_id: str, mode_id: str | None
+) -> None:
+    require_staff_mode(
+        require_staff_construction(state.resources, item_id),
+        mode(runtime, state, actor_id, item_id, mode_id),
     )
 
 
@@ -214,3 +233,7 @@ def validate_contact(runtime: RulesContext, state: PlayState, contact: MeleeSpel
     ):
         raise ConflictError("Melee contact carrier changed")
     admit_target(runtime, state, contact.defender_id)
+    if contact.staff_form_generation == 1 and isinstance(charge.carrier, StaffCarrier):
+        _require_staff_attack(
+            runtime, state, contact.attacker_id, charge.carrier.item_id, contact.mode_id
+        )

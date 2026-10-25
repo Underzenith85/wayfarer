@@ -53,6 +53,7 @@ def prepare_malediction(
     definitions: Mapping[str, RuleDefinition],
     *,
     current_conditions: bool = False,
+    cap_offered_resistance: bool = False,
 ) -> MaledictionPreparation:
     assert build.statistics is not None and target.statistics is not None
     if context.maneuver != "concentrate":
@@ -77,11 +78,27 @@ def prepare_malediction(
         penalties += check_modifiers(state, actor_id, "will")
     attacker = Contestant(actor_id, build.statistics.will, penalties)
     if not context.resist:
+        cap = (
+            rule_of_16_modifier(
+                PROFILE,
+                attacker,
+                prepare_resister(
+                    state,
+                    target,
+                    profile,
+                    context,
+                    definitions,
+                    current_conditions=current_conditions,
+                ),
+            )
+            if cap_offered_resistance and context.target_living_or_sapient
+            else ()
+        )
         return MaledictionPreparation(
             attacker=attacker,
             resister=None,
             spec=AttackRollSpec(
-                profile_id=PROFILE, target=attacker.base_target, modifiers=penalties
+                profile_id=PROFILE, target=attacker.base_target, modifiers=penalties + cap
             ),
         )
     require_capabilities(
@@ -98,7 +115,12 @@ def prepare_malediction(
         spec=AttackRollSpec(
             profile_id=PROFILE,
             target=attacker.base_target,
-            modifiers=penalties + rule_of_16_modifier(PROFILE, attacker, resister),
+            modifiers=penalties
+            + (
+                rule_of_16_modifier(PROFILE, attacker, resister)
+                if not cap_offered_resistance or context.target_living_or_sapient
+                else ()
+            ),
             rule_id=RESISTANCE_CAPABILITY,
         ),
     )

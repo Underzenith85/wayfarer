@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -15,10 +17,13 @@ from wayfarer.engine.rules.checks import (
 )
 from wayfarer.engine.rules.gurps_checks import (
     Contestant,
+    RegularContestTrace,
     RepeatedAttemptPolicy,
     quick_contest,
     regular_contest,
     regular_contest_adjustment,
+    regular_contest_adjustments,
+    regular_contest_round,
     repeated_attempt,
     replay_quick_contest,
     replay_regular_contest,
@@ -86,16 +91,72 @@ def test_quick_contest_is_antisymmetric_and_margin_driven(
     assert replay_quick_contest(forward) == forward
 
 
-@given(st.integers(-5, 30), st.integers(-5, 30))
-def test_regular_contest_levelling_only_moves_both_extremes(first: int, second: int) -> None:
-    adjustment = regular_contest_adjustment(Contestant("a", first), Contestant("b", second))
+@given(st.integers(-5, 1000), st.integers(-5, 1000))
+def test_regular_contest_extremes_follow_selected_b349(first: int, second: int) -> None:
+    a, b = regular_contest_adjustments(Contestant("a", first), Contestant("b", second))
     high, low = max(first, second), min(first, second)
-    if low > 14:
-        assert high + adjustment == 14 and adjustment < 0
-    elif high < 6:
-        assert low + adjustment == 6 and adjustment > 0
+    adjusted = (first + a, second + b)
+    if low > 20:
+        assert adjusted == (first * 10 // low, second * 10 // low)
+    elif high <= 6 or low >= 14:
+        assert min(adjusted) == 10 and a == b
     else:
-        assert adjustment == 0
+        assert adjusted == (first, second)
+
+
+@pytest.mark.parametrize(
+    "first,second,expected",
+    [
+        (5, 3, (12, 10)),
+        (19, 16, (13, 10)),
+        (600, 500, (12, 10)),
+        (500, 660, (10, 13)),
+        (14, 14, (10, 10)),
+        (6, 6, (10, 10)),
+        (7, 6, (7, 6)),
+        (14, 13, (14, 13)),
+        (21, 20, (11, 10)),
+    ],
+)
+def test_printed_regular_extremes_and_boundaries(
+    first: int, second: int, expected: tuple[int, int]
+) -> None:
+    a, b = regular_contest_round(
+        BASIC,
+        Contestant("a", first),
+        Contestant("b", second),
+        rng=RecordedDice((3, 3, 3, 4, 4, 3)),
+    )
+    assert (a.effective_target, b.effective_target) == expected
+
+
+def test_regular_extremes_use_effective_skills_and_record_separate_deltas() -> None:
+    bonus = Modifier(100, "scenario", "fixture", "1")
+    trace = regular_contest(
+        BASIC,
+        Contestant("a", 560, (bonus,)),
+        Contestant("b", 500),
+        rng=RecordedDice((4, 4, 4, 4, 4, 3)),
+    )
+    a, b = trace.rounds[0]
+    assert (a.effective_target, b.effective_target) == (13, 10)
+    assert a.modifiers[0] == bonus
+    assert (a.modifiers[-1].value, b.modifiers[-1].value) == (-647, -490)
+    assert trace.adjustment == -647
+    assert replay_regular_contest(trace) == trace
+
+
+def test_historical_regular_receipt_replays_old_shared_levelling() -> None:
+    first, second = Contestant("a", 18), Contestant("b", 16)
+    a, b = regular_contest_round(
+        BASIC, first, second, rng=RecordedDice((5, 5, 5, 4, 4, 4)), source_extremes=False
+    )
+    assert (a.effective_target, b.effective_target) == (14, 12)
+    trace = RegularContestTrace(BASIC, "a", "b", -4, ((a, b),), "b")
+    assert replay_regular_contest(trace) == trace
+    with pytest.raises(ValidationError, match="does not match"):
+        replay_regular_contest(replace(trace, winner="a"))
+    assert regular_contest_adjustment(first, second) == -4
 
 
 @settings(max_examples=60)
@@ -178,9 +239,9 @@ def test_regular_contest_replay_rejects_tampered_receipts() -> None:
         BASIC,
         Contestant("a", 18),
         Contestant("b", 16),
-        rng=RecordedDice([3, 3, 3, 3, 3, 3, 5, 5, 5, 4, 4, 4]),
+        rng=RecordedDice([3, 3, 3, 3, 3, 3, 4, 4, 3, 4, 4, 4]),
     )
-    assert trace.adjustment == -4 and len(trace.rounds) == 2
+    assert trace.adjustment == -6 and len(trace.rounds) == 2
     tampered = type(trace)(
         trace.profile_id,
         trace.first_id,

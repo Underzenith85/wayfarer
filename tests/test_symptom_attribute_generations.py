@@ -155,7 +155,7 @@ async def test_indexed_input_distinguishes_absent_legacy_and_current_rows(
     assert captured == text and not generation
 
 
-@pytest.mark.parametrize("bad", [None, 0, 2, True, "1"])
+@pytest.mark.parametrize("bad", [None, 0, 4, True, "1"])
 async def test_future_or_malformed_generation_rejects_before_resolution(
     tmp_path: Path, bad: object
 ) -> None:

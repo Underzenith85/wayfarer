@@ -17,7 +17,19 @@ from wayfarer.engine.simulation.actions import (
     UseItem,
     Wait,
 )
+from wayfarer.engine.simulation.campaign.default_knowledge import adopted
+from wayfarer.engine.simulation.campaign.default_knowledge_producers import (
+    enabled as captured_default_knowledge,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_producers import (
+    mark as mark_default_knowledge,
+)
+from wayfarer.engine.simulation.campaign.default_knowledge_producers import (
+    required as required_default_knowledge,
+)
 from wayfarer.engine.simulation.campaign.encounter_context import activity_for
+from wayfarer.engine.simulation.campaign.minimum_skill_state import enabled as captured_minimum
+from wayfarer.engine.simulation.campaign.minimum_skill_state import mark as mark_minimum
 from wayfarer.engine.simulation.campaign.party import (
     ActivityReceipt,
     PendingEffect,
@@ -26,6 +38,10 @@ from wayfarer.engine.simulation.campaign.party import (
     group_for,
     migrate,
 )
+from wayfarer.engine.simulation.campaign.skill_context_state import (
+    enabled as captured_skill_context,
+)
+from wayfarer.engine.simulation.campaign.skill_context_state import mark as mark_skill_context
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.enchanting import busy_actor_ids as enchanting_actor_ids
@@ -34,7 +50,10 @@ from wayfarer.engine.simulation.resources import Advance, Transfer
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
+from wayfarer.orchestration.noncombat_generations import minimum_effective_skill as current_minimum
+from wayfarer.orchestration.noncombat_generations import skill_prerequisite_context
 from wayfarer.orchestration.npcs import due_times
+from wayfarer.orchestration.party_checks import preflight_due, require_activity_minimum
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.scenes import SceneService, TravelScene
 
@@ -56,12 +75,21 @@ class PartyCommand(ActionCommand):
     activity_json: str | None = Field(default=None, max_length=10000)
 
 
+_CONTEXT_CAPTURE = {"queue_activity": skill_prerequisite_context}
+_MINIMUM_CAPTURE = {"queue_activity": current_minimum}
+
+
 class PartyService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
     def _duration(
-        self, state: PlayState, command: PartyCommand
+        self,
+        state: PlayState,
+        command: PartyCommand,
+        *,
+        minimum_effective_skill: bool = False,
+        correct_skill_context: bool = False,
     ) -> tuple[int, str, Literal["action", "noncombat", "scene"]]:
         if command.activity_json is None:
             raise ValidationError("Queued activity is required")
@@ -147,6 +175,14 @@ class PartyService:
             or typed.expected_revision != command.expected_revision
         ):
             raise ValidationError("Queued activity has invalid authority or revision")
+        require_activity_minimum(
+            self.play,
+            state,
+            typed,
+            family,
+            enabled=minimum_effective_skill,
+            correct_skill_context=correct_skill_context,
+        )
         # Bind the inner identity to the outer durable command; never reuse a client subcommand ID.
         return (
             duration,
@@ -219,6 +255,7 @@ class PartyService:
             activities = sorted(
                 (q for q in state.party.queue if q.due == at), key=lambda q: (q.group_id, q.id)
             )
+            rejected = preflight_due(self.play, state, activities)
             for activity in activities:
                 revision = state.revision
                 state = state.model_copy(
@@ -241,6 +278,8 @@ class PartyService:
                 status: Literal["committed", "rejected"] = "committed"
                 code = "activity.resolved"
                 try:
+                    if activity.id in rejected:
+                        raise ValidationError("Queued check is no longer admissible")
                     if activity.family == "action":
                         action = ACTION_ADAPTER.validate_json(activity.command_json).model_copy(
                             update={"expected_revision": revision - 1}
@@ -250,12 +289,39 @@ class PartyService:
                             update={"revision": revision, "resources": state.resources}
                         )
                         action = action.model_copy(update={"expected_revision": revision})
+                        require_activity_minimum(
+                            self.play,
+                            working,
+                            action,
+                            "action",
+                            enabled=captured_minimum(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
+                            correct_skill_context=captured_skill_context(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
+                            correct_default_knowledge=captured_default_knowledge(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
+                            require_default_knowledge=required_default_knowledge(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
+                        )
                         state, resolved_events = self.play.engine.resolve(
                             working,
                             action,
                             rng=self.play.rng,
                             advance_time=False,
                             correct_symptom_attributes=self.play.rules_context.correct_symptom_attributes,
+                            correct_skill_context=captured_skill_context(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
+                            correct_default_knowledge=captured_default_knowledge(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
+                            require_default_knowledge=required_default_knowledge(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
                         )
                         result = action_result(resolved_events)
                         if result.status != "committed":
@@ -287,7 +353,15 @@ class PartyService:
                             activity.command_json
                         ).model_copy(update={"expected_revision": revision - 1})
                         state = NoncombatService(self.play).reduce(
-                            working, action_nc, advance_time=False
+                            working,
+                            action_nc,
+                            advance_time=False,
+                            minimum_effective_skill=captured_minimum(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
+                            correct_skill_context=captured_skill_context(
+                                working.resources, "queued-activity", activity.id, activity.actor_id
+                            ),
                         )
                 except ValidationError, ConflictError:
                     state, status, code = before, "rejected", "activity.no_longer_feasible"
@@ -305,7 +379,14 @@ class PartyService:
             state = self.play.checkpoint(state)
         return state
 
-    def reduce(self, state: PlayState, command: PartyCommand) -> PlayState:
+    def reduce(
+        self,
+        state: PlayState,
+        command: PartyCommand,
+        *,
+        correct_skill_context: bool = False,
+        minimum_effective_skill: bool = False,
+    ) -> PlayState:
 
         guard(state, command.actor_id, command.kind)
         state = migrate(state)
@@ -323,7 +404,12 @@ class PartyService:
                 raise ConflictError("Actor is committed to full-time invention work")
             if command.actor_id in enchanting_actor_ids(state.resources.enchantment_projects):
                 raise ConflictError("Actor is committed to enchanting work")
-            duration, body, family = self._duration(state, command)
+            duration, body, family = self._duration(
+                state,
+                command,
+                minimum_effective_skill=minimum_effective_skill,
+                correct_skill_context=correct_skill_context,
+            )
             activity = QueuedActivity(
                 id=command.id,
                 group_id=group.id,
@@ -339,9 +425,38 @@ class PartyService:
             group = group.model_copy(update={"ready_through": activity.due})
             state = state.model_copy(
                 update={
+                    "resources": mark_default_knowledge(
+                        state.resources,
+                        "queued-activity",
+                        command.id,
+                        command.actor_id,
+                        enabled=self.play.rules_context.correct_default_knowledge
+                        and (
+                            self.play.rules_context.require_default_knowledge
+                            or adopted(state, command.actor_id)
+                        ),
+                        required=self.play.rules_context.require_default_knowledge,
+                    )
+                }
+            )
+            state = state.model_copy(
+                update={
+                    "resources": mark_skill_context(
+                        mark_minimum(
+                            state.resources,
+                            "queued-activity",
+                            command.id,
+                            command.actor_id,
+                            enabled=minimum_effective_skill,
+                        ),
+                        "queued-activity",
+                        command.id,
+                        command.actor_id,
+                        enabled=correct_skill_context,
+                    ),
                     "party": state.party.model_copy(
                         update={"queue": state.party.queue + (activity,)}
-                    )
+                    ),
                 }
             )
         elif command.kind in ("pause_group", "resume_group"):
@@ -496,14 +611,31 @@ class PartyService:
         )
         return self.flush(state)
 
-    def plan(self, command: PartyCommand) -> CommandPlan[PlayState]:
+    def plan(
+        self,
+        command: PartyCommand,
+        *,
+        correct_skill_context: bool = False,
+        minimum_effective_skill: bool = False,
+    ) -> CommandPlan[PlayState]:
         """What a subgroup command writes; the pipeline decides whether it runs."""
         payload = json.dumps(
-            {"operation": "party", "command": command.model_dump(mode="json")}, sort_keys=True
+            {
+                "operation": "party",
+                "command": command.model_dump(mode="json"),
+                **({"skill_prerequisite_context_generation": 1} if correct_skill_context else {}),
+                **({"minimum_effective_skill_generation": 1} if minimum_effective_skill else {}),
+            },
+            sort_keys=True,
         )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
-            state = self.reduce(self.play._load(campaign), command)
+            state = self.reduce(
+                self.play._load(campaign),
+                command,
+                correct_skill_context=correct_skill_context,
+                minimum_effective_skill=minimum_effective_skill,
+            )
             self.play.commit(campaign, state)
             return CommandReceipt(action="party", outcome=command.kind)
 
@@ -527,4 +659,15 @@ class PartyService:
             command = PartyCommand.model_validate(value)
         except ValueError as exc:
             raise ValidationError("Invalid subgroup command") from exc
-        return await submit(self.play, cid, self.plan(command), principal_id=principal_id)
+        capture = _CONTEXT_CAPTURE.get(command.kind)
+        context = False if capture is None else await capture(self.play, cid, command.id)
+        capture_minimum = _MINIMUM_CAPTURE.get(command.kind)
+        minimum = (
+            False if capture_minimum is None else await capture_minimum(self.play, cid, command.id)
+        )
+        return await submit(
+            self.play,
+            cid,
+            self.plan(command, correct_skill_context=context, minimum_effective_skill=minimum),
+            principal_id=principal_id,
+        )

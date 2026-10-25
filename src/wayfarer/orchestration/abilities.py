@@ -3,6 +3,7 @@
 from dataclasses import dataclass, replace
 
 from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.supernatural.abilities import fatigue_cost, validate_binding
 from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec
 from wayfarer.engine.rules.traits.base import TraitOptions
@@ -12,8 +13,11 @@ from wayfarer.engine.simulation.abilities import (
     AbilityContext,
     apply_ability,
     internal_id,
+    mind_reading_attacker,
     validate_target,
 )
+from wayfarer.engine.simulation.ability_offshift import matching
+from wayfarer.engine.simulation.ability_offshift import record as record_offshift
 from wayfarer.engine.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import injury_turn
@@ -26,9 +30,16 @@ from wayfarer.engine.simulation.equipment.gadget_limitations import (
     resolve_gadget_availability,
 )
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchanting_free
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
+from wayfarer.engine.simulation.traits.malediction_scope import target_cap_scope
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.ability_boundary import AbilityAdmission
+from wayfarer.orchestration.ability_offshift_generations import capture as capture_offshift
+from wayfarer.orchestration.ability_offshift_generations import payload as offshift_payload
+from wayfarer.orchestration.ability_rule16_generations import capture as capture_scope
+from wayfarer.orchestration.ability_rule16_generations import payload as scope_payload
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Controls, Seats, submit
 from wayfarer.orchestration.play import PlayService
@@ -40,6 +51,8 @@ ABILITY_REFUSAL = "Ability actor is not controlled by principal"
 @dataclass(frozen=True)
 class AbilityExecutionContext:
     play: PlayService
+    rule16_scope: bool = False
+    offshift: bool = False
 
 
 def _require_gadget_available(
@@ -68,14 +81,73 @@ def _require_gadget_available(
         raise ValidationError(f"Gadget ability unavailable: {availability.reason}")
 
 
+def _target_scope(
+    execution: AbilityExecutionContext,
+    state: PlayState,
+    spec: AbilitySpec,
+    command: AbilityCommand,
+    target: ValidatedBuild,
+    target_id: str,
+) -> bool:
+    if (
+        not execution.rule16_scope
+        or spec.kind not in ("burning-malediction", "mind-reading")
+        or command.kind not in ("activate", "resolve")
+    ):
+        return True
+    return target_cap_scope(execution.play.rules_context, state, target, target_id)
+
+
+def _offshift_admission(
+    state: PlayState,
+    command: AbilityCommand,
+    execution: AbilityExecutionContext,
+) -> bool:
+    if command.kind == "cancel":
+        return False
+    captured = matching(state.resources, command)
+    continuation = captured is not None and command.kind in ("resolve", "cancel")
+    enabled = execution.offshift or continuation
+    if not enabled:
+        return False
+    if state.party.groups or any(e.status == "active" for e in state.encounters):
+        raise ConflictError("Off-shift abilities require an individual noncombat clock")
+    rules = execution.play.engine.rules.abilities
+    spec = (
+        next((a for a in rules.abilities if a.definition_id == command.ability_id), None)
+        if rules
+        else None
+    )
+    if (
+        spec is None
+        or spec.kind != "mind-reading"
+        or command.kind not in ("activate", "resolve", "cancel")
+    ):
+        raise ValidationError("Unsupported off-shift ability operation")
+    if command.kind == "activate":
+        require_enchanting_free(
+            state.resources, command.actor_id, through=state.resources.game_time + 1
+        )
+    return True
+
+
 def _prepare_ability(
     state: PlayState, command: AbilityCommand, execution: AbilityExecutionContext
 ) -> tuple[PlayState, AbilitySpec, AbilityContext, Encounter | None]:
     play = execution.play
     guard(state, command.actor_id, "ability")
+    offshift = _offshift_admission(state, command, execution)
     if command.kind != "cancel":
         require_innate_actor_action(state, command.actor_id)
-        synchronous(state, command.actor_id)
+        captured = matching(state.resources, command)
+        synchronous(
+            state,
+            command.actor_id,
+            enchanting_rest=offshift,
+            activity_started_at=captured.effect.started_at
+            if captured and command.kind == "resolve"
+            else None,
+        )
         require_hazards_settled(
             state.resources.hazards, frozenset({command.actor_id}), state.resources.game_time
         )
@@ -113,6 +185,7 @@ def _prepare_ability(
     target = next((a for a in state.actors if channel and a.actor_id == channel.target_id), None)
     target_values: dict[str, int] = {}
     target_psi_static = False
+    target_scope = True
     if target is not None:
         target_build, _ = play.engine.reviewer.activate(
             target.proposal,
@@ -121,6 +194,7 @@ def _prepare_ability(
             actor_id=target.actor_id,
         )
         target_values = {v.target: int(v.value) for v in target_build.sheet.values}
+        target_scope = _target_scope(execution, state, spec, command, target_build, target.actor_id)
         target_psi_static = any(
             p.definition_id == "advantage:psi-static" for p in target_build.purchases
         )
@@ -175,6 +249,7 @@ def _prepare_ability(
         target_values.get("attribute:ht", 10),
         channel=channel,
         target_psi_static=target_psi_static,
+        target_living_or_sapient=target_scope,
         interrupted=incapacitated,
         unavailable=incapacitated and taking_turn,
         shock=hp.injury.shock if hp.injury else 0,
@@ -212,9 +287,16 @@ def reduce_ability(
     play = execution.play
     state, spec, context, encounter = _prepare_ability(state, command, execution)
     taking_turn = command.kind in ("activate", "analyze")
+    captured = matching(state.resources, command)
+    if captured is not None and command.kind == "resolve":
+        attacker = mind_reading_attacker(state.resources, command, context, captured.effect)
+        if attacker.base_target + sum(m.value for m in attacker.modifiers) < 3:
+            raise ValidationError("Voluntary Mind Reading effective skill is below 3")
     resources, world, result = apply_ability(
         state.resources, state.world, command, spec, context, rng=play.rng, system=True
     )
+    if execution.offshift and command.kind == "activate":
+        resources = record_offshift(resources, command)
     updated = state.model_copy(
         update={
             "revision": resources.revision,
@@ -333,8 +415,17 @@ class AbilityService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    def reduce(self, state: PlayState, command: AbilityCommand) -> PlayState:
-        updated, _ = reduce_ability(state, command, AbilityExecutionContext(self.play))
+    def reduce(
+        self,
+        state: PlayState,
+        command: AbilityCommand,
+        *,
+        rule16_scope: bool = False,
+        offshift: bool = False,
+    ) -> PlayState:
+        updated, _ = reduce_ability(
+            state, command, AbilityExecutionContext(self.play, rule16_scope, offshift)
+        )
         return updated
 
     def plan(
@@ -345,14 +436,18 @@ class AbilityService:
         command: AbilityCommand,
         *,
         principal_id: str,
+        rule16_scope: bool = False,
+        offshift: bool = False,
     ) -> CommandPlan[AbilityOutcome]:
         """What an ability use writes; the pipeline decides whether it runs."""
         service = AbilityService(play)
-        payload = principal_id + ":" + command.model_dump_json()
+        payload = offshift_payload(
+            scope_payload(principal_id, command, rule16_scope), principal_id, command, offshift
+        )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = play._load(campaign)
-            updated = service.reduce(current, command)
+            updated = service.reduce(current, command, rule16_scope=rule16_scope, offshift=offshift)
             updated = play.checkpoint(updated, before=current)
             play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome="ability")
@@ -374,6 +469,7 @@ class AbilityService:
                 Controls(member, command.actor_id, ABILITY_REFUSAL),
             ),
             rng=play.rng,
+            ability_admission=AbilityAdmission(command),
         )
 
     async def execute(self, cid: str, value: object, *, principal_id: str) -> AbilityOutcome:
@@ -381,9 +477,34 @@ class AbilityService:
         play = self.play.for_campaign(await self.play.store.read(cid))
         state = play._load(await play.store.read(cid))
         member = member_for(state, principal_id)
+        scope = await capture_scope(play.store, cid, command.id)
+        rules = play.engine.rules.abilities
+        eligible = (
+            command.kind == "activate"
+            and rules is not None
+            and any(
+                a.definition_id == command.ability_id and a.kind == "mind-reading"
+                for a in rules.abilities
+            )
+            and any(
+                p.active_work is not None
+                and p.status == "active"
+                and command.actor_id in p.enchanter_ids
+                for p in state.resources.enchantment_projects
+            )
+        )
+        offshift = await capture_offshift(play.store, cid, command.id, eligible=eligible)
         return await submit(
             play,
             cid,
-            self.plan(play, state, member, command, principal_id=principal_id),
+            self.plan(
+                play,
+                state,
+                member,
+                command,
+                principal_id=principal_id,
+                rule16_scope=scope,
+                offshift=offshift,
+            ),
             principal_id=principal_id,
         )

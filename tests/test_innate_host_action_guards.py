@@ -82,7 +82,7 @@ async def test_real_critical_blocks_free_inventory_drop_until_first_next_turn(
     from wayfarer.engine.simulation.equipment.world_ground import WorldGroundCommand
     from wayfarer.orchestration.size_forms import SizeFormService
 
-    cid, play, source = await fixture(tmp_path, backend)
+    cid, play, source = await fixture(tmp_path, backend, society_knows_beam=True)
     await declare(play, cid, source)
     play.rng = RecordedDice((6, 6, 6, 1, 1, 5))
     await defense(play, cid)

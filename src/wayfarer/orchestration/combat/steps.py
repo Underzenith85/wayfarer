@@ -6,6 +6,10 @@ from collections.abc import Callable
 from dataclasses import replace
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.default_knowledge_policy import (
+    bind as bind_default_knowledge,
+)
+from wayfarer.engine.simulation.combat.attack_policy import bind_pending, bind_wait
 from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
     StartBasicEncounter,
@@ -17,6 +21,10 @@ from wayfarer.engine.simulation.combat.commands import (
 from wayfarer.engine.simulation.combat.concentrate_steps import capture_resolutions, resolutions
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.maneuver_budget import begin
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    bind_pending as bind_ranged_pending,
+)
+from wayfarer.engine.simulation.combat.ranged_target_policy import bind_wait as bind_ranged_wait
 from wayfarer.engine.simulation.combat.sensory_state import invalidate_movement
 from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense_with_movement
 from wayfarer.engine.simulation.magic.staff_casting_state import (
@@ -88,7 +96,7 @@ def reduce_combat(
         )
         encounters = step.state.encounters + (step.encounter,)
     else:
-        encounter = _prepare_encounter(state, command, context)
+        encounter, context = _prepare_encounter(state, command, context)
         if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
             encounter = begin(context.play.rules_context, state, encounter)
         if lease is not None:
@@ -117,5 +125,21 @@ def reduce_combat(
         encounters = tuple(
             step.encounter if e.id == step.encounter.id else e for e in step.state.encounters
         )
+    pinned = bind_pending(
+        context.play.rules_context,
+        step.state.model_copy(update={"resources": step.resources}),
+        step.encounter,
+    )
+    if isinstance(command, TakeCombatTurn) and command.maneuver == "wait":
+        pinned = bind_wait(context.play.rules_context, pinned, step.encounter, command.actor_id)
+        pinned = bind_default_knowledge(
+            context.play.rules_context, pinned, step.encounter, wait_actor_id=command.actor_id
+        )
+        pinned = bind_ranged_wait(
+            context.play.rules_context, pinned, step.encounter, command.actor_id
+        )
+    pinned = bind_default_knowledge(context.play.rules_context, pinned, step.encounter)
+    pinned = bind_ranged_pending(context.play.rules_context, pinned, step.encounter)
+    step = replace(step, state=pinned, resources=pinned.resources)
     step, encounters = _settle_combat(step, command, encounters, context)
     return _finish_combat(step, command, encounters, context)

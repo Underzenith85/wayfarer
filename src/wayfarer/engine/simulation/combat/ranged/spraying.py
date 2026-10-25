@@ -6,7 +6,7 @@ from math import sqrt
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
@@ -16,6 +16,9 @@ from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
 from wayfarer.engine.simulation.combat.ranged.gunslinger import accuracy_bonus
 from wayfarer.engine.simulation.combat.ranged.situation import situation
+from wayfarer.engine.simulation.combat.ranged_target_policy import (
+    target_modifier as posture_target_modifier,
+)
 from wayfarer.engine.simulation.combat.suppression import ActiveSuppressionZone, PendingSprayTarget
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield
@@ -101,6 +104,17 @@ def prepare_spraying_fire(
             raise ValidationError("Spraying-fire target exceeds maximum weapon range")
         validate_target(
             runtime, state, encounter, command.actor_id, target_id, selected, hit_location
+        )
+        posture_target_modifier(
+            runtime,
+            state,
+            encounter,
+            command.actor_id,
+            target_id,
+            profile_id=catalog(runtime).profile_id,
+            location=hit_location,
+            pending_id=pending.id,
+            declaring=True,
         )
         if shots > selected.rate_of_fire or shots < selected.minimum_shots_per_attack:
             raise ValidationError("Each spraying-fire target requires a legal burst")

@@ -39,6 +39,7 @@ async def test_purchased_multi_symptom_cyclic_hit_and_source_bound_natural_recov
     cid, play, source = await fixture(
         tmp_path,
         backend,
+        society_knows_beam=True,
         modifiers=(cyclic_selection(),) + EFFECTS,
         levels=1,
         cyclic_policy=CyclicPolicy(condition="wash"),
@@ -187,8 +188,10 @@ async def test_seed_only_reexecution_of_multi_symptom_delivery(
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_purchased_multi_symptoms_critical_self_hit_binds_actual_source_and_limb(
     tmp_path: Path,
+    backend: str,
 ) -> None:
     from wayfarer.engine.simulation.health.cyclic_host_state import binding
     from wayfarer.engine.simulation.traits.composed_resolution import (
@@ -199,6 +202,8 @@ async def test_purchased_multi_symptoms_critical_self_hit_binds_actual_source_an
 
     cid, play, source = await fixture(
         tmp_path,
+        backend,
+        society_knows_beam=True,
         modifiers=(cyclic_selection(),) + EFFECTS,
         levels=1,
         cyclic_policy=CyclicPolicy(condition="wash"),
@@ -245,7 +250,9 @@ async def test_purchased_multi_symptoms_critical_self_hit_binds_actual_source_an
 async def test_persisted_reapproved_reordered_effects_continue_the_same_damage_source(
     tmp_path: Path, backend: str
 ) -> None:
-    cid, play, source = await fixture(tmp_path, backend, modifiers=EFFECTS, levels=1)
+    cid, play, source = await fixture(
+        tmp_path, backend, society_knows_beam=True, modifiers=EFFECTS, levels=1
+    )
     await declare(play, cid, source)
     play.rng = RecordedDice([2, 2, 2, 2])
     _, result = await defense(play, cid)

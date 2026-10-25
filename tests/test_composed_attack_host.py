@@ -14,11 +14,13 @@ from trait_support import options
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.skills.mundane.ranged import definitions as ranged_definitions
 from wayfarer.engine.rules.traits.attack_defense import RUNTIME_HOOKS, package
 from wayfarer.engine.rules.traits.modifiers import ModifierSelection
 from wayfarer.engine.rules.types.skill import ControllingAttribute, Difficulty, SkillSpec
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TakeCombatTurn
 from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
@@ -29,6 +31,7 @@ from wayfarer.engine.simulation.traits.composed_sources import BindComposedSourc
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.composed_attacks import ComposedAttackService
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.play import PlayService
 
 
@@ -41,6 +44,7 @@ async def fixture(
     distance: float = 2,
     dr: int = 0,
     skill_points: int = 0,
+    society_knows_beam: bool = False,
     levels: int = 2,
     armor: bool = False,
     bind_source: bool = True,
@@ -66,6 +70,8 @@ async def fixture(
         hooks=("character.gurps-skill", "check.target"),
         skill=SkillSpec(ControllingAttribute.DX, Difficulty.EASY, "B201"),
     )
+    if society_knows_beam:
+        innate = next(d for d in ranged_definitions() if d.id == innate.id)
     cid, original = await setup(
         path / "source",
         "gurps-basic-set-4e-2004",
@@ -105,6 +111,20 @@ async def fixture(
             }
         ),
     )
+    if society_knows_beam:
+        state = play._load(await play.store.read(cid))
+        await DefaultKnowledgeService(play).execute(
+            cid,
+            AdoptDefaultKnowledge(
+                id="beam-society-knowledge",
+                actor_id="gm",
+                expected_revision=state.revision,
+                performer_id="a",
+                known_skill_ids=("skill:innate-attack-beam",),
+                reason="The GM establishes Beam familiarity for this fresh attack scenario",
+            ),
+            principal_id="gm",
+        )
     state = play._load(await play.store.read(cid))
     if not bind_source:
         return cid, play, "unbound"
@@ -162,10 +182,22 @@ async def defense(
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
-async def test_persisted_composed_source_uses_real_turn_target_authority_damage_and_restart(
+async def test_fresh_untrained_beam_requires_explicit_gm_knowledge(
     tmp_path: Path, backend: str
 ) -> None:
     cid, play, source = await fixture(tmp_path, backend)
+    before = await play.store.read(cid)
+    with pytest.raises(ValidationError, match="requires GM society knowledge"):
+        await declare(play, cid, source)
+    assert await play.store.read(cid) == before
+    assert isinstance(play.rng, RecordedDice) and play.rng.exhausted()
+
+
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_persisted_composed_source_uses_real_turn_target_authority_damage_and_restart(
+    tmp_path: Path, backend: str
+) -> None:
+    cid, play, source = await fixture(tmp_path, backend, society_knows_beam=True)
     before = play._load(await play.store.read(cid))
     command = await declare(play, cid, source)
     state = play._load(await play.store.read(cid))
@@ -196,7 +228,10 @@ async def test_persisted_composed_source_uses_real_turn_target_authority_damage_
 
 async def test_purchased_divisor_applies_to_current_natural_dr(tmp_path: Path) -> None:
     cid, play, source = await fixture(
-        tmp_path, modifiers=(pick("enhancement:armor-divisor", option="2"),), dr=5
+        tmp_path,
+        society_knows_beam=True,
+        modifiers=(pick("enhancement:armor-divisor", option="2"),),
+        dr=5,
     )
     await declare(play, cid, source)
     play.rng = RecordedDice((2, 2, 2, 3, 3))
@@ -231,7 +266,7 @@ async def idle(play: PlayService, cid: str, actor: str = "b") -> None:
 async def test_accuracy_uses_an_actual_matching_spent_aim(
     tmp_path: Path, modifiers: tuple[ModifierSelection, ...], target: int, damage: int
 ) -> None:
-    cid, play, source = await fixture(tmp_path, modifiers=modifiers)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True, modifiers=modifiers)
     await declare(play, cid, source, kind="aim", identifier="aim")
     aimed = play._load(await play.store.read(cid))
     assert aimed.encounters[0].current_actor_id == "b"
@@ -253,7 +288,9 @@ async def test_accuracy_uses_an_actual_matching_spent_aim(
 async def test_fractional_range_uses_exact_threshold_without_truncation(
     tmp_path: Path, distance: float
 ) -> None:
-    cid, play, source = await fixture(tmp_path, skill_points=16, distance=distance)
+    cid, play, source = await fixture(
+        tmp_path, society_knows_beam=True, skill_points=16, distance=distance
+    )
     await declare(play, cid, source)
     play.rng = RecordedDice((3, 3, 3, 2, 3))
     _, result = await defense(play, cid)
@@ -274,7 +311,11 @@ async def test_approved_max_range_rejects_before_dice_and_spending(
     tmp_path: Path, modifiers: tuple[ModifierSelection, ...], maximum: float
 ) -> None:
     cid, play, source = await fixture(
-        tmp_path, skill_points=16, modifiers=modifiers, distance=maximum + 0.1
+        tmp_path,
+        society_knows_beam=True,
+        skill_points=16,
+        modifiers=modifiers,
+        distance=maximum + 0.1,
     )
     before = await play.store.read(cid)
     with pytest.raises(ValidationError, match="range"):
@@ -285,7 +326,11 @@ async def test_approved_max_range_rejects_before_dice_and_spending(
 
 async def test_current_worn_plus_natural_dr_and_changed_equipment(tmp_path: Path) -> None:
     cid, play, source = await fixture(
-        tmp_path, modifiers=(pick("enhancement:armor-divisor", option="2"),), dr=4, armor=True
+        tmp_path,
+        society_knows_beam=True,
+        modifiers=(pick("enhancement:armor-divisor", option="2"),),
+        dr=4,
+        armor=True,
     )
     await declare(play, cid, source)
     play.rng = RecordedDice((2, 2, 2, 3, 3))
@@ -298,7 +343,7 @@ async def test_current_worn_plus_natural_dr_and_changed_equipment(tmp_path: Path
 async def test_dodge_scores_current_encumbrance_not_compiled_base(
     tmp_path: Path, loaded: bool, expected: int
 ) -> None:
-    cid, play, source = await fixture(tmp_path)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True)
 
     # Remove shield DB and add 50lb in existing canonical leather units: Medium at ST10.
     def equipment(state: PlayState) -> PlayState:
@@ -380,6 +425,7 @@ async def test_target_controlled_malediction_spends_concentrate_bypasses_dr(
 
     cid, play, source = await fixture(
         tmp_path,
+        society_knows_beam=True,
         modifiers=(pick("enhancement:malediction", option="1"),),
         dr=20,
         distance=0.1,
@@ -414,7 +460,7 @@ async def test_stale_range_keeps_spent_commitment_and_abandonment_works(tmp_path
     from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack
     from wayfarer.orchestration.combat.abandon import AbandonPendingAttackService
 
-    cid, play, source = await fixture(tmp_path)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True)
     await declare(play, cid, source)
 
     def move_target(state: PlayState) -> PlayState:
@@ -471,7 +517,7 @@ def table_dice(total: int) -> tuple[int, int, int]:
 async def test_every_body_critical_row_applies_real_consequences(
     tmp_path: Path, row: int, loss: int
 ) -> None:
-    cid, play, source = await fixture(tmp_path, dr=1, levels=1)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True, dr=1, levels=1)
     await declare(play, cid, source)
     major = loss > 5 or row in (7, 13, 14)
     play.rng = RecordedDice(
@@ -500,7 +546,7 @@ async def test_every_body_critical_row_applies_real_consequences(
 
 
 async def test_ranged_failure_by_ten_does_not_draw_miss_table(tmp_path: Path) -> None:
-    cid, play, source = await fixture(tmp_path)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True)
     await declare(play, cid, source)
     play.rng = RecordedDice((5, 5, 6))  # skill6/16: ordinary ranged miss (B382).
     _, result = await defense(play, cid)
@@ -509,7 +555,7 @@ async def test_ranged_failure_by_ten_does_not_draw_miss_table(tmp_path: Path) ->
 
 
 async def test_critical_dodge_failure_causes_prone_without_a_miss_table(tmp_path: Path) -> None:
-    cid, play, source = await fixture(tmp_path)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True)
     await declare(play, cid, source)
     play.rng = RecordedDice((2, 2, 2, 6, 6, 6, 2, 2))
     _, result = await defense(play, cid, selected="dodge")
@@ -529,7 +575,7 @@ async def test_natural_critical_has_immutable_dice_and_executable_gm_continuatio
     )
     from wayfarer.engine.simulation.traits.innate_criticals import load_innate_critical
 
-    cid, play, source = await fixture(tmp_path)
+    cid, play, source = await fixture(tmp_path, society_knows_beam=True)
     await declare(play, cid, source)
     play.rng = RecordedDice((6, 6, 6, 3, 3, 3))
     defender_command, response = await defense(play, cid)

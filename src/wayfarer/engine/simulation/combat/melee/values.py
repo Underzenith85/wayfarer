@@ -7,7 +7,7 @@ from decimal import Decimal
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.mastery import parry_multiplier
 from wayfarer.engine.rules.effects import DerivedValue
-from wayfarer.engine.rules.tables.combat import minimum_strength_penalty
+from wayfarer.engine.rules.tables.combat import minimum_strength_penalty, posture_defense_modifier
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
 from wayfarer.engine.simulation.combat.combat_height import defense_height
@@ -331,7 +331,13 @@ def score_defense(
         + (-1 if selected == "dodge" else -2) * int(participant.grappled)
         + (2 if participant.maneuver_state.enhanced_defense == selected else 0)
         + (-4 if hp.injury.stunned or fright_stunned(state.resources, participant.actor_id) else 0)
-        + (-3 if participant.posture == "prone" else -2 if participant.posture == "kneeling" else 0)
+        + posture_defense_modifier(
+            participant.posture,
+            legacy=not (
+                runtime.correct_defense_postures
+                and equipment.profile_id == "gurps-basic-set-4e-2004"
+            ),
+        )
         + (-4 if blind else 0)
     )
 

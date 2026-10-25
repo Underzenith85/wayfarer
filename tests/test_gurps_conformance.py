@@ -196,6 +196,9 @@ def test_conformance_fixture_contract_is_source_referenced_and_independent() -> 
                 "quick_contest",
                 "regular_contest",
                 "resistance",
+                "malediction_waiver",
+                "rule16_ability",
+                "creature_malediction_scope",
             }, case["id"]
 
     # These values are deliberately pinned in the fixture rather than calculated
@@ -217,8 +220,8 @@ def test_conformance_fixture_contract_is_source_referenced_and_independent() -> 
     assert by_id["quick-contest-both-fail"]["expected"] == {"winner": "first"}
     assert by_id["basic-rule-of-16-caps-attacker"]["expected"]["attacker_effective_target"] == 16
     assert by_id["basic-regular-contest-high-skill-levelling"]["expected"]["adjusted_targets"] == [
-        14,
         12,
+        10,
     ]
 
 
@@ -300,8 +303,8 @@ def _expected(case: Mapping[str, object]) -> dict[str, object]:
     return dict(values)
 
 
-def _modifiers(case: Mapping[str, object]) -> tuple[Modifier, ...]:
-    raw = _input(case).get("modifiers", [])
+def _modifiers(case: Mapping[str, object], key: str = "modifiers") -> tuple[Modifier, ...]:
+    raw = _input(case).get(key, [])
     assert isinstance(raw, list)
     return tuple(
         Modifier(
@@ -342,7 +345,9 @@ def test_success_cases_match_published_expectations(
 
 
 @pytest.mark.parametrize("case", check_cases("repeated_attempt"), ids=lambda case: str(case["id"]))
-def test_repeated_attempt_cases_follow_declared_policy(case: dict[str, object]) -> None:
+def test_repeated_attempt_cases_follow_declared_policy(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     values = _input(case)
     policy = RepeatedAttemptPolicy(str(values["policy"]))
     target = values["target"]
@@ -370,10 +375,15 @@ def test_repeated_attempt_cases_follow_declared_policy(case: dict[str, object]) 
         assert sum(attempt.hazard for attempt in history) == expected["hazards"]
     if "revealed" in expected:
         assert all(attempt.revealed == expected["revealed"] for attempt in history)
+    if case["profile"] == "gurps-basic-set-4e-2004":
+        for name, value in provenance(Path(__file__).resolve().parents[1], case).items():
+            record_property(name, value)
 
 
 @pytest.mark.parametrize("case", check_cases("quick_contest"), ids=lambda case: str(case["id"]))
-def test_quick_contest_cases_match_published_expectations(case: dict[str, object]) -> None:
+def test_quick_contest_cases_match_published_expectations(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     values = _input(case)
     first, second = values["first_target"], values["second_target"]
     assert isinstance(first, int) and isinstance(second, int)
@@ -390,16 +400,24 @@ def test_quick_contest_cases_match_published_expectations(case: dict[str, object
         assert result.victory_margin == expected["victory_margin"]
     if "first_outcome" in expected:
         assert result.first.outcome.value == expected["first_outcome"]
+    if case["profile"] == "gurps-basic-set-4e-2004":
+        for name, value in provenance(Path(__file__).resolve().parents[1], case).items():
+            record_property(name, value)
 
 
 @pytest.mark.parametrize("case", check_cases("regular_contest"), ids=lambda case: str(case["id"]))
-def test_regular_contest_cases_match_published_expectations(case: dict[str, object]) -> None:
+def test_regular_contest_cases_match_published_expectations(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     values = _input(case)
     first, second = values["first_target"], values["second_target"]
     assert isinstance(first, int) and isinstance(second, int)
     dice = _dice(case)
     result = regular_contest(
-        str(case["profile"]), Contestant("first", first), Contestant("second", second), rng=dice
+        str(case["profile"]),
+        Contestant("first", first, _modifiers(case, "first_modifiers")),
+        Contestant("second", second, _modifiers(case, "second_modifiers")),
+        rng=dice,
     )
     assert dice.exhausted()
     expected = _expected(case)
@@ -410,10 +428,15 @@ def test_regular_contest_cases_match_published_expectations(case: dict[str, obje
     assert all(
         (a.effective_target, b.effective_target) == tuple(adjusted) for a, b in result.rounds
     )
+    if case["profile"] == "gurps-basic-set-4e-2004":
+        for name, value in provenance(Path(__file__).resolve().parents[1], case).items():
+            record_property(name, value)
 
 
 @pytest.mark.parametrize("case", check_cases("resistance"), ids=lambda case: str(case["id"]))
-def test_resistance_cases_match_published_expectations(case: dict[str, object]) -> None:
+def test_resistance_cases_match_published_expectations(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     values = _input(case)
     attacker, resister = values["attacker_target"], values["resister_target"]
     assert isinstance(attacker, int) and isinstance(resister, int)
@@ -438,6 +461,9 @@ def test_resistance_cases_match_published_expectations(case: dict[str, object]) 
         assert result.contest.decision == expected["decision"]
     capped = [m for m in result.attacker.modifiers if m.kind is ModifierKind.RULE_OF_16]
     assert bool(capped) == (bool(values["rule_of_16"]) and attacker > max(16, resister))
+    if case["profile"] == "gurps-basic-set-4e-2004":
+        for name, value in provenance(Path(__file__).resolve().parents[1], case).items():
+            record_property(name, value)
 
 
 def test_quick_contest_both_fail_prototype_divergence_stays_recorded() -> None:

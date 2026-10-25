@@ -48,6 +48,7 @@ from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.pipeline import CommandPlan, Control, Controls, Seats, Trusted, submit
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spell_generations import recorded_generations
+from wayfarer.persistence.healing_physician_inputs import stamp as stamp_physician
 
 
 def _runtime_resolver(resolve: SpellResolver | None) -> RuntimeSpellResolver | None:
@@ -123,6 +124,7 @@ class SpellService:
         item_sight: bool = True,
         area_targeting: bool = True,
         missile_attack: bool = True,
+        physician_training: bool = True,
         state: PlayState | None = None,
     ) -> CommandPlan[SpellResult]:
         """What a spell lifecycle command writes; the pipeline decides whether it runs.
@@ -151,6 +153,12 @@ class SpellService:
             },
             sort_keys=True,
         )
+        if (
+            physician_training
+            and command.kind == "start"
+            and command.spell_id in {"minor-healing", "major-healing"}
+        ):
+            payload = stamp_physician(payload)
 
         execution = SpellExecutionContext(
             play.rules_context,
@@ -159,6 +167,7 @@ class SpellService:
             check_symptoms=check_symptoms,
             item_sight=item_sight,
             area_targeting=area_targeting,
+            physician_training=physician_training,
         )
         control: tuple[Control, ...] = (
             Controls(member, command.actor_id, "Spell actor is not controlled by principal")
@@ -230,6 +239,7 @@ class SpellService:
                 item_sight=generations.item_sight,
                 area_targeting=generations.area_targeting,
                 missile_attack=generations.missile_attack,
+                physician_training=generations.physician_training,
                 state=state,
             ),
             principal_id=principal_id,

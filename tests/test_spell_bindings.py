@@ -27,6 +27,7 @@ from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
 from wayfarer.engine.rules.types.location import HumanBody
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
+from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
 from wayfarer.engine.simulation.combat.battlefield import (
     Battlefield,
     BattlefieldTemplate,
@@ -42,6 +43,7 @@ from wayfarer.engine.simulation.magic.spells import PROFILE, SpellCommand
 from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.combat import CombatService, StartEncounter, TakeCombatTurn
+from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService, approved_context
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -527,20 +529,42 @@ async def test_fireball_release_uses_defense_and_exactly_once_injury(
 
     cid, play = await setup(tmp_path, combat=True, backend=backend)
     combat = await start_fight(cid, play)
+    state = play._load(await play.store.read(cid))
+    await DefaultKnowledgeService(play).execute(
+        cid,
+        AdoptDefaultKnowledge(
+            id="projectile-society-knowledge",
+            actor_id="gm",
+            expected_revision=state.revision,
+            performer_id="a",
+            known_skill_ids=("skill:innate-attack-projectile",),
+            reason="The GM explicitly establishes this fresh caster's society-known Projectile skill",
+        ),
+        principal_id="gm",
+    )
     service = missile_spell_service(play, missile_attack=missile_attack)
-    start = command(1).model_copy(update={"spell_id": "fireball", "channel_id": "fireball"})
+    state = play._load(await play.store.read(cid))
+    start = command(state.revision).model_copy(
+        update={"spell_id": "fireball", "channel_id": "fireball"}
+    )
     await service.execute(cid, start, principal_id="a")
     await idle(cid, play, "b")
+    state = play._load(await play.store.read(cid))
     play.rng = RecordedDice([3, 3, 3])
     await service.execute(
         cid,
-        start.model_copy(update={"id": "finish", "kind": "complete", "expected_revision": 3}),
+        start.model_copy(
+            update={"id": "finish", "kind": "complete", "expected_revision": state.revision}
+        ),
         principal_id="a",
     )
+    state = play._load(await play.store.read(cid))
     play.rng = RecordedDice([1, 2, 2] if missile_attack else [])
     await service.execute(
         cid,
-        start.model_copy(update={"id": "release", "kind": "release", "expected_revision": 4}),
+        start.model_copy(
+            update={"id": "release", "kind": "release", "expected_revision": state.revision}
+        ),
         principal_id="a",
     )
     state = play._load(await play.store.read(cid))
@@ -551,7 +575,11 @@ async def test_fireball_release_uses_defense_and_exactly_once_injury(
     # DX10 default -4 =6; five succeeds without a critical, 1d burning rolls four.
     play.rng = RecordedDice([4] if missile_attack else [1, 2, 2, 4])
     defense = ChooseDefense(
-        id="defense", actor_id="b", expected_revision=5, encounter_id="fight", defense="none"
+        id="defense",
+        actor_id="b",
+        expected_revision=state.revision,
+        encounter_id="fight",
+        defense="none",
     )
     results = await asyncio.gather(
         *(combat.execute(cid, defense, principal_id="b") for _ in range(3))

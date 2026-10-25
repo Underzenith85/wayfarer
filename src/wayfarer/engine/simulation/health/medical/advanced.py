@@ -9,6 +9,7 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.recovery import RecoveryTask, require_settled, retire_tasks
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.medical import minimum
 from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
@@ -173,6 +174,7 @@ def _apply_advanced_recovery(
                 skill=context.surgery_skill,
                 treatment_modifier=modifier,
             )
+        state = minimum.record(state, task, enabled=context.minimum_skill_admission)
         tasks = state.recovery_tasks + (task,)
         result = RecoveryResult(task_id=task.id, status="pending")
     else:
@@ -185,6 +187,7 @@ def _apply_advanced_recovery(
             raise ConflictError("Advanced recovery task is no longer pending")
         if task.profile_id != context.profile_id:
             raise ValidationError("Recovery profile changed")
+        task = minimum.interrupt_unavailable(state, task)
         if task.status == "interrupted":
             if trauma:
                 assert hp.injury is not None and task.interrupted_at is not None
@@ -266,8 +269,7 @@ def _apply_advanced_recovery(
                     raise ValidationError("Recorded lasting injury is no longer repairable")
                 check = success_roll(
                     context.profile_id,
-                    task.skill + task.treatment_modifier,
-                    check_modifiers(state, task.actor_id, "iq"),
+                    *minimum.check_inputs(state, task),
                     rng=rng,
                 )
                 if check.outcome.succeeded:

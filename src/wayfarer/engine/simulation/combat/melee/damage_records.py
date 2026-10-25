@@ -68,6 +68,7 @@ class MeleeDamageInputs(Record):
     # Present only for the new private held-Melee contact consumer. Ordinary
     # historical damage-stage payloads retain their exact absent-field bytes.
     contact_defense: Defense = Field(default="none", exclude_if=lambda value: value == "none")
+    heavy_bare_parry: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @property
     def rollable(self) -> bool:

@@ -16,10 +16,16 @@ from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.types.critical_hit import CorrosionCritical
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.location import HitLocation, HumanLocation, LastingInjury
 from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled, retire_tasks
 from wayfarer.engine.simulation.equipment.catalog import DamageType
+from wayfarer.engine.simulation.equipment.corrosion_state import (
+    CorrosionProtection,
+    erode,
+    require_current,
+)
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.hit_locations import (
     crippling_threshold,
@@ -132,6 +138,61 @@ def _exertion_digest(command: Command, location: HumanLocation | None) -> str:
     return ":exertion:" + location
 
 
+def _corrosion_digest(
+    command: Command,
+    value: CorrosionProtection | None,
+    *,
+    ordinary: bool,
+    critical: CorrosionCritical | None,
+    force_major_wound: bool,
+    double_shock: bool,
+    halve_dr: Literal["up", "down"] | None,
+) -> str:
+    if value is None:
+        if critical is not None:
+            raise ValidationError("Corrosion critical requires physical protection provenance")
+        return ""
+    if (
+        not isinstance(command, Wound)
+        or command.damage_type != "cor"
+        or command.injury_source != "attack"
+        or command.location not in (None, "torso")
+        or command.armor_divisor != 1
+        or value.actor_id != command.actor_id
+        or not ordinary
+    ):
+        raise ValidationError("Corrosion erosion requires bounded external torso damage")
+    effects = None if critical is None else critical.effects
+    if (force_major_wound, double_shock, halve_dr) != (
+        False if effects is None else effects.force_major_wound,
+        False if effects is None else effects.double_shock,
+        None if effects is None else effects.halve_dr,
+    ):
+        raise ValidationError("Corrosion critical flags differ from their captured body table")
+    return (
+        ":corrosion:"
+        + value.model_dump_json()
+        + ("" if critical is None else ":critical-table:" + critical.model_dump_json())
+    )
+
+
+def _require_corrosion(
+    state: ResourceState, command: Command, value: CorrosionProtection | None
+) -> None:
+    if value is not None:
+        assert isinstance(command, Wound)
+        require_current(state, value, command.resistance)
+
+
+def _erode_corrosion(
+    state: ResourceState, command: Command, value: CorrosionProtection | None
+) -> ResourceState:
+    if value is None:
+        return state
+    assert isinstance(command, Wound)
+    return erode(state, value, command.id, command.basic_damage)
+
+
 def _recover_stun(status: InjuryStatus, turn: int, attempt: Callable[[int], bool]) -> InjuryStatus:
     electrical = status.electrical_stun
     if electrical is None:
@@ -184,6 +245,8 @@ def apply_injury(
     scar_levels: int = 1,
     pain_only: bool = False,
     exertion_location: HumanLocation | None = None,
+    corrosion: CorrosionProtection | None = None,
+    corrosion_critical: CorrosionCritical | None = None,
 ) -> tuple[ResourceState, InjuryResult]:
     """Pure reducer; persist atomically via the existing commit_turn/CAS boundary.
 
@@ -223,6 +286,15 @@ def apply_injury(
         if head_trauma == "scarred" and scar_levels not in (1, 2):
             raise ValidationError("Critical scarring loses one or two appearance levels")
         encoded += f":head-trauma:{head_trauma}:{scar_levels}"
+    encoded += _corrosion_digest(
+        command,
+        corrosion,
+        critical=corrosion_critical,
+        force_major_wound=force_major_wound,
+        double_shock=double_shock,
+        halve_dr=halve_dr,
+        ordinary=not (ignore_dr or burning_hp or pain_only or head_trauma is not None),
+    )
     encoded += _exertion_digest(command, exertion_location)
     digest = hashlib.sha256(encoded.encode()).hexdigest()
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
@@ -233,6 +305,7 @@ def apply_injury(
         return state, InjuryResult.model_validate_json(event.kind)
     if state.revision != command.expected_revision:
         raise ConflictError("Resource revision changed")
+    _require_corrosion(state, command, corrosion)
     require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
     pool = next((p for p in state.pools if p.id == f"hp:{command.actor_id}"), None)
     if pool is None or pool.injury is None:
@@ -721,6 +794,7 @@ def apply_injury(
             ),
         }
     )
+    updated = _erode_corrosion(updated, command, corrosion)
     updated = track_damage(updated, pool_id=pool.id, injury_id=command.id, amount=injury)
     if injury:
         updated = break_daze(updated, command.actor_id, command.id)

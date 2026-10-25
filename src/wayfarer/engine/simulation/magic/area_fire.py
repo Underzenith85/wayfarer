@@ -9,6 +9,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.casting_targeting import targeting
@@ -48,7 +49,7 @@ def armor(
             if item.owner_id == actor_id
             and item.equipped
             and (item.condition is None or not item.condition.disabled)
-            for entry in (entries[item.definition_id],)
+            for entry in (projected_profile(state.resources, item, entries[item.definition_id]),)
             if entry.armor
         )
         dr = max((a.dr for a in worn if "torso" in a.locations), default=0)

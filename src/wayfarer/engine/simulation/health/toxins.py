@@ -23,6 +23,7 @@ from wayfarer.engine.rules.types.toxin import (
     ToxinProfile,
     ToxinView,
 )
+from wayfarer.engine.simulation.health.drowsiness import current as current_drowsiness
 from wayfarer.engine.simulation.health.drug_state import invalidate_waking
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
@@ -219,6 +220,14 @@ def _apply_overdose(
     ), state.game_time + max(1, -check.margin) * 3600
 
 
+def _condition_deadline(
+    state: ResourceState, exposure: ToxinExposure, resisted: bool, duration: int
+) -> int:
+    if resisted and current_drowsiness(state, exposure.id, exposure.actor_id):
+        return exposure.condition_until
+    return max(exposure.condition_until, state.game_time + duration)
+
+
 def apply_toxin(
     state: ResourceState,
     command: ToxinCommand,
@@ -324,6 +333,7 @@ def apply_toxin(
                 incapacitating=overdose_until > state.game_time
                 or (not resisted and profile.condition == "unconscious" and duration > 0),
             )
+            condition_until = _condition_deadline(state, exposure, resisted, duration)
             exposure = exposure.model_copy(
                 update={
                     "active": remaining > 0,
@@ -332,7 +342,7 @@ def apply_toxin(
                     "due": exposure.due + max(1, profile.interval // exposure.dose),
                     "hp_lost": exposure.hp_lost + hp_lost,
                     "fp_lost": exposure.fp_lost + fp_lost,
-                    "condition_until": max(exposure.condition_until, state.game_time + duration),
+                    "condition_until": condition_until,
                     "overdose_until": max(exposure.overdose_until, overdose_until),
                 }
             )

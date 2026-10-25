@@ -61,3 +61,7 @@ The pure hand helper and reducer diagnostics alone are not acceptance proof.
 Full original-genesis seeded replay, projection and generation-absence coverage
 are separate integration obligations; this file does not claim whole Melee
 spell or issue acceptance.
+
+The additional [Boxing and Karate hand-punch consumer](gurps-hand-striking-spells.md)
+now joins those purchased striking skills to the same paid charge, actual attack,
+physical damage and separate spell-effect host, with captured declaration semantics.

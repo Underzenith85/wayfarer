@@ -22,6 +22,7 @@ from wayfarer.engine.rules.types.survival import require_survival_settled
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.healing import restore_hp
 from wayfarer.engine.simulation.health.injury import InjuryResult, Wound, apply_injury
+from wayfarer.engine.simulation.health.medical import minimum
 from wayfarer.engine.simulation.health.medical.advanced import _apply_advanced_recovery
 from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
@@ -555,6 +556,7 @@ def apply_recovery(
             drug_hp=context.drug_hp,
             drug_fp=context.drug_fp,
         )
+        state = minimum.record(state, task, enabled=context.minimum_skill_admission)
         tasks = state.recovery_tasks + (task,)
         state = _consume_special(state, task)
         result = RecoveryResult(task_id=task.id, status="pending")
@@ -572,6 +574,7 @@ def apply_recovery(
             task.status != "interrupted" and state.game_time < task.due
         ):
             raise ValidationError("Recovery is not due in this profile")
+        task = minimum.interrupt_unavailable(state, task)
         multiplier = max(1, hp.maximum // 10) if task.profile_id == "gurps-basic-set-4e-2004" else 1
         try:
             state, task, hp, fp, healed, restored, check, awakened, survived = _settle_special(
@@ -625,8 +628,7 @@ def apply_recovery(
                 raise ValidationError("Resuscitation requires a compiled medical skill")
             check = success_roll(
                 context.profile_id,
-                task.skill + task.treatment_modifier,
-                check_modifiers(state, task.actor_id, "iq"),
+                *minimum.check_inputs(state, task),
                 rng=rng,
             )
             if check.outcome.succeeded:
@@ -660,8 +662,7 @@ def apply_recovery(
             assert task.skill is not None
             check = success_roll(
                 context.profile_id,
-                task.skill + task.treatment_modifier,
-                check_modifiers(state, task.actor_id, "iq"),
+                *minimum.check_inputs(state, task),
                 rng=rng,
             )
             if check.outcome.succeeded:
@@ -691,8 +692,7 @@ def apply_recovery(
                     raise ValidationError("Treatment requires a compiled medical skill") from None
                 check = success_roll(
                     context.profile_id,
-                    task.skill,
-                    check_modifiers(state, task.actor_id, "iq"),
+                    *minimum.check_inputs(state, task),
                     rng=rng,
                 )
                 if check.outcome is Outcome.CRITICAL_FAILURE:

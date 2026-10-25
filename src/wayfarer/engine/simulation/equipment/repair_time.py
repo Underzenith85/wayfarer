@@ -116,7 +116,9 @@ def modifier(plan: RepairTimeSelection | None) -> int:
     return plan.modifier if plan else 0
 
 
-def duration(plan: RepairTimeSelection | None) -> int:
+def duration(plan: RepairTimeSelection | None, *, proposed: Method | None = None) -> int:
+    if proposed is not None:
+        return METHODS[proposed][0]
     return plan.duration_seconds if plan else 1800
 
 

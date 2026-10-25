@@ -6,6 +6,7 @@ from wayfarer.engine.rules.skills.technology_level import technology_level_penal
 from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, level
+from wayfarer.engine.simulation.campaign.default_knowledge_sources import current_skills
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile
 from wayfarer.engine.simulation.equipment.firearm_repair_profile import require_profile
 from wayfarer.engine.simulation.equipment.repair_defaults import (
@@ -97,7 +98,12 @@ def derive(
     if profile is None or profile.repair_skill_id not in TARGETS or item.condition is None:
         raise ValidationError("Repair default requires a supported profiled Armoury item")
     skill_id = profile.repair_skill_id
-    if skill_id not in facts.society_known_skills:
+    known = (
+        current_skills(state, actor_id)
+        if runtime.require_default_knowledge
+        else frozenset(facts.society_known_skills)
+    )
+    if skill_id not in known:
         raise ValidationError("Repair specialty is not known in the verified actor society")
     if not isinstance(entry.technology_level, int):
         raise ValidationError("Repair default requires a concrete current item TL")

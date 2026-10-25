@@ -7,7 +7,9 @@ from wayfarer.engine.rules.types.background_admission import (
     BACKGROUND_ADMISSION_HOOK,
     UNUSUAL_BACKGROUND_ID,
     UnusualBackgroundDecision,
+    background_skill_requirements,
 )
+from wayfarer.engine.rules.types.skill import PrerequisiteKind, SkillPrerequisite
 from wayfarer.errors import ValidationError
 
 
@@ -20,7 +22,7 @@ def bind_unusual_background(
 ) -> RulesPackage:
     """Trusted host construction; choosing the returned pin is an explicit migration.
 
-    One decision may admit several catalog traits for one fixed surcharge.
+    One decision may admit several catalog traits or skills for one fixed surcharge.
     Multiple backgrounds, conditional prices and new abilities are not inferred.
     """
     decision = UnusualBackgroundDecision.model_validate(decision)
@@ -35,16 +37,19 @@ def bind_unusual_background(
     background = definitions.get(UNUSUAL_BACKGROUND_ID)
     if background is None or background.trait_rules is None:
         raise ValidationError("Campaign package lacks the canonical Unusual Background row")
-    if any(UNUSUAL_BACKGROUND_ID in row.prerequisites for row in package.definitions):
+    if any(
+        UNUSUAL_BACKGROUND_ID in row.prerequisites or background_skill_requirements(row.skill)
+        for row in package.definitions
+    ):
         raise ValidationError("A fresh baseline cannot contain unbound background prerequisites")
     if any(
-        identity not in definitions
-        or definitions[identity].kind is not DefinitionKind.TRAIT
-        or definitions[identity].status is not ImplementationStatus.IMPLEMENTED
-        or UNUSUAL_BACKGROUND_ID in definitions[identity].prerequisites
-        for identity in decision.benefits
+        definition is None
+        or definition.kind not in (DefinitionKind.TRAIT, DefinitionKind.SKILL)
+        or definition.status is not ImplementationStatus.IMPLEMENTED
+        or (definition.kind is DefinitionKind.SKILL and definition.skill is None)
+        for definition in (definitions.get(identity) for identity in decision.benefits)
     ):
-        raise ValidationError("Background benefits require existing implemented trait rows")
+        raise ValidationError("Background benefits require existing implemented traits or skills")
     paid = decision.allowed and decision.point_cost > 0
     definitions[UNUSUAL_BACKGROUND_ID] = replace(
         background,
@@ -60,6 +65,19 @@ def bind_unusual_background(
             definition,
             prerequisites=definition.prerequisites + ((UNUSUAL_BACKGROUND_ID,) if paid else ()),
             status=definition.status if decision.allowed else ImplementationStatus.UNSUPPORTED,
+            skill=(
+                replace(
+                    definition.skill,
+                    prerequisites=definition.skill.prerequisites
+                    + (
+                        SkillPrerequisite(
+                            UNUSUAL_BACKGROUND_ID, kind=PrerequisiteKind.PURCHASED_DEFINITION
+                        ),
+                    ),
+                )
+                if paid and definition.skill is not None
+                else definition.skill
+            ),
         )
     return replace(
         package,

@@ -14,6 +14,14 @@ KNOWN = frozenset(
         "maneuver-budget",
         "acrobatic-trait-bonuses",
         "acrobatic-reaction-attributes",
+        "acrobatic-condition-checks",
+        "acrobatic-skill-minimum",
+        "interposition-current-step",
+        "staff-heavy-bare-parry",
+        "retreat-postures",
+        "hand-melee-striking-skills",
+        "melee-attack-postures",
+        "voluntary-attack-minimum",
         "ground-dive-step",
         "secondary-object-blasts",
         "missile-interposition",
@@ -21,9 +29,21 @@ KNOWN = frozenset(
         "rooted-dodge-health-trait-composition",
         "rooted-dodge-haste-composition",
         "hand-melee-spell-contact",
+        "karate-kicking-technique",
+        "staff-form-contact",
+        "regular-contest-extreme-scores",
+        "repair-operating-tools",
     }
 )
 ACTIVE = KNOWN
+COMPOSED_ACTIVE = frozenset(
+    {
+        "acrobatic-skill-minimum",
+        "acrobatic-trait-bonuses",
+        "acrobatic-condition-checks",
+        "acrobatic-reaction-attributes",
+    }
+)
 
 
 def features(record: CommandInput) -> frozenset[str]:
@@ -32,13 +52,14 @@ def features(record: CommandInput) -> frozenset[str]:
     if payload_digest({"input": record.text}) != record.payload_hash:
         raise ValidationError("Recorded combat input does not match its digest")
     payload = validation.mapping(replay_payload(record.text))
-    if payload.get("operation") not in ("combat", "combat-random-unarmed"):
+    if payload.get("operation") not in ("combat", "combat-random-unarmed", "composed-defense"):
         return frozenset()
     raw = payload.get(KEY, [])
     if not isinstance(raw, list) or any(not isinstance(item, str) for item in raw):
         raise ValidationError("Invalid recorded combat feature generation")
     selected = frozenset(validation.string(item) for item in raw)
-    if len(selected) != len(raw) or not selected <= KNOWN:
+    allowed = COMPOSED_ACTIVE if payload.get("operation") == "composed-defense" else KNOWN
+    if len(selected) != len(raw) or not selected <= allowed:
         raise ValidationError("Unsupported recorded combat feature generation")
     return selected
 

@@ -12,6 +12,8 @@ from wayfarer.engine.rules.types.cyclic import CyclicAttack
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.equipment.corrosion import protection as corrosion_protection
+from wayfarer.engine.simulation.equipment.corrosion_state import projected_profile
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.cyclic_host_state import CyclicBinding, binding
 from wayfarer.engine.simulation.health.cyclic_types import (
@@ -74,8 +76,10 @@ def target_context(
                 if item.owner_id == actor_id
                 and item.equipped
                 and (item.condition is None or not item.condition.disabled)
-                for entry in (entries.get(item.definition_id),)
-                if entry is not None and entry.armor is not None
+                for pinned in (entries.get(item.definition_id),)
+                if pinned is not None
+                for entry in (projected_profile(state.resources, item, pinned),)
+                if entry.armor is not None
             )
             dr += armor_resistance(armors, location or "torso", damage_type=attack.damage_type)
         dr += damage_resistance(state.resources, actor_id, build_revision=current.revision)
@@ -99,6 +103,9 @@ def target_context(
         ),
         dx=ordinary.statistics.dx,
         immune_to_damage=immune_to_damage,
+        corrosion=corrosion_protection(runtime, state, actor_id)
+        if source.corrosion_dr_erosion
+        else None,
     )
 
 

@@ -24,6 +24,7 @@ async def test_b103_absorbed_fatigue_delivery_repeats_against_current_dr_and_ret
     cid, play, source = await fixture(
         tmp_path,
         backend,
+        society_knows_beam=True,
         kind="fat",
         modifiers=(cyclic("fat"),),
         levels=1,
@@ -123,6 +124,7 @@ async def test_b61_b103_undelivered_or_immune_fatigue_never_schedules_cycles(
         )
     cid, play, source = await fixture(
         tmp_path,
+        society_knows_beam=True,
         kind="fat",
         modifiers=modifiers,
         levels=1,

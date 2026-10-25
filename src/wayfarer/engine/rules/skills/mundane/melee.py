@@ -9,12 +9,14 @@ claim.  Family rows never dispatch without a concrete specialty.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from types import MappingProxyType
 from typing import Final
 
-from wayfarer.engine.rules.catalog import RuleDefinition
+from wayfarer.engine.rules.catalog import RuleDefinition, RulesPackage
 from wayfarer.engine.rules.conformance import CoverageStatus, capability, profile
 from wayfarer.engine.rules.gurps_checks import RepeatedAttemptPolicy as P
+from wayfarer.engine.rules.skills.mundane.melee_defaults import require_revision, revise_definition
 from wayfarer.engine.rules.skills.mundane.melee_metadata import WEAPON_CLASSES
 from wayfarer.engine.rules.skills.mundane.procedures import Resolution as R
 from wayfarer.engine.rules.skills.mundane.procedures import Task, bind
@@ -349,10 +351,15 @@ PROCEDURES: Final = MappingProxyType(
 )
 
 
-def definitions() -> tuple[RuleDefinition, ...]:
-    """Return only concrete, dispatchable skills; family rows stay absent."""
+def definitions(*, default_revision: int = 1) -> tuple[RuleDefinition, ...]:
+    """Concrete skills; revision1 preserves existing immutable package builders.
+
+    New configurations explicitly select revision2 for B208 inherited defaults.
+    Existing pins and approvals are never automatically upgraded.
+    """
+    require_revision(default_revision)
     return tuple(
-        procedure.definition()
+        revise_definition(procedure.definition(), default_revision)
         for procedure in PROCEDURES.values()
         if procedure.dispatchable and procedure.spec() is not None
     )
@@ -430,3 +437,17 @@ def require_shield(profile_id: str, skill_id: str) -> object | None:
     }:
         raise ValidationError(f"Combat skill cannot resolve this shield: {skill_id}")
     return procedure
+
+
+def revise_package_defaults(package: RulesPackage, *, version: str) -> RulesPackage:
+    """Opt in an assembled Basic Set package to revision2 under a new pin.
+
+    Keep both immutable package versions in RulesCatalog when serving old and
+    new campaigns. Reapproval/configuration migration is explicit, never implied.
+    """
+    if not version or version == package.version:
+        raise ValidationError("Corrected melee defaults require a new package version")
+    revised = tuple(revise_definition(definition, 2) for definition in package.definitions)
+    if revised == package.definitions:
+        raise ValidationError("Package has no source-wide melee defaults to revise")
+    return replace(package, version=version, definitions=revised)

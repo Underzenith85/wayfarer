@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.combat.abandon import AbandonPendingAttack, aban
 from wayfarer.engine.simulation.combat.attack_visibility import private_attack_result
 from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import CombatResult
+from wayfarer.engine.simulation.combat.generations import combat_generation
 from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.engine.simulation.traits.attack_defense import TraitAttackOutcome
 from wayfarer.engine.simulation.traits.composed_host import (
@@ -44,8 +45,15 @@ from wayfarer.engine.simulation.traits.innate_criticals import (
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
+from wayfarer.orchestration.combat.generations import COMPOSED_ACTIVE
+from wayfarer.orchestration.combat.generations import KEY as COMBAT_FEATURE_KEY
+from wayfarer.orchestration.combat.generations import capture as capture_combat
 from wayfarer.orchestration.combat.settlement import _finish_combat, _settle_combat
 from wayfarer.orchestration.combat.steps import reduce_combat
+from wayfarer.orchestration.corrosion_generations import capture as capture_corrosion
+from wayfarer.orchestration.corrosion_generations import stamp as stamp_corrosion
+from wayfarer.orchestration.malediction_generations import capture as capture_malediction
+from wayfarer.orchestration.malediction_generations import stamp as stamp_malediction
 from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.opponent_attack_privacy import (
     may_view_attack,
@@ -92,7 +100,14 @@ class ComposedAttackService:
         self.play = play
 
     def plan(
-        self, play: PlayService, state: PlayState, command: ComposedCommand, *, principal_id: str
+        self,
+        play: PlayService,
+        state: PlayState,
+        command: ComposedCommand,
+        *,
+        principal_id: str,
+        corrosion_criticals: bool = False,
+        malediction_waivers: bool = False,
     ) -> CommandPlan[ComposedResult]:
         payload = json.dumps(
             {
@@ -104,6 +119,9 @@ class ComposedAttackService:
             separators=(",", ":"),
         )
 
+        payload = stamp_corrosion(payload, corrosion_criticals)
+        payload = stamp_malediction(payload, malediction_waivers)
+
         def reduce(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             if before.revision != command.expected_revision or before.lifecycle != "active":
@@ -111,7 +129,14 @@ class ComposedAttackService:
             updated = before
             result = ComposedResult(command_id=command.id)
             if isinstance(command, BindComposedSource):
-                updated, source = bind(play.rules_context, before, command, principal_id)
+                updated, source = bind(
+                    play.rules_context,
+                    before,
+                    command,
+                    principal_id,
+                    corrosion_critical_hits=corrosion_criticals,
+                    malediction_waiver_cap=malediction_waivers,
+                )
                 revision = before.revision + 1
                 updated = updated.model_copy(
                     update={
@@ -212,7 +237,13 @@ class ComposedAttackService:
                         command.id,
                         saved.trace.model_copy(update={"adjudication_required": None}),
                     )
-                    result = result.model_copy(update={"attack": saved.outcome})
+                    result = result.model_copy(
+                        update={
+                            "attack": None
+                            if saved.outcome.outcome == "awaiting-adjudication"
+                            else saved.outcome
+                        }
+                    )
                 step = CombatStep(updated, encounter, updated.resources, combat)
                 encounters = tuple(
                     encounter if e.id == encounter.id else e for e in updated.encounters
@@ -274,10 +305,27 @@ class ComposedAttackService:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         state = play._load(campaign)
+        critical_generation = (
+            await capture_corrosion(play.store, cid, command.id)
+            if isinstance(command, BindComposedSource)
+            else False
+        )
+        waiver_generation = (
+            await capture_malediction(play.store, cid, command.id)
+            if isinstance(command, BindComposedSource)
+            else False
+        )
         result = await submit(
             play,
             cid,
-            self.plan(play, state, command, principal_id=principal_id),
+            self.plan(
+                play,
+                state,
+                command,
+                principal_id=principal_id,
+                corrosion_criticals=critical_generation,
+                malediction_waivers=waiver_generation,
+            ),
             principal_id=principal_id,
         )
         current = play._load(await play.store.read(cid))
@@ -298,9 +346,11 @@ class ComposedAttackService:
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         state = play._load(campaign)
+        features = (await capture_combat(play.store, cid, command.id)) & COMPOSED_ACTIVE
         payload = json.dumps(
             {
                 "operation": "composed-defense",
+                **({COMBAT_FEATURE_KEY: sorted(features)} if features else {}),
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
             },
@@ -314,7 +364,8 @@ class ComposedAttackService:
             pending = encounter.pending_defense
             if pending is None or pending.composed_attack_id is None:
                 raise ConflictError("No composed attack awaits this defense")
-            updated, result = reduce_combat(before, command, CombatContext(play, before))
+            with combat_generation(features):
+                updated, result = reduce_combat(before, command, CombatContext(play, before))
             updated = preserve_attack_visibility(before, updated, command.encounter_id, command.id)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
