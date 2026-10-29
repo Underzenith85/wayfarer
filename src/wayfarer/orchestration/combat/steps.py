@@ -30,6 +30,7 @@ from wayfarer.engine.simulation.combat.tactical_transitions import finish_defens
 from wayfarer.engine.simulation.magic.staff_casting_state import (
     invalidate_movement as invalidate_staff_movement,
 )
+from wayfarer.orchestration.combat.battle_fatigue import preflight as battle_fatigue_preflight
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.defense import _defend
 from wayfarer.orchestration.combat.encounters import (
@@ -85,6 +86,7 @@ _COMBAT_STEPS: dict[
 def reduce_combat(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> tuple[PlayState, CombatResult]:
+    battle_fatigue_preflight(state, command, context)
     lease = pending_resume(state, command)
     cancel = bool(getattr(command, "cancel", False))
     state, command, context = _prepare_command(state, command, context)

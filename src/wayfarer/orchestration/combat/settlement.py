@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
+    CombatCommand,
     TakeCombatTurn,
     TypedCombatCommand,
 )
@@ -25,6 +26,7 @@ from wayfarer.engine.simulation.combat.withdrawal import elapsed_seconds
 from wayfarer.engine.simulation.magic.area_fire import crossings
 from wayfarer.engine.simulation.resources import Advance, Command
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.combat.battle_fatigue import finish as finish_battle_fatigue
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.party import PartyService
 
@@ -157,6 +159,11 @@ def _finish_combat(
                 }
             )
 
+    if isinstance(command, CombatCommand):
+        state = finish_battle_fatigue(
+            state.model_copy(update={"resources": resources}), command, encounter, result, context
+        )
+        resources = state.resources
     resources = interrupted_draws(
         play.rules_context, initial_state, resources, encounter.id, encounter
     )

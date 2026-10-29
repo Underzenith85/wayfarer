@@ -88,11 +88,13 @@ from wayfarer.orchestration.identify_spell import IdentifySpellService
 from wayfarer.orchestration.limb_spells import LimbSpellService
 from wayfarer.orchestration.locks import LockService, LockSpellService
 from wayfarer.orchestration.medical import CareEnvironment, MedicalService
+from wayfarer.orchestration.medical_bandage_generations import read as read_bandage_inputs
 from wayfarer.orchestration.medical_minimum_generations import read as read_minimum_inputs
 from wayfarer.orchestration.medical_rest_generations import read as read_rest_inputs
 from wayfarer.orchestration.melee_spells import MeleeSpellService
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.npcs import NPCProposal, NPCService
+from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.physical import PhysicalCommand, PhysicalService
 from wayfarer.orchestration.play import ApproveCharacter, PlayService
@@ -509,7 +511,23 @@ async def _medical_rest(play: PlayService, record: CommandRecord, encoded: str) 
     command: BeginRecovery | FinishRecovery = TypeAdapter(
         BeginRecovery | FinishRecovery
     ).validate_json(encoded)
-    if captured.enabled:
+    bandage = read_bandage_inputs(
+        CommandInput(record.payload_hash, record.command_input),
+        eligible=play.engine.reviewer.compiler.statistics_profile == "gurps-basic-set-4e-2004"
+        and (isinstance(command, FinishRecovery) or command.kind == "bandage"),
+        command_id=command.id,
+        actor_id=command.actor_id,
+    )
+    if bandage.enabled:
+        if isinstance(command, FinishRecovery):
+            state = play._load(await play.store.read(record.campaign_id))
+            task = next(
+                (task for task in state.resources.recovery_tasks if task.id == command.task_id),
+                None,
+            )
+            if task is None or task.kind != "bandage" or task.actor_id != command.actor_id:
+                raise ValidationError("Captured bandage replay requires its original bandage task")
+    elif captured.enabled:
         if isinstance(command, BeginRecovery) and command.kind != "rest":
             raise ValidationError(
                 "Captured FP-rest replay cannot execute another medical procedure"
@@ -552,7 +570,16 @@ async def _hazard_care(play: PlayService, record: CommandRecord, encoded: str) -
     )
 
 
+async def _objectives(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    await ObjectiveService(play).execute(
+        record.campaign_id,
+        ObjectiveCommand.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "objectives": _objectives,
     "gurps-recovery": _medical_rest,
     "hazard-care": _hazard_care,
     "ability": _ability,

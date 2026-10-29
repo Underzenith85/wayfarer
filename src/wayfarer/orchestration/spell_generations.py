@@ -23,6 +23,7 @@ class SpellGenerations:
     area_targeting: bool = True
     missile_attack: bool = True
     physician_training: bool = True
+    concentration_reaction: bool = False
 
 
 async def recorded_generations(
@@ -35,9 +36,11 @@ async def recorded_generations(
             None,
         )
     if prior is None:
-        return SpellGenerations(physician_training=HEALING_PHYSICIAN_ACTIVE)
+        return SpellGenerations(
+            physician_training=HEALING_PHYSICIAN_ACTIVE, concentration_reaction=True
+        )
     if prior.command_input is None:
-        return SpellGenerations(False, False, False, False, False, False)
+        return SpellGenerations(False, False, False, False, False, False, False)
     text = command_text(prior)
     validate_keys(text)
     raw = intent_input(text)
@@ -55,6 +58,13 @@ async def recorded_generations(
             or producer.get("kind") != command.kind
         ):
             raise ValidationError("Healing Physician generation does not match its producer")
+    concentration = payload.get("concentration_reaction_generation")
+    if "concentration_reaction_generation" in payload and (
+        payload.get("operation") not in {"spell-lifecycle", "lock-spell"}
+        or type(concentration) is not int
+        or concentration != 1
+    ):
+        raise ValidationError("Unsupported recorded concentration reaction generation")
     targeting = payload.get("targeting_generation")
     checks = payload.get("check_generation")
     sight = payload.get("item_sight_generation")
@@ -73,5 +83,11 @@ async def recorded_generations(
     if area not in (None, 1):
         raise ValidationError("Unsupported recorded Area targeting generation")
     return SpellGenerations(
-        targeting == 1, checks == 1, sight == 1, area == 1, missile == 1, physician
+        targeting == 1,
+        checks == 1,
+        sight == 1,
+        area == 1,
+        missile == 1,
+        physician,
+        concentration == 1,
     )

@@ -15754,6 +15754,11 @@
             },
             "title": "Triggers",
             "type": "array"
+          },
+          "interrupt_recovery_on_travel": {
+            "default": false,
+            "title": "Interrupt Recovery On Travel",
+            "type": "boolean"
           }
         },
         "required": [

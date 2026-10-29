@@ -89,6 +89,7 @@ class LockSpellService:
         *,
         principal_id: str,
         check_symptoms: bool = True,
+        concentration_reaction: bool = True,
     ) -> CommandPlan[SpellResult]:
         if command.spell_id not in ("lockmaster", "magelock"):
             raise ValidationError("Lock host only executes Lockmaster and Magelock")
@@ -98,6 +99,7 @@ class LockSpellService:
                 "principal_id": principal_id,
                 "command": command.model_dump(mode="json"),
                 **({"check_generation": 1} if check_symptoms else {}),
+                **({"concentration_reaction_generation": 1} if concentration_reaction else {}),
             },
             sort_keys=True,
         )
@@ -107,7 +109,11 @@ class LockSpellService:
             updated, result = reduce_spell(
                 before,
                 command,
-                SpellExecutionContext(play.rules_context, check_symptoms=check_symptoms),
+                SpellExecutionContext(
+                    play.rules_context,
+                    check_symptoms=check_symptoms,
+                    concentration_reaction=concentration_reaction,
+                ),
             )
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
@@ -150,6 +156,7 @@ class LockSpellService:
                 command,
                 principal_id=principal_id,
                 check_symptoms=generations.check_symptoms,
+                concentration_reaction=generations.concentration_reaction,
             ),
             principal_id=principal_id,
         )

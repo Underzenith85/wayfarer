@@ -376,6 +376,7 @@ class PlayService:
                     "innate-critical:",
                     "innate-critical-outcome:",
                     "fatigue-critical-knockdown:",
+                    "battle-fatigue:",
                 )
             )
             for event in resources.events

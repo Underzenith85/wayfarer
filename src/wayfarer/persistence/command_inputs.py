@@ -14,6 +14,9 @@ from wayfarer.persistence.hazard_care_inputs import validate_keys as validate_ha
 from wayfarer.persistence.healing_physician_inputs import KEY as HEALING_PHYSICIAN_KEY
 from wayfarer.persistence.healing_physician_inputs import intent as physician_intent
 from wayfarer.persistence.healing_physician_inputs import validate_keys as validate_physician_keys
+from wayfarer.persistence.medical_bandage_inputs import KEY as MEDICAL_BANDAGE_KEY
+from wayfarer.persistence.medical_bandage_inputs import intent as medical_bandage_intent
+from wayfarer.persistence.medical_bandage_inputs import validate_keys as validate_bandage_keys
 from wayfarer.persistence.medical_minimum_inputs import KEY as MEDICAL_MINIMUM_KEY
 from wayfarer.persistence.medical_minimum_inputs import intent as medical_minimum_intent
 from wayfarer.persistence.medical_minimum_inputs import validate_keys as validate_medical_keys
@@ -243,30 +246,38 @@ def same_input(record: CommandInput, requested: str) -> bool:
     validate_armoury_keys(requested)
     validate_hazard_care_keys(requested)
     validate_medical_keys(requested)
+    validate_bandage_keys(requested)
     validate_physician_keys(requested)
     validate_ability_keys(requested)
     if record.text is not None:
         validate_armoury_keys(record.text)
         validate_hazard_care_keys(record.text)
         validate_medical_keys(record.text)
+        validate_bandage_keys(record.text)
         validate_physician_keys(record.text)
         validate_ability_keys(record.text)
     recorded_generation = generation(record)
-    requested_input = ability_resistance_intent(
-        hazard_care_intent(
-            medical_minimum_intent(
-                physician_intent(
-                    armoury_intent(great_haste_intent(combat_intent(intent_input(requested))))
+    requested_input = medical_bandage_intent(
+        ability_resistance_intent(
+            hazard_care_intent(
+                medical_minimum_intent(
+                    physician_intent(
+                        armoury_intent(great_haste_intent(combat_intent(intent_input(requested))))
+                    )
                 )
             )
         )
     )
     recorded_input = (
-        ability_resistance_intent(
-            hazard_care_intent(
-                medical_minimum_intent(
-                    physician_intent(
-                        armoury_intent(great_haste_intent(combat_intent(intent_input(record.text))))
+        medical_bandage_intent(
+            ability_resistance_intent(
+                hazard_care_intent(
+                    medical_minimum_intent(
+                        physician_intent(
+                            armoury_intent(
+                                great_haste_intent(combat_intent(intent_input(record.text)))
+                            )
+                        )
                     )
                 )
             )
@@ -282,6 +293,7 @@ def same_input(record: CommandInput, requested: str) -> bool:
     )
     recorded_care = bool(armoury_payload is not None and HAZARD_CARE_KEY in armoury_payload)
     recorded_medical = bool(armoury_payload is not None and MEDICAL_MINIMUM_KEY in armoury_payload)
+    recorded_bandage = bool(armoury_payload is not None and MEDICAL_BANDAGE_KEY in armoury_payload)
     recorded_physician = bool(
         armoury_payload is not None and HEALING_PHYSICIAN_KEY in armoury_payload
     )
@@ -294,6 +306,7 @@ def same_input(record: CommandInput, requested: str) -> bool:
         or recorded_armoury
         or recorded_care
         or recorded_medical
+        or recorded_bandage
         or recorded_physician
         or recorded_ability
     ):

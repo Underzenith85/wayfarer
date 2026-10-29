@@ -128,7 +128,9 @@ class PhysicalCheckService:
                     state.resources,
                     command.actor_id,
                     attribute,
-                    defensive=spec.kind in ("wake", "torture"),
+                    # B421 needs a qualified maneuver-free defensive reaction.
+                    # Generic IQ waking (B101) has no such qualification.
+                    defensive=spec.kind == "torture",
                 )
             )
             trace = success_roll(stats.profile_id, target + spec.modifier, modifiers, rng=play.rng)

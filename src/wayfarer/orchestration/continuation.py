@@ -4,6 +4,7 @@ from dataclasses import replace
 
 from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.party import PartyState, migrate
 from wayfarer.engine.simulation.campaign.setup import Setup
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import ConflictError, ValidationError
@@ -83,20 +84,19 @@ def prepare(
             "owners": tuple(owners.values()),
         }
     )
-    graph = graph.model_copy(update={"world": world, "resources": resources})
+    # The saved proposal remains authored input. Native receipts belong only to
+    # the continuing state and must never reenter the strict genesis boundary.
+    graph = graph.model_copy(update={"world": world})
     studio = ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
-    # Validate full runtime graph. The seed compiler creates pools; we restore them below.
-    report = studio.validate(graph)
-    if not report.valid:
-        raise ValidationError(
-            "; ".join(f.message for f in report.findings if f.severity == "error")
-        )
+    _validate_proposal(studio, graph)
     active = play.derived(studio.engine(graph), rng=play.rng)
     seed = campaign.copy()
     seed.pop("play_json", None)
     seed.pop("resources_json", None)
     seed["revision"] = 0
-    state = active.initial_state(seed, world, resources, graph.actors, old.members)
+    # Compile strictly at the authored clock. Native schedules and receipts are
+    # restored below; starting schedules must not run against historical time.
+    state = active.initial_state(seed, world, graph.resources, graph.actors, old.members)
     # NPC schedules use absolute shared time. Reusing a plan could replay its actions.
     old_plans = {p.id for s in setup.adventures if s.graph.npcs for p in s.graph.npcs.plans}
     if graph.npcs and any(
@@ -122,5 +122,17 @@ def prepare(
             "recovery": old.recovery,
         }
     )
+    if active.engine.rules.party is not None:
+        # Initialize only the new adventure's structural party at carried time.
+        # The completed party and its receipts remain in the immutable snapshot.
+        state = migrate(state.model_copy(update={"party": PartyState()}))
     active.engine.validate(state)
     return graph, state
+
+
+def _validate_proposal(studio: ScenarioStudio, graph: ScenarioGraph) -> None:
+    report = studio.validate(graph)
+    if not report.valid:
+        raise ValidationError(
+            "; ".join(f.message for f in report.findings if f.severity == "error")
+        )

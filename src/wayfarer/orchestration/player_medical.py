@@ -9,11 +9,13 @@ pinned profile, approved builds, trusted care environment, and persisted tasks.
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import dataclass
 from typing import Literal, cast
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
+from wayfarer import validation
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
 from wayfarer.engine.simulation.health.injury import InjuryResult
@@ -30,9 +32,12 @@ from wayfarer.orchestration.medical import (
     MedicalService,
     _build,
     _value,
+    admit_environment,
     care_context,
 )
 from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.command_inputs import replay_payload, same_input
+from wayfarer.persistence.events import CommandInput, payload_digest
 
 MedicalKind = Literal[
     "rest",
@@ -93,12 +98,15 @@ def _context(
     target_id: str,
     kind: MedicalKind,
     environment: EnvironmentResolver,
+    *,
+    command: BeginRecovery,
 ) -> CareContext:
     profile = play.engine.reviewer.compiler.statistics_profile
     if profile not in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
         raise ValidationError("Recovery requires an exact GURPS profile")
     actor = _build(play, state, actor_id)
     target = _build(play, state, target_id)
+    admit_environment(environment, play, state, command)
     env = environment(play, state, target_id)
     entities = {entity.id: entity for entity in state.world.entities}
     if actor_id not in entities or target_id not in entities:
@@ -188,7 +196,9 @@ def _start_choices(
                         seconds=600,
                     )
                     try:
-                        context = _context(play, state, actor_id, target_id, kind, environment)
+                        context = _context(
+                            play, state, actor_id, target_id, kind, environment, command=command
+                        )
                         apply_recovery(
                             state.resources, command, context, rng=_NoRoll(), system=True
                         )
@@ -278,6 +288,108 @@ def choices(
     return public, tasks, private
 
 
+def _recorded_medical(saved: CommandInput) -> BeginRecovery | FinishRecovery:
+    if saved.text is None:
+        raise ConflictError("Recovery request has no recoverable original intent")
+    if payload_digest({"input": saved.text}) != saved.payload_hash:
+        raise ValidationError("Recorded recovery input does not match its digest")
+    # Validate the ordered private origins as well as the final command hash.
+    if not same_input(saved, saved.text):
+        raise ValidationError("Recorded recovery input has an invalid origin")
+    payload = replay_payload(saved.text)
+    if not isinstance(payload, dict) or payload.get("operation") != "gurps-recovery":
+        raise ConflictError("Request ID belongs to another command family")
+    return TypeAdapter(BeginRecovery | FinishRecovery).validate_json(
+        json.dumps(payload.get("command"))
+    )
+
+
+async def _cached_choice(
+    play: PlayService, state: PlayState, command: PlayerRecoveryCommand
+) -> BeginRecovery | FinishRecovery:
+    saved = await play.store.command_input(state.campaign_id, command.id)
+    if saved is None:
+        raise ConflictError("Recovery request has no recoverable original intent")
+    native = _recorded_medical(saved)
+    if (native.id, native.actor_id, native.expected_revision) != (
+        command.id,
+        command.actor_id,
+        command.expected_revision,
+    ):
+        raise ConflictError("Request ID already used for different recovery input")
+    assert saved.text is not None
+    cached = await play.store.duplicate(state.campaign_id, command.id, saved.text)
+    if cached is None:
+        raise ConflictError("Recovery request lacks its authoritative committed snapshot")
+    if isinstance(native, BeginRecovery):
+        if native.kind not in {
+            "rest",
+            "natural",
+            "bandage",
+            "first-aid",
+            "physician",
+            "resuscitate",
+            "stabilize",
+        }:
+            raise ConflictError("Request ID is not an original player recovery command")
+        choice_id = _choice_id(
+            native.kind, native.actor_id, native.target_id, native.wound_id or ""
+        )
+    else:
+        # The task in the exact committed result is independent of later live
+        # task settlement, stock, actor or scene changes.
+        committed_state = play._load(cached)
+        task = next(
+            (
+                task
+                for task in committed_state.resources.recovery_tasks
+                if task.id == native.task_id
+            ),
+            None,
+        )
+        actor_id, target_id = (task.actor_id, task.target_id) if task is not None else (None, None)
+        if task is None:
+            # Some historical completion reducers retire a task. Recover its
+            # identity only from the actual accepted Begin receipt and bytes.
+            for record in await play.store.history(state.campaign_id):
+                if (
+                    record.resulting_revision > cached["revision"]
+                    or record.event["action"] != "recovery"
+                ):
+                    continue
+                if record.command_input is None:
+                    continue
+                try:
+                    original = _recorded_medical(
+                        CommandInput(record.payload_hash, record.command_input)
+                    )
+                except ConflictError:
+                    # Another recovery family is not this task's producer.
+                    continue
+                if not isinstance(original, BeginRecovery):
+                    continue
+                outcome = validation.mapping(validation.decode(record.event["outcome"]))
+                if outcome.get("task_id") != native.task_id:
+                    continue
+                if isinstance(original, BeginRecovery):
+                    if (record.command_id, record.actor_id, record.expected_revision) != (
+                        original.id,
+                        original.actor_id,
+                        original.expected_revision,
+                    ):
+                        raise ValidationError(
+                            "Original recovery task receipt does not match its input"
+                        )
+                    actor_id, target_id = original.actor_id, original.target_id
+                    break
+        if actor_id is None or target_id is None or actor_id != native.actor_id:
+            raise ConflictError("Original player recovery task identity is unavailable")
+        choice_id = _choice_id("finish", actor_id, target_id, native.task_id)
+    if command.choice_id != choice_id:
+        raise ConflictError("Request ID already used for a different recovery choice")
+    return native
+
+
 async def execute(
     play: PlayService,
     state: PlayState,
@@ -293,6 +405,10 @@ async def execute(
     # Treat the persisted receipt as the authoritative completed replay instead of
     # re-deriving a now-obsolete choice or consuming randomness again.
     if any(receipt.command_id == command.id for receipt in state.resources.receipts):
+        native = await _cached_choice(play, state, command)
+        await MedicalService(play, environment or default_environment).execute(
+            state.campaign_id, native, principal_id=native.actor_id
+        )
         return
 
     resolver = environment or default_environment

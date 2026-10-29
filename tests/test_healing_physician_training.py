@@ -42,6 +42,7 @@ async def test_actual_critical_cost_and_patient_harm_require_paid_physician_fift
             "command": command.model_dump(mode="json"),
             "targeting_generation": 1,
             "check_generation": 1,
+            "concentration_reaction_generation": 1,
             "item_sight_generation": 1,
             "area_targeting_generation": 1,
             "missile_attack_generation": 1,

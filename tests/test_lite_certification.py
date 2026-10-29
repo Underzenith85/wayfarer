@@ -1,5 +1,6 @@
 """Adversarial certification-gate tests; synthetic evidence is not rules evidence."""
 
+import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -89,6 +90,8 @@ def test_gate_requires_complete_pinned_passing_evidence(
         (gate.ROOT / "tests/fixtures/gurps/lite-certification.json").read_text()
     )
     manifest.profile_digest = selected.digest
+    ledger_path = gate.ROOT / "tests/fixtures/gurps/conformance.json"
+    manifest.fixture_digest = hashlib.sha256(ledger_path.read_bytes()).hexdigest()
     manifest.source_audit = "reviewed"
     manifest.catalog_audit = "reviewed"
     manifest.pending = []
@@ -143,7 +146,7 @@ def test_gate_requires_complete_pinned_passing_evidence(
             suite.append(case)
     report = tmp_path / "junit.xml"
     ElementTree(suite).write(report)
-    result = gate.evaluate_lite(report, path)
+    result = gate.evaluate_lite(report, path, ledger_path)
     assert result["passed"] is (defect == "none"), result["errors"]
 
 

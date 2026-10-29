@@ -19,6 +19,7 @@ from wayfarer.engine.character.compiler import CharacterCompiler
 from wayfarer.engine.character.power import CharacterProposal, PowerReview
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
+from wayfarer.engine.simulation.campaign.setup import Setup
 from wayfarer.engine.simulation.combat.attack_visibility import private_attack_result
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.hazard_visibility import private_hazard_command
@@ -286,12 +287,31 @@ class CampaignRuntime:
         current = self.play._load(await self.play.store.read(cid))
         member = self.member(current, principal_id)
         history = await self.play.store.history(cid)
+        first_play_revision = next(
+            (event.resulting_revision for event in history if "play_json" in event.state_after),
+            None,
+        )
         if after > current.revision:
             raise ConflictError("Stream cursor is ahead of campaign")
         result: list[StreamEvent] = []
         for event in history:
             if event.resulting_revision <= after:
                 continue
+            if "play_json" not in event.state_after:
+                setup_json = event.state_after.get("setup_json")
+                if (
+                    event.event["action"] == "setup"
+                    and event.command_id.startswith("setup:")
+                    and event.state_after.get("id") == cid
+                    and first_play_revision is not None
+                    and event.resulting_revision < first_play_revision
+                    and isinstance(setup_json, str)
+                    and Setup.model_validate_json(setup_json).phase in {"draft", "ready"}
+                ):
+                    # Lobby commands are not play-stream events. This narrow
+                    # bridge never hides an absent/corrupt gameplay checkpoint.
+                    continue
+                raise ValidationError("Event stream is missing its play checkpoint")
             state = PlayState.model_validate_json(event.state_after["play_json"])
             result.append(
                 StreamEvent(

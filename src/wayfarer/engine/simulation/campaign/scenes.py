@@ -69,6 +69,7 @@ class SceneRules(Record):
     scenes: tuple[Scene, ...] = Field(min_length=1)
     discoveries: tuple[Discovery, ...] = ()
     triggers: tuple[SceneTrigger, ...] = ()
+    interrupt_recovery_on_travel: bool = Field(default=False, exclude_if=lambda v: not v)
 
     def validate_world(self, world: World) -> None:
         scene_ids = {scene.id for scene in self.scenes}

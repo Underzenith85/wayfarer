@@ -152,3 +152,29 @@ restart/retry/replay, and byte-stable single-effect attack/exposure records. The
 catalog, live-social and scenario-document test families and the authoring,
 scenario and social contract scripts must all pass against their frozen snapshots;
 this runtime extension does not authorize regenerating those contracts.
+
+## Reactive spell concentration saves
+
+For fresh ordinary and lock spell lifecycle commands, the Will save that preserves
+an already accepted casting commitment after injury or distraction is treated as
+a maneuver-free defensive reaction under Campaigns B421. It uses the printed
+Will−3 (B366; ceremonial casting retains its existing unmodified Will save),
+without temporary IQ penalties from intoxication or Symptoms. The later personal
+casting roll still receives those penalties exactly once. This does not exempt
+other Will tasks or alter spell cost, casting time, ritual eligibility or payment.
+A failed preservation save still interrupts the cast without a casting roll.
+
+The printed B421 exception does not explicitly name this concentration save.
+Treating it as a reactive saving roll is the repository's explicit interpretation,
+consistent with the existing distraction oracle and the earlier promise to retain
+its behavior. The alternative interpretation, treating it as part of the voluntary
+Concentrate maneuver, remains a source-classification ambiguity. This bounded
+repair earns no source-certification credit and adds no magic to Roadside Watch.
+
+The additive private `concentration_reaction_generation: 1` marker selects this
+interpretation independently of `check_generation: 1`. Previously recorded spell
+commands without the new marker retain their original Will modifiers, outcomes,
+receipts and input bytes during retries and seed reexecution. Unrecognized or
+malformed markers, and markers on other command families, are refused. Direct
+engine consumers retain their previous default; only the two spell service
+adapters explicitly select the new reaction policy.

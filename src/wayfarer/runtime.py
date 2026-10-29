@@ -19,6 +19,7 @@ from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.engine.world import Connection, Entity, EntityKind, World
 from wayfarer.orchestration.profiles import ProfileRuntime
 from wayfarer.orchestration.runtime import CampaignRuntime
+from wayfarer.orchestration.sessions import Store
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.transport.campaign_api import create_campaign_app
@@ -133,6 +134,15 @@ def runtime_engine(profile: RegisteredProfile = PROTOTYPE_PROFILE) -> ActionEngi
     )
 
 
+def campaign_store(db: Path, *, database_url: str | None = None, timeout: float = 10.0) -> Store:
+    """Construct the persistent campaign handle at the application composition root."""
+    return (
+        AsyncPostgresStore(database_url, timeout)
+        if database_url is not None
+        else AsyncSQLiteStore(db, timeout)
+    )
+
+
 def create_runtime_app(settings: Settings, frontend_dir: Path) -> web.Application:
     if not (frontend_dir / "index.html").is_file() or not (frontend_dir / "assets").is_dir():
         raise ValueError(
@@ -142,10 +152,10 @@ def create_runtime_app(settings: Settings, frontend_dir: Path) -> web.Applicatio
         raise ValueError(
             "Set WAYFARER_TOKENS to a JSON object mapping access tokens to player names."
         )
-    store = (
-        AsyncPostgresStore(settings.database_url.get_secret_value(), settings.db_timeout_seconds)
-        if settings.database_url
-        else AsyncSQLiteStore(settings.db, settings.db_timeout_seconds)
+    store = campaign_store(
+        settings.db,
+        database_url=settings.database_url.get_secret_value() if settings.database_url else None,
+        timeout=settings.db_timeout_seconds,
     )
     profiles = ProfileRuntime(DEFAULT_REGISTRY, store, runtime_engine, PROTOTYPE_PROFILE)
     return create_campaign_app(

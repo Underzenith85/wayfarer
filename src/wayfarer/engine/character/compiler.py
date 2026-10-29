@@ -57,6 +57,7 @@ from wayfarer.engine.rules.traits import registry as trait_registry
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.base import cost as trait_cost
 from wayfarer.engine.rules.types.background_admission import UnusualBackgroundDecision
+from wayfarer.engine.rules.types.battle_fatigue import BattleFatiguePolicy
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
@@ -180,6 +181,15 @@ def _background_decision(packages: tuple[RulesPackage, ...]) -> UnusualBackgroun
     return backgrounds[0] if backgrounds else None
 
 
+def _battle_fatigue_policy(packages: tuple[RulesPackage, ...]) -> BattleFatiguePolicy | None:
+    policies = tuple(
+        package.battle_fatigue for package in packages if package.battle_fatigue is not None
+    )
+    if len(policies) > 1:
+        raise ValidationError("Battle fatigue requires one exact package policy")
+    return policies[0] if policies else None
+
+
 class CharacterCompiler:
     """A trusted server creates this with catalog-backed effect bindings.
 
@@ -210,6 +220,7 @@ class CharacterCompiler:
             raise ValidationError("Empty or duplicate package pins")
         packages = tuple(catalog.package(pin) for pin in rules.packages)
         self.unusual_background = _background_decision(packages)
+        self.battle_fatigue = _battle_fatigue_policy(packages)
         if any(p.edition != rules.edition for p in packages):
             raise ValidationError("Rules edition mismatch")
         if any(dep not in {p.id for p in packages} for p in packages for dep in p.dependencies):

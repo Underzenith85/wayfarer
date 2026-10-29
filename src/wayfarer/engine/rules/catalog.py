@@ -21,6 +21,7 @@ from wayfarer.engine.rules.types.background_admission import (
     UnusualBackgroundDecision,
     background_skill_requirements,
 )
+from wayfarer.engine.rules.types.battle_fatigue import BattleFatiguePolicy
 from wayfarer.engine.rules.types.skill import PrerequisiteKind, SkillPrerequisite, SkillSpec
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
@@ -88,10 +89,13 @@ class RulesPackage:
     definitions: tuple[RuleDefinition, ...]
     dependencies: tuple[str, ...] = ()
     unusual_background: UnusualBackgroundDecision | None = None
+    battle_fatigue: BattleFatiguePolicy | None = None
 
     def canonical_json(self) -> str:
         """Stable package representation shared by pins and source approval gates."""
         data = asdict(self)
+        if self.battle_fatigue is None:
+            del data["battle_fatigue"]
         if self.unusual_background is None:
             del data["unusual_background"]
         else:

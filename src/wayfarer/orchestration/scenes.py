@@ -11,6 +11,7 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.engine.rules.types.recovery import interrupt_tasks
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.party import group_for, synchronous
@@ -19,7 +20,7 @@ from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.lock_state import passage_blocked
 from wayfarer.engine.simulation.magic.rooted_feet_state import require_locomotion
-from wayfarer.engine.simulation.resources import Advance
+from wayfarer.engine.simulation.resources import Advance, ResourceState
 from wayfarer.engine.simulation.traits.innate_criticals import require_innate_actor_action
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
@@ -47,6 +48,31 @@ def _require_scene_locomotion(state: PlayState, actor_id: str, group_travel: boo
     if group_travel and state.party.groups:
         for member in group_for(state, actor_id).actor_ids:
             require_locomotion(state.resources, member)
+
+
+def _interrupt_travel_recovery(
+    state: PlayState,
+    resources: ResourceState,
+    actor_id: str,
+    *,
+    enabled: bool,
+    group_travel: bool,
+) -> ResourceState:
+    """Stop unearned care for lawful movers before travel advances the clock."""
+    if not enabled:
+        return resources
+    movers = frozenset({actor_id})
+    if state.party.groups:
+        group = group_for(state, actor_id)
+        if len(group.actor_ids) != 1 and not group_travel:
+            raise ConflictError("Split before moving an individual actor")
+        if group_travel:
+            movers = frozenset(group.actor_ids)
+    return resources.model_copy(
+        update={
+            "recovery_tasks": interrupt_tasks(resources.recovery_tasks, movers, resources.game_time)
+        }
+    )
 
 
 class SceneService:
@@ -163,6 +189,13 @@ class SceneService:
             )
             if passage_blocked(resources, scene.location_id, destination.location_id):
                 raise ConflictError("Exit is blocked by a closed door")
+            resources = _interrupt_travel_recovery(
+                state,
+                resources,
+                command.actor_id,
+                enabled=rules.interrupt_recovery_on_travel,
+                group_travel=group_travel,
+            )
             for trigger in rules.triggers:
                 if (
                     trigger.scene_id == scene.id

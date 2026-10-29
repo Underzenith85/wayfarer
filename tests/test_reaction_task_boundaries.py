@@ -471,10 +471,16 @@ async def test_changed_approved_standing_is_rebound_before_recognition(
 async def test_safe_combat_reaction_and_unresolved_attack_boundary(
     tmp_path: Path, backend: str, pending_attack: bool
 ) -> None:
+    from wayfarer.engine.simulation.campaign.default_knowledge import AdoptDefaultKnowledge
     from wayfarer.engine.simulation.combat.battlefield import GridPoint
-    from wayfarer.engine.simulation.combat.commands import StartEncounter, TakeCombatTurn
+    from wayfarer.engine.simulation.combat.commands import (
+        ChooseDefense,
+        StartEncounter,
+        TakeCombatTurn,
+    )
     from wayfarer.engine.simulation.combat.spatial import Placement
     from wayfarer.orchestration.combat import CombatService
+    from wayfarer.orchestration.default_knowledge import DefaultKnowledgeService
 
     cid, play = await fixture(tmp_path, backend)
     state = play._load(await play.store.read(cid))
@@ -496,6 +502,40 @@ async def test_safe_combat_reaction_and_unresolved_attack_boundary(
     )
     if pending_attack:
         state = play._load(await play.store.read(cid))
+        before_adoption = await play.store.read(cid)
+        history, events = await play.store.history(cid), await play.store.stream(cid)
+        play.rng = RecordedDice(())
+        with pytest.raises(ValidationError, match="trained or legal default"):
+            await CombatService(play).execute(
+                cid,
+                TakeCombatTurn(
+                    id="unfamiliar-attack",
+                    actor_id="a",
+                    expected_revision=state.revision,
+                    encounter_id="fight",
+                    maneuver="attack",
+                    item_id="sword-a",
+                    mode_id="swing",
+                    target_id="b",
+                ),
+                principal_id="a",
+            )
+        assert await play.store.read(cid) == before_adoption
+        assert await play.store.history(cid) == history and await play.store.stream(cid) == events
+        await DefaultKnowledgeService(play).execute(
+            cid,
+            AdoptDefaultKnowledge(
+                id="reaction-broadsword-knowledge",
+                actor_id="gm",
+                expected_revision=state.revision,
+                performer_id="a",
+                known_skill_ids=("skill:broadsword",),
+                reason="B173: Broadsword is known in this actor's society",
+            ),
+            principal_id="gm",
+        )
+        state = play._load(await play.store.read(cid))
+        play.rng = RecordedDice((1, 2, 2))
         await CombatService(play).execute(
             cid,
             TakeCombatTurn(
@@ -515,9 +555,27 @@ async def test_safe_combat_reaction_and_unresolved_attack_boundary(
     before = await play.store.read(cid)
     play.rng = RecordedDice(())
     if pending_attack:
+        history, events = await play.store.history(cid), await play.store.stream(cid)
         with pytest.raises(ConflictError, match="pending attack"):
             await prepare(play, cid)
         assert await play.store.read(cid) == before
+        assert await play.store.history(cid) == history and await play.store.stream(cid) == events
+        # This fixture defers its attack roll until the native defense choice.
+        play.rng = RecordedDice((1, 2, 2, 3, 3, 3, 3))
+        result = await CombatService(play).execute(
+            cid,
+            ChooseDefense(
+                id="resolve-guarded-attack",
+                actor_id="b",
+                expected_revision=play._load(before).revision,
+                encounter_id="fight",
+                defense="none",
+            ),
+            principal_id="b",
+        )
+        assert result.injury is not None
+        assert result.injury.attack.effective_target == 5 and result.injury.attack.total == 5
+        assert result.injury.attack.margin == 0 and result.injury.attack.outcome.succeeded
     else:
         _, opened = await prepare(play, cid)
         play.rng = RecordedDice((5,) * 9)

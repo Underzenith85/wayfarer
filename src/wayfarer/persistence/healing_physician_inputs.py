@@ -14,6 +14,7 @@ _BASE = frozenset(
         "command",
         "targeting_generation",
         "check_generation",
+        "concentration_reaction_generation",
         "item_sight_generation",
         "area_targeting_generation",
         "missile_attack_generation",

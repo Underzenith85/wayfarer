@@ -1,0 +1,888 @@
+{
+  "checkpoint": "Roadside Watch limited HTTP API",
+  "generated_at": "2026-10-29T21:22:58.725817+00:00",
+  "parent_accepted_checkpoint": "24f97401678e65958bc27ef0d5948063e6e3389d",
+  "tested_source": {
+    "head": "7713b402f49e9ccbb42edd3227e53a66bf0dc339",
+    "tree": "61f059cacfae1833277d7678f87626d06626d898",
+    "pyproject_sha256": "d521e6f67f2d4a089336d26333e582eb0bf246ca8d93e12b37c216a9f4603b77",
+    "lock_sha256": "94a8ecc6d7f3b807261aa4178e9813895e2951bc90cff89f08ca19abd7337851"
+  },
+  "source_equivalence": {
+    "delta_count": 54,
+    "deltas": {
+      "docs/roadside-watch.md": {
+        "before": null,
+        "after": "9d4756808170a9cc98d0fadbe51a1488951d00d4c69573751913bf5777840a3a"
+      },
+      "tests/test_roadwatch_battle_fatigue.py": {
+        "before": null,
+        "after": "e39217dcfc9eac87dfd8dd82927a530de541a11c4c62b161e3521136861feaa6"
+      },
+      "tests/test_medical_bandage_inputs.py": {
+        "before": null,
+        "after": "cecccb13d5d25a14a5f90c0ade46feeb26225df45c9ad5165b98d389ab2e7f79"
+      },
+      "tests/test_roadwatch_care_travel.py": {
+        "before": null,
+        "after": "774507b96413a2434452df0f9195b4160a57db4c2562b3a6069f702a70b0e8b4"
+      },
+      "tests/test_roadwatch_scope.py": {
+        "before": null,
+        "after": "01bbc396396a3c5ea9fd65ca4a2ce5a1b833ac8e172e5c9e47c8217448750233"
+      },
+      "tests/test_roadwatch_story.py": {
+        "before": null,
+        "after": "718a23f736c47359be1a3bbc4804d6132c40c7056008bbf6644c91590d4993a5"
+      },
+      "tests/test_roadwatch_campaign.py": {
+        "before": null,
+        "after": "26ebc4cf7ef4f4567f009464c1d3cc58ff570a49ecb7ce57e151520df0f04790"
+      },
+      "tests/test_roadwatch_rules.py": {
+        "before": null,
+        "after": "89560774624c6e8f50f6d228a7701a157aa4433d25cba904ae517ce38b6f7bcf"
+      },
+      "tests/test_objective_replay.py": {
+        "before": null,
+        "after": "967c47167d6d7e30c4d0f3842a99d6d1deff421525e3557c1680bda4e741eb10"
+      },
+      "src/wayfarer/runtime.py": {
+        "before": "662221f4a22001200bcf2cd088b40f48b976b9b4780beae4a2a0ef6c733f6919",
+        "after": "ed5b19ec74b17d6d4cbff6f713f8bf89835fcc2ca39154ada1b999bde0a4f79e"
+      },
+      "src/wayfarer/orchestration/replay.py": {
+        "before": "a3bea440a318c3a80c038bcc0802e36a549293c513122ec4441cb524c1a95f42",
+        "after": "a63173d2cf51eeb990709f34c3a042ec596547270c5bc4fb058c8f02eed55b59"
+      },
+      "src/wayfarer/orchestration/medical.py": {
+        "before": "5f85742d63d4f4e05b806b2db7ab6f5bf61093224539a2517b1281b7035f1084",
+        "after": "5dc7607a502ba1525f6b0be3fa87c18c9fc1160bf0f88d05fc970dca5911a275"
+      },
+      "src/wayfarer/orchestration/player_medical.py": {
+        "before": "96807ac0ac64d728ce324182529f2c41579aafd8e2e304a5de339e2b31375a2c",
+        "after": "353da4b360233f653662d5fe9712979451a062b797ba4fb68dbec4a0fc30cff7"
+      },
+      "src/wayfarer/orchestration/medical_bandage_generations.py": {
+        "before": null,
+        "after": "521608d9e56abafc52d1d5f50ce67d47eaadb07976c74bb3e1439b0403233bcb"
+      },
+      "src/wayfarer/orchestration/runtime.py": {
+        "before": "679e82c8b20f8009682ecea7095d69cdca7ccf1597a31e2eafe6bd5ac29e2c35",
+        "after": "e40e657d3e657b1b77e9266850430bd59b45f9a23bf1e192caf8390bfa17b414"
+      },
+      "src/wayfarer/orchestration/scenes.py": {
+        "before": "5542120942edac66ad4538d3d3f38541ac5bc83ea1d1524b7f59b9885c184948",
+        "after": "c54dac59f5bb8171843f3f552fbcae298c64fe210d98d804c221ad70a06d1041"
+      },
+      "src/wayfarer/persistence/command_inputs.py": {
+        "before": "2383d59d10b65aec64fc693f5f9760585103e21f2d6add85589016b54d5f831d",
+        "after": "4f684097db96784b50d66617526f5df3b43f8966fe2ced8962f12323ca45bd2d"
+      },
+      "src/wayfarer/persistence/medical_bandage_inputs.py": {
+        "before": null,
+        "after": "63e1db55cdbf531edcad669b295d559088d1237ad2892a2d67aa8348f8e476f8"
+      },
+      "src/wayfarer/adventures/roadwatch_care.py": {
+        "before": null,
+        "after": "33456ca1420c2dac05459991fad6e93f8b97e49387b85037df8ae052ae59602c"
+      },
+      "src/wayfarer/adventures/roadwatch_rules.py": {
+        "before": null,
+        "after": "9b9e8ecfa82874dd3c839a31001ab2b49567f5f26af680fdd3e45043852f40a4"
+      },
+      "src/wayfarer/adventures/roadwatch_runtime.py": {
+        "before": null,
+        "after": "1cab57cb3e34e7c88987b4e4311eda2e942653dd8bb5a5e7d241e683b8cb0bea"
+      },
+      "src/wayfarer/adventures/roadwatch.py": {
+        "before": null,
+        "after": "515a2569102d7ec5309ffacbf676cd6479b6ebe9305680e663e5aaca60e9357f"
+      },
+      "src/wayfarer/adventures/roadwatch_scope.py": {
+        "before": null,
+        "after": "227f28cffd0277ce02e2a86dba566b4f2785e9478838c6904cb3bee8845ef820"
+      },
+      "src/wayfarer/adventures/roadwatch_cli.py": {
+        "before": null,
+        "after": "5ffbb28672272248b5f3f10211121e4b79915e0c908b385860c97bc42b50f475"
+      },
+      "src/wayfarer/orchestration/combat/settlement.py": {
+        "before": "46260db90054e9344c63a020bea49527dd461a8f25540f550828aa7a0f08d240",
+        "after": "7ec38d1b6e6d30afa64cc0d45a84d6f4fede8f52f19cca7e961ccfbaa6ead32f"
+      },
+      "src/wayfarer/orchestration/combat/steps.py": {
+        "before": "8fa1c7bb2ccc196a7bbe9b693ddcc0475b76cc2699eb9a7217825a2ddfb427ad",
+        "after": "0868e581bacf5ec093dab9bfb11271c58c4a4ce48b45f52bcc3fb4464032dedc"
+      },
+      "src/wayfarer/orchestration/combat/battle_fatigue.py": {
+        "before": null,
+        "after": "aae007d485d6d9aaca39fb5959f84a75b0df3b6724e48ffbab0804049b456c1f"
+      },
+      "src/wayfarer/engine/rules/catalog.py": {
+        "before": "93c75ef5f8552ac019476aa8f78896562eeb860c1f1562f8dfefffb2296e5808",
+        "after": "e27ec630c209fa87173f701da38dd1096b977967a9f31486920ccfc4d7d93530"
+      },
+      "src/wayfarer/engine/character/compiler.py": {
+        "before": "f9c598cf2b5c86478c3a98f099c1f7df54768d29f4df4bfdbbe8ece4f978ec2f",
+        "after": "069bd87771df2de9ea968d02514c961a799877621b2150534aea8b840afbb321"
+      },
+      "src/wayfarer/engine/rules/types/battle_fatigue.py": {
+        "before": null,
+        "after": "56b479cf339107e00a185ffbb03d8ab5c31457a77015c4d4d45ebc6583057868"
+      },
+      "src/wayfarer/engine/simulation/health/battle_fatigue.py": {
+        "before": null,
+        "after": "72668cfe1ab3bd6f1d0470b66744e4b9a16ecedf1f89e8f515d6ef1385d8a8b3"
+      },
+      "src/wayfarer/engine/simulation/campaign/scenes.py": {
+        "before": "ca170e1f9ad174dbdc51bd3ed1dc04eaa2323af8cdb52716b2bc62f4ac34416a",
+        "after": "ea427eb63476cd1ecb66d8d42aa2eb6cb0f2da5bcd485b9728a2ac2b80824b1b"
+      },
+      "src/wayfarer/adventures/fixtures/roadwatch.json": {
+        "before": null,
+        "after": "efa35c40d399fb6831f9251b5ead9ecde16b6339bf27290e7b24c27457e172a6"
+      },
+      "contracts/authoring/v1/schemas.json": {
+        "before": "b720b61868e8541ee6aae0b2dce4a074d080b1974b8b7d2bf32122ebad63b18b",
+        "after": "ebba5025282114306e0717c477c2846cab779d4bc735ebfb29932d3305e78c87"
+      },
+      "contracts/social/v2/schemas.json": {
+        "before": "05e3d525e41116d374b454cce305ea94e40058a7ddd6393f8945f523be456e1f",
+        "after": "a71cc59a99b3dd8541183a4872fb5813fa5b04aa9b8cb1f45f0974f2d75c0e9e"
+      },
+      "contracts/scenarios/v1/document.schema.json": {
+        "before": "dbf4e9bac480b9c1549ee91b3606970cfd98f2279e4a22190dd4909ecc96cd89",
+        "after": "65fb447fb3c3645caa3622eac20a8f737693198ec98c8a7c670c4c95796fe10b"
+      },
+      "tests/support/roadwatch_campaign.py": {
+        "before": null,
+        "after": "b827ef7d9b7ae1a3b19c4cd152865f11c5018367e5dba3c8b01e8a62fd7578c2"
+      },
+      "src/wayfarer/orchestration/physical_checks.py": {
+        "before": "cf29188c731b83ae896c921f5896fd8e37fb7ebd87bf8b5a103e3f2bd51d9460",
+        "after": "cab7ae924d4c5c6bd095b7ad33263f7a3a0cae24933a29272d91f6c252ef2a00"
+      },
+      "tests/test_physical_wake_penalties.py": {
+        "before": null,
+        "after": "35c0f60aaded3c7f4222233393837d5ab3fd457111b899ffa69b043ee716aead"
+      },
+      "tests/test_lite_certification.py": {
+        "before": "edeb35ddd38aeff56a48eef185cebefd8520ac96e50aa6ae8e86c8ad5ef52ad0",
+        "after": "d0dbb8041186bc87a2587dd54d5ef10e4be791f28b6573035245c7d9cfdbb19a"
+      },
+      "docs/symptoms.md": {
+        "before": "5b636bc5320b5ad2cb4254d3ed42fa8a2840e4e2a2cb11b0149a129104b938c6",
+        "after": "2b5d233c2188f87c3c9bf73d8bd3ff5f0bc0ef16576a6163fc5d2989ff1200e0"
+      },
+      "src/wayfarer/engine/simulation/magic/spell_transitions.py": {
+        "before": "580da0281b77504603ee23038dfa8aadae05b64fe19e01987759491067ab7966",
+        "after": "7fa3731c968dc19b2310c1311da25867e369ba8bfed0330481d8563de424040b"
+      },
+      "src/wayfarer/engine/simulation/magic/spells.py": {
+        "before": "35863592753778ae4ab9bcef0f2f18647a5b6bc80fbf0883934d8dccd2990584",
+        "after": "1045834fa26d369025caced3cf1f3c768404ee8608854b6471151b3334a6473c"
+      },
+      "src/wayfarer/orchestration/locks.py": {
+        "before": "57b5e955c2eca38d55dafd1a5118b3d54e05d6e31b4eb6e5333d0cd7e47f2201",
+        "after": "d42171f5d6f1d3b14695b6668b793ab0b3c7de93a9f6fc2dfb840cd33b63b67d"
+      },
+      "src/wayfarer/orchestration/spell_generations.py": {
+        "before": "bbb6b54533cb530f7fa83538a004526899ad7fcbb5f1ee7f77042f3890e297ed",
+        "after": "fd5ef6322b90382a19aed4856248b9db5089e8462253e827399634d0918e1b8f"
+      },
+      "src/wayfarer/orchestration/spells.py": {
+        "before": "9543d354df4fd4b01bb135cd4d6bcc7d9228ccc2318b1b8ad28dd86b64711fa2",
+        "after": "5f1b03951334d4f45de0e393c3993a4b93a19d6ea0b5c5a3e0e9d08c35360e7a"
+      },
+      "src/wayfarer/persistence/healing_physician_inputs.py": {
+        "before": "0bb7a2e2c21774bf3525d865ea77ab203dac48e1c888a2084811f2a821032d43",
+        "after": "2d439132efbe04f26faf51459aba7fbeae7651bc468de26fb3ff3e0bc567283a"
+      },
+      "tests/test_healing_physician_training.py": {
+        "before": "dbc4515698a60a297aaab85c893d12a8b81e626452143e603df0f682fbfdf552",
+        "after": "d063e63dbf34003c8d22a099351a325dddcad0821814321b3c8eb12b536e376e"
+      },
+      "tests/test_spell_concentration_reaction.py": {
+        "before": null,
+        "after": "ac341a34c1b222ec78da0399c3d7fba0d25f3e23d5782978eb89f784156bb255"
+      },
+      "tests/test_reaction_task_boundaries.py": {
+        "before": "570ac6da1bf0751c1af2266e1c77f5a29872e9e84f52a38c611c2beb711044cc",
+        "after": "705fb09e18c7b5a38ffd9c7dde6489dcd461f5d4257a93693424262c368d680e"
+      },
+      "src/wayfarer/orchestration/continuation.py": {
+        "before": "ca826a5917d2fb50d30e02457d8ae2eb9f5347f8501573321087f9f3ed1c36a2",
+        "after": "5b58a8d3fe00090eba1497e0fbdb757bfa067af0124cddc3c0b296c5be6a3cda"
+      },
+      "src/wayfarer/orchestration/play.py": {
+        "before": "0af35afbea159f4fdf7bf08d71d65e999b3826b96aedb66af398d2deb4c48626",
+        "after": "1bbb92011cc32182ad172640c26a53f9bac00bece209cc64de53a435c434359a"
+      },
+      "tests/test_continuation_battle_fatigue.py": {
+        "before": null,
+        "after": "951db7a3db931d69e3387ed9ca4b28c2c39cfb2ce7ce983ba5551b74d7b44a5b"
+      },
+      "tests/test_continuation_private_history.py": {
+        "before": null,
+        "after": "420699bc517e46c97e33faba0aebc122384b59b0a4b460d754b2c20b5fa1a2ec"
+      }
+    },
+    "delta_map": {
+      "path": "/workspace/wayfarer-roadwatch-final-validation-candidate.json",
+      "sha256": "d72c217e55c53d007235c7cd23f410e2bcd82afb5588a6e99834fac5d0714f68"
+    },
+    "accepted_before_images_verified": true,
+    "candidate_after_images_verified": true
+  },
+  "official_full_evidence": {
+    "source": {
+      "head": "7713b402f49e9ccbb42edd3227e53a66bf0dc339",
+      "tree": "61f059cacfae1833277d7678f87626d06626d898",
+      "pyproject_sha256": "d521e6f67f2d4a089336d26333e582eb0bf246ca8d93e12b37c216a9f4603b77",
+      "lock_sha256": "94a8ecc6d7f3b807261aa4178e9813895e2951bc90cff89f08ca19abd7337851"
+    },
+    "current_v5_counts": {
+      "modules": 741,
+      "ordinary_parents": 13224,
+      "ordinary_passed": 13223,
+      "architecture_subtests": 16191,
+      "all_dynamic_subtests": 16191,
+      "reported_tests_including_subtests": 29415,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_identities": [
+        "tests/test_codex_provider.py::test_authenticated_codex_smoke"
+      ],
+      "native_campaign_cases": 66
+    },
+    "campaign_cases": [
+      "tests/test_roadwatch_campaign.py::test_public_setup_admits_exact_source_builds_anatomy_and_real_gear[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_public_setup_admits_exact_source_builds_anatomy_and_real_gear[postgres]",
+      "tests/test_roadwatch_campaign.py::test_nonmembers_and_unsupported_transports_cannot_mutate_or_draw[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_nonmembers_and_unsupported_transports_cannot_mutate_or_draw[postgres]",
+      "tests/test_roadwatch_campaign.py::test_public_setup_default_gm_receipt_discovery[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_public_setup_default_gm_receipt_discovery[postgres]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[non-lobby-before-play-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[non-lobby-before-play-postgres]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[missing-after-play-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[missing-after-play-postgres]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[invalid-play-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[invalid-play-postgres]",
+      "tests/test_roadwatch_campaign.py::test_accepted_medical_id_rejects_changed_opaque_intent[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_accepted_medical_id_rejects_changed_opaque_intent[postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total3-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total3-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total2-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total2-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[critical-maximum-includes-bandage-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[critical-maximum-includes-bandage-postgres]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[ordinary-failure-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[ordinary-failure-postgres]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-success-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-success-postgres]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-failure-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-failure-postgres]",
+      "tests/test_roadwatch_campaign.py::test_failed_survey_can_withdraw_and_reach_an_authored_ending[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_failed_survey_can_withdraw_and_reach_an_authored_ending[postgres]",
+      "tests/test_roadwatch_campaign.py::test_natural_critical_arm_strain_and_gm_receipts[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_natural_critical_arm_strain_and_gm_receipts[postgres]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[patient-crosses-due-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[patient-crosses-due-postgres]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[caregiver-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[caregiver-postgres]",
+      "tests/test_roadwatch_campaign.py::test_fresh_application_reload_preserves_real_wound_and_retry[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_fresh_application_reload_preserves_real_wound_and_retry[postgres]",
+      "tests/test_roadwatch_campaign.py::test_independent_apps_compare_and_swap_and_same_id_once[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_independent_apps_compare_and_swap_and_same_id_once[postgres]",
+      "tests/test_roadwatch_campaign.py::test_failed_commit_rolls_back_real_injury_then_lawful_retry[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_failed_commit_rolls_back_real_injury_then_lawful_retry[postgres]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[dodge8-fails9-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[dodge8-fails9-postgres]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[parry10-stops9-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[parry10-stops9-postgres]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[retreat-dodge11-stops9-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[retreat-dodge11-stops9-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[full-eleventh-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[full-eleventh-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[partial-eleventh-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[partial-eleventh-postgres]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break4-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break4-postgres]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break17-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break17-postgres]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical5-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical5-postgres]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical6-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical6-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-observation-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-observation-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-stealth-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-stealth-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-observation-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-observation-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-stealth-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-stealth-postgres]"
+    ],
+    "coverage": {
+      "lines_covered": 70607,
+      "lines_valid": 77626,
+      "branches_covered": 20593,
+      "branches_valid": 27050,
+      "computed_combined_percent": 87.12598876533303,
+      "official_report_TOTAL": "TOTAL                                                                       77626   7019  27050   5673    87%",
+      "unchanged_required_percent": 65,
+      "official_aggregate_exit_code": 0,
+      "xml": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/aggregate/coverage.xml",
+        "sha256": "29745d0c97bdcb2e5ba30f486e86253676441e441f14aa88e7b306639fa3cebc"
+      }
+    },
+    "junit": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v5/aggregate/pytest.xml",
+      "sha256": "da19c4c1a451a428152831ce09ab27ffe49652e8d2f9f5efd7930fec6661fc4e"
+    },
+    "shards": [
+      {
+        "index": 0,
+        "parents": 3278,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-0/accounting.json",
+          "sha256": "45f9f11922b6fc3db40e86c889a29aad2fc7b851015e5908923058d097e02a4d"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-0/pytest.xml",
+          "sha256": "f6f8ceb38977af56d647837314c3c3dd24d1da462c42072f6b6c82e46321ad39"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-0/.coverage.0",
+          "sha256": "4ec7a80e09bd812b9aeab38444d496601e7dc91a8098ccfcd22c666b8c34ccd6"
+        }
+      },
+      {
+        "index": 1,
+        "parents": 3248,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-1/accounting.json",
+          "sha256": "3acb47dd0a98e8f9db2c7ac868c807d8ae36f3e5c2f94096f42cf8ccfd15777e"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-1/pytest.xml",
+          "sha256": "fc454b4b2947c4e0285dce38b93846fad2defccb1b561352a4f79b91b9a6c7bb"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-1/.coverage.1",
+          "sha256": "512a551ae838c42a480ff0d1f003864a9e6e1c5b54ada8473a8a772a434b96a8"
+        }
+      },
+      {
+        "index": 2,
+        "parents": 3378,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-2/accounting.json",
+          "sha256": "a102f6711db31dfe18a85eeca90a44667d5fbad4ba0c262a514339864070ea97"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-2/pytest.xml",
+          "sha256": "b40f4e5d0dac91fe546bb127247995e3bbfe27949062bb15c0b056765863c1f2"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-2/.coverage.2",
+          "sha256": "dfc90fba49f0d0b8613e090fea40f3359dac65bf8e84c6e1c0c167bc6bb83e7e"
+        }
+      },
+      {
+        "index": 3,
+        "parents": 3320,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-3/accounting.json",
+          "sha256": "54062cc8241da16eeb20ff109c2cf4481560eca4556522196c3f226d58bdc7c9"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-3/pytest.xml",
+          "sha256": "a238ace6e6f2b2483833c48e6112d01e8ac5150842b40c299f8084060c28d73f"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-3/.coverage.3",
+          "sha256": "2960176cf0122c7a14c212a7014848bb90cd95ded747c585cbbf8573ebfcc0f9"
+        }
+      }
+    ]
+  },
+  "static_gates": {
+    "count": 22,
+    "terminal": {
+      "path": "/workspace/wayfarer-roadwatch-validation-static-v8/terminal.json",
+      "sha256": "c701f3f649afe60cdb74b45f6870ed8fa75f31d5bbf814b930a9a5878ddd0a47"
+    },
+    "commands_and_log_hashes": [
+      {
+        "name": "mypy",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "-m",
+          "mypy"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 2.261,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/mypy.log",
+        "log_sha256": "a1d4f2b4d1da733fa331ab57ed0edf2c4daca2f61ce81c461df5c178bd86a7d7"
+      },
+      {
+        "name": "ruff",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "-m",
+          "ruff",
+          "check",
+          "."
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 0.041,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/ruff.log",
+        "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "name": "format",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "-m",
+          "ruff",
+          "format",
+          "--check",
+          "."
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 0.043,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/format.log",
+        "log_sha256": "18121ef50f75e8f73615d45b8d09081cd1e327a157e02e19ff320d3791cfab76"
+      },
+      {
+        "name": "no_explicit_any",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/check_no_any.py"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 3.645,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/no_explicit_any.log",
+        "log_sha256": "0e74adc3e9ceae6a7ab8b63b9c56df118fd94d3ebdf2c7ccaa467232d446069e"
+      },
+      {
+        "name": "injected_quality_gates",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/check_quality_gates.py"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 0.175,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/injected_quality_gates.log",
+        "log_sha256": "d141b357a8a2a61773d7b44d8f2c5c244a54c99303af4ad44ea34f5bf7938962"
+      },
+      {
+        "name": "git_diff_check",
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 0.004,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/git_diff_check.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "authoring_schema",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/authoring_contracts.py",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 1.202,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/authoring_schema.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "encounter_scene_schema",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/encounter_scene_contracts.py",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 1.916,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/encounter_scene_schema.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "scenario_schema",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/scenario_contracts.py",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 2.283,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/scenario_schema.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "social_schema",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/social_contracts.py",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 2.058,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/social_schema.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "tactical_schema",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/tactical_contracts.py",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 2.278,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/tactical_schema.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "workshop_schema",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/workshop_contracts.py",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 2.425,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/workshop_schema.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "contracts",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/validate_contracts.py"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 1.646,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/contracts.log",
+        "log_sha256": "e7f2bb2d6b2898d15560ca9bccc5aba9124527a5a71dc2a6b0093dc08f1f2474"
+      },
+      {
+        "name": "live_contracts",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "-m",
+          "scripts.validate_live_contracts"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 0.382,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/live_contracts.log",
+        "log_sha256": "26353f6829355f54f09b1dfcb96e27130e176337e8be5b27e4b2ab0396b12eb6"
+      },
+      {
+        "name": "source_audit",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/audit_gurps_sources.py"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 1.141,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/source_audit.log",
+        "log_sha256": "c973743eafa33a0384206eca2c6be3e7310f02d59621558590a89e12393793d0"
+      },
+      {
+        "name": "equipment_audit",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "scripts/audit_gurps_equipment.py"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 0.596,
+        "log": "/workspace/wayfarer-roadwatch-validation-static-v8/equipment_audit.log",
+        "log_sha256": "0fc969886976d12b332f9a786bf861b7b2b465eb4b8cd5637345b3503bd70ae5"
+      },
+      {
+        "name": "uv_lock",
+        "command": [
+          "uv",
+          "lock",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 0.014,
+        "log": "/workspace/wayfarer-roadwatch-validation-extra-v8/uv_lock.log",
+        "log_sha256": "3191a04f7fec667a46552e813efa002963c75de29d9b96ccd7f68f27dc646bfd"
+      },
+      {
+        "name": "golden_replay",
+        "command": [
+          "/workspace/wayfarer/.venv/bin/python",
+          "-m",
+          "scripts.regenerate_replay_fixtures",
+          "--check"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+        "exit_code": 0,
+        "seconds": 4.836,
+        "log": "/workspace/wayfarer-roadwatch-validation-extra-v8/golden_replay.log",
+        "log_sha256": "7c068c5194e0a583ecb7993543c7f09e919bfb1d68a1f4cb724b8fe3f42b4134"
+      },
+      {
+        "name": "frontend_contracts",
+        "command": [
+          "node",
+          "scripts/check-contracts.mjs"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout/frontend",
+        "exit_code": 0,
+        "seconds": 0.855,
+        "log": "/workspace/wayfarer-roadwatch-validation-extra-v8/frontend_contracts.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "frontend_gate_tests",
+        "command": [
+          "node",
+          "--test",
+          "scripts/check-compatibility.test.mjs"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout/frontend",
+        "exit_code": 0,
+        "seconds": 0.135,
+        "log": "/workspace/wayfarer-roadwatch-validation-extra-v8/frontend_gate_tests.log",
+        "log_sha256": "5d0a55e88e28f54ba86e46e982d7e87b97a3ee1383b953ad50a998b01fbd095d"
+      },
+      {
+        "name": "frontend_compatibility",
+        "command": [
+          "node",
+          "scripts/check-compatibility.mjs"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout/frontend",
+        "exit_code": 0,
+        "seconds": 0.063,
+        "log": "/workspace/wayfarer-roadwatch-validation-extra-v8/frontend_compatibility.log",
+        "log_sha256": "42a08fcdf43c643a222f55890b3795a10e47c2937f64a36e958c2b95dd8d3652"
+      },
+      {
+        "name": "frontend_typecheck",
+        "command": [
+          "./node_modules/.bin/tsc",
+          "--noEmit"
+        ],
+        "cwd": "/workspace/wayfarer-roadwatch-final-validation-checkout/frontend",
+        "exit_code": 0,
+        "seconds": 1.218,
+        "log": "/workspace/wayfarer-roadwatch-validation-extra-v8/frontend_typecheck.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "original_strict_post_run_terminal": {
+    "path": "/workspace/wayfarer-roadwatch-full-validation-v5/post-run-terminal.json",
+    "sha256": "0a9f73bc53e3b04cd06310ce4a616080803eee9349d744692bb6ef5cd76c83b0"
+  },
+  "scoped_engine_release_acceptance": {
+    "path": "/workspace/wayfarer-roadwatch-scoped-release-acceptance.json",
+    "sha256": "b3a7837da5628dd96b0834bb03a520ec55c57f46e78338eb77d7a8e87415f9ef"
+  },
+  "release": {
+    "profile_id": "profile:gurps-basic-set-4e-2004",
+    "profile_version": 11,
+    "profile_digest": "483b2f942994f1ca2f0e23e8825e1cfd172fc9bddac5e9bf1aab3ec86f120a0d",
+    "source_baseline": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+    "required_capabilities": 73,
+    "verified_capabilities": 9,
+    "source_audit_complete": false,
+    "certified": false,
+    "blocker_records": 1990,
+    "distinct_blocker_identifiers": 1883,
+    "execution": {
+      "verified_obligation_count": 15,
+      "verified_obligations": [
+        "capability:gurps.character.skill_defaults",
+        "capability:gurps.character.skill_difficulty",
+        "capability:gurps.character.specialties",
+        "capability:gurps.character.techniques",
+        "capability:gurps.check.critical",
+        "capability:gurps.check.margin",
+        "capability:gurps.check.quick_contest",
+        "capability:gurps.check.regular_contest",
+        "capability:gurps.check.resistance",
+        "section:campaigns:b344:default-rolls",
+        "section:campaigns:b348:quick-contests",
+        "section:campaigns:b348:repeated-attempts",
+        "section:campaigns:b349:regular-contests",
+        "section:campaigns:b349:the-rule-of-16",
+        "section:characters:b017:basic-lift-and-encumbrance-table"
+      ],
+      "problems": {},
+      "error": null,
+      "qualification": "Actual source-bound evaluation; no hardcoded15/new-credit assumption and no change to certification ledgers."
+    },
+    "raw_report": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v5/scoped-engine-release/mechanics.json",
+      "sha256": "470dfc20a8a58f5741750af0aeab14d980de083f3eeeb7ceb6ec1a029ce44ebe"
+    },
+    "strict_global_source_failure": {
+      "terminal": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/post-run-terminal.json",
+        "sha256": "0a9f73bc53e3b04cd06310ce4a616080803eee9349d744692bb6ef5cd76c83b0"
+      },
+      "mechanics": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/release/mechanics.json",
+        "sha256": "9b7d98d607ba1b45a5889b8f707b675f4cd110bd18501050e2040d1dd2a5b12c"
+      },
+      "errors": [
+        "Frozen GURPS source audit incomplete; see scripts/audit_gurps_sources.py"
+      ],
+      "global_source_audit": {
+        "audit_complete": false,
+        "blocker_count": 117,
+        "path": "/workspace/wayfarer-roadwatch-validation-static-v8/source_audit.log",
+        "sha256": "c973743eafa33a0384206eca2c6be3e7310f02d59621558590a89e12393793d0"
+      }
+    }
+  },
+  "local_scope_counts": {
+    "supported": 11,
+    "partial": 5,
+    "unsupported": 1,
+    "unverified": 1
+  },
+  "scope_not_full_book_percentage": true,
+  "prior375_native66": {
+    "passed": 66,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 438.04,
+    "runner_seconds": 439.965,
+    "source_files": 1744,
+    "before_digest": "7772689b32095d69a3b3807cec7c82f9a4ee722a713b24d4699b45ea67f03dea",
+    "after_digest": "7772689b32095d69a3b3807cec7c82f9a4ee722a713b24d4699b45ea67f03dea",
+    "exact_inventory": true,
+    "evidence_prefix": "/workspace/wayfarer-roadwatch-validation/architecture-v7-full66",
+    "accounting": "/workspace/wayfarer-roadwatch-validation/architecture-v7-full66-accounting.json"
+  },
+  "fresh_failed_v4_native66": {
+    "source_head": "a561ac6e2c7c6959741e723fce1d04276aa976f8",
+    "actual_cases": 66,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "proof": {
+      "path": "/workspace/wayfarer-roadwatch-v4-native66-proof.json",
+      "sha256": "4c49823133f85d80667d6dc2a292baa2a321d5e724f603909fc84121a846908b"
+    },
+    "qualification": "All66passed at a561 within failed completeV4; does not confer whole-run acceptance and is not relabeled as current7713execution."
+  },
+  "prior_v2_invalid": {
+    "directory": "/workspace/wayfarer-roadwatch-full-validation-v2",
+    "terminal_path": "/workspace/wayfarer-roadwatch-full-validation-v2/terminal.json",
+    "terminal_sha256": "1a7ccbe1ea6fbd2902c3c3a1bcee9facf32f21823717bb35961f09ee9320d8df",
+    "status": "infrastructure-invalid interrupted; not acceptance evidence",
+    "invalid_reason": "BrokenPipeError: [Errno 32] Broken pipe",
+    "completed_all_shards": false,
+    "source_head": "37583b90e50239069955a30765b1228240caaf53",
+    "source_stable": true,
+    "worker_returncodes": [
+      -15,
+      -15,
+      -15,
+      -15
+    ],
+    "artifacts_and_databases_preserved": true,
+    "observed_behavior_failures": "Two generic IQ-wake failures and one Lite synthetic manifest-control failure were independently reproduced/classified/repaired; interrupted run supplies no exhaustive terminal failure inventory."
+  },
+  "prior_v4_failed": {
+    "status": "complete source-bound FAILED; not infrastructure-invalid",
+    "source": {
+      "head": "a561ac6e2c7c6959741e723fce1d04276aa976f8",
+      "tree": "b8057bd4a462b9d8db8d4102b221ccd63be693f7",
+      "pyproject_sha256": "d521e6f67f2d4a089336d26333e582eb0bf246ca8d93e12b37c216a9f4603b77",
+      "lock_sha256": "94a8ecc6d7f3b807261aa4178e9813895e2951bc90cff89f08ca19abd7337851"
+    },
+    "parents": 13216,
+    "passed": 13208,
+    "failed": 7,
+    "skipped": 1,
+    "errors": 0,
+    "modules": 739,
+    "architecture_subtests_passed": 16191,
+    "seconds": 3580.3,
+    "minutes": 59.67,
+    "terminal": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v4/terminal.json",
+      "sha256": "9a0f6c14e9a15dc36ce206ccd6548f4ce4cb5e9f59ead6a9208232afbb6babff"
+    },
+    "independent_accounting_review": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v4/terminal-review.json",
+      "sha256": "c7400da7c8811144c5d9d481794a9d85461689c12655f4d0d754ee27de4ea4a8"
+    },
+    "accepted": false,
+    "failure_classification": "2pre-existing reaction-boundary fixture eligibility failures fixed only in test setup;5pre-existing Wave14 continuation production failures fixed by preserving the authoritative/private-versus-authored boundary. A genuine battle-fatigue private-ledger genesis forgery guard gap was also reproduced and repaired."
+  },
+  "source_ambiguity": [
+    {
+      "subject": "Reactive Will concentration preservation under B421/B236",
+      "disposition": "Explicit defensive-reaction interpretation yields9 and retains original test oracle; voluntary casting remains11. Nondefensive6 is another coherent reading. Target8 was inconsistent partial propagation, not selected as an oracle.",
+      "scope": "Magic/concentration gameplay excluded from Roadside Watch. No source or capability certification credit.",
+      "version_boundary": "Fresh private concentration marker1; absent historical marker preserves oldtarget8 and actual recorded behavior. Existing casting generation meaning remains unchanged.",
+      "source_policy_review": {
+        "path": "/workspace/wayfarer-symptom-wake-triage/concentration-policy-review.md",
+        "sha256": "e9201c39906ed43e610e6a77283e7b2eac177c33aa39ddc7ed2eccfbeae18b48"
+      },
+      "exact_patch_review": {
+        "path": "/workspace/wayfarer-symptom-wake-triage/concentration-final-patch-review.json",
+        "sha256": "10cd33d6017a832e3727099a19308a86f6bd7f741944d9a6ded1651bc71d8084"
+      },
+      "bounded_preflight": {
+        "path": "/workspace/wayfarer-symptom-wake-triage/final-prerequisite-result.json",
+        "sha256": "3fc1e18cb9eefab4e0c1c2aba36a4ed9f4243742f130703600c104b6ea4a1041"
+      },
+      "limitations": "Review records native-historical proof and its source-provenance limitations; final V5 engine aggregate passed without resolving the source ambiguity or adding certification credit."
+    }
+  ],
+  "exclusions": [
+    "Full Basic Set certification",
+    "Browser/GUI or interactiveCLI play",
+    "Setup/lobby original-seed reexecution",
+    "Automatic additional Observation/Stealth critical/reaction fiction",
+    "First Aid Kit+1 consumer",
+    "General medical stock depletion or exhaustive later-context retries",
+    "Entire melee critical table and arbitrary rosters/weather/durations",
+    "Sequel/adventure continuation through fixed Roadwatch HTTP module"
+  ],
+  "publication": {
+    "intended_branch": "work",
+    "generator_performed_publication": false,
+    "actual_pushed_SHA_policy": "Recorded externally after commit/push verification; not self-referential in tracked evidence."
+  },
+  "publication_note": "This tracked manifest identifies the tested 7713 source, not a documentation successor or its own publicationSHA. Actual pushed commitSHA is recorded externally after commit/push verification; it is not supplied by this generator."
+}

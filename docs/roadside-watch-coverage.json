@@ -1,0 +1,1448 @@
+{
+  "schema_version": 2,
+  "reviewed_at": "2026-10-29T20:25:05.467713+00:00",
+  "purpose": "Current bounded Roadside Watch API evidence; prior mixed-stage ledger preserved verbatim under historical_chronology only.",
+  "claim": "Bounded API scenario and complete engine regression are validated at tested7713. Full Basic Set/source audit status is reported separately from genuine reports. Publication is not performed by this generator; actual pushedSHA is recorded externally after commit/push verification.",
+  "scope": {
+    "player_principals": 1,
+    "controlled_pcs": [
+      "a",
+      "b"
+    ],
+    "gm": "gm",
+    "npc": "brigand",
+    "TL": 3,
+    "body": "explicit ordinary human",
+    "supported_initial_actions": [
+      "Observation Inspect",
+      "authored noncombat slow Stealth path (no surprise/bonus)",
+      "scene travel",
+      "ordinary melee Move/Ready/Attack/DoNothing/Posture",
+      "Dodge/Parry/None and admitted hex retreat",
+      "representative native critical outcomes and supported GM continuations only",
+      "ordinary Bandage/FirstAid/rest subject actual admission",
+      "explicit objective evaluation"
+    ],
+    "excluded": [
+      "magic",
+      "shields",
+      "ranged weapons",
+      "unusual physiology",
+      "Luck",
+      "new player builds or advancement",
+      "commerce",
+      "ceremonial/enchantment",
+      "V1 mutations/live stream",
+      "unverified GUI"
+    ]
+  },
+  "candidate": {
+    "root": "/workspace/wayfarer-roadwatch-final-validation-checkout",
+    "head": "7713b402f49e9ccbb42edd3227e53a66bf0dc339",
+    "clean_at_review": true,
+    "accepted": true,
+    "native66_prior_head": "37583b90e50239069955a30765b1228240caaf53",
+    "qualification": "Complete V5 regression and unchanged normal-CI scoped engine release gates passed at tested 7713; the separate global source-completeness gate failed with 117 preserved blockers. Prior 375 and failed V4 a561 native66 proofs remain historical. Generic continuation fixes do not add sequels to the fixed Roadwatch HTTP scope.",
+    "tree": "61f059cacfae1833277d7678f87626d06626d898",
+    "baseline_verified_delta_count": 54
+  },
+  "source_baseline": "Characters third printing2008 + Campaigns fourth printing2008",
+  "coverage_counts": {
+    "supported": 11,
+    "partial": 5,
+    "unsupported": 1,
+    "unverified": 1
+  },
+  "coverage_count_qualification": "These18 local reporting groups are not the73 full-book certification capabilities and are not a code-completeness percentage.",
+  "cases": [
+    {
+      "id": "RW1",
+      "title": "builds and setup",
+      "status": "supported",
+      "current_evidence_and_qualification": "Authenticated public create/assign/ready/activate; both100-point builds, actual paid skills, HP/FP, speed/lift/load, human anatomy, sword hands and ordinary canonical gear.",
+      "test": "test_public_setup_admits_exact_source_builds_anatomy_and_real_gear"
+    },
+    {
+      "id": "RW2",
+      "title": "GM discovery/history",
+      "status": "supported",
+      "current_evidence_and_qualification": "Default GM200; player403, outsider404; malformed cursor/limit400; all six corrupt-history controls reject without state/entropy changes.",
+      "test": "test_public_setup_default_gm_receipt_discovery"
+    },
+    {
+      "id": "RW3",
+      "title": "medical identity",
+      "status": "supported",
+      "current_evidence_and_qualification": "Exact accepted retry200; changed choice/actor/revision409; outsider cached POST404; no extra randomness, state or history.",
+      "test": "test_accepted_medical_id_rejects_changed_opaque_intent"
+    },
+    {
+      "id": "RW4",
+      "title": "admission safety",
+      "status": "partial",
+      "current_evidence_and_qualification": "Actual tested token/member/GM/magic/V1/live/wrong-actor and omitted-Parry-mode controls pass. Wider crafted-input combinations are not exhaustively certified.",
+      "test": "test_nonmembers_and_unsupported_transports_cannot_mutate_or_draw"
+    },
+    {
+      "id": "RW5",
+      "title": "complete clinical episode",
+      "status": "supported",
+      "current_evidence_and_qualification": "Actual Observation\u2192combat wound\u2192shelter\u2192Bandage/FirstAid, correct health and all postactivation original-seed replay on both stores.",
+      "test": "test_real_wound_bandage_first_aid_and_shelter_outcome"
+    },
+    {
+      "id": "RW6",
+      "title": "failure/abandonment",
+      "status": "supported",
+      "current_evidence_and_qualification": "Real failed Observation/Stealth checks, correct authored facts, player abandonment rejection and lawful GM abandonment before the return objective completes.",
+      "test": "test_failed_survey_can_withdraw_and_reach_an_authored_ending"
+    },
+    {
+      "id": "RW7",
+      "title": "representative rare melee",
+      "status": "supported",
+      "current_evidence_and_qualification": "Natural arm-strain15, ordinary sword breakage4/17 and explicit-Parry critical5/6 resolve without manufactured pending state; retry, severe-casualty GM ending and replay pass. This is not full-table certification.",
+      "test": "test_natural_critical_arm_strain_and_gm_receipts"
+    },
+    {
+      "id": "RW8",
+      "title": "FirstAid arithmetic",
+      "status": "supported",
+      "current_evidence_and_qualification": "Bandaging is included in table totals2/3; critical maximum, ordinary failure and critical failure preserve exact HP and die consumption.",
+      "test": "test_first_aid_failure_and_critical_results_from_real_wound"
+    },
+    {
+      "id": "RW9",
+      "title": "finite supplies",
+      "status": "partial",
+      "current_evidence_and_qualification": "The real episode uses carried canonical basic bandages and durable wound reservations. Component controls cover unsuitable stock/capacity; wider native stock variants are qualified. No generic automatic inventory-depletion claim."
+    },
+    {
+      "id": "RW10",
+      "title": "FirstAid Kit+1",
+      "status": "unsupported",
+      "current_evidence_and_qualification": "The selected item is genuinely basic+0 bandages. The ordinary FirstAid Kit+1 consumer is not claimed or hidden by renaming equipment."
+    },
+    {
+      "id": "RW11",
+      "title": "battle FP/rest",
+      "status": "supported",
+      "current_evidence_and_qualification": "Full and partial eleventh-second real combat: actual rolled participants lose1FP at battle end, mere presence does not; actual600sec rest restores the missing FP. Complete care and replay follow. Broader duration/roster/unarmed/weather variants are not certified here."
+    },
+    {
+      "id": "RW12",
+      "title": "later-context retries",
+      "status": "partial",
+      "current_evidence_and_qualification": "Accepted retry after its start choice disappears and fresh authority checks pass. Wider stock-loss, retirement and later-context native permutations are not exhausted."
+    },
+    {
+      "id": "RW13",
+      "title": "reload",
+      "status": "supported",
+      "current_evidence_and_qualification": "New application/runtime/store/client reopens a genuine wounded campaign, retains health/anatomy/history and returns an old exact retry without new effects.",
+      "test": "test_fresh_application_reload_preserves_real_wound_and_retry"
+    },
+    {
+      "id": "RW14",
+      "title": "CAS/exactly once",
+      "status": "supported",
+      "current_evidence_and_qualification": "Independent app handles produce one competing-revision winner; identical concurrent IDs return two successes with one committed effect."
+    },
+    {
+      "id": "RW15",
+      "title": "failed commit",
+      "status": "supported",
+      "current_evidence_and_qualification": "A genuine injury candidateHP7 is computed, commit fails, persistedHP11/state/history remain unchanged, and lawful retry injures once."
+    },
+    {
+      "id": "RW16",
+      "title": "replay boundary",
+      "status": "partial",
+      "current_evidence_and_qualification": "Full public setup/genesis history folds correctly; all postactivation original-seed replay in the scripted episodes passes. **Setup/lobby seed reexecution remains unverified.**"
+    },
+    {
+      "id": "RW17",
+      "title": "GM evidence/fiction",
+      "status": "partial",
+      "current_evidence_and_qualification": "Protected GM receipt reads and natural critical skill flags are verified. Initial module authoring is public. Human GM critical good/bad/reaction fiction is manual; B211 reaction consequences are not automatically persisted."
+    },
+    {
+      "id": "RW18",
+      "title": "browser/GUI",
+      "status": "unverified",
+      "current_evidence_and_qualification": "No browser, GUI or interactiveCLI acceptance claim. The demonstrated deliverable is the public API."
+    }
+  ],
+  "current_native_run": {
+    "passed": 66,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 438.04,
+    "runner_seconds": 439.965,
+    "source_files": 1744,
+    "before_digest": "7772689b32095d69a3b3807cec7c82f9a4ee722a713b24d4699b45ea67f03dea",
+    "after_digest": "7772689b32095d69a3b3807cec7c82f9a4ee722a713b24d4699b45ea67f03dea",
+    "exact_inventory": true,
+    "evidence_prefix": "/workspace/wayfarer-roadwatch-validation/architecture-v7-full66",
+    "accounting": "/workspace/wayfarer-roadwatch-validation/architecture-v7-full66-accounting.json",
+    "historical_qualification": "Legacy field name retained for compatibility: this standalone run is historical source 37583b90, not final V5. Current tested 7713 results are under current_v5_accepted_evidence."
+  },
+  "current_native_inventory": {
+    "path": "/workspace/wayfarer-roadwatch-validation/architecture-v7-full66-accounting.json",
+    "sha256": "aad97c4bd256cea7b02b7988f483e599e507692d75b586e640c889c14f766708",
+    "actual_count": 66,
+    "exact_inventory": true,
+    "source_stable": true,
+    "historical_qualification": "Legacy field name: historical standalone source375 inventory is compared exactly against currentV5 campaign cases; see current_v5_accepted_evidence for final execution."
+  },
+  "full_regression": {
+    "accepted": true,
+    "prior_run": {
+      "directory": "/workspace/wayfarer-roadwatch-full-validation-v2",
+      "terminal_path": "/workspace/wayfarer-roadwatch-full-validation-v2/terminal.json",
+      "terminal_sha256": "1a7ccbe1ea6fbd2902c3c3a1bcee9facf32f21823717bb35961f09ee9320d8df",
+      "status": "infrastructure-invalid interrupted; not acceptance evidence",
+      "invalid_reason": "BrokenPipeError: [Errno 32] Broken pipe",
+      "completed_all_shards": false,
+      "source_head": "37583b90e50239069955a30765b1228240caaf53",
+      "source_stable": true,
+      "worker_returncodes": [
+        -15,
+        -15,
+        -15,
+        -15
+      ],
+      "artifacts_and_databases_preserved": true,
+      "observed_behavior_failures": "Two generic IQ-wake failures and one Lite synthetic manifest-control failure were independently reproduced/classified/repaired; interrupted run supplies no exhaustive terminal failure inventory."
+    },
+    "corrected_run": {
+      "status": "V5 full aggregate and normal-CI scoped engine release green at tested7713; strict global source completeness failed separately",
+      "run_directory": "/workspace/wayfarer-roadwatch-full-validation-v5",
+      "source": {
+        "head": "7713b402f49e9ccbb42edd3227e53a66bf0dc339",
+        "tree": "61f059cacfae1833277d7678f87626d06626d898",
+        "pyproject_sha256": "d521e6f67f2d4a089336d26333e582eb0bf246ca8d93e12b37c216a9f4603b77",
+        "lock_sha256": "94a8ecc6d7f3b807261aa4178e9813895e2951bc90cff89f08ca19abd7337851"
+      },
+      "started_at": "2026-10-29T20:23:00+00:00",
+      "actual_collected_parent_tests": 13224,
+      "actual_collected_modules": 741,
+      "collection": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/collection-result.json",
+        "sha256": "b2ee3773c7b5c60fb97e5cb0aefa37924d8f749eedc421eb309b524ebf810ab5"
+      },
+      "manifest": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/manifest.json",
+        "sha256": "779d3352e3fa3380030907e9e36c943bd29a02a3c097aafc7072362972baac5f"
+      },
+      "last_observed_status_at": "2026-10-29T21:21:51.779759+00:00",
+      "last_observed_worker_returncodes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "exact_historical_inventory_preserved": true,
+      "new_node_count": 8,
+      "acceptance_requires": "All4 complete successful official shards, authentic source-bound aggregate with unchanged65percent combined branch coverage, exact parent/dynamic-subtest and allowed-provider skip accounting, post-run release/source gates. No cross-head acceptance reuse.",
+      "terminal": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/terminal.json",
+        "sha256": "f89ab759427b7b7623c82b5de41b7bd99f632c61d27cfa3044c698ea7d92ddfd"
+      },
+      "original_strict_post_run_terminal": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/post-run-terminal.json",
+        "sha256": "0a9f73bc53e3b04cd06310ce4a616080803eee9349d744692bb6ef5cd76c83b0"
+      },
+      "scoped_engine_acceptance": {
+        "path": "/workspace/wayfarer-roadwatch-scoped-release-acceptance.json",
+        "sha256": "b3a7837da5628dd96b0834bb03a520ec55c57f46e78338eb77d7a8e87415f9ef"
+      },
+      "actual_results": {
+        "modules": 741,
+        "ordinary_parents": 13224,
+        "ordinary_passed": 13223,
+        "architecture_subtests": 16191,
+        "all_dynamic_subtests": 16191,
+        "reported_tests_including_subtests": 29415,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1,
+        "skip_identities": [
+          "tests/test_codex_provider.py::test_authenticated_codex_smoke"
+        ],
+        "native_campaign_cases": 66
+      }
+    },
+    "prepared_v3": {
+      "status": "prepared/collected only; never launched/accepted",
+      "collection": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v3/collection-result.json",
+        "sha256": "d36f68d9d764a7fd8cedd7a7a902ae7a2115a90ad5e9afef70200ee4e7f9fb6c"
+      },
+      "head": "e13aff3a867373da603a96abb9bb49d9b0496dbc",
+      "parent_tests": 13202,
+      "modules": 738
+    },
+    "completed_v4": {
+      "status": "complete source-bound FAILED; not infrastructure-invalid",
+      "source": {
+        "head": "a561ac6e2c7c6959741e723fce1d04276aa976f8",
+        "tree": "b8057bd4a462b9d8db8d4102b221ccd63be693f7",
+        "pyproject_sha256": "d521e6f67f2d4a089336d26333e582eb0bf246ca8d93e12b37c216a9f4603b77",
+        "lock_sha256": "94a8ecc6d7f3b807261aa4178e9813895e2951bc90cff89f08ca19abd7337851"
+      },
+      "parents": 13216,
+      "passed": 13208,
+      "failed": 7,
+      "skipped": 1,
+      "errors": 0,
+      "modules": 739,
+      "architecture_subtests_passed": 16191,
+      "seconds": 3580.3,
+      "minutes": 59.67,
+      "terminal": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v4/terminal.json",
+        "sha256": "9a0f6c14e9a15dc36ce206ccd6548f4ce4cb5e9f59ead6a9208232afbb6babff"
+      },
+      "independent_accounting_review": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v4/terminal-review.json",
+        "sha256": "c7400da7c8811144c5d9d481794a9d85461689c12655f4d0d754ee27de4ea4a8"
+      },
+      "accepted": false,
+      "failure_classification": "2pre-existing reaction-boundary fixture eligibility failures fixed only in test setup;5pre-existing Wave14 continuation production failures fixed by preserving the authoritative/private-versus-authored boundary. A genuine battle-fatigue private-ledger genesis forgery guard gap was also reproduced and repaired."
+    }
+  },
+  "accepted_full_book_baseline": {
+    "commit": "24f97401678e65958bc27ef0d5948063e6e3389d",
+    "execution_obligations": 15,
+    "certified_capabilities": 9,
+    "capabilities_total": 73,
+    "changed_by_this_report": false,
+    "full_basic_set_compliant": false
+  },
+  "medical_source_oracles": {
+    "pdf_sha256": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80",
+    "printed_page": "B424",
+    "text": "/workspace/wayfarer-campaigns-readonly-source.txt:6145",
+    "clauses": [
+      "Bandaging takes one minute and restores1HP.",
+      "Shock care requires warm, comfortable, calm and still patient.",
+      "TL2\u20133 shock treatment takes30min and restores1d\u22123,min1.",
+      "The table total includes the1HP from bandaging; a table1 restores no furtherHP.",
+      "Critical success restores maximum possible HP; critical failure loses2HP."
+    ],
+    "independent_after_bandaging_cases": [
+      {
+        "seed": 7,
+        "literal_d6": [
+          4,
+          6,
+          1,
+          6
+        ],
+        "table_total": 3,
+        "sequence_HP": [
+          7,
+          8,
+          10
+        ]
+      },
+      {
+        "seed": 9,
+        "literal_d6": [
+          1,
+          6,
+          2,
+          5
+        ],
+        "table_total": 2,
+        "sequence_HP": [
+          7,
+          8,
+          9
+        ]
+      },
+      {
+        "seed": 270,
+        "literal_d6": [
+          1,
+          1,
+          1
+        ],
+        "table_total": 3,
+        "sequence_HP": [
+          7,
+          8,
+          10
+        ]
+      }
+    ],
+    "code_static_qualification": "Arithmetic agreement is supplemented by actual source-derived native clinical cases, including all 66 campaign cases in the accepted current V5 aggregate. Prior-source standalone evidence remains separately identified."
+  },
+  "oracles": {
+    "builds": {
+      "a": {
+        "point_cost": 100,
+        "attributes_cost": 80,
+        "skills_points": {
+          "broadsword": 8,
+          "stealth": 4,
+          "observation": 8
+        },
+        "levels": {
+          "broadsword": 14,
+          "stealth": 13,
+          "observation": 13
+        },
+        "HP": 11,
+        "FP": 11,
+        "ST": 11,
+        "DX": 12,
+        "IQ": 11,
+        "HT": 11,
+        "Speed": "5.75",
+        "Move": 5,
+        "Dodge": 8,
+        "BasicLift_lb": 24,
+        "carry_lb": 13
+      },
+      "b": {
+        "point_cost": 100,
+        "attributes_cost": 70,
+        "skills_points": {
+          "first-aid": 2,
+          "broadsword": 4,
+          "observation": 12,
+          "stealth": 12
+        },
+        "levels": {
+          "first-aid": 13,
+          "broadsword": 12,
+          "observation": 15,
+          "stealth": 14
+        },
+        "HP": 10,
+        "FP": 11,
+        "ST": 10,
+        "DX": 11,
+        "IQ": 12,
+        "HT": 11,
+        "Speed": "5.5",
+        "Move": 5,
+        "Dodge": 8,
+        "BasicLift_lb": 20,
+        "carry_lb": 15
+      }
+    },
+    "normal_guard_hit": {
+      "source": "B16/B271/B378/B379; torsoDR2, cutting\u00d71.5rounddown",
+      "seed_int": 1,
+      "dice": [
+        1,
+        5,
+        3,
+        4
+      ],
+      "deferred_attack_total": 9,
+      "guard_target": 10,
+      "damage_die": 4,
+      "ST10_swing_plus_sword": 5,
+      "DR": 2,
+      "penetration": 3,
+      "injury": 4,
+      "MiraHP": [
+        11,
+        7
+      ],
+      "major_wound": false,
+      "note": "All four dice occur during real deferred defense settlement; do not treat damage as the first draw."
+    },
+    "bandage": {
+      "source": "B424",
+      "seconds": 60,
+      "HP": 1,
+      "dice": 0
+    },
+    "first_aid": {
+      "source": "B424 + B345 + B289 basicbandageszeroquality",
+      "target": 13,
+      "TL": 3,
+      "seconds": 1800,
+      "normal_seed7_dice": [
+        4,
+        6,
+        1,
+        6
+      ],
+      "check_total": 11,
+      "healing_die": 6,
+      "total_healing_including_bandages": 3,
+      "additional_after_bandage": 2,
+      "HP_sequence": [
+        7,
+        8,
+        10
+      ],
+      "normal_failure_seed6_total": 14,
+      "normal_failure_HP": 0,
+      "critical_success_seed270_total": 3,
+      "critical_success_total_HP": 3,
+      "critical_success_healing_draw": false,
+      "critical_failure_seed540_total": 18,
+      "critical_failure_HP": -2,
+      "repeat_same_wound": "No second roll/healing"
+    },
+    "critical_miss": {
+      "source": "B556",
+      "row15_seed": 1275,
+      "attack_dice": [
+        6,
+        6,
+        6
+      ],
+      "table_dice": [
+        4,
+        5,
+        6
+      ],
+      "table_total": 15,
+      "source_consequence": "Wielding-arm strain30minutes automatically resolves from the actual known ordinary human anatomy/sword grip; no manufactured pending state or migration required. Broader blocked legacy contexts are not claimed.",
+      "row5_seed": 2227,
+      "row5_attack_dice": [
+        6,
+        6,
+        6
+      ],
+      "row5_table_dice": [
+        2,
+        1,
+        2
+      ],
+      "row5_limit": "Limb self-wound continuation; do not promise all contexts or arbitrary target physiology"
+    },
+    "FP_rest": {
+      "source": "B427",
+      "normal_recovery_seconds_per_FP": 600,
+      "initial_FP_full": true,
+      "positive_recovery_requirement": "Must first spendFPthroughactualsource-lawfulnativeconsumer; do notpresetpooldeficit orconfigureflatprototypecost."
+    }
+  },
+  "public_routes": {
+    "templates": "GET /setups/templates",
+    "create": "POST /setups {id:<fresh UUID>,brief:<server template brief>,graph:<exact server template>}",
+    "setup": "POST /setups/{cid} {id:<fresh UUID>,expected_revision:<current>,operation:assign|ready|activate,...}",
+    "read": "GET /campaigns/{cid}",
+    "command": "POST /campaigns/{cid}/commands {id:<fresh UUID>,actor_id:<controlled actor>,expected_revision:<current>,kind:<native kind>,...}",
+    "character": "GET /api/v1/campaigns/{cid}/characters/{actor}",
+    "medical": "Read gurps_recovery_choices from GET campaign; POST gurps_recovery with exact current opaque choice_id. Wait actual due time with native Wait, rediscover offered Finish choice.",
+    "gm": "GET /roadwatch/campaigns/{cid}/gm (GM bearer only; defaultafter0)",
+    "tactical": "GET /api/tactical/v2/campaigns/{cid}?actor_id=a; POST .../commands {command:<typed command>}; real native defense cases passed in the prior66-case evidence.",
+    "scope": "V1 HTTP reads only; V1 writes400 and live403. Nonmember campaign/GM reads404; seated player GM read403."
+  },
+  "manual_qualification": "Observation/Stealth retain actualcriticalflags and ordinaryauthoredfactbranches; humanGMnarrates criticalgood/bad/reactionfiction. B211noticed/poorreaction is notautomaticallypersisted; no genericGMconsequence/reactionengine claim.",
+  "win_condition": "Automatic success when both PCs reachShelter; medical care remainsavailable and validatedafterarrival/success. ExplicitEvaluateObjective reads/settlescurrentresult, notanextra care wincondition.",
+  "explicitly_unclaimed": [
+    "Full Basic Set certification",
+    "Browser/GUI or interactiveCLI play",
+    "Setup/lobby original-seed reexecution",
+    "Automatic additional Observation/Stealth critical/reaction fiction",
+    "First Aid Kit+1 consumer",
+    "General medical stock depletion or exhaustive later-context retries",
+    "Entire melee critical table and arbitrary rosters/weather/durations",
+    "Sequel/adventure continuation through fixed Roadwatch HTTP module"
+  ],
+  "historical_chronology": [
+    {
+      "kind": "Original mixed-stage evidence ledger retained verbatim; entries here describe prior stages and are not current statuses.",
+      "source": "/workspace/wayfarer-roadwatch-acceptance-matrix.json",
+      "sha256": "6a56d187d0422fbb96ad69c669c15656b56bcb1822c2c22935dc9cba83bc2bfc",
+      "raw_snapshot": {
+        "date": "2026-10-29",
+        "isolate": "/workspace/wayfarer-roadwatch-work",
+        "primary_changes_allowed": false,
+        "claim": "Preparation and focused real-HTTP defect discovery only; no accepted limited-campaign coverage or graphical-client claim yet.",
+        "source_baseline": "Characters third printing2008 + Campaigns fourth printing2008",
+        "scope": {
+          "player_principals": 1,
+          "controlled_pcs": [
+            "a",
+            "b"
+          ],
+          "gm": "gm",
+          "npc": "brigand",
+          "TL": 3,
+          "body": "explicit ordinary human",
+          "supported_initial_actions": [
+            "Observation Inspect",
+            "authored noncombat slow Stealth path (no surprise/bonus)",
+            "scene travel",
+            "ordinary melee Move/Ready/Attack/DoNothing/Posture",
+            "Dodge/Parry/None and admitted hex retreat",
+            "source-critical continuation via authenticatedGM",
+            "ordinary Bandage/FirstAid/rest subject actual admission",
+            "explicit objective evaluation"
+          ],
+          "excluded": [
+            "magic",
+            "shields",
+            "ranged weapons",
+            "unusual physiology",
+            "Luck",
+            "new player builds or advancement",
+            "commerce",
+            "ceremonial/enchantment",
+            "V1 mutations/live stream",
+            "unverified GUI"
+          ]
+        },
+        "oracles": {
+          "builds": {
+            "a": {
+              "point_cost": 100,
+              "attributes_cost": 80,
+              "skills_points": {
+                "broadsword": 8,
+                "stealth": 4,
+                "observation": 8
+              },
+              "levels": {
+                "broadsword": 14,
+                "stealth": 13,
+                "observation": 13
+              },
+              "HP": 11,
+              "FP": 11,
+              "ST": 11,
+              "DX": 12,
+              "IQ": 11,
+              "HT": 11,
+              "Speed": "5.75",
+              "Move": 5,
+              "Dodge": 8,
+              "BasicLift_lb": 24,
+              "carry_lb": 13
+            },
+            "b": {
+              "point_cost": 100,
+              "attributes_cost": 70,
+              "skills_points": {
+                "first-aid": 2,
+                "broadsword": 4,
+                "observation": 12,
+                "stealth": 12
+              },
+              "levels": {
+                "first-aid": 13,
+                "broadsword": 12,
+                "observation": 15,
+                "stealth": 14
+              },
+              "HP": 10,
+              "FP": 11,
+              "ST": 10,
+              "DX": 11,
+              "IQ": 12,
+              "HT": 11,
+              "Speed": "5.5",
+              "Move": 5,
+              "Dodge": 8,
+              "BasicLift_lb": 20,
+              "carry_lb": 15
+            }
+          },
+          "normal_guard_hit": {
+            "source": "B16/B271/B378/B379; torsoDR2, cutting\u00d71.5rounddown",
+            "seed_int": 1,
+            "dice": [
+              1,
+              5,
+              3,
+              4
+            ],
+            "deferred_attack_total": 9,
+            "guard_target": 10,
+            "damage_die": 4,
+            "ST10_swing_plus_sword": 5,
+            "DR": 2,
+            "penetration": 3,
+            "injury": 4,
+            "MiraHP": [
+              11,
+              7
+            ],
+            "major_wound": false,
+            "note": "All four dice occur during real deferred defense settlement; do not treat damage as the first draw."
+          },
+          "bandage": {
+            "source": "B424",
+            "seconds": 60,
+            "HP": 1,
+            "dice": 0
+          },
+          "first_aid": {
+            "source": "B424 + B345 + B289 basicbandageszeroquality",
+            "target": 13,
+            "TL": 3,
+            "seconds": 1800,
+            "normal_seed7_dice": [
+              4,
+              6,
+              1,
+              6
+            ],
+            "check_total": 11,
+            "healing_die": 6,
+            "total_healing_including_bandages": 3,
+            "additional_after_bandage": 2,
+            "HP_sequence": [
+              7,
+              8,
+              10
+            ],
+            "normal_failure_seed6_total": 14,
+            "normal_failure_HP": 0,
+            "critical_success_seed270_total": 3,
+            "critical_success_total_HP": 3,
+            "critical_success_healing_draw": false,
+            "critical_failure_seed540_total": 18,
+            "critical_failure_HP": -2,
+            "repeat_same_wound": "No second roll/healing"
+          },
+          "critical_miss": {
+            "source": "B556",
+            "row15_seed": 1275,
+            "attack_dice": [
+              6,
+              6,
+              6
+            ],
+            "table_dice": [
+              4,
+              5,
+              6
+            ],
+            "table_total": 15,
+            "source_consequence": "Wielding-arm strain30minutes; actualGMmigrate/resume, notreroll",
+            "row5_seed": 2227,
+            "row5_attack_dice": [
+              6,
+              6,
+              6
+            ],
+            "row5_table_dice": [
+              2,
+              1,
+              2
+            ],
+            "row5_limit": "Limb self-wound continuation; do not promise all contexts or arbitrary target physiology"
+          },
+          "FP_rest": {
+            "source": "B427",
+            "normal_recovery_seconds_per_FP": 600,
+            "initial_FP_full": true,
+            "positive_recovery_requirement": "Must first spendFPthroughactualsource-lawfulnativeconsumer; do notpresetpooldeficit orconfigureflatprototypecost."
+          }
+        },
+        "cases": [
+          {
+            "id": "RW1",
+            "test": "test_public_setup_admits_exact_source_builds_anatomy_and_real_gear",
+            "status": "supported",
+            "criteria": "BothDBpubliccreate/assign/ready/activate, allpregenpoints/stats/body/hands/realgear independentlyasserted; no syntheticcatalogorplayedstate seeds.",
+            "observed": "Currentfrozen66passesbothstores: publicsetup,100pointbuilds,exactskills/HPFP/speed/lift/loads,humananatomy/hands/realordinarygear."
+          },
+          {
+            "id": "RW2",
+            "test": "test_public_setup_default_gm_receipt_discovery",
+            "status": "supported",
+            "observed": "BothstoresdefaultGM200,player403/nonmember404,invalidcursor/limit400;allstrictcorrupt-historycontrols preservestate/entropy.",
+            "artifact": "/workspace/wayfarer-roadwatch-validation/gm-discovery-red-result.json",
+            "criteria": "GMdefaultafter0workswithoutclientknowingactivationrevision; party/nonmemberscannotreadcanonicalGMrecords.",
+            "prepared_negative_controls": "Owned tests now reject non-lobby missing-play before activation, missing-play after activation even forged as setup, and invalid present play_json. Read-only history overrides; execution pending."
+          },
+          {
+            "id": "RW3",
+            "test": "test_accepted_medical_id_rejects_changed_opaque_intent",
+            "status": "supported",
+            "criteria": "A genuine combat wound followed by accepted public bandaging permits an exact same-ID retry; a changed opaque care intent with that ID must return409 without randomness, state or history mutation. Awaiting frozen source rerun.",
+            "observed": "Exactcachedretry200;changedchoice/actor/revision409;outsidercachedPOST404;0extraRNG/state/history onbothstores.",
+            "artifact": "/workspace/wayfarer-roadwatch-validation/smoke-v2-sqlite-after.json"
+          },
+          {
+            "id": "RW4",
+            "test": "test_nonmembers_and_unsupported_transports_cannot_mutate_or_draw",
+            "status": "partial",
+            "criteria": "401badcredentials/403nonmemberprivateGM/wrongactor/craftedmagic/shield/ranged/build/TL/V1write/liveunsupportedreject; actualrandbelowaudit0 andallstoredstate/historyunchanged.",
+            "observed": "Both stores tested invalid401, outsider404, seatednonGM403, magic/V1mutation400, live403 and wrongownedactor400; no random/state/history effects. Broadshield/ranged/build and runtimeCAS controls not yet exhausted."
+          },
+          {
+            "id": "RW5",
+            "status": "supported",
+            "criteria": "ContinuousactualObservation\u2192road\u21923actorfixedteamcombat\u2192genuinewound\u2192ShelterBandage/FirstAid\u2192explicitoutcome, publicAPIonly, bothDB.",
+            "test": "test_real_wound_bandage_first_aid_and_shelter_outcome",
+            "prepared": "Native HTTP test prepared with independent HP11\u21927\u21928\u219210 oracles, explicit objective success and full store history fold. Not yet executed.",
+            "observed": "ActualObservation,combatinjury4,shelter,Bandage/FirstAidandallpostactivationseedreplaybothstores. ReturnShelterisautomaticgoal;careavailableafterward."
+          },
+          {
+            "id": "RW6",
+            "status": "supported",
+            "criteria": "Failure16actualObservation/slowStealthfailureemitsnoinventedknowledge/bonus; legalwithdrawal/abandonbranch, noforcedwin orsoftlock.",
+            "test": "test_failed_survey_can_withdraw_and_reach_an_authored_ending",
+            "observed": "Actualnormalcheckfailures,quiet/noisyfacteffects,playerabandon400+GMabandonbeforegoals andunchangedhealth. Naturalcriticalflags bothskills verified;humanGMextra fiction remainsmanual/partial underRW17."
+          },
+          {
+            "id": "RW7",
+            "status": "supported",
+            "criteria": "Natural attack18/table15 with explicit human anatomy and sword hand must resolve wielding right-arm disable1800seconds, preserve original roll, permit private GM receipt read and reject player GM read. Do not manufacture historical unresolved context.",
+            "test": "test_natural_critical_arm_strain_and_gm_receipts",
+            "source_qualification": "limbs.py119\u2013139 auto-resolves row15 for known ordinary humans; continuation.context is limited to already-blocked historical rows5/6/14/15, so no claim every fresh critical requires public migrate/resume.",
+            "observed": "Naturalmiss15strain1800s,ordinarybreakage4/17,andexplicitParry18/table5/6 resolvewithout manufacturedpending. SourcecasualtyHP\u22121/1+19/16draws;exactretry/GMLossending/replay bothstores. Representativeselectedmelee,nofulltablecert."
+          },
+          {
+            "id": "RW8",
+            "status": "supported",
+            "criteria": "After actual injuryHP7 and completed bandageHP8: ordinary FirstAid failure stays8, critical maximum reaches10 including bandage, critical failure reduces to6; no extra healing die.",
+            "test": "test_first_aid_failure_and_critical_results_from_real_wound",
+            "observed": "B424bandage-includedtotal2/3,criticalmaximum,ordinaryfailure/criticalfailureHP8/10/6 andexactcheckdraws bothstores."
+          },
+          {
+            "id": "RW9",
+            "status": "partial",
+            "criteria": "CareactualIvenownedsterilebasicbandagesatShelter, realpredicatebeforeseed; stock/type/damage/improvised/7thdistinctwoundcontrols, samewoundBandage\u2192FirstAidonewoundreservation; no genericdepletionclaim. Purepolicyunitsbelongruntimeowner; nativeepisodeproofpending."
+          },
+          {
+            "id": "RW10",
+            "status": "unsupported",
+            "criteria": "FirstAidKit+1notadmittedinitially; realordinarybandagesare+0canonicalitem, notrenamedkit. No claimkitconsumerfixed."
+          },
+          {
+            "id": "RW11",
+            "status": "supported",
+            "criteria": "FullFPmustnotpermitbankedrest; positiveFPspendconsumerunresolved. FeverishDefenseisnotimplemented/admitted andB357optional-disabled; battle>10sFPcostpurehelperisnotwired. Rootdecisionpending; nofakecost.",
+            "observed": "Genuinefull/partialeleventhsecondbattlewithactualattack+defense:FP11active\u219210atend\u219211after600sRest;nonparticipant11. Completecareandoriginalseedreplaybothstores."
+          },
+          {
+            "id": "RW12",
+            "status": "partial",
+            "criteria": "Acceptedretryafterchoicesdisappear/conditionschange retainsoriginalbyteidentity andnoexpense; changedintent/revisionmustconflict; unknowncurrentauthoritycannotusecachedsuccess.",
+            "observed": "Exactretry afteritsadvertisedstartchoice disappears passesbothv6stores; changedintent/actor/revision andnonmember refused. Stockloss/settledtaskretirement/latercontext nativevariants notexhausted."
+          },
+          {
+            "id": "RW13",
+            "status": "supported",
+            "criteria": "Actualclose/reopenapp/newbackendhandle retainsHPFP/anatomy/hands/gear/clocks/records; publicsameIDreturnsnoextraeffects.",
+            "test": "test_fresh_application_reload_preserves_real_wound_and_retry",
+            "observed": "Newproductionapp/runtime/store/clientreopensactualcampaign;genuineHP7 persists,oldWaitretry0captures/effects;fullstorefold bothstores."
+          },
+          {
+            "id": "RW14",
+            "status": "supported",
+            "criteria": "IndependentHTTPapps/sourceSessionsandrealstoreCAS: sameIDonecommit, competingdistinctIDexpectedrevisiononesuccess/oneconflict, no doubletime/resource debit.",
+            "observed": "Twoindependentapphandles:competingexpectedrevisionone200/one409;identicalIDtwo200/onecommit;exactclock/state/history bothstores."
+          },
+          {
+            "id": "RW15",
+            "status": "supported",
+            "criteria": "Injectcommitfailureafteractualnativecandidatecomputed; no partialHP/wound/ammo/care/originallog survives; lawfulretryuncommittedIDworks.",
+            "observed": "RealnativecandidateHP7thencommitexception;persistedHP11/state/historyunchanged;lawfulretryHP7exactlyoncebothstores."
+          },
+          {
+            "id": "RW16",
+            "status": "partial",
+            "criteria": "Fullpublicsetuphistorygenesisfoldandreload; ALLpostactivationnativegamecommandsoriginalseedreexecutionfromauthenticactivatedcheckpoint. Lobby/setupseedreexecutionexplicitlyunverified becauseofficialReplayhasnoSetupfamily. No fakefullgenesiscredit.",
+            "prepared": "Original-seed helper copies only authentic accepted before-images via official commit_genesis for verification; refuses fresh entropy/clock; official execute_recorded+verify_commands all postactivation records, invoked in seed7 complete flow. Not yet executed.",
+            "observed": "Fullpublicsetup/genesisfold andALLpostactivationoriginalseedreexecution inrequiredscripts bothstores pass;setup/lobbyseedreexecution remainsunverified."
+          },
+          {
+            "id": "RW17",
+            "status": "partial",
+            "criteria": "Initialgraphauthoringfactsarepublicbydesign, notsecrecyclaim. ActualruntimeGMoriginals/criticalcontexts/entropy andnonmembersremainprotected; PCsnotwronglyhostile.",
+            "observed": "ActualprivateGMreads/receiptcriticalflags protected/tested. Initialauthoringpublic,notNPCsecrecyclaim. Observation/Stealthcritical good/bad/reactionfiction humanGMmanual,notautomaticallypersisted."
+          },
+          {
+            "id": "RW18",
+            "status": "unverified",
+            "criteria": "No GUI/browserclaim withoutactualserverbrowservalidation; noVITEfixturescounted. FirstreleaseAPI/interactiveCLIonly."
+          }
+        ],
+        "evidence_rules": [
+          "Literal independent source expectations recorded before gameplay execution.",
+          "Do not sethealth, injectwounds, patchsuccessresults, constructtestSkillSpecs or use privatePlayState edits to progress.",
+          "GameplaychoiceIDs come only from authenticated publicprojections/GMendpoint, notStorehistory.",
+          "Officialread-onlyStore.history/read/replay/verify_commands allowed onlyforpersistence/entropybackstop.",
+          "CurrentRootB348+grenadeaggregate independent; no newRoadwatchaudit/capabilitycredit or publication beforeitsownfinalcheckpoint."
+        ],
+        "primary_baseline_update": "Root reports verified pushed24f97401 after6233tests+16156architecture/all16gates; Roadwatch remains isolated/unverified.",
+        "checkpoint": "V3 focused native evidence; no accepted aggregate release yet. BOTH stores pass4 setup/medicalretry smokes and sourcebuild/strictGM controls; auth/scope2pass. SQLite continuous native clinicalplay succeeds, official seed replay fails on uncaptured Bandage start. Patient/caregiver motion each accepts while leaving FirstAid pending; actual source RED.",
+        "prepared_checks": "Ruff and mypy passed for both owned test files. These static checks confer no campaign acceptance credit.",
+        "B424_source_review": {
+          "pdf_sha256": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80",
+          "printed_page": "B424",
+          "text": "/workspace/wayfarer-campaigns-readonly-source.txt:6145",
+          "clauses": [
+            "Bandaging takes one minute and restores1HP.",
+            "Shock care requires warm, comfortable, calm and still patient.",
+            "TL2\u20133 shock treatment takes30min and restores1d\u22123,min1.",
+            "The table total includes the1HP from bandaging; a table1 restores no furtherHP.",
+            "Critical success restores maximum possible HP; critical failure loses2HP."
+          ],
+          "independent_after_bandaging_cases": [
+            {
+              "seed": 7,
+              "literal_d6": [
+                4,
+                6,
+                1,
+                6
+              ],
+              "table_total": 3,
+              "sequence_HP": [
+                7,
+                8,
+                10
+              ]
+            },
+            {
+              "seed": 9,
+              "literal_d6": [
+                1,
+                6,
+                2,
+                5
+              ],
+              "table_total": 2,
+              "sequence_HP": [
+                7,
+                8,
+                9
+              ]
+            },
+            {
+              "seed": 270,
+              "literal_d6": [
+                1,
+                1,
+                1
+              ],
+              "table_total": 3,
+              "sequence_HP": [
+                7,
+                8,
+                10
+              ]
+            }
+          ],
+          "code_static_qualification": "recovery.py:701\u2013713 uses max/min table total then subtracts task.bandaged_hp; native run pending. This is static agreement, not proof of completed clinical sequence."
+        },
+        "prepared_ordinary_cases": 66,
+        "clinical_scope": "Explicit completed bandaging precedes shock treatment; direct combined FirstAid timing/admission is outside initial qualification.",
+        "pending_source_case": "Patient/caregiver scene travel during FirstAid must refuse without effects or interrupt zerohealing; source static concern not runtime defect until actual RED.",
+        "actual_pending_production_defects": [],
+        "test_harness_corrections": "/workspace/wayfarer-roadwatch-validation/boundaries-v3-both.classification.json",
+        "prepared_persistence_tests": {
+          "reload": "test_fresh_application_reload_preserves_real_wound_and_retry",
+          "CAS_and_same_ID": "test_independent_apps_compare_and_swap_and_same_id_once",
+          "native_candidate_rollback": "test_failed_commit_rolls_back_real_injury_then_lawful_retry",
+          "status": "Not executed; real public campaigns only. Cloning authentic accepted images occurs only in independent replay verification."
+        },
+        "prepared_active_defense_oracles": {
+          "source": "B374\u2013377",
+          "literal_seed1": "attack9, defense9",
+          "Dodge8": "fails, HP11\u21927",
+          "swordParry10": "succeeds, HP11",
+          "retreatDodge11": "succeeds, HP11; actual legal away hex",
+          "test": "test_source_active_defenses_use_real_rolls_and_source_bonuses",
+          "status": "Not executed"
+        },
+        "release_status": "Nativeacceptance66/66GREEN;fullofficial13190test/architecture/staticgatesandfinaldocsreview+commit/pushstillpending. No fullBasiccertificationpromotion.",
+        "latest_measured_evidence": {
+          "distinct_ordinary_cases_green": 14,
+          "same_frozen_full_suite_green": false,
+          "smokes": {
+            "passed": 4,
+            "seconds": 14.51,
+            "backends": [
+              "sqlite",
+              "postgres"
+            ],
+            "artifact": "/workspace/wayfarer-roadwatch-validation/smoke-v3-both.result.json"
+          },
+          "source_build_and_strict_history": {
+            "passed": 8,
+            "seconds": 9.69,
+            "backends": [
+              "sqlite",
+              "postgres"
+            ],
+            "artifact": "/workspace/wayfarer-roadwatch-validation/boundaries-v3-corrected-both.result.json",
+            "qualification": "That attempt also had2auth test assertion mistakes, fixed in the later dedicated run."
+          },
+          "auth_scope": {
+            "passed": 2,
+            "seconds": 4.04,
+            "backends": [
+              "sqlite",
+              "postgres"
+            ],
+            "artifact": "/workspace/wayfarer-roadwatch-validation/auth-v3-final-both.result.json"
+          },
+          "actual_open_RED_cases": 3,
+          "clinical_gameplay": "SQLite source-oracle complete sequence and full setupfold succeeded; final seedreplay failed.",
+          "historical_reds_preserved": true,
+          "v4_interruption": {
+            "passed": 4,
+            "seconds": 33.59,
+            "backends": [
+              "sqlite",
+              "postgres"
+            ],
+            "artifact": "/workspace/wayfarer-roadwatch-validation/interruption-v4-both.result.json",
+            "proof": "Actualpatient1795sec departurecrossesdue; caregiver900sec departure. Interruptedbeforeclock; publicFinish0healingHP8."
+          },
+          "v5_complete_clinical_records": {
+            "official_fold_and_seed_checks_passed": 18,
+            "backend": "sqlite",
+            "test_overall": "failed only extra rawplay_json keyorder equality; officially normalized states match exactly",
+            "diagnostic": "/workspace/wayfarer-roadwatch-validation/repaired-v5-first10-readonly-diagnostic.json",
+            "harness_correction": "Rootreviewapproved officialdocument comparison; strictoriginalbytes/events/hashes/seeds/HP retained."
+          },
+          "current_integrated_partition": "/workspace/wayfarer-roadwatch-acceptance-partition-v6.json",
+          "v6_first10": {
+            "passed": 10,
+            "seconds": 205.75,
+            "source_digest": "53c4f056cdadd40b73c27e667e73efed161c635e2c0d1a3ddf09eda4650b03c6",
+            "artifact": "/workspace/wayfarer-roadwatch-validation/repaired-v6-first10.result.json"
+          },
+          "v6_remaining_attempt": {
+            "passed": 24,
+            "failed": 1,
+            "seconds": 109.73,
+            "artifact": "/workspace/wayfarer-roadwatch-validation/repaired-v6-remaining56.result.json",
+            "classification": "Fixture reachedautomaticreturngoalbeforetryingGMabandon; sourcecheckpointcorrectlypreservessuccess. FixedabandonbeforeShelter. CASnotreached; preemptivestdliblistnormalizationtestfixdocumented."
+          }
+        },
+        "public_routes": {
+          "templates": "GET /setups/templates",
+          "create": "POST /setups {id:<fresh UUID>,brief:<server template brief>,graph:<exact server template>}",
+          "setup": "POST /setups/{cid} {id:<fresh UUID>,expected_revision:<current>,operation:assign|ready|activate,...}",
+          "read": "GET /campaigns/{cid}",
+          "command": "POST /campaigns/{cid}/commands {id:<fresh UUID>,actor_id:<controlled actor>,expected_revision:<current>,kind:<native kind>,...}",
+          "character": "GET /api/v1/campaigns/{cid}/characters/{actor}",
+          "medical": "Read gurps_recovery_choices from GET campaign; POST gurps_recovery with exact current opaque choice_id. Wait actual due time with native Wait, rediscover offered Finish choice.",
+          "gm": "GET /roadwatch/campaigns/{cid}/gm (GM bearer only; defaultafter0)",
+          "tactical": "GET /api/tactical/v2/campaigns/{cid}?actor_id=a; POST .../commands {command:<typed command>} (prepared, not yet native-tested)",
+          "scope": "V1 HTTP reads only; V1 writes400 and live403. Nonmember campaign/GM reads404; seated player GM read403."
+        },
+        "prepared_critical_quality_cases": {
+          "source": "B274/B556",
+          "seeds": [
+            8235,
+            31506
+          ],
+          "tables": [
+            4,
+            17
+          ],
+          "expected": "Ordinary sword breaks with no resistantconfirmation; no pending critical blocker; actual GMend, shelterending and originalseedreplay.",
+          "status": "Not executed; new1.1.0catalog/fixture optin frozen separately, hostcapture pending."
+        },
+        "remaining_validation": "Currentfull66suiteandrootfullCI/staticgatespending; newfailuresmayrequireclassification. OldREDs retained ashistory, notcurrentunfixeddefects.",
+        "manual_qualification": "Observation/Stealth retain actualcriticalflags and ordinaryauthoredfactbranches; humanGMnarrates criticalgood/bad/reactionfiction. B211noticed/poorreaction is notautomaticallypersisted; no genericGMconsequence/reactionengine claim.",
+        "win_condition": "Automatic success when both PCs reachShelter; medical care remainsavailable and validatedafterarrival/success. ExplicitEvaluateObjective reads/settlescurrentresult, notanextra care wincondition.",
+        "current_native_run": {
+          "passed": 66,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 438.04,
+          "runner_seconds": 439.965,
+          "source_files": 1744,
+          "before_digest": "7772689b32095d69a3b3807cec7c82f9a4ee722a713b24d4699b45ea67f03dea",
+          "after_digest": "7772689b32095d69a3b3807cec7c82f9a4ee722a713b24d4699b45ea67f03dea",
+          "exact_inventory": true,
+          "evidence_prefix": "/workspace/wayfarer-roadwatch-validation/architecture-v7-full66",
+          "accounting": "/workspace/wayfarer-roadwatch-validation/architecture-v7-full66-accounting.json"
+        },
+        "coverage_counts": {
+          "supported": 11,
+          "partial": 5,
+          "unsupported": 1,
+          "unverified": 1
+        },
+        "api_release_remaining_blockers": [
+          "Rootofficial13190testfullrunandallstatic/architecture/contractgatesmustfinishgreenagainstsamecandidate.",
+          "Finalrundoc/sourcequalificationreview;verifiedcommit/pushunderexistingpermission."
+        ],
+        "not_api_release_blockers": [
+          "FullBasicSetcertificationoutsideboundedmodule.",
+          "ManualGMcriticalfictionexplicitlyqualified.",
+          "Lobby/setupseedreexecutionunverified;fullsetupfoldandallpostactivationseedreplayalreadyproved.",
+          "Browser/GUIunverifiedandnotclaimed;noentireBasiccriticaltablecertification."
+        ]
+      }
+    },
+    {
+      "kind": "Prior e13 corrected candidate preparation report; superseded as current candidate, never accepted",
+      "artifact": "/workspace/wayfarer-roadwatch-acceptance-matrix-reviewed-before-a561.json",
+      "sha256": "84d6055286e76a75253755f838b6474d51187dceeb08ed5858c92c4078492ef9"
+    },
+    {
+      "kind": "Prior a561/V4-running checkpoint; superseded current state, no acceptance",
+      "artifact": "/workspace/wayfarer-roadwatch-acceptance-matrix-reviewed-before-7713.json",
+      "sha256": "82c5414206e01a267f970ed1366359c2ec06931f5ae5039a0fb75f7db814260c"
+    }
+  ],
+  "review": {
+    "path": "/workspace/wayfarer-roadwatch-final-scope-review.md",
+    "sha256": "b1a5b142f3ec657c3173a8fba7184307203fe9a10dad000bf5780f30c0e032f1",
+    "repository_edits": false
+  },
+  "current_candidate_prerequisites": {
+    "static_gates": {
+      "passed": 22,
+      "total": 22,
+      "source_stable": true,
+      "source_digest": "8bc216411d4094515daea37f60f0faa5ef1e8cd786f3d5f583ca017bf3b79e69",
+      "terminal": {
+        "path": "/workspace/wayfarer-roadwatch-validation-static-v8/terminal.json",
+        "sha256": "c701f3f649afe60cdb74b45f6870ed8fa75f31d5bbf814b930a9a5878ddd0a47"
+      },
+      "extra_results": {
+        "path": "/workspace/wayfarer-roadwatch-validation-extra-v8/results.json",
+        "sha256": "1c7c76c9e50b39c652330291f6b363ca3b204f0c862bce6b43a73963da7b057f"
+      }
+    },
+    "reaction_fixture_only": {
+      "ordinary_tests": 111,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "both_databases": true,
+      "production_changes": 0,
+      "result": {
+        "path": "/workspace/wayfarer-reaction-boundary-triage/final-prerequisite-result.json",
+        "sha256": "3706daffb0682f547b6d7130252d4e90269701507a4b55d323e45246513895d8"
+      },
+      "qualification": "Original32assertions preserved,6negative/setup assertions added; native lawful GM knowledge adoption precedes real pending attack. This was source-equivalent execution plus patch, not a fresh run under final7713HEAD."
+    },
+    "continuation_private_history": {
+      "ordinary_parents": 224,
+      "architecture_subtests": 16191,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "both_databases": true,
+      "result": {
+        "path": "/workspace/wayfarer-wave14-triage/final-prerequisite-result.json",
+        "sha256": "78552017e2358f1b95b62cc99a4ae1f5b89d6ecfc339ac05ea9ae80e37acc615"
+      },
+      "qualification": "Component/preflight execution source was base a2 plus the exact frozen patch; this clean integration was verified equivalent after the run, not falsely relabeled as execution HEAD.",
+      "generic_native_bf_carry": {
+        "path": "/workspace/wayfarer-wave14-triage/bf-continuation/final-result-v3.json",
+        "sha256": "5bb7f280b854b1fbb1ce661ff456220d8d0f319e68a3ddc03486dd71ead86eac"
+      },
+      "actual24f_preview_compatibility": {
+        "path": "/workspace/wayfarer-wave14-triage/legacy-preview-v2/summary.json",
+        "sha256": "dbe25cf8e2d0a941836fac5674d9ea0bdbc7166a25df58fca940bb2aa0ab1c74"
+      },
+      "source_review": {
+        "path": "/workspace/wayfarer-wave14-triage/independent-final-patch-review.json",
+        "sha256": "b3794fd13c39f016419aabc3530ee4da0cb71c70a2ebef98de7f4ae16855710a"
+      },
+      "scope": "Generic underlying continuation only; fixedRoadwatch HTTP sequel/adventure continuation remains unsupported. No setup seed execution claim."
+    }
+  },
+  "source_ambiguities_outside_campaign_scope": [
+    {
+      "subject": "Reactive Will concentration preservation under B421/B236",
+      "disposition": "Explicit defensive-reaction interpretation yields9 and retains original test oracle; voluntary casting remains11. Nondefensive6 is another coherent reading. Target8 was inconsistent partial propagation, not selected as an oracle.",
+      "scope": "Magic/concentration gameplay excluded from Roadside Watch. No source or capability certification credit.",
+      "version_boundary": "Fresh private concentration marker1; absent historical marker preserves oldtarget8 and actual recorded behavior. Existing casting generation meaning remains unchanged.",
+      "source_policy_review": {
+        "path": "/workspace/wayfarer-symptom-wake-triage/concentration-policy-review.md",
+        "sha256": "e9201c39906ed43e610e6a77283e7b2eac177c33aa39ddc7ed2eccfbeae18b48"
+      },
+      "exact_patch_review": {
+        "path": "/workspace/wayfarer-symptom-wake-triage/concentration-final-patch-review.json",
+        "sha256": "10cd33d6017a832e3727099a19308a86f6bd7f741944d9a6ded1651bc71d8084"
+      },
+      "bounded_preflight": {
+        "path": "/workspace/wayfarer-symptom-wake-triage/final-prerequisite-result.json",
+        "sha256": "3fc1e18cb9eefab4e0c1c2aba36a4ed9f4243742f130703600c104b6ea4a1041"
+      },
+      "limitations": "Review records native-historical proof and its source-provenance limitations; final V5 engine aggregate passed without resolving the source ambiguity or adding certification credit."
+    }
+  ],
+  "fresh_v4_native66": {
+    "source_head": "a561ac6e2c7c6959741e723fce1d04276aa976f8",
+    "actual_cases": 66,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "proof": {
+      "path": "/workspace/wayfarer-roadwatch-v4-native66-proof.json",
+      "sha256": "4c49823133f85d80667d6dc2a292baa2a321d5e724f603909fc84121a846908b"
+    },
+    "qualification": "All66passed at a561 within failed completeV4; does not confer whole-run acceptance and is not relabeled as current7713execution."
+  },
+  "finalized_from_genuine_scoped_acceptance_at": "2026-10-29T21:21:51.779759+00:00",
+  "strict_global_source_release_failure": {
+    "terminal": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v5/post-run-terminal.json",
+      "sha256": "0a9f73bc53e3b04cd06310ce4a616080803eee9349d744692bb6ef5cd76c83b0"
+    },
+    "mechanics": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v5/release/mechanics.json",
+      "sha256": "9b7d98d607ba1b45a5889b8f707b675f4cd110bd18501050e2040d1dd2a5b12c"
+    },
+    "errors": [
+      "Frozen GURPS source audit incomplete; see scripts/audit_gurps_sources.py"
+    ],
+    "global_source_audit": {
+      "audit_complete": false,
+      "blocker_count": 117,
+      "path": "/workspace/wayfarer-roadwatch-validation-static-v8/source_audit.log",
+      "sha256": "c973743eafa33a0384206eca2c6be3e7310f02d59621558590a89e12393793d0"
+    }
+  },
+  "scoped_engine_release_acceptance": {
+    "path": "/workspace/wayfarer-roadwatch-scoped-release-acceptance.json",
+    "sha256": "b3a7837da5628dd96b0834bb03a520ec55c57f46e78338eb77d7a8e87415f9ef"
+  },
+  "generator_performed_publication": false,
+  "publication_record_policy": "Publication is not performed by this generator. Actual pushed SHA is recorded externally after commit/push verification; tested source7713 and intended branchwork remain the evidence identity.",
+  "current_v5_accepted_evidence": {
+    "source": {
+      "head": "7713b402f49e9ccbb42edd3227e53a66bf0dc339",
+      "tree": "61f059cacfae1833277d7678f87626d06626d898",
+      "pyproject_sha256": "d521e6f67f2d4a089336d26333e582eb0bf246ca8d93e12b37c216a9f4603b77",
+      "lock_sha256": "94a8ecc6d7f3b807261aa4178e9813895e2951bc90cff89f08ca19abd7337851"
+    },
+    "current_v5_counts": {
+      "modules": 741,
+      "ordinary_parents": 13224,
+      "ordinary_passed": 13223,
+      "architecture_subtests": 16191,
+      "all_dynamic_subtests": 16191,
+      "reported_tests_including_subtests": 29415,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_identities": [
+        "tests/test_codex_provider.py::test_authenticated_codex_smoke"
+      ],
+      "native_campaign_cases": 66
+    },
+    "campaign_cases": [
+      "tests/test_roadwatch_campaign.py::test_public_setup_admits_exact_source_builds_anatomy_and_real_gear[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_public_setup_admits_exact_source_builds_anatomy_and_real_gear[postgres]",
+      "tests/test_roadwatch_campaign.py::test_nonmembers_and_unsupported_transports_cannot_mutate_or_draw[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_nonmembers_and_unsupported_transports_cannot_mutate_or_draw[postgres]",
+      "tests/test_roadwatch_campaign.py::test_public_setup_default_gm_receipt_discovery[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_public_setup_default_gm_receipt_discovery[postgres]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[non-lobby-before-play-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[non-lobby-before-play-postgres]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[missing-after-play-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[missing-after-play-postgres]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[invalid-play-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_gm_history_bridge_rejects_corrupt_checkpoints[invalid-play-postgres]",
+      "tests/test_roadwatch_campaign.py::test_accepted_medical_id_rejects_changed_opaque_intent[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_accepted_medical_id_rejects_changed_opaque_intent[postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total3-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total3-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total2-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[table-total2-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[critical-maximum-includes-bandage-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_wound_bandage_first_aid_and_shelter_outcome[critical-maximum-includes-bandage-postgres]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[ordinary-failure-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[ordinary-failure-postgres]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-success-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-success-postgres]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-failure-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_first_aid_failure_and_critical_results_from_real_wound[critical-failure-postgres]",
+      "tests/test_roadwatch_campaign.py::test_failed_survey_can_withdraw_and_reach_an_authored_ending[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_failed_survey_can_withdraw_and_reach_an_authored_ending[postgres]",
+      "tests/test_roadwatch_campaign.py::test_natural_critical_arm_strain_and_gm_receipts[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_natural_critical_arm_strain_and_gm_receipts[postgres]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[patient-crosses-due-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[patient-crosses-due-postgres]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[caregiver-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_scene_travel_cannot_preserve_uninterrupted_shock_treatment[caregiver-postgres]",
+      "tests/test_roadwatch_campaign.py::test_fresh_application_reload_preserves_real_wound_and_retry[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_fresh_application_reload_preserves_real_wound_and_retry[postgres]",
+      "tests/test_roadwatch_campaign.py::test_independent_apps_compare_and_swap_and_same_id_once[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_independent_apps_compare_and_swap_and_same_id_once[postgres]",
+      "tests/test_roadwatch_campaign.py::test_failed_commit_rolls_back_real_injury_then_lawful_retry[sqlite]",
+      "tests/test_roadwatch_campaign.py::test_failed_commit_rolls_back_real_injury_then_lawful_retry[postgres]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[dodge8-fails9-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[dodge8-fails9-postgres]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[parry10-stops9-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[parry10-stops9-postgres]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[retreat-dodge11-stops9-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_source_active_defenses_use_real_rolls_and_source_bonuses[retreat-dodge11-stops9-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[full-eleventh-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[full-eleventh-postgres]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[partial-eleventh-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_real_long_battle_defense_cost_then_positive_fp_rest[partial-eleventh-postgres]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break4-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break4-postgres]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break17-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_natural_ordinary_sword_breakage_does_not_strand_campaign[ordinary-break17-postgres]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical5-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical5-postgres]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical6-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_explicit_parry_critical_self_hit_and_honest_loss_ending[parry-critical6-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-observation-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-observation-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-stealth-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[270-critical-success-1-stealth-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-observation-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-observation-postgres]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-stealth-sqlite]",
+      "tests/test_roadwatch_campaign.py::test_selected_skill_critical_flags_and_authored_effects_remain_replayable[540-critical-failure-6-stealth-postgres]"
+    ],
+    "coverage": {
+      "lines_covered": 70607,
+      "lines_valid": 77626,
+      "branches_covered": 20593,
+      "branches_valid": 27050,
+      "computed_combined_percent": 87.12598876533303,
+      "official_report_TOTAL": "TOTAL                                                                       77626   7019  27050   5673    87%",
+      "unchanged_required_percent": 65,
+      "official_aggregate_exit_code": 0,
+      "xml": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/aggregate/coverage.xml",
+        "sha256": "29745d0c97bdcb2e5ba30f486e86253676441e441f14aa88e7b306639fa3cebc"
+      }
+    },
+    "junit": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v5/aggregate/pytest.xml",
+      "sha256": "da19c4c1a451a428152831ce09ab27ffe49652e8d2f9f5efd7930fec6661fc4e"
+    },
+    "shards": [
+      {
+        "index": 0,
+        "parents": 3278,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-0/accounting.json",
+          "sha256": "45f9f11922b6fc3db40e86c889a29aad2fc7b851015e5908923058d097e02a4d"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-0/pytest.xml",
+          "sha256": "f6f8ceb38977af56d647837314c3c3dd24d1da462c42072f6b6c82e46321ad39"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-0/.coverage.0",
+          "sha256": "4ec7a80e09bd812b9aeab38444d496601e7dc91a8098ccfcd22c666b8c34ccd6"
+        }
+      },
+      {
+        "index": 1,
+        "parents": 3248,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-1/accounting.json",
+          "sha256": "3acb47dd0a98e8f9db2c7ac868c807d8ae36f3e5c2f94096f42cf8ccfd15777e"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-1/pytest.xml",
+          "sha256": "fc454b4b2947c4e0285dce38b93846fad2defccb1b561352a4f79b91b9a6c7bb"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-1/.coverage.1",
+          "sha256": "512a551ae838c42a480ff0d1f003864a9e6e1c5b54ada8473a8a772a434b96a8"
+        }
+      },
+      {
+        "index": 2,
+        "parents": 3378,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-2/accounting.json",
+          "sha256": "a102f6711db31dfe18a85eeca90a44667d5fbad4ba0c262a514339864070ea97"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-2/pytest.xml",
+          "sha256": "b40f4e5d0dac91fe546bb127247995e3bbfe27949062bb15c0b056765863c1f2"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-2/.coverage.2",
+          "sha256": "dfc90fba49f0d0b8613e090fea40f3359dac65bf8e84c6e1c0c167bc6bb83e7e"
+        }
+      },
+      {
+        "index": 3,
+        "parents": 3320,
+        "accounting": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-3/accounting.json",
+          "sha256": "54062cc8241da16eeb20ff109c2cf4481560eca4556522196c3f226d58bdc7c9"
+        },
+        "junit": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-3/pytest.xml",
+          "sha256": "a238ace6e6f2b2483833c48e6112d01e8ac5150842b40c299f8084060c28d73f"
+        },
+        "raw_coverage": {
+          "path": "/workspace/wayfarer-roadwatch-full-validation-v5/inputs/shard-3/.coverage.3",
+          "sha256": "2960176cf0122c7a14c212a7014848bb90cd95ded747c585cbbf8573ebfcc0f9"
+        }
+      }
+    ]
+  },
+  "current_source_audit": {
+    "profile_id": "profile:gurps-basic-set-4e-2004",
+    "profile_version": 11,
+    "profile_digest": "483b2f942994f1ca2f0e23e8825e1cfd172fc9bddac5e9bf1aab3ec86f120a0d",
+    "source_baseline": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+    "required_capabilities": 73,
+    "verified_capabilities": 9,
+    "source_audit_complete": false,
+    "certified": false,
+    "blocker_records": 1990,
+    "distinct_blocker_identifiers": 1883,
+    "execution": {
+      "verified_obligation_count": 15,
+      "verified_obligations": [
+        "capability:gurps.character.skill_defaults",
+        "capability:gurps.character.skill_difficulty",
+        "capability:gurps.character.specialties",
+        "capability:gurps.character.techniques",
+        "capability:gurps.check.critical",
+        "capability:gurps.check.margin",
+        "capability:gurps.check.quick_contest",
+        "capability:gurps.check.regular_contest",
+        "capability:gurps.check.resistance",
+        "section:campaigns:b344:default-rolls",
+        "section:campaigns:b348:quick-contests",
+        "section:campaigns:b348:repeated-attempts",
+        "section:campaigns:b349:regular-contests",
+        "section:campaigns:b349:the-rule-of-16",
+        "section:characters:b017:basic-lift-and-encumbrance-table"
+      ],
+      "problems": {},
+      "error": null,
+      "qualification": "Actual source-bound evaluation; no hardcoded15/new-credit assumption and no change to certification ledgers."
+    },
+    "raw_report": {
+      "path": "/workspace/wayfarer-roadwatch-full-validation-v5/scoped-engine-release/mechanics.json",
+      "sha256": "470dfc20a8a58f5741750af0aeab14d980de083f3eeeb7ceb6ec1a029ce44ebe"
+    },
+    "strict_global_source_failure": {
+      "terminal": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/post-run-terminal.json",
+        "sha256": "0a9f73bc53e3b04cd06310ce4a616080803eee9349d744692bb6ef5cd76c83b0"
+      },
+      "mechanics": {
+        "path": "/workspace/wayfarer-roadwatch-full-validation-v5/release/mechanics.json",
+        "sha256": "9b7d98d607ba1b45a5889b8f707b675f4cd110bd18501050e2040d1dd2a5b12c"
+      },
+      "errors": [
+        "Frozen GURPS source audit incomplete; see scripts/audit_gurps_sources.py"
+      ],
+      "global_source_audit": {
+        "audit_complete": false,
+        "blocker_count": 117,
+        "path": "/workspace/wayfarer-roadwatch-validation-static-v8/source_audit.log",
+        "sha256": "c973743eafa33a0384206eca2c6be3e7310f02d59621558590a89e12393793d0"
+      }
+    }
+  }
+}

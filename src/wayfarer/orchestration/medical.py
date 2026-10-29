@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from dataclasses import asdict, fields, replace
+from dataclasses import asdict, dataclass, fields, replace
 from typing import Literal, cast
 
 from wayfarer.contracts import Campaign, CommandReceipt
@@ -37,12 +37,14 @@ from wayfarer.engine.simulation.magic.enchanting_calendar import require_enchant
 from wayfarer.engine.simulation.magic.spell_state import active_spells
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.ability_boundary import require_boundary
+from wayfarer.orchestration.medical_bandage_generations import capture as capture_bandage
 from wayfarer.orchestration.medical_minimum_generations import capture as capture_minimum
 from wayfarer.orchestration.medical_rest_generations import ENVIRONMENT as REST_ENVIRONMENT
 from wayfarer.orchestration.medical_rest_generations import KEY as REST_KEY
 from wayfarer.orchestration.medical_rest_generations import capture as capture_rest
 from wayfarer.orchestration.pipeline import ActsAs, CommandPlan, submit
 from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.medical_bandage_inputs import stamp as stamp_bandage
 from wayfarer.persistence.medical_minimum_inputs import stamp as stamp_minimum
 
 
@@ -79,6 +81,35 @@ def _decode_minimum_environment(raw: object) -> CareEnvironment:
 
 
 EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
+
+CareAdmission = Callable[[PlayService, PlayState, BeginRecovery], None]
+
+
+@dataclass(frozen=True)
+class CarePolicy:
+    """Optional deployment admission; the ordinary resolver contract is unchanged.
+
+    Admission is pure. Begin plans assess it after saved-receipt lookup and
+    before entropy, then recheck the actual transaction prestate. Finishes use
+    the already reserved task. The policy never supplies a skill or outcome.
+    """
+
+    resolve: EnvironmentResolver
+    admit: CareAdmission
+    capture_bandage_environment: bool = False
+
+    def __call__(self, play: PlayService, state: PlayState, target_id: str) -> CareEnvironment:
+        return self.resolve(play, state, target_id)
+
+
+def admit_environment(
+    environment: EnvironmentResolver,
+    play: PlayService,
+    state: PlayState,
+    command: BeginRecovery,
+) -> None:
+    if isinstance(environment, CarePolicy):
+        environment.admit(play, state, command)
 
 
 def _build(play: PlayService, state: PlayState, actor_id: str) -> ValidatedBuild:
@@ -209,6 +240,64 @@ def care_context(
     )
 
 
+def _recovery_payload(
+    selected: ProfileId,
+    command: BeginRecovery | FinishRecovery,
+    *,
+    rest_admission: bool,
+    rest_environment: CareEnvironment | None,
+    minimum_admission: bool,
+    minimum_environment: CareEnvironment | None,
+    bandage_admission: bool,
+    bandage_environment: CareEnvironment | None,
+) -> str:
+    """Encode the exact producer bytes for independent medical capture policies."""
+    if rest_environment is not None and not rest_admission:
+        raise ValidationError("Captured FP-rest facts require their generation")
+    if minimum_admission and (
+        selected != "gurps-basic-set-4e-2004"
+        or not isinstance(command, BeginRecovery)
+        or command.kind not in MINIMUM_KINDS
+    ):
+        raise ValidationError("Medical minimum admission requires its voluntary start")
+    if minimum_admission != (minimum_environment is not None):
+        raise ValidationError("Medical minimum policy requires its captured environment")
+    if rest_admission and (
+        selected != "gurps-basic-set-4e-2004"
+        or isinstance(command, BeginRecovery)
+        and (command.kind != "rest" or rest_environment is None)
+    ):
+        raise ValidationError("Captured FP-rest admission requires its exact supported producer")
+    if bandage_admission and (
+        selected != "gurps-basic-set-4e-2004"
+        or isinstance(command, BeginRecovery)
+        and command.kind != "bandage"
+        or isinstance(command, BeginRecovery) != (bandage_environment is not None)
+    ):
+        raise ValidationError("Bandage capture requires its independent supported producer")
+    if not bandage_admission and bandage_environment is not None:
+        raise ValidationError("Bandage context requires its captured generation")
+    payload = json.dumps(
+        {
+            "operation": "gurps-recovery",
+            "command": command.model_dump(mode="json"),
+            **({REST_KEY: 1} if rest_admission else {}),
+            **(
+                {REST_ENVIRONMENT: asdict(rest_environment)} if rest_environment is not None else {}
+            ),
+        },
+        sort_keys=True,
+    )
+    if minimum_admission:
+        assert minimum_environment is not None
+        payload = stamp_minimum(payload, asdict(minimum_environment))
+    if bandage_admission:
+        payload = stamp_bandage(
+            payload, asdict(bandage_environment) if bandage_environment is not None else None
+        )
+    return payload
+
+
 class MedicalService:
     """Internal API; the environment resolver is bound by the scenario, not input.
 
@@ -230,45 +319,35 @@ class MedicalService:
         rest_environment: CareEnvironment | None = None,
         minimum_admission: bool = False,
         minimum_environment: CareEnvironment | None = None,
+        admission_state: PlayState | None = None,
+        bandage_admission: bool = False,
+        bandage_environment: CareEnvironment | None = None,
     ) -> CommandPlan[RecoveryResult]:
         """What a care command writes; the pipeline decides whether it runs."""
-        if rest_environment is not None and not rest_admission:
-            raise ValidationError("Captured FP-rest facts require their generation")
-        if minimum_admission and (
-            selected != "gurps-basic-set-4e-2004"
-            or not isinstance(command, BeginRecovery)
-            or command.kind not in MINIMUM_KINDS
-        ):
-            raise ValidationError("Medical minimum admission requires its voluntary start")
-        if minimum_admission != (minimum_environment is not None):
-            raise ValidationError("Medical minimum policy requires its captured environment")
-        if rest_admission and (
-            selected != "gurps-basic-set-4e-2004"
-            or isinstance(command, BeginRecovery)
-            and (command.kind != "rest" or rest_environment is None)
-        ):
-            raise ValidationError(
-                "Captured FP-rest admission requires its exact supported producer"
-            )
-        payload = json.dumps(
-            {
-                "operation": "gurps-recovery",
-                "command": command.model_dump(mode="json"),
-                **({REST_KEY: 1} if rest_admission else {}),
-                **(
-                    {REST_ENVIRONMENT: asdict(rest_environment)}
-                    if rest_environment is not None
-                    else {}
-                ),
-            },
-            sort_keys=True,
+        policy_begin = isinstance(self.environment, CarePolicy) and isinstance(
+            command, BeginRecovery
         )
-        if minimum_admission:
-            assert minimum_environment is not None
-            payload = stamp_minimum(payload, asdict(minimum_environment))
+        if policy_begin and admission_state is None:
+            raise ValidationError("Care policy begin plans require an admission prestate")
+        payload = _recovery_payload(
+            selected,
+            command,
+            rest_admission=rest_admission,
+            rest_environment=rest_environment,
+            minimum_admission=minimum_admission,
+            minimum_environment=minimum_environment,
+            bandage_admission=bandage_admission,
+            bandage_environment=bandage_environment,
+        )
+
+        def assess() -> None:
+            assert admission_state is not None and isinstance(command, BeginRecovery)
+            admit_environment(self.environment, play, admission_state, command)
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
+            if isinstance(command, BeginRecovery):
+                admit_environment(self.environment, play, before, command)
             if rest_admission:
                 _require_rest_interval(before, command)
             task = next(
@@ -287,6 +366,14 @@ class MedicalService:
                 else ""
             )
             kind = command.kind if isinstance(command, BeginRecovery) else task.kind if task else ""
+            if (
+                bandage_admission
+                and isinstance(command, FinishRecovery)
+                and (task is None or task.kind != "bandage")
+            ):
+                raise ValidationError(
+                    "Captured bandage completion requires its actual bandage task"
+                )
             if task is not None:
                 context = CareContext(
                     profile_id=task.profile_id,
@@ -334,6 +421,7 @@ class MedicalService:
                 if task is not None
                 else minimum_environment
                 or rest_environment
+                or bandage_environment
                 or self.environment(play, before, target_id)
             )
             if (
@@ -417,6 +505,7 @@ class MedicalService:
                 ActsAs(command.actor_id, "Recovery actor does not match authenticated actor"),
             ),
             rng=play.rng,
+            assess=assess if policy_begin else None,
         )
 
     async def execute(
@@ -440,6 +529,25 @@ class MedicalService:
             and command.kind in MINIMUM_KINDS,
             actor_id=command.actor_id,
         )
+        bandage_inputs = await capture_bandage(
+            play.store,
+            state,
+            command,
+            opted_in=isinstance(self.environment, CarePolicy)
+            and self.environment.capture_bandage_environment,
+            eligible_profile=profile_id == "gurps-basic-set-4e-2004",
+        )
+        bandage_environment = None
+        if bandage_inputs.enabled and isinstance(command, BeginRecovery):
+            if not bandage_inputs.saved:
+                require_boundary(await play.store.read(cid), None)
+                if state.revision != command.expected_revision:
+                    raise ConflictError("Resource revision changed")
+            bandage_environment = captured_environment(
+                bandage_inputs.environment
+                if bandage_inputs.saved
+                else asdict(self.environment(play, state, command.target_id))
+            )
         minimum_environment = None
         if minimum_inputs.enabled:
             assert isinstance(command, BeginRecovery)
@@ -486,6 +594,9 @@ class MedicalService:
                 rest_environment=environment,
                 minimum_admission=minimum_inputs.enabled,
                 minimum_environment=minimum_environment,
+                admission_state=state if isinstance(self.environment, CarePolicy) else None,
+                bandage_admission=bandage_inputs.enabled,
+                bandage_environment=bandage_environment,
             ),
             principal_id=principal_id,
         )

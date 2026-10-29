@@ -125,6 +125,7 @@ class SpellService:
         area_targeting: bool = True,
         missile_attack: bool = True,
         physician_training: bool = True,
+        concentration_reaction: bool = True,
         state: PlayState | None = None,
     ) -> CommandPlan[SpellResult]:
         """What a spell lifecycle command writes; the pipeline decides whether it runs.
@@ -147,6 +148,7 @@ class SpellService:
                 "command": command.model_dump(mode="json"),
                 **({"targeting_generation": 1} if capture_targeting else {}),
                 **({"check_generation": 1} if check_symptoms else {}),
+                **({"concentration_reaction_generation": 1} if concentration_reaction else {}),
                 **({"item_sight_generation": 1} if item_sight else {}),
                 **({"area_targeting_generation": 1} if area_targeting else {}),
                 **({"missile_attack_generation": 1} if missile_attack else {}),
@@ -168,6 +170,7 @@ class SpellService:
             item_sight=item_sight,
             area_targeting=area_targeting,
             physician_training=physician_training,
+            concentration_reaction=concentration_reaction,
         )
         control: tuple[Control, ...] = (
             Controls(member, command.actor_id, "Spell actor is not controlled by principal")
@@ -240,6 +243,7 @@ class SpellService:
                 area_targeting=generations.area_targeting,
                 missile_attack=generations.missile_attack,
                 physician_training=generations.physician_training,
+                concentration_reaction=generations.concentration_reaction,
                 state=state,
             ),
             principal_id=principal_id,

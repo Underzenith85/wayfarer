@@ -1,0 +1,1401 @@
+{
+  "id": "roadside-watch-1",
+  "version": 1,
+  "title": "Roadside Watch",
+  "brief": {
+    "premise": "Mira and Iven survey a road clearing, face an openly waiting brigand, and return to the wayside shelter before the next day.",
+    "genre": "Low-tech road adventure",
+    "tone": "Grounded",
+    "duration_minutes": 45,
+    "difficulty": "gentle",
+    "restrictions": [
+      "One player controls both human PCs; a separate GM controls Rook.",
+      "Ordinary melee only; no magic, shields, ranged weapons or surprise bonuses.",
+      "Starting equipment is GM-issued; trade, wealth and advancement are outside this episode.",
+      "Clinical treatment uses actual ordinary sterile bandages at the shelter."
+    ]
+  },
+  "opening_scene_id": "post-scene",
+  "opening_action": "Inspect the roadside lookout, optionally try the screened path, then travel to the clearing. The brigand is aware of you. Return to the shelter when the encounter is lawfully resolved.",
+  "failure_consequence": "You may withdraw or abandon the survey. A failed optional check does not lock the shelter route or invent a successful report.",
+  "world": {
+    "entities": [
+      {
+        "id": "post",
+        "kind": "location",
+        "name": "Roadwatch Post",
+        "location_id": null,
+        "owner_id": null
+      },
+      {
+        "id": "road",
+        "kind": "location",
+        "name": "The Road Clearing",
+        "location_id": null,
+        "owner_id": null
+      },
+      {
+        "id": "shelter",
+        "kind": "location",
+        "name": "Wayside Shelter",
+        "location_id": null,
+        "owner_id": null
+      },
+      {
+        "id": "a",
+        "kind": "actor",
+        "name": "Mira",
+        "location_id": "post",
+        "owner_id": null
+      },
+      {
+        "id": "b",
+        "kind": "actor",
+        "name": "Iven",
+        "location_id": "post",
+        "owner_id": null
+      },
+      {
+        "id": "brigand",
+        "kind": "actor",
+        "name": "Rook the Brigand",
+        "location_id": "road",
+        "owner_id": null
+      },
+      {
+        "id": "road-view",
+        "kind": "object",
+        "name": "The roadside lookout",
+        "location_id": "post",
+        "owner_id": null
+      },
+      {
+        "id": "screened-path",
+        "kind": "object",
+        "name": "The screened footpath",
+        "location_id": "post",
+        "owner_id": null
+      },
+      {
+        "id": "aid-station",
+        "kind": "object",
+        "name": "A warm, quiet treatment space",
+        "location_id": "shelter",
+        "owner_id": null
+      },
+      {
+        "id": "bandages-post",
+        "kind": "object",
+        "name": "Sterile bandages",
+        "location_id": null,
+        "owner_id": "b"
+      }
+    ],
+    "connections": [
+      {
+        "source_id": "post",
+        "destination_id": "road",
+        "label": "a ten-yard footpath"
+      },
+      {
+        "source_id": "road",
+        "destination_id": "post",
+        "label": "the return footpath"
+      },
+      {
+        "source_id": "road",
+        "destination_id": "shelter",
+        "label": "a ten-yard side path"
+      },
+      {
+        "source_id": "shelter",
+        "destination_id": "road",
+        "label": "the side path back to the clearing"
+      }
+    ],
+    "facts": [
+      {
+        "id": "roadwatch-identity-a",
+        "subject_id": "a",
+        "predicate": "identity",
+        "value": "Mira is a publicly identified roadwatch volunteer."
+      },
+      {
+        "id": "roadwatch-identity-b",
+        "subject_id": "b",
+        "predicate": "identity",
+        "value": "Iven is a publicly identified roadwatch volunteer."
+      },
+      {
+        "id": "roadwatch-identity-brigand",
+        "subject_id": "brigand",
+        "predicate": "identity",
+        "value": "Rook is the openly identified brigand in this survey."
+      },
+      {
+        "id": "opening",
+        "subject_id": "post",
+        "predicate": "briefing",
+        "value": "Survey the road and return to the shelter. Rook is openly waiting in the clearing; neither side is surprised."
+      },
+      {
+        "id": "road-warning",
+        "subject_id": "road",
+        "predicate": "observation",
+        "value": "From the lookout you observe Rook's broadsword and lack of armor. No concealed detail or private motive is revealed."
+      },
+      {
+        "id": "quiet-approach",
+        "subject_id": "screened-path",
+        "predicate": "crossing",
+        "value": "You crossed the screened path quietly at a slow pace. This grants no concealment, surprise or combat modifier."
+      },
+      {
+        "id": "noisy-approach",
+        "subject_id": "screened-path",
+        "predicate": "crossing",
+        "value": "Your footfalls were audible on the screened path. You may continue the survey; no surprise or combat modifier follows."
+      },
+      {
+        "id": "bandages-post-sterile",
+        "subject_id": "bandages-post",
+        "predicate": "condition",
+        "value": "clean sterile bandages"
+      },
+      {
+        "id": "aid-station-ready",
+        "subject_id": "aid-station",
+        "predicate": "care",
+        "value": "A warm, comfortable, quiet place for ordinary human wound care, with no superior equipment bonus."
+      }
+    ],
+    "knowledge": [
+      [
+        "a",
+        "opening"
+      ],
+      [
+        "a",
+        "bandages-post-sterile"
+      ],
+      [
+        "b",
+        "opening"
+      ],
+      [
+        "b",
+        "bandages-post-sterile"
+      ],
+      [
+        "a",
+        "roadwatch-identity-a"
+      ],
+      [
+        "a",
+        "roadwatch-identity-b"
+      ],
+      [
+        "a",
+        "roadwatch-identity-brigand"
+      ],
+      [
+        "b",
+        "roadwatch-identity-a"
+      ],
+      [
+        "b",
+        "roadwatch-identity-b"
+      ],
+      [
+        "b",
+        "roadwatch-identity-brigand"
+      ],
+      [
+        "brigand",
+        "roadwatch-identity-a"
+      ],
+      [
+        "brigand",
+        "roadwatch-identity-b"
+      ],
+      [
+        "brigand",
+        "roadwatch-identity-brigand"
+      ]
+    ],
+    "beliefs": [],
+    "commitments": []
+  },
+  "resources": {
+    "revision": 0,
+    "game_time": 0,
+    "items": [
+      {
+        "id": "sword-a",
+        "definition_id": "equipment:broadsword",
+        "owner_id": "a",
+        "quantity": 1,
+        "container_id": null,
+        "equipped": true,
+        "ready": true,
+        "condition": {
+          "hp": 12,
+          "disabled": false,
+          "destroyed": false,
+          "last_stress_at": null
+        }
+      },
+      {
+        "id": "sword-b",
+        "definition_id": "equipment:broadsword",
+        "owner_id": "b",
+        "quantity": 1,
+        "container_id": null,
+        "equipped": true,
+        "ready": true,
+        "condition": {
+          "hp": 12,
+          "disabled": false,
+          "destroyed": false,
+          "last_stress_at": null
+        }
+      },
+      {
+        "id": "sword-brigand",
+        "definition_id": "equipment:broadsword",
+        "owner_id": "brigand",
+        "quantity": 1,
+        "container_id": null,
+        "equipped": true,
+        "ready": true,
+        "condition": {
+          "hp": 12,
+          "disabled": false,
+          "destroyed": false,
+          "last_stress_at": null
+        }
+      },
+      {
+        "id": "armor-a",
+        "definition_id": "equipment:leather-armor",
+        "owner_id": "a",
+        "quantity": 1,
+        "container_id": null,
+        "equipped": true,
+        "ready": false
+      },
+      {
+        "id": "armor-b",
+        "definition_id": "equipment:leather-armor",
+        "owner_id": "b",
+        "quantity": 1,
+        "container_id": null,
+        "equipped": true,
+        "ready": false
+      },
+      {
+        "id": "bandages-post",
+        "definition_id": "equipment:bandages",
+        "owner_id": "b",
+        "quantity": 1,
+        "container_id": null,
+        "equipped": false,
+        "ready": false
+      }
+    ],
+    "owners": [
+      {
+        "actor_id": "a",
+        "capacity": 100000,
+        "definitions": []
+      },
+      {
+        "actor_id": "b",
+        "capacity": 100000,
+        "definitions": []
+      },
+      {
+        "actor_id": "brigand",
+        "capacity": 100000,
+        "definitions": []
+      }
+    ],
+    "pools": [],
+    "active_effect_ids": [],
+    "scheduled": [],
+    "fired": [],
+    "receipts": [],
+    "events": [],
+    "ammunition_loads": [],
+    "expended_items": [],
+    "recovery_tasks": [],
+    "hazards": [],
+    "illnesses": []
+  },
+  "npc_actor_ids": [
+    "brigand"
+  ],
+  "combat_consequences": [],
+  "combat_attacks": [],
+  "combat_equipment": {
+    "profile_id": "gurps-basic-set-4e-2004",
+    "entries": [
+      {
+        "definition_id": "equipment:broadsword",
+        "provenance": {
+          "source_id": "sjg:basic-set-characters-4e-2004",
+          "edition": "Fourth Edition, third printing (2008)",
+          "pages": [
+            271,
+            274
+          ],
+          "errata": "Third-printing text; no separate errata overlay selected"
+        },
+        "weight_millipounds": 3000,
+        "price": 500,
+        "technology_level": 2,
+        "slot": "hand",
+        "ammunition": false,
+        "modes": [
+          {
+            "kind": "melee",
+            "id": "swing",
+            "skill_id": "skill:broadsword",
+            "minimum_st": 10,
+            "hands": 1,
+            "damage": {
+              "basis": "swing",
+              "dice": null,
+              "adds": 1,
+              "damage_type": "cut",
+              "armor_divisor": "1",
+              "tight_beam": false
+            },
+            "reach": [
+              1
+            ],
+            "parry": {
+              "modifier": 0,
+              "unbalanced": false,
+              "fencing": false
+            }
+          },
+          {
+            "kind": "melee",
+            "id": "thrust",
+            "skill_id": "skill:broadsword",
+            "minimum_st": 10,
+            "hands": 1,
+            "damage": {
+              "basis": "thrust",
+              "dice": null,
+              "adds": 1,
+              "damage_type": "cr",
+              "armor_divisor": "1",
+              "tight_beam": false
+            },
+            "reach": [
+              1
+            ],
+            "parry": {
+              "modifier": 0,
+              "unbalanced": false,
+              "fencing": false
+            }
+          }
+        ],
+        "armor": null,
+        "shield": null,
+        "durability": {
+          "profile_id": "gurps-basic-set-4e-2004",
+          "construction": "homogenous",
+          "hp": 12,
+          "dr": 6,
+          "ht": 12
+        },
+        "critical_breakage": "ordinary",
+        "silver_construction": "melee-weapon"
+      },
+      {
+        "definition_id": "equipment:leather-armor",
+        "provenance": {
+          "source_id": "sjg:basic-set-characters-4e-2004",
+          "edition": "Fourth Edition, third printing (2008)",
+          "pages": [
+            283
+          ],
+          "errata": "Third-printing text; no separate errata overlay selected"
+        },
+        "weight_millipounds": 10000,
+        "price": 100,
+        "technology_level": 1,
+        "slot": "body",
+        "ammunition": false,
+        "modes": [],
+        "armor": {
+          "locations": [
+            "torso",
+            "groin"
+          ],
+          "dr": 2,
+          "flexible": false,
+          "layer": 0,
+          "front_only": false,
+          "split_dr": [],
+          "concealment_penalty": 0,
+          "electrical_conductivity": "nonmetallic"
+        },
+        "shield": null
+      },
+      {
+        "definition_id": "equipment:bandages",
+        "provenance": {
+          "source_id": "sjg:basic-set-characters-4e-2004",
+          "edition": "Fourth Edition, third printing (2008)",
+          "pages": [
+            289
+          ],
+          "errata": "Third-printing text; no separate errata overlay selected"
+        },
+        "weight_millipounds": 2000,
+        "price": 10,
+        "technology_level": "skill-relative",
+        "slot": null,
+        "ammunition": false,
+        "modes": [],
+        "armor": null,
+        "shield": null,
+        "general": [
+          {
+            "kind": "medical",
+            "skill_id": "skill:first-aid",
+            "modifier": 0,
+            "capacity": 6,
+            "duration_seconds": null,
+            "range_yards": null,
+            "consumable_definition_id": null,
+            "consumable_units": 0,
+            "target": "actor",
+            "trait_id": null,
+            "grants_holdout": false,
+            "note": "",
+            "technology_relative": true
+          }
+        ]
+      }
+    ]
+  },
+  "combat_protection": [],
+  "actions": {
+    "id": "roadwatch-actions",
+    "version": 1,
+    "movement_ticks": 1,
+    "item_ticks": 1,
+    "maximum_wait": 3600,
+    "fatigue_cost": 0,
+    "checks": [
+      {
+        "id": "watch-road",
+        "action": "inspect",
+        "target_id": "road-view",
+        "definition_id": "skill:observation",
+        "package_id": "package:roadside-watch-gurps",
+        "package_version": "1.1.0",
+        "duration": 10,
+        "modifier": 0,
+        "reveal_fact_ids": [
+          "road-warning"
+        ],
+        "required_equipment": null,
+        "not_before": 0
+      },
+      {
+        "id": "cross-quietly",
+        "action": "inspect",
+        "target_id": "screened-path",
+        "definition_id": "skill:stealth",
+        "package_id": "package:roadside-watch-gurps",
+        "package_version": "1.1.0",
+        "duration": 10,
+        "modifier": 0,
+        "reveal_fact_ids": [],
+        "required_equipment": null,
+        "not_before": 0
+      }
+    ],
+    "consumables": [],
+    "adjudication": null,
+    "combat": {
+      "id": "roadwatch-combat",
+      "version": 1,
+      "movement_allowance": 5,
+      "prone_movement_allowance": 1,
+      "default_reach": 1,
+      "max_combatants": 3,
+      "battlefields": [
+        {
+          "id": "roadwatch-clearing",
+          "location_id": "road",
+          "coordinate_system": "hex-axial-v1",
+          "profile_id": "gurps-basic-set-4e-2004",
+          "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+          "cells": [
+            {
+              "position": {
+                "q": 0,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 0,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 0,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 0,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 0,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 0,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 1,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 1,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 1,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 1,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 1,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 1,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 2,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 2,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 2,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 2,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 2,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 2,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 3,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 3,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 3,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 3,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 3,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 3,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 4,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 4,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 4,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 4,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 4,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 4,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 5,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 5,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 5,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 5,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 5,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 5,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 6,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 6,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 6,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 6,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 6,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 6,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 7,
+                "r": 0
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 7,
+                "r": 1
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 7,
+                "r": 2
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 7,
+                "r": 3
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 7,
+                "r": 4
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            },
+            {
+              "position": {
+                "q": 7,
+                "r": 5
+              },
+              "elevation": 0,
+              "blocked": false,
+              "extra_cost": 0,
+              "opaque_height": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "scenes": {
+    "id": "roadwatch-scenes",
+    "version": 2,
+    "scenes": [
+      {
+        "id": "post-scene",
+        "version": 1,
+        "location_id": "post",
+        "title": "Roadwatch Post",
+        "exits": [
+          {
+            "id": "post-to-road",
+            "destination_id": "road-scene",
+            "ticks": 10,
+            "required_fact_ids": []
+          }
+        ],
+        "obstacles": []
+      },
+      {
+        "id": "road-scene",
+        "version": 1,
+        "location_id": "road",
+        "title": "The Road Clearing",
+        "exits": [
+          {
+            "id": "road-to-post",
+            "destination_id": "post-scene",
+            "ticks": 10,
+            "required_fact_ids": []
+          },
+          {
+            "id": "road-to-shelter",
+            "destination_id": "shelter-scene",
+            "ticks": 10,
+            "required_fact_ids": []
+          }
+        ],
+        "obstacles": []
+      },
+      {
+        "id": "shelter-scene",
+        "version": 1,
+        "location_id": "shelter",
+        "title": "Wayside Shelter",
+        "exits": [
+          {
+            "id": "shelter-to-road",
+            "destination_id": "road-scene",
+            "ticks": 10,
+            "required_fact_ids": []
+          }
+        ],
+        "obstacles": []
+      }
+    ],
+    "discoveries": [
+      {
+        "id": "shelter-care-space",
+        "scene_id": "shelter-scene",
+        "fact_id": "aid-station-ready",
+        "mode": "automatic",
+        "target_id": null
+      }
+    ],
+    "triggers": [],
+    "interrupt_recovery_on_travel": true
+  },
+  "objectives": {
+    "id": "roadwatch-objectives",
+    "version": 1,
+    "objectives": [
+      {
+        "id": "return-a",
+        "title": "Return Mira to the shelter",
+        "required": true,
+        "visible_to": [],
+        "predicates": [
+          {
+            "kind": "location",
+            "subject_id": "a",
+            "value": "shelter",
+            "minimum": 1,
+            "negate": false
+          }
+        ]
+      },
+      {
+        "id": "return-b",
+        "title": "Return Iven to the shelter",
+        "required": true,
+        "visible_to": [],
+        "predicates": [
+          {
+            "kind": "location",
+            "subject_id": "b",
+            "value": "shelter",
+            "minimum": 1,
+            "negate": false
+          }
+        ]
+      },
+      {
+        "id": "report-observation",
+        "title": "Iven records the road observation",
+        "required": false,
+        "visible_to": [],
+        "predicates": [
+          {
+            "kind": "known",
+            "subject_id": "b",
+            "value": "road-warning",
+            "minimum": 1,
+            "negate": false
+          }
+        ]
+      },
+      {
+        "id": "report-quiet-path",
+        "title": "Iven records a quiet crossing",
+        "required": false,
+        "visible_to": [],
+        "predicates": [
+          {
+            "kind": "known",
+            "subject_id": "b",
+            "value": "quiet-approach",
+            "minimum": 1,
+            "negate": false
+          }
+        ]
+      }
+    ],
+    "failures": [],
+    "deadline": 86400,
+    "partial_on_deadline": true,
+    "rewards": []
+  },
+  "noncombat": {
+    "id": "roadwatch-quiet-path",
+    "version": 1,
+    "encounters": [
+      {
+        "id": "quiet-path",
+        "scene_id": "post-scene",
+        "category": "infiltration",
+        "stakes": "Cross the screened path slowly and quietly. Nobody here is an alerted sentinel; this optional trial grants no concealment, surprise or combat bonus.",
+        "required_progress": 1,
+        "maximum_failures": 1,
+        "approaches": [
+          {
+            "id": "move-quietly",
+            "check_rule_id": "cross-quietly",
+            "success_progress": 1,
+            "failure_progress": 0,
+            "fatigue_cost": 0,
+            "failure_hp_cost": 0,
+            "success_fact_ids": [
+              "quiet-approach"
+            ],
+            "failure_fact_ids": [
+              "noisy-approach"
+            ]
+          }
+        ],
+        "completion_fact_ids": [],
+        "defeat_fact_ids": [],
+        "withdrawal_fact_ids": []
+      }
+    ]
+  },
+  "npcs": null,
+  "recovery": null,
+  "party": null,
+  "approaches": [
+    {
+      "id": "quiet-path-b",
+      "scene_id": "post-scene",
+      "check_rule_id": "cross-quietly",
+      "actor_id": "b"
+    }
+  ],
+  "actors": [
+    {
+      "actor_id": "a",
+      "proposal": {
+        "draft": {
+          "name": "Mira, road guard",
+          "backstory": "",
+          "purchases": [
+            {
+              "definition_id": "attribute:st",
+              "amount": 11
+            },
+            {
+              "definition_id": "attribute:dx",
+              "amount": 12
+            },
+            {
+              "definition_id": "attribute:iq",
+              "amount": 11
+            },
+            {
+              "definition_id": "attribute:ht",
+              "amount": 11
+            },
+            {
+              "definition_id": "skill:broadsword",
+              "amount": 8
+            },
+            {
+              "definition_id": "skill:stealth",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:observation",
+              "amount": 8
+            }
+          ]
+        },
+        "custom": []
+      },
+      "aware_of": [
+        "a",
+        "b",
+        "brigand",
+        "post",
+        "road",
+        "shelter",
+        "road-view",
+        "screened-path",
+        "aid-station",
+        "bandages-post"
+      ],
+      "conditions": [],
+      "available_at": 0,
+      "body": {
+        "anatomy": "human",
+        "male_groin": false
+      },
+      "held_item_hands": [
+        [
+          "sword-a",
+          "right-hand"
+        ]
+      ]
+    },
+    {
+      "actor_id": "b",
+      "proposal": {
+        "draft": {
+          "name": "Iven, scout and first-aider",
+          "backstory": "",
+          "purchases": [
+            {
+              "definition_id": "attribute:st",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:dx",
+              "amount": 11
+            },
+            {
+              "definition_id": "attribute:iq",
+              "amount": 12
+            },
+            {
+              "definition_id": "attribute:ht",
+              "amount": 11
+            },
+            {
+              "definition_id": "skill:first-aid",
+              "amount": 2,
+              "technology_level": 3
+            },
+            {
+              "definition_id": "skill:broadsword",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:observation",
+              "amount": 12
+            },
+            {
+              "definition_id": "skill:stealth",
+              "amount": 12
+            }
+          ]
+        },
+        "custom": []
+      },
+      "aware_of": [
+        "a",
+        "b",
+        "brigand",
+        "post",
+        "road",
+        "shelter",
+        "road-view",
+        "screened-path",
+        "aid-station",
+        "bandages-post"
+      ],
+      "conditions": [],
+      "available_at": 0,
+      "body": {
+        "anatomy": "human",
+        "male_groin": false
+      },
+      "held_item_hands": [
+        [
+          "sword-b",
+          "right-hand"
+        ]
+      ]
+    },
+    {
+      "actor_id": "brigand",
+      "proposal": {
+        "draft": {
+          "name": "Road brigand",
+          "backstory": "",
+          "purchases": [
+            {
+              "definition_id": "attribute:st",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:dx",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:iq",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:ht",
+              "amount": 10
+            },
+            {
+              "definition_id": "skill:broadsword",
+              "amount": 2
+            }
+          ]
+        },
+        "custom": []
+      },
+      "aware_of": [
+        "a",
+        "b",
+        "brigand",
+        "post",
+        "road",
+        "shelter",
+        "road-view",
+        "screened-path",
+        "aid-station",
+        "bandages-post"
+      ],
+      "conditions": [],
+      "available_at": 0,
+      "body": {
+        "anatomy": "human",
+        "male_groin": false
+      },
+      "held_item_hands": [
+        [
+          "sword-brigand",
+          "right-hand"
+        ]
+      ]
+    }
+  ]
+}

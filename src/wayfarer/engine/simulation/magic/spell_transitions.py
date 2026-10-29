@@ -536,6 +536,7 @@ def advance_cast_turn(
     turn_started: bool = False,
     check_symptoms: bool = True,
     item_sight: bool = True,
+    concentration_reaction: bool = False,
 ) -> PlayState:
 
     if not turn_started:
@@ -592,6 +593,7 @@ def advance_cast_turn(
             system=True,
             check_symptoms=check_symptoms,
             item_sight=item_sight,
+            concentration_reaction=concentration_reaction,
         )
         completed_effect = latest(resources)[command.cast_id]
         events = []
@@ -689,6 +691,7 @@ class SpellExecutionContext:
     item_sight: bool = True
     area_targeting: bool = False
     physician_training: bool = False
+    concentration_reaction: bool = False
 
 
 def _prepare_spell(
@@ -1028,6 +1031,7 @@ def reduce_spell(
             capture_targeting=execution.capture_targeting,
             check_symptoms=execution.check_symptoms,
             item_sight=execution.item_sight,
+            concentration_reaction=execution.concentration_reaction,
         )
     if command.kind == "start" and not any(
         receipt.command_id == command.id for receipt in before.resources.receipts
@@ -1082,6 +1086,7 @@ def reduce_spell(
             turn_started=turn_started,
             check_symptoms=execution.check_symptoms,
             item_sight=execution.item_sight,
+            concentration_reaction=execution.concentration_reaction,
         )
     if encounter is not None and command.kind == "release" and not unable_to_handle:
         updated = _release_missile(

@@ -720,6 +720,7 @@ def apply_spell(
     check_symptoms: bool = True,
     item_sight: bool = True,
     validate_only: bool = False,
+    concentration_reaction: bool = False,
 ) -> tuple[ResourceState, SpellResult]:
     """Commit the returned checkpoint atomically using the existing store CAS.
 
@@ -1156,7 +1157,9 @@ def apply_spell(
                     check = success_roll(
                         PROFILE,
                         context.will - (0 if effect.ceremonial is not None else 3),
-                        check_modifiers(state, command.actor_id, "will"),
+                        check_modifiers(
+                            state, command.actor_id, "will", defensive=concentration_reaction
+                        ),
                         rng=rng,
                     )
                     checks.append(check)
