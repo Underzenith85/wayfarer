@@ -79,10 +79,18 @@ The existing separate owner-damage pause cannot preserve a thrown weapon's
 ready-item invariant after the throw removes it from inventory. Newly opted-in
 thrown attacks therefore refuse that staged route before original/choice dice;
 ordinary immediate thrown settlement and typed opponent-original choices work.
-The refusal also precedes a staged original when owner damage is requested at
-BeginOpponentAttack, so no fresh Luck entropy is rolled and then discarded.
-Historical absent policy retains its historical route behavior. No unrelated
-thrown pause or item-custody behavior is redefined here.
+An actual armed-grenade rethrow with a canonical warhead and the target's plain
+`none` defense is different: payload settlement has no physical or shield damage
+stage, so it completes without opening an owner-damage pause. This bounded route
+requires the actual ready source and its unique, same-encounter, unexpired armed
+cause. The existing grenade-fuse generation independently determines whether the
+same cause is relocated; historical generation behavior remains unchanged.
+The refusal still precedes a staged original when owner damage is requested at
+BeginOpponentAttack, where no actual defense choice is available. Other defense
+choices and unarmed or invalid grenade causes do not gain the exception, so no
+fresh Luck entropy is rolled and then discarded. Historical absent posture
+policy retains its historical route behavior. No generic thrown pause or
+item-custody support is added here.
 
 Evidence uses actual Change Posture/free crouch, approved builds, loaded guns,
 real throws, paid missile charges and bound composed sources. On both stores,

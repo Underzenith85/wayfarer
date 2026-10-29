@@ -176,6 +176,32 @@
           },
           "title": "Damage Dice",
           "type": "array"
+        },
+        "resistance_attempt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResistanceTrace"
+            },
+            {
+              "$ref": "#/$defs/FailedResistanceAttempt"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resistance Attempt"
+        },
+        "resistance_preparation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResistancePreparation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -765,6 +791,32 @@
       "title": "CommandApplied",
       "type": "object"
     },
+    "Contestant": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "base_target": {
+          "title": "Base Target",
+          "type": "integer"
+        },
+        "modifiers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Modifier"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "base_target"
+      ],
+      "title": "Contestant",
+      "type": "object"
+    },
     "DerivedValue": {
       "properties": {
         "target": {
@@ -863,6 +915,48 @@
         "after"
       ],
       "title": "ExplanationEntry",
+      "type": "object"
+    },
+    "FailedResistanceAttempt": {
+      "properties": {
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "declared_attacker": {
+          "$ref": "#/$defs/Contestant"
+        },
+        "declared_resister": {
+          "$ref": "#/$defs/Contestant"
+        },
+        "attacker": {
+          "$ref": "#/$defs/CheckTrace"
+        },
+        "rule_of_16": {
+          "title": "Rule Of 16",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "attacker-failed",
+          "default": "attacker-failed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "affected": {
+          "const": false,
+          "default": false,
+          "title": "Affected",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "profile_id",
+        "declared_attacker",
+        "declared_resister",
+        "attacker",
+        "rule_of_16"
+      ],
+      "title": "FailedResistanceAttempt",
       "type": "object"
     },
     "FrightEffect": {
@@ -1921,6 +2015,126 @@
         }
       },
       "title": "ProjectionRefresh",
+      "type": "object"
+    },
+    "QuickContestTrace": {
+      "properties": {
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "first_id": {
+          "title": "First Id",
+          "type": "string"
+        },
+        "second_id": {
+          "title": "Second Id",
+          "type": "string"
+        },
+        "first": {
+          "$ref": "#/$defs/CheckTrace"
+        },
+        "second": {
+          "$ref": "#/$defs/CheckTrace"
+        },
+        "winner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Winner"
+        },
+        "decision": {
+          "enum": [
+            "success-over-failure",
+            "margin-of-success",
+            "margin-of-failure",
+            "tie"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "victory_margin": {
+          "title": "Victory Margin",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "profile_id",
+        "first_id",
+        "second_id",
+        "first",
+        "second",
+        "winner",
+        "decision",
+        "victory_margin"
+      ],
+      "title": "QuickContestTrace",
+      "type": "object"
+    },
+    "ResistancePreparation": {
+      "properties": {
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "attacker": {
+          "$ref": "#/$defs/Contestant"
+        },
+        "resister": {
+          "$ref": "#/$defs/Contestant"
+        },
+        "rule_of_16": {
+          "title": "Rule Of 16",
+          "type": "boolean"
+        },
+        "cap_modifiers": {
+          "items": {
+            "$ref": "#/$defs/Modifier"
+          },
+          "title": "Cap Modifiers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "profile_id",
+        "attacker",
+        "resister",
+        "rule_of_16",
+        "cap_modifiers"
+      ],
+      "title": "ResistancePreparation",
+      "type": "object"
+    },
+    "ResistanceTrace": {
+      "properties": {
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "contest": {
+          "$ref": "#/$defs/QuickContestTrace"
+        },
+        "rule_of_16": {
+          "title": "Rule Of 16",
+          "type": "boolean"
+        },
+        "affected": {
+          "title": "Affected",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "profile_id",
+        "contest",
+        "rule_of_16",
+        "affected"
+      ],
+      "title": "ResistanceTrace",
       "type": "object"
     },
     "ResourceChanged": {

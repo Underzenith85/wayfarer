@@ -837,6 +837,182 @@
         "tests/test_default_knowledge_current_no_default.py::test_native_light_requires_spell_training_not_magery_or_society_metadata[True-False-sqlite]",
         "tests/test_default_knowledge_current_no_default.py::test_native_light_requires_spell_training_not_magery_or_society_metadata[True-False-postgres]"
       ]
+    },
+    {
+      "case_id": "basic-b348-q1-break-free-first-success",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q1-lower-score-success-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q1-lower-score-success-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-q1-break-free-second-success",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q1-reversed-success-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q1-reversed-success-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-q2-break-free-fright-aftermath",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q2-canonical-aftermath-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q2-canonical-aftermath-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-q3-break-free-both-fail",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q3-both-fail-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q3-both-fail-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-q4-break-free-success-tie",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q4-success-tie-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q4-success-tie-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-q4-break-free-failure-tie",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q4-failure-tie-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q4-failure-tie-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-q5-break-free-mixed-victory",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q5-success-plus-failure-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q5-success-plus-failure-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-q6-break-free-critical-margin",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q6-critical-does-not-override-sqlite]",
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed[Q6-critical-does-not-override-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-ability-burning-malediction-literal-draws",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[failed-burning-malediction-sqlite]",
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[failed-burning-malediction-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r8-ability-burning-malediction-literal-draws",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[tie-burning-malediction-sqlite]",
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[tie-burning-malediction-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r9-ability-burning-malediction-literal-draws",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[win-burning-malediction-sqlite]",
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[win-burning-malediction-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-ability-mind-reading-literal-draws",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[failed-mind-reading-sqlite]",
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[failed-mind-reading-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r8-ability-mind-reading-literal-draws",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[tie-mind-reading-sqlite]",
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[tie-mind-reading-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r9-ability-mind-reading-literal-draws",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[win-mind-reading-sqlite]",
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology[win-mind-reading-postgres]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-creature-gaze",
+      "tests": [
+        "tests/test_creature_resistance_attempts.py::test_failed_attacker_uses_only_three_actual_dice_no_damage_and_real_origin"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r8-creature-gaze",
+      "tests": [
+        "tests/test_creature_resistance_attempts.py::test_successful_attack_requires_actual_subject_roll_and_only_winner_causes_injury[R8-resistance-tie]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r9-creature-gaze",
+      "tests": [
+        "tests/test_creature_resistance_attempts.py::test_successful_attack_requires_actual_subject_roll_and_only_winner_causes_injury[R9-winning-attack]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-mind-reading",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt[advantage:mind-reading-read]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-mind-probe",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt[advantage:mind-probe-probe]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-mind-control",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt[advantage:mind-control-influence]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-possession",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt[advantage:possession-possession]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-neutralize",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt[advantage:neutralize-neutralize]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-dominance",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt[advantage:dominance-influence]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-terror",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt[advantage:terror-terror]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r7-mental-reading-optional-subject",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_optional_actual_defender_attempt_cannot_make_failed_attack_affect_subject"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r8-mental-reading",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_resistance_tie_and_success_have_actual_two_rolls[15-12-False]"
+      ]
+    },
+    {
+      "case_id": "basic-b348-r9-mental-reading",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_resistance_tie_and_success_have_actual_two_rolls[10-12-True]"
+      ]
     }
   ],
   "obligations": [
@@ -1067,6 +1243,38 @@
         "basic-b344-native-alchemy-no-default",
         "basic-b344-native-karate-no-default",
         "basic-b344-native-spell-no-default"
+      ]
+    },
+    {
+      "identifier": "section:campaigns:b348:quick-contests",
+      "case_ids": [
+        "basic-b348-q1-break-free-first-success",
+        "basic-b348-q1-break-free-second-success",
+        "basic-b348-q2-break-free-fright-aftermath",
+        "basic-b348-q3-break-free-both-fail",
+        "basic-b348-q4-break-free-success-tie",
+        "basic-b348-q4-break-free-failure-tie",
+        "basic-b348-q5-break-free-mixed-victory",
+        "basic-b348-q6-break-free-critical-margin",
+        "basic-b348-r7-ability-burning-malediction-literal-draws",
+        "basic-b348-r8-ability-burning-malediction-literal-draws",
+        "basic-b348-r9-ability-burning-malediction-literal-draws",
+        "basic-b348-r7-ability-mind-reading-literal-draws",
+        "basic-b348-r8-ability-mind-reading-literal-draws",
+        "basic-b348-r9-ability-mind-reading-literal-draws",
+        "basic-b348-r7-creature-gaze",
+        "basic-b348-r8-creature-gaze",
+        "basic-b348-r9-creature-gaze",
+        "basic-b348-r7-mental-mind-reading",
+        "basic-b348-r7-mental-mind-probe",
+        "basic-b348-r7-mental-mind-control",
+        "basic-b348-r7-mental-possession",
+        "basic-b348-r7-mental-neutralize",
+        "basic-b348-r7-mental-dominance",
+        "basic-b348-r7-mental-terror",
+        "basic-b348-r7-mental-reading-optional-subject",
+        "basic-b348-r8-mental-reading",
+        "basic-b348-r9-mental-reading"
       ]
     }
   ]

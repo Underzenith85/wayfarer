@@ -7,10 +7,12 @@ uses the resource CAS/receipt ledger and delegates bodily harm to ``apply_injury
 from __future__ import annotations
 
 import hashlib
+import json
 from collections.abc import Mapping
 from typing import Annotated, Literal
 
 from pydantic import Field
+from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, ModifierKind, RandomSource, draw_dice
@@ -20,6 +22,13 @@ from wayfarer.engine.rules.gurps_checks import (
     ResistanceTrace,
     resistance_roll,
     success_roll,
+)
+from wayfarer.engine.rules.resistance_attempts import (
+    FailedResistanceAttempt,
+    ResistancePreparation,
+    prepare_resistance_attempt,
+    resistance_attempt,
+    validate_current_resistance_attempt,
 )
 from wayfarer.engine.rules.traits.modifiers import ModifierRuntimeReceipt
 from wayfarer.engine.rules.types.creature import (
@@ -86,7 +95,7 @@ class NaturalAttackOutcome(Record):
     hit: bool
     attack: CheckTrace | None = None
     defense: CheckTrace | None = None
-    resistance: ResistanceTrace | None = None
+    resistance: ResistanceTrace | FailedResistanceAttempt | None = None
     effect: ModifierRuntimeReceipt | None = None
     damage_dice: tuple[int, ...] = ()
     basic_damage: int = 0
@@ -145,6 +154,12 @@ class CreatureCombatEvent(Record):
     command_id: Id
     command_digest: str
     outcome: NaturalAttackOutcome | SwarmTurnOutcome | SwarmDamageOutcome | None = None
+    resistance_attempt_generation: int | None = Field(
+        default=None, strict=True, ge=1, le=1, exclude_if=lambda value: value is None
+    )
+    resistance_preparation: ResistancePreparation | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 CreatureCombatOutcome = NaturalAttackOutcome | SwarmTurnOutcome | SwarmDamageOutcome | None
@@ -162,10 +177,130 @@ def _previous(state: ResourceState, command: Command) -> CreatureCombatOutcome |
     event = next((entry for entry in state.events if entry.id == _event_id(command.id)), None)
     if event is None:
         return False
-    value = CreatureCombatEvent.model_validate_json(event.kind)
+    value = _recorded_event(event, command, state.game_time)
+    if value.resistance_attempt_generation is not None:
+        receipts = tuple(r for r in state.receipts if r.command_id == command.id)
+        if (
+            sum(e.id == event.id for e in state.events) != 1
+            or len(receipts) != 1
+            or receipts[0].digest != _digest(command)
+        ):
+            raise ValidationError("Current creature resistance lacks its unique native ledger")
+    return value.outcome
+
+
+def _recorded_event(event: ResourceEvent, command: Command, now: int) -> CreatureCombatEvent:
+    try:
+        json.loads(event.kind, object_pairs_hook=_private_pairs)
+        value = CreatureCombatEvent.model_validate_json(event.kind)
+    except (SchemaError, json.JSONDecodeError) as exc:
+        raise ValidationError("Malformed creature combat origin") from exc
+    if (
+        "resistance_attempt_generation" in value.model_fields_set
+        and value.resistance_attempt_generation is None
+    ):
+        raise ValidationError("Creature resistance origin cannot be explicitly null")
     if value.command_digest != _digest(command):
         raise ConflictError("Creature combat command ID reused with a different payload")
-    return value.outcome
+    if value.resistance_attempt_generation is None:
+        if "resistance_preparation" in value.model_fields_set:
+            raise ValidationError("Creature resistance preparation requires its current origin")
+        if isinstance(value.outcome, NaturalAttackOutcome) and isinstance(
+            value.outcome.resistance, FailedResistanceAttempt
+        ):
+            raise ValidationError("Failed-only creature resistance requires its current origin")
+        return value
+    if (
+        not isinstance(command, ResolveNaturalAttack)
+        or value.command_id != command.id
+        or event.id != _event_id(command.id)
+        or event.target_id != command.target_id
+        or not 0 <= event.at <= now
+        or command.target_living_or_sapient is None
+        or command.target_will is None
+        or command.maneuver != "concentrate"
+        or not command.vision_contact
+        or not isinstance(value.outcome, NaturalAttackOutcome)
+    ):
+        raise ValidationError("Creature resistance origin identity changed")
+    outcome = value.outcome
+    trace = outcome.resistance
+    if (
+        trace is None
+        or outcome.effect is None
+        or trace.profile_id != PROFILE
+        or trace.rule_of_16 != command.target_living_or_sapient
+        or outcome.attacker_id != command.actor_id
+        or outcome.target_id != command.target_id
+        or outcome.attack_id != command.attack_id
+        or outcome.attack != trace.attacker
+        or outcome.hit != trace.affected
+    ):
+        raise ValidationError("Creature resistance outcome changed")
+    prepared = _captured_preparation(value.resistance_preparation, command)
+    validate_current_resistance_attempt(prepared, trace)
+    _recorded_contestants(trace, command)
+    if not trace.affected and (outcome.damage_dice or outcome.basic_damage or outcome.injury):
+        raise ValidationError("Unaffected creature resistance cannot carry damage")
+    return value
+
+
+def _private_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    values: dict[str, object] = {}
+    for key, value in pairs:
+        if key in {"resistance_attempt_generation", "resistance_preparation"} and key in values:
+            raise ValidationError("Duplicate creature resistance policy/origin metadata")
+        values[key] = value
+    return values
+
+
+def _captured_preparation(
+    captured: ResistancePreparation | None, command: ResolveNaturalAttack
+) -> ResistancePreparation:
+    if (
+        captured is None
+        or command.target_will is None
+        or command.target_living_or_sapient is None
+        or captured.profile_id != PROFILE
+        or captured.attacker.id != command.actor_id
+        or captured.resister != Contestant(command.target_id, command.target_will)
+        or captured.rule_of_16 is not command.target_living_or_sapient
+        # The existing registered creature effect adapter accepts only Innate Attack.
+        or captured.attacker.modifiers
+        != _distance_modifiers(_separation(command), "advantage:innate-attack")
+    ):
+        raise ValidationError("Creature resistance captured producer/command scope changed")
+    canonical = prepare_resistance_attempt(
+        PROFILE,
+        captured.attacker,
+        captured.resister,
+        rule_of_16=command.target_living_or_sapient,
+    )
+    if captured != canonical:
+        raise ValidationError("Creature resistance captured preparation changed")
+    return canonical
+
+
+def _recorded_contestants(
+    trace: ResistanceTrace | FailedResistanceAttempt, command: ResolveNaturalAttack
+) -> None:
+    if isinstance(trace, FailedResistanceAttempt):
+        identities = (trace.declared_attacker.id, trace.declared_resister.id)
+        if (
+            trace.declared_resister.base_target != command.target_will
+            or trace.declared_resister.modifiers
+        ):
+            raise ValidationError("Creature resistance subject score changed")
+    else:
+        identities = (trace.contest.first_id, trace.contest.second_id)
+        if (
+            not trace.attacker.outcome.succeeded
+            or trace.resister.base_target != command.target_will
+            or trace.resister.modifiers
+        ):
+            raise ValidationError("Creature resistance does not match its actual attempted rolls")
+    if identities != (command.actor_id, command.target_id):
+        raise ValidationError("Creature resistance contestant identity changed")
 
 
 def _creature(state: ResourceState, actor_id: str) -> Creature:
@@ -314,10 +449,19 @@ def _natural_damage(
 
 
 def _append_event(
-    state: ResourceState, command: Command, outcome: CreatureCombatOutcome, target_id: str
+    state: ResourceState,
+    command: Command,
+    outcome: CreatureCombatOutcome,
+    target_id: str,
+    *,
+    preparation: ResistancePreparation | None = None,
 ) -> ResourceState:
     event = CreatureCombatEvent(
-        command_id=command.id, command_digest=_digest(command), outcome=outcome
+        command_id=command.id,
+        command_digest=_digest(command),
+        outcome=outcome,
+        resistance_attempt_generation=1 if preparation is not None else None,
+        resistance_preparation=preparation,
     )
     return state.model_copy(
         update={
@@ -362,6 +506,7 @@ def _resolve_special_attack(
     rng: RandomSource,
     *,
     historical_scope: bool = False,
+    current_resistance: bool = False,
 ) -> tuple[ResourceState, NaturalAttackOutcome]:
     if command.maneuver != "concentrate":
         raise ValidationError("Malediction creature attacks require Concentrate")
@@ -376,25 +521,62 @@ def _resolve_special_attack(
         raise ValidationError("Target Will disagrees with the compiled creature")
     effect = creature_attack_effect(attack)
     assert attack.effect is not None
-    resistance = resistance_roll(
-        PROFILE,
-        Contestant(
-            creature.actor_id,
-            creature.statistics.will,
-            (
-                Modifier(
-                    -separation,
-                    "Malediction 1 distance",
-                    attack.effect.definition_id,
-                    "characters-third-2008",
-                    ModifierKind.SITUATIONAL,
-                ),
-            ),
-        ),
-        Contestant(command.target_id, command.target_will),
-        rule_of_16=_special_target_scope(command, defender, historical=historical_scope),
-        rng=rng,
+    attacker, resister = _special_contestants(command, creature, attack, separation)
+    scope = _special_target_scope(command, defender, historical=historical_scope)
+    preparation = (
+        prepare_resistance_attempt(PROFILE, attacker, resister, rule_of_16=scope)
+        if current_resistance
+        else None
     )
+    resistance = (
+        resistance_attempt(preparation, rng=rng)
+        if preparation is not None
+        else resistance_roll(PROFILE, attacker, resister, rule_of_16=scope, rng=rng)
+    )
+    return _special_damage(state, command, creature, attack, effect, resistance, rng, preparation)
+
+
+def _special_contestants(
+    command: ResolveNaturalAttack, creature: Creature, attack: CreatureAttack, separation: int
+) -> tuple[Contestant, Contestant]:
+    assert attack.effect is not None and command.target_will is not None
+    return Contestant(
+        creature.actor_id,
+        creature.statistics.will,
+        _distance_modifiers(separation, attack.effect.definition_id),
+    ), Contestant(command.target_id, command.target_will)
+
+
+def _distance_modifiers(separation: int, source_id: str) -> tuple[Modifier, ...]:
+    return (
+        Modifier(
+            -separation,
+            "Malediction 1 distance",
+            source_id,
+            "characters-third-2008",
+            ModifierKind.SITUATIONAL,
+        ),
+    )
+
+
+def _separation(command: ResolveNaturalAttack) -> int:
+    return distance(
+        Hex(q=command.attacker_position.q, r=command.attacker_position.r),
+        Hex(q=command.target_position.q, r=command.target_position.r),
+    )
+
+
+def _special_damage(
+    state: ResourceState,
+    command: ResolveNaturalAttack,
+    creature: Creature,
+    attack: CreatureAttack,
+    effect: ModifierRuntimeReceipt,
+    resistance: ResistanceTrace | FailedResistanceAttempt,
+    rng: RandomSource,
+    preparation: ResistancePreparation | None,
+) -> tuple[ResourceState, NaturalAttackOutcome]:
+    assert attack.effect is not None
     dice: tuple[int, ...] = ()
     basic = 0
     injury = None
@@ -428,7 +610,10 @@ def _resolve_special_attack(
         basic_damage=basic,
         injury=injury,
     )
-    return _append_event(updated, command, outcome, command.target_id), outcome
+    return (
+        _append_event(updated, command, outcome, command.target_id, preparation=preparation),
+        outcome,
+    )
 
 
 def resolve_natural_attack(
@@ -438,6 +623,7 @@ def resolve_natural_attack(
     rng: RandomSource,
     system: bool = False,
     historical_scope: bool = False,
+    _current_resistance: bool = False,
 ) -> tuple[ResourceState, NaturalAttackOutcome]:
     if not system:
         raise ValidationError("Natural attack resolution requires engine authority")
@@ -470,10 +656,7 @@ def resolve_natural_attack(
     selected = next((entry for entry in creature.attacks if entry.id == command.attack_id), None)
     if selected is None:
         raise ValidationError("Unknown natural attack")
-    separation = distance(
-        Hex(q=command.attacker_position.q, r=command.attacker_position.r),
-        Hex(q=command.target_position.q, r=command.target_position.r),
-    )
+    separation = _separation(command)
     if selected.effect is None and separation > selected.reach:
         raise ValidationError("Target is outside the compiled natural-attack reach")
     defender = next(
@@ -485,7 +668,14 @@ def resolve_natural_attack(
         raise ValidationError("Target facts disagree with the compiled creature")
     if selected.effect is not None:
         return _resolve_special_attack(
-            state, command, creature, selected, separation, rng, historical_scope=historical_scope
+            state,
+            command,
+            creature,
+            selected,
+            separation,
+            rng,
+            historical_scope=historical_scope,
+            current_resistance=_current_resistance,
         )
     attack_target = _attack_level(creature)
     if command.maneuver == "all-out-attack":
@@ -772,13 +962,14 @@ def _damage_swarm(
     )
 
 
-def apply_creature_combat(
+def _apply_creature_combat(
     state: ResourceState,
     command: CreatureCombatCommand,
     *,
     rng: RandomSource,
     system: bool = False,
     historical_scope: bool = False,
+    current_resistance: bool = False,
 ) -> tuple[ResourceState, CreatureCombatOutcome]:
     """Apply one exact-once creature/swarm command at the resource CAS boundary."""
     if not system:
@@ -790,7 +981,12 @@ def apply_creature_combat(
         raise ConflictError("Creature combat resource revision changed")
     if isinstance(command, ResolveNaturalAttack):
         return resolve_natural_attack(
-            state, command, rng=rng, system=True, historical_scope=historical_scope
+            state,
+            command,
+            rng=rng,
+            system=True,
+            historical_scope=historical_scope,
+            _current_resistance=current_resistance,
         )
     if isinstance(command, SetSwarmArea):
         updated = _set_swarm_area(state, command)
@@ -804,6 +1000,98 @@ def apply_creature_combat(
         _append_event(updated, command, swarm_outcome, command.swarm_id),
         swarm_outcome,
     )
+
+
+def apply_creature_combat(
+    state: ResourceState,
+    command: CreatureCombatCommand,
+    *,
+    rng: RandomSource,
+    system: bool = False,
+    historical_scope: bool = False,
+) -> tuple[ResourceState, CreatureCombatOutcome]:
+    """Historical-compatible provider; omitted origins keep their old chronology."""
+    return _apply_creature_combat(
+        state, command, rng=rng, system=system, historical_scope=historical_scope
+    )
+
+
+def apply_current_creature_combat(
+    state: ResourceState,
+    command: CreatureCombatCommand,
+    *,
+    rng: RandomSource,
+    system: bool = False,
+) -> tuple[ResourceState, CreatureCombatOutcome]:
+    """Trusted B348 provider; only actual resisted attacks receive the new origin."""
+    return _apply_creature_combat(state, command, rng=rng, system=system, current_resistance=True)
+
+
+def replay_recorded_creature_combat(
+    seed: ResourceState,
+    commands: tuple[tuple[CreatureCombatCommand, ResourceEvent], ...],
+    *,
+    rng: RandomSource,
+) -> ResourceState:
+    """Reexecute the recorded provider policy, never guessing it from new defaults."""
+    state = seed
+    for command, event in commands:
+        if not isinstance(event, ResourceEvent):
+            raise ValidationError("Creature resistance replay requires its recorded native event")
+        recorded = _recorded_event(event, command, state.game_time)
+        target_id = (
+            command.target_id if isinstance(command, ResolveNaturalAttack) else command.swarm_id
+        )
+        if (
+            recorded.command_id != command.id
+            or event.id != _event_id(command.id)
+            or event.target_id != target_id
+            or event.at != state.game_time
+        ):
+            raise ValidationError("Recorded creature combat identity/clock changed")
+        if recorded.resistance_attempt_generation is not None:
+            assert isinstance(command, ResolveNaturalAttack)
+            _require_recorded_preparation(state, command, recorded)
+        state, _ = _apply_creature_combat(
+            state,
+            command,
+            rng=rng,
+            system=True,
+            historical_scope=recorded.resistance_attempt_generation is None,
+            current_resistance=recorded.resistance_attempt_generation is not None,
+        )
+        actual = next(e for e in state.events if e.id == _event_id(command.id))
+        if actual != event:
+            raise ValidationError("Recorded creature combat event differs from reexecution")
+    return state
+
+
+def _require_recorded_preparation(
+    state: ResourceState, command: ResolveNaturalAttack, event: CreatureCombatEvent
+) -> None:
+    creature = _creature(state, command.actor_id)
+    attack = next((a for a in creature.attacks if a.id == command.attack_id), None)
+    outcome = event.outcome
+    if (
+        attack is None
+        or attack.effect is None
+        or not isinstance(outcome, NaturalAttackOutcome)
+        or outcome.effect != creature_attack_effect(attack)
+        or outcome.resistance is None
+    ):
+        raise ValidationError("Recorded resistance lacks its actual compiled creature producer")
+    separation = _separation(command)
+    attacker, resister = _special_contestants(command, creature, attack, separation)
+    defender = next((c for c in state.creatures if c.actor_id == command.target_id), None)
+    prepared = prepare_resistance_attempt(
+        PROFILE,
+        attacker,
+        resister,
+        rule_of_16=_special_target_scope(command, defender, historical=False),
+    )
+    if prepared != event.resistance_preparation:
+        raise ValidationError("Recorded resistance differs from its compiled preparation")
+    validate_current_resistance_attempt(prepared, outcome.resistance)
 
 
 def replay_creature_combat(

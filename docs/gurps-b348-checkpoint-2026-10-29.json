@@ -1,0 +1,69 @@
+{
+  "checkpoint": "B348 Quick Contests and narrow grenade admission, 2026-10-29",
+  "parent_checkpoint": "1498e3c408d6de53aaad5817532db6c9200bd672",
+  "source": {
+    "checkout_digest": "e2f6b19402945430fe81ad2d2fe81ee3480d5004a044b9e079e8bf7c5e101d73",
+    "configuration_docs_contracts_digest": "01f068a9504ad642efa1bab659287629f0b5cd701ce96f90d29de2c0013eb6cb"
+  },
+  "execution": {
+    "ordinary_tests": 6233,
+    "architecture_subtests": 16156,
+    "selected_files": 295,
+    "elapsed_seconds": 1612.7310382600003,
+    "shard_exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "junit_totals": {
+      "tests": 22389,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "kind": "local-selected-two-phase-whole-module-no-cov",
+    "repository_ci_or_coverage_credit": false
+  },
+  "databases": [
+    "SQLite",
+    "PostgreSQL"
+  ],
+  "static_gates_passed": 16,
+  "verified_execution_obligations": [
+    "capability:gurps.character.skill_defaults",
+    "capability:gurps.character.skill_difficulty",
+    "capability:gurps.character.specialties",
+    "capability:gurps.character.techniques",
+    "capability:gurps.check.critical",
+    "capability:gurps.check.margin",
+    "capability:gurps.check.quick_contest",
+    "capability:gurps.check.regular_contest",
+    "capability:gurps.check.resistance",
+    "section:campaigns:b344:default-rolls",
+    "section:campaigns:b348:quick-contests",
+    "section:campaigns:b348:repeated-attempts",
+    "section:campaigns:b349:regular-contests",
+    "section:campaigns:b349:the-rule-of-16",
+    "section:characters:b017:basic-lift-and-encumbrance-table"
+  ],
+  "verified_capabilities": 9,
+  "required_capabilities": 73,
+  "full_certification": false,
+  "blocker_records": 1990,
+  "distinct_blocker_identifiers": 1883,
+  "local_evidence": {
+    "artifacts/compliance/b348-quick-contests-checkpoint/pytest.xml": "b9cab206419c37b177d79460607c31060ca4a1185d24b641ac88175a45168d35",
+    "artifacts/compliance/b348-quick-contests-checkpoint/aggregate-summary.json": "ed98348536b56dbff922147051aabb060da1e1e6a6a85b86244035f718b0e416",
+    "artifacts/compliance/b348-quick-contests-checkpoint/basic-set.json": "0ed4b478cec6ff1979f1ac28d284427ed2df15ea3490cbebde6a4b12c16281c2",
+    "artifacts/compliance/b348-quick-contests-checkpoint/phase-plan.json": "bea09006d30322244fd7fcea290701797fdc62b4a5e47e2ce9dd6628368e90d8",
+    "artifacts/compliance/b348-quick-contests-checkpoint/static-gates/checks.json": "ea2c07014489f4fdd3368c0927e0ca8ad60db57f4dbdd26485c38748b14fb03e"
+  },
+  "immediate_goal": "Limited campaign with validated actual coverage; further full Basic Set certification deferred unless needed",
+  "excluded_pending": "All Roadside Watch rules/story/runtime/medical-admission/HTTP acceptance work remains isolated and unaccepted",
+  "publication": "Commit/push authorized at this verified checkpoint; no merge or issue mutation"
+}

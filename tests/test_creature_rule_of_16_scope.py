@@ -13,6 +13,7 @@ from test_gurps_conformance import load_cases
 
 from wayfarer.certification.executable_evidence import provenance
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.gurps_checks import ResistanceTrace
 from wayfarer.engine.rules.randomness import SeededRandom
 from wayfarer.engine.rules.types.creature import CreatureVariation
 from wayfarer.engine.rules.types.injury import InjuryStatus
@@ -86,7 +87,9 @@ def test_creature_scope_source_case_and_historical_replay(
     roll = (5, 6, 6, 4, 4, 3)
     rng = RecordedDice(roll)
     updated, outcome = apply_creature_combat(initial, command(), rng=rng, system=True)
-    assert isinstance(outcome, NaturalAttackOutcome) and outcome.resistance is not None
+    assert isinstance(outcome, NaturalAttackOutcome) and isinstance(
+        outcome.resistance, ResistanceTrace
+    )
     assert outcome.attack and outcome.attack.effective_target == 20
     assert not outcome.resistance.rule_of_16 and not outcome.resistance.affected
     assert outcome.resistance.resister.dice == (4, 4, 3) and outcome.damage_dice == ()

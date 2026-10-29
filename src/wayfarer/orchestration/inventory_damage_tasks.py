@@ -335,7 +335,7 @@ def open_inventory_damage(
     ):
         raise ValidationError("This owner damage route requires an inventory weapon attack")
     context = CombatContext(play, state, selected_attack=selected_attack)
-    require_ranged_owner_damage(context.attack_runtime, state, encounter)
+    require_ranged_owner_damage(context.attack_runtime, state, encounter, response=response)
     weapon = (
         None
         if pending.spell_cast_id

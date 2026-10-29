@@ -4,9 +4,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, ValidationInfo, model_validator
 
-from wayfarer.engine.rules.checks import CheckTrace
+from wayfarer.engine.rules.checks import CheckTrace, Outcome
+from wayfarer.engine.rules.gurps_checks import ResistanceTrace
+from wayfarer.engine.rules.resistance_attempts import (
+    ResistanceAttempt,
+    ResistancePreparation,
+    resistance_attempt_checks,
+    validate_current_resistance_attempt,
+)
 from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec as AbilitySpec
 from wayfarer.engine.simulation.resources import Command
 from wayfarer.errors import ValidationError
@@ -115,6 +122,58 @@ class AbilityEvent(Record):
     critical_failure: bool = False
     checks: tuple[CheckTrace, ...] = ()
     damage_dice: tuple[int, ...] = ()
+    resistance_attempt: ResistanceAttempt | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    resistance_preparation: ResistancePreparation | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+    @model_validator(mode="after")
+    def consistent_current_resistance(self, info: ValidationInfo) -> AbilityEvent:
+        attempt = self.resistance_attempt
+        if attempt is None:
+            if self.resistance_preparation is not None or (
+                info.mode == "json"
+                and {"resistance_attempt", "resistance_preparation"} & self.model_fields_set
+            ):
+                raise ValidationError("Current ability preparation is missing its actual attempt")
+            return self
+        if self.resistance_preparation is None:
+            raise ValidationError("Current ability attempt is missing its captured preparation")
+        validate_current_resistance_attempt(self.resistance_preparation, attempt)
+        actors = (
+            (attempt.contest.first_id, attempt.contest.second_id)
+            if isinstance(attempt, ResistanceTrace)
+            else (attempt.declared_attacker.id, attempt.declared_resister.id)
+        )
+        actual_checks = resistance_attempt_checks(attempt)
+        if (
+            actors != (self.actor_id, self.target_id)
+            or len(self.checks) < len(actual_checks)
+            or self.checks[-len(actual_checks) :] != actual_checks
+            or self.failed != (not attempt.affected)
+            or self.critical_failure != (attempt.attacker.outcome is Outcome.CRITICAL_FAILURE)
+            or self.outcome.outcome not in ({"active", "hit"} if attempt.affected else {"resisted"})
+            or not attempt.affected
+            and (self.damage_dice or self.outcome.revealed_fact_ids)
+        ):
+            raise ValidationError("Current ability resistance receipt contradicts its event")
+        if self.effect is not None and (
+            (self.effect.actor_id, self.effect.ability_id, self.effect.target_id)
+            != (self.actor_id, self.ability_id, self.target_id)
+            or not attempt.affected
+            and self.effect.active
+        ):
+            raise ValidationError("Current ability resistance effect contradicts its receipt")
+        return self
+
+    @classmethod
+    def read_native_json(cls, encoded: str) -> AbilityEvent:
+        event = cls.model_validate_json(encoded)
+        if event.resistance_attempt is not None and event.model_dump_json() != encoded:
+            raise ValidationError("Current ability receipt must retain exact native JSON")
+        return event
 
 
 def validate_channels(rules: AbilityRules, state: PlayState) -> None:

@@ -30,7 +30,7 @@ def _origins(resources: ResourceState) -> dict[tuple[str, str], str]:
     for event in resources.events:
         if not event.id.startswith(ABILITY_PREFIX):
             continue
-        native = AbilityEvent.model_validate_json(event.kind)
+        native = AbilityEvent.read_native_json(event.kind)
         if native.effect is None:
             continue
         key = (native.actor_id, native.ability_id)
@@ -52,7 +52,7 @@ def _pending(resources: ResourceState) -> tuple[OffshiftConcentration, ...]:
         policy = OffshiftConcentration.model_validate_json(event.kind)
         producers = tuple(e for e in resources.events if e.id == internal_id(policy.command_id))
         producer = producers[0] if len(producers) == 1 else None
-        native = AbilityEvent.model_validate_json(producer.kind) if producer is not None else None
+        native = AbilityEvent.read_native_json(producer.kind) if producer is not None else None
         if (
             policy.generation != 1
             or sum(e.id == event.id for e in resources.events) != 1
@@ -108,7 +108,7 @@ def matching(resources: ResourceState, command: AbilityCommand) -> OffshiftConce
 
 def record(resources: ResourceState, command: AbilityCommand) -> ResourceState:
     event = next(e for e in resources.events if e.id == internal_id(command.id))
-    native = AbilityEvent.model_validate_json(event.kind)
+    native = AbilityEvent.read_native_json(event.kind)
     if native.effect is None or native.outcome.outcome != "concentrating":
         return resources
     policy = OffshiftConcentration(generation=1, command_id=command.id, effect=native.effect)

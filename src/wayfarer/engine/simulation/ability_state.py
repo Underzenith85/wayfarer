@@ -8,7 +8,7 @@ PREFIX = "ability:"
 
 def history(resources: ResourceState) -> tuple[tuple[int, AbilityEvent], ...]:
     return tuple(
-        (event.at, AbilityEvent.model_validate_json(event.kind))
+        (event.at, AbilityEvent.read_native_json(event.kind))
         for event in resources.events
         if event.id.startswith(PREFIX)
     )

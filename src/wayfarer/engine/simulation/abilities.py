@@ -1,10 +1,21 @@
 """Executable supernatural effects on the existing resource/knowledge ledgers."""
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, Outcome, RandomSource
-from wayfarer.engine.rules.gurps_checks import Contestant, resistance_roll, success_roll
+from wayfarer.engine.rules.gurps_checks import (
+    Contestant,
+    resistance_roll,
+    success_roll,
+)
+from wayfarer.engine.rules.resistance_attempts import (
+    ResistanceAttempt,
+    ResistancePreparation,
+    prepare_resistance_attempt,
+    resistance_attempt,
+    resistance_attempt_checks,
+)
 from wayfarer.engine.rules.supernatural.abilities import PROFILE, fatigue_cost, validate_binding
 from wayfarer.engine.rules.tables.ranged import range_penalty
 from wayfarer.engine.rules.traits.base import TraitOptions
@@ -132,6 +143,8 @@ class AbilityContext:
     power_id: str | None = None
     target_psi_static: bool | None = None
     target_living_or_sapient: bool = True
+    current_resistance: bool = False
+    resistance_preparation: ResistancePreparation | None = None
 
 
 def validate_target(
@@ -222,6 +235,117 @@ def mind_reading_attacker(
     )
 
 
+def prepare_ability_resistance(
+    resources: ResourceState,
+    command: AbilityCommand,
+    spec: AbilitySpec,
+    context: AbilityContext,
+) -> ResistancePreparation | None:
+    """The same canonical voluntary score is admitted before health/FP entropy."""
+    if (
+        not context.current_resistance
+        or command.kind not in {"activate", "resolve"}
+        or spec.kind not in {"burning-malediction", "mind-reading"}
+    ):
+        return None
+    channel = context.channel
+    assert channel is not None
+    old = next(
+        (
+            e
+            for e in effects(resources)
+            if e.actor_id == command.actor_id and e.ability_id == command.ability_id
+        ),
+        None,
+    )
+    attacker = (
+        mind_reading_attacker(
+            resources, command, context, old if command.kind == "resolve" else None
+        )
+        if spec.kind == "mind-reading"
+        else Contestant(
+            command.actor_id,
+            context.will - channel.distance_yards,
+            check_modifiers(resources, command.actor_id, "will"),
+        )
+    )
+    return prepare_resistance_attempt(
+        PROFILE,
+        attacker,
+        Contestant(
+            channel.target_id,
+            context.target_will
+            + (
+                context.mind_shield
+                if spec.kind == "mind-reading" and "telepathic" in spec.modifiers
+                else 0
+            ),
+            check_modifiers(resources, channel.target_id, "will", defensive=True),
+        ),
+        rule_of_16=context.target_living_or_sapient,
+    )
+
+
+def admit_ability_resistance(
+    resources: ResourceState, command: AbilityCommand, spec: AbilitySpec, context: AbilityContext
+) -> AbilityContext:
+    prepared = context.resistance_preparation or prepare_ability_resistance(
+        resources, command, spec, context
+    )
+    return replace(context, resistance_preparation=prepared)
+
+
+def _captured_preparation(
+    context: AbilityContext, trace: ResistanceAttempt | None
+) -> ResistancePreparation | None:
+    return context.resistance_preparation if trace is not None else None
+
+
+def _ability_resistance(
+    resources: ResourceState,
+    command: AbilityCommand,
+    spec: AbilitySpec,
+    context: AbilityContext,
+    old: AbilityEffect | None,
+    rng: RandomSource,
+) -> tuple[ResistanceAttempt, ResistanceAttempt | None]:
+    if context.current_resistance:
+        prepared = context.resistance_preparation or prepare_ability_resistance(
+            resources, command, spec, context
+        )
+        assert prepared is not None
+        trace = resistance_attempt(prepared, rng=rng)
+        return trace, trace
+    channel = context.channel
+    assert channel is not None
+    attacker = (
+        mind_reading_attacker(resources, command, context, old)
+        if spec.kind == "mind-reading"
+        else Contestant(
+            command.actor_id,
+            context.will - channel.distance_yards,
+            check_modifiers(resources, command.actor_id, "will"),
+        )
+    )
+    historical = resistance_roll(
+        PROFILE,
+        attacker,
+        Contestant(
+            channel.target_id,
+            context.target_will
+            + (
+                context.mind_shield
+                if spec.kind == "mind-reading" and "telepathic" in spec.modifiers
+                else 0
+            ),
+            check_modifiers(resources, channel.target_id, "will", defensive=True),
+        ),
+        rng=rng,
+        rule_of_16=context.target_living_or_sapient,
+    )
+    return historical, None
+
+
 def apply_ability(
     resources: ResourceState,
     world: World,
@@ -268,6 +392,7 @@ def apply_ability(
         if command.kind == "cancel" and old
         else validate_target(world, command, spec, context)
     )
+    context = admit_ability_resistance(resources, command, spec, context)
     if (
         spec.kind == "mind-reading"
         and command.kind == "activate"
@@ -284,6 +409,7 @@ def apply_ability(
     active: AbilityEffect | None = None
     failed = critical = False
     checks: list[CheckTrace] = []
+    captured_attempt: ResistanceAttempt | None = None
     damage_dice: tuple[int, ...] = ()
     revealed: tuple[str, ...] = ()
     cost = fatigue_cost(spec)
@@ -441,23 +567,9 @@ def apply_ability(
         outcome = "active"
     elif spec.kind == "burning-malediction":
         assert channel is not None
-        trace = resistance_roll(
-            PROFILE,
-            Contestant(
-                command.actor_id,
-                context.will - channel.distance_yards,
-                check_modifiers(resources, command.actor_id, "will"),
-            ),
-            Contestant(
-                target_id,
-                context.target_will,
-                check_modifiers(resources, target_id, "will", defensive=True),
-            ),
-            rng=rng,
-            rule_of_16=context.target_living_or_sapient,
-        )
+        trace, captured_attempt = _ability_resistance(resources, command, spec, context, old, rng)
         failed, critical = not trace.affected, trace.attacker.outcome is Outcome.CRITICAL_FAILURE
-        checks.extend((trace.attacker, trace.resister))
+        checks.extend(resistance_attempt_checks(trace))
         outcome = "resisted" if failed else "hit"
         if not failed:
             damage_dice = tuple(rng.randbelow(6) + 1 for _ in range(context.level))
@@ -479,20 +591,9 @@ def apply_ability(
             )
     elif spec.kind == "mind-reading":
         assert channel is not None
-        trace = resistance_roll(
-            PROFILE,
-            mind_reading_attacker(resources, command, context, old),
-            Contestant(
-                target_id,
-                context.target_will
-                + (context.mind_shield if "telepathic" in spec.modifiers else 0),
-                check_modifiers(resources, target_id, "will", defensive=True),
-            ),
-            rng=rng,
-            rule_of_16=context.target_living_or_sapient,
-        )
+        trace, captured_attempt = _ability_resistance(resources, command, spec, context, old, rng)
         failed, critical = not trace.affected, trace.attacker.outcome is Outcome.CRITICAL_FAILURE
-        checks.extend((trace.attacker, trace.resister))
+        checks.extend(resistance_attempt_checks(trace))
         outcome = "resisted" if failed else "active"
         if not failed:
             if not channel.shared_language:
@@ -559,5 +660,7 @@ def apply_ability(
         critical_failure=critical,
         checks=tuple(checks),
         damage_dice=damage_dice,
+        resistance_attempt=captured_attempt,
+        resistance_preparation=_captured_preparation(context, captured_attempt),
     )
     return record(resources, command, event), world, result

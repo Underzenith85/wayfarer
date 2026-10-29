@@ -140,13 +140,43 @@ async def test_named_b345_checkpoint_current_native_target_before_all_resolve_di
     from wayfarer.engine.simulation.abilities import internal_id
     from wayfarer.engine.simulation.ability_types import AbilityChannel, AbilityEvent
     from wayfarer.errors import ValidationError
+    from wayfarer.persistence.ability_resistance_inputs import KEY as RESISTANCE_KEY
+    from wayfarer.persistence.command_inputs import replay_payload
 
     # Author the real channel before campaign genesis; IQ16 with B550 range -14/-13.
     monkeypatch.setattr(source, "AbilityChannel", partial(AbilityChannel, distance_yards=distance))
     initial, play = await night(tmp_path, backend)
     cid = initial["id"]
     state = play._load(await play.store.read(cid))
-    await AbilityService(play).execute(cid, command(state.revision), principal_id="a")
+    value = command(state.revision)
+    if target == 2:
+        from wayfarer.orchestration.membership import member_for
+        from wayfarer.orchestration.pipeline import submit
+
+        # Retain the independently captured off-shift1 producer that predates
+        # B348 activation admission. Fresh B348 target2 now refuses at start;
+        # this old origin must still reach its original resolve-time guard.
+        await submit(
+            play,
+            cid,
+            AbilityService(play).plan(
+                play,
+                state,
+                member_for(state, "a"),
+                value,
+                principal_id="a",
+                rule16_scope=True,
+                offshift=True,
+            ),
+            principal_id="a",
+        )
+    else:
+        await AbilityService(play).execute(cid, value, principal_id="a")
+    saved = await play.store.command_input(cid, value.id)
+    assert saved and saved.text
+    original_policy = replay_payload(saved.text)
+    assert isinstance(original_policy, dict)
+    assert (RESISTANCE_KEY in original_policy) == (target == 3)
     state = play._load(await play.store.read(cid))
     await play.execute(
         cid,

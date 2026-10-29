@@ -4,6 +4,9 @@ import json
 
 from wayfarer import validation
 from wayfarer.errors import ValidationError
+from wayfarer.persistence.ability_resistance_inputs import KEY as ABILITY_RESISTANCE_KEY
+from wayfarer.persistence.ability_resistance_inputs import intent as ability_resistance_intent
+from wayfarer.persistence.ability_resistance_inputs import validate_keys as validate_ability_keys
 from wayfarer.persistence.events import CommandInput, payload_digest
 from wayfarer.persistence.hazard_care_inputs import KEY as HAZARD_CARE_KEY
 from wayfarer.persistence.hazard_care_inputs import intent as hazard_care_intent
@@ -241,24 +244,30 @@ def same_input(record: CommandInput, requested: str) -> bool:
     validate_hazard_care_keys(requested)
     validate_medical_keys(requested)
     validate_physician_keys(requested)
+    validate_ability_keys(requested)
     if record.text is not None:
         validate_armoury_keys(record.text)
         validate_hazard_care_keys(record.text)
         validate_medical_keys(record.text)
         validate_physician_keys(record.text)
+        validate_ability_keys(record.text)
     recorded_generation = generation(record)
-    requested_input = hazard_care_intent(
-        medical_minimum_intent(
-            physician_intent(
-                armoury_intent(great_haste_intent(combat_intent(intent_input(requested))))
+    requested_input = ability_resistance_intent(
+        hazard_care_intent(
+            medical_minimum_intent(
+                physician_intent(
+                    armoury_intent(great_haste_intent(combat_intent(intent_input(requested))))
+                )
             )
         )
     )
     recorded_input = (
-        hazard_care_intent(
-            medical_minimum_intent(
-                physician_intent(
-                    armoury_intent(great_haste_intent(combat_intent(intent_input(record.text))))
+        ability_resistance_intent(
+            hazard_care_intent(
+                medical_minimum_intent(
+                    physician_intent(
+                        armoury_intent(great_haste_intent(combat_intent(intent_input(record.text))))
+                    )
                 )
             )
         )
@@ -276,6 +285,9 @@ def same_input(record: CommandInput, requested: str) -> bool:
     recorded_physician = bool(
         armoury_payload is not None and HEALING_PHYSICIAN_KEY in armoury_payload
     )
+    recorded_ability = bool(
+        armoury_payload is not None and ABILITY_RESISTANCE_KEY in armoury_payload
+    )
     if record.text is None or not (
         recorded_generation
         or reaction_metadata(object_input(record.text))
@@ -283,6 +295,7 @@ def same_input(record: CommandInput, requested: str) -> bool:
         or recorded_care
         or recorded_medical
         or recorded_physician
+        or recorded_ability
     ):
         return False
     return recorded_input == requested_input

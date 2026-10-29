@@ -199,6 +199,10 @@ def test_conformance_fixture_contract_is_source_referenced_and_independent() -> 
                 "malediction_waiver",
                 "rule16_ability",
                 "creature_malediction_scope",
+                "native_quick_contest",
+                "native_ability_resistance",
+                "current_creature_resistance",
+                "current_mental_resistance",
             }, case["id"]
 
     # These values are deliberately pinned in the fixture rather than calculated

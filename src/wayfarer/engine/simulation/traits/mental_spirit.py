@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from typing import Literal
 
 from pydantic import Field
+from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.mental_spirit import MentalSpiritTraits, mental_spirit_traits
@@ -18,6 +19,14 @@ from wayfarer.engine.rules.gurps_checks import (
     resistance_roll,
     success_roll,
 )
+from wayfarer.engine.rules.resistance_attempts import (
+    FailedResistanceAttempt,
+    ResistanceAttempt,
+    ResistancePreparation,
+    prepare_resistance_attempt,
+    resolve_resistance_attempt,
+    validate_current_resistance_attempt,
+)
 from wayfarer.engine.rules.traits.mental_spirit import PROFILE
 from wayfarer.engine.simulation.resources import (
     Command,
@@ -28,6 +37,16 @@ from wayfarer.engine.simulation.resources import (
 )
 from wayfarer.engine.simulation.traits.mental_control import PREFIX as CONTROL_PREFIX
 from wayfarer.engine.simulation.traits.mental_control import MentalControl, control_grants
+from wayfarer.engine.simulation.traits.mental_resistance_origin import (
+    MentalControlSource,
+    MentalResistanceOrigin,
+    capture,
+    control_source,
+    source_digest,
+    validate_context_json,
+    validate_digest,
+    validate_event_json,
+)
 from wayfarer.engine.simulation.traits.neutralization import (
     COOLDOWN_PREFIX,
     PSI_FAMILIES,
@@ -95,6 +114,13 @@ class MentalChannel(Record):
     target_psi_static: bool | None = None
 
 
+class CurrentMentalChannel(MentalChannel):
+    """Explicit trusted current provider context; mandatory scores have no floor."""
+
+    actor_score: int = 10
+    resistance_score: int | None = None
+
+
 class MentalCommand(Command):
     definition_id: str
     channel_id: str
@@ -107,7 +133,7 @@ class MentalOutcome(Record):
     target_id: str
     definition_id: str
     channel_id: str
-    resistance: ResistanceTrace | None = None
+    resistance: ResistanceAttempt | None = None
     revealed_fact_ids: tuple[str, ...] = ()
     effect_id: str | None = None
     expires_at: int | None = Field(default=None, ge=0)
@@ -117,6 +143,9 @@ class MentalEvent(Record):
     command_id: str
     command_kind: Literal["activate", "interrupt", "stop-concentrating"]
     outcome: MentalOutcome
+    resistance_origin: MentalResistanceOrigin | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 def _event_id(command_id: str) -> str:
@@ -127,11 +156,219 @@ def _effect_id(channel_id: str) -> str:
     return PREFIX + "effect:" + hashlib.sha256(channel_id.encode()).hexdigest()
 
 
+def _origin_channel(event: MentalEvent) -> CurrentMentalChannel:
+    assert event.resistance_origin is not None
+    origin = event.resistance_origin
+    validate_digest(origin)
+    validate_context_json(origin.command_json)
+    validate_context_json(origin.channel_json)
+    try:
+        command = MentalCommand.model_validate_json(origin.command_json)
+        channel = CurrentMentalChannel.model_validate_json(origin.channel_json)
+    except SchemaError as exc:
+        raise ValidationError("Invalid recorded mental provider context") from exc
+    if (
+        command.id != event.command_id
+        or command.kind != event.command_kind
+        or command.actor_id != event.outcome.actor_id
+        or command.definition_id != event.outcome.definition_id
+        or command.channel_id != event.outcome.channel_id
+        or channel.id != command.channel_id
+        or channel.actor_id != command.actor_id
+        or channel.definition_id != command.definition_id
+        or channel.target_id != event.outcome.target_id
+        or channel.kind not in KINDS.get(command.definition_id, frozenset())
+    ):
+        raise ValidationError("Recorded mental provider identity changed")
+    return channel
+
+
+def _capture_control_sources(
+    resources: ResourceState, channel: MentalChannel
+) -> tuple[MentalControlSource, ...]:
+    if channel.definition_id != "advantage:mind-control":
+        return ()
+    for existing_source in resources.events:
+        if existing_source.id.startswith(CONTROL_PREFIX):
+            validate_context_json(existing_source.kind)
+    result = []
+    for grant in control_grants(resources):
+        if grant.controller_id != channel.actor_id or grant.kind != "influence":
+            continue
+        source = next(
+            (
+                e
+                for e in reversed(resources.events)
+                if e.id.startswith(CONTROL_PREFIX)
+                and MentalControl.model_validate_json(e.kind) == grant
+            ),
+            None,
+        )
+        if source is None:
+            raise ValidationError("Mind Control penalty lacks its actual native source")
+        result.append(control_source(source))
+    return tuple(result)
+
+
+def _control_penalty(
+    event: MentalEvent, authored: CurrentMentalChannel, source_events: tuple[ResourceEvent, ...]
+) -> int:
+    assert event.resistance_origin is not None
+    origin = event.resistance_origin
+    effects: set[str] = set()
+    native_indices = tuple(
+        i for i, e in enumerate(source_events) if e.id == _event_id(event.command_id)
+    )
+    before_index = native_indices[0] if native_indices else len(source_events)
+    try:
+        for reference in origin.control_sources:
+            matching = tuple(e for e in source_events if e.id == reference.event_id)
+            if len(matching) != 1:
+                raise ValidationError("Mind Control penalty lacks a unique native source")
+            source = matching[0]
+            validate_context_json(source.kind)
+            grant = MentalControl.model_validate_json(source.kind)
+            if (
+                source_digest(source) != reference.event_digest
+                or not source.id.startswith(CONTROL_PREFIX)
+                or source.id == CONTROL_PREFIX + event.command_id
+                or next(i for i, e in enumerate(source_events) if e.id == source.id) >= before_index
+                or not 0 <= source.at <= origin.at
+                or source.target_id != grant.target_id
+                or grant.controller_id != authored.actor_id
+                or grant.kind != "influence"
+                or grant.released
+                or grant.expires_at is not None
+                and grant.expires_at <= origin.at
+                or grant.effect_id in effects
+            ):
+                raise ValidationError("Mind Control penalty source identity changed")
+            effects.add(grant.effect_id)
+    except SchemaError as exc:
+        raise ValidationError("Invalid Mind Control penalty source") from exc
+    return len(effects)
+
+
+def _prepared_channel(
+    event: MentalEvent, authored: CurrentMentalChannel, source_events: tuple[ResourceEvent, ...]
+) -> CurrentMentalChannel:
+    assert event.resistance_origin is not None
+    encoded = event.resistance_origin.prepared_channel_json
+    if encoded is None:
+        raise ValidationError("Current mental provider lacks its actual derived context")
+    validate_context_json(encoded)
+    try:
+        prepared = CurrentMentalChannel.model_validate_json(encoded)
+    except SchemaError as exc:
+        raise ValidationError("Invalid derived mental provider context") from exc
+    mutable = {"actor_score", "resistance_score", "blocked"}
+    if (
+        authored.model_dump(exclude=mutable) != prepared.model_dump(exclude=mutable)
+        or authored.blocked
+        and not prepared.blocked
+    ):
+        raise ValidationError("Recorded mental provider changed its authored context")
+    if authored.definition_id == "advantage:mind-control":
+        bonus = (
+            4
+            if authored.concentration_seconds >= 3600
+            else 2
+            if authored.concentration_seconds >= 60
+            else 0
+        )
+        scores_valid = (
+            prepared.actor_score
+            == authored.actor_score + bonus - _control_penalty(event, authored, source_events)
+            and prepared.resistance_score == authored.resistance_score
+        )
+    elif authored.definition_id == "advantage:possession":
+        scores_valid = (
+            prepared.actor_score == authored.actor_score
+            and authored.resistance_score is not None
+            and prepared.resistance_score
+            == authored.resistance_score + (5 if authored.target_wary else 0)
+        )
+    else:
+        scores_valid = (prepared.actor_score, prepared.resistance_score) == (
+            authored.actor_score,
+            authored.resistance_score,
+        )
+    if (
+        authored.definition_id != "advantage:mind-control"
+        and event.resistance_origin.control_sources
+    ):
+        raise ValidationError("Only Mind Control derives a controller penalty")
+    if not scores_valid:
+        raise ValidationError("Recorded mental control/wary adjustments changed")
+    return prepared
+
+
+def _read_event(
+    event: ResourceEvent,
+    *,
+    at: int,
+    revision: int | None = None,
+    source_events: tuple[ResourceEvent, ...] = (),
+) -> MentalEvent:
+    origin_present = validate_event_json(event.kind)
+    try:
+        value = MentalEvent.model_validate_json(event.kind)
+    except SchemaError as exc:
+        raise ValidationError("Invalid mental provider event") from exc
+    origin = value.resistance_origin
+    if origin_present and origin is None:
+        raise ValidationError("Explicit mental provider origin cannot be null")
+    if origin is not None:
+        channel = _origin_channel(value)
+        command = MentalCommand.model_validate_json(origin.command_json)
+        if (
+            event.id != _event_id(value.command_id)
+            or event.target_id != value.outcome.target_id
+            or event.at != origin.at
+            or not 0 <= event.at <= at
+            or revision is not None
+            and command.expected_revision >= revision
+        ):
+            raise ValidationError("Recorded mental provider event envelope changed")
+        actual = _prepared_channel(value, channel, source_events)
+        if value.command_kind == "activate":
+            expected = _current_attempt(actual)
+            if value.outcome.resistance is not None:
+                prepared = _current_preparation(actual)
+                if prepared is None:
+                    raise ValidationError("Unresisted mental event contains a resistance attempt")
+                validate_current_resistance_attempt(
+                    prepared,
+                    value.outcome.resistance,
+                    allow_optional_subject=channel.resistance_roll is not None,
+                )
+            if (
+                expected != value.outcome.resistance
+                or _activation_result(actual, expected) != value.outcome.outcome
+            ):
+                raise ValidationError("Mental resistance disagrees with its actual consequence")
+        elif value.outcome.resistance is not None or value.outcome.outcome not in {
+            "interrupted",
+            "lingering",
+        }:
+            raise ValidationError("Stopped mental effect cannot contain a resistance attempt")
+    elif isinstance(value.outcome.resistance, FailedResistanceAttempt):
+        raise ValidationError("One-check mental resistance lacks current producer provenance")
+    return value
+
+
 def history(resources: ResourceState) -> tuple[MentalEvent, ...]:
+    events = tuple(event for event in resources.events if event.id.startswith(PREFIX))
+    if any(sum(other.id == event.id for other in events) != 1 for event in events):
+        raise ValidationError("Duplicate mental provider event")
     return tuple(
-        MentalEvent.model_validate_json(event.kind)
-        for event in resources.events
-        if event.id.startswith(PREFIX)
+        _read_event(
+            event,
+            at=resources.game_time,
+            revision=resources.revision,
+            source_events=resources.events,
+        )
+        for event in events
     )
 
 
@@ -239,6 +476,8 @@ def _control_context(
     resources: ResourceState,
     channel: MentalChannel,
     traits: MentalSpiritTraits,
+    *,
+    current: bool = False,
 ) -> MentalChannel:
     if channel.definition_id not in {"advantage:mind-control", "advantage:possession"}:
         return channel
@@ -269,14 +508,15 @@ def _control_context(
         if channel.concentration_seconds >= 60
         else 0
     )
-    return channel.model_copy(update={"actor_score": max(1, channel.actor_score + bonus - slaves)})
+    score = channel.actor_score + bonus - slaves
+    return channel.model_copy(update={"actor_score": score if current else max(1, score)})
 
 
 def _control_facts(
     resources: ResourceState,
     command: MentalCommand,
     channel: MentalChannel,
-    resistance: ResistanceTrace | None,
+    resistance: ResistanceAttempt | None,
     result: str,
     effect_id: str,
 ) -> tuple[int | None, tuple[ResourceEvent, ...]] | None:
@@ -284,7 +524,7 @@ def _control_facts(
         return None
     if result != "successful":
         return None, ()
-    assert resistance is not None
+    assert isinstance(resistance, ResistanceTrace)
     grant = MentalControl(
         controller_id=command.actor_id,
         target_id=channel.target_id,
@@ -351,7 +591,7 @@ def _neutralize_facts(
     resources: ResourceState,
     command: MentalCommand,
     channel: MentalChannel,
-    resistance: ResistanceTrace | None,
+    resistance: ResistanceAttempt | None,
     result: str,
     effect_id: str,
     power_id: str | None,
@@ -366,7 +606,7 @@ def _neutralize_facts(
             (),
         )
     if result == "successful":
-        assert resistance is not None
+        assert isinstance(resistance, ResistanceTrace)
         expires_at = resources.game_time + resistance.contest.victory_margin * 60
         fact = Neutralization(
             actor_id=command.actor_id,
@@ -401,7 +641,7 @@ def _neutralize_facts(
     return None, ()
 
 
-def apply_mental_use(
+def _apply_mental_use(
     resources: ResourceState,
     world: World,
     command: MentalCommand,
@@ -412,6 +652,7 @@ def apply_mental_use(
     authorized_actor_id: str,
     system: bool = False,
     rng: RandomSource | None = None,
+    current: bool,
 ) -> tuple[ResourceState, World, MentalOutcome]:
     if not system or authorized_actor_id != command.actor_id:
         raise ValidationError("Mental/spirit execution requires actor authority")
@@ -422,19 +663,23 @@ def apply_mental_use(
             and prior.command_kind == command.kind
             and prior.outcome.channel_id == command.channel_id
             and prior.outcome.definition_id == command.definition_id
+            and (
+                prior.resistance_origin is None
+                or MentalCommand.model_validate_json(prior.resistance_origin.command_json)
+                == command
+            )
         ):
             return resources, world, prior.outcome
         raise ConflictError("Mental/spirit command ID was already used")
     if resources.revision != command.expected_revision:
         raise ConflictError("Mental/spirit revision changed")
-    channel = next((value for value in channels if value.id == command.channel_id), None)
-    if (
-        channel is None
-        or channel.actor_id != command.actor_id
-        or channel.definition_id != command.definition_id
-        or channel.kind not in KINDS.get(command.definition_id, frozenset())
-    ):
-        raise ValidationError("Authored mental/spirit channel is unavailable")
+    channel = _selected_channel(channels, command, current=current)
+    origin = capture(command, channel, build.revision, resources.game_time) if current else None
+    origin = (
+        origin.model_copy(update={"control_sources": _capture_control_sources(resources, channel)})
+        if origin is not None
+        else None
+    )
     traits = mental_spirit_traits(build, definitions)
     if not traits.has(command.definition_id):
         raise ValidationError("Mental/spirit trait is not in the approved build")
@@ -450,7 +695,7 @@ def apply_mental_use(
     ):
         raise ValidationError("Mental/spirit channel context changed")
 
-    channel = _control_context(resources, channel, traits)
+    channel = _control_context(resources, channel, traits, current=current)
     selected_power = _validate_neutralize(resources, command, channel, traits)
     channel = channel.model_copy(
         update={
@@ -461,6 +706,11 @@ def apply_mental_use(
             or (channel.power_family == "psi" or channel.power_family in PSI_FAMILIES)
             and protects(resources, channel.target_id, purchased=channel.target_psi_static)
         }
+    )
+    origin = (
+        origin.model_copy(update={"prepared_channel_json": channel.model_dump_json()})
+        if origin is not None
+        else None
     )
     extra_events: tuple[ResourceEvent, ...] = ()
     effect_id = _effect_id(channel.id)
@@ -500,24 +750,8 @@ def apply_mental_use(
             resources, command, channel, outcome, active, scheduled
         )
     else:
-        pools = _spent_fatigue(
-            resources, command.actor_id, 0 if channel.blocked else channel.fatigue_cost
-        )
-        result: Literal["successful", "resisted", "blocked"]
-        resistance = None if channel.blocked else _resistance(channel)
-        if channel.blocked:
-            result = "blocked"
-        elif resistance is not None and not resistance.affected:
-            result = "resisted"
-        elif (
-            resistance is None
-            and not success_roll(
-                PROFILE, channel.actor_score, rng=RecordedDice(_recorded_total(channel.actor_roll))
-            ).outcome.succeeded
-        ):
-            result = "resisted"
-        else:
-            result = "successful"
+        pools, resistance = _activation_roll(resources, channel, current=current)
+        result = _activation_result(channel, resistance)
         persistent = channel.kind in {"influence", "possession", "neutralize"}
         expires_at, extra_events = _neutralize_facts(
             resources, command, channel, resistance, result, effect_id, selected_power, rng
@@ -562,7 +796,12 @@ def apply_mental_use(
         for fact_id in revealed:
             updated_world = updated_world.learn(command.actor_id, fact_id)
 
-    event = MentalEvent(command_id=command.id, command_kind=command.kind, outcome=outcome)
+    event = MentalEvent(
+        command_id=command.id,
+        command_kind=command.kind,
+        outcome=outcome,
+        resistance_origin=origin,
+    )
     updated = resources.model_copy(
         update={
             "revision": resources.revision + 1,
@@ -582,3 +821,214 @@ def apply_mental_use(
         }
     )
     return updated, updated_world, outcome
+
+
+def _selected_channel(
+    channels: tuple[MentalChannel, ...], command: MentalCommand, *, current: bool
+) -> MentalChannel:
+    channel = next((value for value in channels if value.id == command.channel_id), None)
+    if (
+        channel is None
+        or channel.actor_id != command.actor_id
+        or channel.definition_id != command.definition_id
+        or channel.kind not in KINDS.get(command.definition_id, frozenset())
+    ):
+        raise ValidationError("Authored mental/spirit channel is unavailable")
+    if current:
+        if sum(value.id == command.channel_id for value in channels) != 1:
+            raise ValidationError("Ambiguous current mental provider channel")
+        if not isinstance(channel, CurrentMentalChannel):
+            raise ValidationError("Current mental provider requires its explicit current context")
+        try:
+            return CurrentMentalChannel.model_validate(channel.model_dump())
+        except SchemaError as exc:
+            raise ValidationError("Invalid current mental provider context") from exc
+    if isinstance(channel, CurrentMentalChannel):
+        raise ValidationError("Historical mental provider cannot accept a current context")
+    return channel
+
+
+def _current_rule16(channel: MentalChannel) -> bool:
+    return (
+        channel.resistance_score is not None
+        and channel.supernatural_attack
+        and channel.target_living_or_sapient
+    )
+
+
+def _current_preparation(channel: MentalChannel) -> ResistancePreparation | None:
+    if channel.resistance_score is None:
+        if channel.resistance_roll is not None:
+            raise ValidationError("Resistance roll requires a resistance score")
+        if channel.actor_score < 3:
+            raise ValidationError("Voluntary mental attempt requires effective skill at least 3")
+        return None
+    return prepare_resistance_attempt(
+        PROFILE,
+        Contestant("attacker", channel.actor_score),
+        Contestant("resister", channel.resistance_score),
+        rule_of_16=_current_rule16(channel),
+    )
+
+
+def _current_attempt(channel: MentalChannel) -> ResistanceAttempt | None:
+    prepared = _current_preparation(channel)
+    if prepared is None or channel.blocked:
+        return None
+    return resolve_resistance_attempt(
+        prepared,
+        attacker_dice=_recorded_total(channel.actor_roll),
+        resister_dice=_recorded_total(channel.resistance_roll)
+        if channel.resistance_roll is not None
+        else None,
+    )
+
+
+def _activation_result(
+    channel: MentalChannel, resistance: ResistanceAttempt | None
+) -> Literal["successful", "resisted", "blocked"]:
+    if channel.blocked:
+        return "blocked"
+    if resistance is not None:
+        return "successful" if resistance.affected else "resisted"
+    return (
+        "successful"
+        if success_roll(
+            PROFILE, channel.actor_score, rng=RecordedDice(_recorded_total(channel.actor_roll))
+        ).outcome.succeeded
+        else "resisted"
+    )
+
+
+def _activation_roll(
+    resources: ResourceState, channel: MentalChannel, *, current: bool
+) -> tuple[tuple[Pool, ...], ResistanceAttempt | None]:
+    if current:
+        resistance = _current_attempt(channel)
+        # Source-current score admission and supplied-roll completeness precede FP.
+        return (
+            _spent_fatigue(
+                resources, channel.actor_id, 0 if channel.blocked else channel.fatigue_cost
+            ),
+            resistance,
+        )
+    pools = _spent_fatigue(
+        resources, channel.actor_id, 0 if channel.blocked else channel.fatigue_cost
+    )
+    return pools, None if channel.blocked else _resistance(channel)
+
+
+def apply_mental_use(
+    resources: ResourceState,
+    world: World,
+    command: MentalCommand,
+    build: ValidatedBuild,
+    definitions: Mapping[str, RuleDefinition],
+    channels: tuple[MentalChannel, ...],
+    *,
+    authorized_actor_id: str,
+    system: bool = False,
+    rng: RandomSource | None = None,
+) -> tuple[ResourceState, World, MentalOutcome]:
+    """Historical provider: unchanged two-supplied-roll contract and event bytes."""
+    return _apply_mental_use(
+        resources,
+        world,
+        command,
+        build,
+        definitions,
+        channels,
+        authorized_actor_id=authorized_actor_id,
+        system=system,
+        rng=rng,
+        current=False,
+    )
+
+
+def apply_current_mental_use(
+    resources: ResourceState,
+    world: World,
+    command: MentalCommand,
+    build: ValidatedBuild,
+    definitions: Mapping[str, RuleDefinition],
+    channels: tuple[CurrentMentalChannel, ...],
+    *,
+    authorized_actor_id: str,
+    system: bool = False,
+    rng: RandomSource | None = None,
+) -> tuple[ResourceState, World, MentalOutcome]:
+    """Explicit trusted-system provider; supplied totals are scoring inputs only."""
+    return _apply_mental_use(
+        resources,
+        world,
+        command,
+        build,
+        definitions,
+        channels,
+        authorized_actor_id=authorized_actor_id,
+        system=system,
+        rng=rng,
+        current=True,
+    )
+
+
+def replay_mental_use(
+    resources: ResourceState,
+    world: World,
+    command: MentalCommand,
+    build: ValidatedBuild,
+    definitions: Mapping[str, RuleDefinition],
+    recorded_event: ResourceEvent,
+    *,
+    historical_channels: tuple[MentalChannel, ...] | None = None,
+    rng: RandomSource | None = None,
+) -> tuple[ResourceState, World, MentalOutcome]:
+    """Replay a captured native producer, never infer omitted historical context."""
+    if any(e.id == recorded_event.id for e in resources.events):
+        raise ValidationError("Mental replay requires its pre-command state")
+    event = _read_event(recorded_event, at=resources.game_time, source_events=resources.events)
+    if (
+        recorded_event.id != _event_id(command.id)
+        or event.command_id != command.id
+        or event.command_kind != command.kind
+        or event.outcome.actor_id != command.actor_id
+        or event.outcome.definition_id != command.definition_id
+        or event.outcome.channel_id != command.channel_id
+    ):
+        raise ValidationError("Recorded mental replay command identity changed")
+    if event.resistance_origin is not None:
+        origin = event.resistance_origin
+        if (
+            origin.build_revision != build.revision
+            or MentalCommand.model_validate_json(origin.command_json) != command
+        ):
+            raise ValidationError("Recorded mental replay build or command changed")
+        result = apply_current_mental_use(
+            resources,
+            world,
+            command,
+            build,
+            definitions,
+            (_origin_channel(event),),
+            authorized_actor_id=command.actor_id,
+            system=True,
+            rng=rng,
+        )
+    else:
+        if historical_channels is None:
+            raise ValidationError("Historical mental replay requires its authored context")
+        result = apply_mental_use(
+            resources,
+            world,
+            command,
+            build,
+            definitions,
+            historical_channels,
+            authorized_actor_id=command.actor_id,
+            system=True,
+            rng=rng,
+        )
+    regenerated = next(e for e in result[0].events if e.id == recorded_event.id)
+    if regenerated != recorded_event or result[2] != event.outcome:
+        raise ValidationError("Recorded mental replay result changed")
+    return result

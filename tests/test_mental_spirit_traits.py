@@ -356,7 +356,7 @@ def test_source_resistance_changes_persistent_state_and_replays(
     expected: str,
     effective: int,
 ) -> None:
-    from wayfarer.engine.rules.gurps_checks import replay_resistance
+    from wayfarer.engine.rules.gurps_checks import ResistanceTrace, replay_resistance
 
     build, engine = approved(Purchase(definition_id="advantage:mind-control"))
     authored = channel(
@@ -386,6 +386,7 @@ def test_source_resistance_changes_persistent_state_and_replays(
     assert state.pools[0].current == 10 and state.revision == 1
     assert current_world == world()
     assert outcome.resistance is not None
+    assert isinstance(outcome.resistance, ResistanceTrace)
     assert outcome.resistance.attacker.effective_target == effective
     assert outcome.resistance.attacker.total == roll
     assert outcome.resistance.resister.total == resist_roll

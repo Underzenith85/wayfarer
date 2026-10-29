@@ -79,11 +79,18 @@ async def test_ability_opaque_inputs_retry_and_replay_without_losing_authority(
     raw = command_text(record)
     assert raw.startswith("a:") is legacy
     if not legacy:
-        ability = {
+        scope_ability = {
             "operation": "ability",
             "principal_id": "a",
             "command": value.model_dump(mode="json"),
             "ability_rule16_generation": 1,
+        }
+        ability = {
+            **scope_ability,
+            "ability_resistance_attempt_generation": 1,
+            "ability_resistance_original_input": json.dumps(
+                scope_ability, sort_keys=True, separators=(",", ":")
+            ),
         }
         reaction = {
             **ability,

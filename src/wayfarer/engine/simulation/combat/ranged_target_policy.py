@@ -12,8 +12,11 @@ from pydantic import field_validator
 from wayfarer.engine.rules.tables.combat import posture_ranged_target_modifier
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import catalog
+from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.thrown.live_grenades import armed_cause
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.errors import ValidationError
@@ -205,7 +208,54 @@ def target_modifier(
     return posture_ranged_target_modifier(target.posture, location)
 
 
-def require_owner_damage(runtime: RulesContext, state: PlayState, encounter: Encounter) -> None:
+def _nonpausing_grenade_delivery(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    selected: RangedMode,
+    response: ChooseDefense | None,
+) -> bool:
+    pending = encounter.pending_defense
+    assert pending is not None
+    if (
+        response is None
+        or response.actor_id != pending.defender_id
+        or response.encounter_id != encounter.id
+        or response.defense != "none"
+        or "none" not in pending.allowed
+        or response.item_id is not None
+        or response.second_defense is not None
+        or response.second_item_id is not None
+        or response.catch_thrown
+        or response.sacrificial_for is not None
+        or response.acrobatic_dodge
+        or response.dodge_and_drop
+        or response.retreat is not None
+        or response.basic_retreat
+        or response.parry_mode_id is not None
+        or response.second_parry_mode_id is not None
+        or selected.firearm is None
+        or selected.firearm.action != "grenade"
+    ):
+        return False
+    source = next(item for item in state.resources.items if item.id == pending.weapon_id)
+    entry = next(
+        entry for entry in catalog(runtime).entries if entry.definition_id == source.definition_id
+    )
+    if entry.warhead is None:
+        return False
+    # The canonical payload reducer relocates this actual armed cause. With no
+    # defense there are no shield impacts, so it never opens a damage pause.
+    return armed_cause(state.resources, source.id, encounter.id) is not None
+
+
+def require_owner_damage(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    *,
+    response: ChooseDefense | None = None,
+) -> None:
     pending = encounter.pending_defense
     if (
         pending is None
@@ -216,5 +266,9 @@ def require_owner_damage(runtime: RulesContext, state: PlayState, encounter: Enc
     if not enabled(runtime, state, encounter, pending.attacker_id, pending_id=pending.id):
         return
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
-    if isinstance(selected, RangedMode) and selected.thrown:
+    if (
+        isinstance(selected, RangedMode)
+        and selected.thrown
+        and not _nonpausing_grenade_delivery(runtime, state, encounter, selected, response)
+    ):
         raise ValidationError("Thrown attacks do not support a separate owner-damage choice")

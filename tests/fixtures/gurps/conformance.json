@@ -7921,6 +7921,1268 @@
       },
       "evidence_kind": "published-example",
       "provenance": "Independently entered from selected Campaigns fourth printing B344 No Default: proper training is required despite genuine GM societal familiarity. Actual SpellService Light cast refuses before entropy/state mutation; learned controls use the same production host. No claim to every skill or spell procedure."
+    },
+    {
+      "id": "basic-b348-q1-break-free-first-success",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus",
+      "family": "Q1",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          12,
+          10
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          12,
+          15
+        ],
+        "native_trace_modifier_values": [
+          [],
+          []
+        ],
+        "roll_totals": [
+          9,
+          16
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          12,
+          15
+        ],
+        "signed_margins": [
+          3,
+          -1
+        ],
+        "winner": "a",
+        "victory_margin": 4,
+        "grip_retained": false,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-q1-break-free-second-success",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus",
+      "family": "Q1",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          15,
+          7
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          15,
+          12
+        ],
+        "native_trace_modifier_values": [
+          [],
+          []
+        ],
+        "roll_totals": [
+          16,
+          9
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          15,
+          12
+        ],
+        "signed_margins": [
+          -1,
+          3
+        ],
+        "winner": "b",
+        "victory_margin": 4,
+        "grip_retained": true,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-q2-break-free-fright-aftermath",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus; B361 Fright aftermath",
+      "family": "Q2",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          14,
+          8
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          14,
+          13
+        ],
+        "native_trace_modifier_values": [
+          [
+            -2
+          ],
+          [
+            -2
+          ]
+        ],
+        "roll_totals": [
+          10,
+          10
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          12,
+          11
+        ],
+        "signed_margins": [
+          2,
+          1
+        ],
+        "winner": "a",
+        "victory_margin": 1,
+        "grip_retained": false,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-q3-break-free-both-fail",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus",
+      "family": "Q3",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          10,
+          7
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          10,
+          12
+        ],
+        "native_trace_modifier_values": [
+          [],
+          []
+        ],
+        "roll_totals": [
+          12,
+          17
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          10,
+          12
+        ],
+        "signed_margins": [
+          -2,
+          -5
+        ],
+        "winner": "a",
+        "victory_margin": 3,
+        "grip_retained": false,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-q4-break-free-success-tie",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus",
+      "family": "Q4",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          12,
+          10
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          12,
+          15
+        ],
+        "native_trace_modifier_values": [
+          [],
+          []
+        ],
+        "roll_totals": [
+          9,
+          12
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          12,
+          15
+        ],
+        "signed_margins": [
+          3,
+          3
+        ],
+        "winner": null,
+        "victory_margin": 0,
+        "grip_retained": true,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-q4-break-free-failure-tie",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus",
+      "family": "Q4",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          10,
+          3
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          10,
+          8
+        ],
+        "native_trace_modifier_values": [
+          [],
+          []
+        ],
+        "roll_totals": [
+          13,
+          11
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          10,
+          8
+        ],
+        "signed_margins": [
+          -3,
+          -3
+        ],
+        "winner": null,
+        "victory_margin": 0,
+        "grip_retained": true,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-q5-break-free-mixed-victory",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus",
+      "family": "Q5",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          15,
+          5
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          15,
+          10
+        ],
+        "native_trace_modifier_values": [
+          [],
+          []
+        ],
+        "roll_totals": [
+          10,
+          15
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          15,
+          10
+        ],
+        "signed_margins": [
+          5,
+          -5
+        ],
+        "winner": "a",
+        "victory_margin": 10,
+        "grip_retained": false,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-q6-break-free-critical-margin",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B371 two-handed holder bonus",
+      "family": "Q6",
+      "provider": "public CombatService / break_free",
+      "operation": "break_free",
+      "service": "native_quick_contest",
+      "input": {
+        "approved_raw_ST": [
+          16,
+          15
+        ],
+        "holder_hands": 2,
+        "holder_bonus": 5,
+        "native_trace_bases": [
+          16,
+          20
+        ],
+        "native_trace_modifier_values": [
+          [],
+          []
+        ],
+        "roll_totals": [
+          6,
+          7
+        ],
+        "dice_per_attempt": 3
+      },
+      "expected": {
+        "effective_targets": [
+          16,
+          20
+        ],
+        "signed_margins": [
+          10,
+          13
+        ],
+        "winner": "b",
+        "victory_margin": 3,
+        "grip_retained": true,
+        "pools_unchanged": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Trusted GM initial grip; Q2 genuine system Fright/recovery precondition, not full public Fright workflow; both actual checks native, full victory checked by adapter."
+    },
+    {
+      "id": "basic-b348-r7-ability-burning-malediction-literal-draws",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "public AbilityService / burning-malediction",
+      "operation": "burning-malediction",
+      "service": "native_ability_resistance",
+      "input": {
+        "compiled_actor_score": 10,
+        "distance_yards": 2,
+        "native_trace_attacker_base": 8,
+        "native_trace_attacker_modifiers": [],
+        "declared_resister_base": 10,
+        "resister_modifiers": [],
+        "attacker_dice": [
+          4,
+          4,
+          4
+        ],
+        "resister_dice": null,
+        "rule_of_16": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "contest_draws": 3,
+        "target_hp": 10,
+        "revealed_fact_ids": [],
+        "original_activation_fp_after": 9,
+        "damage_dice": [],
+        "declared_activation_duration_seconds": 1,
+        "clock_after_activation": 0,
+        "explicit_wait_seconds": 1,
+        "clock_before_and_after_resolve": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Both actual stores; declaration range/shock/retry folded into attacker base; separate seeded-total replay cases must not falsely assert these exact triples."
+    },
+    {
+      "id": "basic-b348-r8-ability-burning-malediction-literal-draws",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R8",
+      "provider": "public AbilityService / burning-malediction",
+      "operation": "burning-malediction",
+      "service": "native_ability_resistance",
+      "input": {
+        "compiled_actor_score": 14,
+        "distance_yards": 2,
+        "native_trace_attacker_base": 12,
+        "native_trace_attacker_modifiers": [],
+        "declared_resister_base": 15,
+        "resister_modifiers": [],
+        "attacker_dice": [
+          3,
+          3,
+          3
+        ],
+        "resister_dice": [
+          4,
+          4,
+          4
+        ],
+        "rule_of_16": true
+      },
+      "expected": {
+        "attacker_margin": 3,
+        "resister_margin": 3,
+        "victory_margin": 0,
+        "subject_attempted": true,
+        "affected": false,
+        "contest_draws": 6,
+        "target_hp": 10,
+        "revealed_fact_ids": [],
+        "original_activation_fp_after": 9,
+        "damage_dice": [],
+        "declared_activation_duration_seconds": 1,
+        "clock_after_activation": 0,
+        "explicit_wait_seconds": 1,
+        "clock_before_and_after_resolve": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Both actual stores; declaration range/shock/retry folded into attacker base; separate seeded-total replay cases must not falsely assert these exact triples."
+    },
+    {
+      "id": "basic-b348-r9-ability-burning-malediction-literal-draws",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R9",
+      "provider": "public AbilityService / burning-malediction",
+      "operation": "burning-malediction",
+      "service": "native_ability_resistance",
+      "input": {
+        "compiled_actor_score": 14,
+        "distance_yards": 2,
+        "native_trace_attacker_base": 12,
+        "native_trace_attacker_modifiers": [],
+        "declared_resister_base": 10,
+        "resister_modifiers": [],
+        "attacker_dice": [
+          3,
+          3,
+          3
+        ],
+        "resister_dice": [
+          4,
+          4,
+          4
+        ],
+        "rule_of_16": true
+      },
+      "expected": {
+        "attacker_margin": 3,
+        "resister_margin": -2,
+        "victory_margin": 5,
+        "subject_attempted": true,
+        "affected": true,
+        "contest_draws": 6,
+        "target_hp": 6,
+        "revealed_fact_ids": [],
+        "original_activation_fp_after": 9,
+        "damage_dice": [
+          4
+        ],
+        "declared_activation_duration_seconds": 1,
+        "clock_after_activation": 0,
+        "explicit_wait_seconds": 1,
+        "clock_before_and_after_resolve": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Both actual stores; declaration range/shock/retry folded into attacker base; separate seeded-total replay cases must not falsely assert these exact triples."
+    },
+    {
+      "id": "basic-b348-r7-ability-mind-reading-literal-draws",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "public AbilityService / mind-reading",
+      "operation": "mind-reading",
+      "service": "native_ability_resistance",
+      "input": {
+        "compiled_actor_score": 10,
+        "distance_yards": 5,
+        "native_trace_attacker_base": 8,
+        "native_trace_attacker_modifiers": [],
+        "declared_resister_base": 10,
+        "resister_modifiers": [],
+        "attacker_dice": [
+          4,
+          4,
+          4
+        ],
+        "resister_dice": null,
+        "rule_of_16": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "contest_draws": 3,
+        "target_hp": 10,
+        "revealed_fact_ids": [],
+        "original_activation_fp_after": 9,
+        "damage_dice": [],
+        "declared_activation_duration_seconds": 1,
+        "clock_after_activation": 0,
+        "explicit_wait_seconds": 1,
+        "clock_before_and_after_resolve": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Both actual stores; declaration range/shock/retry folded into attacker base; separate seeded-total replay cases must not falsely assert these exact triples."
+    },
+    {
+      "id": "basic-b348-r8-ability-mind-reading-literal-draws",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R8",
+      "provider": "public AbilityService / mind-reading",
+      "operation": "mind-reading",
+      "service": "native_ability_resistance",
+      "input": {
+        "compiled_actor_score": 12,
+        "distance_yards": 2,
+        "native_trace_attacker_base": 12,
+        "native_trace_attacker_modifiers": [],
+        "declared_resister_base": 15,
+        "resister_modifiers": [],
+        "attacker_dice": [
+          3,
+          3,
+          3
+        ],
+        "resister_dice": [
+          4,
+          4,
+          4
+        ],
+        "rule_of_16": true
+      },
+      "expected": {
+        "attacker_margin": 3,
+        "resister_margin": 3,
+        "victory_margin": 0,
+        "subject_attempted": true,
+        "affected": false,
+        "contest_draws": 6,
+        "target_hp": 10,
+        "revealed_fact_ids": [],
+        "original_activation_fp_after": 9,
+        "damage_dice": [],
+        "declared_activation_duration_seconds": 1,
+        "clock_after_activation": 0,
+        "explicit_wait_seconds": 1,
+        "clock_before_and_after_resolve": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Both actual stores; declaration range/shock/retry folded into attacker base; separate seeded-total replay cases must not falsely assert these exact triples."
+    },
+    {
+      "id": "basic-b348-r9-ability-mind-reading-literal-draws",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R9",
+      "provider": "public AbilityService / mind-reading",
+      "operation": "mind-reading",
+      "service": "native_ability_resistance",
+      "input": {
+        "compiled_actor_score": 12,
+        "distance_yards": 2,
+        "native_trace_attacker_base": 12,
+        "native_trace_attacker_modifiers": [],
+        "declared_resister_base": 10,
+        "resister_modifiers": [],
+        "attacker_dice": [
+          3,
+          3,
+          3
+        ],
+        "resister_dice": [
+          4,
+          4,
+          4
+        ],
+        "rule_of_16": true
+      },
+      "expected": {
+        "attacker_margin": 3,
+        "resister_margin": -2,
+        "victory_margin": 5,
+        "subject_attempted": true,
+        "affected": true,
+        "contest_draws": 6,
+        "target_hp": 10,
+        "revealed_fact_ids": [
+          "thought"
+        ],
+        "original_activation_fp_after": 9,
+        "damage_dice": [],
+        "declared_activation_duration_seconds": 1,
+        "clock_after_activation": 0,
+        "explicit_wait_seconds": 1,
+        "clock_before_and_after_resolve": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Both actual stores; declaration range/shock/retry folded into attacker base; separate seeded-total replay cases must not falsely assert these exact triples."
+    },
+    {
+      "id": "basic-b348-r7-creature-gaze",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "canonical current Creature system entry",
+      "operation": "gaze",
+      "service": "current_creature_resistance",
+      "input": {
+        "compiled_will": 10,
+        "distance_yards": 2,
+        "native_trace_attacker_base": 10,
+        "typed_distance_modifier": -2,
+        "declared_resister_base": 10,
+        "attacker_dice": [
+          4,
+          4,
+          4
+        ],
+        "resister_dice": null,
+        "target_DR": 99,
+        "rule_of_16": true
+      },
+      "expected": {
+        "effective_attacker": 8,
+        "attacker_margin": -4,
+        "resister_margin": null,
+        "victory_margin": null,
+        "subject_attempted": false,
+        "affected": false,
+        "damage_dice": [],
+        "target_hp": 9
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. System-only; no fake public/database host. Typed zero modifier0 is present for R8/R9."
+    },
+    {
+      "id": "basic-b348-r8-creature-gaze",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R8",
+      "provider": "canonical current Creature system entry",
+      "operation": "gaze",
+      "service": "current_creature_resistance",
+      "input": {
+        "compiled_will": 12,
+        "distance_yards": 0,
+        "native_trace_attacker_base": 12,
+        "typed_distance_modifier": 0,
+        "declared_resister_base": 15,
+        "attacker_dice": [
+          3,
+          3,
+          3
+        ],
+        "resister_dice": [
+          4,
+          4,
+          4
+        ],
+        "target_DR": 99,
+        "rule_of_16": true
+      },
+      "expected": {
+        "effective_attacker": 12,
+        "attacker_margin": 3,
+        "resister_margin": 3,
+        "victory_margin": 0,
+        "subject_attempted": true,
+        "affected": false,
+        "damage_dice": [],
+        "target_hp": 9
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. System-only; no fake public/database host. Typed zero modifier0 is present for R8/R9."
+    },
+    {
+      "id": "basic-b348-r9-creature-gaze",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R9",
+      "provider": "canonical current Creature system entry",
+      "operation": "gaze",
+      "service": "current_creature_resistance",
+      "input": {
+        "compiled_will": 12,
+        "distance_yards": 0,
+        "native_trace_attacker_base": 12,
+        "typed_distance_modifier": 0,
+        "declared_resister_base": 10,
+        "attacker_dice": [
+          3,
+          3,
+          3
+        ],
+        "resister_dice": [
+          4,
+          4,
+          4
+        ],
+        "target_DR": 99,
+        "rule_of_16": true
+      },
+      "expected": {
+        "effective_attacker": 12,
+        "attacker_margin": 3,
+        "resister_margin": -2,
+        "victory_margin": 5,
+        "subject_attempted": true,
+        "affected": true,
+        "damage_dice": [
+          1,
+          1,
+          1
+        ],
+        "target_hp": 6
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. System-only; no fake public/database host. Typed zero modifier0 is present for R8/R9."
+    },
+    {
+      "id": "basic-b348-r7-mental-mind-reading",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "read",
+      "service": "current_mental_resistance",
+      "input": {
+        "definition_id": "advantage:mind-reading",
+        "kind": "read",
+        "actor_base": 8,
+        "actor_total": 12,
+        "adapter_decomposition": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": null,
+        "fatigue_cost": 0,
+        "touching_target": true,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "new_contest_rng_draws": 0,
+        "revealed_fact_ids": [],
+        "control_grants": 0,
+        "suppressions": 0,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
+    },
+    {
+      "id": "basic-b348-r7-mental-mind-probe",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "probe",
+      "service": "current_mental_resistance",
+      "input": {
+        "definition_id": "advantage:mind-probe",
+        "kind": "probe",
+        "actor_base": 8,
+        "actor_total": 12,
+        "adapter_decomposition": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": null,
+        "fatigue_cost": 0,
+        "touching_target": true,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "new_contest_rng_draws": 0,
+        "revealed_fact_ids": [],
+        "control_grants": 0,
+        "suppressions": 0,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
+    },
+    {
+      "id": "basic-b348-r7-mental-mind-control",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "influence",
+      "service": "current_mental_resistance",
+      "input": {
+        "definition_id": "advantage:mind-control",
+        "kind": "influence",
+        "actor_base": 8,
+        "actor_total": 12,
+        "adapter_decomposition": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": null,
+        "fatigue_cost": 0,
+        "touching_target": true,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "new_contest_rng_draws": 0,
+        "revealed_fact_ids": [],
+        "control_grants": 0,
+        "suppressions": 0,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
+    },
+    {
+      "id": "basic-b348-r7-mental-possession",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "possession",
+      "service": "current_mental_resistance",
+      "input": {
+        "definition_id": "advantage:possession",
+        "kind": "possession",
+        "actor_base": 8,
+        "actor_total": 12,
+        "adapter_decomposition": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": null,
+        "fatigue_cost": 0,
+        "touching_target": true,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "new_contest_rng_draws": 0,
+        "revealed_fact_ids": [],
+        "control_grants": 0,
+        "suppressions": 0,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
+    },
+    {
+      "id": "basic-b348-r7-mental-neutralize",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "neutralize",
+      "service": "current_mental_resistance",
+      "input": {
+        "definition_id": "advantage:neutralize",
+        "kind": "neutralize",
+        "actor_base": 8,
+        "actor_total": 12,
+        "adapter_decomposition": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": null,
+        "fatigue_cost": 0,
+        "touching_target": true,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "new_contest_rng_draws": 0,
+        "revealed_fact_ids": [],
+        "control_grants": 0,
+        "suppressions": 0,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
+    },
+    {
+      "id": "basic-b348-r7-mental-dominance",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "influence",
+      "service": "current_mental_resistance",
+      "input": {
+        "definition_id": "advantage:dominance",
+        "kind": "influence",
+        "actor_base": 8,
+        "actor_total": 12,
+        "adapter_decomposition": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": null,
+        "fatigue_cost": 0,
+        "touching_target": true,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "new_contest_rng_draws": 0,
+        "revealed_fact_ids": [],
+        "control_grants": 0,
+        "suppressions": 0,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Generic trusted GM-numerical B348 regression ONLY; selected stock trait is not a printed attacker-subject Quick Contest."
+    },
+    {
+      "id": "basic-b348-r7-mental-terror",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "terror",
+      "service": "current_mental_resistance",
+      "input": {
+        "definition_id": "advantage:terror",
+        "kind": "terror",
+        "actor_base": 8,
+        "actor_total": 12,
+        "adapter_decomposition": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": null,
+        "fatigue_cost": 0,
+        "touching_target": true,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": -4,
+        "subject_attempted": false,
+        "affected": false,
+        "new_contest_rng_draws": 0,
+        "revealed_fact_ids": [],
+        "control_grants": 0,
+        "suppressions": 0,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Generic trusted GM-numerical B348 regression ONLY; selected stock trait is not a printed attacker-subject Quick Contest."
+    },
+    {
+      "id": "basic-b348-r7-mental-reading-optional-subject",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R7",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "read",
+      "service": "current_mental_resistance",
+      "input": {
+        "actor_base": 8,
+        "actor_total": 12,
+        "actor_adapter_dice": [
+          6,
+          5,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": 17,
+        "resister_adapter_dice": [
+          6,
+          6,
+          5
+        ],
+        "fatigue_cost": 2,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "signed_margins": [
+          -4,
+          -7
+        ],
+        "ordinary_nested_winner": "attacker",
+        "ordinary_victory_margin": 3,
+        "affected": false,
+        "subject_attempted": true,
+        "fp_after": 8,
+        "world_unchanged": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
+    },
+    {
+      "id": "basic-b348-r8-mental-reading",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R8",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "read",
+      "service": "current_mental_resistance",
+      "input": {
+        "actor_base": 12,
+        "actor_total": 9,
+        "actor_adapter_dice": [
+          6,
+          2,
+          1
+        ],
+        "resister_base": 15,
+        "resister_total": 12,
+        "resister_adapter_dice": [
+          6,
+          5,
+          1
+        ],
+        "fatigue_cost": 2,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": 3,
+        "resister_margin": 3,
+        "victory_margin": 0,
+        "affected": false,
+        "fp_after": 8,
+        "learned_surface_fact": false,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
+    },
+    {
+      "id": "basic-b348-r9-mental-reading",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / Margin of Victory / Resistance Rolls; Campaigns fourth printing (2008); B345 voluntary minimum; B349 declared Rule of 16 scope",
+      "family": "R9",
+      "provider": "trusted supplied-total current Mental system entry",
+      "operation": "read",
+      "service": "current_mental_resistance",
+      "input": {
+        "actor_base": 12,
+        "actor_total": 9,
+        "actor_adapter_dice": [
+          6,
+          2,
+          1
+        ],
+        "resister_base": 10,
+        "resister_total": 12,
+        "resister_adapter_dice": [
+          6,
+          5,
+          1
+        ],
+        "fatigue_cost": 2,
+        "supernatural_attack": true,
+        "target_living_or_sapient": true
+      },
+      "expected": {
+        "attacker_margin": 3,
+        "resister_margin": -2,
+        "victory_margin": 5,
+        "affected": true,
+        "fp_after": 8,
+        "learned_surface_fact": true,
+        "rule_of_16": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Independently hand-derived from supplied Campaigns fourth-printing B348, reviewed source-oracle27-case/41-node grid. The printed contrasts are success5 versus failure5 and success2 versus success1; these chosen raw scores/dice are manual rule applications, not printed raw examples. Printed opposed base procedure for named trait, but trusted authored numerical context; no full named-trait procedure compliance claim."
     }
   ]
 }

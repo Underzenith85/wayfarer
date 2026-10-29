@@ -38,6 +38,10 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.ability_boundary import AbilityAdmission
 from wayfarer.orchestration.ability_offshift_generations import capture as capture_offshift
 from wayfarer.orchestration.ability_offshift_generations import payload as offshift_payload
+from wayfarer.orchestration.ability_resistance_admission import admit as admit_resistance
+from wayfarer.orchestration.ability_resistance_admission import record_origin
+from wayfarer.orchestration.ability_resistance_generations import capture as capture_resistance
+from wayfarer.orchestration.ability_resistance_generations import payload as resistance_payload
 from wayfarer.orchestration.ability_rule16_generations import capture as capture_scope
 from wayfarer.orchestration.ability_rule16_generations import payload as scope_payload
 from wayfarer.orchestration.membership import member_for
@@ -53,6 +57,20 @@ class AbilityExecutionContext:
     play: PlayService
     rule16_scope: bool = False
     offshift: bool = False
+    current_resistance: bool = False
+
+
+def _resisted_command(play: PlayService, command: AbilityCommand) -> bool:
+    rules = play.engine.rules.abilities
+    return (
+        rules is not None
+        and command.kind in {"activate", "resolve"}
+        and any(
+            s.definition_id == command.ability_id
+            and s.kind in {"burning-malediction", "mind-reading"}
+            for s in rules.abilities
+        )
+    )
 
 
 def _require_gadget_available(
@@ -250,6 +268,7 @@ def _prepare_ability(
         channel=channel,
         target_psi_static=target_psi_static,
         target_living_or_sapient=target_scope,
+        current_resistance=execution.current_resistance,
         interrupted=incapacitated,
         unavailable=incapacitated and taking_turn,
         shock=hp.injury.shock if hp.injury else 0,
@@ -264,6 +283,7 @@ def _prepare_ability(
             and play.engine.resources.specs[i.definition_id].slot in ("hand", "hands")
         ),
     )
+    context = admit_resistance(state, command, spec, context)
     if taking_turn:
         validate_binding(spec, context.level, context.options)
         validate_target(state.world, command, spec, context)
@@ -295,6 +315,7 @@ def reduce_ability(
     resources, world, result = apply_ability(
         state.resources, state.world, command, spec, context, rng=play.rng, system=True
     )
+    resources = record_origin(resources, command, enabled=execution.current_resistance)
     if execution.offshift and command.kind == "activate":
         resources = record_offshift(resources, command)
     updated = state.model_copy(
@@ -422,9 +443,12 @@ class AbilityService:
         *,
         rule16_scope: bool = False,
         offshift: bool = False,
+        current_resistance: bool = False,
     ) -> PlayState:
         updated, _ = reduce_ability(
-            state, command, AbilityExecutionContext(self.play, rule16_scope, offshift)
+            state,
+            command,
+            AbilityExecutionContext(self.play, rule16_scope, offshift, current_resistance),
         )
         return updated
 
@@ -438,16 +462,28 @@ class AbilityService:
         principal_id: str,
         rule16_scope: bool = False,
         offshift: bool = False,
+        current_resistance: bool = False,
     ) -> CommandPlan[AbilityOutcome]:
         """What an ability use writes; the pipeline decides whether it runs."""
         service = AbilityService(play)
-        payload = offshift_payload(
-            scope_payload(principal_id, command, rule16_scope), principal_id, command, offshift
+        payload = resistance_payload(
+            offshift_payload(
+                scope_payload(principal_id, command, rule16_scope), principal_id, command, offshift
+            ),
+            principal_id,
+            command,
+            current_resistance,
         )
 
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = play._load(campaign)
-            updated = service.reduce(current, command, rule16_scope=rule16_scope, offshift=offshift)
+            updated = service.reduce(
+                current,
+                command,
+                rule16_scope=rule16_scope,
+                offshift=offshift,
+                current_resistance=current_resistance,
+            )
             updated = play.checkpoint(updated, before=current)
             play.commit(campaign, updated)
             return CommandReceipt(action="resource", outcome="ability")
@@ -455,7 +491,7 @@ class AbilityService:
         async def outcome(campaign: Campaign) -> AbilityOutcome:
             updated = play._load(campaign)
             event = next(e for e in updated.resources.events if e.id == internal_id(command.id))
-            return AbilityEvent.model_validate_json(event.kind).outcome
+            return AbilityEvent.read_native_json(event.kind).outcome
 
         return CommandPlan(
             command_id=command.id,
@@ -478,6 +514,13 @@ class AbilityService:
         state = play._load(await play.store.read(cid))
         member = member_for(state, principal_id)
         scope = await capture_scope(play.store, cid, command.id)
+        resistance = await capture_resistance(
+            play.store,
+            cid,
+            command,
+            state.resources,
+            eligible=_resisted_command(play, command),
+        )
         rules = play.engine.rules.abilities
         eligible = (
             command.kind == "activate"
@@ -505,6 +548,7 @@ class AbilityService:
                 principal_id=principal_id,
                 rule16_scope=scope,
                 offshift=offshift,
+                current_resistance=resistance,
             ),
             principal_id=principal_id,
         )

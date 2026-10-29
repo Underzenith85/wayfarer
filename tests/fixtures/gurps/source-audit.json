@@ -3878,6 +3878,303 @@
         "tests/test_default_knowledge_current_no_default.py::test_native_light_requires_spell_training_not_magery_or_society_metadata"
       ],
       "owner": 98
+    },
+    {
+      "id": "basic-b348-q1-break-free-first-success",
+      "sha256": "720c6dc44ee279d5c2a95654d0f03b723d0d987d67fa108a6976f5b1d138124b",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-q1-break-free-second-success",
+      "sha256": "b58883f6f7a47d4f285d0fffc4adb3674870ee25107cb52c2cb98a99c9ba38ae",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-q2-break-free-fright-aftermath",
+      "sha256": "3b732a937bb732f0f3cdfb017e6902c27b97181c92261ddbc6ebb53861b4222c",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-q3-break-free-both-fail",
+      "sha256": "cfdce6779d24d4159f437b749208e81375856b09516c5ea7b9109c58e4a33e60",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-q4-break-free-success-tie",
+      "sha256": "7153ed8307e2cc231cc1da96bca794e04f3e175e51d6626c05dd99a57b1e6c61",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-q4-break-free-failure-tie",
+      "sha256": "fd457fd809f79fb7f2f91bdbff9b50172276196d4eb80a28c1a545cd1009a6a9",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-q5-break-free-mixed-victory",
+      "sha256": "ed941b71fe85b29d120ba94e9545c4c0695b77b3c9670b0fb6e406d9d6b0e6db",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-q6-break-free-critical-margin",
+      "sha256": "76029c00f86b04af02996ea860b300984e9dec5943d43f57eb3fd2c76d2f2af3",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_quick_contest_native.py::test_native_break_free_literal_quick_contest_and_original_seed"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-ability-burning-malediction-literal-draws",
+      "sha256": "c29f93dcc00bf2a340f1148b676ea878c547ca64f1902cf1bac3e7d34d0b0661",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r8-ability-burning-malediction-literal-draws",
+      "sha256": "40ddc21431ab75416d3837a3f96009a2553b1ab6a066afa34d366e1d3128e6f6",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r9-ability-burning-malediction-literal-draws",
+      "sha256": "fa30717f06e4bcda411248b990c6e1eedaba8ea68f4eb0b0f60bc7782b0bd951",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-ability-mind-reading-literal-draws",
+      "sha256": "40c148f5a7b40a6b0347caa7ec6f69c218c9f5d6cd6e88c067f76e33cc09a95e",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r8-ability-mind-reading-literal-draws",
+      "sha256": "687398c0ab3abc2ddca94e2ffab20c4884dcaa9dc49c5dc5cd879d226baae846",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r9-ability-mind-reading-literal-draws",
+      "sha256": "01892642a413459b2b277b05ffabcfb8d5837208c630957649c33d426fa7b5ca",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_ability_resistance_attempts.py::test_current_literal_actual_draw_chronology"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-creature-gaze",
+      "sha256": "7c8c931f79a70b96a523a52d2993dbbfd4c77fc245f340c1546d5f76a3a283f3",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_creature_resistance_attempts.py::test_failed_attacker_uses_only_three_actual_dice_no_damage_and_real_origin"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r8-creature-gaze",
+      "sha256": "078e1f90ce64035f41beb2c38022cd1d21955d5a77a8f5facf294c66f1415dc8",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_creature_resistance_attempts.py::test_successful_attack_requires_actual_subject_roll_and_only_winner_causes_injury"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r9-creature-gaze",
+      "sha256": "f9cbf9d07480a04b450348d715fd42263e0d3fa242b911dd14d1a464a1b904c6",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_creature_resistance_attempts.py::test_successful_attack_requires_actual_subject_roll_and_only_winner_causes_injury"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-mind-reading",
+      "sha256": "b837b3c088e4f091b3348ed9ffa66ba9af52e546cebffdffc8c274d00bc5c090",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-mind-probe",
+      "sha256": "d37e79495cc3e5eeb41241b94d7a20b55459eb921c1cf130751f3e89394692f2",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-mind-control",
+      "sha256": "8e101e16ef59d21a28b93e4bed1fb0b2a16416142c9473586c5bbd789552c6cb",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-possession",
+      "sha256": "2dedac5242cc6f4f6e1286136e54ee8f5ca21bd24da600c3ff8b04ebe4d49bf5",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-neutralize",
+      "sha256": "e8a3c162043e7f9f73cb7789ce69cc44fd353a1fc728ce6d12c98b9984b48f80",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-dominance",
+      "sha256": "55fba4e01c1700859cbbacb626911e3f2a6c58f041bd2e56edca1a9f35bb4287",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-terror",
+      "sha256": "35980f653545b4706f5bd5b774bd9e0ebbe89b9a2474d9117a7fea174fd5d035",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_admitted_current_channels_allow_failed_attack_without_subject_attempt"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r7-mental-reading-optional-subject",
+      "sha256": "6ee7878d90471bcfa32aa26d6e471e4a74870dd55d4ed4728a63d2ad6ca31c00",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_optional_actual_defender_attempt_cannot_make_failed_attack_affect_subject"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r8-mental-reading",
+      "sha256": "f80bf1f89a4a83ca9260a02a0e2d16b7ca6062a0252fd7d78446e475695d15aa",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_resistance_tie_and_success_have_actual_two_rolls"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-b348-r9-mental-reading",
+      "sha256": "341b134278e79c020caf310437355dba495ad510b705915fd6a9d26abaf1ebf7",
+      "status": "reviewed",
+      "reviewer": "Independent selected-source B348 manual oracle review, 2026-10-25",
+      "evidence": "tests/support/quick_contest_evidence.py",
+      "tests": [
+        "tests/test_mental_resistance_attempts.py::test_resistance_tie_and_success_have_actual_two_rolls"
+      ],
+      "owner": 99
     }
   ]
 }

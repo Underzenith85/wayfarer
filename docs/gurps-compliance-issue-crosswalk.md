@@ -1,10 +1,10 @@
 # Local execution/audit to GitHub crosswalk
 
-Read-only snapshot: last green `artifacts/compliance/diagnosis-minimum-checkpoint/basic-set.json`, its execution bindings in `src/wayfarer/certification/basic_set_audit/executable-evidence.json`, capability manifest `src/wayfarer/engine/rules/conformance.py`, source rows `basic_set_audit/sections.json`, and `/tmp/wayfarer-github-issues-checkpoint.json` (2026-10-25). No issues were edited. Local changes remain uncommitted; issue closure is not proof that this checkout implements every source exception.
+Read-only snapshot: last green `artifacts/compliance/b348-quick-contests-checkpoint/basic-set.json`, its execution bindings in `src/wayfarer/certification/basic_set_audit/executable-evidence.json`, capability manifest `src/wayfarer/engine/rules/conformance.py`, source rows `basic_set_audit/sections.json`, and the read-only GitHub issue snapshot dated 2026-10-25. Issue states below have not been refreshed on 2026-10-29. No issues were edited; checkpoint publication is recorded in Git history, and issue closure is not proof that this checkout implements every source exception.
 
-## The exact 14 verified execution obligations
+## The exact 15 verified execution obligations
 
-The first nine rows are the **nine verified capabilities out of 73**. The final five are independently verified source sections, not five more capabilities. Friendly labels below expand the exact IDs; capability declarations themselves have IDs rather than separate title fields.
+The first nine rows are the **nine verified capabilities out of 73**. The final six are independently verified source sections, not six more capabilities. Friendly labels below expand the exact IDs; capability declarations themselves have IDs rather than separate title fields.
 
 | Exact execution obligation ID | Name | Explicit repository issue mapping |
 | --- | --- | --- |
@@ -22,16 +22,17 @@ The first nine rows are the **nine verified capabilities out of 73**. The final 
 | `section:campaigns:b349:the-rule-of-16` | The Rule of 16 | Audit `historical_owners: [191, 501, 679]`; `completion_owner: null`. No explicit exact closure issue link. #99/#754 are thematic, not recorded section closure owners. |
 | `section:characters:b017:basic-lift-and-encumbrance-table` | Basic Lift and Encumbrance Table | Audit `historical_owners: [191, 495]`; `completion_owner: null`. Both historical issues are closed. No exact section completion issue exists; #97/#834 are related historical scopes. |
 | `section:campaigns:b344:default-rolls` | Default Rolls | Audit historical owners #191/#501/#679; `completion_owner: null`. No exact section completion issue. #98 and #832/#833 are related skill/default and native procedure scopes. |
+| `section:campaigns:b348:quick-contests` | Quick Contests, Margin of Victory and Resistance Rolls | Audit historical owners #191/#501/#679; `completion_owner: null`. No exact section completion issue. #99/#754 are thematic contest/resistance matches, not newly closed issues. |
 
 The nine-capability count is the evaluator’s result for its existing explicit case bindings, not an independent claim that every related printed rule is covered. The exact B344 section now has its own independently reviewed source cases and native executable proof. Remaining B173 and individual skill-procedure gaps remain separate; the kernel capability does not certify the whole skill subsystem. Likewise critical classification does not certify every contextual critical consequence.
 
-The source-section titles and historical owners are exact audit fields. The executable-evidence rows bind case IDs but do not supply a GitHub owner. A separate live lookup confirms historical #191, #501, #679 and #495 are closed; none is an exact completion owner for the five section obligations. Historical prose in `docs/gurps-conformance.md` claiming all required capabilities verified/certified is superseded by the fail-closed executed report.
+The source-section titles and historical owners are exact audit fields. The executable-evidence rows bind case IDs but do not supply a GitHub owner. A separate live lookup confirms historical #191, #501, #679 and #495 are closed; none is an exact completion owner for the six section obligations. Historical prose in `docs/gurps-conformance.md` claiming all required capabilities verified/certified is superseded by the fail-closed executed report.
 
 ## Remaining measured groups
 
-The report is **not certified**. There are **64 remaining capability obligations**, **1,880 execution blockers**, **97 inventory blockers**, **13 source-ledger blockers**, and **one profile-declaration blocker**. These dimensions overlap; do not add them as distinct missing rules. Many execution blockers are missing or insufficient case bindings, not proof of absent implementation. Every one of the 1,285 source rows has been source-reviewed; source availability is resolved.
+The report is **not certified**. There are **64 remaining capability obligations**, **1,879 execution blockers**, **97 inventory blockers**, **13 source-ledger blockers**, and **one profile-declaration blocker**. These dimensions overlap; do not add them as distinct missing rules. Many execution blockers are missing or insufficient case bindings, not proof of absent implementation. Every one of the 1,285 source rows has been source-reviewed; source availability is resolved.
 
-The 1,880 execution blockers include 477 skill rows, 464 source sections, 355 traits, 150 supernatural advantages, 100 supernatural spells, 87 modifiers, 64 capabilities and smaller content/equipment groups. Execution blockers usually carry #94 as the report's broad fallback owner. That is an explicit report value, **not** an exact per-defect issue mapping. #742 is the semantic-audit umbrella explicitly named by repository documentation.
+The 1,879 execution blockers include 477 skill rows, 463 source sections, 355 traits, 150 supernatural advantages, 100 supernatural spells, 87 modifiers, 64 capabilities and smaller content/equipment groups. Execution blockers usually carry #94 as the report's broad fallback owner. That is an explicit report value, **not** an exact per-defect issue mapping. #742 is the semantic-audit umbrella explicitly named by repository documentation.
 
 The 13 exact source-ledger blockers map as follows (these are explicit `owner_issue` values from the report):
 
@@ -127,3 +128,5 @@ The source-current Lifesaving minimum is a local regression fix under the broade
 The completed Medical/Physician checkpoint passed 5,636 selected tests plus 16,077 architecture subtests on both databases, zero skips. It preserves all 14/nine counts and the same blocker groups; full certification remains false. No whole medical/healing section or GitHub acceptance is claimed from this bounded final-score/training correction. Its failed historical-expectation run, repeatability checks and test-only namespace repair are archived. Diagnosis and B348 changes remain outside this green checkpoint.
 
 The subsequent Diagnosis checkpoint passed 5,682 selected tests plus 16,077 architecture subtests on both databases, zero failures/errors/skips. It preserves the same 14 execution obligations, nine capabilities and blocker groups. The voluntary final-score correction is locally implemented and validated; no whole Diagnosis/medical section or GitHub issue acceptance is claimed. B348 remains isolated pending complete source/evidence and integrated validation.
+
+The 2026-10-29 B348 checkpoint passed 6,233 selected tests and 16,156 architecture subtests, zero failures/errors/skips, all sixteen gates. The exact source-section gain is B348 Quick Contests:15 execution obligations/nine capabilities; 1,990 blocker records/1,883 identifiers. The narrow grenade admission correction fixes a preexisting overbroad guard without changing the original tests; it closes no GitHub issue. All issue associations remain as qualified above. The immediate user goal is now a limited campaign with actual end-to-end coverage, not further whole-book certification.

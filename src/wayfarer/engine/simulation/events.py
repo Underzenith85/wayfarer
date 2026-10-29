@@ -314,7 +314,7 @@ def play_facts(before: PlayState, after: PlayState, actor_id: str) -> list[Engin
         elif event.id.startswith("spell:"):
             result.append(SpellResolved(fact=SpellEvent.model_validate_json(event.kind)))
         elif event.id.startswith("ability:"):
-            result.append(AbilityResolved(fact=AbilityEvent.model_validate_json(event.kind)))
+            result.append(AbilityResolved(fact=AbilityEvent.read_native_json(event.kind)))
         else:
             result.append(ResourceChanged(audience=GMAudience(), fact=event))
     return result
