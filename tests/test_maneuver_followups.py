@@ -1,5 +1,7 @@
 """Independent B364-366/B385/B390/B412/B417 maneuver expectations for #152."""
 
+import json
+from collections.abc import Callable
 from pathlib import Path
 
 from test_gurps_maneuvers import defend, turn
@@ -7,8 +9,10 @@ from test_gurps_ranged import scene, weapon
 from test_tactical import migration
 from test_tactical import setup as tactical_setup
 
+from wayfarer.certification.executable_evidence import provenance
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.actors import catalog
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.resources import Item
@@ -17,14 +21,34 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 async def test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses(
-    tmp_path: Path,
+    tmp_path: Path, record_property: Callable[[str, object], None]
 ) -> None:
+    root = Path(__file__).resolve().parents[1]
+    case = next(
+        case
+        for case in json.loads((root / "tests/fixtures/gurps/conformance.json").read_text())[
+            "cases"
+        ]
+        if case["id"] == "basic-aim-brace-variable-scope"
+    )
+    assert case["profile"] == "gurps-basic-set-4e-2004"
+    assert case["input"] == {
+        "accuracy": 2,
+        "aim_seconds": 1,
+        "braced": True,
+        "variable_scope_bonus": 2,
+    }
+    assert case["expected"] == {"effective_aim_bonus": 4}
     ranged = weapon(bow=True).model_copy(
         update={"hands": 2, "brace_kind": "bipod", "scope_bonus": 2}
     )
     from test_gurps_melee import setup
 
-    cid, play = await setup(tmp_path, ranged_mode=ranged, ranged_scene=scene())
+    cid, play = await setup(
+        tmp_path, "gurps-basic-set-4e-2004", ranged_mode=ranged, ranged_scene=scene()
+    )
+    assert play.engine.reviewer.compiler.statistics_profile == "gurps-basic-set-4e-2004"
+    assert catalog(play.rules_context).profile_id == "gurps-basic-set-4e-2004"
     await turn(cid, play, "a", "change_posture", posture="prone")
     await turn(cid, play, "b", "do_nothing")
     await turn(
@@ -40,6 +64,8 @@ async def test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses(
     actor = play._load(await play.store.read(cid)).encounters[0].participants[0]
     # Acc 2, first-second Aim +0, brace +1, variable scope +1.
     assert actor.maneuver_state.aim_bonus == 4
+    for name, value in provenance(root, case).items():
+        record_property(name, value)
 
 
 async def test_fixed_scope_requires_its_full_aim_time(tmp_path: Path) -> None:

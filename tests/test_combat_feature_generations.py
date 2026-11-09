@@ -99,6 +99,7 @@ def test_fresh_commands_capture_only_implemented_features() -> None:
             "staff-form-contact",
             "regular-contest-extreme-scores",
             "repair-operating-tools",
+            "scope-aim-elapsed",
         }
     )
 

@@ -10,6 +10,7 @@ from wayfarer.engine.simulation.combat.encounter import (
     Encounter,
     basic_distance,
 )
+from wayfarer.engine.simulation.combat.generations import scope_aim_elapsed_enabled
 from wayfarer.engine.simulation.combat.maneuvers import (
     ATTACK_MANEUVERS,
     AttackOption,
@@ -39,6 +40,9 @@ def _carried_state(participant: Combatant, maneuver: Maneuver) -> ManeuverState:
         aim_target_id=old.aim_target_id,
         aim_mode_id=old.aim_mode_id,
         aim_seconds=old.aim_seconds if participant.last_maneuver == "aim" else 0,
+        aim_elapsed_seconds=old.aim_elapsed_seconds
+        if participant.last_maneuver == "aim" and scope_aim_elapsed_enabled()
+        else 0,
         aim_accuracy=old.aim_accuracy,
         aim_braced=old.aim_braced,
         aim_sight_bonus=old.aim_sight_bonus,

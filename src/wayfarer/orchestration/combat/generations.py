@@ -33,6 +33,7 @@ KNOWN = frozenset(
         "staff-form-contact",
         "regular-contest-extreme-scores",
         "repair-operating-tools",
+        "scope-aim-elapsed",
     }
 )
 ACTIVE = KNOWN

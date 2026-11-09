@@ -16,6 +16,7 @@ from wayfarer.engine.simulation.combat.concentrate_steps import (
 )
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.generations import scope_aim_elapsed_enabled
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
@@ -114,12 +115,23 @@ def _aim(
     seconds = actor.maneuver_state.aim_seconds
     if previous.maneuver_state.aim_mode_id != aimed_mode.id:
         seconds = 1
+    elapsed = 0
+    if catalog(runtime).profile_id == "gurps-basic-set-4e-2004" and scope_aim_elapsed_enabled():
+        old = previous.maneuver_state
+        elapsed = (
+            (old.aim_elapsed_seconds or old.aim_seconds) + 1
+            if previous.last_maneuver == "aim"
+            and (old.aim_item_id, old.aim_target_id, old.aim_mode_id)
+            == (command.item_id, command.target_id, aimed_mode.id)
+            else 1
+        )
+    scope_seconds = elapsed or seconds
     sight_bonus = (
         aimed_mode.scope_bonus
-        if aimed_mode.fixed_power_scope and seconds >= aimed_mode.scope_bonus
+        if aimed_mode.fixed_power_scope and scope_seconds >= aimed_mode.scope_bonus
         else 0
         if aimed_mode.fixed_power_scope
-        else min(aimed_mode.scope_bonus, seconds)
+        else min(aimed_mode.scope_bonus, scope_seconds)
     )
     return CombatEngine._replace(
         encounter,
@@ -130,6 +142,7 @@ def _aim(
                         "aim_accuracy": aimed_mode.accuracy,
                         "aim_mode_id": aimed_mode.id,
                         "aim_seconds": seconds,
+                        "aim_elapsed_seconds": elapsed,
                         "aim_braced": command.braced,
                         "aim_sight_bonus": 0
                         if acute_blindness(state.resources, actor.actor_id)
@@ -242,7 +255,12 @@ def distracted(
         )
     ):
         commitment = commitment.model_copy(
-            update={"aim_seconds": 0, "aim_item_id": None, "aim_target_id": None}
+            update={
+                "aim_seconds": 0,
+                "aim_elapsed_seconds": 0,
+                "aim_item_id": None,
+                "aim_target_id": None,
+            }
         )
     if commitment.concentrating and (defended or injured):
         check = success_roll(

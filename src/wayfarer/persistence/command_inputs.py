@@ -412,6 +412,7 @@ def combat_intent(text: str) -> str:
             "staff-form-contact",
             "regular-contest-extreme-scores",
             "repair-operating-tools",
+            "scope-aim-elapsed",
         }
         or (
             payload.get("operation") == "composed-defense"

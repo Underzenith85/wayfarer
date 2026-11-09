@@ -11,6 +11,10 @@ def preserve_grenade_fuse() -> bool:
     return "grenade-fuse" in _current.get()
 
 
+def scope_aim_elapsed_enabled() -> bool:
+    return "scope-aim-elapsed" in _current.get()
+
+
 def maneuver_budget_enabled() -> bool:
     return "maneuver-budget" in _current.get()
 

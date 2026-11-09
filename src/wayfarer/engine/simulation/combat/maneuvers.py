@@ -55,6 +55,8 @@ class ManeuverState(Record):
     aim_item_id: str | None = None
     aim_target_id: str | None = None
     aim_seconds: int = Field(default=0, ge=0, le=3)
+    # Ordinary extra Aim stops at +2; scopes can require longer uninterrupted Aim.
+    aim_elapsed_seconds: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
     aim_accuracy: int = Field(default=0, ge=0)
     aim_mode_id: str | None = None
     aim_braced: bool = False
@@ -106,6 +108,7 @@ class ManeuverState(Record):
                 "aim_item_id": None,
                 "aim_target_id": None,
                 "aim_seconds": 0,
+                "aim_elapsed_seconds": 0,
                 "aim_accuracy": 0,
                 "aim_mode_id": None,
                 "aim_braced": False,
