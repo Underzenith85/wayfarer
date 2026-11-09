@@ -42,6 +42,7 @@ from wayfarer.engine.rules.social.social_hooks import (
 )
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
 from wayfarer.engine.rules.traits.mundane.runtime import DEFAULT_AUDIENCE, Audience
+from wayfarer.engine.rules.traits.procedures import resolve_self_control
 from wayfarer.engine.simulation.campaign.propaganda import PropagandaMediaContext
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
@@ -112,6 +113,7 @@ class SocialContext:
         audience: Audience = DEFAULT_AUDIENCE,
         self_control_modifier: int = 0,
         self_control_trait_id: str | None = None,
+        self_control_give_in: bool = False,
         influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
         procedure_id: str | None = None,
         # A procedure without an explicit approved level fails closed rather than
@@ -135,6 +137,7 @@ class SocialContext:
         self.standing, self.audience = standing, audience
         self.self_control_modifier = self_control_modifier
         self.self_control_trait_id = self_control_trait_id
+        self.self_control_give_in = self_control_give_in
         self.influence_conditions = influence_conditions
         # #345 whole-entry social skill procedures. `conditions` are named facts
         # about the situation; the procedure owns every integer they are worth.
@@ -151,6 +154,16 @@ class SocialContext:
         if any(m.kind == "trait" for m in self.modifiers):
             raise ValidationError("Trait reaction modifiers are derived from approved builds")
         self.modifiers = self.modifiers + modifiers
+
+
+def require_self_control_decision(command: SocialCommand, context: SocialContext) -> None:
+    """An explicit B120 decision is private Basic Set self-control context only."""
+    if type(context.self_control_give_in) is not bool:
+        raise ValidationError("Self-control giving in requires a boolean decision")
+    if context.self_control_give_in and (
+        command.kind != "self-control" or context.profile_id != "gurps-basic-set-4e-2004"
+    ):
+        raise ValidationError("Giving in requires a Basic Set self-control trigger")
 
 
 def _require_propaganda_media(
@@ -429,6 +442,7 @@ def apply_social(
             if e.id in (event_id, legacy_id) and e.target_id == command.subject_id
         )
         return state, SocialOutcome.model_validate_json(json.loads(event.kind)["public"])
+    require_self_control_decision(command, context)
     actors = {e.id for e in world.entities if e.kind is EntityKind.ACTOR}
     if not {command.actor_id, command.subject_id} <= actors:
         raise ValidationError("Social checks require world actors")
@@ -613,6 +627,26 @@ def apply_social(
     else:
         if context.trait_rules is None or context.trait_options is None:
             raise ValidationError("Self-control requires approved trait options")
+        if context.self_control_give_in:
+            gave_in = resolve_self_control(
+                context.profile_id,
+                context.trait_base,
+                context.trait_levels,
+                context.trait_options,
+                context.trait_rules,
+                "give-in",
+                available_points=0,
+                gm_allows_paid_success=False,
+                rng=rng,
+            )
+            outcome = SocialOutcome(kind=command.kind, outcome="triggered")
+            state = _commit_social(
+                state,
+                command,
+                outcome,
+                gave_in.model_dump(mode="json", exclude={"points_remaining"}),
+            )
+            return state, outcome
         control = self_control_roll(
             context.profile_id,
             context.trait_base,

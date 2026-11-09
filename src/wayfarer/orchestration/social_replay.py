@@ -41,6 +41,9 @@ class CapturedSocialContext(Record):
     audience: Audience = DEFAULT_AUDIENCE
     self_control_modifier: int = 0
     self_control_trait_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    self_control_give_in: bool = Field(
+        default=False, strict=True, exclude_if=lambda value: not value
+    )
     influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS
     procedure_id: str | None = None
     skill_level: int = 0
@@ -75,6 +78,7 @@ class CapturedSocialContext(Record):
             audience=self.audience,
             self_control_modifier=self.self_control_modifier,
             self_control_trait_id=self.self_control_trait_id,
+            self_control_give_in=self.self_control_give_in,
             influence_conditions=self.influence_conditions,
             procedure_id=self.procedure_id,
             skill_level=self.skill_level,

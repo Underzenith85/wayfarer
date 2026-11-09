@@ -60,6 +60,11 @@ from wayfarer.orchestration.ability_rule16_generations import (
     principal as ability_principal,
 )
 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService, EvaluateRuling
+from wayfarer.orchestration.advancement import (
+    AdvanceCharacter,
+    AdvancementService,
+    GrantPoints,
+)
 from wayfarer.orchestration.analyze_magic import AnalyzeMagicService
 from wayfarer.orchestration.apportation import ApportationService
 from wayfarer.orchestration.armoury import ADAPTER as ARMOURY_ADAPTER
@@ -578,7 +583,37 @@ async def _objectives(play: PlayService, record: CommandRecord, encoded: str) ->
     )
 
 
+def _require_advancement_family(record: CommandRecord, operation: str) -> None:
+    payload = _recorded_payload(record)
+    if (
+        set(payload) != {"operation", "command"}
+        or payload.get("operation") != operation
+        or not isinstance(payload.get("command"), dict)
+    ):
+        raise ValidationError("Advancement replay requires its exact original typed envelope")
+
+
+async def _advancement_grant(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    _require_advancement_family(record, "grant")
+    await AdvancementService(play).grant(
+        record.campaign_id,
+        GrantPoints.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
+async def _advancement_purchase(play: PlayService, record: CommandRecord, encoded: str) -> None:
+    _require_advancement_family(record, "advance")
+    await AdvancementService(play).advance(
+        record.campaign_id,
+        AdvanceCharacter.model_validate_json(encoded),
+        principal_id=record.actor_id,
+    )
+
+
 _REGISTERED_FAMILIES: Mapping[str, Callable[[PlayService, CommandRecord, str], Awaitable[None]]] = {
+    "grant": _advancement_grant,
+    "advance": _advancement_purchase,
     "objectives": _objectives,
     "gurps-recovery": _medical_rest,
     "hazard-care": _hazard_care,

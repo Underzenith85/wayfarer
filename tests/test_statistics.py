@@ -7,6 +7,7 @@ inline from the frozen source; none are read back from the implementation.
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import FrozenInstanceError, replace
 from decimal import Decimal
 from pathlib import Path
@@ -18,6 +19,7 @@ from test_compiler import compiler as prototype_compiler
 from test_compiler import draft as prototype_draft
 from test_compiler import trait
 
+from wayfarer.certification.executable_evidence import provenance
 from wayfarer.engine.character import statistics
 from wayfarer.engine.character.compiler import (
     CharacterCompiler,
@@ -97,13 +99,24 @@ def profile_of(case: dict[str, object]) -> str:
     return str(case["profile"])
 
 
+def _record_basic_case(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
+    """Bind passed source assertions; Lite keeps its separate source-review gate."""
+    if case["profile"] == BASIC:
+        for name, value in provenance(Path(__file__).resolve().parents[1], case).items():
+            record_property(name, value)
+
+
 def test_every_statistics_fixture_declares_an_executable_operation() -> None:
     assert cases()
     assert all(case.get("operation") for case in cases())
 
 
 @pytest.mark.parametrize("case", cases("attribute_cost"), ids=lambda c: str(c["id"]))
-def test_attribute_costs(case: dict[str, object]) -> None:
+def test_attribute_costs(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     given_ = inputs(case)
     attribute = Attribute(str(given_["attribute"]).lower())
     assert given_["from"] == 10
@@ -113,20 +126,26 @@ def test_attribute_costs(case: dict[str, object]) -> None:
         statistics.attribute_cost(profile_of(case), attribute, level)
         == expected(case)["point_cost"]
     )
+    _record_basic_case(case, record_property)
 
 
 @pytest.mark.parametrize("case", cases("basic_speed"), ids=lambda c: str(c["id"]))
-def test_basic_speed_keeps_fractions(case: dict[str, object]) -> None:
+def test_basic_speed_keeps_fractions(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     given_ = inputs(case)
     dx, ht = given_["DX"], given_["HT"]
     assert isinstance(dx, int) and isinstance(ht, int)
     result = compile_statistics(profile_of(case), PrimaryAttributes(10, dx, 10, ht))
     assert result.basic_speed == Decimal(str(expected(case)["basic_speed"]))
     assert str(result.basic_speed) == str(expected(case)["basic_speed"])
+    _record_basic_case(case, record_property)
 
 
 @pytest.mark.parametrize("case", cases("basic_move_from_speed"), ids=lambda c: str(c["id"]))
-def test_basic_move_drops_fractions(case: dict[str, object]) -> None:
+def test_basic_move_drops_fractions(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     quarters = Decimal(str(inputs(case)["basic_speed"])) * 4
     assert quarters == quarters.to_integral_value()
     result = compile_statistics(
@@ -136,6 +155,7 @@ def test_basic_move_drops_fractions(case: dict[str, object]) -> None:
     )
     assert result.basic_move == expected(case)["basic_move"]
     assert expected(case)["unit"] == "yard/second"
+    _record_basic_case(case, record_property)
 
 
 def _purchased(value: object) -> SecondaryLevels:
@@ -151,7 +171,9 @@ def _purchased(value: object) -> SecondaryLevels:
 
 
 @pytest.mark.parametrize("case", cases("secondary"), ids=lambda c: str(c["id"]))
-def test_purchased_secondary_characteristics(case: dict[str, object]) -> None:
+def test_purchased_secondary_characteristics(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     given_ = inputs(case)
     attributes = PrimaryAttributes(*(int(str(given_[name])) for name in ("ST", "DX", "IQ", "HT")))
     result = compile_statistics(
@@ -170,20 +192,26 @@ def test_purchased_secondary_characteristics(case: dict[str, object]) -> None:
         else:
             assert getattr(result, key) == value, key
     assert all(result.costs.attributes[a] == 0 for a in Attribute if attributes.level(a) == 10)
+    _record_basic_case(case, record_property)
 
 
 @pytest.mark.parametrize("case", cases("basic_lift"), ids=lambda c: str(c["id"]))
-def test_basic_lift_rounding_point(case: dict[str, object]) -> None:
+def test_basic_lift_rounding_point(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     st_ = inputs(case)["ST"]
     assert isinstance(st_, int)
     result = statistics.basic_lift(profile_of(case), st_)
     assert str(result) == expected(case)["basic_lift"]
     assert expected(case)["unit"] == "pound"
     assert (result == result.to_integral_value()) == (case["rounding"] == "nearest")
+    _record_basic_case(case, record_property)
 
 
 @pytest.mark.parametrize("case", cases("encumbrance"), ids=lambda c: str(c["id"]))
-def test_encumbrance_bands(case: dict[str, object]) -> None:
+def test_encumbrance_bands(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     given_ = inputs(case)
     carried = given_["carried"]
     assert isinstance(carried, int)
@@ -193,26 +221,33 @@ def test_encumbrance_bands(case: dict[str, object]) -> None:
         assert band is None
     else:
         assert band is not None and band.name.lower().replace("_", "-") == wanted
+    _record_basic_case(case, record_property)
 
 
 @pytest.mark.parametrize("case", cases("encumbered_move"), ids=lambda c: str(c["id"]))
-def test_encumbered_move_and_dodge(case: dict[str, object]) -> None:
+def test_encumbered_move_and_dodge(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     given_ = inputs(case)
     band = Encumbrance[str(given_["encumbrance"]).upper().replace("-", "_")]
     move, dodge = given_["basic_move"], given_["dodge"]
     assert isinstance(move, int) and isinstance(dodge, int)
     assert statistics.encumbered_move(profile_of(case), move, band) == expected(case)["move"]
     assert statistics.encumbered_dodge(dodge, band) == expected(case)["dodge"]
+    _record_basic_case(case, record_property)
 
 
 @pytest.mark.parametrize("case", cases("damage"), ids=lambda c: str(c["id"]))
-def test_damage_table_rows(case: dict[str, object]) -> None:
+def test_damage_table_rows(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     st_ = inputs(case)["ST"]
     assert isinstance(st_, int)
     thrust, swing = statistics.damage(
         profile_of(case), st_, revision=int(str(case.get("statistics_revision", 1)))
     )
     assert (str(thrust), str(swing)) == (expected(case)["thrust"], expected(case)["swing"])
+    _record_basic_case(case, record_property)
 
 
 def test_damage_lookup_fails_closed_outside_the_profile_table() -> None:
@@ -548,7 +583,9 @@ def test_definitions_are_catalog_ready_and_named() -> None:
 
 
 @pytest.mark.parametrize("case", cases("damage_error"), ids=lambda c: str(c["id"]))
-def test_damage_error_fixtures(case: dict[str, object]) -> None:
+def test_damage_error_fixtures(
+    case: dict[str, object], record_property: Callable[[str, object], None]
+) -> None:
     with pytest.raises(StatisticsError) as caught:
         statistics.damage(
             profile_of(case),
@@ -556,6 +593,7 @@ def test_damage_error_fixtures(case: dict[str, object]) -> None:
             revision=int(str(case["statistics_revision"])),
         )
     assert caught.value.code == expected(case)["code"]
+    _record_basic_case(case, record_property)
 
 
 def test_statistics_revision_is_explicit_and_basic_only() -> None:

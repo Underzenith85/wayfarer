@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from decimal import ROUND_FLOOR, ROUND_HALF_UP, Decimal
+from decimal import ROUND_FLOOR, ROUND_HALF_UP, Context, Decimal, localcontext
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Final
@@ -274,13 +274,28 @@ def _integer(value: object, code: str, message: str) -> int:
     return value
 
 
+def _arithmetic_context(value: Decimal | int) -> Context:
+    """Own enough precision for exact source arithmetic, never the caller's context.
+
+    Inputs here are finite build statistics. Four guard digits cover division by
+    four/five and the largest encumbrance multiplier (ten). A positive exponent
+    also needs integral places when source rounding quantizes to a whole number.
+    """
+    parts = Decimal(value).as_tuple()
+    if not isinstance(parts.exponent, int):
+        raise StatisticsError("statistics.number", "Statistics require finite exact numbers")
+    precision = len(parts.digits) + max(0, parts.exponent) + 4
+    return Context(prec=max(28, precision))
+
+
 def _exact(value: Decimal) -> Decimal:
     """Drop only trailing zeros so equal values render identically."""
 
-    for exponent in (Decimal(1), Decimal("0.1"), Decimal("0.01")):
-        candidate = value.quantize(exponent)
-        if candidate == value:
-            return candidate
+    with localcontext(_arithmetic_context(value)):
+        for exponent in (Decimal(1), Decimal("0.1"), Decimal("0.01")):
+            candidate = value.quantize(exponent)
+            if candidate == value:
+                return candidate
     return value
 
 
@@ -305,10 +320,12 @@ def basic_lift(profile_id: str, st: int) -> Decimal:
     st = _integer(st, "attribute.type", "ST must be an integer")
     if st < selected.attribute_minimum:
         raise StatisticsError("attribute.minimum", "ST is below the minimum")
-    exact = Decimal(st * st) / Decimal(5)
-    if exact >= selected.basic_lift_rounding_threshold:
-        return exact.quantize(Decimal(1), rounding=ROUND_HALF_UP)
-    return _exact(exact)
+    squared = st * st
+    with localcontext(_arithmetic_context(squared)):
+        exact = Decimal(squared) / Decimal(5)
+        if exact >= selected.basic_lift_rounding_threshold:
+            return exact.quantize(Decimal(1), rounding=ROUND_HALF_UP)
+        return _exact(exact)
 
 
 def damage(profile_id: str, st: int, *, revision: int = 1) -> tuple[DiceExpression, DiceExpression]:
@@ -336,7 +353,8 @@ def damage(profile_id: str, st: int, *, revision: int = 1) -> tuple[DiceExpressi
 
 
 def encumbrance_thresholds(profile_id: str, lift: Decimal) -> tuple[Decimal, ...]:
-    return tuple(lift * multiplier for multiplier in rules(profile_id).encumbrance_multipliers)
+    with localcontext(_arithmetic_context(lift)):
+        return tuple(lift * multiplier for multiplier in rules(profile_id).encumbrance_multipliers)
 
 
 def encumbrance(
@@ -359,7 +377,8 @@ def encumbered_move(profile_id: str, basic_move: int, level: Encumbrance) -> int
     if basic_move < 0:
         raise StatisticsError("secondary.minimum", "Basic Move cannot be negative")
     multiplier = rules(profile_id).move_multipliers[level]
-    reduced = int((Decimal(basic_move) * multiplier).quantize(Decimal(1), rounding=ROUND_FLOOR))
+    with localcontext(_arithmetic_context(basic_move)):
+        reduced = int((Decimal(basic_move) * multiplier).quantize(Decimal(1), rounding=ROUND_FLOOR))
     return max(reduced, 1) if basic_move >= 1 else 0
 
 
@@ -410,8 +429,9 @@ def compile_statistics(
             )
         resolved[secondary] = chosen
         secondary_costs[secondary] = (chosen - default) * selected.secondary_costs[secondary]
-    speed = _exact(Decimal(resolved[Secondary.BASIC_SPEED]) / Decimal(4))
-    default_move = int(speed.quantize(Decimal(1), rounding=ROUND_FLOOR))
+    with localcontext(_arithmetic_context(resolved[Secondary.BASIC_SPEED])):
+        speed = _exact(Decimal(resolved[Secondary.BASIC_SPEED]) / Decimal(4))
+        default_move = int(speed.quantize(Decimal(1), rounding=ROUND_FLOOR))
     move = purchased.level(Secondary.BASIC_MOVE)
     if move is None:
         move = default_move

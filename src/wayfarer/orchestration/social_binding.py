@@ -16,7 +16,11 @@ from wayfarer.engine.simulation.campaign.propaganda import bind_media
 from wayfarer.engine.simulation.health.self_control_conditions import (
     modifiers as condition_modifiers,
 )
-from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext
+from wayfarer.engine.simulation.social.social import (
+    SocialCommand,
+    SocialContext,
+    require_self_control_decision,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.social_generations import condition_self_control_enabled
@@ -25,7 +29,10 @@ from wayfarer.orchestration.social_generations import condition_self_control_ena
 def bind_self_control(
     play: PlayService, state: PlayState, command: SocialCommand, context: SocialContext
 ) -> tuple[Modifier, ...]:
-    if command.kind != "self-control" or not condition_self_control_enabled():
+    require_self_control_decision(command, context)
+    if command.kind != "self-control" or (
+        not condition_self_control_enabled() and not context.self_control_give_in
+    ):
         return ()
     approved = play.rules_context.approved_build(state, command.subject_id)
     compiler = play.engine.reviewer.compiler

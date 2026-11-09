@@ -9,7 +9,6 @@ statistics, runtime pools, or prototype/Lite behavior.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import ROUND_CEILING, Decimal
 from typing import Final, Literal
 
 from wayfarer.engine.rules.conformance import require_capabilities
@@ -80,11 +79,8 @@ def cost(
         adjusted = base_cost
         applied = 0
     else:
-        adjusted = int(
-            (Decimal(base_cost) * Decimal(100 - percent) / Decimal(100)).to_integral_value(
-                rounding=ROUND_CEILING
-            )
-        )
+        # Round once, without letting an ambient Decimal context round the product.
+        adjusted = (base_cost * (100 - percent) + 99) // 100
         applied = percent
     return SizeModifierCost(
         target=target,
