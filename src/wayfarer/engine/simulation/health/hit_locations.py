@@ -8,6 +8,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RandomSource
+from wayfarer.engine.rules.penetration import divided_dr
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.location import (
     HitLocation,
@@ -221,7 +222,7 @@ def effective_dr(
     if not divisor.is_finite() or divisor <= 0:
         raise ValidationError("Armor divisor must be finite and positive")
     total = resistance + (2 if location == "skull" and damage_type != "tox" else 0)
-    divided = int(Decimal(total) / divisor)
+    divided = divided_dr(total, divisor)
     return max(1, divided) if divisor < 1 else divided
 
 

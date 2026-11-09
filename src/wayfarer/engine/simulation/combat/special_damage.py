@@ -11,6 +11,7 @@ from decimal import Decimal
 
 from pydantic import Field, model_validator
 
+from wayfarer.engine.rules.penetration import divided_dr
 from wayfarer.engine.rules.types.affliction import (
     AfflictionDelivery,
     AfflictionEffect,
@@ -70,7 +71,7 @@ class AfflictionPenetration(Record):
 def _divided_dr(dr: int, divisor: Decimal) -> int:
     if type(dr) is not int or dr < 0 or not divisor.is_finite() or divisor <= 0:
         raise ValidationError("Affliction DR and divisor must be finite nonnegative facts")
-    divided = int(Decimal(dr) / divisor)
+    divided = divided_dr(dr, divisor)
     return max(1, divided) if divisor < 1 else divided
 
 

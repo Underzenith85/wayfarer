@@ -23,6 +23,7 @@ from wayfarer.engine.rules.checks import (
     draw_dice,
     evaluate_success,
 )
+from wayfarer.engine.rules.penetration import divided_dr
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.object import (
     ObjectCondition,
@@ -204,7 +205,7 @@ def _resolve_object_effect(
         damage_dice = draw_dice(rng, 1)
         basic_damage = max(0, damage_dice[0] - 1)
     if isinstance(command, (DamageObject, BurnObject)):
-        dr = int(Decimal(profile.dr) / armor_divisor)
+        dr = divided_dr(profile.dr, armor_divisor)
         if profile.dr == 0 and armor_divisor < 1:
             dr = 1
         penetrating = max(0, basic_damage - dr)

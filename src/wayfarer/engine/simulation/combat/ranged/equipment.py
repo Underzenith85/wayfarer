@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+from wayfarer.engine.rules.penetration import divided_dr
 from wayfarer.engine.rules.types.affliction import AfflictionEffect
 from wayfarer.engine.rules.types.ranged_equipment import (
     BackBlastEvent,
@@ -97,7 +98,7 @@ def resolve_follow_up(
     target = (
         target_ht
         + spec.resistance_penalty
-        + (0 if spec.requires_penetration else int(Decimal(resistance_dr) / spec.armor_divisor))
+        + (0 if spec.requires_penetration else divided_dr(resistance_dr, spec.armor_divisor))
     )
     total = sum(resistance_dice)
     margin = target - total
